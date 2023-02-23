@@ -19,7 +19,7 @@ X-Tenant-Id: {{tenant}}
   "Name": "This is my Name",
   "LegalStatus": "Archives privées",
   "AcquisitionInformation": "Versement",
-  "ArchivalAgreement":"IC-000001",
+  "ArchivalAgreement": "IC-000001",
   "Comment": "Versement du service producteur : Cabinet de Michel Mercier",
   "UnitUp": "aeaqaaaaaahgnz5dabg42amava5kfoqaaaba"
 }
@@ -58,7 +58,7 @@ X-Tenant-Id: {{tenant}}
 Content-Length: 143
 
 {
-    "$query":"Versement"
+  "$query": "Versement"
 }
 
 ### Récuperation d'un projet par id
@@ -75,19 +75,19 @@ X-Tenant-Id: {{tenant}}
 Content-Length: 143
 
 {
-    "$roots": [],
-    "$query": [
-        {
-          "$match": {
-            "Title": "Saint"
-          }
-        }
-    ],
-    "$filter": {
-        "$offset": 0,
-        "$limit": 100
-    },
-    "$projection": {}
+  "$roots": [],
+  "$query": [
+    {
+      "$match": {
+        "Title": "Saint"
+      }
+    }
+  ],
+  "$filter": {
+    "$offset": 0,
+    "$limit": 100
+  },
+  "$projection": {}
 }
 
 ### Recherche d'unités archivistique par projectId et dsl query
@@ -98,14 +98,14 @@ X-Tenant-Id: {{tenant}}
 Content-Length: 143
 
 {
-    "$roots": [],
-    "$query": [
-        {
-            "$exists": "Title"
-        }
-    ],
-    "$filter": {},
-    "$projection": {}
+  "$roots": [],
+  "$query": [
+    {
+      "$exists": "Title"
+    }
+  ],
+  "$filter": {},
+  "$projection": {}
 }
 
 ### Récupération d'une unité archivistique par ID
@@ -139,24 +139,6 @@ X-Tenant-Id: {{tenant}}
 
 
 
-### Création d'une nouvelle transaction
-POST  {{url-collect}}/collect-external/v1/projects/{{project-id}}/transactions
-Accept: application/json
-Content-Type: application/json
-X-Tenant-Id: {{tenant}}
-
-{
-  "Name": "Versement des objets binaires",
-  "ArchivalAgreement": "IC-000001",
-  "MessageIdentifier": "Transaction de test",
-  "ArchivalAgencyIdentifier": "ArchivalAgencyIdentifier5",
-  "TransferringAgencyIdentifier": "TransferingAgencyIdentifier5",
-  "OriginatingAgencyIdentifier": "FRAN_NP_009913",
-  "SubmissionAgencyIdentifier": "FRAN_NP_005761",
-  "ArchiveProfile": "ArchiveProfile5",
-  "Comment": "Commentaires"
-}
-
 ### Récupérer une transaction
 GET  {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}
 Accept: application/json
@@ -185,6 +167,64 @@ X-Tenant-Id: {{tenant}}
   "Comment": "Commentaires"
 }
 
+
+
+
+
+
+### get project transactions
+GET {{url-collect}}/collect-external/v1/projects/{{project-id}}/transactions
+accept: application/json
+content-type: application/json
+X-Tenant-Id: {{tenant}}
+
+
+
+### Création d'une nouvelle transaction
+POST  {{url-collect}}/collect-external/v1/projects/{{project-id}}/transactions
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+{
+  "Name": "Versement des objets binaires",
+  "ArchivalAgreement": "IC-000001",
+  "MessageIdentifier": "Transaction de test",
+  "ArchivalAgencyIdentifier": "ArchivalAgencyIdentifier5",
+  "TransferringAgencyIdentifier": "TransferingAgencyIdentifier5",
+  "OriginatingAgencyIdentifier": "FRAN_NP_009913",
+  "SubmissionAgencyIdentifier": "FRAN_NP_005761",
+  "ArchiveProfile": "ArchiveProfile5",
+  "Comment": "Commentaires"
+}
+
+### upload a zip on transactions
+POST {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/upload
+Accept: application/json
+Content-Type: application/zip
+X-Tenant-Id: {{tenant}}
+
+< /path_tozip/stream.zip
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### Création et rattachement d'une nouvelle unité archivistique à la transaction
 POST  {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/units
 Accept: application/json
@@ -199,7 +239,9 @@ X-Tenant-Id: {{tenant}}
     "fr": "La legendes traduites en anglais."
   },
   "Status": "Pret",
-  "Tag": ["Grande Collecte"],
+  "Tag": [
+    "Grande Collecte"
+  ],
   "Source": "Famille Herve, CP1",
   "CreatedDate": "2014-06-12T09:31:00",
   "TransactedDate": "2014-06-12T09:31:00",

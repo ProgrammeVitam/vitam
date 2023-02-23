@@ -54,12 +54,17 @@ xlarge-access-vm-1
 [zone_access:children]
 hosts_ingest_external
 hosts_access_external
+hosts_collect_external
 
 [hosts_ingest_external]
 xlarge-external-vm-1
 xlarge-external-vm-2
 
 [hosts_access_external]
+xlarge-external-vm-1
+xlarge-external-vm-2
+
+[hosts_collect_external]
 xlarge-external-vm-1
 xlarge-external-vm-2
 
@@ -78,6 +83,9 @@ hosts_logbook
 hosts_workspace
 hosts_storage_engine
 hosts_security_internal
+hosts_collect_internal
+hosts_metadata_collect
+hosts_workspace_collect
 
 [hosts_security_internal]
 xlarge-app-vm-3
@@ -139,6 +147,17 @@ xlarge-app-vm-19
 xlarge-app-vm-20
 xlarge-app-vm-21
 
+[hosts_collect_internal]
+xlarge-app-vm-1
+xlarge-app-vm-2
+
+[hosts_metadata_collect]
+xlarge-app-vm-6
+xlarge-app-vm-7
+xlarge-app-vm-8
+
+[hosts_workspace_collect]
+xlarge-app-vm-10
 
 ##### Zone storage
 

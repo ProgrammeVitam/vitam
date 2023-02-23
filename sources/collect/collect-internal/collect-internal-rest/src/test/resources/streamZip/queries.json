@@ -1,0 +1,198 @@
+[
+  {
+    "$roots": [
+      "aeaqaaaaaacpbveraqxzuamdvda5lcqaaaaq"
+    ],
+    "$query": [],
+    "$filter": {},
+    "$action": [
+      {
+        "$set": {
+          "DescriptionLevel": "RecordGrp",
+          "Title": "Parent A",
+          "#management": {
+            "AppraisalRule": {
+              "Rules": [
+                {
+                  "Rule": "APP-00001",
+                  "StartDate": "2022-10-05"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "$roots": [
+      "aeaqaaaaaacpbveraqxzuamdvda5j5yaaaaq"
+    ],
+    "$query": [],
+    "$filter": {},
+    "$action": [
+      {
+        "$set": {
+          "DescriptionLevel": "RecordGrp",
+          "Title": "ROOT"
+        }
+      }
+    ]
+  },
+  {
+    "$roots": [
+      "aeaqaaaaaacpbveraqxzuamdvda5l4qaaaaq"
+    ],
+    "$query": [],
+    "$filter": {},
+    "$action": [
+      {
+        "$set": {
+          "DescriptionLevel": "RecordGrp",
+          "Title": "Parent B",
+          "#management": {
+            "ReuseRule": {
+              "Rules": [
+                {
+                  "Rule": "STO-00001",
+                  "StartDate": "2022-10-06"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "$roots": [
+      "aeaqaaaaaacpbveraqxzuamdvda5lcyaaaaq"
+    ],
+    "$query": [],
+    "$filter": {},
+    "$action": [
+      {
+        "$set": {
+          "DescriptionLevel": "Item",
+          "Title": "Child D",
+          "#management": {
+            "AppraisalRule": {
+              "Rules": [
+                {
+                  "Rule": "APP-00002",
+                  "StartDate": "2022-10-04"
+                },
+                {
+                  "Rule": "APP-00003",
+                  "StartDate": "2022-10-05"
+                }
+              ],
+              "Inheritance": {
+                "PreventInheritance": "true",
+                "PreventRulesId": [
+                  "APP-00001"
+                ]
+              },
+              "FinalAction": "Destroy"
+            },
+            "HoldRule": {
+              "Rules": [
+                {
+                  "Rule": "HOL-00002",
+                  "StartDate": "2022-10-12",
+                  "HoldOwner": "Vitam",
+                  "HoldReason": "IDK",
+                  "HoldEndDate": "2022-10-29"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  },
+  {
+    "$roots": [
+      "aeaqaaaaaacpbveraqxzuamdvda5l3qaaaaq"
+    ],
+    "$query": [],
+    "$filter": {},
+    "$action": [
+      {
+        "$set": {
+          "Title_": {
+            "en": "Child C",
+            "fr": "Enfant C"
+          },
+          "Description_": {
+            "en": "Child C Description"
+          },
+          "DescriptionLevel": "Item"
+        }
+      }
+    ]
+  },
+  {
+    "$roots": [
+      "aeaqaaaaaacpbveraqxzuamdvda5l4qaaaba"
+    ],
+    "$query": [],
+    "$filter": {},
+    "$action": [
+      {
+        "$set": {
+          "StartDate": "2022-10-06T00:30:00",
+          "Title_": {
+            "en": "Child E",
+            "fr": "Enfant E"
+          },
+          "Description": "Child E Description",
+          "DescriptionLevel": "Item",
+          "EndDate": "2022-10-08T01:00:00"
+        }
+      }
+    ]
+  },
+  {
+    "$roots": [
+      "aeaqaaaaaacpbveraqxzuamdvda5l5qaaaaq"
+    ],
+    "$query": [],
+    "$filter": {},
+    "$action": [
+      {
+        "$set": {
+          "DescriptionLevel": "Item",
+          "Title": "Child F",
+          "#management": {
+            "AppraisalRule": {
+              "Rules": [
+                {
+                  "Rule": "APP-00001",
+                  "StartDate": "2022-10-07"
+                }
+              ],
+              "FinalAction": "Keep"
+            },
+            "AccessRule": {
+              "Rules": [
+                {
+                  "Rule": "ACC-00001",
+                  "StartDate": "2022-10-06"
+                }
+              ]
+            },
+            "HoldRule": {
+              "Rules": [
+                {
+                  "Rule": "HOL-00001",
+                  "StartDate": "2022-10-06"
+                }
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+]

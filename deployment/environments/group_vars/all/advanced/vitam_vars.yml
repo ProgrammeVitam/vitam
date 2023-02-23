@@ -12,60 +12,60 @@ droid_container_filename: "container-signature-20221102.xml"
 
 # The global defaults parameters for vitam & vitam components
 vitam_defaults:
-    folder:
-        root_path: /vitam
-        folder_permission: "0750"
-        conf_permission: "0440"
-        folder_upload_permission: "0770"
-        script_permission: "0750"
-    users:
-        vitam: "vitam"
-        vitamdb: "vitamdb"
-        group: "vitam"
-    services:
-        # Default log level for vitam components: logback values (TRACE, DEBUG, INFO, WARN, ERROR, OFF)
-        log_level: WARN
-        start_timeout: 300
-        stop_timeout: 3600
-        port_service_timeout: 86400
-        api_call_timeout: 120
-        api_long_call_timeout: 300
-        status_retries_number: 60
-        status_retries_delay: 5
-        at_boot: false
-### Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)
-    vitam_ssl_user_header: true
-### Force chunk mode : set true if chunk header should be checked
-    vitam_force_chunk_mode: false
-    # syslog_facility
-    syslog_facility: local0
+  folder:
+    root_path: /vitam
+    folder_permission: "0750"
+    conf_permission: "0440"
+    folder_upload_permission: "0770"
+    script_permission: "0750"
+  users:
+    vitam: "vitam"
+    vitamdb: "vitamdb"
+    group: "vitam"
+  services:
+    # Default log level for vitam components: logback values (TRACE, DEBUG, INFO, WARN, ERROR, OFF)
+    log_level: WARN
+    start_timeout: 300
+    stop_timeout: 3600
+    port_service_timeout: 86400
+    api_call_timeout: 120
+    api_long_call_timeout: 300
+    status_retries_number: 60
+    status_retries_delay: 5
+    at_boot: false
+  ### Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)
+  vitam_ssl_user_header: true
+  ### Force chunk mode : set true if chunk header should be checked
+  vitam_force_chunk_mode: false
+  # syslog_facility
+  syslog_facility: local0
 
-################################################################################
-### Default Components parameters
-### Uncomment them if you want to update the default value applied on all components
+  ################################################################################
+  ### Default Components parameters
+  ### Uncomment them if you want to update the default value applied on all components
 
-### Ontology cache settings (max entries in cache & retention timeout in seconds)
-    # ontologyCacheMaxEntries: 100
-    # ontologyCacheTimeoutInSeconds: 300
-### Elasticsearch scroll timeout in milliseconds settings
-    # elasticSearchScrollTimeoutInMilliseconds: 300000
+  ### Ontology cache settings (max entries in cache & retention timeout in seconds)
+  # ontologyCacheMaxEntries: 100
+  # ontologyCacheTimeoutInSeconds: 300
+  ### Elasticsearch scroll timeout in milliseconds settings
+  # elasticSearchScrollTimeoutInMilliseconds: 300000
 
-### The following values can be overwritten for each components in vitam: parameters.
-    jvm_log: false
-    performance_logger: false
+  ### The following values can be overwritten for each components in vitam: parameters.
+  jvm_log: false
+  performance_logger: false
 
-    # consul_business_check: 10 # value in seconds
-    # consul_admin_check: 10 # value in seconds
+  # consul_business_check: 10 # value in seconds
+  # consul_admin_check: 10 # value in seconds
 
 
-### Logs configuration for reconstruction services (INFO or DEBUG for active logs).
-### Logs will be present only on secondary site.
-### Available for the following components: logbook, metadata & functional-administration.
-    reconstruction:
-        log_level: INFO
+  ### Logs configuration for reconstruction services (INFO or DEBUG for active logs).
+  ### Logs will be present only on secondary site.
+  ### Available for the following components: logbook, metadata & functional-administration.
+  reconstruction:
+    log_level: INFO
 
 # Used in ingest, unitary update, mass-update
-classificationList: ["Non protégé","Secret Défense", "Confidentiel Défense"]
+classificationList: [ "Non protégé","Secret Défense", "Confidentiel Défense" ]
 # Used in ingest, unitary update, mass-update
 classificationLevelOptional: true
 # Packages install retries
@@ -81,53 +81,53 @@ criticalRequestTime: 60
 requestTimeAlertThrottlingDelay: 60
 
 vitam_timers:
-# /!\ IMPORTANT :
-# Please ensure timer execution is spread so that not all timers run concurrently (eg. *:05:00, *:35:00, *:50:00..),
-# Special care for heavy-load timers that run on same machines or use same resources (eg. vitam-traceability-*).
-#
-# Quartz cron nomenclature
-#    minutely → 0 * * * * ?
-#    hourly → 0 0 * * * ?
-#    daily → 0 0 0 * * ?
-#    monthly → 0 0 0 1 * ?
-#    weekly →  0 0 0 ? * MON *
-#    yearly → 0 0 0 1 1 ?
-#    quarterly → 0 0 0 1 1/3 ?
-#    semiannually → 0 0 0 1 1/6 ?
-    logbook: # all have to run on only one machine
-        # Sécurisation des journaux des opérations
-          frequency_traceability_operations: "* 05 0/1 * * ?" # every hour
-        # Sécurisation des journaux du cycle de vie des groupes d'objets
-          frequency_traceability_lfc_objectgroup: "* 15 0/1 * * ?" # every hour
-        # Sécurisation des journaux du cycle de vie des unités archivistiques
-          frequency_traceability_lfc_unit: "* 35 0/1 * * ?" # every hour
-        # Audit de traçabilité
-          frequency_traceability_audit: "0 55 00 * * ?"
-        # Reconstruction (uniquement sur site secondaire)
-          frequency_logbook_reconstruction: "0 0/5 * * * ?"
-    storage:
-        # Sécurisation du journal des écritures
-        frequency_traceability_log: "0 40 0/4 * * ?" # every 4 hours
-        # Sauvegarde des journaux d'accès
-        vitam_storage_accesslog_backup: "0 10 0/4 * * ?" # every 4 hours
-        # Sauvegarde des journaux des écritures
-        vitam_storage_log_backup: "0 15 0/4 * * ?" # every 4 hours
+  # /!\ IMPORTANT :
+  # Please ensure timer execution is spread so that not all timers run concurrently (eg. *:05:00, *:35:00, *:50:00..),
+  # Special care for heavy-load timers that run on same machines or use same resources (eg. vitam-traceability-*).
+  #
+  # Quartz cron nomenclature
+  #    minutely → 0 * * * * ?
+  #    hourly → 0 0 * * * ?
+  #    daily → 0 0 0 * * ?
+  #    monthly → 0 0 0 1 * ?
+  #    weekly →  0 0 0 ? * MON *
+  #    yearly → 0 0 0 1 1 ?
+  #    quarterly → 0 0 0 1 1/3 ?
+  #    semiannually → 0 0 0 1 1/6 ?
+  logbook: # all have to run on only one machine
+    # Sécurisation des journaux des opérations
+    frequency_traceability_operations: "* 05 0/1 * * ?" # every hour
+    # Sécurisation des journaux du cycle de vie des groupes d'objets
+    frequency_traceability_lfc_objectgroup: "* 15 0/1 * * ?" # every hour
+    # Sécurisation des journaux du cycle de vie des unités archivistiques
+    frequency_traceability_lfc_unit: "* 35 0/1 * * ?" # every hour
+    # Audit de traçabilité
+    frequency_traceability_audit: "0 55 00 * * ?"
+    # Reconstruction (uniquement sur site secondaire)
+    frequency_logbook_reconstruction: "0 0/5 * * * ?"
+  storage:
+    # Sécurisation du journal des écritures
+    frequency_traceability_log: "0 40 0/4 * * ?" # every 4 hours
+    # Sauvegarde des journaux d'accès
+    vitam_storage_accesslog_backup: "0 10 0/4 * * ?" # every 4 hours
+    # Sauvegarde des journaux des écritures
+    vitam_storage_log_backup: "0 15 0/4 * * ?" # every 4 hours
 
-    functional_administration:
-          frequency_create_accession_register_symbolic: "0 50 0 * * ?"
-          frequency_accession_register_reconstruction: "0 0/5 * * * ?"
-          frequency_rule_management_audit: "0 40 * * * ?"
-          frequency_reconstruction: "0 0/5 * * * ?"
-    metadata:
-          frequency_store_graph: "0 10/30 * * * ?"
-          frequency_reconstruction: "0 0/5 * * * ?"
-          frequency_computed_inherited_rules: "0 30 2 * * ?"
-          frequency_purge_dip: "0 0 * * * ?"
-          frequency_purge_transfers_sip: "0 25 2 * * ?"
-          frequency_audit_mongodb_es: "0 0 0 1 JAN ? 2020"
-    offer:
-        # Compaction offer logs
-          frequency_offerlog_compaction: "0 40 * * * ?"
+  functional_administration:
+    frequency_create_accession_register_symbolic: "0 50 0 * * ?"
+    frequency_accession_register_reconstruction: "0 0/5 * * * ?"
+    frequency_rule_management_audit: "0 40 * * * ?"
+    frequency_reconstruction: "0 0/5 * * * ?"
+  metadata:
+    frequency_store_graph: "0 10/30 * * * ?"
+    frequency_reconstruction: "0 0/5 * * * ?"
+    frequency_computed_inherited_rules: "0 30 2 * * ?"
+    frequency_purge_dip: "0 0 * * * ?"
+    frequency_purge_transfers_sip: "0 25 2 * * ?"
+    frequency_audit_mongodb_es: "0 0 0 1 JAN ? 2020"
+  offer:
+    # Compaction offer logs
+    frequency_offerlog_compaction: "0 40 * * * ?"
 
 ### consul ###
 # WARNING: consul_domain should be a supported domain name for your organization
@@ -142,13 +142,13 @@ consul_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/consul"
 vitam_secondary_site_components: [ "scheduler", "logbook" , "metadata" , "functional-administration" , "storage" , "storageofferdefault" , "offer" , "elasticsearch-log" , "elasticsearch-data" , "logstash" , "kibana" , "mongoc" , "mongod" , "mongos", "elastic-kibana-interceptor" , "consul" ]
 
 # containers list
-containers_list: ['units', 'objects', 'objectgroups', 'logbooks', 'reports', 'manifests', 'profiles', 'storagelog', 'storageaccesslog', 'storagetraceability', 'rules', 'dip', 'agencies', 'backup', 'backupoperations', 'unitgraph', 'objectgroupgraph', 'distributionreports', 'accessionregistersdetail', 'accessionregisterssymbolic', 'tmp', 'archivaltransferreply']
+containers_list: [ 'units', 'objects', 'objectgroups', 'logbooks', 'reports', 'manifests', 'profiles', 'storagelog', 'storageaccesslog', 'storagetraceability', 'rules', 'dip', 'agencies', 'backup', 'backupoperations', 'unitgraph', 'objectgroupgraph', 'distributionreports', 'accessionregistersdetail', 'accessionregisterssymbolic', 'tmp', 'archivaltransferreply' ]
 
 ### Composants Vitam ###
 vitam:
-### All available parameters for each components are described in the vitam_defaults variable
+  ### All available parameters for each components are described in the vitam_defaults variable
 
-### Example
+  ### Example
   # component:
   #    at_boot: false
   #    logback_rolling_policy: true
@@ -156,351 +156,359 @@ vitam:
   ## If this var is not set, the default one will be used (vitam_defaults.services.log_level)
   #    log_level: "DEBUG"
 
-    accessexternal:
-        # Component name: do not modify
-        vitam_component: access-external
-        # DNS record for the service:
-        # Modify if ihm-demo is not using consul (typical production deployment)
-        host: "access-external.service.{{ consul_domain }}"
-        port_admin: 28102
-        port_service: 8444
-        baseuri: "access-external"
-        https_enabled: true
-        # Use platform secret for this component ? : do not modify
-        secret_platform: "false"
-        authorizeTrackTotalHits: false # if false, limit results to 10K. if true, authorize results overs 10K (can overload elasticsearch-data)
-    accessinternal:
-        vitam_component: access-internal
-        host: "access-internal.service.{{ consul_domain }}"
-        port_service: 8101
-        port_admin: 28101
-        baseuri: "access-internal"
-        https_enabled: false
-        secret_platform: "true"
-    functional_administration:
-        vitam_component: functional-administration
-        host: "functional-administration.service.{{ consul_domain }}"
-        port_service: 8004
-        port_admin: 18004
-        baseuri: "adminmanagement"
-        https_enabled: false
-        secret_platform: "true"
-        cluster_name: "{{ elasticsearch.data.cluster_name }}"
-        # Number of AccessionRegisterSymbolic creation threads that can be run in parallel.
-        accessionRegisterSymbolicThreadPoolSize: 16
-        # Number of rule audit threads that can be run in parallel.
-        ruleAuditThreadPoolSize: 16
-    scheduler:
-        vitam_component: scheduler
-        host: "scheduler.service.{{ consul_domain }}"
-        port_service: 8799
-        port_admin: 28799
-        baseuri: "scheduler"
-        https_enabled: false
-        secret_platform: "true"
-        schedulerThreadSize: 8
-    elastickibanainterceptor:
-        vitam_component: elastic-kibana-interceptor
-        host: "elastic-kibana-interceptor.service.{{ consul_domain }}"
-        port_service: 8014
-        port_admin: 18014
-        baseuri: ""
-        https_enabled: false
-        secret_platform: "false"
-        cluster_name: "{{ elasticsearch.data.cluster_name }}"
-    batchreport:
-        vitam_component: batch-report
-        host: "batch-report.service.{{ consul_domain }}"
-        port_service: 8015
-        port_admin: 18015
-        baseuri: "batchreport"
-        https_enabled: false
-        secret_platform: "false"
-    ingestexternal:
-        vitam_component: ingest-external
-        # DNS record for the service:
-        # Modify if ihm-demo is not using consul (typical production deployment)
-        host: "ingest-external.service.{{ consul_domain }}"
-        port_admin: 28001
-        port_service: 8443
-        baseuri: "ingest-external"
-        https_enabled: true
-        secret_platform: "false"
-        antivirus: "clamav" # or avast
-        #scantimeout: 1200000 # value in milliseconds; increase this value if huge files need to be analyzed in more than 20 min (default value)
-        # Directory where files should be placed for local ingest
-        upload_dir: "/vitam/data/ingest-external/upload"
-        # Directory where successful ingested files will be moved to
-        success_dir: "/vitam/data/ingest-external/upload/success"
-        # Directory where failed ingested files will be moved to
-        fail_dir: "/vitam/data/ingest-external/upload/failure"
-        # Action done to file after local ingest (see below for further information)
-        upload_final_action: "MOVE"
-        # upload_final_action can be set to three different values (lower or upper case does not matter)
-        #   MOVE : After upload, the local file will be moved to either success_dir or fail_dir depending on the status of the ingest towards ingest-internal
-        #   DELETE : After upload, the local file will be deleted if the upload succeeded
-        #   NONE : After upload, nothing will be done to the local file (default option set if the value entered for upload_final_action does not exist)
-    ingestinternal:
-        vitam_component: ingest-internal
-        host: "ingest-internal.service.{{ consul_domain }}"
-        port_service: 8100
-        port_admin: 28100
-        baseuri: "ingest"
-        https_enabled: false
-        secret_platform: "true"
-    ihm_demo:
-        vitam_component: ihm-demo
-        host: "ihm-demo.service.{{ consul_domain }}"
-        port_service: 8446
-        port_admin: 28002
-        baseurl: "/ihm-demo"
-        static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v2"
-        baseuri: "ihm-demo"
-        https_enabled: true
-        secret_platform: "false"
-        # User session timeout in milliseconds (for shiro)
-        session_timeout: 1800000
-        secure_cookie: true
-        # Specify here the realms you want to use for authentication in ihm-demo
-        # You can set multiple realms, one per line
-        # With multiple realms, the user will be able to choose between the allowed realms
-        # Example: authentication_realms:
-        #               - x509Realm
-        #               - ldapRealm
-        # Authorized values:
-        # x509Realm: certificate
-        # iniRealm: ini file
-        # ldapRealm: ldap
-        authentication_realms:
-            # - x509Realm
-            - iniRealm
-            # - ldapRealm
-        allowedMediaTypes:
-            - type: "application"
-              subtype: "pdf"
-            - type: "text"
-              subtype: "plain"
-            - type: "image"
-              subtype: "jpeg"
-            - type: "image"
-              subtype: "tiff"
-    logbook:
-        vitam_component: logbook
-        host: "logbook.service.{{ consul_domain }}"
-        port_service: 9002
-        port_admin: 29002
-        baseuri: "logbook"
-        https_enabled: false
-        secret_platform: "true"
-        cluster_name: "{{ elasticsearch.data.cluster_name }}"
-        # Temporization delay (in seconds) for recent logbook operation events.
-        # Set it to a reasonable delay to cover max clock difference across servers + VM/GC pauses
-        operationTraceabilityTemporizationDelay: 300
-        # Max delay between 2 logbook operation traceability operations.
-        # A new logbook operation traceability is generated after this delay, even if tenant has no
-        # new logbook operations to secure
-        # Unit can be in DAYS, HOURS, MINUTES, SECONDS
-        # Hint: Set it to 690 MINUTES (11 hours and 30 minutes) to force new traceability after +/- 12 hours (supposing
-        # logbook operation traceability timer run every hour +/- some clock delays)
-        operationTraceabilityMaxRenewalDelay: 690
-        operationTraceabilityMaxRenewalDelayUnit: MINUTES
-        # Number of logbook operations that can be run in parallel.
-        operationTraceabilityThreadPoolSize: 16
-        # Temporization delay (in seconds) for recent logbook lifecycle events.
-        # Set it to a reasonable delay to cover max clock difference across servers + VM/GC pauses
-        lifecycleTraceabilityTemporizationDelay: 300
-        # Max delay between 2 lifecycle traceability operations.
-        # A new unit/objectgroup lifecycle traceability is generated after this delay, even if tenant has no
-        # new unit/objectgroups to secure
-        # Unit can be in DAYS, HOURS, MINUTES, SECONDS
-        # Hint: Set it to 690 MINUTES (11 hours and 30 minutes) to force new traceability after +/- 12 hours (supposing
-        # LFC traceability timers run every hour +/- some clock delays)
-        lifecycleTraceabilityMaxRenewalDelay: 690
-        lifecycleTraceabilityMaxRenewalDelayUnit: MINUTES
-        # Max entries selected per (Unit or Object Group) LFC traceability operation
-        lifecycleTraceabilityMaxEntries: 100000
-    metadata:
-        vitam_component: metadata
-        host: "metadata.service.{{ consul_domain }}"
-        port_service: 8200
-        port_admin: 28200
-        baseuri: "metadata"
-        https_enabled: false
-        secret_platform: "true"
-        cluster_name: "{{ elasticsearch.data.cluster_name }}"
-        # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
-        archiveUnitProfileCacheMaxEntries: 100
-        archiveUnitProfileCacheTimeoutInSeconds: 300
-        # Schema validator cache settings (max entries in cache & retention timeout in seconds)
-        schemaValidatorCacheMaxEntries: 100
-        schemaValidatorCacheTimeoutInSeconds: 300
-        # DIP cleanup delay (in minutes)
-        dipTimeToLiveInMinutes: 10080 # 7 days
-        criticalDipTimeToLiveInMinutes: 1440 # 1 day
-        transfersSIPTimeToLiveInMinutes: 10080 # 7 days
-        unitsStreamThreshold: 1000000 # 1 million
-        streamExecutionLimit: 3 # 3 times
-        workspaceFreespaceThreshold: 25 # when below use critical time to live when above use normal time to live
-        elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata/mapping" # Directory of elasticsearch metadata mapping
-        #### Audit data consistency MongoDB-ES ####
-        isDataConsistencyAuditRunnable: false
-        dataConsistencyAuditOplogMaxSize: 100
-        context_path: "/metadata"
-    processing:
-        vitam_component: processing
-        host: "processing.service.{{ consul_domain }}"
-        port_service: 8203
-        port_admin: 28203
-        baseuri: "processing"
-        https_enabled: false
-        secret_platform: "true"
-        maxDistributionInMemoryBufferSize: 100000
-        maxDistributionOnDiskBufferSize: 100000000
-    security_internal:
-        vitam_component: security-internal
-        host: "security-internal.service.{{ consul_domain }}"
-        port_service: 8005
-        port_admin: 28005
-        baseuri: "security-internal"
-        https_enabled: false
-        secret_platform: "true"
-    storageengine:
-        vitam_component: storage
-        host: "storage.service.{{ consul_domain }}"
-        port_service: 9102
-        port_admin: 29102
-        baseuri: "storage"
-        https_enabled: false
-        secret_platform: "true"
-        storageTraceabilityOverlapDelay: 300
-        restoreBulkSize: 1000
-        # Storage write/access log backup max thread pool size
-        storageLogBackupThreadPoolSize: 16
-        # Storage write log traceability thread pool size
-        storageLogTraceabilityThreadPoolSize: 16
-        # Offer synchronization batch size & thread pool size
-        offerSynchronizationBulkSize: 1000
-        offerSyncThreadPoolSize: 32
-        # Retries attempts on failures
-        offerSyncNumberOfRetries: 3
-        # Retry wait delay on failures (in seconds)
-        offerSyncFirstAttemptWaitingTime: 15
-        offerSyncWaitingTime: 30
-        # Offer synchronization wait delay  (in seconds) for async offers (synchronization from a tape-storage offer)
-        offerSyncAccessRequestCheckWaitingTime: 10
-        logback_total_size_cap:
-          offersync:
-            history_days: 30
-            totalsize: "5GB"
-          offerdiff:
-            history_days: 30
-            totalsize: "5GB"
-        # unit time per kB (in ms) used while calculating the timeout of an http request between storage and offer.
-        timeoutMsPerKB: 100
-        # minimum timeout (in ms) for writing objects to offers
-        minWriteTimeoutMs: 60000
-        # minimum timeout per object (in ms) for bulk writing objects to offers
-        minBulkWriteTimeoutMsPerObject: 10000
-    storageofferdefault:
-        vitam_component: "offer"
-        port_service: 9900
-        port_admin: 29900
-        baseuri: "offer"
-        https_enabled: false
-        secret_platform: "true"
-        logback_total_size_cap:
-          offer_tape:
-            history_days: 30
-            totalsize: "5GB"
-          offer_tape_backup:
-            history_days: 30
-            totalsize: "5GB"
-    worker:
-        vitam_component: worker
-        host: "worker.service.{{ consul_domain }}"
-        port_service: 9104
-        port_admin: 29104
-        baseuri: "worker"
-        https_enabled: false
-        secret_platform: "true"
-        api_output_index_tenants: [0,1,2,3,4,5,6,7,8,9]
-        rules_index_tenants: [0,1,2,3,4,5,6,7,8,9]
-        # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
-        archiveUnitProfileCacheMaxEntries: 100
-        archiveUnitProfileCacheTimeoutInSeconds: 300
-        # Schema validator cache settings (max entries in cache & retention timeout in seconds)
-        schemaValidatorCacheMaxEntries: 100
-        schemaValidatorCacheTimeoutInSeconds: 300
-        # Batch size for bulk atomic update
-        queriesThreshold: 100000
-        # Bulk atomic update batch size
-        bulkAtomicUpdateBatchSize: 100
-        # Max threads that can be run in concurrently is thread pool for bulk atomic update
-        bulkAtomicUpdateThreadPoolSize: 8
-        # Number of jobs that can be queued in memory before blocking for bulk atomic update
-        bulkAtomicUpdateThreadPoolQueueSize: 16
-        # Dip/transfer threshold file size
-        binarySizePlatformThreshold: 1
-        binarySizePlatformThresholdSizeUnit: "GIGABYTE"
-    workspace:
-        vitam_component: workspace
-        host: "workspace.service.{{ consul_domain }}"
-        port_service: 8201
-        port_admin: 28201
-        baseuri: "workspace"
-        https_enabled: false
-        secret_platform: "true"
-        context_path: "/workspace"
-    collect:
-        vitam_component: collect
-        host: "collect.service.{{ consul_domain }}"
-        port_service: 8030
-        port_admin: 28030
-        baseuri: "collect-external"
-        https_enabled: true
-        secret_platform: "false"
-        transactionStatusThreadPoolSize: 4
-        statusTransactionThreadFrequency: 5
-    metadata_collect:
-        vitam_component: metadata-collect
-        host: "metadata-collect.service.{{ consul_domain }}"
-        port_service: 8290
-        port_admin: 28290
-        baseuri: "metadata-collect"
-        https_enabled: false
-        secret_platform: "true"
-        cluster_name: "{{ elasticsearch.data.cluster_name }}"
-        # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
-        archiveUnitProfileCacheMaxEntries: 100
-        archiveUnitProfileCacheTimeoutInSeconds: 300
-        # Schema validator cache settings (max entries in cache & retention timeout in seconds)
-        schemaValidatorCacheMaxEntries: 100
-        schemaValidatorCacheTimeoutInSeconds: 300
-        # DIP cleanup delay (in minutes)
-        dipTimeToLiveInMinutes: 10080 # 7 days
-        criticalDipTimeToLiveInMinutes: 1440 # 1 day
-        transfersSIPTimeToLiveInMinutes: 10080 # 7 days
-        workspaceFreespaceThreshold: 25 # when below use critical time to live when above use normal time to live
-        elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata-collect/mapping" # Directory of elasticsearch metadata mapping
-        #### Audit data consistency MongoDB-ES ####
-        isDataConsistencyAuditRunnable: false
-        dataConsistencyAuditOplogMaxSize: 100
-        context_path: "/metadata-collect"
-    workspace_collect:
-        vitam_component: workspace-collect
-        host: "workspace-collect.service.{{ consul_domain }}"
-        port_service: 8291
-        port_admin: 28291
-        baseuri: "workspace-collect"
-        https_enabled: false
-        secret_platform: "true"
-        context_path: "/workspace-collect"
+  accessexternal:
+    # Component name: do not modify
+    vitam_component: access-external
+    # DNS record for the service:
+    # Modify if ihm-demo is not using consul (typical production deployment)
+    host: "access-external.service.{{ consul_domain }}"
+    port_admin: 28102
+    port_service: 8444
+    baseuri: "access-external"
+    https_enabled: true
+    # Use platform secret for this component ? : do not modify
+    secret_platform: "false"
+    authorizeTrackTotalHits: false # if false, limit results to 10K. if true, authorize results overs 10K (can overload elasticsearch-data)
+  accessinternal:
+    vitam_component: access-internal
+    host: "access-internal.service.{{ consul_domain }}"
+    port_service: 8101
+    port_admin: 28101
+    baseuri: "access-internal"
+    https_enabled: false
+    secret_platform: "true"
+  functional_administration:
+    vitam_component: functional-administration
+    host: "functional-administration.service.{{ consul_domain }}"
+    port_service: 8004
+    port_admin: 18004
+    baseuri: "adminmanagement"
+    https_enabled: false
+    secret_platform: "true"
+    cluster_name: "{{ elasticsearch.data.cluster_name }}"
+    # Number of AccessionRegisterSymbolic creation threads that can be run in parallel.
+    accessionRegisterSymbolicThreadPoolSize: 16
+    # Number of rule audit threads that can be run in parallel.
+    ruleAuditThreadPoolSize: 16
+  scheduler:
+    vitam_component: scheduler
+    host: "scheduler.service.{{ consul_domain }}"
+    port_service: 8799
+    port_admin: 28799
+    baseuri: "scheduler"
+    https_enabled: false
+    secret_platform: "true"
+    schedulerThreadSize: 8
+  elastickibanainterceptor:
+    vitam_component: elastic-kibana-interceptor
+    host: "elastic-kibana-interceptor.service.{{ consul_domain }}"
+    port_service: 8014
+    port_admin: 18014
+    baseuri: ""
+    https_enabled: false
+    secret_platform: "false"
+    cluster_name: "{{ elasticsearch.data.cluster_name }}"
+  batchreport:
+    vitam_component: batch-report
+    host: "batch-report.service.{{ consul_domain }}"
+    port_service: 8015
+    port_admin: 18015
+    baseuri: "batchreport"
+    https_enabled: false
+    secret_platform: "false"
+  ingestexternal:
+    vitam_component: ingest-external
+    # DNS record for the service:
+    # Modify if ihm-demo is not using consul (typical production deployment)
+    host: "ingest-external.service.{{ consul_domain }}"
+    port_admin: 28001
+    port_service: 8443
+    baseuri: "ingest-external"
+    https_enabled: true
+    secret_platform: "false"
+    antivirus: "clamav" # or avast
+    #scantimeout: 1200000 # value in milliseconds; increase this value if huge files need to be analyzed in more than 20 min (default value)
+    # Directory where files should be placed for local ingest
+    upload_dir: "/vitam/data/ingest-external/upload"
+    # Directory where successful ingested files will be moved to
+    success_dir: "/vitam/data/ingest-external/upload/success"
+    # Directory where failed ingested files will be moved to
+    fail_dir: "/vitam/data/ingest-external/upload/failure"
+    # Action done to file after local ingest (see below for further information)
+    upload_final_action: "MOVE"
+    # upload_final_action can be set to three different values (lower or upper case does not matter)
+    #   MOVE : After upload, the local file will be moved to either success_dir or fail_dir depending on the status of the ingest towards ingest-internal
+    #   DELETE : After upload, the local file will be deleted if the upload succeeded
+    #   NONE : After upload, nothing will be done to the local file (default option set if the value entered for upload_final_action does not exist)
+  ingestinternal:
+    vitam_component: ingest-internal
+    host: "ingest-internal.service.{{ consul_domain }}"
+    port_service: 8100
+    port_admin: 28100
+    baseuri: "ingest"
+    https_enabled: false
+    secret_platform: "true"
+  ihm_demo:
+    vitam_component: ihm-demo
+    host: "ihm-demo.service.{{ consul_domain }}"
+    port_service: 8446
+    port_admin: 28002
+    baseurl: "/ihm-demo"
+    static_content: "{{ vitam_defaults.folder.root_path }}/app/ihm-demo/v2"
+    baseuri: "ihm-demo"
+    https_enabled: true
+    secret_platform: "false"
+    # User session timeout in milliseconds (for shiro)
+    session_timeout: 1800000
+    secure_cookie: true
+    # Specify here the realms you want to use for authentication in ihm-demo
+    # You can set multiple realms, one per line
+    # With multiple realms, the user will be able to choose between the allowed realms
+    # Example: authentication_realms:
+    #               - x509Realm
+    #               - ldapRealm
+    # Authorized values:
+    # x509Realm: certificate
+    # iniRealm: ini file
+    # ldapRealm: ldap
+    authentication_realms:
+      # - x509Realm
+      - iniRealm
+      # - ldapRealm
+    allowedMediaTypes:
+      - type: "application"
+        subtype: "pdf"
+      - type: "text"
+        subtype: "plain"
+      - type: "image"
+        subtype: "jpeg"
+      - type: "image"
+        subtype: "tiff"
+  logbook:
+    vitam_component: logbook
+    host: "logbook.service.{{ consul_domain }}"
+    port_service: 9002
+    port_admin: 29002
+    baseuri: "logbook"
+    https_enabled: false
+    secret_platform: "true"
+    cluster_name: "{{ elasticsearch.data.cluster_name }}"
+    # Temporization delay (in seconds) for recent logbook operation events.
+    # Set it to a reasonable delay to cover max clock difference across servers + VM/GC pauses
+    operationTraceabilityTemporizationDelay: 300
+    # Max delay between 2 logbook operation traceability operations.
+    # A new logbook operation traceability is generated after this delay, even if tenant has no
+    # new logbook operations to secure
+    # Unit can be in DAYS, HOURS, MINUTES, SECONDS
+    # Hint: Set it to 690 MINUTES (11 hours and 30 minutes) to force new traceability after +/- 12 hours (supposing
+    # logbook operation traceability timer run every hour +/- some clock delays)
+    operationTraceabilityMaxRenewalDelay: 690
+    operationTraceabilityMaxRenewalDelayUnit: MINUTES
+    # Number of logbook operations that can be run in parallel.
+    operationTraceabilityThreadPoolSize: 16
+    # Temporization delay (in seconds) for recent logbook lifecycle events.
+    # Set it to a reasonable delay to cover max clock difference across servers + VM/GC pauses
+    lifecycleTraceabilityTemporizationDelay: 300
+    # Max delay between 2 lifecycle traceability operations.
+    # A new unit/objectgroup lifecycle traceability is generated after this delay, even if tenant has no
+    # new unit/objectgroups to secure
+    # Unit can be in DAYS, HOURS, MINUTES, SECONDS
+    # Hint: Set it to 690 MINUTES (11 hours and 30 minutes) to force new traceability after +/- 12 hours (supposing
+    # LFC traceability timers run every hour +/- some clock delays)
+    lifecycleTraceabilityMaxRenewalDelay: 690
+    lifecycleTraceabilityMaxRenewalDelayUnit: MINUTES
+    # Max entries selected per (Unit or Object Group) LFC traceability operation
+    lifecycleTraceabilityMaxEntries: 100000
+  metadata:
+    vitam_component: metadata
+    host: "metadata.service.{{ consul_domain }}"
+    port_service: 8200
+    port_admin: 28200
+    baseuri: "metadata"
+    https_enabled: false
+    secret_platform: "true"
+    cluster_name: "{{ elasticsearch.data.cluster_name }}"
+    # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
+    archiveUnitProfileCacheMaxEntries: 100
+    archiveUnitProfileCacheTimeoutInSeconds: 300
+    # Schema validator cache settings (max entries in cache & retention timeout in seconds)
+    schemaValidatorCacheMaxEntries: 100
+    schemaValidatorCacheTimeoutInSeconds: 300
+    # DIP cleanup delay (in minutes)
+    dipTimeToLiveInMinutes: 10080 # 7 days
+    criticalDipTimeToLiveInMinutes: 1440 # 1 day
+    transfersSIPTimeToLiveInMinutes: 10080 # 7 days
+    unitsStreamThreshold: 1000000 # 1 million
+    streamExecutionLimit: 3 # 3 times
+    workspaceFreespaceThreshold: 25 # when below use critical time to live when above use normal time to live
+    elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata/mapping" # Directory of elasticsearch metadata mapping
+    #### Audit data consistency MongoDB-ES ####
+    isDataConsistencyAuditRunnable: false
+    dataConsistencyAuditOplogMaxSize: 100
+    context_path: "/metadata"
+  processing:
+    vitam_component: processing
+    host: "processing.service.{{ consul_domain }}"
+    port_service: 8203
+    port_admin: 28203
+    baseuri: "processing"
+    https_enabled: false
+    secret_platform: "true"
+    maxDistributionInMemoryBufferSize: 100000
+    maxDistributionOnDiskBufferSize: 100000000
+  security_internal:
+    vitam_component: security-internal
+    host: "security-internal.service.{{ consul_domain }}"
+    port_service: 8005
+    port_admin: 28005
+    baseuri: "security-internal"
+    https_enabled: false
+    secret_platform: "true"
+  storageengine:
+    vitam_component: storage
+    host: "storage.service.{{ consul_domain }}"
+    port_service: 9102
+    port_admin: 29102
+    baseuri: "storage"
+    https_enabled: false
+    secret_platform: "true"
+    storageTraceabilityOverlapDelay: 300
+    restoreBulkSize: 1000
+    # Storage write/access log backup max thread pool size
+    storageLogBackupThreadPoolSize: 16
+    # Storage write log traceability thread pool size
+    storageLogTraceabilityThreadPoolSize: 16
+    # Offer synchronization batch size & thread pool size
+    offerSynchronizationBulkSize: 1000
+    offerSyncThreadPoolSize: 32
+    # Retries attempts on failures
+    offerSyncNumberOfRetries: 3
+    # Retry wait delay on failures (in seconds)
+    offerSyncFirstAttemptWaitingTime: 15
+    offerSyncWaitingTime: 30
+    # Offer synchronization wait delay  (in seconds) for async offers (synchronization from a tape-storage offer)
+    offerSyncAccessRequestCheckWaitingTime: 10
+    logback_total_size_cap:
+      offersync:
+        history_days: 30
+        totalsize: "5GB"
+      offerdiff:
+        history_days: 30
+        totalsize: "5GB"
+    # unit time per kB (in ms) used while calculating the timeout of an http request between storage and offer.
+    timeoutMsPerKB: 100
+    # minimum timeout (in ms) for writing objects to offers
+    minWriteTimeoutMs: 60000
+    # minimum timeout per object (in ms) for bulk writing objects to offers
+    minBulkWriteTimeoutMsPerObject: 10000
+  storageofferdefault:
+    vitam_component: "offer"
+    port_service: 9900
+    port_admin: 29900
+    baseuri: "offer"
+    https_enabled: false
+    secret_platform: "true"
+    logback_total_size_cap:
+      offer_tape:
+        history_days: 30
+        totalsize: "5GB"
+      offer_tape_backup:
+        history_days: 30
+        totalsize: "5GB"
+  worker:
+    vitam_component: worker
+    host: "worker.service.{{ consul_domain }}"
+    port_service: 9104
+    port_admin: 29104
+    baseuri: "worker"
+    https_enabled: false
+    secret_platform: "true"
+    api_output_index_tenants: [ 0,1,2,3,4,5,6,7,8,9 ]
+    rules_index_tenants: [ 0,1,2,3,4,5,6,7,8,9 ]
+    # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
+    archiveUnitProfileCacheMaxEntries: 100
+    archiveUnitProfileCacheTimeoutInSeconds: 300
+    # Schema validator cache settings (max entries in cache & retention timeout in seconds)
+    schemaValidatorCacheMaxEntries: 100
+    schemaValidatorCacheTimeoutInSeconds: 300
+    # Batch size for bulk atomic update
+    queriesThreshold: 100000
+    # Bulk atomic update batch size
+    bulkAtomicUpdateBatchSize: 100
+    # Max threads that can be run in concurrently is thread pool for bulk atomic update
+    bulkAtomicUpdateThreadPoolSize: 8
+    # Number of jobs that can be queued in memory before blocking for bulk atomic update
+    bulkAtomicUpdateThreadPoolQueueSize: 16
+    # Dip/transfer threshold file size
+    binarySizePlatformThreshold: 1
+    binarySizePlatformThresholdSizeUnit: "GIGABYTE"
+  workspace:
+    vitam_component: workspace
+    host: "workspace.service.{{ consul_domain }}"
+    port_service: 8201
+    port_admin: 28201
+    baseuri: "workspace"
+    https_enabled: false
+    secret_platform: "true"
+    context_path: "/workspace"
+  collect_internal:
+    vitam_component: collect-internal
+    host: "collect-internal.service.{{ consul_domain }}"
+    port_service: 8038
+    port_admin: 28038
+    baseuri: "collect-internal"
+    https_enabled: false
+    secret_platform: "true"
+    transactionStatusThreadPoolSize: 4
+    statusTransactionThreadFrequency: 5
+  collect_external:
+    vitam_component: collect-external
+    host: "collect-external.service.{{ consul_domain }}"
+    port_service: 8030
+    port_admin: 28030
+    baseuri: "collect-external"
+    https_enabled: true
+    secret_platform: "false"
+  metadata_collect:
+    vitam_component: metadata-collect
+    host: "metadata-collect.service.{{ consul_domain }}"
+    port_service: 8290
+    port_admin: 28290
+    baseuri: "metadata-collect"
+    https_enabled: false
+    secret_platform: "true"
+    cluster_name: "{{ elasticsearch.data.cluster_name }}"
+    # Archive Unit Profile cache settings (max entries in cache & retention timeout in seconds)
+    archiveUnitProfileCacheMaxEntries: 100
+    archiveUnitProfileCacheTimeoutInSeconds: 300
+    # Schema validator cache settings (max entries in cache & retention timeout in seconds)
+    schemaValidatorCacheMaxEntries: 100
+    schemaValidatorCacheTimeoutInSeconds: 300
+    # DIP cleanup delay (in minutes)
+    dipTimeToLiveInMinutes: 10080 # 7 days
+    criticalDipTimeToLiveInMinutes: 1440 # 1 day
+    transfersSIPTimeToLiveInMinutes: 10080 # 7 days
+    workspaceFreespaceThreshold: 25 # when below use critical time to live when above use normal time to live
+    elasticsearch_mapping_dir: "{{ vitam_defaults.folder.root_path }}/conf/metadata-collect/mapping" # Directory of elasticsearch metadata mapping
+    #### Audit data consistency MongoDB-ES ####
+    isDataConsistencyAuditRunnable: false
+    dataConsistencyAuditOplogMaxSize: 100
+    context_path: "/metadata-collect"
+  workspace_collect:
+    vitam_component: workspace-collect
+    host: "workspace-collect.service.{{ consul_domain }}"
+    port_service: 8291
+    port_admin: 28291
+    baseuri: "workspace-collect"
+    https_enabled: false
+    secret_platform: "true"
+    context_path: "/workspace-collect"
 
 # http://www.programmevitam.fr/ressources/DocCourante/html/installation/installation/21-addons.html#durees-minimales-permettant-de-controler-les-valeurs-saisies
 vitam_tenant_rule_duration:
-  # - name: 2 # applied tenant
-  #   rules:
-  #     - AppraisalRule : "1 year" # rule name : rule value
+# - name: 2 # applied tenant
+#   rules:
+#     - AppraisalRule : "1 year" # rule name : rule value
 
 # If you want to deploy vitam in a single VM, add the vm name in this array
-single_vm_hostnames: ['localhost']
+single_vm_hostnames: [ 'localhost' ]

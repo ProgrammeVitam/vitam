@@ -33,7 +33,7 @@ import fr.gouv.vitam.batch.report.rest.repository.EvidenceAuditReportRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeObjectGroupRepository;
 import fr.gouv.vitam.batch.report.rest.repository.PurgeUnitRepository;
 import fr.gouv.vitam.batch.report.rest.repository.TransferReplyUnitRepository;
-import fr.gouv.vitam.collect.internal.repository.TransactionRepository;
+import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
 import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlias;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;

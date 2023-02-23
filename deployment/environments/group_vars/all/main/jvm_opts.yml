@@ -102,7 +102,12 @@ vitam:
             memory: "-Xms32m -Xmx128m"
             # gc: ""
             # java: ""
-    collect:
+    collect_internal:
+        jvm_opts:
+            # memory: "-Xms512m -Xmx512m"
+            # gc: ""
+            # java: ""
+    collect_external:
         jvm_opts:
             # memory: "-Xms512m -Xmx512m"
             # gc: ""

@@ -70,9 +70,13 @@
 {# <AdminAPIs> #}
 {% if deployment_mode == "dev" %}
     # External API for status (must be the first proxypass as ihms or API proxypass can use the same context and this one is more specific)
-    {% for host in (groups['hosts_collect'] | default([])) %}
-    ProxyPass /{{ vitam.collect.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.collect.port_admin }}/admin/v1 {{ reverse_connection_params }}
-    ProxyPassReverse  /{{ vitam.collect.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.collect.port_admin }}/admin/v1
+    {% for host in (groups['hosts_collect_external'] | default([])) %}
+    ProxyPass /{{ vitam.collect_external.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.collect_external.port_admin }}/admin/v1 {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.collect_external.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.collect_external.port_admin }}/admin/v1
+    {% endfor %}
+    {% for host in (groups['hosts_collect_internal'] | default([])) %}
+    ProxyPass /{{ vitam.collect_internal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.collect_internal.port_admin }}/admin/v1 {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.collect_internal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.collect_internal.port_admin }}/admin/v1
     {% endfor %}
     {% for host in groups['hosts_access_internal'] %}
     ProxyPass /{{ vitam.accessinternal.baseuri }}{% if loop.index > 1 %}{{ loop.index }}{% endif %}/admin/v1 http://{{ hostvars[host]['ip_admin'] }}:{{ vitam.accessinternal.port_admin }}/admin/v1 {{ reverse_connection_params }}
@@ -164,9 +168,9 @@
     </LocationMatch>
 
     # External API collect-external
-    {% for host in (groups['hosts_collect'] | default([])) %}
-    ProxyPass /{{ vitam.collect.baseuri }} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.collect.port_service }}/{{ vitam.collect.baseuri }} {{ reverse_connection_params }}
-    ProxyPassReverse  /{{ vitam.collect.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.collect.port_service }}/{{ vitam.collect.baseuri }}
+    {% for host in (groups['hosts_collect_external'] | default([])) %}
+    ProxyPass /{{ vitam.collect_external.baseuri }} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.collect_external.port_service }}/{{ vitam.collect_external.baseuri }} {{ reverse_connection_params }}
+    ProxyPassReverse  /{{ vitam.collect_external.baseuri}} https://{{ hostvars[host]['ip_service'] }}:{{ vitam.collect_external.port_service }}/{{ vitam.collect_external.baseuri }}
     {% endfor %}
 
     # External API for ingest-external

@@ -1,0 +1,14 @@
+---
+
+- hosts: hosts_collect_external
+  any_errors_fatal: true
+  roles:
+    - vitam
+  vars:
+    vitam_struct: "{{ vitam.collect_external }}"
+    password_keystore: "{{ keystores.server.collect_external }}"
+    password_manager_keystore: "{{ keystores.server.collect_external }}"
+    password_truststore: "{{ truststores.client_external }}"
+    password_grantedstore: "{{ grantedstores.client_external }}"
+    vitam_certificate_client_type: "external"
+  tags: collect_external

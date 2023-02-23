@@ -54,11 +54,15 @@ medium-access-vm-1
 [zone_access:children]
 hosts_ingest_external
 hosts_access_external
+hosts_collect_external
 
 [hosts_ingest_external]
 medium-external-vm-1
 
 [hosts_access_external]
+medium-external-vm-1
+
+[hosts_collect_external]
 medium-external-vm-1
 
 ##### Zone applicative
@@ -76,6 +80,9 @@ hosts_logbook
 hosts_workspace
 hosts_storage_engine
 hosts_security_internal
+hosts_collect_internal
+hosts_metadata_collect
+hosts_workspace_collect
 
 [hosts_security_internal]
 medium-app-vm-1
@@ -114,6 +121,14 @@ medium-app-vm-2
 medium-app-vm-3
 medium-app-vm-4
 
+[hosts_collect_internal]
+medium-app-vm-1
+
+[hosts_metadata_collect]
+medium-app-vm-1
+
+[hosts_workspace_collect]
+medium-app-vm-2
 
 ##### Zone storage
 

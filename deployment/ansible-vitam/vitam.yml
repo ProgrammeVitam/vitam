@@ -84,8 +84,6 @@
 
 - import_playbook: services/vitam/workspace_collect.yml
 
-- import_playbook: services/vitam/collect.yml
-
 - import_playbook: services/vitam/functional_administration.yml
 
 - import_playbook: services/others/test_install.yml
@@ -106,6 +104,10 @@
 - import_playbook: services/vitam/ingest_internal.yml
 
 - import_playbook: services/vitam/ingest_external.yml
+
+- import_playbook: services/vitam/collect_internal.yml
+
+- import_playbook: services/vitam/collect_external.yml
 
 - import_playbook: services/vitam/scheduler.yml
 

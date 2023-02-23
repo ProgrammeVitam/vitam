@@ -54,12 +54,17 @@ large-access-vm-1
 [zone_access:children]
 hosts_ingest_external
 hosts_access_external
+hosts_collect_external
 
 [hosts_ingest_external]
 large-external-vm-1
 large-external-vm-2
 
 [hosts_access_external]
+large-external-vm-1
+large-external-vm-2
+
+[hosts_collect_external]
 large-external-vm-1
 large-external-vm-2
 
@@ -78,6 +83,9 @@ hosts_logbook
 hosts_workspace
 hosts_storage_engine
 hosts_security_internal
+hosts_collect_internal
+hosts_metadata_collect
+hosts_workspace_collect
 
 [hosts_security_internal]
 large-app-vm-3
@@ -125,6 +133,16 @@ large-app-vm-5
 large-app-vm-6
 large-app-vm-7
 
+[hosts_collect_internal]
+large-app-vm-1
+large-app-vm-2
+
+[hosts_metadata_collect]
+large-app-vm-3
+large-app-vm-4
+
+[hosts_workspace_collect]
+large-app-vm-8
 
 ##### Zone storage
 

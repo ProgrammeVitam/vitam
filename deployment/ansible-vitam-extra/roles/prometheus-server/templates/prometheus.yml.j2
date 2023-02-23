@@ -239,3 +239,69 @@ scrape_configs:
         hostname: "{{ host.split(".")[0] }}"
 {% endfor %}
 {% endif %}
+
+
+
+{% if (groups['hosts_metadata_collect']|length >0) %}
+  - job_name: vitam-metadata-collect
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    static_configs:
+{% for host in groups['hosts_metadata_collect'] %}
+    - targets:
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.metadata_collect.port_admin | default(28290) }}
+      labels:
+        hostname: "{{ host.split(".")[0] }}"
+{% endfor %}
+{% endif %}
+
+
+{% if (groups['hosts_workspace_collect']|length >0) %}
+  - job_name: vitam-workspace-collect
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    static_configs:
+{% for host in groups['hosts_workspace_collect'] %}
+    - targets:
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.workspace_collect.port_admin | default(28291) }}
+      labels:
+        hostname: "{{ host.split(".")[0] }}"
+{% endfor %}
+{% endif %}
+
+
+{% if (groups['hosts_collect_internal']|length >0) %}
+  - job_name: vitam-collect-internal
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    static_configs:
+{% for host in groups['hosts_collect_internal'] %}
+    - targets:
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.collect_internal.port_admin | default(28038) }}
+      labels:
+        hostname: "{{ host.split(".")[0] }}"
+{% endfor %}
+{% endif %}
+
+{% if (groups['hosts_collect_external']|length >0) %}
+  - job_name: vitam-collect-external
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    static_configs:
+{% for host in groups['hosts_collect_external'] %}
+    - targets:
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.collect_external.port_admin | default(28030) }}
+      labels:
+        hostname: "{{ host.split(".")[0] }}"
+{% endfor %}
+{% endif %}
+
+
+
+{% if (groups['hosts_scheduler']|length >0) %}
+  - job_name: vitam-scheduler
+    metrics_path: {{ prometheus.metrics_path | default('/admin/v1/metrics') }}
+    static_configs:
+{% for host in groups['hosts_scheduler'] %}
+    - targets:
+      - {{ hostvars[host]['ip_admin'] }}:{{ vitam.scheduler.port_admin | default(28799) }}
+      labels:
+        hostname: "{{ host.split(".")[0] }}"
+{% endfor %}
+{% endif %}

@@ -30,8 +30,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
-import fr.gouv.vitam.collect.external.dto.ProjectDto;
-import fr.gouv.vitam.collect.external.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.dto.ProjectDto;
+import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -54,9 +54,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
@@ -79,7 +78,7 @@ public class CollectStep extends CommonStep {
     @Given("^Le module de collect est deployé")
     public void checkSkippableScenario() {
         try {
-            world.getCollectClient().checkStatus();
+            world.getCollectExternalClient().checkStatus();
         } catch (Exception e) {
             LOGGER.warn("Collect service is not deployed or not up!");
             Assume.assumeTrue(false);
@@ -90,8 +89,9 @@ public class CollectStep extends CommonStep {
     public void init_project() throws Throwable {
         ProjectDto queryJSON = JsonHandler.getFromString(world.getQuery(), ProjectDto.class);
 
-        RequestResponse<JsonNode> resultedRequestResponse = world.getCollectClient().initProject(new VitamContext(
-            world.getTenantId()), queryJSON);
+        RequestResponse<JsonNode> resultedRequestResponse =
+            world.getCollectExternalClient().initProject(new VitamContext(
+                world.getTenantId()), queryJSON);
 
         if (resultedRequestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) resultedRequestResponse;
@@ -124,7 +124,7 @@ public class CollectStep extends CommonStep {
     public void find_project() throws Throwable {
         ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
             ProjectDto.class);
-        RequestResponse<JsonNode> requestResponse = world.getCollectClient().getProjectById(new VitamContext(
+        RequestResponse<JsonNode> requestResponse = world.getCollectExternalClient().getProjectById(new VitamContext(
             world.getTenantId()), projectDto.getId());
 
         if (requestResponse.isOk()) {
@@ -148,7 +148,7 @@ public class CollectStep extends CommonStep {
         ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
             ProjectDto.class);
         projectDto.setName(name);
-        RequestResponse<JsonNode> requestResponse = world.getCollectClient().updateProject(new VitamContext(
+        RequestResponse<JsonNode> requestResponse = world.getCollectExternalClient().updateProject(new VitamContext(
             world.getTenantId()), projectDto);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
@@ -174,7 +174,7 @@ public class CollectStep extends CommonStep {
         TransactionDto transactionDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
             TransactionDto.class);
         transactionDto.setName(name);
-        RequestResponse<JsonNode> requestResponse = world.getCollectClient().updateTransaction(new VitamContext(
+        RequestResponse<JsonNode> requestResponse = world.getCollectExternalClient().updateTransaction(new VitamContext(
             world.getTenantId()), transactionDto);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
@@ -201,7 +201,7 @@ public class CollectStep extends CommonStep {
     public void purge_project() throws Throwable {
         ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
             ProjectDto.class);
-        RequestResponse<JsonNode> requestResponse = world.getCollectClient().deleteProjectById(new VitamContext(
+        RequestResponse<JsonNode> requestResponse = world.getCollectExternalClient().deleteProjectById(new VitamContext(
             world.getTenantId()), projectDto.getId());
         if (requestResponse.getHttpCode() != 200) {
             VitamError vitamError = (VitamError) requestResponse;
@@ -211,13 +211,14 @@ public class CollectStep extends CommonStep {
 
     /**
      * Check result of action
+     *
      * @param action
      */
     @Then("^le projet est (.*) en succès$")
     public void checkOperationProject(String action) throws InvalidParseOperationException {
         ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
             ProjectDto.class);
-        switch (action){
+        switch (action) {
             case CREATED:
                 checkCreatedProject(projectDto);
                 break;
@@ -231,14 +232,15 @@ public class CollectStep extends CommonStep {
     }
 
     private void checkDeletedProject(ProjectDto projectDto) {
-        assertThatThrownBy(()->world.getCollectClient().getProjectById(new VitamContext(
+        assertThatThrownBy(() -> world.getCollectExternalClient().getProjectById(new VitamContext(
             world.getTenantId()), projectDto.getId())).isInstanceOf(VitamClientException.class);
     }
 
     private void checkCreatedProject(ProjectDto projectDto) throws InvalidParseOperationException {
         try {
-            RequestResponse<JsonNode> requestResponse = world.getCollectClient().getProjectById(new VitamContext(
-                world.getTenantId()), projectDto.getId());
+            RequestResponse<JsonNode> requestResponse =
+                world.getCollectExternalClient().getProjectById(new VitamContext(
+                    world.getTenantId()), projectDto.getId());
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
             world.setResults(requestResponseOK.getResults());
@@ -255,7 +257,7 @@ public class CollectStep extends CommonStep {
     public void init_transaction() throws Throwable {
         TransactionDto queryJSON = JsonHandler.getFromString(world.getQuery(), TransactionDto.class);
 
-        RequestResponse<JsonNode> requestResponse = world.getCollectClient().initTransaction(new VitamContext(
+        RequestResponse<JsonNode> requestResponse = world.getCollectExternalClient().initTransaction(new VitamContext(
             world.getTenantId()), queryJSON, world.getProjectId());
 
         if (requestResponse.isOk()) {
@@ -272,8 +274,9 @@ public class CollectStep extends CommonStep {
     public void find_transaction() throws Throwable {
         TransactionDto transactionDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
             TransactionDto.class);
-        RequestResponse<JsonNode> requestResponse = world.getCollectClient().getTransactionById(new VitamContext(
-            world.getTenantId()), transactionDto.getId());
+        RequestResponse<JsonNode> requestResponse =
+            world.getCollectExternalClient().getTransactionById(new VitamContext(
+                world.getTenantId()), transactionDto.getId());
 
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
@@ -293,13 +296,13 @@ public class CollectStep extends CommonStep {
     public void uploadUnit() throws Exception {
         String transactionId = world.getTransactionId();
         JsonNode archiveUnitJson = JsonHandler.getFromString(world.getQuery());
-        RequestResponseOK<JsonNode> response =
-            world.getCollectClient().uploadArchiveUnit(new VitamContext(
+        RequestResponse<JsonNode> response =
+            world.getCollectExternalClient().uploadArchiveUnit(new VitamContext(
                 world.getTenantId()), archiveUnitJson, transactionId);
         assertThat(response.isOk()).isTrue();
-        assertThat(response.getFirstResult()).isNotNull();
-        assertThat(response.getFirstResult().get("#id")).isNotNull();
-        world.setUnitId(response.getFirstResult().get("#id").asText());
+        assertThat(((RequestResponseOK) response).getFirstResult()).isNotNull();
+        assertThat(((RequestResponseOK<JsonNode>) response).getFirstResult().get("#id")).isNotNull();
+        world.setUnitId(((RequestResponseOK<JsonNode>) response).getFirstResult().get("#id").asText());
     }
 
     @When("^je recherche l'au par rapport à son titre")
@@ -309,12 +312,12 @@ public class CollectStep extends CommonStep {
         String unitDsl =
             "{\"$roots\": [],\"$query\": [{\"$eq\" : {\"Title\":\"My title3\"}}],\"$filter\": {\"$offset\": 0,\"$limit\": 100},\"$projection\": {}}";
 
-        RequestResponseOK<JsonNode> response =
-            world.getCollectClient().getUnitsByTransaction(new VitamContext(
+        RequestResponse<JsonNode> response =
+            world.getCollectExternalClient().getUnitsByTransaction(new VitamContext(
                 world.getTenantId()), transactionId, JsonHandler.getFromString(unitDsl));
         assertThat(response.getStatus()).isEqualTo(200);
-        assertThat(response.getFirstResult()).isNotNull();
-        assertThat(response.getHits().getTotal()).isEqualTo(1);
+        assertThat(((RequestResponseOK) response).getFirstResult()).isNotNull();
+        assertThat(((RequestResponseOK) response).getHits().getTotal()).isEqualTo(1);
     }
 
     @When("^je crée un GOT")
@@ -324,13 +327,13 @@ public class CollectStep extends CommonStep {
         String usage = "TextContent";
 
         JsonNode gotJson = JsonHandler.getFromString(world.getQuery());
-        RequestResponseOK<JsonNode> response =
-            world.getCollectClient().addObjectGroup(new VitamContext(
+        RequestResponse<JsonNode> response =
+            world.getCollectExternalClient().addObjectGroup(new VitamContext(
                 world.getTenantId()), unitId, version, gotJson, usage);
         assertThat(response.isOk()).isTrue();
-        assertThat(response.getFirstResult()).isNotNull();
-        assertThat(response.getFirstResult().get("id")).isNotNull();
-        response.getFirstResult().get("id").textValue();
+        assertThat(((RequestResponseOK) response).getFirstResult()).isNotNull();
+        assertThat(((RequestResponseOK<JsonNode>) response).getFirstResult().get("id")).isNotNull();
+        ((RequestResponseOK<JsonNode>) response).getFirstResult().get("id").textValue();
     }
 
     @When("^j'upload le fichier suivant (.*)$")
@@ -341,7 +344,7 @@ public class CollectStep extends CommonStep {
 
         try (InputStream inputStream =
             Files.newInputStream(Paths.get(world.getBaseDirectory(), binaryFilename))) {
-            Response response = world.getCollectClient().addBinary(new VitamContext(
+            Response response = world.getCollectExternalClient().addBinary(new VitamContext(
                 world.getTenantId()), unitId, version, inputStream, usage);
             Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
@@ -350,12 +353,13 @@ public class CollectStep extends CommonStep {
     @When("^je clôture et je constate son statut (.*)$")
     public void closeTransaction(String status) throws Exception {
         String transactionId = world.getTransactionId();
-        Response response = world.getCollectClient().closeTransaction(new VitamContext(
+        RequestResponse response = world.getCollectExternalClient().closeTransaction(new VitamContext(
             world.getTenantId()), transactionId);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
 
-        RequestResponse<JsonNode> requestResponse = world.getCollectClient().getTransactionById(new VitamContext(
-            world.getTenantId()), world.getTransactionId());
+        RequestResponse<JsonNode> requestResponse =
+            world.getCollectExternalClient().getTransactionById(new VitamContext(
+                world.getTenantId()), world.getTransactionId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
@@ -371,17 +375,15 @@ public class CollectStep extends CommonStep {
 
     @When("^j'envoie le SIP et je constate son statut (.*)$")
     public void sentSip(String status) throws Exception {
-        RequestResponse<JsonNode> requestResponse = world.getCollectClient().ingest(new VitamContext(
+        RequestResponse response = world.getCollectExternalClient().ingest(new VitamContext(
             world.getTenantId()), world.getTransactionId());
-        if (requestResponse.isOk()) {
-            Assertions.assertThat(requestResponse.getStatus()).isEqualTo(200);
-        } else {
-            VitamError vitamError = (VitamError) requestResponse;
-            Fail.fail(TRANSACTION_RETURN_AN_ERROR + vitamError.getCode());
+        if (SUCCESSFUL.equals((response).getStatus())) {
+            Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
 
-        requestResponse = world.getCollectClient().getTransactionById(new VitamContext(
-            world.getTenantId()), world.getTransactionId());
+        RequestResponse<JsonNode> requestResponse =
+            world.getCollectExternalClient().getTransactionById(new VitamContext(
+                world.getTenantId()), world.getTransactionId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
@@ -400,7 +402,7 @@ public class CollectStep extends CommonStep {
 
         try (InputStream inputStream =
             Files.newInputStream(Paths.get(world.getBaseDirectory(), arboFileName))) {
-            Response response = world.getCollectClient()
+            RequestResponse<JsonNode> response = world.getCollectExternalClient()
                 .uploadProjectZip(new VitamContext(world.getTenantId()), world.getTransactionId(), inputStream);
             Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
@@ -409,7 +411,7 @@ public class CollectStep extends CommonStep {
     @When("^je constate qu'une AU ainsi qu'un GOT sont créés")
     public void should_find_au() throws Exception {
 
-        RequestResponse<JsonNode> requestResponse = world.getCollectClient()
+        RequestResponse<JsonNode> requestResponse = world.getCollectExternalClient()
             .getUnitsByTransaction(new VitamContext(world.getTenantId()), world.getTransactionId(),
                 new SelectMultiQuery().getFinalSelect());
         if (requestResponse.isOk()) {

@@ -1,4 +1,3 @@
-
 ---
 
 hide_passwords_during_deploy: true
@@ -10,7 +9,7 @@ admin_context_tenants: "{{ vitam_tenant_ids }}"
 # Indicate context certificates relative paths under {{ inventory_dir }}/certs/client-external/clients
 # vitam-admin-int is mandatory for internal use (PRONOM upload)
 admin_context_certs:
-  - "{{ 'collect/collect.crt' if groups['hosts_collect'] | default([]) | length > 0 else '' }}"
+  - "{{ 'collect-external/collect-external.crt' if groups['hosts_collect_external'] | default([]) | length > 0 else '' }}"
   - "{{ 'ihm-demo/ihm-demo.crt' if groups['hosts_ihm_demo'] | default([]) | length > 0 else '' }}"
   - "{{ 'ihm-recette/ihm-recette.crt' if groups['hosts_ihm_recette'] | default([]) | length > 0 else '' }}"
   - "vitam-admin-int/vitam-admin-int.crt"

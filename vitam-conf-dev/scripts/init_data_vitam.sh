@@ -26,7 +26,7 @@ echo "End"
 
 echo "Import collect certificate"
 echo "Begin"
-curl -d '{ "contextId" : "CT-000001" , "certificate" : "'$(keytool -keystore ../conf/collect/keystore_collect.p12 -storetype pkcs12 -storepass azerty4 -exportcert -alias collect | base64 -w 0)'"}' -H "Content-Type: application/json" -X POST http://security-internal.service.consul:28005/v1/api/identity
+curl -d '{ "contextId" : "CT-000001" , "certificate" : "'$(keytool -keystore ../conf/collect-external/keystore_collect-external.p12 -storetype pkcs12 -storepass azerty4 -exportcert -alias collect-external | base64 -w 0)'"}' -H "Content-Type: application/json" -X POST http://security-internal.service.consul:28005/v1/api/identity
 echo "End"
 
 echo "Import personal certificate"

@@ -110,7 +110,7 @@
         - "mongo-data/users-metadata-collect.js.j2"
       when: >
         mongo_cluster_name == 'mongo-data' and
-        groups['hosts_collect'] | default([]) | length > 0 and
+        groups['hosts_collect_internal'] | default([]) | length > 0 and
         groups['hosts_metadata_collect'] | default([]) | length > 0
       tags:
         - update_mongodb_configuration
@@ -160,7 +160,7 @@
       no_log: "{{ hide_passwords_during_deploy }}"
       when: >
         mongo_cluster_name == 'mongo-data' and
-        groups['hosts_collect'] | default([]) | length > 0 and
+        groups['hosts_collect_internal'] | default([]) | length > 0 and
         groups['hosts_metadata_collect'] | default([]) | length > 0
       tags:
         - update_mongodb_configuration
@@ -292,7 +292,7 @@
       no_log: "{{ hide_passwords_during_deploy }}"
       when: >
         mongo_cluster_name == 'mongo-data' and
-        groups['hosts_collect'] | default([]) | length > 0 and
+        groups['hosts_collect_internal'] | default([]) | length > 0 and
         groups['hosts_metadata_collect'] | default([]) | length > 0
       tags:
         - update_mongodb_configuration

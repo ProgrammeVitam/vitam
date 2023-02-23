@@ -39,8 +39,8 @@ import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2;
 import fr.gouv.vitam.access.external.client.v2.AccessExternalClientV2Factory;
 import fr.gouv.vitam.client.IhmRecetteClient;
 import fr.gouv.vitam.client.IhmRecetteClientFactory;
-import fr.gouv.vitam.collect.external.client.CollectClient;
-import fr.gouv.vitam.collect.external.client.CollectClientFactory;
+import fr.gouv.vitam.collect.external.client.CollectExternalClient;
+import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
@@ -172,7 +172,7 @@ public class World {
     /**
      * Collect client
      */
-    private CollectClient collectClient;
+    private CollectExternalClient collectExternalClient;
 
     /**
      * initialization of client
@@ -189,7 +189,7 @@ public class World {
         accessClient = AccessExternalClientFactory.getInstance().getClient();
         adminClient = AdminExternalClientFactory.getInstance().getClient();
         adminClientV2 = AccessExternalClientV2Factory.getInstance().getClient();
-        collectClient = CollectClientFactory.getInstance().getClient();
+        collectExternalClient = CollectExternalClientFactory.getInstance().getClient();
 
         storageClient = StorageClientFactory.getInstance().getClient();
         WorkspaceClientFactory.changeMode(tnrClientConfiguration.getUrlWorkspace());
@@ -432,7 +432,7 @@ public class World {
         storageClient.close();
         workspaceClient.close();
         logbookOperationsClient.close();
-        collectClient.close();
+        collectExternalClient.close();
     }
 
     /**
@@ -506,8 +506,8 @@ public class World {
         return adminClientV2;
     }
 
-    public CollectClient getCollectClient() {
-        return collectClient;
+    public CollectExternalClient getCollectExternalClient() {
+        return collectExternalClient;
     }
 
     public Path getSipFile() {
