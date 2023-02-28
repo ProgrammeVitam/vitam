@@ -154,12 +154,13 @@ public class ReconstructionService {
      */
     private ReconstructionResponseItem reconstructCollection(int tenant, int limit) {
 
-        final long offset = offsetRepository.findOffsetBy(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK);
+        final long lastReconstructedOffset = offsetRepository.findOffsetBy(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK);
+        long startOffset = lastReconstructedOffset + 1L;
 
         LOGGER.info(String
             .format(
                 "[Reconstruction]: Start reconstruction of the {%s} collection on the Vitam tenant {%s} for %s elements starting from {%s}.",
-                DataCategory.BACKUP_OPERATION.name(), tenant, limit, offset));
+                DataCategory.BACKUP_OPERATION.name(), tenant, limit, startOffset));
         ReconstructionResponseItem response = new ReconstructionResponseItem().setTenant(tenant);
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
@@ -175,7 +176,7 @@ public class ReconstructionService {
             VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
             Iterator<List<OfferLog>> listing =
-                restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), offset, limit);
+                restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), startOffset, limit);
 
             while (listing.hasNext()) {
 
@@ -208,23 +209,23 @@ public class ReconstructionService {
                 }
 
                 // reconstruct Vitam collection from the backup datas.
-                if (!bulkData.isEmpty()) {
-                    reconstructCollectionLogbookOperation(mongoRepository, esRepository, bulkData);
-                    LogbookBackupModel last = Iterables.getLast(bulkData);
-                    offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK,
-                        last.getOffset());
-                }
+                reconstructCollectionLogbookOperation(mongoRepository, esRepository, bulkData);
+
+                // Update offset
+                long lastOffset = Iterables.getLast(bulkData).getOffset();
+                offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK,
+                    lastOffset);
 
                 // log the reconstruction of Vitam collection.
                 LOGGER.info(String.format(
-                    "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
-                    DataCategory.BACKUP_OPERATION.name(), tenant, offset, LocalDateUtil.now()));
+                    "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} to {offset:%s} at %s",
+                    DataCategory.BACKUP_OPERATION.name(), tenant, lastOffset, LocalDateUtil.now()));
             }
             response.setStatus(StatusCode.OK);
         } catch (DatabaseException em) {
             LOGGER.error(String.format(
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} on the tenant {%s} from {offset:%s}",
-                DataCategory.BACKUP_OPERATION.name(), tenant, offset), em);
+                DataCategory.BACKUP_OPERATION.name(), tenant, startOffset), em);
             response.setStatus(StatusCode.KO);
         } catch (StorageException | StorageServerClientException | StorageNotFoundClientException se) {
             LOGGER.error(se.getMessage());

@@ -322,7 +322,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
 
         // 3. reconstruct next operation
         reconstructionItems = new ArrayList<>();
-        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 5L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 4L);
 
         reconstructionItem2 = new ReconstructionRequestItem();
         reconstructionItem2.setLimit(2);
@@ -347,7 +347,7 @@ public class BackupAndReconstructionLogbookIT extends VitamRuleRunner {
         // 4. reconstruct nothing for logbook operation
         reconstructionItems = new ArrayList<>();
         reconstructionItems.add(reconstructionItem1);
-        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 7L);
+        offsetRepository.createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(), LOGBOOK, 6L);
 
 
         response = reconstructionService.reconstructCollection(reconstructionItems).execute();

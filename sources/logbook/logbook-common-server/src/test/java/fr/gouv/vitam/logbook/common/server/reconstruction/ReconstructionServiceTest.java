@@ -65,6 +65,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -86,6 +87,7 @@ public class ReconstructionServiceTest {
     private OffsetRepository offsetRepository;
     private ElasticsearchLogbookIndexManager indexManager;
 
+    private static final long LAST_OFFSET = 99L;
     private static final long OFFSET = 100L;
     private static final long NEXT_OFFSET = OFFSET + 1L;
     private static final int TENANT = 10;
@@ -113,7 +115,7 @@ public class ReconstructionServiceTest {
         throws Exception {
         // given
         when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(
-            OFFSET);
+            LAST_OFFSET);
 
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET,
             requestItem.getLimit()))
@@ -142,7 +144,7 @@ public class ReconstructionServiceTest {
         throws Exception {
         // given
         when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(
-            OFFSET);
+            LAST_OFFSET);
 
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET,
             requestItem.getLimit()))
@@ -167,11 +169,37 @@ public class ReconstructionServiceTest {
 
     @RunWithCustomExecutor
     @Test
-    public void should_return_request_offset_when_item_limit_zero()
-        throws DatabaseException, StorageServerClientException, StorageNotFoundClientException {
+    public void should_do_nothing_when_no_new_data()
+        throws Exception {
         // given
         when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(
-            OFFSET);
+            LAST_OFFSET);
+
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET,
+            requestItem.getLimit()))
+            .thenReturn(IteratorUtils.emptyIterator());
+
+        ReconstructionService reconstructionService =
+            new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
+                new LogbookTransformData(), offsetRepository, indexManager);
+        // when
+        ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
+        // then
+        verify(offsetRepository).findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK);
+        verifyNoMoreInteractions(mongoRepository);
+        verifyNoMoreInteractions(esRepository);
+        assertThat(realResponseItem).isNotNull();
+        assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
+        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void should_return_request_offset_when_item_limit_zero()
+        throws StorageServerClientException, StorageNotFoundClientException {
+        // given
+        when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(
+            LAST_OFFSET);
 
         requestItem.setLimit(0);
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET,
@@ -234,7 +262,7 @@ public class ReconstructionServiceTest {
         throws Exception {
         // given
         when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(
-            OFFSET);
+            LAST_OFFSET);
 
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET, requestItem.getLimit()))
             .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
@@ -263,7 +291,7 @@ public class ReconstructionServiceTest {
         throws Exception {
         // given
         when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(
-            OFFSET);
+            LAST_OFFSET);
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET, requestItem.getLimit()))
             .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", OFFSET))
@@ -292,7 +320,7 @@ public class ReconstructionServiceTest {
         throws Exception {
         // given
         when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(
-            OFFSET);
+            LAST_OFFSET);
         LogbookBackupModel logbookBackupModel100 = getLogbookBackupModel("100", OFFSET);
         logbookBackupModel100.setLogbookOperation(null);
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET,
