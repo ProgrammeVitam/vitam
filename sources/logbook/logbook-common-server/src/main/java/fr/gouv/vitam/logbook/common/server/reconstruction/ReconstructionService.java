@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
@@ -82,7 +81,6 @@ public class ReconstructionService {
 
     private final RestoreBackupService restoreBackupService;
     private final VitamRepositoryProvider vitamRepositoryProvider;
-    private final AdminManagementClientFactory adminManagementClientFactory;
     private final LogbookTransformData logbookTransformData;
 
     private final OffsetRepository offsetRepository;
@@ -98,7 +96,7 @@ public class ReconstructionService {
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
         OffsetRepository offsetRepository,
         ElasticsearchLogbookIndexManager indexManager) {
-        this(vitamRepositoryProvider, new RestoreBackupService(), AdminManagementClientFactory.getInstance(),
+        this(vitamRepositoryProvider, new RestoreBackupService(),
             new LogbookTransformData(), offsetRepository, indexManager);
     }
 
@@ -107,20 +105,18 @@ public class ReconstructionService {
      *
      * @param vitamRepositoryProvider vitamRepositoryProvider
      * @param recoverBackupService recoverBackupService
-     * @param adminManagementClientFactory adminManagementClientFactory
      * @param logbookTransformData logbookTransformData
      * @param offsetRepository
      * @param indexManager
      */
     @VisibleForTesting
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
-        RestoreBackupService recoverBackupService, AdminManagementClientFactory adminManagementClientFactory,
+        RestoreBackupService recoverBackupService,
         LogbookTransformData logbookTransformData,
         OffsetRepository offsetRepository,
         ElasticsearchLogbookIndexManager indexManager) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = recoverBackupService;
-        this.adminManagementClientFactory = adminManagementClientFactory;
         this.logbookTransformData = logbookTransformData;
         this.offsetRepository = offsetRepository;
         this.indexManager = indexManager;
@@ -254,7 +250,7 @@ public class ReconstructionService {
         List<Document> logbooks =
             bulk.stream().map(LogbookBackupModel::getLogbookOperation).collect(Collectors.toList());
         mongoRepository.saveOrUpdate(logbooks);
-        logbooks.forEach(logbook -> this.logbookTransformData.transformDataForElastic(logbook));
+        logbooks.forEach(this.logbookTransformData::transformDataForElastic);
         esRepository.save(logbooks);
     }
 }
