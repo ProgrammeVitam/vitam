@@ -35,6 +35,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.MeasurementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MeasurementWeightType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.PhysicalDataObjectType;
+import fr.gouv.vitam.common.mapping.mapper.ElementMapper;
 import fr.gouv.vitam.common.model.objectgroup.DbFileInfoModel;
 import fr.gouv.vitam.common.model.objectgroup.DbFormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
@@ -48,16 +49,15 @@ import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceExcept
 public class ObjectGroupMapper {
 
 
-    public static DbVersionsModel map(MinimalDataObjectType dataObject, String groupId, String operationId)
+    public static DbVersionsModel map(MinimalDataObjectType dataObject, String groupId)
         throws ProcessingMalformedDataException, ProcessingObjectReferenceException {
 
         DbVersionsModel dbVersionsModel = new DbVersionsModel();
         dbVersionsModel.setId(dataObject.getId());
         dbVersionsModel.setDataObjectVersion(dataObject.getDataObjectVersion());
         dbVersionsModel.setDataObjectGroupId(groupId);
-        dbVersionsModel.setOpi(operationId);
 
-        if(dataObject.getDataObjectProfile() != null)
+        if (dataObject.getDataObjectProfile() != null)
             dbVersionsModel.setDataObjectProfile(dataObject.getDataObjectProfile().getValue());
 
         if (dataObject instanceof BinaryDataObjectType) {
@@ -95,33 +95,33 @@ public class ObjectGroupMapper {
 
         } else if (dataObject instanceof PhysicalDataObjectType) {
             PhysicalDataObjectType dataPhysicalObject = (PhysicalDataObjectType) dataObject;
-            if(dataPhysicalObject.getPhysicalDimensions() != null) {
+            if (dataPhysicalObject.getPhysicalDimensions() != null) {
                 PhysicalDimensionsModel physicalDimensionsModel = new PhysicalDimensionsModel();
-                if(dataPhysicalObject.getPhysicalDimensions().getDepth() != null) {
+                if (dataPhysicalObject.getPhysicalDimensions().getDepth() != null) {
                     physicalDimensionsModel.setDepth(
                         mapMeasurement(dataPhysicalObject.getPhysicalDimensions().getDepth()));
                 }
-                if(dataPhysicalObject.getPhysicalDimensions().getDiameter() != null) {
+                if (dataPhysicalObject.getPhysicalDimensions().getDiameter() != null) {
                     physicalDimensionsModel.setDiameter(
                         mapMeasurement(dataPhysicalObject.getPhysicalDimensions().getDiameter()));
                 }
-                if(dataPhysicalObject.getPhysicalDimensions().getHeight() != null) {
+                if (dataPhysicalObject.getPhysicalDimensions().getHeight() != null) {
                     physicalDimensionsModel.setHeight(
                         mapMeasurement(dataPhysicalObject.getPhysicalDimensions().getHeight()));
                 }
-                if(dataPhysicalObject.getPhysicalDimensions().getLength() != null) {
+                if (dataPhysicalObject.getPhysicalDimensions().getLength() != null) {
                     physicalDimensionsModel.setLength(
                         mapMeasurement(dataPhysicalObject.getPhysicalDimensions().getLength()));
                 }
-                if(dataPhysicalObject.getPhysicalDimensions().getWidth() != null) {
+                if (dataPhysicalObject.getPhysicalDimensions().getWidth() != null) {
                     physicalDimensionsModel.setWidth(
                         mapMeasurement(dataPhysicalObject.getPhysicalDimensions().getWidth()));
                 }
-                if(dataPhysicalObject.getPhysicalDimensions().getThickness() != null) {
+                if (dataPhysicalObject.getPhysicalDimensions().getThickness() != null) {
                     physicalDimensionsModel.setThickness(
                         mapMeasurement(dataPhysicalObject.getPhysicalDimensions().getThickness()));
                 }
-                if(dataPhysicalObject.getPhysicalDimensions().getWeight() != null) {
+                if (dataPhysicalObject.getPhysicalDimensions().getWeight() != null) {
                     physicalDimensionsModel.setWeight(
                         mapWeightMeasurement(dataPhysicalObject.getPhysicalDimensions().getWeight()));
                 }
@@ -165,8 +165,8 @@ public class ObjectGroupMapper {
         if (fileInfo.getLastModified() != null) {
             dbFileInfoModel.setLastModified(fileInfo.getLastModified().toString());
         }
+        dbFileInfoModel.setCreatingApplicationName(fileInfo.getCreatingApplicationName());
         dbFileInfoModel.setCreatingOs(fileInfo.getCreatingOs());
-        dbFileInfoModel.setCreatingOsVersion(fileInfo.getCreatingOsVersion());
         if (fileInfo.getDateCreatedByApplication() != null) {
             dbFileInfoModel.setDateCreatedByApplication(fileInfo.getDateCreatedByApplication().toString());
         }

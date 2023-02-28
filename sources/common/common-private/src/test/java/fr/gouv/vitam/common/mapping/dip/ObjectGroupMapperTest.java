@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.MeasurementModel;
@@ -94,7 +95,7 @@ public class ObjectGroupMapperTest {
         JAXBException {
         final JsonNode GOTMetadataResponse = JsonHandler.getFromFile(
             PropertiesUtils.getResourceFile(SIMPLE_OBJECT_GROUP_DBREQUEST_RESULT_WITH_METADATA));
-        ObjectMapper objectMapper = VitamObjectMapper.buildObjectMapper();
+        ObjectMapper objectMapper = VitamObjectMapper.buildDeserializationObjectMapper();
         ObjectGroupResponse objectGroupSource =
             objectMapper.treeToValue(GOTMetadataResponse, ObjectGroupResponse.class);
         ObjectGroupMapper objectGroupMapper = new ObjectGroupMapper();

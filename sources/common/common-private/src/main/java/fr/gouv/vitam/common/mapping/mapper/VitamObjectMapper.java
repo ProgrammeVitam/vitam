@@ -24,14 +24,15 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.mapping.dip;
+package fr.gouv.vitam.common.mapping.mapper;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.KeyType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
@@ -43,16 +44,28 @@ import fr.gouv.vitam.common.mapping.deserializer.LevelTypeDeserializer;
 import fr.gouv.vitam.common.mapping.deserializer.OrganizationDescriptiveMetadataTypeDeserializer;
 import fr.gouv.vitam.common.mapping.deserializer.TextByLangDeserializer;
 import fr.gouv.vitam.common.mapping.deserializer.TextTypeDeSerializer;
+import fr.gouv.vitam.common.mapping.serializer.IdentifierTypeSerializer;
+import fr.gouv.vitam.common.mapping.serializer.KeywordTypeSerializer;
+import fr.gouv.vitam.common.mapping.serializer.LevelTypeSerializer;
+import fr.gouv.vitam.common.mapping.serializer.OrganizationDescriptiveMetadataTypeSerializer;
+import fr.gouv.vitam.common.mapping.serializer.TextByLangSerializer;
+import fr.gouv.vitam.common.mapping.serializer.TextTypeSerializer;
+import fr.gouv.vitam.common.mapping.serializer.XMLGregorianCalendarSerializer;
 import fr.gouv.vitam.common.model.unit.TextByLang;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  *
  */
-public interface VitamObjectMapper {
+public class VitamObjectMapper {
 
-    static ObjectMapper buildObjectMapper() {
+    private VitamObjectMapper(){
+    }
+
+    public static ObjectMapper buildDeserializationObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
@@ -69,6 +82,30 @@ public interface VitamObjectMapper {
         module.addDeserializer(KeyType.class, new KeywordTypeDeserializer());
 
         objectMapper.registerModule(module);
+
+        return objectMapper;
+    }
+
+    public  static ObjectMapper buildSerializationObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(TextType.class, new TextTypeSerializer());
+        module.addSerializer(LevelType.class, new LevelTypeSerializer());
+        module.addSerializer(IdentifierType.class, new IdentifierTypeSerializer());
+        module.addSerializer(OrganizationDescriptiveMetadataType.class,
+            new OrganizationDescriptiveMetadataTypeSerializer());
+        module.addSerializer(XMLGregorianCalendar.class, new XMLGregorianCalendarSerializer());
+        module.addSerializer(TextByLang.class, new TextByLangSerializer());
+        module.addSerializer(KeyType.class, new KeywordTypeSerializer());
+
+        objectMapper.registerModule(module);
+        JavaTimeModule module1 = new JavaTimeModule();
+        objectMapper.registerModule(module1);
 
         return objectMapper;
     }

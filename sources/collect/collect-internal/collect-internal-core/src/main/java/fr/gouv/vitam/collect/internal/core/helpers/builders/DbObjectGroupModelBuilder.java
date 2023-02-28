@@ -27,9 +27,9 @@
 package fr.gouv.vitam.collect.internal.core.helpers.builders;
 
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
+import fr.gouv.vitam.common.model.objectgroup.DbFileInfoModel;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
-import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 
 import java.util.Collections;
 import java.util.List;
@@ -39,7 +39,7 @@ public class DbObjectGroupModelBuilder {
 
     private String id;
     private String opi;
-    private FileInfoModel fileInfoModel;
+    private DbFileInfoModel fileInfoModel;
     private List<DbQualifiersModel> qualifiers;
 
     public DbObjectGroupModelBuilder withId(String id) {
@@ -70,7 +70,7 @@ public class DbObjectGroupModelBuilder {
 
     public DbObjectGroupModelBuilder withFileInfoModel(String fileName) {
         Objects.requireNonNull(fileName, "FileName can't be null");
-        fileInfoModel = new FileInfoModel();
+        fileInfoModel = new DbFileInfoModel();
         fileInfoModel.setFilename(fileName);
         return this;
     }

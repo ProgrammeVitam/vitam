@@ -37,7 +37,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import static fr.gouv.vitam.common.mapping.dip.VitamObjectMapper.buildObjectMapper;
+import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.buildDeserializationObjectMapper;
 import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertThat;
@@ -51,7 +51,7 @@ public class ObjectGroupDipServiceImplTest {
         // Given
         ObjectGroupMapper objectGroupMapper = new ObjectGroupMapper();
         ObjectGroupDipServiceImpl objectGrouDipService =
-            new ObjectGroupDipServiceImpl(objectGroupMapper, buildObjectMapper());
+            new ObjectGroupDipServiceImpl(objectGroupMapper, buildDeserializationObjectMapper());
 
         InputStream inputStream =
             getClass().getResourceAsStream("/simple_objectGroup_with_phisical_and_objectGroup.json");

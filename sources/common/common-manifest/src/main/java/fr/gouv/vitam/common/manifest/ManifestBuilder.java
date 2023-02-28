@@ -131,7 +131,7 @@ import static fr.gouv.vitam.common.SedaConstants.TAG_STORAGE_RULE_CODE_LIST_VERS
 import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFERRING_AGENCY;
 import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER;
 import static fr.gouv.vitam.common.SedaConstants.TAG_UNIT_IDENTIFIER;
-import static fr.gouv.vitam.common.mapping.dip.VitamObjectMapper.buildObjectMapper;
+import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.buildDeserializationObjectMapper;
 import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
 
 /**
@@ -168,7 +168,7 @@ public class ManifestBuilder implements AutoCloseable {
     public ManifestBuilder(OutputStream outputStream) throws XMLStreamException, JAXBException {
         archiveUnitMapper = new ArchiveUnitMapper();
         this.objectFactory = new ObjectFactory();
-        this.objectMapper = buildObjectMapper();
+        this.objectMapper = buildDeserializationObjectMapper();
         this.objectGroupMapper = new ObjectGroupMapper();
 
         XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newFactory();
@@ -180,12 +180,12 @@ public class ManifestBuilder implements AutoCloseable {
     public void startDocument(String operationId, ExportType exportType,
         ExportRequestParameters exportRequestParameters, SupportedSedaVersions supportedSedaVersion)
         throws XMLStreamException, JAXBException {
-        
+
         if (supportedSedaVersion == null) {
             LOGGER.debug("Seda version was not filled, defualt one will be setted !");
             supportedSedaVersion = SupportedSedaVersions.SEDA_2_2;
         }
-        
+
         initWriter(exportType, supportedSedaVersion);
 
         switch (exportType) {
@@ -278,11 +278,12 @@ public class ManifestBuilder implements AutoCloseable {
             if (minimalDataObjectType instanceof BinaryDataObjectType) {
                 BinaryDataObjectType binaryDataObjectType = (BinaryDataObjectType) minimalDataObjectType;
                 String extension = getExtension(binaryDataObjectType).toLowerCase();
-                String fileName = null;
-                if(binaryDataObjectType.getUri() != null && binaryDataObjectType.getUri().contains(binaryDataObjectType.getId())){
+                String fileName;
+                if (binaryDataObjectType.getUri() != null &&
+                    binaryDataObjectType.getUri().contains(binaryDataObjectType.getId())) {
                     // In module collect we have the Uri setted with the right fileName
                     fileName = binaryDataObjectType.getUri();
-                }else{
+                } else {
                     fileName = CONTENT + File.separator + binaryDataObjectType.getId() +
                         (extension.equals("") ? "" : "." + extension);
                     binaryDataObjectType.setUri(fileName);

@@ -35,6 +35,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.SignatureType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.mapping.mapper.ElementMapper;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.EventTypeModel;

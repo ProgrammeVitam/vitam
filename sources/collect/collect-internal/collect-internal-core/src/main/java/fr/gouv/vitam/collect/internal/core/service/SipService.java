@@ -48,11 +48,12 @@ import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.manifest.ExportException;
 import fr.gouv.vitam.common.manifest.ManifestBuilder;
-import fr.gouv.vitam.common.mapping.dip.VitamObjectMapper;
+import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.ExportRequestParameters;
@@ -120,9 +121,8 @@ public class SipService {
             ExportRequest exportRequest = SipHelper.buildExportRequest(transactionModel, exportRequestParameters);
 
 
-            manifestBuilder
-                .startDocument(transactionModel.getManifestContext().getMessageIdentifier(), ExportType.ArchiveTransfer,
-                    exportRequestParameters, null);
+            manifestBuilder.startDocument(transactionModel.getManifestContext().getMessageIdentifier(),
+                ExportType.ArchiveTransfer, exportRequestParameters, null);
 
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
@@ -145,8 +145,7 @@ public class SipService {
 
                 ListMultimap<String, String> unitsForObjectGroupId = partition.stream()
                     .collect(ArrayListMultimap::create, (map, entry) -> map.put(entry.getValue(), entry.getKey()),
-                        (list1, list2) -> list1.putAll(list2)
-                    );
+                        (list1, list2) -> list1.putAll(list2));
                 InQuery in = QueryHelper.in(id(), partition.stream().map(Map.Entry::getValue).toArray(String[]::new));
 
                 select.setQuery(in);
@@ -167,16 +166,15 @@ public class SipService {
             scrollRequest = metadataService.selectUnits(initialQueryParser.getRequest(), transactionModel.getId());
 
 
-            StreamSupport.stream(scrollRequest, false)
-                .forEach(result -> {
-                    try {
-                        ArchiveUnitModel archiveUnitModel =
-                            VitamObjectMapper.buildObjectMapper().treeToValue(result, ArchiveUnitModel.class);
-                        manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
-                    } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException e) {
-                        e.printStackTrace();
-                    }
-                });
+            StreamSupport.stream(scrollRequest, false).forEach(result -> {
+                try {
+                    ArchiveUnitModel archiveUnitModel = VitamObjectMapper.buildDeserializationObjectMapper()
+                        .treeToValue(result, ArchiveUnitModel.class);
+                    manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
+                } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException e) {
+                    throw new VitamRuntimeException(e);
+                }
+            });
             manifestBuilder.endDescriptiveMetadata();
 
             String submissionAgencyIdentifier = transactionModel.getManifestContext().getSubmissionAgencyIdentifier();
@@ -184,9 +182,8 @@ public class SipService {
                 submissionAgencyIdentifier = transactionModel.getManifestContext().getOriginatingAgencyIdentifier();
             }
 
-            manifestBuilder
-                .writeManagementMetadata(transactionModel.getManifestContext().getOriginatingAgencyIdentifier(),
-                    submissionAgencyIdentifier);
+            manifestBuilder.writeManagementMetadata(
+                transactionModel.getManifestContext().getOriginatingAgencyIdentifier(), submissionAgencyIdentifier);
             manifestBuilder.endDataObjectPackage();
 
             manifestBuilder.writeFooter(ExportType.ArchiveTransfer, exportRequest.getExportRequestParameters());
@@ -245,8 +242,8 @@ public class SipService {
             if (!workspaceClient.isExistingContainer(transactionModel.getId())) {
                 return null;
             }
-            Response response = workspaceClient.getObject(
-                transactionModel.getId(), transactionModel.getId() + SIP_EXTENSION);
+            Response response =
+                workspaceClient.getObject(transactionModel.getId(), transactionModel.getId() + SIP_EXTENSION);
             if (response.getStatus() == Response.Status.OK.getStatusCode()) {
                 sipInputStream = (InputStream) response.getEntity();
             }

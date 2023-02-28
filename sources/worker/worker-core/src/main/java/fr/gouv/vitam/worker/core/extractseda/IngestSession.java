@@ -28,6 +28,8 @@ package fr.gouv.vitam.worker.core.extractseda;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.unit.GotObj;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
@@ -68,6 +70,8 @@ public class IngestSession {
     private final Map<String, Boolean> dataObjectGroupMasterMandatory = new HashMap<>();
     private final Set<String> physicalDataObjetsGuids = new HashSet<>();
     private final Map<String, Long> fileWithParmsFromFolder = new HashMap<>();
+
+    private final Multimap<String,String> usageToObjectGroupId = HashMultimap.create();
 
     public ObjectNode getArchiveUnitTree() {
         return archiveUnitTree;
@@ -163,5 +167,9 @@ public class IngestSession {
 
     public Map<String, Long> getFileWithParmsFromFolder() {
         return fileWithParmsFromFolder;
+    }
+
+    public Multimap<String,String> getUsageToObjectGroupId() {
+        return usageToObjectGroupId;
     }
 }

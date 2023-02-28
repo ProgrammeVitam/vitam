@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.mapping;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
+import fr.gouv.vitam.common.mapping.mapper.ElementMapper;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitInternalModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;

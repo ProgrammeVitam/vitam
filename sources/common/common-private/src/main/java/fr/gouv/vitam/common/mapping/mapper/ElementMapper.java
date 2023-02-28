@@ -24,7 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.mapping;
+package fr.gouv.vitam.common.mapping.mapper;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ArrayListMultimap;
@@ -49,6 +49,10 @@ import static java.util.Collections.singletonList;
  */
 public class ElementMapper {
 
+    private ElementMapper() {
+
+    }
+
     /**
      * Transform list to map
      *
@@ -56,14 +60,11 @@ public class ElementMapper {
      * @return the map
      */
     public static Map<String, Object> toMap(List<Object> elements) {
-        Map<String, List<Object>> collect = elements.stream()
-            .filter(item -> item instanceof Element)
-            .map(item -> (Element) item)
-            .map(item -> new SimpleImmutableEntry<>(item.getLocalName(), elementToMap(item)))
-            .collect(Collectors.toMap(
-                SimpleImmutableEntry::getKey,
-                SimpleImmutableEntry::getValue,
-                (o, o2) -> Stream.concat(o.stream(), o2.stream()).collect(Collectors.toList())));
+        Map<String, List<Object>> collect =
+            elements.stream().filter(item -> item instanceof Element).map(item -> (Element) item)
+                .map(item -> new SimpleImmutableEntry<>(item.getLocalName(), elementToMap(item))).collect(
+                    Collectors.toMap(SimpleImmutableEntry::getKey, SimpleImmutableEntry::getValue,
+                        (o, o2) -> Stream.concat(o.stream(), o2.stream()).collect(Collectors.toList())));
         return (Map) collect;
     }
 
