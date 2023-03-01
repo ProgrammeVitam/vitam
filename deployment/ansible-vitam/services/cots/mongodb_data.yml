@@ -5,7 +5,6 @@
   any_errors_fatal: true
   roles:
     - mongo_common
-  tags: mongodb_data
 
 # Mongoc replicas configuration
 - hosts: hosts_mongoc_data
@@ -15,9 +14,8 @@
     - mongoc
   vars:
     mongo_bin: mongod
-    mongod: "hosts_mongod_data"
-    group_name: "hosts_mongoc_data"
-  tags: mongodb_data
+    mongod: hosts_mongod_data
+    group_name: hosts_mongoc_data
 
 # Mongod replicas configuration
 - hosts: hosts_mongod_data
@@ -27,9 +25,8 @@
     - mongod
   vars:
     mongo_bin: mongod
-    mongoc: "hosts_mongoc_data"
-    group_name: "hosts_mongod_data"
-  tags: mongodb_data
+    mongoc: hosts_mongoc_data
+    group_name: hosts_mongod_data
 
 # Mongos configuration
 - hosts: hosts_mongos_data
@@ -40,8 +37,7 @@
     - mongo_configure
   vars:
     mongo_bin: mongos
-    group_name: "hosts_mongod_data"
-    mongoc: "hosts_mongoc_data"
-    mongod: "hosts_mongod_data"
-    mongos: "hosts_mongos_data"
-  tags: mongodb_data
+    group_name: hosts_mongod_data
+    mongoc: hosts_mongoc_data
+    mongod: hosts_mongod_data
+    mongos: hosts_mongos_data

@@ -1,4 +1,5 @@
 ---
+
 - name: Install vitam-mongos package
   package:
     name: vitam-mongos
@@ -102,7 +103,7 @@
 # Enable mongo passphrase
 - name: Copy the passphrase
   template:
-    src: "keyfile.j2"
+    src: keyfile.j2
     dest: "{{ mongo_config_path }}/keyfile"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
@@ -110,7 +111,7 @@
   tags:
     - update_mongodb_configuration
   notify:
-    - "mongos - reload consul configuration"
+    - "mongos - restart service"
 
 # Ensure that the installation is complete and consul up before continuing...
 - meta: flush_handlers
