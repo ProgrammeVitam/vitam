@@ -60,8 +60,6 @@ public class TransactionDto implements Serializable {
 
     @JsonProperty(value = "Comment") private String comment;
 
-    @JsonProperty(value = "UnitUp") private String unitUp;
-
     @JsonProperty("#tenant") private Integer tenant;
 
     @JsonProperty(value = "CreationDate") private String creationDate;
@@ -251,13 +249,5 @@ public class TransactionDto implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(id);
-    }
-
-    public String getUnitUp() {
-        return unitUp;
-    }
-
-    public void setUnitUp(String unitUp) {
-        this.unitUp = unitUp;
     }
 }

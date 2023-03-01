@@ -274,18 +274,6 @@ public interface CollectExternalClient extends MockOrRestClient {
     /**
      * Get all AU attached to transactions related to project Id param
      *
-     * @param vitamContext
-     * @param projectId
-     * @param dslQuery
-     * @return
-     * @throws VitamClientException
-     */
-    RequestResponse getUnitsByProjectId(VitamContext vitamContext,
-        String projectId, JsonNode dslQuery) throws VitamClientException;
-
-    /**
-     * Get all AU attached to transactions related to project Id param
-     *
      * @param vitamContext security context
      * @param unitId unit id
      * @param usage usage

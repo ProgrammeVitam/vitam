@@ -191,7 +191,6 @@ public class CollectHelper {
             transactionDto.setComment(transactionModel.getManifestContext().getComment());
             transactionDto.setAcquisitionInformation(transactionModel.getManifestContext().getAcquisitionInformation());
             transactionDto.setLegalStatus(transactionModel.getManifestContext().getLegalStatus());
-            transactionDto.setUnitUp(transactionModel.getManifestContext().getUnitUp());
         }
         return transactionDto;
     }
@@ -209,17 +208,16 @@ public class CollectHelper {
             .withUnitUp(projectDto.getUnitUp()).build();
     }
 
-    public static ManifestContext mapTransactionDtoToManifestContext(TransactionDto transactionDto) {
+    public static ManifestContext mapTransactionDtoToManifestContext(TransactionDto transactionDto, ProjectDto projectDto) {
         return new ManifestContextBuilder()
-            .withArchivalAgreement(transactionDto.getArchivalAgreement())
-            .withMessageIdentifier(transactionDto.getMessageIdentifier())
-            .withArchivalAgencyIdentifier(transactionDto.getArchivalAgencyIdentifier())
-            .withTransferringAgencyIdentifier(transactionDto.getTransferringAgencyIdentifier())
-            .withOriginatingAgencyIdentifier(transactionDto.getOriginatingAgencyIdentifier())
-            .withSubmissionAgencyIdentifier(transactionDto.getSubmissionAgencyIdentifier())
-            .withArchivalProfile(transactionDto.getArchivalProfile()).withComment(transactionDto.getComment())
-            .withAcquisitionInformation(transactionDto.getAcquisitionInformation())
-            .withLegalStatus(transactionDto.getLegalStatus())
-            .withUnitUp(transactionDto.getUnitUp()).build();
+            .withArchivalAgreement(transactionDto.getArchivalAgreement() != null ? transactionDto.getArchivalAgreement() : projectDto.getArchivalAgreement() )
+            .withMessageIdentifier(transactionDto.getMessageIdentifier() != null ? transactionDto.getMessageIdentifier() : projectDto.getMessageIdentifier() )
+            .withArchivalAgencyIdentifier(transactionDto.getArchivalAgencyIdentifier() != null ? transactionDto.getArchivalAgencyIdentifier() : projectDto.getArchivalAgencyIdentifier())
+            .withTransferringAgencyIdentifier(transactionDto.getTransferringAgencyIdentifier() != null ? transactionDto.getTransferringAgencyIdentifier() : projectDto.getTransferringAgencyIdentifier())
+            .withOriginatingAgencyIdentifier(transactionDto.getOriginatingAgencyIdentifier() != null ? transactionDto.getOriginatingAgencyIdentifier() : projectDto.getOriginatingAgencyIdentifier())
+            .withSubmissionAgencyIdentifier(transactionDto.getSubmissionAgencyIdentifier() != null ? transactionDto.getSubmissionAgencyIdentifier() : projectDto.getSubmissionAgencyIdentifier())
+            .withArchivalProfile(transactionDto.getArchivalProfile()).withComment(transactionDto.getComment() != null ? transactionDto.getComment() : projectDto.getComment())
+            .withAcquisitionInformation(transactionDto.getAcquisitionInformation() != null ? transactionDto.getAcquisitionInformation() : projectDto.getAcquisitionInformation())
+            .withLegalStatus(transactionDto.getLegalStatus() != null ? transactionDto.getLegalStatus() : projectDto.getLegalStatus()).build();
     }
 }

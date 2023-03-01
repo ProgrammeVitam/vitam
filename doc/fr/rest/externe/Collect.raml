@@ -12,7 +12,7 @@ uses:
 
 
 securitySchemes:
-  VitamPlatform: !include ../interne/securitySchemes/SecuritySchemeVitamInternal.raml
+  VitamPlatform: !include ../externe/securitySchemes/SecuritySchemeVitam.raml
 
 securedBy: [ VitamPlatform ]
 
@@ -24,10 +24,10 @@ types:
 
 documentation:
   - title: Avertissements
-    content: !include ../interne/docs-fr/avertissement.md
+    content: !include ../externe/docs-fr/avertissement-collect.md
 
   - title: Licence
-    content: !include ../interne/docs-fr/license.md
+    content: !include ../externe/docs-fr/license.md
 
   - title: API Collect
     content: API Collect
@@ -49,6 +49,46 @@ documentation:
       - Comment
       - LegalStatus
       - Name
+  post:
+    description: |
+      - request body : JSON object
+      - response : JSON of saved project / HTTP CODE 200
+    is: [CollectTraits.TransactionResponse, StandardTraits.StandardOptionalHeader,
+         StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+         StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+    headers:
+     x-tenant-id:
+        required: true
+    body:
+       application/json:
+          type: object
+          example: !include libraries/examples/projectObjectRequest.json
+    responses:
+       200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/examples/projectObjectResponse.json
+  put:
+        description: |
+          - request body : JSON object
+          - response : JSON of saved project / HTTP CODE 200
+        is: [CollectTraits.TransactionResponse, StandardTraits.StandardOptionalHeader,
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        headers:
+         x-tenant-id:
+            required: true
+        body:
+           application/json:
+              type: object
+              example: !include libraries/examples/projectObjectPutRequest.json
+        responses:
+           200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/projectObjectResponse.json
   get:
     description: |
       - request body : JSON object
@@ -65,51 +105,23 @@ documentation:
             application/json:
               type: object
               example: !include libraries/examples/listProjectsObjectResponse.json
-  /{id}/units:
+  /{id}:
+    description: |
+        API de collecte. Ce point d'entrée permet de supprimer un projet.
+    delete:
         is: [ StandardTraits.StandardOptionalHeader,
-              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
-        get:
-         description: |
-           Permet de retourner la liste des unités archivistique associés à l'identifiant du projet
-         uriParameters:
-             projectId:
-               required: true
-               description: Identifiant du projet
-         body:
-           application/json:
-             type: object
-             example: !include libraries/examples/streamUnitRequest.json
-         headers:
-          X-tenant-Id:
-           required: true
-         responses:
-            200:
-              body:
-                application/json:
-                  type: object
-                  example: !include libraries/examples/CollectUnitObjectResponse.json
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        headers:
+         x-tenant-id:
+            required: true
+        responses:
+          200:
   /{id}/transactions:
        displayName: Permet de gerer les transactions d'un projet
        is: [ StandardTraits.StandardOptionalHeader,
              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
-       get:
-        description: |
-          - request body : JSON object
-          - response : JSON of saved transactions / HTTP CODE 200
-        is: [StandardTraits.StandardOptionalHeader,
-            StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-            StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
-        headers:
-        x-tenant-id:
-            required: true
-        responses:
-          200:
-              body:
-                application/json:
-                  type: object
-                  example: !include libraries/examples/transactionResponse.json
        post:
         description: |
           - request body : JSON object
@@ -153,28 +165,30 @@ documentation:
                 application/json:
                   type: object
                   example: !include libraries/examples/transactionResponse.json
-
   /{id}/units:
-    displayName: Ajout d'une unité archivistique
-    is: [ StandardTraits.StandardOptionalHeader,
-          StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412,CollectTraits.TransactionResponse ]
-    post:
-     description: |
-       Permet de soumettre une unité archivistique
-     body:
-      application/json:
-        type: object
-        example: !include libraries/examples/CollectUnitObjectRequest.json
-     headers:
-      X-tenant-Id:
-       required: true
-     responses:
-        200:
-          body:
-            application/json:
-              type: object
-              example: !include libraries/examples/CollectUnitObjectResponse.json
+        is: [ StandardTraits.StandardOptionalHeader,
+              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        get:
+         description: |
+           Permet de retourner la liste des unités archivistique associés à l'identifiant du projet
+         uriParameters:
+             projectId:
+               required: true
+               description: Identifiant du projet
+         body:
+           application/json:
+             type: object
+             example: !include libraries/examples/streamUnitRequest.json
+         headers:
+          X-tenant-Id:
+           required: true
+         responses:
+            200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/CollectUnitObjectResponse.json
 
   /{id}/close:
         displayName: Fermer une transaction -> statut Close
@@ -215,6 +229,31 @@ documentation:
                     application/json:
                       type: object
                       example: !include libraries/examples/CollectIngestObjectResponse.json
+  /{id}:
+    description: |
+        API de collecte. Ce point d'entrée permet de supprimer une transaction.
+    get:
+        is: [ StandardTraits.StandardOptionalHeader,
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        headers:
+         x-tenant-id:
+            required: true
+        responses:
+          200:
+            body:
+              application/json:
+                type: object
+                example: !include libraries/examples/transactionResponse.json
+    delete:
+        is: [ StandardTraits.StandardOptionalHeader,
+             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+             StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        headers:
+         x-tenant-id:
+            required: true
+        responses:
+          200:
   /{id}/upload:
     displayName: upload d'une archive Zip
     is: [ StandardTraits.StandardOptionalHeader,
@@ -232,46 +271,7 @@ documentation:
         200:
           body:
             application/json:
-  /{id}/abort:
-        displayName: Abandonner une une transaction -> statut ABORTED
-        is: [ StandardTraits.StandardOptionalHeader,
-              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
-        post:
-         description: |
-           Permet d'abandonner une transaction
-         body:
-          application/json:
-         headers:
-          X-tenant-Id:
-           required: true
-         responses:
-            200:
-              body:
-                application/json:
-                  type: object
-                  example: !include libraries/examples/CollectTransactionCloseObjectResponse.json
 
-  /{id}/reopen:
-        displayName: Rouvrir une une transaction -> statut ABORTED
-        is: [ StandardTraits.StandardOptionalHeader,
-              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
-        post:
-         description: |
-           Permet de rouvrir une transaction
-         body:
-          application/json:
-         headers:
-          X-tenant-Id:
-           required: true
-         responses:
-            200:
-              body:
-                application/json:
-                  type: object
-                  example: !include libraries/examples/CollectTransactionCloseObjectResponse.json
-  
 /units:
   displayName: Units
   description: |
@@ -279,6 +279,7 @@ documentation:
   is: [ StandardTraits.StandardOptionalHeader,
   StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
   StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+
   /{id}:
         is: [ StandardTraits.StandardOptionalHeader,
               StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -334,7 +335,7 @@ documentation:
               body:
                 application/octet-stream:
                   description: Binary object as a file
-       
+
         post:
          description: |
            Permet de rajouter un binaire
@@ -350,3 +351,28 @@ documentation:
                 application/json:
                   type: object
                   example: !include libraries/examples/CollectBinaryObjectResponse.json
+
+/objects:
+  displayName: Objects
+  description: |
+    API de collecte. Ce point d'entrée permet de gérer les groupe d'objets.
+  is: [ StandardTraits.StandardOptionalHeader,
+  StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+  StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+
+  /{id}:
+        is: [ StandardTraits.StandardOptionalHeader,
+              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        get:
+         description: |
+           Permet de retourner une groupe d'object par son id
+         headers:
+          X-tenant-Id:
+           required: true
+         responses:
+            200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/objectGroupResponse.json

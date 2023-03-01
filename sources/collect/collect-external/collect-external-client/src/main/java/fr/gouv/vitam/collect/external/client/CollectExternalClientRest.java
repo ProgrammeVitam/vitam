@@ -368,20 +368,6 @@ public class CollectExternalClientRest extends DefaultClient implements CollectE
     }
 
     @Override
-    public RequestResponse<JsonNode> getUnitsByProjectId(VitamContext vitamContext,
-        String projectId, JsonNode dslQuery) throws VitamClientException {
-        try (Response response = make(
-            get().withPath(PROJECT_PATH + "/" + projectId + UNITS_PATH)
-                .withHeaders(vitamContext.getHeaders())
-                .withHeader(EXPECT, EXPECT_CONTINUE)
-                .withBody(dslQuery)
-                .withJson())) {
-            check(response);
-            return RequestResponse.parseFromResponse(response, JsonNode.class);
-        }
-    }
-
-    @Override
     public Response getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage, int version)
         throws VitamClientException {
         VitamRequestBuilder request = get()
