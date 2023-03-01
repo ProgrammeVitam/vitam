@@ -1,6 +1,4 @@
 ---
 
-mongo_config_path:  '{{ vitam_defaults.folder.root_path }}/conf/{{ mongo_type }}'
-mongo_db_path:      '{{ vitam_defaults.folder.root_path }}/data/{{ mongo_type }}/db'
 # KWA review : rename this...
 status_tuned_present: ''

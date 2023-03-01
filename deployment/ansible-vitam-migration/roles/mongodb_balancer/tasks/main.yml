@@ -11,36 +11,40 @@
 - name: make a list from the result
   set_fact:
     mongos_list: "{{ mongos_result.results | remove_skipped_servers | map(attribute='ansible_facts.mongos_item') | list }}"
-  when: "inventory_hostname not in single_vm_hostnames"
+  when: inventory_hostname not in single_vm_hostnames
 
 - name: make a list from the result (localhost deploy)
   set_fact:
     mongos_list: [ 'localhost' ]
-  when: "inventory_hostname in single_vm_hostnames"
+  when: inventory_hostname in single_vm_hostnames
 
 - block:
 
   - name: Wait for the service port to be open
-    wait_for: host={{ ip_service }} port={{ mongodb.mongos_port }} timeout="{{ vitam_defaults.services.start_timeout }}"
+    wait_for:
+      host: "{{ ip_service }}"
+      port: "{{ mongodb.mongos_port }}"
+      timeout: "{{ vitam_defaults.services.start_timeout }}"
 
-  - name: Copy the database scripts files
-    template:
+  - name: Copy database scripts
+    copy:
       src: "{{ item }}"
-      dest: "{{ vitam_defaults.folder.root_path }}/app/mongos/{{ item | basename | regex_replace('\\.j2$') }}"
+      dest: "{{ vitam_defaults.folder.root_path }}/script/mongos"
       owner: "{{ vitam_defaults.users.vitamdb }}"
       group: "{{ vitam_defaults.users.group }}"
       mode: "{{ vitam_defaults.folder.conf_permission }}"
-    with_fileglob:
-      - "{{ role_path }}/templates/*"
+    with_items:
+      - start_balancer.js
+      - stop_balancer.js
 
   - name: Start the balancer
-    shell: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb[mongo_cluster_name].admin.user }} -p {{ mongodb[mongo_cluster_name].admin.password }} --quiet < {{ vitam_defaults.folder.root_path }}/app/mongos/start_balancer.js"
+    shell: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb[mongo_cluster_name].admin.user }} -p {{ mongodb[mongo_cluster_name].admin.password }} --quiet < {{ vitam_defaults.folder.root_path }}/script/mongos/start_balancer.js"
     no_log: "{{ hide_passwords_during_deploy }}"
     when: state == "started"
 
   - name: Stop the balancer
-    shell: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb[mongo_cluster_name].admin.user }} -p {{ mongodb[mongo_cluster_name].admin.password }} --quiet < {{ vitam_defaults.folder.root_path }}/app/mongos/stop_balancer.js"
+    shell: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb[mongo_cluster_name].admin.user }} -p {{ mongodb[mongo_cluster_name].admin.password }} --quiet < {{ vitam_defaults.folder.root_path }}/script/mongos/stop_balancer.js"
     no_log: "{{ hide_passwords_during_deploy }}"
     when: state == "stopped"
 
-  when: mongos_list |last == inventory_hostname
+  when: mongos_list | last == inventory_hostname

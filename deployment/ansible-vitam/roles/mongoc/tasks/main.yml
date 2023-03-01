@@ -1,4 +1,5 @@
 ---
+
 - name: Install vitam-mongoc package
   package:
     name: vitam-mongoc

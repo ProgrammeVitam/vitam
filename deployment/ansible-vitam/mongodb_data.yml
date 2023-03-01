@@ -13,8 +13,8 @@
     - mongoc
   vars:
     mongo_bin: mongod
-    mongod: "hosts_mongod_data"
-    group_name: "hosts_mongoc_data"
+    mongod: hosts_mongod_data
+    group_name: hosts_mongoc_data
 
 # Mongod replicas configuration
 - hosts: hosts_mongod_data
@@ -23,8 +23,8 @@
     - mongod
   vars:
     mongo_bin: mongod
-    mongoc: "hosts_mongoc_data"
-    group_name: "hosts_mongod_data"
+    mongoc: hosts_mongoc_data
+    group_name: hosts_mongod_data
 
 # Mongos configuration
 - hosts: hosts_mongos_data
@@ -34,7 +34,7 @@
     - mongo_configure
   vars:
     mongo_bin: mongos
-    group_name: "hosts_mongod_data"
-    mongoc: "hosts_mongoc_data"
-    mongod: "hosts_mongod_data"
-    mongos: "hosts_mongos_data"
+    group_name: hosts_mongod_data
+    mongoc: hosts_mongoc_data
+    mongod: hosts_mongod_data
+    mongos: hosts_mongos_data
