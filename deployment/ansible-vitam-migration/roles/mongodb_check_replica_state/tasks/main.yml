@@ -1,0 +1,21 @@
+---
+
+- name: Copy check_replica_state database script
+  copy:
+    src: check_replica_state.js
+    dest: "{{ vitam_defaults.folder.root_path }}/script/{{ mongo_type }}/check_replica_state.js"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+
+- name: Check replica state
+  shell: "mongo {{ ip_service }}:{{ mongo_port }}/admin -u {{ mongodb[mongo_cluster_name].localadmin.user }} -p {{ mongodb[mongo_cluster_name].localadmin.password }} --quiet < {{ vitam_defaults.folder.root_path }}/script/{{ mongo_type }}/check_replica_state.js"
+  no_log: "{{ hide_passwords_during_deploy }}"
+  ignore_errors: true # To properly catch output on the next task
+  register: output_replica_state
+
+- name: Fail if node state is incorrect
+  assert:
+    fail_msg: "{{ output_replica_state.stdout_lines }}" # we output stdout_lines because mongo legacy command doesn't output on stderr
+    success_msg: "{{ output_replica_state.stdout_lines }}"
+    that: output_replica_state.rc == 0

@@ -1,0 +1,10 @@
+// https://www.mongodb.com/docs/manual/reference/command/setFeatureCompatibilityVersion/#command-fields
+
+var requiredVersion = {{ mongo_compatibility_list | to_json }};
+var adminDB = db.getSiblingDB('admin');
+var currentVersion = adminDB.adminCommand({ getParameter: 1, featureCompatibilityVersion: 1}).featureCompatibilityVersion.version;
+if (requiredVersion.includes(currentVersion)) {
+    print("OK: featureCompatibilityVersion: " + currentVersion + " is compatible with the required version " + requiredVersion + ".");
+} else {
+    throw "featureCompatibilityVersion: " + currentVersion + " is not compatible with the required version " + requiredVersion + ".";
+}

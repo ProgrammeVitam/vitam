@@ -1,0 +1,21 @@
+---
+
+- name: Copy check_compatibility_version database script
+  template:
+    src: check_compatibility_version.js.j2
+    dest: "{{ vitam_defaults.folder.root_path }}/script/{{ mongo_type }}/check_compatibility_version.js"
+    owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission }}"
+
+- name: "Check compatibility version with mongo {{ mongo_compatibility_list }}"
+  shell: "mongo {{ ip_service }}:{{ mongo_port }}/admin -u {{ mongodb[mongo_cluster_name].localadmin.user }} -p {{ mongodb[mongo_cluster_name].localadmin.password }} --quiet < {{ vitam_defaults.folder.root_path }}/script/{{ mongo_type }}/check_compatibility_version.js"
+  no_log: "{{ hide_passwords_during_deploy }}"
+  ignore_errors: true # To properly catch output on the next task
+  register: output_compatibility_version
+
+- name: Fail if compatibility version is incorrect
+  assert:
+    fail_msg: "{{ output_compatibility_version.stdout_lines }}" # we output stdout_lines because mongo legacy command doesn't output on stderr
+    success_msg: "{{ output_compatibility_version.stdout_lines }}"
+    that: output_compatibility_version.rc == 0

@@ -1,7 +1,6 @@
 ---
-
 # Mongodb migration from 4.2 to 4.4
-######################################
+###################################
 
 # Confirm launching this playbook
 - hosts: localhost
@@ -9,7 +8,7 @@
   gather_facts: no
   vars_prompt:
     name: "confirmation"
-    prompt: "Are you sure you want to run this playbook ?\nAnswer with 'YES'"
+    prompt: "This playbook will migrate your mongo clusters from 4.2 to 4.4.\n\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
     default: "NO"
     private: no
   tasks:
@@ -17,26 +16,48 @@
       fail: msg="Playbook run confirmation failed"
       when: confirmation|upper != "YES"
 
-####################################
-# Début de la migration mongo data #
-####################################
+################################################################################
+# Starting mongo-data migration
+################################################################################
 
-#########################
-########## 4.4 ##########
-#########################
+# Checks feature compatibility version & state
+- hosts: hosts_mongoc_data
+  gather_facts: no
+  roles:
+    - mongodb_check_feature_compatibility
+    - mongodb_check_replica_state
+  vars:
+    mongo_compatibility_list: ['4.2']
+    mongo_type: mongoc
+    mongo_port: "{{ mongodb.mongoc_port }}"
 
-# Arrêt du balancer
+- hosts: hosts_mongod_data
+  gather_facts: no
+  roles:
+    - mongodb_check_feature_compatibility
+    - mongodb_check_replica_state
+  vars:
+    mongo_compatibility_list: ['4.2']
+    mongo_type: mongod
+    mongo_port: "{{ mongodb.mongod_port }}"
 
+################################################################################
+
+# Stop balancer
 - hosts: hosts_mongos_data
+  gather_facts: no
   roles:
     - mongodb_balancer
   vars:
     mongo_group: hosts_mongos_data
     state: stopped
 
-# mongoc 4.4
+################################################################################
+## Upgrade config servers (mongoc)
 
+# set_members_groups for mongoc
 - hosts: hosts_mongoc_data
+  gather_facts: no
   roles:
     - mongodb_set_members_groups
   vars:
@@ -44,33 +65,34 @@
     mongo_type: mongoc
     mongo_port: "{{ mongodb.mongoc_port }}"
 
-# Upgrade secondaries members
+# upgrade secondaries mongoc
 - hosts: hosts_mongoc_data
   roles:
     - mongodb_upgrade_package
   vars:
-    mongo_group: hosts_mongoc_data
     mongo_type: mongoc
     mongo_port: "{{ mongodb.mongoc_port }}"
     mongo_version: 4.4.17
     mongo_primary: false
   serial: 1
 
-# Upgrade primary member
+# upgrade primary mongoc
 - hosts: hosts_mongoc_data
   roles:
     - mongodb_upgrade_package
   vars:
-    mongo_group: hosts_mongoc_data
     mongo_type: mongoc
     mongo_port: "{{ mongodb.mongoc_port }}"
     mongo_version: 4.4.17
     mongo_primary: true
   serial: 1
 
-# mongod 4.4
+################################################################################
+## Upgrade shards (mongod)
 
+# set_members_groups for mongod
 - hosts: hosts_mongod_data
+  gather_facts: no
   roles:
     - mongodb_set_members_groups
   vars:
@@ -78,42 +100,44 @@
     mongo_type: mongod
     mongo_port: "{{ mongodb.mongod_port }}"
 
+# upgrade secondaries mongod
 - hosts: hosts_mongod_data
   roles:
     - mongodb_upgrade_package
   vars:
-    mongo_group: hosts_mongod_data
     mongo_type: mongod
     mongo_port: "{{ mongodb.mongod_port }}"
     mongo_version: 4.4.17
     mongo_primary: false
   serial: 1
 
+# upgrade primary mongod
 - hosts: hosts_mongod_data
   roles:
     - mongodb_upgrade_package
   vars:
-    mongo_group: hosts_mongod_data
     mongo_type: mongod
     mongo_port: "{{ mongodb.mongod_port }}"
     mongo_version: 4.4.17
     mongo_primary: true
   serial: 1
 
-# mongos 4.4
+################################################################################
 
+## Upgrade mongos
 - hosts: hosts_mongos_data
   roles:
     - mongodb_upgrade_package
   vars:
-    mongo_group: hosts_mongos_data
     mongo_type: mongos
     mongo_port: "{{ mongodb.mongos_port }}"
     mongo_version: 4.4.17
 
-# Fin de la migration: redémarrage du balancer
+################################################################################
 
+# Restart balancer
 - hosts: hosts_mongos_data
+  gather_facts: no
   roles:
     - mongodb_balancer
   vars:
@@ -121,38 +145,60 @@
     state: started
 
 # set_featurecompatibility
-
 - hosts: hosts_mongos_data
+  gather_facts: no
   roles:
     - mongodb_set_feature_compatibility
   vars:
     mongo_group: hosts_mongos_data
-    mongo_version: "4.4"
+    mongo_version: 4.4
 
-##################################
-# Fin de la migration mongo data #
-##################################
+################################################################################
+# End of mongo-data migration
+################################################################################
 
-#####################################
-# Début de la migration mongo offer #
-#####################################
+################################################################################
+# Starting mongo-offer migration
+################################################################################
 
-#########################
-########## 4.4 ##########
-#########################
+# Checks feature compatibility version & state
+- hosts: hosts_mongoc_offer
+  gather_facts: no
+  roles:
+    - mongodb_check_feature_compatibility
+    - mongodb_check_replica_state
+  vars:
+    mongo_compatibility_list: ['4.2']
+    mongo_type: mongoc
+    mongo_port: "{{ mongodb.mongoc_port }}"
 
-# Arrêt du balancer
+- hosts: hosts_mongod_offer
+  gather_facts: no
+  roles:
+    - mongodb_check_feature_compatibility
+    - mongodb_check_replica_state
+  vars:
+    mongo_compatibility_list: ['4.2']
+    mongo_type: mongod
+    mongo_port: "{{ mongodb.mongod_port }}"
 
+################################################################################
+
+# Stop balancer
 - hosts: hosts_mongos_offer
+  gather_facts: no
   roles:
     - mongodb_balancer
   vars:
     mongo_group: hosts_mongos_offer
     state: stopped
 
-# mongoc 4.4
+################################################################################
+## Upgrade config servers (mongoc)
 
+# set_members_groups for mongoc
 - hosts: hosts_mongoc_offer
+  gather_facts: no
   roles:
     - mongodb_set_members_groups
   vars:
@@ -160,33 +206,34 @@
     mongo_type: mongoc
     mongo_port: "{{ mongodb.mongoc_port }}"
 
-# Upgrade secondaries members
+# upgrade secondaries mongoc
 - hosts: hosts_mongoc_offer
   roles:
     - mongodb_upgrade_package
   vars:
-    mongo_group: hosts_mongoc_offer
     mongo_type: mongoc
     mongo_port: "{{ mongodb.mongoc_port }}"
     mongo_version: 4.4.17
     mongo_primary: false
   serial: 1
 
-# Upgrade primary member
+# upgrade primary mongoc
 - hosts: hosts_mongoc_offer
   roles:
     - mongodb_upgrade_package
   vars:
-    mongo_group: hosts_mongoc_offer
     mongo_type: mongoc
     mongo_port: "{{ mongodb.mongoc_port }}"
     mongo_version: 4.4.17
     mongo_primary: true
   serial: 1
 
-# mongod 4.2
+################################################################################
+## Upgrade shards (mongod)
 
+# set_members_groups for mongod
 - hosts: hosts_mongod_offer
+  gather_facts: no
   roles:
     - mongodb_set_members_groups
   vars:
@@ -194,42 +241,44 @@
     mongo_type: mongod
     mongo_port: "{{ mongodb.mongod_port }}"
 
+# upgrade secondaries mongod
 - hosts: hosts_mongod_offer
   roles:
     - mongodb_upgrade_package
   vars:
-    mongo_group: hosts_mongod_offer
     mongo_type: mongod
     mongo_port: "{{ mongodb.mongod_port }}"
     mongo_version: 4.4.17
     mongo_primary: false
   serial: 1
 
+# upgrade primary mongod
 - hosts: hosts_mongod_offer
   roles:
     - mongodb_upgrade_package
   vars:
-    mongo_group: hosts_mongod_offer
     mongo_type: mongod
     mongo_port: "{{ mongodb.mongod_port }}"
     mongo_version: 4.4.17
     mongo_primary: true
   serial: 1
 
-# mongos 4.4
+################################################################################
 
+## Upgrade mongos
 - hosts: hosts_mongos_offer
   roles:
     - mongodb_upgrade_package
   vars:
-    mongo_group: hosts_mongos_offer
     mongo_type: mongos
     mongo_port: "{{ mongodb.mongos_port }}"
     mongo_version: 4.4.17
 
-# Redémarrage du balancer
+################################################################################
 
+# Restart balancer
 - hosts: hosts_mongos_offer
+  gather_facts: no
   roles:
     - mongodb_balancer
   vars:
@@ -237,14 +286,14 @@
     state: started
 
 # set_featurecompatibility
-
 - hosts: hosts_mongos_offer
+  gather_facts: no
   roles:
     - mongodb_set_feature_compatibility
   vars:
     mongo_group: hosts_mongos_offer
-    mongo_version: "4.4"
+    mongo_version: 4.4
 
-###################################
-# Fin de la migration mongo offer #
-###################################
+################################################################################
+# End of mongo-offer migration
+################################################################################
