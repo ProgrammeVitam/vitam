@@ -271,7 +271,7 @@ public class ReconstructionService {
                 storageClientFactory.getClient().getReferentOffer(VitamConfiguration.getDefaultStrategy());
             Iterator<OfferLog> listing =
                 restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), referentOffer, dataCategory,
-                    startOffset, limit, Order.ASC, VitamConfiguration.getRestoreBulkSize());
+                    startOffset, limit, Order.ASC, VitamConfiguration.getBatchSize());
 
             while (listing.hasNext()) {
 
@@ -419,10 +419,10 @@ public class ReconstructionService {
 
             Iterator<OfferLog> listing =
                 restoreBackupService.getListing(strategy, referentOffer, type, startOffset, limit, Order.ASC,
-                    VitamConfiguration.getRestoreBulkSize());
+                    VitamConfiguration.getBatchSize());
 
             Iterator<List<OfferLog>> bulkListing =
-                Iterators.partition(listing, VitamConfiguration.getRestoreBulkSize());
+                Iterators.partition(listing, VitamConfiguration.getBatchSize());
 
             Long newOffset = null;
             while (bulkListing.hasNext()) {

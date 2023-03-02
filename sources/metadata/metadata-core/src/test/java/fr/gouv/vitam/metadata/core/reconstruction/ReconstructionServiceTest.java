@@ -156,7 +156,7 @@ public class ReconstructionServiceTest {
         // given
         when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(99L);
         when(restoreBackupService.getListing(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.UNIT, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize())).thenReturn(
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize())).thenReturn(
             IteratorUtils.arrayIterator(getOfferLog(100L), getOfferLog(101L)));
         when(restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
@@ -195,7 +195,7 @@ public class ReconstructionServiceTest {
             eq(MetadataCollections.UNIT.getName()))).thenReturn(99L);
         when(
             restoreBackupService.getListing(contains(STRATEGY_UNIT), eq(DEFAULT_OFFER), eq(DataCategory.UNIT), eq(100L),
-                eq(requestItem.getLimit()), eq(Order.ASC), eq(VitamConfiguration.getRestoreBulkSize()))).thenReturn(
+                eq(requestItem.getLimit()), eq(Order.ASC), eq(VitamConfiguration.getBatchSize()))).thenReturn(
             IteratorUtils.arrayIterator(getOfferLog(100L), getOfferLog(101L)));
         when(restoreBackupService.loadData(contains(STRATEGY_UNIT), eq(DEFAULT_OFFER), eq(MetadataCollections.UNIT), eq("100"), eq(100L)))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
@@ -233,7 +233,7 @@ public class ReconstructionServiceTest {
         // given
         when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(99L);
         when(restoreBackupService.getListing(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.UNIT, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize())).thenReturn(
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize())).thenReturn(
             IteratorUtils.arrayIterator(getOfferLog(100L), getOfferLog(101L)));
         when(restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
@@ -272,7 +272,7 @@ public class ReconstructionServiceTest {
 
         requestItem.setCollection("ObjectGroup");
         when(restoreBackupService.getListing(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.OBJECTGROUP, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
         when(restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.OBJECTGROUP, "100", 100L))
             .thenReturn(getGotMetadataBackupModel("100", 100L));
@@ -311,7 +311,7 @@ public class ReconstructionServiceTest {
 
         requestItem.setCollection("ObjectGroup");
         when(restoreBackupService.getListing(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.OBJECTGROUP, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
         when(restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.OBJECTGROUP, "100", 100L))
             .thenReturn(getGotMetadataBackupModel("100", 100L));
@@ -352,7 +352,7 @@ public class ReconstructionServiceTest {
         requestItem.setCollection(DataCategory.OBJECTGROUP_GRAPH.name());
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,
             DataCategory.OBJECTGROUP_GRAPH, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog("1970-01-01-00-00-00-000_2018-04-20-17-00-01-444", 100),
                 getOfferLog("2018-04-20-17-00-01-444_2018-05-20-17-00-01-445", 101)));
         when(restoreBackupService
@@ -400,7 +400,7 @@ public class ReconstructionServiceTest {
         requestItem.setCollection(DataCategory.OBJECTGROUP_GRAPH.name());
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,
             DataCategory.OBJECTGROUP_GRAPH, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog("1970-01-01-00-00-00-000_2018-04-20-17-00-01-444", 100),
                 getOfferLog("2018-04-20-17-00-01-444_2018-05-20-17-00-01-445", 101)));
         when(restoreBackupService
@@ -448,7 +448,7 @@ public class ReconstructionServiceTest {
         requestItem.setCollection(DataCategory.UNIT_GRAPH.name());
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,
             DataCategory.UNIT_GRAPH, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog("1970-01-01-00-00-00-000_2018-04-20-17-00-01-444", 100),
                 getOfferLog("2018-04-20-17-00-01-444_2018-05-20-17-00-01-445", 101)));
         when(restoreBackupService
@@ -496,7 +496,7 @@ public class ReconstructionServiceTest {
         requestItem.setCollection(DataCategory.UNIT_GRAPH.name());
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,
             DataCategory.UNIT_GRAPH, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog("1970-01-01-00-00-00-000_2018-04-20-17-00-01-444", 100),
                 getOfferLog("2018-04-20-17-00-01-444_2018-05-20-17-00-01-445", 101)));
         when(restoreBackupService
@@ -545,7 +545,7 @@ public class ReconstructionServiceTest {
         when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(99L);
 
         when(restoreBackupService.getListing(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.UNIT, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize())).
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize())).
             thenReturn(IteratorUtils.emptyIterator());
 
         when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
@@ -668,7 +668,7 @@ public class ReconstructionServiceTest {
         // Given
         when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(99L);
         when(restoreBackupService.getListing(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.UNIT, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize())).thenReturn(
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize())).thenReturn(
             IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
         when(restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
@@ -719,7 +719,7 @@ public class ReconstructionServiceTest {
         when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(99L);
         when(restoreBackupService.getListing(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.UNIT, 100L,
             requestItem.getLimit(),
-            Order.ASC, VitamConfiguration.getRestoreBulkSize()))
+            Order.ASC, VitamConfiguration.getBatchSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
         when(restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
@@ -755,7 +755,7 @@ public class ReconstructionServiceTest {
         // Given
         when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(99L);
         when(restoreBackupService.getListing(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.UNIT, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
         when(restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
@@ -797,7 +797,7 @@ public class ReconstructionServiceTest {
         MetadataBackupModel metadataBackupModel100 = getUnitMetadataBackupModel("100", 100L);
         metadataBackupModel100.setLifecycle(null);
         when(restoreBackupService.getListing(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.UNIT, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
         when(restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(metadataBackupModel100);
@@ -830,7 +830,7 @@ public class ReconstructionServiceTest {
         MetadataBackupModel metadataBackupModel100 = getUnitMetadataBackupModel("100", 100L);
         metadataBackupModel100.setUnit(null);
         when(restoreBackupService.getListing(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.UNIT, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize()))
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize()))
             .thenReturn(IteratorUtils.arrayIterator(getOfferLog(100), getOfferLog(101)));
         when(restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "100", 100L))
             .thenReturn(metadataBackupModel100);
@@ -858,7 +858,7 @@ public class ReconstructionServiceTest {
         // given
         when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(99L);
         when(restoreBackupService.getListing(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.UNIT, 100L,
-            requestItem.getLimit(), Order.ASC, VitamConfiguration.getRestoreBulkSize())).thenReturn(
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize())).thenReturn(
             IteratorUtils.singletonIterator(getOfferLog(100)));
         when(restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "100", 100L))
             .thenThrow(new StorageNotFoundException(""));

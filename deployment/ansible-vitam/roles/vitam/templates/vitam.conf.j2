@@ -70,3 +70,5 @@ elasticSearchScrollTimeoutInMilliseconds: {{ vitam_defaults.elasticSearchScrollT
 {% if vitam_struct.vitam_component == vitam.processing.vitam_component %}
 processEngineWaitForStepTimeout: 172800
 {% endif %}
+
+restoreBulkSize: {{ restoreBulkSize | default(10000) }}

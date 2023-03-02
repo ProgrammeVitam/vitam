@@ -335,7 +335,7 @@ public class VitamConfiguration {
     /**
      * Restore bulk size
      */
-    private static int restoreBulkSize = 1000;
+    private static int restoreBulkSize = 10_000;
 
     /*
      * Cache delay = 60 seconds
@@ -999,7 +999,7 @@ public class VitamConfiguration {
             setWorkerBulkSize(parameters.getWorkerBulkSize());
         }
         if (null != parameters.getRestoreBulkSize()) {
-            setWorkerBulkSize(parameters.getRestoreBulkSize());
+            setRestoreBulkSize(parameters.getRestoreBulkSize());
         }
         if (null != parameters.getMaxElasticsearchBulk()) {
             setMaxElasticsearchBulk(parameters.getMaxElasticsearchBulk());
