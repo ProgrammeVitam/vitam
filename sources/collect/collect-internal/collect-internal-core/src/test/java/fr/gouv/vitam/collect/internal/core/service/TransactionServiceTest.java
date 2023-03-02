@@ -30,9 +30,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
+import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
-import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionStatus;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
@@ -133,7 +133,7 @@ public class TransactionServiceTest {
 
 
         // When
-        ProjectModel project = new ProjectModel();
+        ProjectDto project = new ProjectDto();
         doReturn(Optional.of(project)).when(projectService).findProject("id");
         transactionService.createTransaction(transactionDto, "id");
 

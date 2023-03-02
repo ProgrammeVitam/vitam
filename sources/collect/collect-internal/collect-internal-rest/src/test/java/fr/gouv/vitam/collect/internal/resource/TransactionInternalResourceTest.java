@@ -71,8 +71,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
         + "\"LegalStatus\": \"Archives privées\","
         + "\"AcquisitionInformation\": \"Versement\","
         + "\"ArchivalAgreement\":\"IC-000001\","
-        + "\"Comment\": \"Versement du service producteur : Cabinet de Michel Mercier\","
-        + "\"UnitUp\": \"aeaqaaaaaahgnz5dabg42amava5kfoqaaaba\"}";
+        + "\"Comment\": \"Versement du service producteur : Cabinet de Michel Mercier\"}";
 
     @Test
     public void getTransactionById() throws Exception {
