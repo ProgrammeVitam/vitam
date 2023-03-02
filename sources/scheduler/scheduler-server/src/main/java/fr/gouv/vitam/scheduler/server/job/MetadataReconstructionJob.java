@@ -32,15 +32,14 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
+import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.scheduler.server.model.ReconstructionRequestItem;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -88,7 +87,7 @@ public class MetadataReconstructionJob implements Job {
             requestItemList.add(getReconstructionRequestItem(VitamConfiguration.getAdminTenant(), UNIT_GRAPH));
             requestItemList.add(getReconstructionRequestItem(VitamConfiguration.getAdminTenant(), OBJECTGROUP_GRAPH));
 
-            metaDataClient.reconstructCollection(JsonHandler.toJsonNode(requestItemList));
+            metaDataClient.reconstructCollection(requestItemList);
             LOGGER.info("End of process reconstruction");
         } catch (InvalidParseOperationException | MetaDataClientServerException | MetaDataNotFoundException e) {
             throw new JobExecutionException(e);

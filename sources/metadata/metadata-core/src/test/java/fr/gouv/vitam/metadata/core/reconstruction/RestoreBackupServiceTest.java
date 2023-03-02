@@ -188,7 +188,7 @@ public class RestoreBackupServiceTest {
             .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER), eq(DataCategory.UNIT),
                 eq(100L), eq(2),
                 eq(Order.ASC)))
-            .thenReturn(new VitamError("test"));
+            .thenReturn(new VitamError<>("test"));
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
 
         // when + then
@@ -237,7 +237,7 @@ public class RestoreBackupServiceTest {
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
         MetadataBackupModel model =
-            restoreBackupService.loadData(STRATEGY_UNIT, MetadataCollections.UNIT, "100.json", 100L);
+            restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT, "100.json", 100L);
         // then
         assertThat(model).isNotNull();
         assertThat(model.getMetadatas()).isNotNull();
@@ -263,8 +263,8 @@ public class RestoreBackupServiceTest {
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
         MetadataBackupModel model =
-            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.OBJECTGROUP,
-                "100.json", 100L);
+            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,
+                MetadataCollections.OBJECTGROUP, "100.json", 100L);
         // then
         assertThat(model).isNotNull();
         assertThat(model.getMetadatas()).isNotNull();
@@ -291,8 +291,8 @@ public class RestoreBackupServiceTest {
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
         MetadataBackupModel model =
-            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT, "100.json",
-                100L);
+            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,
+                MetadataCollections.UNIT, "100.json", 100L);
         // then
         assertThat(model).isNull();
     }
@@ -314,8 +314,8 @@ public class RestoreBackupServiceTest {
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when
         MetadataBackupModel model =
-            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT, "100.json",
-                100L);
+            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,
+                MetadataCollections.UNIT, "100.json", 100L);
         // then
         assertThat(model).isNull();
     }
@@ -334,8 +334,8 @@ public class RestoreBackupServiceTest {
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
         assertThatCode(
-            () -> restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT,
-                "100.json", 100L))
+            () -> restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,
+                MetadataCollections.UNIT, "100.json", 100L))
             .isInstanceOf(VitamRuntimeException.class);
     }
 
@@ -355,8 +355,8 @@ public class RestoreBackupServiceTest {
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
         // when + then
         assertThatCode(
-            () -> restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), MetadataCollections.UNIT,
-                "100.json", 100L))
+            () -> restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER,
+                MetadataCollections.UNIT, "100.json", 100L))
             .isInstanceOf(VitamRuntimeException.class);
     }
 
@@ -375,7 +375,7 @@ public class RestoreBackupServiceTest {
 
         // When / Then
         RestoreBackupService restoreBackupService = new RestoreBackupService(storageClientFactory);
-        assertThatThrownBy(() -> restoreBackupService.loadData(STRATEGY_UNIT, DataCategory.UNIT, "unitId"))
+        assertThatThrownBy(() -> restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.UNIT, "unitId"))
             .isInstanceOf(StorageNotFoundException.class);
     }
 

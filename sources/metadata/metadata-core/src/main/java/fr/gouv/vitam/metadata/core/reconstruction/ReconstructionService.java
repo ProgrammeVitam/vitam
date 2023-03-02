@@ -71,8 +71,8 @@ import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
-import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
+import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
+import fr.gouv.vitam.metadata.api.model.ReconstructionResponseItem;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
@@ -83,6 +83,7 @@ import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import fr.gouv.vitam.storage.engine.common.model.Order;
+import fr.gouv.vitam.storage.engine.common.referential.model.OfferReference;
 import fr.gouv.vitam.storage.engine.common.referential.model.StorageStrategy;
 import fr.gouv.vitam.storage.engine.common.utils.StorageStrategyUtils;
 import io.prometheus.client.Histogram;
@@ -242,11 +243,13 @@ public class ReconstructionService {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
-        final long offset =
+        final long lastReconstructedOffset =
             offsetRepository.findOffsetBy(tenant, VitamConfiguration.getDefaultStrategy(), dataCategory.name());
+
+        long startOffset = lastReconstructedOffset + 1L;
         LOGGER.info(String.format(
             "[Reconstruction]: Start reconstruction of the {%s} collection on the Vitam tenant {%s} for %s elements starting from {%s}.",
-            dataCategory.name(), tenant, limit, offset));
+            dataCategory.name(), tenant, limit, startOffset));
         ReconstructionResponseItem response =
             new ReconstructionResponseItem().setCollection(dataCategory.name()).setTenant(tenant);
         MetadataCollections metaDaCollection;
@@ -262,16 +265,13 @@ public class ReconstructionService {
                     String.format("ERROR: Invalid collection {%s}", dataCategory.name()));
         }
 
-        long newOffset = offset;
-
-
         try {
             // get the list of data to backup.
             String referentOffer =
                 storageClientFactory.getClient().getReferentOffer(VitamConfiguration.getDefaultStrategy());
             Iterator<OfferLog> listing =
                 restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), referentOffer, dataCategory,
-                    offset, limit, Order.ASC, VitamConfiguration.getRestoreBulkSize());
+                    startOffset, limit, Order.ASC, VitamConfiguration.getBatchSize());
 
             while (listing.hasNext()) {
 
@@ -284,7 +284,7 @@ public class ReconstructionService {
 
                     // Read zip file from offer
                     try (InputStream zipFileAsStream = restoreBackupService.loadData(
-                        VitamConfiguration.getDefaultStrategy(), dataCategory, offerLog.getFileName())) {
+                        VitamConfiguration.getDefaultStrategy(), referentOffer, dataCategory, offerLog.getFileName())) {
 
                         // Copy file to local tmp to prevent risk of broken stream
                         Files.copy(zipFileAsStream, filePath, StandardCopyOption.REPLACE_EXISTING);
@@ -299,33 +299,32 @@ public class ReconstructionService {
                         reconstructGraphFromZipStream(metaDaCollection, zipInputStream);
                     }
 
-                    newOffset = offerLog.getSequence();
-                    // log the reconstruction of Vitam collection.
-                    LOGGER.info(String.format(
-                        "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
-                        dataCategory.name(), tenant, offset, LocalDateUtil.now()));
-
                 } finally {
                     // Remove file
                     Files.deleteIfExists(filePath);
                 }
+
+                // Update offset in DB
+                long lastOffset = offerLog.getSequence();
+                offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(),
+                    dataCategory.name(), lastOffset);
+
+                // log the reconstruction of Vitam collection.
+                LOGGER.info(String.format(
+                    "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
+                    dataCategory.name(), tenant, lastOffset, LocalDateUtil.now()));
             }
 
             response.setStatus(StatusCode.OK);
         } catch (ReconstructionException | IOException de) {
             LOGGER.error(String.format(
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadata on the tenant {%s} from {offset:%s}",
-                dataCategory.name(), tenant, offset), de);
-            newOffset = offset;
+                dataCategory.name(), tenant, startOffset), de);
             response.setStatus(StatusCode.KO);
 
         } catch (StorageNotFoundClientException | StorageServerClientException e) {
             LOGGER.error(e.getMessage());
-            newOffset = offset;
             response.setStatus(StatusCode.KO);
-        } finally {
-            offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), dataCategory.name(),
-                newOffset);
         }
         return response;
     }
@@ -352,7 +351,10 @@ public class ReconstructionService {
         final List<String> strategies = loadStrategies();
 
         for (String strategy : strategies) {
-            StatusCode currentStatusCode = reconstructCollection(collection, tenant, strategy, limit);
+
+            String referentOffer = getReferentOffer(strategy);
+
+            StatusCode currentStatusCode = reconstructCollection(collection, tenant, strategy, referentOffer, limit);
             if (currentStatusCode.getStatusLevel() > response.getStatus().getStatusLevel()) {
                 response.setStatus(currentStatusCode);
             }
@@ -372,7 +374,7 @@ public class ReconstructionService {
             }
             List<StorageStrategy> storageStrategies =
                 ((RequestResponseOK<StorageStrategy>) strategiesResponse).getResults().stream().filter(s ->
-                    s.getOffers().stream().filter(offer -> offer.isReferent()).filter(offer -> offer.isEnabled())
+                    s.getOffers().stream().filter(OfferReference::isReferent).filter(OfferReference::isEnabled)
                         .count() == 1).collect(Collectors.toList());
 
             if (!StorageStrategyUtils.checkReferentOfferUsageInStrategiesValid(storageStrategies)) {
@@ -388,16 +390,15 @@ public class ReconstructionService {
         }
     }
 
-    private StatusCode reconstructCollection(MetadataCollections collection, int tenant, String strategy, int limit) {
-        StatusCode resultStatusCode;
-        final long offset = offsetRepository.findOffsetBy(tenant, strategy, collection.getName());
+    private StatusCode reconstructCollection(MetadataCollections collection, int tenant, String strategy,
+        String referentOffer, int limit) {
+        final long lastReconstructedOffset = offsetRepository.findOffsetBy(tenant, strategy, collection.getName());
+        long startOffset = lastReconstructedOffset + 1L;
         LOGGER.info(String.format(
             "[Reconstruction]: Start reconstruction of the {%s} collection for the strategy {%s} on the Vitam tenant {%s} for %s elements starting from {%s}.",
-            collection.name(), strategy, tenant, limit, offset));
+            collection.name(), strategy, tenant, limit, startOffset));
 
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
-
-        long newOffset = offset;
 
         try {
             // This is a hack, we must set manually the tenant is the VitamSession (used and
@@ -416,14 +417,14 @@ public class ReconstructionService {
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
 
-            String referentOffer = storageClientFactory.getClient().getReferentOffer(strategy);
             Iterator<OfferLog> listing =
-                restoreBackupService.getListing(strategy, referentOffer, type, offset, limit, Order.ASC,
-                    VitamConfiguration.getRestoreBulkSize());
+                restoreBackupService.getListing(strategy, referentOffer, type, startOffset, limit, Order.ASC,
+                    VitamConfiguration.getBatchSize());
 
             Iterator<List<OfferLog>> bulkListing =
-                Iterators.partition(listing, VitamConfiguration.getRestoreBulkSize());
+                Iterators.partition(listing, VitamConfiguration.getBatchSize());
 
+            Long newOffset = null;
             while (bulkListing.hasNext()) {
 
                 List<OfferLog> listingBulk = bulkListing.next();
@@ -449,34 +450,45 @@ public class ReconstructionService {
                     }
                 }
 
-                processWrittenMetadata(collection, tenant, strategy, writtenMetadata);
+                processWrittenMetadata(collection, tenant, strategy, referentOffer, writtenMetadata);
 
                 processDeletedMetadata(collection, deletedMetadataIds);
 
                 newOffset = Iterables.getLast(listingBulk).getSequence();
 
                 // log the reconstruction of Vitam collection.
-                LOGGER.info(String.format(
-                    "[Reconstruction]: the collection {%s} has been reconstructed for the strategy {%s} on the tenant {%s} from {offset:%s} at %s",
-                    collection.name(), strategy, tenant, offset, LocalDateUtil.now()));
+                LOGGER.debug(String.format(
+                    "[Reconstruction]: the collection {%s} has been reconstructed for the strategy {%s} on the tenant {%s} to {offset:%s} at %s",
+                    collection.name(), strategy, tenant, newOffset, LocalDateUtil.now()));
             }
 
-            offsetRepository.createOrUpdateOffset(tenant, strategy, collection.getName(), newOffset);
+            if (newOffset == null) {
+                LOGGER.info(String.format(
+                    "[Reconstruction]: No new data to reconstruct for collection {%s} / strategy {%s} / tenant {%s} from {offset:%s} at %s",
+                    collection.name(), strategy, tenant, startOffset, LocalDateUtil.now()));
+            } else {
 
-            resultStatusCode = StatusCode.OK;
+                offsetRepository.createOrUpdateOffset(tenant, strategy, collection.getName(), newOffset);
+
+                // log the reconstruction of Vitam collection.
+                LOGGER.info(String.format(
+                    "[Reconstruction]: the collection {%s} has been reconstructed for the strategy {%s} on the tenant {%s} to {offset:%s} at %s",
+                    collection.name(), strategy, tenant, newOffset, LocalDateUtil.now()));
+            }
+
+            return StatusCode.OK;
 
         } catch (LogbookClientException | InvalidParseOperationException | StorageException | DatabaseException e) {
             LOGGER.error(String.format(
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} metadata & lifecycles for the strategy {%s} on the tenant {%s} from {offset:%s}",
-                collection, strategy, tenant, offset), e);
-            resultStatusCode = StatusCode.KO;
+                collection, strategy, tenant, startOffset), e);
+            return StatusCode.KO;
         } catch (StorageNotFoundClientException | StorageServerClientException e) {
             LOGGER.error("Error occured when getting data from Storage : " + e.getMessage(), e);
-            resultStatusCode = StatusCode.KO;
+            return StatusCode.KO;
         } finally {
             VitamThreadUtils.getVitamSession().setTenantId(originalTenant);
         }
-        return resultStatusCode;
 
     }
 
@@ -484,7 +496,7 @@ public class ReconstructionService {
      * reconstruct Vitam collection from the backup data.
      */
     private void processWrittenMetadata(MetadataCollections collection, int tenant, String strategy,
-        List<OfferLog> writtenMetadata)
+        String referentOffer, List<OfferLog> writtenMetadata)
         throws StorageException, DatabaseException, LogbookClientException, InvalidParseOperationException {
 
         if (writtenMetadata.isEmpty()) {
@@ -493,7 +505,8 @@ public class ReconstructionService {
 
         for (int retry = VitamConfiguration.getOptimisticLockRetryNumber(); retry > 0; retry--) {
 
-            List<MetadataBackupModel> dataFromOffer = loadMetadataSet(collection, tenant, strategy, writtenMetadata);
+            List<MetadataBackupModel> dataFromOffer =
+                loadMetadataSet(collection, tenant, strategy, referentOffer, writtenMetadata);
 
             if (dataFromOffer.isEmpty()) {
                 // NOP
@@ -529,14 +542,15 @@ public class ReconstructionService {
     }
 
     private List<MetadataBackupModel> loadMetadataSet(MetadataCollections collection, int tenant, String strategy,
-        List<OfferLog> writtenMetadata) throws StorageException {
+        String referentOffer, List<OfferLog> writtenMetadata) throws StorageException {
 
         List<MetadataBackupModel> dataFromOffer = new ArrayList<>();
         for (OfferLog offerLog : writtenMetadata) {
 
             try {
                 MetadataBackupModel model =
-                    restoreBackupService.loadData(strategy, collection, offerLog.getFileName(), offerLog.getSequence());
+                    restoreBackupService.loadData(strategy, referentOffer, collection, offerLog.getFileName(),
+                        offerLog.getSequence());
 
                 if (model.getMetadatas() == null || model.getLifecycle() == null || model.getOffset() == null) {
                     throw new StorageException(String.format(
@@ -898,6 +912,14 @@ public class ReconstructionService {
             this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).remove(query);
         } catch (DatabaseException e) {
             LOGGER.error("[Reconstruction]: Error while remove older documents having only graph data", e);
+        }
+    }
+
+    private String getReferentOffer(String strategy) {
+        try (StorageClient storageClient = storageClientFactory.getClient()) {
+            return storageClient.getReferentOffer(strategy);
+        } catch (StorageServerClientException | StorageNotFoundClientException e) {
+            throw new VitamRuntimeException("ERROR: Cannot retrieve referent offer", e);
         }
     }
 }

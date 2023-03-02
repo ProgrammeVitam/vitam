@@ -80,6 +80,9 @@ criticalRequestTime: 60
 # Request time alert throttling Delay (in seconds)
 requestTimeAlertThrottlingDelay: 60
 
+# Reconstruction config
+restoreBulkSize: 10000
+
 vitam_timers:
   # /!\ IMPORTANT :
   # Please ensure timer execution is spread so that not all timers run concurrently (eg. *:05:00, *:35:00, *:50:00..),

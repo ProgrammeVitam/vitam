@@ -104,8 +104,8 @@ public class RestoreBackupService {
         return Iterators.partition(
             OfferLogHelper.getListing(storageClientFactory, strategy,
                 storageClientFactory.getClient().getReferentOffer(strategy), DataCategory.BACKUP_OPERATION, offset,
-                Order.ASC, VitamConfiguration.getRestoreBulkSize(), limit),
-            VitamConfiguration.getRestoreBulkSize());
+                Order.ASC, VitamConfiguration.getBatchSize(), limit),
+            VitamConfiguration.getBatchSize());
     }
 
 

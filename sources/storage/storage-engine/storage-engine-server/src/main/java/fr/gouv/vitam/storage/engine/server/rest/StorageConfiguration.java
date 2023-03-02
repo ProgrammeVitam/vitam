@@ -39,7 +39,6 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
     private String p12LogbookPassword;
     private String p12LogbookFile;
     private Integer storageTraceabilityOverlapDelay;
-    private int restoreBulkSize = 1000;
     private Boolean isReadOnly;
 
     private int offerSynchronizationBulkSize = 1000;
@@ -163,25 +162,6 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
      */
     public void setStorageTraceabilityOverlapDelay(Integer storageTraceabilityOverlapDelay) {
         this.storageTraceabilityOverlapDelay = storageTraceabilityOverlapDelay;
-    }
-
-    /**
-     * Getter restore bulk size
-     *
-     * @return restoreBulkSize
-     */
-    public int getRestoreBulkSize() {
-        return restoreBulkSize;
-    }
-
-    /**
-     * Setter restore bulk size
-     *
-     * @param restoreBulkSize
-     */
-    public void setRestoreBulkSize(int restoreBulkSize) {
-
-        this.restoreBulkSize = restoreBulkSize;
     }
 
     public int getOfferSynchronizationBulkSize() {

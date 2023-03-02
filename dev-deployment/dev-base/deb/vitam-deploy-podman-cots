@@ -26,21 +26,15 @@
 # accept its terms.
 #*******************************************************************************
 
-set -e
-
-# Deploy a local vitam test environment with ansible ; default inventory used is "hosts.local"
-if [ -z "$1" ]; then
-	VITAM_ENVIRONMENT=local
-else
-	VITAM_ENVIRONMENT=$1
-fi
-
-echo "Deploying VITAM for environment ${VITAM_ENVIRONMENT}..."
-pushd /code/deployment
-
-# Clear ansible cache
-rm -fr environments/.facts_cache
-
-# Start deployment
-ansible-playbook ansible-vitam/vitam.yml -i environments/hosts.${VITAM_ENVIRONMENT} --vault-password-file vault_pass.txt -v -e "@/code/dev-deployment/dev-base/local_extra_vars.yml" -e confirmation=yes
-popd
+rm -rf  /vitam/data/workspace
+rm -rf /vitam/data/offer
+sed -i s/172.17.0.2/10.88.0.2/g /code/deployment/environments/hosts.cots
+vitam-deploy cots
+sed -i s/10.88.0.2/172.17.0.2/g /code/deployment/environments/hosts.cots
+sed -i s/localhost/0.0.0.0/ /vitam/conf/siegfried/sysconfig/siegfried
+apt install -y vitam-siegfried
+systemctl enable vitam-siegfried
+sed -i s/localhost/0.0.0.0/ /vitam/conf/siegfried/sysconfig/siegfried
+systemctl restart vitam-siegfried
+chmod 777 -R /vitam/data
+chmod 777 -R /vitam/tmp

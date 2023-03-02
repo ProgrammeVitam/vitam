@@ -54,7 +54,7 @@ public class AdminSchedulerResource {
     @POST
     @Path("/jobs")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importJobs(@PathParam("group") String group) throws SchedulerException {
+    public Response importJobs() throws SchedulerException {
         jobsDataProcessorPlugin.initialize();
         return Response.accepted().build();
     }

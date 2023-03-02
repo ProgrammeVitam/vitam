@@ -30,7 +30,6 @@ import com.google.common.collect.Sets;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.GraphComputeResponse;
-import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -40,12 +39,7 @@ import fr.gouv.vitam.metadata.core.ExportsPurge.ExportsPurgeService;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.graph.ReclassificationDistributionService;
-import fr.gouv.vitam.metadata.core.graph.StoreGraphException;
-import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
 import fr.gouv.vitam.metadata.core.graph.api.GraphComputeService;
-import fr.gouv.vitam.metadata.core.model.ReconstructionRequestItem;
-import fr.gouv.vitam.metadata.core.model.ReconstructionResponseItem;
-import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -57,15 +51,9 @@ import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -81,32 +69,25 @@ public class MetadataManagementResourceTest {
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    private ReconstructionService reconstructionService;
-    private StoreGraphService storeGraphService;
     private GraphComputeService graphBuilderService;
-    private ReconstructionRequestItem requestItem;
-    private ReclassificationDistributionService reclassificationDistributionService;
-    private MetadataManagementResource reconstructionResource;
+    private MetadataManagementResource metadataManagementResource;
     private ExportsPurgeService exportsPurgeService;
-    private String DIP_CONTAINER = "DIP";
+    private static final String DIP_CONTAINER = "DIP";
 
 
-    private static int tenant = VitamConfiguration.getAdminTenant();
+    private static final int tenant = VitamConfiguration.getAdminTenant();
 
     @Before
     public void setup() {
-        reconstructionService = mock(ReconstructionService.class);
-        storeGraphService = mock(StoreGraphService.class);
         graphBuilderService = mock(GraphComputeService.class);
-        reclassificationDistributionService = mock(ReclassificationDistributionService.class);
-        requestItem = new ReconstructionRequestItem();
-        requestItem.setCollection("unit").setTenant(10).setLimit(100);
+        ReclassificationDistributionService reclassificationDistributionService =
+            mock(ReclassificationDistributionService.class);
         MetaDataConfiguration configuration = new MetaDataConfiguration();
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
         configuration.setContextPath("/metadata");
         exportsPurgeService = mock(ExportsPurgeService.class);
-        reconstructionResource =
-            new MetadataManagementResource(reconstructionService, storeGraphService, graphBuilderService,
+        metadataManagementResource =
+            new MetadataManagementResource(graphBuilderService,
                 reclassificationDistributionService,
                 ProcessingManagementClientFactory.getInstance(),
                 LogbookOperationsClientFactory.getInstance(),
@@ -116,7 +97,7 @@ public class MetadataManagementResourceTest {
     }
 
     @BeforeClass
-    public static void baforeClass() {
+    public static void beforeClass() {
         VitamConfiguration.setAdminTenant(0);
     }
 
@@ -127,52 +108,12 @@ public class MetadataManagementResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_return_ok_when_store_graph_handled() throws StoreGraphException {
-        // Given
-        final Map<MetadataCollections, Integer> map = new HashMap<>();
-        map.put(MetadataCollections.UNIT, 10);
-        map.put(MetadataCollections.OBJECTGROUP, 3);
-        when(storeGraphService.tryStoreGraph()).thenReturn(map);
-
-        // When
-        Response response = reconstructionResource.storeGraph();
-
-        // Then
-        assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
-        Map<MetadataCollections, Integer> responseEntity = (Map<MetadataCollections, Integer>) response.getEntity();
-        assertThat(responseEntity).isNotNull();
-        assertThat(responseEntity.size()).isEqualTo(2);
-        assertThat(responseEntity.get(MetadataCollections.UNIT)).isEqualTo(10);
-        assertThat(responseEntity.get(MetadataCollections.OBJECTGROUP)).isEqualTo(3);
-    }
-
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_return_ko_when_store_graph_handled() throws StoreGraphException {
-        // Given
-        String errorMessage = "Error store unit graph in the offer";
-        when(storeGraphService.tryStoreGraph()).thenThrow(new RuntimeException(errorMessage));
-
-        // When
-        Response response = reconstructionResource.storeGraph();
-
-        // Then
-        assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-        String responseEntity = (String) response.getEntity();
-        assertThat(responseEntity).isNotNull();
-        assertThat(responseEntity).contains(errorMessage);
-    }
-
-
-    @Test
-    @RunWithCustomExecutor
     public void should_return_ok_when__graph_compute_by_dsl_handled() throws MetaDataException {
         // Given
         when(graphBuilderService.computeGraph(JsonHandler.createObjectNode())).thenReturn(
             new GraphComputeResponse(10, 3));
         // When
-        Response response = reconstructionResource.computeGraphByDSL(0, JsonHandler.createObjectNode());
+        Response response = metadataManagementResource.computeGraphByDSL(0, JsonHandler.createObjectNode());
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
@@ -192,7 +133,7 @@ public class MetadataManagementResourceTest {
             .thenThrow(new RuntimeException(errorMessage));
 
         // When
-        Response response = reconstructionResource.computeGraphByDSL(0, JsonHandler.createObjectNode());
+        Response response = metadataManagementResource.computeGraphByDSL(0, JsonHandler.createObjectNode());
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -203,13 +144,13 @@ public class MetadataManagementResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_return_ok_when__graph_handled() throws MetaDataException {
+    public void should_return_ok_when__graph_handled() {
         // Given
         when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false, true))
             .thenReturn(new GraphComputeResponse(10, 3));
         // When
         Response response =
-            reconstructionResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
+            metadataManagementResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
@@ -222,14 +163,14 @@ public class MetadataManagementResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_return_ko_when_graph_compute_handled() throws MetaDataException {
+    public void should_return_ko_when_graph_compute_handled() {
         // Given
         String errorMessage = "Error in graph builder";
         when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false, true))
             .thenThrow(new RuntimeException(errorMessage));
         // When
         Response response =
-            reconstructionResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
+            metadataManagementResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -240,75 +181,12 @@ public class MetadataManagementResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_return_ok_when_request_item_full() {
-        // Given
-        ReconstructionResponseItem responseItem = new ReconstructionResponseItem(requestItem, StatusCode.OK);
-
-        when(reconstructionService.reconstruct(requestItem)).thenReturn(responseItem);
-
-        // When
-        Response response = reconstructionResource.reconstructCollection(Collections.singletonList(requestItem));
-
-        // Then
-        assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
-        List<ReconstructionResponseItem> responseEntity = (ArrayList<ReconstructionResponseItem>) response.getEntity();
-        assertThat(responseEntity).isNotNull();
-        assertThat(responseEntity.size()).isEqualTo(1);
-        assertThat(responseEntity.get(0).getCollection()).isEqualTo("unit");
-        assertThat(responseEntity.get(0).getTenant()).isEqualTo(10);
-        assertThat(responseEntity.get(0).getStatus()).isEqualTo(StatusCode.OK);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_return_empty_response_when_that_request_empty() {
-        // Given
-
-        // When
-        Response response = reconstructionResource.reconstructCollection(new ArrayList<>());
-        // Then
-        assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
-        List<ReconstructionResponseItem> responseEntity = (ArrayList<ReconstructionResponseItem>) response.getEntity();
-        assertThat(responseEntity).isNotNull();
-        assertThat(responseEntity).isEmpty();
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_return_request_offset_when_reconstruction_throws_database_exception() {
-        // Given
-        when(reconstructionService.reconstruct(requestItem)).thenThrow(new IllegalArgumentException("Database error"));
-
-        // When
-        Response response = reconstructionResource.reconstructCollection(Arrays.asList(requestItem));
-
-        // Then
-        assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
-        List<ReconstructionResponseItem> responseEntity = (ArrayList<ReconstructionResponseItem>) response.getEntity();
-        assertThat(responseEntity).isNotNull();
-        assertThat(responseEntity.size()).isEqualTo(1);
-        assertThat(responseEntity.get(0).getCollection()).isEqualTo("unit");
-        assertThat(responseEntity.get(0).getTenant()).isEqualTo(10);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_return_ok_when__request_item_no_offset() {
-        // Given
-
-        // When / Then
-        assertThatCode(() -> reconstructionResource.reconstructCollection(null))
-            .isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
-    @RunWithCustomExecutor
     public void purgeExpiredDipFilesShouldReturnOKWhenServiceOK() throws Exception {
 
         // Given
 
         // When
-        Response response = reconstructionResource.purgeExpiredDipFiles();
+        Response response = metadataManagementResource.purgeExpiredDipFiles();
 
         // Then
         verify(exportsPurgeService).purgeExpiredFiles(DIP_CONTAINER);
@@ -324,7 +202,7 @@ public class MetadataManagementResourceTest {
             .purgeExpiredFiles(DIP_CONTAINER);
 
         // When
-        Response response = reconstructionResource.purgeExpiredDipFiles();
+        Response response = metadataManagementResource.purgeExpiredDipFiles();
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -335,7 +213,7 @@ public class MetadataManagementResourceTest {
     public void migrationPurgeDipFilesFromOffersTest() throws Exception {
 
         // When
-        Response response = reconstructionResource.migrationPurgeDipFilesFromOffers();
+        Response response = metadataManagementResource.migrationPurgeDipFilesFromOffers();
 
         // Then
         verify(exportsPurgeService, times(VitamConfiguration.getTenants().size())).migrationPurgeDipFilesFromOffers();

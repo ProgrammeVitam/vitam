@@ -42,10 +42,10 @@ public class AdminMetadataManagementResource extends MetadataManagementResource 
     // TODO : Hack to fix related to ticket (9734) : https://assistance.programmevitam.fr/plugins/tracker/?tracker=53&aid=9734
     public AdminMetadataManagementResource(
         VitamRepositoryProvider vitamRepositoryProvider,
-        OffsetRepository offsetRepository, MetaDataImpl metadata,
+        MetaDataImpl metadata,
         MetaDataConfiguration configuration,
         ElasticsearchMetadataIndexManager indexManager) {
-        super(vitamRepositoryProvider, offsetRepository, metadata, configuration, indexManager);
+        super(vitamRepositoryProvider, metadata, configuration, indexManager);
     }
 
 }

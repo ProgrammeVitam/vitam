@@ -22,7 +22,7 @@
                 <job-data-map>
                     <entry>
                         <key>offer_storage_id</key>
-                        <value>offer-fs-1.service.local.consul</value>
+                        <value>offer-fs-1.service.consul</value>
                     </entry>
                 </job-data-map>
             </job>

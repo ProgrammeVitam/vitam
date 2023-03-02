@@ -116,8 +116,8 @@ public class RestoreBackupService {
      * @throws VitamRuntimeException storage error
      * @throws IllegalArgumentException input error
      */
-    public MetadataBackupModel loadData(String strategy, MetadataCollections collection, String filename,
-        long offset) throws StorageNotFoundException {
+    public MetadataBackupModel loadData(String strategy, String referentOffer, MetadataCollections collection,
+        String filename, long offset) throws StorageNotFoundException {
         LOGGER
             .info(String.format(
                 "[Reconstruction]: Retrieve file {%s} from storage of {%s} Collection on {%s} Vitam strategy",
@@ -135,7 +135,7 @@ public class RestoreBackupService {
                 default:
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
-            inputStream = loadData(strategy, type, filename);
+            inputStream = loadData(strategy, referentOffer, type, filename);
             MetadataBackupModel metadataBackupModel =
                 JsonHandler.getFromInputStream(inputStream, MetadataBackupModel.class);
             if (metadataBackupModel.getMetadatas() != null && metadataBackupModel.getLifecycle() != null) {
@@ -152,7 +152,7 @@ public class RestoreBackupService {
     }
 
 
-    public InputStream loadData(String strategy, DataCategory category, String filename)
+    public InputStream loadData(String strategy, String referentOffer, DataCategory category, String filename)
         throws StorageNotFoundException {
 
         LOGGER
@@ -161,14 +161,14 @@ public class RestoreBackupService {
                 filename, category.name(), strategy));
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-            String referentOfferForStrategy = storageClient.getReferentOffer(strategy);
             return new VitamAsyncInputStream(
-                storageClient.getContainerAsync(strategy, referentOfferForStrategy, filename, category,
+                storageClient.getContainerAsync(strategy, referentOffer, filename, category,
                     AccessLogUtils.getNoLogAccessLog()));
 
         } catch (StorageNotFoundException e) {
             throw e;
-        } catch (StorageServerClientException | StorageNotFoundClientException | StorageException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (StorageServerClientException | StorageException |
+                 StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new VitamRuntimeException("ERROR: Exception has been thrown when using storage service:", e);
         }
     }

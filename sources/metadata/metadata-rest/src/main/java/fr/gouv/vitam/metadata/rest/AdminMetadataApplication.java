@@ -30,7 +30,6 @@ import com.google.common.base.Throwables;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
-import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.MongoDbAccessMetadataFactory;
@@ -95,8 +94,6 @@ public class AdminMetadataApplication extends Application {
                 WorkspaceClientFactory.changeMode(metaDataConfiguration.getWorkspaceUrl());
             }
 
-            OffsetRepository offsetRepository = new OffsetRepository(mongoDbAccessMetadata);
-
             VitamRepositoryFactory vitamRepositoryProvider = VitamRepositoryFactory.get();
 
             MetaDataImpl metadata = MetaDataImpl.newMetadata(
@@ -110,7 +107,7 @@ public class AdminMetadataApplication extends Application {
                 indexManager);
 
             final AdminMetadataManagementResource adminMetadataReconstructionResource =
-                new AdminMetadataManagementResource(vitamRepositoryProvider, offsetRepository,
+                new AdminMetadataManagementResource(vitamRepositoryProvider,
                     metadata, metaDataConfiguration, indexManager);
             final MetadataAuditResource metadataAuditResource = new MetadataAuditResource(metaDataConfiguration);
 

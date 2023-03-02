@@ -48,6 +48,8 @@ import fr.gouv.vitam.metadata.api.exception.MetadataScrollLimitExceededException
 import fr.gouv.vitam.metadata.api.exception.MetadataScrollThresholdExceededException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
+import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
+import fr.gouv.vitam.metadata.api.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
 import javax.ws.rs.core.Response;
@@ -422,7 +424,7 @@ public interface MetaDataClient extends BasicClient {
      * @return
      * @throws MetaDataClientServerException MetaDataClientServerException
      */
-    Response reconstructCollection(JsonNode reconstructionItems)
+    List<ReconstructionResponseItem> reconstructCollection(List<ReconstructionRequestItem> reconstructionItems)
         throws MetaDataNotFoundException, InvalidParseOperationException, MetaDataClientServerException;
 
     /**

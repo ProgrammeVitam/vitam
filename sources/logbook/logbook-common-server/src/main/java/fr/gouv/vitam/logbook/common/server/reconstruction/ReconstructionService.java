@@ -44,7 +44,6 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
-import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
@@ -82,7 +81,6 @@ public class ReconstructionService {
 
     private final RestoreBackupService restoreBackupService;
     private final VitamRepositoryProvider vitamRepositoryProvider;
-    private final AdminManagementClientFactory adminManagementClientFactory;
     private final LogbookTransformData logbookTransformData;
 
     private final OffsetRepository offsetRepository;
@@ -98,7 +96,7 @@ public class ReconstructionService {
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
         OffsetRepository offsetRepository,
         ElasticsearchLogbookIndexManager indexManager) {
-        this(vitamRepositoryProvider, new RestoreBackupService(), AdminManagementClientFactory.getInstance(),
+        this(vitamRepositoryProvider, new RestoreBackupService(),
             new LogbookTransformData(), offsetRepository, indexManager);
     }
 
@@ -107,20 +105,18 @@ public class ReconstructionService {
      *
      * @param vitamRepositoryProvider vitamRepositoryProvider
      * @param recoverBackupService recoverBackupService
-     * @param adminManagementClientFactory adminManagementClientFactory
      * @param logbookTransformData logbookTransformData
      * @param offsetRepository
      * @param indexManager
      */
     @VisibleForTesting
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
-        RestoreBackupService recoverBackupService, AdminManagementClientFactory adminManagementClientFactory,
+        RestoreBackupService recoverBackupService,
         LogbookTransformData logbookTransformData,
         OffsetRepository offsetRepository,
         ElasticsearchLogbookIndexManager indexManager) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = recoverBackupService;
-        this.adminManagementClientFactory = adminManagementClientFactory;
         this.logbookTransformData = logbookTransformData;
         this.offsetRepository = offsetRepository;
         this.indexManager = indexManager;
@@ -158,12 +154,13 @@ public class ReconstructionService {
      */
     private ReconstructionResponseItem reconstructCollection(int tenant, int limit) {
 
-        final long offset = offsetRepository.findOffsetBy(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK);
+        final long lastReconstructedOffset = offsetRepository.findOffsetBy(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK);
+        long startOffset = lastReconstructedOffset + 1L;
 
         LOGGER.info(String
             .format(
                 "[Reconstruction]: Start reconstruction of the {%s} collection on the Vitam tenant {%s} for %s elements starting from {%s}.",
-                DataCategory.BACKUP_OPERATION.name(), tenant, limit, offset));
+                DataCategory.BACKUP_OPERATION.name(), tenant, limit, startOffset));
         ReconstructionResponseItem response = new ReconstructionResponseItem().setTenant(tenant);
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
@@ -179,7 +176,7 @@ public class ReconstructionService {
             VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
             Iterator<List<OfferLog>> listing =
-                restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), offset, limit);
+                restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), startOffset, limit);
 
             while (listing.hasNext()) {
 
@@ -212,23 +209,23 @@ public class ReconstructionService {
                 }
 
                 // reconstruct Vitam collection from the backup datas.
-                if (!bulkData.isEmpty()) {
-                    reconstructCollectionLogbookOperation(mongoRepository, esRepository, bulkData);
-                    LogbookBackupModel last = Iterables.getLast(bulkData);
-                    offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK,
-                        last.getOffset());
-                }
+                reconstructCollectionLogbookOperation(mongoRepository, esRepository, bulkData);
+
+                // Update offset
+                long lastOffset = Iterables.getLast(bulkData).getOffset();
+                offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK,
+                    lastOffset);
 
                 // log the reconstruction of Vitam collection.
                 LOGGER.info(String.format(
-                    "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
-                    DataCategory.BACKUP_OPERATION.name(), tenant, offset, LocalDateUtil.now()));
+                    "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} to {offset:%s} at %s",
+                    DataCategory.BACKUP_OPERATION.name(), tenant, lastOffset, LocalDateUtil.now()));
             }
             response.setStatus(StatusCode.OK);
         } catch (DatabaseException em) {
             LOGGER.error(String.format(
                 "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} on the tenant {%s} from {offset:%s}",
-                DataCategory.BACKUP_OPERATION.name(), tenant, offset), em);
+                DataCategory.BACKUP_OPERATION.name(), tenant, startOffset), em);
             response.setStatus(StatusCode.KO);
         } catch (StorageException | StorageServerClientException | StorageNotFoundClientException se) {
             LOGGER.error(se.getMessage());
@@ -254,7 +251,7 @@ public class ReconstructionService {
         List<Document> logbooks =
             bulk.stream().map(LogbookBackupModel::getLogbookOperation).collect(Collectors.toList());
         mongoRepository.saveOrUpdate(logbooks);
-        logbooks.forEach(logbook -> this.logbookTransformData.transformDataForElastic(logbook));
+        logbooks.forEach(this.logbookTransformData::transformDataForElastic);
         esRepository.save(logbooks);
     }
 }

@@ -54,6 +54,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.exception.MetadataInvalidSelectException;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
+import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
+import fr.gouv.vitam.metadata.api.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.api.model.UnitPerOriginatingAgency;
 
 import javax.ws.rs.core.Response;
@@ -305,7 +307,7 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     }
 
     @Override
-    public Response reconstructCollection(JsonNode reconstructionItems) {
+    public List<ReconstructionResponseItem> reconstructCollection(List<ReconstructionRequestItem> reconstructionItems) {
         throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
 

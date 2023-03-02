@@ -174,9 +174,9 @@ public class RestoreBackupServiceImpl implements RestoreBackupService {
         return Iterators.partition(
             OfferLogHelper.getListing(
                 storageClientFactory, strategy, storageClientFactory.getClient().getReferentOffer(strategy),
-                dataCategory, offset, order, VitamConfiguration.getRestoreBulkSize(),
+                dataCategory, offset, order, VitamConfiguration.getBatchSize(),
                 limit),
-            VitamConfiguration.getRestoreBulkSize()
+            VitamConfiguration.getBatchSize()
         );
     }
 

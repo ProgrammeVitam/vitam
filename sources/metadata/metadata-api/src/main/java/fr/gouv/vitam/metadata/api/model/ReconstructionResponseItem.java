@@ -24,15 +24,15 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.metadata.core.model;
+package fr.gouv.vitam.metadata.api.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.model.StatusCode;
 
 /**
- * Description of reconstruction request item model. <br/>
+ * Description of reconstruction response item model. <br/>
  */
-public class ReconstructionRequestItem {
+public class ReconstructionResponseItem {
 
     /**
      * collection name.
@@ -47,16 +47,29 @@ public class ReconstructionRequestItem {
     private Integer tenant;
 
     /**
-     * Limit.
+     * Status.
      */
-    @JsonProperty("limit")
-    private int limit = VitamConfiguration.getRestoreBulkSize();
+    @JsonProperty("status")
+    private StatusCode status;
 
     /**
      * Constructor.
      */
-    public ReconstructionRequestItem() {
+    public ReconstructionResponseItem() {
         super();
+    }
+
+    /**
+     * Constructor
+     *
+     * @param reconstructionRequestItem request item
+     * @param status status
+     */
+    public ReconstructionResponseItem(ReconstructionRequestItem reconstructionRequestItem, StatusCode status) {
+        super();
+        this.collection = reconstructionRequestItem.getCollection();
+        this.tenant = reconstructionRequestItem.getTenant();
+        this.status = status;
     }
 
     /**
@@ -74,7 +87,7 @@ public class ReconstructionRequestItem {
      * @param collection as String
      * @return this
      */
-    public ReconstructionRequestItem setCollection(String collection) {
+    public ReconstructionResponseItem setCollection(String collection) {
         this.collection = collection;
         return this;
     }
@@ -94,29 +107,26 @@ public class ReconstructionRequestItem {
      * @param tenant
      * @return this
      */
-    public ReconstructionRequestItem setTenant(Integer tenant) {
+    public ReconstructionResponseItem setTenant(Integer tenant) {
         this.tenant = tenant;
         return this;
     }
 
     /**
-     * Get the limit
-     *
-     * @return the limit
+     * @return the status
      */
-    public int getLimit() {
-        return limit;
+    public StatusCode getStatus() {
+        return status;
     }
 
     /**
-     * Set the limit
-     *
-     * @param limit the limit to set
+     * @param status the status to set
      * @return this
      */
-    public ReconstructionRequestItem setLimit(int limit) {
-        this.limit = limit;
+    public ReconstructionResponseItem setStatus(StatusCode status) {
+        this.status = status;
         return this;
     }
+
 
 }

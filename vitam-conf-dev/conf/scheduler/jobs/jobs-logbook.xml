@@ -19,7 +19,7 @@
      <schedule>
          <job>
              <name>ReconstructionOperationJob</name>
-             <group>LogbookGroup</group>
+             <group>Logbook</group>
              <description>Job for reconstruction operation</description>
              <job-class>fr.gouv.vitam.scheduler.server.job.ReconstructionOperationJob</job-class>
          </job>
@@ -27,18 +27,18 @@
          <trigger>
              <cron>
                  <name>ReconstructionOperationTrigger</name>
-                 <group>LogbookGroup</group>
+                 <group>Logbook</group>
                  <job-name>ReconstructionOperationJob</job-name>
-                 <job-group>LogbookGroup</job-group>
+                 <job-group>Logbook</job-group>
                  <cron-expression>0 0/5 * * * ?</cron-expression>
              </cron>
          </trigger>
     </schedule>-->
-    <schedule>
 
+    <schedule>
         <job>
             <name>TraceabilityLFCObjectGroupJob</name>
-            <group>LogbookGroup</group>
+            <group>Logbook</group>
             <description>Job for traceability LFC of object group</description>
             <job-class>fr.gouv.vitam.scheduler.server.job.TraceabilityLFCJob</job-class>
             <job-data-map>
@@ -48,23 +48,21 @@
                 </entry>
             </job-data-map>
         </job>
-
         <trigger>
             <cron>
                 <name>TraceabilityLFCObjectGroupTrigger</name>
-                <group>LogbookGroup</group>
+                <group>Logbook</group>
                 <job-name>TraceabilityLFCObjectGroupJob</job-name>
-                <job-group>LogbookGroup</job-group>
+                <job-group>Logbook</job-group>
                 <cron-expression>* 15 0/1 * * ?</cron-expression>
             </cron>
         </trigger>
-
     </schedule>
-    <schedule>
 
+    <schedule>
         <job>
             <name>TraceabilityLFCUnitJob</name>
-            <group>LogbookGroup</group>
+            <group>Logbook</group>
             <description>Job for traceability LFC of unit</description>
             <job-class>fr.gouv.vitam.scheduler.server.job.TraceabilityLFCJob</job-class>
             <job-data-map>
@@ -74,24 +72,21 @@
                 </entry>
             </job-data-map>
         </job>
-
         <trigger>
             <cron>
                 <name>TraceabilityLFCUnitTrigger</name>
-                <group>LogbookGroup</group>
+                <group>Logbook</group>
                 <job-name>TraceabilityLFCUnitJob</job-name>
-                <job-group>LogbookGroup</job-group>
+                <job-group>Logbook</job-group>
                 <cron-expression>* 35 0/1 * * ?</cron-expression>
             </cron>
         </trigger>
-
     </schedule>
 
     <schedule>
-
         <job>
             <name>TraceabilityAuditJob</name>
-            <group>LogbookGroup</group>
+            <group>Logbook</group>
             <description>Job for traceability of audit</description>
             <job-class>fr.gouv.vitam.scheduler.server.job.TraceabilityAuditJob</job-class>
             <job-data-map>
@@ -113,39 +108,33 @@
                 </entry>
             </job-data-map>
         </job>
-
         <trigger>
             <cron>
                 <name>TraceabilityAuditTrigger</name>
-                <group>LogbookGroup</group>
+                <group>Logbook</group>
                 <job-name>TraceabilityAuditJob</job-name>
-                <job-group>LogbookGroup</job-group>
+                <job-group>Logbook</job-group>
                 <cron-expression>0 55 00 * * ?</cron-expression>
-
             </cron>
         </trigger>
-
     </schedule>
 
     <schedule>
-
         <job>
             <name>OperationTraceabilityJob</name>
-            <group>LogbookGroup</group>
+            <group>Logbook</group>
             <description>Job for traceability</description>
             <job-class>fr.gouv.vitam.scheduler.server.job.TraceabilityJob</job-class>
         </job>
-
         <trigger>
             <cron>
                 <name>TraceabilityTrigger</name>
-                <group>LogbookGroup</group>
+                <group>Logbook</group>
                 <job-name>OperationTraceabilityJob</job-name>
-                <job-group>LogbookGroup</job-group>
+                <job-group>Logbook</job-group>
                 <cron-expression>* 05 0/1 * * ?</cron-expression>
             </cron>
         </trigger>
-
     </schedule>
 
 </job-scheduling-data>
