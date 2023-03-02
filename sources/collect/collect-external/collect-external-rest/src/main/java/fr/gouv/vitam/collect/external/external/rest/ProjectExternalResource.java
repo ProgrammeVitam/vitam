@@ -62,7 +62,6 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_DELETE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_TRANSACTIONS;
-import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_ID_UNITS;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_QUERY_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_UPDATE;
@@ -200,11 +199,12 @@ public class ProjectExternalResource extends ApplicationStatusResource {
         }
     }
 
+    /* Not exposed by the client , we keep Code for future usage
     @Path("/{projectId}/units")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = PROJECT_ID_UNITS, description = "Récupére toutes les unités archivistique d'un projet")
-    @Deprecated
+    @Deprecated */
     public Response getUnitsByProjectId(@PathParam("projectId") String projectId, JsonNode queryDsl) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(projectId);

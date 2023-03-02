@@ -133,7 +133,7 @@ public class TransactionService {
             throw new CollectInternalException("project with id " + projectId + "not found");
         }
         TransactionModel transactionModel = new TransactionModel(transactionDto.getId(), transactionDto.getName(),
-            CollectHelper.mapTransactionDtoToManifestContext(transactionDto), TransactionStatus.OPEN, projectId,
+            CollectHelper.mapTransactionDtoToManifestContext(transactionDto, projectOpt.get()), TransactionStatus.OPEN, projectId,
             creationDate, creationDate, transactionDto.getTenant());
 
         transactionRepository.createTransaction(transactionModel);
@@ -428,10 +428,14 @@ public class TransactionService {
      * @throws CollectInternalException exception thrown in case of error
      */
     public void replaceTransaction(TransactionDto transactionDto) throws CollectInternalException {
+        Optional<ProjectDto> projectOpt = projectService.findProject(transactionDto.getProjectId());
+        if (projectOpt.isEmpty()) {
+            throw new CollectInternalException("project with id " + transactionDto.getProjectId() + "not found");
+        }
         TransactionModel transactionModel = new TransactionModel();
         transactionModel.setId(transactionDto.getId());
         transactionModel.setName(transactionDto.getName());
-        transactionModel.setManifestContext(CollectHelper.mapTransactionDtoToManifestContext(transactionDto));
+        transactionModel.setManifestContext(CollectHelper.mapTransactionDtoToManifestContext(transactionDto, projectOpt.get()));
         transactionModel.setTenant(transactionDto.getTenant());
         transactionModel.setProjectId(transactionDto.getProjectId());
         transactionModel.setStatus(TransactionStatus.valueOf(transactionDto.getStatus()));
