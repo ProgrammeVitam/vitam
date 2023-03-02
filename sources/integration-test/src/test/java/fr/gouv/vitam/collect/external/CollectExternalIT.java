@@ -40,13 +40,10 @@ import fr.gouv.vitam.collect.internal.core.common.TransactionStatus;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -275,31 +272,7 @@ public class CollectExternalIT extends VitamRuleRunner {
         transaction.setArchivalProfile("ArchiveProfile");
         transaction.setLegalStatus(TransactionStatus.OPEN.name());
         transaction.setComment("Versement du service producteur : Cabinet de Michel Mercier");
-        transaction.setUnitUp(ATTACHEMENT_UNIT_ID);
         return transaction;
-    }
-
-
-    private void getUnitsByProjectId()
-        throws VitamClientException, JsonProcessingException, InvalidCreateOperationException,
-        InvalidParseOperationException {
-        // Given
-        String projectGuid = null;
-        ProjectDto projectDtoResult = getProjectDtoById(projectGuid);
-
-        // When
-        SelectMultiQuery selectUnit = new SelectMultiQuery();
-        selectUnit.getQueries().add(QueryHelper.exists(OPI));
-        selectUnit.setLimitFilter(0, VitamConfiguration.getBatchSize());
-        RequestResponse<JsonNode> response =
-            collectExternalClient.getUnitsByProjectId(vitamContext, projectDtoResult.getId(),
-                selectUnit.getFinalSelect());
-
-        // Then
-        assertTrue(response.isOk());
-        List<JsonNode> units = ((RequestResponseOK<JsonNode>) response).getResults();
-        assertThat(units.size()).isEqualTo(17);
-        assertThat(units.get(0).get("Title")).isNotNull();
     }
 
     private ProjectDto getProjectDtoById(String projectId) throws VitamClientException, InvalidParseOperationException {
