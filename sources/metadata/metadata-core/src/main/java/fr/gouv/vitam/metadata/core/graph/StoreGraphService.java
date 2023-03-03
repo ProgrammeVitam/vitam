@@ -166,11 +166,19 @@ public class StoreGraphService {
                 return INITIAL_START_DATE;
             }
 
-            return LocalDateTime.from(formatter.parse(offerLogIterator.next().getFileName().split(UNDERSCORE, 2)[1]));
+            return parseGraphEndDateFromFileName(offerLogIterator.next().getFileName());
 
         } catch (Exception e) {
             throw new StoreGraphException(e);
         }
+    }
+
+    public static LocalDateTime parseGraphStartDateFromFileName(String fileName) {
+        return LocalDateTime.from(formatter.parse(fileName.split(UNDERSCORE, 2)[0]));
+    }
+
+    public static LocalDateTime parseGraphEndDateFromFileName(String fileName) {
+        return LocalDateTime.from(formatter.parse(fileName.split(UNDERSCORE, 2)[1]));
     }
 
     private DataCategory getDataCategory(MetadataCollections metadataCollections) throws StoreGraphException {

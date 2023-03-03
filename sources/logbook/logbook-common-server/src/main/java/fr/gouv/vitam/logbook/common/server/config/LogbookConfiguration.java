@@ -95,6 +95,8 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
      */
     private Integer operationTraceabilityThreadPoolSize;
 
+    private int reconstructionMetricsCacheDurationInMinutes = 15;
+
     /**
      * List of events that are generated in a wf-operation but are not declared in the wf itself
      */
@@ -399,5 +401,13 @@ public final class LogbookConfiguration extends DbConfigurationImpl {
         LogbookIndexationConfiguration logbookTenantIndexation) {
         this.logbookTenantIndexation = logbookTenantIndexation;
         return this;
+    }
+
+    public int getReconstructionMetricsCacheDurationInMinutes() {
+        return reconstructionMetricsCacheDurationInMinutes;
+    }
+
+    public void setReconstructionMetricsCacheDurationInMinutes(int reconstructionMetricsCacheDurationInMinutes) {
+        this.reconstructionMetricsCacheDurationInMinutes = reconstructionMetricsCacheDurationInMinutes;
     }
 }

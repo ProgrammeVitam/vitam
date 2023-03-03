@@ -27,7 +27,7 @@
 
 package fr.gouv.vitam.common.metrics;
 
-public class VitamMetricsNames {
+public final class VitamMetricsNames {
 
     private VitamMetricsNames() {
         // This class is only for constants
@@ -179,6 +179,20 @@ public class VitamMetricsNames {
     public static final String VITAM_METADATA_LOG_SHIPPING_TOTAL = "vitam_metadata_log_shipping_total";
 
     /**
+     * Vitam metadata document reconstruction latency (is seconds)
+     * Type: Gauge
+     * Labels: "tenant", "collection" ("unit" or "objectgroup"), strategy
+     */
+    public static final String VITAM_METADATA_RECONSTRUCTION_LATENCY_SECONDS = "vitam_metadata_reconstruction_metadata_latency_seconds";
+
+    /**
+     * Vitam metadata graph reconstruction latency (is seconds)
+     * Type: Gauge
+     * Labels: "collection" ("unit" or "objectgroup")
+     */
+    public static final String VITAM_METADATA_GRAPH_RECONSTRUCTION_LATENCY_SECONDS = "vitam_metadata_reconstruction_graph_latency_seconds";
+
+    /**
      * Vitam metadata reconstruction histogram metric
      * Type: Histogram
      * Labels: "tenant", "container"
@@ -187,10 +201,35 @@ public class VitamMetricsNames {
 
     /*
      * =================================
-     *            Tape Offer
+     *     Functional Administration
      * ==================================
      */
 
+    /**
+     * Vitam functional administration reconstruction latency (is seconds)
+     * Type: Gauge
+     * Labels: "tenant", "collection" (supported collections: "accessionregisterdetail" & "accessionregistersymbolic")
+     */
+    public static final String VITAM_FUNCTIONAL_ADMINISTRATION_RECONSTRUCTION_LATENCY_SECONDS = "vitam_functional_administration_reconstruction_latency_seconds";
+
+    /*
+     * =================================
+     *            Logbook
+     * ==================================
+     */
+
+    /**
+     * Vitam logbook operation reconstruction latency (is seconds)
+     * Type: Gauge
+     * Labels: "tenant"
+     */
+    public static final String VITAM_LOGBOOK_OPERATION_RECONSTRUCTION_LATENCY_SECONDS = "vitam_logbook_reconstruction_operation_latency_seconds";
+
+    /*
+     * =================================
+     *            Tape Offer
+     * ==================================
+     */
     /**
      * Max cache capacity for vitam tape offer
      * Type: Gauge

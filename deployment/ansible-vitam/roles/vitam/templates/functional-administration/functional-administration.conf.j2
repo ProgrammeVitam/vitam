@@ -72,3 +72,8 @@ listMinimumRuleDuration:
 
 accessionRegisterSymbolicThreadPoolSize: {{ vitam.functional_administration.accessionRegisterSymbolicThreadPoolSize | default(16) }}
 ruleAuditThreadPoolSize: {{ vitam.functional_administration.ruleAuditThreadPoolSize | default(16) }}
+
+{% if primary_site | lower != "true" %}
+# Reconstruction cache duration (in minutes)
+reconstructionMetricsCacheDurationInMinutes: {{ vitam.functional_administration.reconstructionMetricsCacheDurationInMinutes | default(15) }}
+{% endif %}

@@ -45,6 +45,8 @@ import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFuncti
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminFactory;
 import fr.gouv.vitam.functional.administration.common.server.MongoDbAccessAdminImpl;
+import fr.gouv.vitam.functional.administration.core.reconstruction.FunctionalAdministrationReconstructionMetrics;
+import fr.gouv.vitam.functional.administration.core.reconstruction.FunctionalAdministrationReconstructionMetricsCache;
 import fr.gouv.vitam.functional.administration.core.reconstruction.ReconstructionService;
 import fr.gouv.vitam.functional.administration.core.reconstruction.ReconstructionServiceImpl;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -62,6 +64,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
@@ -114,8 +117,15 @@ public class ReconstructionResource {
                     configuration.getDbName());
         }
         this.mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader, indexManager);
+
+        FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache =
+            new FunctionalAdministrationReconstructionMetricsCache(
+                    configuration.getReconstructionMetricsCacheDurationInMinutes(), TimeUnit.MINUTES);
+        FunctionalAdministrationReconstructionMetrics.initialize(reconstructionMetricsCache);
+
         this.reconstructionService =
-            new ReconstructionServiceImpl(reconstructionFactory, new OffsetRepository(mongoAccess), indexManager);
+            new ReconstructionServiceImpl(reconstructionFactory, new OffsetRepository(mongoAccess), indexManager,
+                reconstructionMetricsCache);
     }
 
     /**

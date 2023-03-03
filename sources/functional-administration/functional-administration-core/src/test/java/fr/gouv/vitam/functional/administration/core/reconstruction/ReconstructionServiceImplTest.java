@@ -128,6 +128,8 @@ public class ReconstructionServiceImplTest {
 
     @Mock
     private StorageClient storageClient;
+    @Mock
+    private FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache;
 
     @Captor
     private ArgumentCaptor<Integer> tenantCaptor;
@@ -139,7 +141,8 @@ public class ReconstructionServiceImplTest {
     @Before
     public void setup() {
         reconstructionService =
-            Mockito.spy(new ReconstructionServiceImpl(repositoryFactory, recoverBuckupService, null, indexManager));
+            Mockito.spy(new ReconstructionServiceImpl(repositoryFactory, recoverBuckupService, null, indexManager,
+                reconstructionMetricsCache));
 
         when(repositoryFactory.getVitamESRepository(eq(FunctionalAdminCollections.RULES.getVitamCollection()),
             any()))

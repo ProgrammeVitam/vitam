@@ -53,6 +53,7 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.api.model.ReconstructionResponseItem;
+import fr.gouv.vitam.metadata.core.metrics.MetadataReconstructionMetricsCache;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -120,6 +121,7 @@ public class ReconstructionServiceTest {
     private LogbookLifeCyclesClient logbookLifecycleClient;
     private StorageClientFactory storageClientFactory;
     private StorageClient storageClient;
+    private MetadataReconstructionMetricsCache reconstructionMetricsCache;
 
     private ReconstructionRequestItem requestItem;
 
@@ -148,6 +150,8 @@ public class ReconstructionServiceTest {
 
         requestItem = new ReconstructionRequestItem();
         requestItem.setCollection("UNIT").setTenant(10).setLimit(100)/*.setStrategy(STRATEGY_UNIT)*/;
+
+        reconstructionMetricsCache = mock(MetadataReconstructionMetricsCache.class);
     }
 
     @RunWithCustomExecutor
@@ -169,7 +173,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, logbookLifecycleClientFactory,
-                storageClientFactory, offsetRepository, indexManager);
+                storageClientFactory, offsetRepository, indexManager, reconstructionMetricsCache);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -209,7 +213,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, logbookLifecycleClientFactory,
-                storageClientFactory, offsetRepository, indexManager);
+                storageClientFactory, offsetRepository, indexManager, reconstructionMetricsCache);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -246,7 +250,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService, logbookLifecycleClientFactory,
-                storageClientFactory, offsetRepository, indexManager);
+                storageClientFactory, offsetRepository, indexManager, reconstructionMetricsCache);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -284,7 +288,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -323,7 +327,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -370,7 +374,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -418,7 +422,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -466,7 +470,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -514,7 +518,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -553,7 +557,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -583,7 +587,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
 
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
@@ -607,7 +611,7 @@ public class ReconstructionServiceTest {
         requestItem.setLimit(-5);
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
             .isInstanceOf(IllegalArgumentException.class);
@@ -619,7 +623,7 @@ public class ReconstructionServiceTest {
         // given
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
             .isInstanceOf(IllegalArgumentException.class);
@@ -631,7 +635,7 @@ public class ReconstructionServiceTest {
         // given
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setCollection(null)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -643,7 +647,7 @@ public class ReconstructionServiceTest {
         // given
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setCollection("toto")))
             .isInstanceOf(IllegalArgumentException.class);
@@ -655,7 +659,7 @@ public class ReconstructionServiceTest {
         // given
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setTenant(null)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -691,7 +695,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
 
         FindIterable<Document> findIterable = mock(FindIterable.class);
         final MongoCursor<Document> iterator = mock(MongoCursor.class);
@@ -732,7 +736,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -769,7 +773,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
 
         FindIterable findIterable = mock(FindIterable.class);
         final MongoCursor<String> iterator = mock(MongoCursor.class);
@@ -811,7 +815,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
         // When
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
 
@@ -841,7 +845,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
         // When
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // Then
@@ -874,7 +878,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService = new ReconstructionService(vitamRepositoryProvider,
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
-            indexManager);
+            indexManager, reconstructionMetricsCache);
 
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);

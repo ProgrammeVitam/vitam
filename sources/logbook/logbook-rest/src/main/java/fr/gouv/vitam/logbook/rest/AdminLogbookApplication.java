@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.collections.CachedOntologyLoader;
-import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.common.serverv2.application.AdminApplication;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.client.AdminManagementOntologyLoader;
@@ -89,18 +88,12 @@ public class AdminLogbookApplication extends Application {
                 VitamConfiguration.getOntologyCacheTimeoutInSeconds(),
                 new AdminManagementOntologyLoader(AdminManagementClientFactory.getInstance(), Optional.empty())
             );
-            // hack to init collections and clients
-            LogbookMongoDbAccessImpl logbookMongoDbAccess = LogbookMongoDbAccessFactory.create(logbookConfiguration,
-                ontologyLoader, indexManager);
-
-            OffsetRepository offsetRepository = new OffsetRepository(logbookMongoDbAccess);
 
             VitamRepositoryProvider vitamRepositoryProvider = VitamRepositoryFactory.get();
 
             singletons = new HashSet<>();
             singletons.addAll(adminApplication.getSingletons());
             singletons.add(new LogbookAdminResource(vitamRepositoryProvider, logbookConfiguration));
-            singletons.add(new LogbookReconstructionResource(vitamRepositoryProvider, offsetRepository, indexManager));
             singletons.add(new BasicAuthenticationFilter(logbookConfiguration));
             singletons.add(new AdminRequestIdFilter());
         } catch (IOException e) {

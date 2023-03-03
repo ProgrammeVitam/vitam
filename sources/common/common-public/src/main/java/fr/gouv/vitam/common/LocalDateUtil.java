@@ -34,6 +34,7 @@ import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -141,16 +142,6 @@ public final class LocalDateUtil {
         }
         return LocalDateTime.ofEpochSecond(millis / THOUSAND, (int) (millis % THOUSAND * THOUSAND),
             ZoneOffset.UTC);
-    }
-
-    /**
-     * @param ldt in format LocalDateTime to transform
-     * @return the millis in epoch
-     * @throws IllegalArgumentException ldt null or empty
-     */
-    public static long getMillis(LocalDateTime ldt) {
-        ParametersChecker.checkParameter("LocalDateTime", ldt);
-        return ldt.toInstant(ZoneOffset.UTC).toEpochMilli();
     }
 
     /**
@@ -350,6 +341,26 @@ public final class LocalDateUtil {
 
     public static long currentTimeMillis() {
         return clock.millis();
+    }
+
+    public static LocalDateTime max(LocalDateTime localDateTime1, LocalDateTime localDateTime2) {
+
+        if (localDateTime1 == null) {
+            return localDateTime2;
+        }
+
+        if (localDateTime2 == null) {
+            return localDateTime1;
+        }
+
+        if (localDateTime1.isAfter(localDateTime2)) {
+            return localDateTime1;
+        }
+        return localDateTime2;
+    }
+
+    public static Instant getInstant() {
+        return clock.instant();
     }
 
     @VisibleForTesting

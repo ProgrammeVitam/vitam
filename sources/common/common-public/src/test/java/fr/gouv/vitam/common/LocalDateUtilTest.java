@@ -41,6 +41,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -140,7 +141,6 @@ public class LocalDateUtilTest {
         final LocalDateTime ldt = LocalDateUtil.now();
         assertEquals(ldt.format(DateTimeFormatter.ISO_DATE_TIME), LocalDateUtil.getString(ldt));
         assertEquals(ldt, LocalDateUtil.fromDate(LocalDateUtil.getDate(ldt)));
-        assertNotNull(LocalDateUtil.fromMillis(LocalDateUtil.getMillis(ldt)));
         assertNotNull(LocalDateUtil.getDate(ldt.toString()));
         assertNotNull(LocalDateUtil.getDate("2017-05-12"));
         assertNotNull(LocalDateUtil.fromMillis(-1));
@@ -189,5 +189,19 @@ public class LocalDateUtilTest {
             LocalDateUtil.getFormattedDateForMongo(dateWithMillisZonePSTNoMillis));
 
         assertEquals(slashedDateFormatted, LocalDateUtil.getFormattedDateForMongo(slashedDate));
+    }
+
+    @Test
+    public void testMax() {
+
+        LocalDateTime date1 = LocalDateUtil.fromMillis(1234567890L);
+        LocalDateTime date2 = LocalDateUtil.fromMillis(1234567891L);
+
+        assertThat(LocalDateUtil.max(date1, date1)).isEqualTo(date1);
+        assertThat(LocalDateUtil.max(date2, date1)).isEqualTo(date2);
+        assertThat(LocalDateUtil.max(date1, date2)).isEqualTo(date2);
+        assertThat(LocalDateUtil.max(null, date1)).isEqualTo(date1);
+        assertThat(LocalDateUtil.max(date1, null)).isEqualTo(date1);
+        assertThat(LocalDateUtil.max(null, null)).isNull();
     }
 }

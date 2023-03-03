@@ -75,28 +75,8 @@ public class LogbookReconstructionResource {
     /**
      * Reconstruction service.
      */
-    private ReconstructionService reconstructionService;
+    private final ReconstructionService reconstructionService;
 
-    /**
-     * Constructor
-     *
-     * @param vitamRepositoryProvider vitamRepositoryProvider
-     * @param offsetRepository
-     * @param indexManager
-     */
-    public LogbookReconstructionResource(
-        VitamRepositoryProvider vitamRepositoryProvider,
-        OffsetRepository offsetRepository,
-        ElasticsearchLogbookIndexManager indexManager) {
-        this.reconstructionService = new ReconstructionService(vitamRepositoryProvider, offsetRepository, indexManager);
-    }
-
-    /**
-     * Constructor for tests
-     *
-     * @param reconstructionService reconstructionService
-     */
-    @VisibleForTesting
     public LogbookReconstructionResource(ReconstructionService reconstructionService) {
         this.reconstructionService = reconstructionService;
     }

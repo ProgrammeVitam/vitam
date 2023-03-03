@@ -58,6 +58,7 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     private int dipTimeToLiveInMinutes = 60 * 24 * 7;
     private int criticalDipTimeToLiveInMinutes = 60 * 24;
     private int transfersSIPTimeToLiveInMinutes = 60 * 24 * 7;
+    private int reconstructionMetricsCacheDurationInMinutes = 15;
 
     private List<ElasticsearchExternalMetadataMapping> elasticsearchExternalMetadataMappings;
 
@@ -322,6 +323,14 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     public TimeToLiveConfiguration getTimeToLiveConfiguration() {
         return new TimeToLiveConfiguration(dipTimeToLiveInMinutes, criticalDipTimeToLiveInMinutes,
             transfersSIPTimeToLiveInMinutes);
+    }
+
+    public int getReconstructionMetricsCacheDurationInMinutes() {
+        return reconstructionMetricsCacheDurationInMinutes;
+    }
+
+    public void setReconstructionMetricsCacheDurationInMinutes(int reconstructionMetricsCacheDurationInMinutes) {
+        this.reconstructionMetricsCacheDurationInMinutes = reconstructionMetricsCacheDurationInMinutes;
     }
 
     @JsonIgnore

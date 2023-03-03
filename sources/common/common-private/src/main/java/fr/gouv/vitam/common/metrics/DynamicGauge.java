@@ -27,55 +27,52 @@
 package fr.gouv.vitam.common.metrics;
 
 import io.prometheus.client.Collector;
+import io.prometheus.client.GaugeMetricFamily;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public final class GaugeUtils {
+public class DynamicGauge extends Collector implements Collector.Describable {
 
-    private GaugeUtils() {
-        // Private constructor for utility class
-    }
+    private final String name;
+    private final String help;
+    private final List<String> labelNames;
 
-    /**
-     * @param name name of the Gauge
-     * @param help Humain friendly description of the Gauge
-     * @param supplier a side-effect-free / non-blocking function returning the gauge value on demand
-     * @return A custom gauge collector
-     */
-    public static Collector createCustomGauge(String name, String help, Supplier<Double> supplier) {
-        return createCustomGauge(name, help, Collections.emptyMap(), supplier);
-    }
-
-    /**
-     * Create a dynamic Gauge with fixed label keys/values
-     * @param name name of the Gauge
-     * @param help Humain friendly description of the Gauge
-     * @param labels key-value label pairs
-     * @param supplier a side-effect-free / non-blocking function returning the gauge value on demand
-     * @return A custom gauge collector
-     */
-    public static Collector createCustomGauge(String name, String help, Map<String, String> labels,
-        Supplier<Double> supplier) {
-
-        List<String> labelNames = new ArrayList<>(labels.keySet());
-        List<String> labelValues = new ArrayList<>(labels.values());
-        return new DynamicGauge(name, help, labelNames, () -> Map.of(labelValues, supplier.get()));
-    }
+    private final Supplier<Map<List<String>, Double>> metricsProvider;
 
     /***
+     *
      * @param name name of the Gauge
      * @param help Humain friendly description of the Gauge
      * @param labelNames label names
      * @param metricsSupplier a side-effect-free / non-blocking function returning the gauge value per label values
-     * @return A custom gauge collector
      */
-    public static Collector createCustomGauge(String name, String help, List<String> labelNames,
+    public DynamicGauge(String name, String help, List<String> labelNames,
         Supplier<Map<List<String>, Double>> metricsSupplier) {
-        return new DynamicGauge(name, help, labelNames, metricsSupplier);
+        this.name = name;
+        this.help = help;
+        this.labelNames = labelNames;
+        this.metricsProvider = metricsSupplier;
+    }
+
+    @Override
+    public List<MetricFamilySamples> describe() {
+        return List.of(new GaugeMetricFamily(this.name, this.help, this.labelNames));
+    }
+
+    @Override
+    public List<MetricFamilySamples> collect() {
+
+        GaugeMetricFamily metricFamily = new GaugeMetricFamily(this.name, this.help, this.labelNames);
+        Map<List<String>, Double> metricValuesByLabelValues = this.metricsProvider.get();
+
+        for (Map.Entry<List<String>, Double> entry : metricValuesByLabelValues.entrySet()) {
+            if (entry.getValue() != null) {
+                metricFamily.addMetric(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return List.of(metricFamily);
     }
 }
-
