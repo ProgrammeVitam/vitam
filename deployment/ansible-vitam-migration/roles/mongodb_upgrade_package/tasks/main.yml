@@ -1,12 +1,19 @@
 ---
 
-# Upgrade the packages
-
-- include_tasks: update_packages_mongoc.yml
-  when: mongo_type == 'mongoc'
+# Upgrade mongo packages
+- name: Update mongosh and tools packages
+  package:
+    name:
+      - mongodb-mongosh
+      - mongodb-database-tools
+    state: latest
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
 
 - include_tasks: update_packages_mongod.yml
-  when: mongo_type == 'mongod'
+  when: mongo_type == 'mongoc' or mongo_type == 'mongod'
 
 - include_tasks: update_packages_mongos.yml
   when: mongo_type == 'mongos'

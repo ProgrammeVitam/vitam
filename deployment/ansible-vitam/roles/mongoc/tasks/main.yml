@@ -1,4 +1,5 @@
 ---
+
 - name: Install vitam-mongoc package
   package:
     name: vitam-mongoc
@@ -9,6 +10,12 @@
   delay: "{{ packages_install_retries_delay }}"
   notify:
     - "mongoc - restart service"
+
+- name: Disable mongod default service
+  service:
+    name: mongod
+    state: stopped
+    enabled: no
 
 #### Configuration ####
 
@@ -47,7 +54,7 @@
 
 - name: Create the mongoc configuration server file
   template:
-    src: "mongoc.conf.j2"
+    src: mongoc.conf.j2
     dest: "{{ mongo_config_path }}/mongoc.conf"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
@@ -84,7 +91,7 @@
 
 - name: Deploy consul agent service declaration
   template:
-    src: "service-componentid.json.j2"
+    src: service-componentid.json.j2
     dest: "{{ consul_folder_conf }}/service-mongoc.json"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
@@ -98,7 +105,7 @@
 # Enable mongo passphrase
 - name: Copy the passphrase
   template:
-    src: "keyfile.j2"
+    src: keyfile.j2
     dest: "{{ mongo_config_path }}/keyfile"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
@@ -106,7 +113,7 @@
   tags:
     - update_mongodb_configuration
   notify:
-    - "mongoc - reload consul configuration"
+    - "mongoc - restart service"
 
 # Ensure that the installation is complete and consul up before continuing...
 - meta: flush_handlers
@@ -156,7 +163,7 @@
 
     - name: Copy the script which initiate the replica set
       template:
-        src: "init-replica.js.j2"
+        src: init-replica.js.j2
         dest: "{{ vitam_defaults.folder.root_path }}/app/mongoc/init-replica-config.js"
         owner: "{{ vitam_defaults.users.vitamdb }}"
         group: "{{ vitam_defaults.users.group }}"
@@ -166,7 +173,7 @@
 
     - name: Copy script that restore configuration of mongoc replicaSet
       template:
-        src: "restore-mongoc.js.j2"
+        src: restore-mongoc.js.j2
         dest: "{{ vitam_defaults.folder.root_path }}/app/mongoc/restore-mongoc.js"
         owner: "{{ vitam_defaults.users.vitamdb }}"
         group: "{{ vitam_defaults.users.group }}"
@@ -175,7 +182,7 @@
         - update_mongodb_configuration
 
     - name: Initiate the replica set
-      command: mongo --host {{ ip_service }} --port {{ mongodb.mongoc_port }} {{ vitam_defaults.folder.root_path }}/app/mongoc/init-replica-config.js
+      command: "mongo --host {{ ip_service }} --port {{ mongodb.mongoc_port }} {{ vitam_defaults.folder.root_path }}/app/mongoc/init-replica-config.js"
       tags:
         - update_mongodb_configuration
 
@@ -183,7 +190,7 @@
 
     - name: Copy the script which create the local users
       template:
-        src: "local-user.js.j2"
+        src: local-user.js.j2
         dest: "{{ vitam_defaults.folder.root_path }}/app/mongoc/local-user.js"
         owner: "{{ vitam_defaults.users.vitamdb }}"
         group: "{{ vitam_defaults.users.group }}"
@@ -192,7 +199,7 @@
         - update_mongodb_configuration
 
     - name: Create the local shard user
-      command: "mongo --host configsvr/{{ ip_service}}:{{ mongodb.mongoc_port }} {{ vitam_defaults.folder.root_path }}/app/mongoc/local-user.js"
+      command: "mongo --host configsvr/{{ ip_service }}:{{ mongodb.mongoc_port }} {{ vitam_defaults.folder.root_path }}/app/mongoc/local-user.js"
       tags:
         - update_mongodb_configuration
 

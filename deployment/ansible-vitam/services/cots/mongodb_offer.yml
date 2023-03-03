@@ -8,72 +8,53 @@
 - hosts: hosts_mongodb_offer
   any_errors_fatal: true
   roles:
-    - { role: mongo_common, when: "inventory_hostname not in single_vm_hostnames" }
-  tags: mongod_offer
+    - { role: mongo_common, when: inventory_hostname not in single_vm_hostnames }
 
 # Mongoc replicas configuration
 - hosts: hosts_mongoc_offer
   gather_facts: no
   any_errors_fatal: true
   roles:
-    - { role: mongoc, when: "inventory_hostname not in single_vm_hostnames" }
+    - { role: mongoc, when: inventory_hostname not in single_vm_hostnames }
   vars:
     mongo_bin: mongod
-    mongod: "hosts_mongod_offer"
-    group_name: "hosts_mongoc_offer"
-  tags: mongod_offer
+    mongod: hosts_mongod_offer
+    group_name: hosts_mongoc_offer
 
 # Mongod replicas configuration
 - hosts: hosts_mongod_offer
   gather_facts: no
   any_errors_fatal: true
   roles:
-    - { role: mongod, when: "inventory_hostname not in single_vm_hostnames" }
+    - { role: mongod, when: inventory_hostname not in single_vm_hostnames }
   vars:
     mongo_bin: mongod
-    mongoc: "hosts_mongoc_offer"
-    group_name: "hosts_mongod_offer"
-  tags: mongod_offer
+    mongoc: hosts_mongoc_offer
+    group_name: hosts_mongod_offer
 
 # Mongos configuration
 - hosts: hosts_mongos_offer
   gather_facts: no
   any_errors_fatal: true
   roles:
-    - { role: mongos, when: "inventory_hostname not in single_vm_hostnames" }
+    - { role: mongo_configure, when: inventory_hostname in single_vm_hostnames }
   vars:
     mongo_bin: mongos
-    group_name: "hosts_mongos_offer"
-    mongoc: "hosts_mongoc_offer"
-    mongod: "hosts_mongod_offer"
-    mongos: "hosts_mongos_offer"
-  tags: mongod_offer
-
-# force mongo_cluster_name when deploying to localhost (dev docker)
+    group_name: hosts_mongos_offer
+    mongoc: hosts_mongoc_offer
+    mongod: hosts_mongod_offer
+    mongos: hosts_mongos_offer
+    mongo_cluster_name: offer-fs-1 # force mongo_cluster_name when deploying to localhost (dev docker)
 
 - hosts: hosts_mongos_offer
   gather_facts: no
   any_errors_fatal: true
   roles:
-    - { role: mongo_configure, when: "inventory_hostname in single_vm_hostnames" }
+    - { role: mongos, when: inventory_hostname not in single_vm_hostnames }
+    - { role: mongo_configure, when: inventory_hostname not in single_vm_hostnames }
   vars:
     mongo_bin: mongos
-    group_name: "hosts_mongos_offer"
-    mongoc: "hosts_mongoc_offer"
-    mongod: "hosts_mongod_offer"
-    mongos: "hosts_mongos_offer"
-    mongo_cluster_name: "offer-fs-1"
-  tags: mongod_offer
-
-- hosts: hosts_mongos_offer
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - { role: mongo_configure, when: "inventory_hostname not in single_vm_hostnames" }
-  vars:
-    mongo_bin: mongos
-    group_name: "hosts_mongos_offer"
-    mongoc: "hosts_mongoc_offer"
-    mongod: "hosts_mongod_offer"
-    mongos: "hosts_mongos_offer"
-  tags: mongod_offer
+    group_name: hosts_mongos_offer
+    mongoc: hosts_mongoc_offer
+    mongod: hosts_mongod_offer
+    mongos: hosts_mongos_offer

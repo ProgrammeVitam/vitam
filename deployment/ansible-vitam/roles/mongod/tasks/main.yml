@@ -11,6 +11,12 @@
   notify:
     - "mongod - restart service"
 
+- name: Disable mongod default service
+  service:
+    name: mongod
+    state: stopped
+    enabled: no
+
 #### Configuration ####
 
 - name: Check that the directories exists (must be removed when the RPM plugin will be patched)
@@ -48,7 +54,7 @@
 
 - name: Create the mongod configuration server file
   template:
-    src: "mongod.conf.j2"
+    src: mongod.conf.j2
     dest: "{{ mongo_config_path }}/mongod.conf"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
@@ -87,7 +93,7 @@
 
 - name: Deploy consul agent service declaration
   template:
-    src: "service-componentid.json.j2"
+    src: service-componentid.json.j2
     dest: "{{ consul_folder_conf }}/service-mongod.json"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
@@ -101,7 +107,7 @@
 # Enable mongo passphrase
 - name: Copy the passphrase
   template:
-    src: "keyfile.j2"
+    src: keyfile.j2
     dest: "{{ mongo_config_path }}/keyfile"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
@@ -109,7 +115,7 @@
   tags:
     - update_mongodb_configuration
   notify:
-    - "mongod - reload consul configuration"
+    - "mongod - restart service"
 
 # Ensure that the installation is complete and consul up before continuing...
 - meta: flush_handlers
@@ -160,7 +166,7 @@
 
     - name: Copy the script which initiate the replica set
       template:
-        src: "init-replica.js.j2"
+        src: init-replica.js.j2
         dest: "{{ vitam_defaults.folder.root_path }}/app/mongod/init-replica.js"
         owner: "{{ vitam_defaults.users.vitamdb }}"
         group: "{{ vitam_defaults.users.group }}"
@@ -170,7 +176,7 @@
 
     - name: Copy script that restore configuration of mongod sharded cluster
       template:
-        src: "restore-mongod.js.j2"
+        src: restore-mongod.js.j2
         dest: "{{ vitam_defaults.folder.root_path }}/app/mongod/restore-mongod.js"
         owner: "{{ vitam_defaults.users.vitamdb }}"
         group: "{{ vitam_defaults.users.group }}"
@@ -187,7 +193,7 @@
 
     - name: Copy the script which create the local users
       template:
-        src: "local-user.js.j2"
+        src: local-user.js.j2
         dest: "{{ vitam_defaults.folder.root_path }}/app/mongod/local-user.js"
         owner: "{{ vitam_defaults.users.vitamdb }}"
         group: "{{ vitam_defaults.users.group }}"
@@ -196,7 +202,7 @@
         - update_mongodb_configuration
 
     - name: Create the local shard user
-      command: "mongo --host shard{{ mongo_shard_id }}/{{ ip_service}}:{{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/local-user.js"
+      command: "mongo --host shard{{ mongo_shard_id }}/{{ ip_service }}:{{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/local-user.js"
       tags:
         - update_mongodb_configuration
 

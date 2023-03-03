@@ -2,97 +2,105 @@
 
 - block:
 
-    # Elect a new primary member (if we are the primary)
+  - name: Copy database scripts
+    copy:
+      src: "{{ item }}"
+      dest: "{{ vitam_defaults.folder.root_path }}/script/{{ mongo_type }}"
+      owner: "{{ vitam_defaults.users.vitamdb }}"
+      group: "{{ vitam_defaults.users.group }}"
+      mode: "{{ vitam_defaults.folder.conf_permission }}"
+    with_items:
+      - shutdown.js
+      - step_down.js
+      - wait_until_proper_node_state.js
+      - wait_until_not_master.js
 
-    - name: Copy the step_down script
-      template:
-        src: "step_down.js.j2"
-        dest: "{{ vitam_defaults.folder.root_path }}/app/mongod/step_down.js"
-        owner: "{{ vitam_defaults.users.vitamdb }}"
-        group: "{{ vitam_defaults.users.group }}"
-        mode: "{{ vitam_defaults.folder.conf_permission }}"
-      when:
-        - mongo_list |length > 1
-        - is_primary_mongod == true
-
-    # ignore_errors: true as we are brutally disconnected by the server (because reboot)
+  # Elect a new primary member (if we are the primary and if there is more than 1 node)
+  - block:
     - name: Step down the member (elect a new primary member)
-      shell: "mongo {{ ip_service }}:{{ mongo_port }}/admin -u {{ mongodb[mongo_cluster_name].localadmin.user }} -p {{ mongodb[mongo_cluster_name].localadmin.password }} --quiet < {{ vitam_defaults.folder.root_path }}/app/mongod/step_down.js"
-      when:
-        - is_primary_mongod == true
-        - mongo_list |length > 1
-      ignore_errors: true
-
-    - name: Copy the master check script
-      template:
-        src: "wait_until_not_master.js.j2"
-        dest: "{{ vitam_defaults.folder.root_path }}/app/mongod/wait_until_not_master.js"
-        owner: "{{ vitam_defaults.users.vitamdb }}"
-        group: "{{ vitam_defaults.users.group }}"
-        mode: "{{ vitam_defaults.folder.conf_permission }}"
-      when:
-        - is_primary_mongod == true
-        - mongo_list |length > 1
+      shell: "mongosh {{ ip_service }}:{{ mongo_port }}/admin -u {{ mongodb[mongo_cluster_name].localadmin.user }} -p {{ mongodb[mongo_cluster_name].localadmin.password }} --quiet --file {{ vitam_defaults.folder.root_path }}/script/{{ mongo_type }}/step_down.js"
+      no_log: "{{ hide_passwords_during_deploy }}"
+      ignore_errors: true # as we are brutally disconnected by the server (because reboot)
 
     - name: Wait until this member is not primary anymore
-      shell: "mongo {{ ip_service }}:{{ mongo_port }}/admin -u {{ mongodb[mongo_cluster_name].localadmin.user }} -p {{ mongodb[mongo_cluster_name].localadmin.password }} --quiet < {{ vitam_defaults.folder.root_path }}/app/mongod/wait_until_not_master.js"
-      when:
-        - is_primary_mongod == true
-        - mongo_list |length > 1
+      shell: "mongosh {{ ip_service }}:{{ mongo_port }}/admin -u {{ mongodb[mongo_cluster_name].localadmin.user }} -p {{ mongodb[mongo_cluster_name].localadmin.password }} --quiet --file {{ vitam_defaults.folder.root_path }}/script/{{ mongo_type }}/wait_until_not_master.js"
+      no_log: "{{ hide_passwords_during_deploy }}"
+      ignore_errors: true # To properly catch output on the next task
+      register: output_not_master
 
-    # Upgrade the package
+    - name: Fail if step down is not succeeded
+      assert:
+        fail_msg: "{{ output_not_master.stderr_lines }}"
+        success_msg: "{{ output_not_master.stdout_lines }}"
+        that: output_not_master.rc == 0
+    when:
+      - is_primary == true
+      - mongo_list | length > 1
 
-    - name: "Update mongodb packages ({{ mongo_version }})"
-      yum:
-        name: "{{ packages }}"
-        state: "present"
-        update_cache: "yes"   # make sure cache is up to date for upgrade
-      vars:
-        packages:
-          - "mongodb-org-{{ mongo_version }}"
-      register: result
-      retries: "{{ packages_install_retries_number }}"
-      until: result is succeeded
-      delay: "{{ packages_install_retries_delay }}"
-      when: ansible_distribution == "CentOS"
+  - name: Graceful shutdown of node
+    shell: "mongosh {{ ip_service }}:{{ mongo_port }}/admin -u {{ mongodb[mongo_cluster_name].localadmin.user }} -p {{ mongodb[mongo_cluster_name].localadmin.password }} --quiet --file {{ vitam_defaults.folder.root_path }}/script/{{ mongo_type }}/shutdown.js"
+    no_log: "{{ hide_passwords_during_deploy }}"
+    ignore_errors: true # as we are brutally disconnected by the server (because of shutdown)
 
-    - name: "Update mongodb packages ({{ mongo_version }})"
-      apt:
-        name: "{{ packages }}"
-        state: "present"
-        update_cache: "yes"   # make sure cache is up to date for upgrade
-      register: result
-      retries: "{{ packages_install_retries_number }}"
-      until: result is succeeded
-      delay: "{{ packages_install_retries_delay }}"
-      vars:
-        packages:
-          - "mongodb-org={{ mongo_version }}"
-          - "mongodb-org-mongos={{ mongo_version }}"
-          - "mongodb-org-server={{ mongo_version }}"
-          - "mongodb-org-shell={{ mongo_version }}"
-          - "mongodb-org-tools={{ mongo_version }}"
-          - "mongodb-org-database-tools-extra={{ mongo_version }}"
-      when: ansible_distribution == "Debian"
+  # Upgrade the package
+  - name: "Update mongodb packages ({{ mongo_version }})"
+    yum:
+      name:
+        - "mongodb-org-server-{{ mongo_version }}"
+        - "mongodb-org-shell-{{ mongo_version }}"
+        - "mongodb-org-tools-{{ mongo_version }}"
+      state: present
+      update_cache: yes   # make sure cache is up to date for upgrade
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result is succeeded
+    delay: "{{ packages_install_retries_delay }}"
+    when: ansible_distribution == "CentOS"
 
-    - name: Disable default mongodb service
-      systemd:
-        name: mongod
-        enabled: no
-        state: stopped
+  - name: "Update mongodb packages ({{ mongo_version }})"
+    apt:
+      name:
+        - "mongodb-org-server={{ mongo_version }}"
+        - "mongodb-org-shell={{ mongo_version }}"
+        - "mongodb-org-tools={{ mongo_version }}"
+      state: present
+      update_cache: yes   # make sure cache is up to date for upgrade
+    register: result
+    retries: "{{ packages_install_retries_number }}"
+    until: result is succeeded
+    delay: "{{ packages_install_retries_delay }}"
+    when: ansible_distribution == "Debian"
 
-    - name: Make sure the service is restarted
-      systemd:
-        name: vitam-mongod
-        daemon_reload: yes
-        state: restarted
-        enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
+  - name: Disable default mongodb service
+    systemd:
+      name: mongod
+      enabled: no
+      state: stopped
 
-    - name: Check the service port
-      wait_for:
-        host: "{{ ip_service }}"
-        port: "{{ mongodb.mongod_port }}"
-        timeout: "{{ vitam_defaults.services.start_timeout }}"
+  - name: Make sure the service is restarted
+    systemd:
+      name: "vitam-{{ mongo_type }}"
+      daemon_reload: yes
+      state: restarted
+      enabled: "{{ mongodb.at_boot | default(service_at_boot) }}"
+
+  - name: Check the service port
+    wait_for:
+      host: "{{ ip_service }}"
+      port: "{{ mongo_port }}"
+      timeout: "{{ vitam_defaults.services.start_timeout }}"
+
+  - name: Wait for node to join the cluster and reach "secondary" or "primary" status
+    shell: "mongosh {{ ip_service }}:{{ mongo_port }}/admin -u {{ mongodb[mongo_cluster_name].localadmin.user }} -p {{ mongodb[mongo_cluster_name].localadmin.password }} --quiet --file {{ vitam_defaults.folder.root_path }}/script/{{ mongo_type }}/wait_until_proper_node_state.js"
+    no_log: "{{ hide_passwords_during_deploy }}"
+    ignore_errors: true # To properly catch output on the next task
+    register: output_node_state
+
+  - name: Fail if node state is incorrect
+    assert:
+      fail_msg: "{{ output_node_state.stderr_lines }}"
+      success_msg: "{{ output_node_state.stdout_lines }}"
+      that: output_node_state.rc == 0
 
   when:
-    - is_primary_mongod == mongo_primary
+    - is_primary == mongo_primary

@@ -1,22 +1,16 @@
 ---
 
-# Install mongodb-org (needed by vitam-mongo* packages)
-# and then disable the mongod service as it may start listening on 27017 port which is needed by vitam-mongos
-
-- name: Install mongodb-org package
+- name: Install common mongodb packages
   package:
-    name: mongodb-org
-    state: latest
+    name:
+      - mongodb-org-shell
+      - mongodb-mongosh
+      - mongodb-org-tools
+    state: present
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-
-- name: Disable mongodb default service
-  service:
-    name: mongod
-    state: stopped
-    enabled: no
 
 ### System tuning best practices ####
 

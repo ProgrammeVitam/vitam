@@ -2,8 +2,4 @@
 
 # Reconfigure replicaset for mongoc and mongod
 - include_tasks: reconfig.yml
-  when: mongo_type is defined and mongo_type == 'mongod' or mongo_type == 'mongoc' and action == 'reconfig'
-
-# Upgrade or install mongo packages
-- include_tasks: upgrade_pkg.yml
-  when: action == 'upgrade_pkg'
+  when: mongo_type == 'mongod' or mongo_type == 'mongoc'

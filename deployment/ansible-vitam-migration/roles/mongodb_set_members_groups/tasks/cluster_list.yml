@@ -11,9 +11,9 @@
 - name: make a list from the result
   set_fact:
     mongo_list: "{{ mongo_result.results | remove_skipped_servers | map(attribute='ansible_facts.mongo_item') | list }}"
-  when: "inventory_hostname not in single_vm_hostnames"
+  when: inventory_hostname not in single_vm_hostnames
 
 - name: make a list from the result (localhost deploy)
   set_fact:
     mongo_list: [ 'localhost' ]
-  when: "inventory_hostname in single_vm_hostnames"
+  when: inventory_hostname in single_vm_hostnames

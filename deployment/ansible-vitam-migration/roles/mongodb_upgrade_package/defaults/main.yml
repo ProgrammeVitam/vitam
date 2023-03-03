@@ -1,3 +1,5 @@
 ---
 
+mongo_type: mongod
+mongo_port: "{{ mongodb.mongod_port | default(27019) }}"
 service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"

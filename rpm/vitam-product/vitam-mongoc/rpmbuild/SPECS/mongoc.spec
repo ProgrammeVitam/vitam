@@ -11,7 +11,7 @@ Source0:       vitam-mongoc.service
 
 BuildRequires: systemd-units
 Requires:      systemd
-Requires:      mongodb-org >= 5.0.14
+Requires:      mongodb-org-server
 Requires:      vitam-user-vitamdb
 
 %description
