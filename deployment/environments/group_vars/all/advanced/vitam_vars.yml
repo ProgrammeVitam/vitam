@@ -193,6 +193,8 @@ vitam:
     accessionRegisterSymbolicThreadPoolSize: 16
     # Number of rule audit threads that can be run in parallel.
     ruleAuditThreadPoolSize: 16
+    # Reconstruction metrics cache in minutes (secondary site)
+    reconstructionMetricsCacheDurationInMinutes: 15
   scheduler:
     vitam_component: scheduler
     host: "scheduler.service.{{ consul_domain }}"
@@ -322,6 +324,8 @@ vitam:
     lifecycleTraceabilityMaxRenewalDelayUnit: MINUTES
     # Max entries selected per (Unit or Object Group) LFC traceability operation
     lifecycleTraceabilityMaxEntries: 100000
+    # Reconstruction metrics cache in minutes (secondary site)
+    reconstructionMetricsCacheDurationInMinutes: 15
   metadata:
     vitam_component: metadata
     host: "metadata.service.{{ consul_domain }}"
@@ -348,6 +352,8 @@ vitam:
     #### Audit data consistency MongoDB-ES ####
     isDataConsistencyAuditRunnable: false
     dataConsistencyAuditOplogMaxSize: 100
+    # Reconstruction metrics cache in minutes (secondary site)
+    reconstructionMetricsCacheDurationInMinutes: 15
     context_path: "/metadata"
   processing:
     vitam_component: processing

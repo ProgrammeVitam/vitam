@@ -6,7 +6,7 @@
     dest: "{{ grafana_path_provisioning }}/datasources/datasources.yml"
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default (0440) }}"
   notify: "grafana - restart service"
 
 - name: Copy dashboard json files to provisioning dashboard folder
@@ -15,7 +15,7 @@
     dest: "{{ grafana_path_provisioning }}/dashboards/{{ item }}.json"
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default (0440) }}"
   with_items:
     - vitam_main_dashboard
     - vitam_elasticsearch_dashboard
@@ -39,6 +39,21 @@
   changed_when: false
   when: grafana.grafana_dashboards | length > 0
 
+- name: Copy reconstruction dashboard on secondary sites
+  copy:
+    src: "vitam_secondary_site_reconstruction.json"
+    dest: "{{ grafana_path_provisioning }}/dashboards/vitam_secondary_site_reconstruction.json"
+    owner: "{{ grafana_user }}"
+    group: "{{ grafana_group }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default (0440) }}"
+  when: primary_site | lower != "true"
+
+- name: Remove reconstruction dashboard from primary site
+  file:
+    state: absent
+    path: "{{ grafana_path_provisioning }}/dashboards/vitam_secondary_site_reconstruction.json"
+  when: primary_site | lower == "true"
+
 - name: Get declared tape offers
   set_fact:
     tape_offers: "{{ tape_offers | default([]) + [item.key] }}"
@@ -58,7 +73,7 @@
     dest: "{{ grafana_path_provisioning }}/dashboards/vitam_tape_storage_offer_dashboard-{{ item }}.json"
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default (0440) }}"
   with_items: "{{ tape_offer_ids }}"
 
 - name: Set offer id in tape storage dashboards
@@ -75,5 +90,5 @@
     dest: "{{ grafana_path_provisioning }}/dashboards/dashboards.yml"
     owner: "{{ grafana_user }}"
     group: "{{ grafana_group }}"
-    mode: "{{ vitam_defaults.folder.conf_permission | default (0640) }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default (0440) }}"
   notify: "grafana - restart service"

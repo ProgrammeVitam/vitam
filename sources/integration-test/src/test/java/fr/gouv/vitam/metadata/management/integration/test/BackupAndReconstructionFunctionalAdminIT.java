@@ -65,9 +65,10 @@ import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientBadRequestException;
 import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
+import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
+import fr.gouv.vitam.functional.administration.core.reconstruction.FunctionalAdministrationReconstructionMetricsCache;
 import fr.gouv.vitam.functional.administration.core.reconstruction.ReconstructionServiceImpl;
 import fr.gouv.vitam.functional.administration.core.reconstruction.RestoreBackupServiceImpl;
-import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -94,6 +95,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -235,9 +237,11 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         agencyDoc = agenciesEs.findByIdentifierAndTenant(AGENCY_IDENTIFIER_1, TENANT_0);
         assertThat(agencyDoc).isEmpty();
 
+        FunctionalAdministrationReconstructionMetricsCache
+            reconstructionMetricsCache = new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
         ReconstructionServiceImpl reconstructionService =
             new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
-                functionalAdminIndexManager);
+                functionalAdminIndexManager, reconstructionMetricsCache);
 
         reconstructionService.reconstruct(FunctionalAdminCollections.AGENCIES, TENANT_0);
 
@@ -397,10 +401,13 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         securityProfileyDoc = securityProfileEs.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
         assertThat(securityProfileyDoc).isEmpty();
 
+        FunctionalAdministrationReconstructionMetricsCache
+            reconstructionMetricsCache = new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
+
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
             new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
-                functionalAdminIndexManager);
+                functionalAdminIndexManager, reconstructionMetricsCache);
         reconstructionService.reconstruct(FunctionalAdminCollections.SECURITY_PROFILE, TENANT_1);
 
         securityProfileyDoc = securityProfileMongo.findByIdentifier(SECURITY_PROFILE_IDENTIFIER_1);
@@ -681,10 +688,13 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         registerDetailDoc = ardMongo.getByID(register4.getId(), TENANT_0);
         assertThat(registerDetailDoc).isEmpty();
 
+        FunctionalAdministrationReconstructionMetricsCache
+            reconstructionMetricsCache = new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
+
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
             new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
-                functionalAdminIndexManager);
+                functionalAdminIndexManager, reconstructionMetricsCache);
 
         // First reconstruct Accession Register Details + summary (with limit 2)
 
@@ -899,10 +909,13 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         assertThat(registerSymbolicDocs.size()).isEqualTo(0);
 
+        FunctionalAdministrationReconstructionMetricsCache
+            reconstructionMetricsCache = new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
+
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
             new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
-                functionalAdminIndexManager);
+                functionalAdminIndexManager, reconstructionMetricsCache);
 
         // Reconstruct Accession Register Detail
         ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();
@@ -967,10 +980,13 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         assertThat(registerSymbolicSize).isEqualTo(0);
 
+        FunctionalAdministrationReconstructionMetricsCache
+            reconstructionMetricsCache = new FunctionalAdministrationReconstructionMetricsCache(10, TimeUnit.MINUTES);
+
         // Reconstruction service
         ReconstructionServiceImpl reconstructionService =
             new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
-                functionalAdminIndexManager);
+                functionalAdminIndexManager, reconstructionMetricsCache);
 
         // Reconstruct Accession Register Detail
         ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();

@@ -40,6 +40,9 @@ import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfigurationValidator;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessFactory;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbAccessImpl;
+import fr.gouv.vitam.logbook.common.server.reconstruction.LogbookReconstructionMetrics;
+import fr.gouv.vitam.logbook.common.server.reconstruction.LogbookReconstructionMetricsCache;
+import fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Application;
@@ -49,6 +52,7 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CONFIGURATION_FILE_APPLICATION;
 
@@ -98,7 +102,15 @@ public class BusinessApplication extends Application {
             singletons.add(new LogbookResource(configuration, ontologyLoader, indexManager));
             singletons.add(new LogbookRawResource(vitamRepositoryProvider, indexManager));
             singletons.add(new LogbookAdminResource(vitamRepositoryProvider, configuration));
-            singletons.add(new LogbookReconstructionResource(vitamRepositoryProvider, offsetRepository, indexManager));
+
+            LogbookReconstructionMetricsCache reconstructionMetricsCache = new LogbookReconstructionMetricsCache(
+                configuration.getReconstructionMetricsCacheDurationInMinutes(), TimeUnit.MINUTES);
+            LogbookReconstructionMetrics.initialize(reconstructionMetricsCache);
+
+            ReconstructionService reconstructionService =
+                new ReconstructionService(vitamRepositoryProvider, offsetRepository, indexManager,
+                    reconstructionMetricsCache);
+            singletons.add(new LogbookReconstructionResource(reconstructionService));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

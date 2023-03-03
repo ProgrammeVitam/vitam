@@ -112,3 +112,8 @@ lifecycleTraceabilityTemporizationDelay: {{ vitam.logbook.lifecycleTraceabilityT
 lifecycleTraceabilityMaxRenewalDelay: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelay | default(690) }}
 lifecycleTraceabilityMaxRenewalDelayUnit: {{ vitam.logbook.lifecycleTraceabilityMaxRenewalDelayUnit | default('MINUTES') }}
 lifecycleTraceabilityMaxEntries: {{ vitam.logbook.lifecycleTraceabilityMaxEntries | default(100000) }}
+
+{% if primary_site | lower != "true" %}
+# Reconstruction cache duration (in minutes)
+reconstructionMetricsCacheDurationInMinutes: {{ vitam.logbook.reconstructionMetricsCacheDurationInMinutes | default(15) }}
+{% endif %}

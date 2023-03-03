@@ -57,6 +57,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.OfferLog;
 import org.bson.Document;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -74,7 +75,7 @@ public class ReconstructionService {
     private static final AlertService alertService = new AlertServiceImpl();
 
     private static final String RECONSTRUCTION_ITEM_MONDATORY_MSG = "the item defining reconstruction is mandatory.";
-    private static final String RECONSTRUCTION_TENANT_MONDATORY_MSG = "the tenant to reconstruct is mondatory.";
+    private static final String RECONSTRUCTION_TENANT_MONDATORY_MSG = "the tenant to reconstruct is mandatory.";
     private static final String RECONSTRUCTION_LIMIT_POSITIVE_MSG = "the limit to reconstruct is should at least 0.";
 
     public static final String LOGBOOK = "logbook";
@@ -85,6 +86,7 @@ public class ReconstructionService {
 
     private final OffsetRepository offsetRepository;
     private final ElasticsearchLogbookIndexManager indexManager;
+    private final LogbookReconstructionMetricsCache reconstructionMetricsCache;
 
     /**
      * Constructor
@@ -95,9 +97,9 @@ public class ReconstructionService {
      */
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
         OffsetRepository offsetRepository,
-        ElasticsearchLogbookIndexManager indexManager) {
+        ElasticsearchLogbookIndexManager indexManager, LogbookReconstructionMetricsCache reconstructionMetricsCache) {
         this(vitamRepositoryProvider, new RestoreBackupService(),
-            new LogbookTransformData(), offsetRepository, indexManager);
+            new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
     }
 
     /**
@@ -114,12 +116,14 @@ public class ReconstructionService {
         RestoreBackupService recoverBackupService,
         LogbookTransformData logbookTransformData,
         OffsetRepository offsetRepository,
-        ElasticsearchLogbookIndexManager indexManager) {
+        ElasticsearchLogbookIndexManager indexManager,
+        LogbookReconstructionMetricsCache reconstructionMetricsCache) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = recoverBackupService;
         this.logbookTransformData = logbookTransformData;
         this.offsetRepository = offsetRepository;
         this.indexManager = indexManager;
+        this.reconstructionMetricsCache = reconstructionMetricsCache;
     }
 
     /**
@@ -175,6 +179,10 @@ public class ReconstructionService {
             // headers)
             VitamThreadUtils.getVitamSession().setTenantId(tenant);
 
+            LocalDateTime reconstructionStartDateTime = LocalDateUtil.now();
+            LocalDateTime lastReconstructedDocumentDate = null;
+            int nbEntriesReconstructed = 0;
+
             Iterator<List<OfferLog>> listing =
                 restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), startOffset, limit);
 
@@ -216,11 +224,24 @@ public class ReconstructionService {
                 offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK,
                     lastOffset);
 
+                nbEntriesReconstructed += listingBulk.size();
+                lastReconstructedDocumentDate = listingBulk.get(listingBulk.size() - 1).getTime();
+
                 // log the reconstruction of Vitam collection.
                 LOGGER.info(String.format(
                     "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} to {offset:%s} at %s",
                     DataCategory.BACKUP_OPERATION.name(), tenant, lastOffset, LocalDateUtil.now()));
             }
+
+            // Report reconstruction stats
+            if (nbEntriesReconstructed != limit) {
+                // Limit has not been reached ==> there was no more data to reconstruct at the time we started reconstruction
+                lastReconstructedDocumentDate =
+                    LocalDateUtil.max(reconstructionStartDateTime, lastReconstructedDocumentDate);
+            }
+            this.reconstructionMetricsCache.registerLastReconstructedDocumentDate(tenant,
+                lastReconstructedDocumentDate);
+
             response.setStatus(StatusCode.OK);
         } catch (DatabaseException em) {
             LOGGER.error(String.format(

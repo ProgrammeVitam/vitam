@@ -43,6 +43,7 @@ import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
+import fr.gouv.vitam.metadata.core.metrics.MetadataReconstructionMetricsCache;
 import fr.gouv.vitam.metadata.core.reconstruction.ReconstructionService;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -59,6 +60,7 @@ import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 
 @Path("/v1")
@@ -96,7 +98,10 @@ public class MetadataReconstructionResource {
     MetadataReconstructionResource(VitamRepositoryProvider vitamRepositoryProvider,
         OffsetRepository offsetRepository, MetaDataConfiguration configuration,
         ElasticsearchMetadataIndexManager indexManager) {
-        this(new ReconstructionService(vitamRepositoryProvider, offsetRepository, indexManager),
+        this(
+            new ReconstructionService(vitamRepositoryProvider, offsetRepository, indexManager,
+                new MetadataReconstructionMetricsCache(
+                    configuration.getReconstructionMetricsCacheDurationInMinutes(), TimeUnit.MINUTES)),
             new StoreGraphService(vitamRepositoryProvider),
             configuration);
     }

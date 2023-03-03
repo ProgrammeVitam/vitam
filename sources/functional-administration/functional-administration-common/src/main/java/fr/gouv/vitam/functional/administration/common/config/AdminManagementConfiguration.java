@@ -54,6 +54,7 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
 
     @JsonProperty("ruleAuditThreadPoolSize")
     private Integer ruleAuditThreadPoolSize;
+    private int reconstructionMetricsCacheDurationInMinutes = 15;
 
     // constructor
     AdminManagementConfiguration() {
@@ -212,5 +213,13 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
 
     public void setRuleAuditThreadPoolSize(Integer ruleAuditThreadPoolSize) {
         this.ruleAuditThreadPoolSize = ruleAuditThreadPoolSize;
+    }
+
+    public int getReconstructionMetricsCacheDurationInMinutes() {
+        return reconstructionMetricsCacheDurationInMinutes;
+    }
+
+    public void setReconstructionMetricsCacheDurationInMinutes(int reconstructionMetricsCacheDurationInMinutes) {
+        this.reconstructionMetricsCacheDurationInMinutes = reconstructionMetricsCacheDurationInMinutes;
     }
 }

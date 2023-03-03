@@ -29,7 +29,6 @@ package fr.gouv.vitam.functional.administration.core.reconstruction;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.mongodb.BasicDBObject;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.client.AggregateIterable;
@@ -80,6 +79,7 @@ import org.apache.shiro.util.CollectionUtils;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -133,21 +133,26 @@ public class ReconstructionServiceImpl implements ReconstructionService {
 
     private final OffsetRepository offsetRepository;
     private final ElasticsearchFunctionalAdminIndexManager indexManager;
+    private final FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache;
 
     public ReconstructionServiceImpl(VitamRepositoryProvider vitamRepositoryProvider,
         OffsetRepository offsetRepository,
-        ElasticsearchFunctionalAdminIndexManager indexManager) {
-        this(vitamRepositoryProvider, new RestoreBackupServiceImpl(), offsetRepository, indexManager);
+        ElasticsearchFunctionalAdminIndexManager indexManager,
+        FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache) {
+        this(vitamRepositoryProvider, new RestoreBackupServiceImpl(), offsetRepository, indexManager,
+            reconstructionMetricsCache);
     }
 
     @VisibleForTesting
     public ReconstructionServiceImpl(VitamRepositoryProvider vitamRepositoryProvider,
         RestoreBackupService recoverBackupService, OffsetRepository offsetRepository,
-        ElasticsearchFunctionalAdminIndexManager indexManager) {
+        ElasticsearchFunctionalAdminIndexManager indexManager,
+        FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.recoverBackupService = recoverBackupService;
         this.offsetRepository = offsetRepository;
         this.indexManager = indexManager;
+        this.reconstructionMetricsCache = reconstructionMetricsCache;
     }
 
     /**
@@ -349,6 +354,10 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
 
+            LocalDateTime reconstructionStartDateTime = LocalDateUtil.now();
+            LocalDateTime lastReconstructedDocumentDate = null;
+            int nbEntriesReconstructed = 0;
+
             // get the list of data to backup.
             Iterator<List<OfferLog>> offerLogIterator =
                 recoverBackupService.getListing(VitamConfiguration.getDefaultStrategy(), type, offset + 1L,
@@ -381,12 +390,13 @@ public class ReconstructionServiceImpl implements ReconstructionService {
                     continue;
                 }
 
-
                 reconstructCollectionAccessionRegister(collection, dataFromOffer,
                     VitamConfiguration.getOptimisticLockRetryNumber());
                 AccessionRegisterBackupModel last = Iterables.getLast(dataFromOffer);
                 newOffset = last.getOffset();
 
+                nbEntriesReconstructed += listingBulk.size();
+                lastReconstructedDocumentDate = listingBulk.get(listingBulk.size() - 1).getTime();
 
                 // log the reconstruction of Vitam collection.
                 LOGGER.info(String.format(
@@ -397,6 +407,16 @@ public class ReconstructionServiceImpl implements ReconstructionService {
             if (collection.equals(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
                 computeAccessionRegisterSummary(originatingAgencies, tenant);
             }
+
+            // Report reconstruction stats
+            if (nbEntriesReconstructed != limit) {
+                // Limit has not been reached ==> there was no more data to reconstruct at the time we started reconstruction
+                lastReconstructedDocumentDate =
+                    LocalDateUtil.max(reconstructionStartDateTime, lastReconstructedDocumentDate);
+            }
+            this.reconstructionMetricsCache.registerLastDocumentReconstructionDate(collection, tenant,
+                lastReconstructedDocumentDate);
+
             response.setStatus(StatusCode.OK);
         } catch (DatabaseException de) {
             LOGGER.error(String.format(

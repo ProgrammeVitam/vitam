@@ -86,6 +86,7 @@ public class ReconstructionServiceTest {
 
     private OffsetRepository offsetRepository;
     private ElasticsearchLogbookIndexManager indexManager;
+    private LogbookReconstructionMetricsCache reconstructionMetricsCache;
 
     private static final long LAST_OFFSET = 99L;
     private static final long OFFSET = 100L;
@@ -107,6 +108,7 @@ public class ReconstructionServiceTest {
 
         offsetRepository = mock(OffsetRepository.class);
         indexManager = mock(ElasticsearchLogbookIndexManager.class);
+        reconstructionMetricsCache = mock(LogbookReconstructionMetricsCache.class);
     }
 
     @RunWithCustomExecutor
@@ -127,7 +129,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
-                new LogbookTransformData(), offsetRepository, indexManager);
+                new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -156,7 +158,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
-                new LogbookTransformData(), offsetRepository, indexManager);
+                new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -181,7 +183,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
-                new LogbookTransformData(), offsetRepository, indexManager);
+                new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -207,7 +209,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
-                new LogbookTransformData(), offsetRepository, indexManager);
+                new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -226,7 +228,7 @@ public class ReconstructionServiceTest {
         requestItem.setLimit(-5);
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
-                new LogbookTransformData(), offsetRepository, indexManager);
+                new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
             .isInstanceOf(IllegalArgumentException.class);
@@ -238,7 +240,7 @@ public class ReconstructionServiceTest {
         // given
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
-                new LogbookTransformData(), offsetRepository, indexManager);
+                new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
             .isInstanceOf(IllegalArgumentException.class);
@@ -250,7 +252,7 @@ public class ReconstructionServiceTest {
         // given
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
-                new LogbookTransformData(), offsetRepository, indexManager);
+                new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setTenant(null)))
             .isInstanceOf(IllegalArgumentException.class);
@@ -274,7 +276,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
-                new LogbookTransformData(), offsetRepository, indexManager);
+                new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -302,7 +304,7 @@ public class ReconstructionServiceTest {
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
-                new LogbookTransformData(), offsetRepository, indexManager);
+                new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -332,7 +334,7 @@ public class ReconstructionServiceTest {
             .thenReturn(getLogbookBackupModel("101", NEXT_OFFSET));
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
-                new LogbookTransformData(), offsetRepository, indexManager);
+                new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then

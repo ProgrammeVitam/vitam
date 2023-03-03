@@ -73,6 +73,9 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
 import fr.gouv.vitam.metadata.api.model.ReconstructionResponseItem;
+import fr.gouv.vitam.metadata.core.graph.StoreGraphService;
+import fr.gouv.vitam.metadata.core.metrics.MetadataReconstructionMetrics;
+import fr.gouv.vitam.metadata.core.metrics.MetadataReconstructionMetricsCache;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.storage.engine.client.exception.StorageClientException;
@@ -149,6 +152,7 @@ public class ReconstructionService {
 
     private final ElasticsearchMetadataIndexManager indexManager;
     private final RestoreBackupService restoreBackupService;
+    private final MetadataReconstructionMetricsCache reconstructionMetricsCache;
 
     /**
      * Constructor
@@ -158,9 +162,9 @@ public class ReconstructionService {
      * @param indexManager
      */
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider, OffsetRepository offsetRepository,
-        ElasticsearchMetadataIndexManager indexManager) {
+        ElasticsearchMetadataIndexManager indexManager, MetadataReconstructionMetricsCache reconstructionMetricsCache) {
         this(vitamRepositoryProvider, new RestoreBackupService(), LogbookLifeCyclesClientFactory.getInstance(),
-            StorageClientFactory.getInstance(), offsetRepository, indexManager);
+            StorageClientFactory.getInstance(), offsetRepository, indexManager, reconstructionMetricsCache);
     }
 
     /**
@@ -171,18 +175,20 @@ public class ReconstructionService {
      * @param logbookLifecycleClientFactory logbookLifecycleClientFactory
      * @param storageClientFactory storageClientFactory
      * @param offsetRepository
+     * @param reconstructionMetricsCache
      */
     @VisibleForTesting
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
         RestoreBackupService recoverBackupService, LogbookLifeCyclesClientFactory logbookLifecycleClientFactory,
         StorageClientFactory storageClientFactory, OffsetRepository offsetRepository,
-        ElasticsearchMetadataIndexManager indexManager) {
+        ElasticsearchMetadataIndexManager indexManager, MetadataReconstructionMetricsCache reconstructionMetricsCache) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = recoverBackupService;
         this.logbookLifeCyclesClientFactory = logbookLifecycleClientFactory;
         this.storageClientFactory = storageClientFactory;
         this.offsetRepository = offsetRepository;
         this.indexManager = indexManager;
+        this.reconstructionMetricsCache = reconstructionMetricsCache;
     }
 
     /**
@@ -266,6 +272,8 @@ public class ReconstructionService {
         }
 
         try {
+            LocalDateTime reconstructionStartDateTime = LocalDateUtil.now();
+
             // get the list of data to backup.
             String referentOffer =
                 storageClientFactory.getClient().getReferentOffer(VitamConfiguration.getDefaultStrategy());
@@ -273,13 +281,19 @@ public class ReconstructionService {
                 restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), referentOffer, dataCategory,
                     startOffset, limit, Order.ASC, VitamConfiguration.getBatchSize());
 
+            boolean isEmpty = true;
             while (listing.hasNext()) {
+                isEmpty = false;
 
                 OfferLog offerLog = listing.next();
+
+                // Report reconstruction start date
+                this.reconstructionMetricsCache.registerLastGraphReconstructionDate(metaDaCollection,
+                    StoreGraphService.parseGraphStartDateFromFileName(offerLog.getFileName()));
+
                 String guid = GUIDFactory.newGUID().getId();
 
                 Path filePath = Files.createTempFile(guid + "_", offerLog.getFileName());
-
                 try {
 
                     // Read zip file from offer
@@ -313,6 +327,16 @@ public class ReconstructionService {
                 LOGGER.info(String.format(
                     "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} from {offset:%s} at %s",
                     dataCategory.name(), tenant, lastOffset, LocalDateUtil.now()));
+
+                // Report reconstruction end date
+                this.reconstructionMetricsCache.registerLastGraphReconstructionDate(metaDaCollection,
+                    StoreGraphService.parseGraphEndDateFromFileName(offerLog.getFileName()));
+            }
+
+            // Report reconstruction stats when no data to reconstruct
+            if (isEmpty) {
+                this.reconstructionMetricsCache.registerLastGraphReconstructionDate(metaDaCollection,
+                    reconstructionStartDateTime);
             }
 
             response.setStatus(StatusCode.OK);
@@ -349,6 +373,9 @@ public class ReconstructionService {
                 .setStatus(StatusCode.OK);
 
         final List<String> strategies = loadStrategies();
+
+        // Ensure metrics are initialized with strategy list
+        MetadataReconstructionMetrics.initialize(strategies, this.reconstructionMetricsCache);
 
         for (String strategy : strategies) {
 
@@ -417,6 +444,10 @@ public class ReconstructionService {
                     throw new IllegalArgumentException(String.format("ERROR: Invalid collection {%s}", collection));
             }
 
+            LocalDateTime reconstructionStartDateTime = LocalDateUtil.now();
+            LocalDateTime lastReconstructedDocumentDate = null;
+            int nbEntriesReconstructed = 0;
+
             Iterator<OfferLog> listing =
                 restoreBackupService.getListing(strategy, referentOffer, type, startOffset, limit, Order.ASC,
                     VitamConfiguration.getBatchSize());
@@ -456,6 +487,9 @@ public class ReconstructionService {
 
                 newOffset = Iterables.getLast(listingBulk).getSequence();
 
+                nbEntriesReconstructed += listingBulk.size();
+                lastReconstructedDocumentDate = listingBulk.get(listingBulk.size() - 1).getTime();
+
                 // log the reconstruction of Vitam collection.
                 LOGGER.debug(String.format(
                     "[Reconstruction]: the collection {%s} has been reconstructed for the strategy {%s} on the tenant {%s} to {offset:%s} at %s",
@@ -475,6 +509,15 @@ public class ReconstructionService {
                     "[Reconstruction]: the collection {%s} has been reconstructed for the strategy {%s} on the tenant {%s} to {offset:%s} at %s",
                     collection.name(), strategy, tenant, newOffset, LocalDateUtil.now()));
             }
+
+            // Report reconstruction stats
+            if (nbEntriesReconstructed != limit) {
+                // Limit has not been reached ==> there was no more data to reconstruct at the time we started reconstruction
+                lastReconstructedDocumentDate =
+                    LocalDateUtil.max(reconstructionStartDateTime, lastReconstructedDocumentDate);
+            }
+            this.reconstructionMetricsCache.registerLastDocumentReconstructionDate(collection, tenant, strategy,
+                lastReconstructedDocumentDate);
 
             return StatusCode.OK;
 
