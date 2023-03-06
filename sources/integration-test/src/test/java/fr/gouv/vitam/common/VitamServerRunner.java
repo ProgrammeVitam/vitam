@@ -379,6 +379,14 @@ public class VitamServerRunner extends ExternalResource {
                     .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
 
+            // CollectInternalMain
+            if (servers.contains(CollectInternalMain.class)) {
+                startCollectInternalServer();
+            } else {
+                CollectInternalClientFactory.getInstance()
+                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+            }
+
             // IngestExternalMain
             if (servers.contains(IngestExternalMain.class)) {
                 startIngestExternalServer();
@@ -402,6 +410,14 @@ public class VitamServerRunner extends ExternalResource {
                 AccessExternalClientFactory.getInstance()
                     .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
                 AdminExternalClientFactory.getInstance()
+                    .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
+            }
+
+            // CollectMain
+            if (servers.contains(CollectExternalMain.class)) {
+                startCollectExternalServer();
+            } else {
+                CollectExternalClientFactory.getInstance()
                     .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
 

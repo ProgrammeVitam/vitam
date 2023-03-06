@@ -35,6 +35,7 @@ import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.SipHelper;
+import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
@@ -96,11 +97,11 @@ public class SipService {
     private static final int MAX_ELEMENT_IN_QUERY = 1000;
 
     private final WorkspaceClientFactory workspaceClientFactory;
-    private final MetadataService metadataService;
+    private final MetadataRepository metadataRepository;
 
-    public SipService(WorkspaceClientFactory workspaceClientFactory, MetadataService metadataService) {
+    public SipService(WorkspaceClientFactory workspaceClientFactory, MetadataRepository metadataRepository) {
         this.workspaceClientFactory = workspaceClientFactory;
-        this.metadataService = metadataService;
+        this.metadataRepository = metadataRepository;
     }
 
     public String generateSip(TransactionModel transactionModel) throws CollectInternalException {
@@ -133,7 +134,7 @@ public class SipService {
             parser.parse(exportRequest.getDslRequest());
             SelectMultiQuery request = parser.getRequest();
 
-            ScrollSpliterator<JsonNode> scrollRequest = metadataService.selectUnits(request, transactionModel.getId());
+            ScrollSpliterator<JsonNode> scrollRequest = metadataRepository.selectUnits(request, transactionModel.getId());
 
             StreamSupport.stream(scrollRequest, false)
                 .forEach(item -> CollectHelper.createGraph(multimap, originatingAgencies, ogs, item));
@@ -151,7 +152,7 @@ public class SipService {
                 select.setQuery(in);
 
                 JsonNode response =
-                    metadataService.selectObjectGroups(select.getFinalSelect(), transactionModel.getId());
+                    metadataRepository.selectObjectGroups(select.getFinalSelect(), transactionModel.getId());
                 ArrayNode objects = (ArrayNode) response.get(RequestResponseOK.TAG_RESULTS);
                 for (JsonNode object : objects) {
                     List<String> linkedUnits =
@@ -163,7 +164,7 @@ public class SipService {
             SelectParserMultiple initialQueryParser = new SelectParserMultiple();
             initialQueryParser.parse(exportRequest.getDslRequest());
 
-            scrollRequest = metadataService.selectUnits(initialQueryParser.getRequest(), transactionModel.getId());
+            scrollRequest = metadataRepository.selectUnits(initialQueryParser.getRequest(), transactionModel.getId());
 
 
             StreamSupport.stream(scrollRequest, false).forEach(result -> {

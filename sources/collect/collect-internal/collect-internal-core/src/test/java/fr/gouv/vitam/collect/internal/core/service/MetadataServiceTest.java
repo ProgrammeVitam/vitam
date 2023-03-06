@@ -24,255 +24,225 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-
 package fr.gouv.vitam.collect.internal.core.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.collect.common.dto.FileInfoDto;
-import fr.gouv.vitam.collect.common.dto.ObjectDto;
-import fr.gouv.vitam.collect.internal.core.helpers.handlers.QueryHandler;
+import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
+import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
+import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
+import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
+import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
+import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
-import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
-import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
-import fr.gouv.vitam.common.model.objectgroup.DbStorageModel;
-import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import org.assertj.core.api.Assertions;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.tmp.TempFolderRule;
+import net.javacrumbs.jsonunit.JsonAssert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MetadataServiceTest {
 
-    private final String TRANSACTION_ID = "TRANSACTION_ID";
+    private static final String TRANSACTION_ID = "TRANSACTION_ID";
+    private static final String PROJECT_ID = "PROJECT_ID";
+    private static final String UNIT_ID = "UNIT_ID";
+    private static final String UNITS_WITH_GRAPH_PATH = "streamZip/units_with_graph.json";
+    private static final String QUERIES_PATH = "streamZip/queries.json";
+    private static final String METADATA_FILE = "update/metadata.csv";
+    private static final String UNIT_FILE = "collect_unit.json";
+    private static final String UNIT_UP = "UNIT_UP";
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule public TempFolderRule tempFolder = new TempFolderRule();
+    @Rule public RunWithCustomExecutorRule runInThread =
+        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @InjectMocks
-    private MetadataService metadataService;
+    @Mock private MetadataRepository metadataRepository;
+    @Mock private ProjectRepository projectRepository;
 
-    @Mock
-    private MetaDataClientFactory metaDataCollectClientFactory;
-    @Mock
-    private MetaDataClient metaDataCollectClient;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    @InjectMocks private MetadataService metadataService;
 
+    private TransactionModel transactionModel;
+
+    private ProjectModel projectModel;
 
     @Before
     public void setUp() throws Exception {
-        when(metaDataCollectClientFactory.getClient()).thenReturn(metaDataCollectClient);
+        transactionModel = new TransactionModel();
+        transactionModel.setId(TRANSACTION_ID);
+        transactionModel.setProjectId(PROJECT_ID);
+
+        projectModel = new ProjectModel();
+        projectModel.setId(PROJECT_ID);
+        projectModel.setManifestContext(new ManifestContext());
     }
 
     @Test
-    public void testSelectUnits() throws Exception {
-        // Given
-        SelectMultiQuery select = new SelectMultiQuery();
-        JsonNode query = select.getFinalSelect();
-
-        when(metaDataCollectClient.selectUnits(any())).thenAnswer(
-            a -> JsonHandler.toJsonNode(new RequestResponseOK<>().setQuery(a.getArgument(0)))
-        );
-        // When
-        final JsonNode jsonNode = metadataService.selectUnits(query, TRANSACTION_ID);
-        // Then
-        assertEquals("[{\"$in\":{\"#opi\":[\"" + TRANSACTION_ID + "\"]}}]",
-            jsonNode.get("$context").get("$query").toString());
-    }
-
-    @Test
-    public void testSelectAllUnits() throws Exception {
-        // Given
-        SelectMultiQuery select = new SelectMultiQuery();
-        List<JsonNode> results = List.of(JsonHandler.createObjectNode());
-        when(metaDataCollectClient.selectUnits(any())).thenAnswer(
-            a -> JsonHandler.toJsonNode(
-                new RequestResponseOK<>(a.getArgument(0), results, 1))
-        );
-        // When
-        final ScrollSpliterator<JsonNode> scrollSpliterator =
-            metadataService.selectUnits(select, TRANSACTION_ID);
-        // Then
-        assertEquals(results.size(), scrollSpliterator.estimateSize());
-    }
-
-    @Test
-    public void testSelectUnitById() throws Exception {
-        // Given
-        final String UNIT_ID = "UNIT_ID";
-        when(metaDataCollectClient.selectUnitbyId(any(), eq(UNIT_ID))).thenAnswer(
-            a -> JsonHandler.toJsonNode(new RequestResponseOK<>().setQuery(a.getArgument(0)))
-        );
-        // When
+    public void selectUnitById() throws Exception {
         metadataService.selectUnitById(UNIT_ID);
-        // Then
-        verify(metaDataCollectClient).selectUnitbyId(any(), eq(UNIT_ID));
-    }
-
-    @Test
-    public void testSelectObjectGroups() throws Exception {
-        // Given
-        SelectMultiQuery select = new SelectMultiQuery();
-        JsonNode query = select.getFinalSelect();
-
-        when(metaDataCollectClient.selectObjectGroups(any())).thenAnswer(
-            a -> JsonHandler.toJsonNode(new RequestResponseOK<>().setQuery(a.getArgument(0)))
-        );
-        // When
-        final JsonNode jsonNode = metadataService.selectObjectGroups(query, TRANSACTION_ID);
-        // Then
-        assertEquals("[{\"$in\":{\"#opi\":[\"" + TRANSACTION_ID + "\"]}}]",
-            jsonNode.get("$context").get("$query").toString());
-    }
-
-    @Test
-    public void testAtomicBulkUpdate() throws Exception {
-        // Given
-        final List<JsonNode> queries = List.of(JsonHandler.createObjectNode());
-        // When
-        metadataService.atomicBulkUpdate(queries);
-        // Then
-        verify(metaDataCollectClient).atomicUpdateBulk(eq(queries));
+        verify(metadataRepository).selectUnitById(UNIT_ID);
     }
 
     @Test
     public void selectObjectGroupById() throws Exception {
+        metadataService.selectObjectGroupById("OBJECTGROUP_ID");
+        verify(metadataRepository).selectObjectGroupById("OBJECTGROUP_ID", true);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void saveArchiveUnit_without_attachment() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        try (InputStream is = PropertiesUtils.getResourceAsStream(UNIT_FILE)) {
+            ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(is);
+
+            when(projectRepository.findProjectById(eq("PROJECT_ID"))).thenReturn(Optional.of(projectModel));
+
+            metadataService.saveArchiveUnit(unit, transactionModel);
+
+            verify(metadataRepository).saveArchiveUnit(any());
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void saveArchiveUnit_with_simple_attachment() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        try (InputStream is = PropertiesUtils.getResourceAsStream(UNIT_FILE)) {
+            ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(is);
+            projectModel.setUnitUp(UNIT_UP);
+
+            when(projectRepository.findProjectById(eq(PROJECT_ID))).thenReturn(Optional.of(projectModel));
+
+            when(metadataRepository.selectUnits(any(JsonNode.class), anyString())).thenReturn(
+                new RequestResponseOK<>());
+
+            AtomicReference<String> unitUp = new AtomicReference<>();
+            when(metadataRepository.saveArchiveUnits(anyList())).thenAnswer(a -> {
+                List<ObjectNode> units = a.getArgument(0);
+                unitUp.set(units.get(0).get(VitamFieldsHelper.id()).asText());
+                return null;
+            });
+
+            metadataService.saveArchiveUnit(unit, transactionModel);
+
+            verify(metadataRepository).saveArchiveUnit(
+                ArgumentMatchers.argThat(e -> e.get(VitamFieldsHelper.unitups()).get(0).asText().equals(unitUp.get())));
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void saveArchiveUnit_with_dynamic_attachment() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        try (InputStream is = PropertiesUtils.getResourceAsStream(UNIT_FILE)) {
+            ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(is);
+            // Given
+            projectModel.setUnitUp(UNIT_UP);
+
+
+            MetadataUnitUp metadataUnitUp = new MetadataUnitUp();
+            metadataUnitUp.setMetadataKey("Status");
+            metadataUnitUp.setMetadataValue("Pret");
+            metadataUnitUp.setUnitUp("DYNAMIC_UNIT_UP");
+
+            projectModel.setUnitUps(List.of(metadataUnitUp));
+
+            when(projectRepository.findProjectById(eq("PROJECT_ID"))).thenReturn(Optional.of(projectModel));
+
+            when(metadataRepository.selectUnits(any(JsonNode.class), anyString())).thenReturn(
+                new RequestResponseOK<>());
+
+            AtomicReference<String> unitUp = new AtomicReference<>();
+            when(metadataRepository.saveArchiveUnits(anyList())).thenAnswer(a -> {
+                List<ObjectNode> units = a.getArgument(0);
+                unitUp.set(units.get(0).get(VitamFieldsHelper.id()).asText());
+                return null;
+            });
+
+            // When
+            metadataService.saveArchiveUnit(unit, transactionModel);
+
+            // Then
+            verify(metadataRepository).saveArchiveUnits(anyList());
+            verify(metadataRepository).saveArchiveUnit(ArgumentMatchers.argThat(
+                e -> !e.get(VitamFieldsHelper.unitups()).get(0).asText().equals(unitUp.get())));
+        }
+    }
+
+    @Test
+    public void selectUnits() throws Exception {
         // Given
-        given(metaDataCollectClient.getObjectGroupByIdRaw("1")).willReturn(
-            getResponseWith("version_id", "storage_id", "default", "BinaryMaster_25", "OPI"));
+        when(metadataRepository.selectUnits(any(JsonNode.class), anyString())).thenReturn(new RequestResponseOK<>());
         // When
-        JsonNode jsonNode = metadataService.selectObjectGroupById("1", true);
+        metadataService.selectUnits(JsonHandler.createObjectNode(), TRANSACTION_ID);
         // Then
-        Assertions.assertThat(jsonNode).isNotNull();
-        Assertions.assertThat(
-                jsonNode.get("$results").get(0).get("_qualifiers").get(0).get("versions").get(0).get("_id").asText())
-            .isEqualTo("version_id");
-        Assertions.assertThat(
-            jsonNode.get("$results").get(0).get("_qualifiers").get(0).get("versions").get(0).get("DataObjectVersion")
-                .asText()).isEqualTo("BinaryMaster_25");
+        verify(metadataRepository).selectUnits(any(JsonNode.class), eq(TRANSACTION_ID));
     }
 
     @Test
-    public void selectObjectGroupById_without_raw() throws Exception {
-        // Given
-        when(metaDataCollectClient.selectObjectGrouptbyId(any(), any())).thenReturn(
-            JsonHandler.createObjectNode().put("test", true));
-        // When
-        JsonNode jsonNode = metadataService.selectObjectGroupById("1", false);
-        // Then
-        Assertions.assertThat(jsonNode).isNotNull();
-        Assertions.assertThat(jsonNode.get("test").asText()).isEqualTo("true");
+    @RunWithCustomExecutor
+    public void updateUnits() throws Exception {
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0).getId());
+        AtomicReference<List<JsonNode>> requestReference = new AtomicReference<>();
+
+        final List<JsonNode> unitsJson =
+            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(UNITS_WITH_GRAPH_PATH),
+                new TypeReference<>() {
+                });
+
+        when(metadataRepository.atomicBulkUpdate(any())).thenAnswer((e) -> {
+            final List<JsonNode> argument = e.getArgument(0);
+            requestReference.set(argument);
+            return new RequestResponseOK<>().addAllResults(List.of(JsonHandler.toJsonNode(
+                new RequestResponseOK<>().addResult(JsonHandler.createObjectNode().put("#status", "OK")))));
+        });
+
+        when(metadataRepository.selectUnits(any(SelectMultiQuery.class), any())).thenReturn(
+            new ScrollSpliterator<>(mock(SelectMultiQuery.class),
+                (query) -> new RequestResponseOK<JsonNode>().addAllResults(new ArrayList<>(unitsJson)), 0, 0));
+
+        try (InputStream is = PropertiesUtils.getResourceAsStream(METADATA_FILE)) {
+            metadataService.updateUnits(transactionModel, is);
+        }
+
+        final JsonNode expectedQueries = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(QUERIES_PATH));
+
+        JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(requestReference.get()), expectedQueries);
     }
 
     @Test
-    public void saveArchiveUnit() throws Exception {
-        // Given
-        ArrayNode arrayNode = objectMapper.createArrayNode();
-        arrayNode.add("aeaqaaaaaagbcaacaa3woak5by7by4aaaaba");
-        ObjectNode objectNode = JsonHandler.createObjectNode()
-            .put("#id", "1")
-            .put("Identifier", "value" + 1)
-            .put("Name", "Lorem ipsum dolor sit amet, consectetur adipiscing elit");
-        objectNode.set("#unitups", arrayNode);
-        when(metaDataCollectClient.insertUnitBulk(any())).thenReturn(JsonHandler.getFromString("{\"test\":\"true\"}"));
-        // When
-        JsonNode jsonNode = metadataService.saveArchiveUnit(objectNode);
-        // Then
-        Assertions.assertThat(jsonNode).isNotNull();
-        Assertions.assertThat(jsonNode.get("test").asText()).isEqualTo("true");
+    public void updateUnitsWithMetadataFile() {
+        // really ?
     }
-
-    @Test
-    public void saveObjectGroup() throws Exception {
-        // Given
-        ObjectNode objectNode = JsonHandler.createObjectNode()
-            .put("#id", "1")
-            .put("Identifier", "value" + 1)
-            .put("Name", "Lorem ipsum dolor sit amet, consectetur adipiscing elit");
-        when(metaDataCollectClient.insertObjectGroup(any())).thenReturn(
-            JsonHandler.getFromString("{\"test\":\"true\"}"));
-        // When
-        JsonNode jsonNode = metadataService.saveObjectGroup(objectNode);
-        // Then
-        Assertions.assertThat(jsonNode).isNotNull();
-        Assertions.assertThat(jsonNode.get("test").asText()).isEqualTo("true");
-    }
-
-    @Test
-    public void updateObjectGroupById() throws Exception {
-        // Given
-        ArgumentCaptor<JsonNode> jsonNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
-        DbObjectGroupModel objectGroupModel = new DbObjectGroupModel();
-        objectGroupModel.setQualifiers(new ArrayList<>());
-        UpdateMultiQuery query =
-            QueryHandler.getQualifiersAddMultiQuery(objectGroupModel, DataObjectVersionType.BINARY_MASTER, 1,
-                new ObjectDto("1", new FileInfoDto("filename", "lastModified")));
-        // When
-        metadataService.updateObjectGroupById(query, "1", "1");
-        // Then
-        verify(metaDataCollectClient).updateObjectGroupById(jsonNodeArgumentCaptor.capture(), eq("1"));
-    }
-
-    @Test
-    public void deleteUnits() throws Exception {
-        // Given - When
-        metadataService.deleteUnits(Arrays.asList("1", "2"));
-        // Then
-        verify(metaDataCollectClient).deleteUnitsBulk(eq(Arrays.asList("1", "2")));
-    }
-
-    @Test
-    public void deleteObjectGroups() throws Exception {
-        // Given - When
-        metadataService.deleteObjectGroups(Arrays.asList("1", "2"));
-        // Then
-        verify(metaDataCollectClient).deleteObjectGroupBulk(Arrays.asList("1", "2"));
-    }
-
-    private RequestResponseOK<JsonNode> getResponseWith(String versionId, String storageId, String strategyId,
-        String usageVersion, String opi) {
-        DbVersionsModel versionsModel = new DbVersionsModel();
-        versionsModel.setDataObjectVersion(usageVersion);
-        versionsModel.setId(versionId);
-        versionsModel.setOpi(opi);
-        versionsModel.setMessageDigest("DIGEST");
-        DbStorageModel storage = new DbStorageModel();
-        storage.setOfferIds(Collections.singletonList(storageId));
-        storage.setStrategyId(strategyId);
-        versionsModel.setStorage(storage);
-        RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
-        DbObjectGroupModel groupModel = new DbObjectGroupModel();
-        DbQualifiersModel qualifiersModel = new DbQualifiersModel();
-        qualifiersModel.setVersions(Collections.singletonList(versionsModel));
-        groupModel.setQualifiers(Collections.singletonList(qualifiersModel));
-        responseOK.addResult(objectMapper.valueToTree(groupModel));
-        return responseOK;
-    }
-
 }

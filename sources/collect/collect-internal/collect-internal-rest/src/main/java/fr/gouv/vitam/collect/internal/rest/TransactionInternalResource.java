@@ -45,7 +45,6 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -71,7 +70,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Objects;
+import java.util.List;
 import java.util.Optional;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -84,17 +83,10 @@ import static javax.ws.rs.core.Response.Status.OK;
 @Path("/collect-internal/v1/transactions")
 public class TransactionInternalResource {
     public static final String ERROR_WHILE_TRYING_TO_SAVE_UNITS = "Error while trying to save units";
-    public static final String SIP_INGEST_OPERATION_CAN_T_PROVIDE_A_NULL_OPERATION_GUID =
-        "SIP ingest operation can't provide a null operationGuid";
     public static final String SIP_GENERATED_MANIFEST_CAN_T_BE_NULL = "SIP generated manifest can't be null";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionInternalResource.class);
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
     private static final String PROJECT_NOT_FOUND = "Unable to find project Id or invalid status";
-    private static final String OPI = "#opi";
-    private static final String ID = "#id";
-    private static final String UNIT_TYPE = "#unitType";
-    private static final String INGEST = "INGEST";
-
     private final TransactionService transactionService;
     private final MetadataService metadataService;
     private final SipService sipService;
@@ -213,17 +205,9 @@ public class TransactionInternalResource {
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
             }
 
-            ObjectNode unitObjectNode = JsonHandler.getFromJsonNode(unitJsonNode, ObjectNode.class);
-            unitObjectNode.put(ID, GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()).getId());
-            unitObjectNode.put(OPI, transactionId);
-            unitObjectNode.put(UNIT_TYPE, INGEST);
-            JsonNode savedUnitJsonNode = metadataService.saveArchiveUnit(unitObjectNode);
+            JsonNode savedUnitJsonNode = metadataService.saveArchiveUnit(unitJsonNode, transactionModel.get());
 
-            if (savedUnitJsonNode == null) {
-                LOGGER.error(ERROR_WHILE_TRYING_TO_SAVE_UNITS);
-                return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, ERROR_WHILE_TRYING_TO_SAVE_UNITS);
-            }
-            return CollectRequestResponse.toResponseOK(unitObjectNode);
+            return CollectRequestResponse.toResponseOK(savedUnitJsonNode);
         } catch (CollectInternalException | InvalidParseOperationException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
@@ -240,8 +224,9 @@ public class TransactionInternalResource {
     @Produces(APPLICATION_JSON)
     public Response selectUnits(@PathParam("transactionId") String transactionId, JsonNode jsonQuery) {
         try {
-            final JsonNode results = metadataService.selectUnits(jsonQuery, transactionId);
-            return Response.status(Response.Status.OK).entity(results).build();
+            final List<JsonNode> units = metadataService.selectUnits(jsonQuery, transactionId);
+            return Response.status(Response.Status.OK).entity(new RequestResponseOK<JsonNode>().addAllResults(units))
+                .build();
         } catch (CollectInternalException e) {
             LOGGER.error("Error when getting units in metadata : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -305,8 +290,7 @@ public class TransactionInternalResource {
     @Path("/{transactionId}/send")
     @POST
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response generateSip(@PathParam("transactionId") String transactionId) throws
-        CollectInternalException {
+    public Response generateSip(@PathParam("transactionId") String transactionId) throws CollectInternalException {
         TransactionModel transaction = null;
         InputStream sipInputStream = null;
         try {
@@ -315,7 +299,7 @@ public class TransactionInternalResource {
             if (transactionModel.isEmpty() ||
                 !transactionService.checkStatus(transactionModel.get(), TransactionStatus.READY)) {
                 LOGGER.error(TRANSACTION_NOT_FOUND);
-                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
+                return Response.status(BAD_REQUEST).build();
             }
             transaction = transactionModel.get();
             transactionService.isTransactionContentEmpty(transaction.getId());
@@ -334,18 +318,17 @@ public class TransactionInternalResource {
         } catch (CollectInternalException e) {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
             transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+            return Response.status(BAD_REQUEST).build();
         } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
             transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+            return Response.status(BAD_REQUEST).build();
         } catch (Exception e) {
             if (sipInputStream != null) {
                 StreamUtils.closeSilently(sipInputStream);
             }
             LOGGER.error("Error when ingesting  transaction   ", e);
-            return CollectRequestResponse.toVitamError(Response.Status.INTERNAL_SERVER_ERROR,
-                e.getLocalizedMessage());
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -386,8 +369,7 @@ public class TransactionInternalResource {
 
 
                 try (InputStream sanityStream = new FileInputStream(file)) {
-                    fluxService.updateUnits(transaction.getId(), sanityStream,
-                        !Objects.isNull(projectDto.get().getUnitUp()));
+                    metadataService.updateUnits(transaction, sanityStream);
                 }
             } finally {
                 FileUtils.deleteQuietly(file);
@@ -421,14 +403,7 @@ public class TransactionInternalResource {
                 LOGGER.error(TRANSACTION_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(NOT_FOUND, TRANSACTION_NOT_FOUND);
             }
-            Optional<ProjectDto> projectDto = projectService.findProject(transactionModel.get().getProjectId());
-
-            if (projectDto.isEmpty()) {
-                LOGGER.error(PROJECT_NOT_FOUND);
-                return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
-            }
-            fluxService.processStream(inputStreamObject,
-                CollectHelper.convertTransactionModelToTransactionDto(transactionModel.get()), projectDto.get());
+            fluxService.processStream(inputStreamObject, transactionModel.get());
 
             return Response.ok().build();
         } catch (CollectInternalException e) {
@@ -439,5 +414,4 @@ public class TransactionInternalResource {
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
-
 }

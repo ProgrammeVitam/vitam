@@ -446,9 +446,6 @@ public class DescriptiveMetadataModel {
      * @return
      */
     public List<String> getTag() {
-        if (tag == null) {
-            tag = new ArrayList<>();
-        }
         return tag;
     }
 
@@ -463,9 +460,6 @@ public class DescriptiveMetadataModel {
      * @return
      */
     public List<KeywordsType> getKeyword() {
-        if (keyword == null) {
-            keyword = new ArrayList<>();
-        }
         return keyword;
     }
 
@@ -550,9 +544,6 @@ public class DescriptiveMetadataModel {
      * @return
      */
     public List<AgentTypeModel> getWriter() {
-        if (writer == null) {
-            writer = new ArrayList<>();
-        }
         return writer;
     }
 
@@ -567,9 +558,6 @@ public class DescriptiveMetadataModel {
      * @return
      */
     public List<AgentTypeModel> getAddressee() {
-        if (addressee == null) {
-            addressee = new ArrayList<>();
-        }
         return addressee;
     }
 
@@ -579,9 +567,6 @@ public class DescriptiveMetadataModel {
      * @return transmitter value
      */
     public List<AgentTypeModel> getTransmitter() {
-        if (transmitter == null) {
-            transmitter = new ArrayList<>();
-        }
         return transmitter;
     }
 
@@ -598,9 +583,6 @@ public class DescriptiveMetadataModel {
      * @return sender value
      */
     public List<AgentTypeModel> getSender() {
-        if (sender == null) {
-            sender = new ArrayList<>();
-        }
         return sender;
     }
 
@@ -622,9 +604,6 @@ public class DescriptiveMetadataModel {
      * @return
      */
     public List<AgentTypeModel> getRecipient() {
-        if (recipient == null) {
-            recipient = new ArrayList<>();
-        }
         return recipient;
     }
 
@@ -779,9 +758,6 @@ public class DescriptiveMetadataModel {
      * @return
      */
     public List<EventTypeModel> getEvent() {
-        if (event == null) {
-            event = new ArrayList<>();
-        }
         return event;
     }
 

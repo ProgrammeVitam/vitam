@@ -208,7 +208,7 @@ public interface CollectInternalClient extends MockOrRestClient {
      * @return Response
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    Response addBinary(String unitId, Integer version, InputStream inputStreamUploaded,
+    RequestResponse<JsonNode> addBinary(String unitId, Integer version, InputStream inputStreamUploaded,
         String usage)
         throws VitamClientException;
 

@@ -269,12 +269,23 @@ public class MetaDataImpl {
         return mongoDbAccess;
     }
 
-    public void insertUnits(BulkUnitInsertRequest request)
+    public void insertUnits(List<JsonNode> unitRequest)
         throws InvalidParseOperationException, MetaDataExecutionException,
         MetaDataNotFoundException {
         try {
 
-            dbRequest.execInsertUnitRequests(request);
+            List<InsertParserMultiple> collect = unitRequest.stream().map(insertRequest -> {
+                    InsertParserMultiple insertParser = new InsertParserMultiple(DEFAULT_VARNAME_ADAPTER);
+                    try {
+                        insertParser.parse(insertRequest);
+                    } catch (InvalidParseOperationException e) {
+                        throw new VitamRuntimeException(e);
+                    }
+                    return insertParser;
+                }
+            ).collect(Collectors.toList());
+
+            dbRequest.execInsertUnitRequests(collect);
 
         } catch (VitamRuntimeException e) {
             if (e.getCause() instanceof InvalidParseOperationException) {

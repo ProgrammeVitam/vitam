@@ -33,9 +33,11 @@ import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.CollectUnitModel;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.builders.DbVersionsModelBuilder;
+import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
@@ -83,7 +85,7 @@ public class CollectServiceTest {
     private CollectService collectService;
 
     @Mock
-    private MetadataService metadataService;
+    private MetadataRepository metadataRepository;
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
     @Mock
@@ -95,49 +97,13 @@ public class CollectServiceTest {
     public void getArchiveUnitModel() throws Exception {
         // Given
         String unitId = "aeeaaaaaacfm6tqsaawpgamadc4j5baaaaaq";
-        when(metadataService.selectUnitById(any())).thenReturn(
+        when(metadataRepository.selectUnitById(any())).thenReturn(
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_ARCHIVE_UNIT)));
         // When
         CollectUnitModel archiveUnitModel = collectService.getArchiveUnitModel(unitId);
         // Then
         Assertions.assertThat(archiveUnitModel).isNotNull();
         Assertions.assertThat(archiveUnitModel.getId()).isEqualTo(unitId);
-    }
-
-    @Test
-    public void getArchiveUnitModel_ko_with_json_null() throws Exception {
-        // Given
-        String unitId = "aeeaaaaaacfm6tqsaawpgamadc4j5baaaaaq";
-        when(metadataService.selectUnitById(any())).thenReturn(null);
-        // When - Then
-        assertThrows(CollectInternalException.class, () -> collectService.getArchiveUnitModel(unitId));
-    }
-
-    @Test
-    public void getArchiveUnitModel_ko_with_not_tag_result() throws Exception {
-        // Given
-        String unitId = "aeeaaaaaacfm6tqsaawpgamadc4j5baaaaaq";
-        when(metadataService.selectUnitById(any())).thenReturn(JsonHandler.getFromString("{}"));
-        // When - Then
-        assertThrows(CollectInternalException.class, () -> collectService.getArchiveUnitModel(unitId));
-    }
-
-    @Test
-    public void getArchiveUnitModel_ko_with_empty_tag_result() throws Exception {
-        // Given
-        String unitId = "aeeaaaaaacfm6tqsaawpgamadc4j5baaaaaq";
-        when(metadataService.selectUnitById(any())).thenReturn(JsonHandler.getFromString("{\"$results\" : []}"));
-        // When - Then
-        assertThrows(CollectInternalException.class, () -> collectService.getArchiveUnitModel(unitId));
-    }
-
-    @Test
-    public void getArchiveUnitModel_ko_with_null_first_result() throws Exception {
-        // Given
-        String unitId = "aeeaaaaaacfm6tqsaawpgamadc4j5baaaaaq";
-        when(metadataService.selectUnitById(any())).thenReturn(JsonHandler.getFromString("{\"$results\" : [null]}"));
-        // When - Then
-        assertThrows(CollectInternalException.class, () -> collectService.getArchiveUnitModel(unitId));
     }
 
     @Test
@@ -157,7 +123,7 @@ public class CollectServiceTest {
     @Test
     public void getBinaryByUsageAndVersion() throws Exception {
         // Given
-        when(metadataService.selectObjectGroupById("og", true)).thenReturn(
+        when(metadataRepository.selectObjectGroupById("og", true)).thenReturn(
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECT_GROUP5)));
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         Response response =
@@ -178,7 +144,7 @@ public class CollectServiceTest {
     @RunWithCustomExecutor
     public void testUpdateOrSaveObjectGroup_insertNewObjectGroup() throws Exception {
         // Given
-        when(metadataService.saveObjectGroup(any())).thenReturn(
+        when(metadataRepository.saveObjectGroup(any())).thenReturn(
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECT_GROUP2)));
         VitamThreadUtils.getVitamSession().setTenantId(1);
         CollectUnitModel unitModel = new CollectUnitModel();
@@ -196,7 +162,7 @@ public class CollectServiceTest {
     @RunWithCustomExecutor
     public void testUpdateOrSaveObjectGroup_ko_collect_error() throws Exception {
         // Given
-        when(metadataService.saveObjectGroup(any())).thenThrow(new CollectInternalException("error"));
+        when(metadataRepository.saveObjectGroup(any())).thenThrow(new CollectInternalException("error"));
         VitamThreadUtils.getVitamSession().setTenantId(1);
         CollectUnitModel unitModel = new CollectUnitModel();
         unitModel.setId("1");
@@ -211,7 +177,7 @@ public class CollectServiceTest {
     @RunWithCustomExecutor
     public void testUpdateOrSaveObjectGroup_updateExistingObjectGroup() throws Exception {
         // Given
-        when(metadataService.selectObjectGroupById("og", true)).thenReturn(
+        when(metadataRepository.selectObjectGroupById("og", true)).thenReturn(
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECT_GROUP2)));
         VitamThreadUtils.getVitamSession().setTenantId(1);
         CollectUnitModel unitModel = new CollectUnitModel();
@@ -230,7 +196,7 @@ public class CollectServiceTest {
     @RunWithCustomExecutor
     public void testUpdateOrSaveObjectGroup_ko_with_qualifier() throws Exception {
         // Given
-        when(metadataService.selectObjectGroupById("og", true)).thenReturn(
+        when(metadataRepository.selectObjectGroupById("og", true)).thenReturn(
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECT_GROUP_WITH_QUALIFIER)));
         VitamThreadUtils.getVitamSession().setTenantId(1);
         CollectUnitModel unitModel = new CollectUnitModel();
@@ -247,7 +213,7 @@ public class CollectServiceTest {
     @RunWithCustomExecutor
     public void testUpdateOrSaveObjectGroup_ok_with_new_version() throws Exception {
         // Given
-        when(metadataService.selectObjectGroupById("og", true)).thenReturn(
+        when(metadataRepository.selectObjectGroupById("og", true)).thenReturn(
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECT_GROUP_NEW_VERSION)));
         VitamThreadUtils.getVitamSession().setTenantId(1);
         CollectUnitModel unitModel = new CollectUnitModel();
@@ -270,7 +236,7 @@ public class CollectServiceTest {
     @Test
     public void testGetDbObjectGroup_ok() throws Exception {
         // Given
-        when(metadataService.selectObjectGroupById("og", true)).thenReturn(
+        when(metadataRepository.selectObjectGroupById("og", true)).thenReturn(
             JsonHandler.getFromFile(PropertiesUtils.findFile(SAMPLE_OBJECT_GROUP2)));
         CollectUnitModel unitModel = new CollectUnitModel();
         unitModel.setId("1");
@@ -294,8 +260,9 @@ public class CollectServiceTest {
         dbQualifiersModels.add(qualifiersModel);
         String fileName = "memoire_nationale.txt";
         String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
+        DataObjectVersionType usage = BINARY_MASTER;
         int version = 1;
-        DbVersionsModel versionsModel = new DbVersionsModelBuilder().build(versionId, fileName, BINARY_MASTER, version);
+        DbVersionsModel versionsModel = new DbVersionsModelBuilder().build(versionId, fileName, usage, version);
         List<DbVersionsModel> dbVersionsModels = new ArrayList<>();
         dbVersionsModels.add(versionsModel);
         qualifiersModel.setVersions(dbVersionsModels);

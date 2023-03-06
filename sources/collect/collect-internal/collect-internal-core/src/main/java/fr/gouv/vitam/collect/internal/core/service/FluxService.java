@@ -26,369 +26,325 @@
  */
 package fr.gouv.vitam.collect.internal.core.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Iterators;
-import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
-import fr.gouv.vitam.collect.common.dto.FileInfoDto;
-import fr.gouv.vitam.collect.common.dto.ObjectDto;
-import fr.gouv.vitam.collect.common.dto.ProjectDto;
-import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
-import fr.gouv.vitam.collect.internal.core.common.CollectUnitModel;
 import fr.gouv.vitam.collect.internal.core.common.DescriptionLevel;
-import fr.gouv.vitam.collect.internal.core.helpers.CsvMetadataMapper;
+import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
+import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
+import fr.gouv.vitam.collect.internal.core.helpers.CsvHelper;
+import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
+import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
+import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.CommonMediaType;
-import fr.gouv.vitam.common.LocalDateUtil;
-import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.query.action.SetAction;
-import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
-import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
-import fr.gouv.vitam.common.model.unit.ManagementModel;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.model.MetadataType;
+import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.storage.compress.ArchiveEntryInputStream;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
+import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
+import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.input.CountingInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.elasticsearch.common.Strings;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Spliterator;
+import java.util.Spliterators;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
-import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
+import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.STATIC_ATTACHMENT;
+import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.findUnitParent;
+import static fr.gouv.vitam.common.SedaConstants.PREFIX_UP;
+import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.buildSerializationObjectMapper;
+import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
 
 public class FluxService {
-
-    private static final String OPI = "#opi";
-    private static final String ID = "#id";
-    private static final String MGT = "#management";
-    private static final String TITLE = "Title";
-    private static final String DESCRIPTION_LEVEL = "DescriptionLevel";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FluxService.class);
-    private static final String ATTACHEMENT_AU = "AttachementAu";
-    private static final String DUMMY_ARCHIVE_UNIT_TITLE = "AU de Rattachement";
-    private static final String UNIT_TYPE = "#unitType";
-    private static final String INGEST = "INGEST";
 
+    private static final int BULK_SIZE = 1000;
+    private final static String METADATA = "Metadata";
+    private static final String TITLE = "Title";
     static final String METADATA_CSV_FILE = "metadata.csv";
 
     private final CollectService collectService;
     private final MetadataService metadataService;
+    private final ProjectRepository projectRepository;
+    private final MetadataRepository metadataRepository;
 
-    public FluxService(CollectService collectService, MetadataService metadataService) {
+    public FluxService(CollectService collectService, MetadataService metadataService,
+        ProjectRepository projectRepository, MetadataRepository metadataRepository) {
         this.collectService = collectService;
         this.metadataService = metadataService;
+        this.projectRepository = projectRepository;
+        this.metadataRepository = metadataRepository;
     }
 
-    public void processStream(InputStream inputStreamObject, TransactionDto transactionDto, ProjectDto projectDto)
+    public void processStream(InputStream inputStreamObject, TransactionModel transactionModel)
         throws CollectInternalException {
+
+        Optional<ProjectModel> projectById = projectRepository.findProjectById(transactionModel.getProjectId());
+        if (projectById.isEmpty()) {
+            throw new CollectInternalException("Project not found");
+        }
+        ProjectModel projectModel = projectById.get();
+
         final InputStream inputStreamClosable = StreamUtils.getRemainingReadOnCloseInputStream(inputStreamObject);
         try (final ArchiveInputStream archiveInputStream = new VitamArchiveStreamFactory().createArchiveInputStream(
             CommonMediaType.ZIP_TYPE, inputStreamClosable)) {
             ArchiveEntry entry;
             boolean isEmpty = true;
-            HashMap<String, String> savedGuidUnits = new HashMap<>();
-            boolean isAttachmentAuExist = isAttachmentAuExist(projectDto, transactionDto.getId(), savedGuidUnits);
+            HashMap<String, String> attachmentGUID =
+                metadataService.prepareAttachmentUnits(projectModel, transactionModel.getId());
             boolean isExtraMetadataExist = false;
             // create entryInputStream to resolve the stream closed problem
             final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
+            int maxLevel = -1;
+            Map<String, String> unitIds = new HashMap<>();
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {
-                    if (entry.getName().equals(File.separator)) {
+                    String path = entry.getName().replaceAll("/$", "");
+                    if (Strings.isEmpty(path)) {
                         continue;
                     }
-                    String fileName = Paths.get(entry.getName()).getFileName().toString();
+                    String fileName = Paths.get(path).getFileName().toString();
                     if (!entry.isDirectory() && fileName.equals(METADATA_CSV_FILE)) {
                         // save file in workspace
-                        collectService.pushStreamToWorkspace(transactionDto.getId(), entryInputStream,
+                        collectService.pushStreamToWorkspace(transactionModel.getId(), entryInputStream,
                             METADATA_CSV_FILE);
                         isExtraMetadataExist = true;
                     } else {
-                        convertEntryToAu(transactionDto.getId(), entry, isAttachmentAuExist, entryInputStream,
-                            savedGuidUnits,
-                            fileName);
+                        maxLevel =
+                            createMetadata(transactionModel, entry, attachmentGUID, entryInputStream, maxLevel, unitIds,
+                                path, fileName, projectModel.getUnitUp() != null);
                     }
                     isEmpty = false;
                 }
                 entryInputStream.setClosed(false);
             }
+
             if (isEmpty) {
                 throw new CollectInternalException("File is empty");
             }
 
             if (isExtraMetadataExist) {
-                try (final InputStream is = collectService.getInputStreamFromWorkspace(transactionDto.getId(),
+                File metadataFile = PropertiesUtils.fileFromTmpFolder(
+                    METADATA + "_" + transactionModel.getId() + VitamConstants.JSONL_EXTENSION);
+                try (InputStream is = collectService.getInputStreamFromWorkspace(transactionModel.getId(),
                     METADATA_CSV_FILE)) {
-                    updateUnits(transactionDto.getId(), is, isAttachmentAuExist);
+                    CsvHelper.convertCsvToMetadataFile(is, metadataFile);
                 }
             }
 
+            Map<String, String> unitUps =
+                (isExtraMetadataExist) ? findUnitUps(projectModel, transactionModel, attachmentGUID) : new HashMap<>();
+
+            bulkWriteUnits(maxLevel, unitUps, transactionModel.getId());
+
+            bulkWriteObjectGroups(transactionModel.getId());
+
+            cleanTemporaryFiles(maxLevel, transactionModel.getId());
+
+            if (isExtraMetadataExist) {
+                File metadataFile = PropertiesUtils.fileFromTmpFolder(
+                    METADATA + "_" + transactionModel.getId() + VitamConstants.JSONL_EXTENSION);
+                try (InputStream is = new FileInputStream(metadataFile)) {
+                    metadataService.updateUnitsWithMetadataFile(transactionModel.getId(), is);
+                } finally {
+                    FileUtils.deleteQuietly(metadataFile);
+                }
+            }
         } catch (IOException | ArchiveException e) {
             LOGGER.error("An error occurs when try to upload the ZIP: {}", e);
             throw new CollectInternalException("An error occurs when try to upload the ZIP: {}");
-        }
-    }
-
-    public void updateUnits(String transactionId, InputStream is, boolean isAttachmentAuExist)
-        throws CollectInternalException, IOException {
-        Map<String, String> unitsByURI = buildGraphFromExistingUnits(transactionId);
-        populateMetadata(is, unitsByURI, isAttachmentAuExist);
-    }
-
-    private Map<String, String> buildGraphFromExistingUnits(String transactionId) throws CollectInternalException {
-        try {
-            SelectMultiQuery select = buildQuery(transactionId);
-            final ScrollSpliterator<JsonNode> unitScrollSpliterator =
-                metadataService.selectUnits(select, transactionId);
-            final List<JsonNode> units = new ArrayList<>();
-            unitScrollSpliterator.forEachRemaining(units::add);
-            units.sort(Comparator.comparingInt(a -> a.get(VitamFieldsHelper.allunitups()).size()));
-
-            BiMap<String, String> hash = HashBiMap.create();
-            units.forEach(u -> {
-                final ArrayNode parentUnit = (ArrayNode) u.get(VitamFieldsHelper.unitups());
-                if (parentUnit.size() > 0) {
-                    hash.put(hash.inverse().getOrDefault(parentUnit.get(0).asText(), parentUnit.get(0).asText()) + "/" +
-                        u.get(TITLE).asText(), u.get(VitamFieldsHelper.id()).asText());
-                } else {
-                    hash.put(u.get(TITLE).asText(), u.get(VitamFieldsHelper.id()).asText());
-                }
-            });
-            return hash;
-        } catch (Exception e) {
+        } catch (InvalidParseOperationException e) {
             throw new CollectInternalException(e);
         }
     }
 
-    private SelectMultiQuery buildQuery(String transactionId) throws InvalidCreateOperationException {
-        SelectMultiQuery select = new SelectMultiQuery();
-        select.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), transactionId));
-        final ObjectNode projection = JsonHandler.createObjectNode();
-        projection.set("$fields", JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1).put(TITLE, 1)
-            .put(VitamFieldsHelper.unitups(), 1).put(VitamFieldsHelper.allunitups(), 1));
-        select.addProjection(projection);
-        return select;
+    private void cleanTemporaryFiles(int maxLevel, String transactionId) {
+        File ogFile = PropertiesUtils.fileFromTmpFolder(
+            MetadataType.OBJECTGROUP.getName() + "_" + transactionId + VitamConstants.JSONL_EXTENSION);
+        FileUtils.deleteQuietly(ogFile);
+        for (int level = 0; level < maxLevel; level++) {
+            File file = PropertiesUtils.fileFromTmpFolder(
+                MetadataType.UNIT.getName() + "_" + level + "_" + transactionId + VitamConstants.JSONL_EXTENSION);
+            FileUtils.deleteQuietly(file);
+        }
     }
 
-    private void populateMetadata(InputStream is, Map<String, String> unitsByURI, boolean isAttachmentAuExist)
-        throws IOException, CollectInternalException {
-        try (final InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
-            CSVParser parser = new CSVParser(reader,
-                CSVFormat.DEFAULT.withHeader().withTrim().withIgnoreEmptyLines(false).withDelimiter(';'))) {
-            List<String> headerNames = parser.getHeaderNames();
+    private Map<String, String> findUnitUps(ProjectModel projectModel, TransactionModel transactionModel,
+        HashMap<String, String> attachmentGUID) throws FileNotFoundException {
+        if (projectModel.getUnitUps() != null) {
+            File metadataFile = PropertiesUtils.fileFromTmpFolder(
+                METADATA + "_" + transactionModel.getId() + VitamConstants.JSONL_EXTENSION);
+            JsonLineGenericIterator<JsonLineModel> iterator =
+                new JsonLineGenericIterator<>(new FileInputStream(metadataFile), new TypeReference<>() {
+                });
+            return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
+                .filter(e -> StringUtils.countMatches(e.getId().replaceAll("/$", ""), File.separator) == 0).map(e -> {
+                    String id = e.getId();
+                    ObjectNode unit = (ObjectNode) e.getParams();
+                    unit.put(VitamFieldsHelper.id(), id);
+                    return unit;
+                }).map(e -> findUnitParent(e, projectModel.getUnitUps(), attachmentGUID))
+                .filter(e -> Objects.nonNull(e.getValue()))
+                .collect(Collectors.toMap(Entry<String, String>::getKey, Entry<String, String>::getValue));
+        } else {
+            return new HashMap<>();
+        }
+    }
 
-            boolean updated = false;
+    private int createMetadata(TransactionModel transactionModel, ArchiveEntry entry,
+        HashMap<String, String> attachmentGUID, ArchiveEntryInputStream entryInputStream, int maxLevel,
+        Map<String, String> unitIds, String path, String fileName, boolean isAttachmentAuExist)
+        throws IOException, CollectInternalException, InvalidParseOperationException {
+        DescriptionLevel descriptionLevel = (entry.isDirectory()) ? DescriptionLevel.RECORD_GRP : DescriptionLevel.ITEM;
 
-            final Iterator<Map<String, JsonNode>> iterator =
-                IteratorUtils.transformedIterator(Iterators.partition(parser.iterator(), 1000),
-                    list -> list.stream().map(e -> CsvMetadataMapper.map(e, headerNames))
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        Path parent = Paths.get(path).getParent();
 
-            while (iterator.hasNext()) {
+        String parentUnit;
+        if (path.lastIndexOf(File.separator) == -1) {
+            parentUnit = (isAttachmentAuExist) ? attachmentGUID.get(STATIC_ATTACHMENT) : null;
+        } else {
+            parentUnit = parent != null ? unitIds.get(parent.getFileName().toString()) : null;
+        }
+        ArchiveUnitModel unit =
+            MetadataHelper.createUnit(transactionModel.getId(), LevelType.fromValue(descriptionLevel.getValue()),
+                fileName, parentUnit);
+
+        unitIds.put(fileName, unit.getId());
+        if (!entry.isDirectory()) {
+            String extension = FilenameUtils.getExtension(fileName).toLowerCase();
+            String objectId = GUIDFactory.newGUID().getId();
+            String newFilename = (Strings.isNullOrEmpty(extension)) ? objectId : objectId + "." + extension;
+
+            Entry<String, Long> binaryInformations =
+                writeObjectToWorkspace(transactionModel.getId(), entryInputStream, newFilename);
+            FormatIdentifierResponse formatIdentifierResponse =
+                collectService.detectFileFormat(transactionModel.getId(), newFilename);
+
+            ObjectGroupResponse objectGroup =
+                MetadataHelper.createObjectGroup(transactionModel.getId(), fileName, objectId, newFilename,
+                    formatIdentifierResponse, binaryInformations.getKey(), binaryInformations.getValue());
+            writeObjectGroupToTemporaryFile(objectGroup, transactionModel.getId());
+            unit.setOg(objectGroup.getId());
+        }
+
+        maxLevel = writeUnitToTemporaryFile(StringUtils.countMatches(path, File.separator), maxLevel, unit,
+            transactionModel.getId());
+        return maxLevel;
+    }
+
+    private void bulkWriteUnits(int maxLevel, Map<String, String> unitUps, String transactionId)
+        throws FileNotFoundException {
+        for (int level = 0; level <= maxLevel; level++) {
+            File unitFile = PropertiesUtils.fileFromTmpFolder(
+                MetadataType.UNIT.getName() + "_" + level + "_" + transactionId + VitamConstants.JSONL_EXTENSION);
+            Iterator<ObjectNode> unitIterator =
+                new JsonLineGenericIterator<>(new FileInputStream(unitFile), new TypeReference<>() {
+                });
+
+            if (level == 0 && !unitUps.isEmpty()) {
+                unitIterator = IteratorUtils.transformedIterator(unitIterator, e -> updateParent(e, unitUps));
+            }
+
+            Iterators.partition(unitIterator, BULK_SIZE).forEachRemaining(units -> {
                 try {
-                    updated = true;
-                    Map<String, JsonNode> unitsIdByURI = iterator.next();
-                    // update unit with list
-                    final List<JsonNode> updateMultiQueries =
-                        convertToQuery(unitsIdByURI, unitsByURI, isAttachmentAuExist);
-                    final RequestResponse<JsonNode> result = metadataService.atomicBulkUpdate(updateMultiQueries);
-
-                    final boolean thereIsError =
-                        ((RequestResponseOK<JsonNode>) result).getResults().stream().map(e -> e.get("$results"))
-                            .map(e -> e.get(0))
-                            .map(e -> e.get("#status"))
-                            .map(JsonNode::asText).anyMatch(e -> !e.equals(
-                                "OK"));
-
-                    if (thereIsError) {
-                        throw new CollectInternalException("Error when trying to update units metadata");
-                    }
-                } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
-                    LOGGER.error("Could not create update query", e);
-                    throw new CollectInternalException(e);
+                    metadataRepository.saveArchiveUnits(units);
+                } catch (CollectInternalException e) {
+                    throw new RuntimeException(e);
                 }
-            }
-            if (!updated) {
-                throw new CollectInternalException("no update data found !");
-            }
+            });
         }
     }
 
-    private List<JsonNode> convertToQuery(Map<String, JsonNode> unitsByURI, Map<String, String> unitsIdByURI,
-        boolean isAttachmentAuExist)
-        throws InvalidCreateOperationException, InvalidParseOperationException, CollectInternalException {
-        List<JsonNode> listQueries = new ArrayList<>();
-        for (Map.Entry<String, JsonNode> unit : unitsByURI.entrySet()) {
-            String path = (isAttachmentAuExist) ? DUMMY_ARCHIVE_UNIT_TITLE + "/" + unit.getKey() : unit.getKey();
-            String unitId = unitsIdByURI.get(path);
-            if (unitId == null) {
-                throw new CollectInternalException("Cannot find unit with path " + path);
-            }
-            UpdateMultiQuery query = new UpdateMultiQuery();
-            query.addRoots(unitId);
-            final Map<String, JsonNode> metadataMap = jsonToMap(unit.getValue());
-            query.addActions(new SetAction(metadataMap));
-            listQueries.add(query.getFinalUpdate());
-        }
-        return listQueries;
-    }
-
-    private Map<String, JsonNode> jsonToMap(JsonNode unit) {
-        Map<String, JsonNode> map = new HashMap<>();
-        unit.fieldNames().forEachRemaining(key -> map.put(key, unit.get(key)));
-        return map;
-    }
-
-    private boolean isAttachmentAuExist(ProjectDto projectDto, String transactionId,
-        HashMap<String, String> savedGuidUnits)
-        throws CollectInternalException {
-        boolean isAttachmentAuExist = false;
-        if (projectDto.getUnitUp() != null) {
-            JsonNode savedUnit = uploadArchiveUnit(transactionId, DescriptionLevel.SERIES.getValue(),
-                DUMMY_ARCHIVE_UNIT_TITLE, null, projectDto.getUnitUp());
-            savedGuidUnits.put(ATTACHEMENT_AU, savedUnit.get(ID).asText());
-            isAttachmentAuExist = true;
-        }
-        return isAttachmentAuExist;
-    }
-
-    private void convertEntryToAu(String transactionId, ArchiveEntry entry, boolean isAttachmentAuExist,
-        ArchiveEntryInputStream entryInputStream, HashMap<String, String> savedGuidUnits, String fileName)
-        throws CollectInternalException {
-        Map.Entry<String, String> unitParentEntry;
-        JsonNode unitRecord;
-        if (entry.isDirectory()) {
-            unitParentEntry =
-                getUnitParentByPath(savedGuidUnits, StringUtils.chop(entry.getName()), isAttachmentAuExist);
-            unitRecord =
-                uploadArchiveUnit(transactionId, DescriptionLevel.RECORD_GRP.getValue(), fileName,
-                    unitParentEntry != null ? unitParentEntry.getValue() : null, null);
-            savedGuidUnits.put(StringUtils.chop(entry.getName()), unitRecord.get(ID).asText());
-        } else {
-            unitParentEntry = getUnitParentByPath(savedGuidUnits, entry.getName(), isAttachmentAuExist);
-            JsonNode unitItem =
-                uploadArchiveUnit(transactionId, DescriptionLevel.ITEM.getValue(), fileName,
-                    unitParentEntry != null ? unitParentEntry.getValue() : null, null);
-            uploadObjectGroup(unitItem.get(ID).asText(), fileName);
-            uploadBinary(unitItem.get(ID).asText(), entryInputStream);
-        }
-    }
-
-    public ObjectNode uploadArchiveUnit(String transactionId, String descriptionLevel, String title, String unitParent,
-        String attachementUnitId) throws CollectInternalException {
-
-        ObjectNode unit = JsonHandler.createObjectNode();
-        unit.put(ID, GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()).getId());
-        unit.put(OPI, transactionId);
-        unit.put(UNIT_TYPE, INGEST);
-        if (null != attachementUnitId) {
-            ManagementModel managementModel = new ManagementModel();
-            UpdateOperationType updateOperationType = new UpdateOperationType();
-            updateOperationType.setSystemId(attachementUnitId);
-            managementModel.setUpdateOperationType(updateOperationType);
-            try {
-                unit.replace(MGT, JsonHandler.toJsonNode(managementModel));
-            } catch (InvalidParseOperationException e) {
-                throw new CollectInternalException("Error while trying to add management to unit");
-            }
-        } else {
-            unit.replace(MGT, JsonHandler.createObjectNode());
-        }
-        unit.put(TITLE, title);
-        unit.put(DESCRIPTION_LEVEL, descriptionLevel);
-        if (unitParent != null) {
-            unit.set(VitamFieldsHelper.unitups(), JsonHandler.createArrayNode().add(unitParent));
-        }
-        JsonNode savedUnitJsonNode = metadataService.saveArchiveUnit(unit);
-        if (savedUnitJsonNode == null) {
-            throw new CollectInternalException("Error while trying to save units");
+    private ObjectNode updateParent(ObjectNode unit, Map<String, String> unitUps) {
+        String title = unit.get(TITLE).asText();
+        String up = unitUps.get(title);
+        if (up != null) {
+            unit.set(PREFIX_UP, JsonHandler.createArrayNode().add(up));
         }
         return unit;
     }
 
-    public Map.Entry<String, String> getUnitParentByPath(Map<String, String> unitMap, String entryName,
-        boolean isAttachmentAuExist) {
-        int sepPos = entryName.lastIndexOf(File.separator);
-        if (sepPos == -1) {
-            if (isAttachmentAuExist) {
-                return new AbstractMap.SimpleEntry<>(null, unitMap.get(ATTACHEMENT_AU));
-            } else {
-                return null;
+    private void bulkWriteObjectGroups(String transactionId) throws FileNotFoundException {
+        File ogFile = PropertiesUtils.fileFromTmpFolder(
+            MetadataType.OBJECTGROUP.getName() + "_" + transactionId + VitamConstants.JSONL_EXTENSION);
+        JsonLineGenericIterator<ObjectNode> ogIterator =
+            new JsonLineGenericIterator<>(new FileInputStream(ogFile), new TypeReference<>() {
+            });
+        Iterators.partition(ogIterator, BULK_SIZE).forEachRemaining(objectGroups -> {
+            try {
+                metadataRepository.saveObjectGroups(objectGroups);
+            } catch (CollectInternalException e) {
+                throw new RuntimeException(e);
             }
-        }
-        return new AbstractMap.SimpleEntry<>(entryName.substring(0, sepPos),
-            unitMap.get(entryName.substring(0, sepPos)));
+        });
     }
 
-    public void uploadObjectGroup(String unitId, String fileName) throws CollectInternalException {
-        try {
-            FileInfoDto fileInfoDto =
-                new FileInfoDto(fileName, LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
-            ObjectDto objectDto =
-                new ObjectDto(GUIDFactory.newObjectGUID(ParameterHelper.getTenantParameter()).getId(), fileInfoDto);
-            JsonNode unitResponse = metadataService.selectUnitById(unitId);
-            CollectUnitModel unitModel =
-                JsonHandler.getFromJsonNode(unitResponse.get(TAG_RESULTS).get(0), CollectUnitModel.class);
-            collectService.updateOrSaveObjectGroup(unitModel, DataObjectVersionType.BINARY_MASTER, 1, objectDto);
-
-        } catch (InvalidParseOperationException e) {
-            throw new CollectInternalException(e);
+    private void writeObjectGroupToTemporaryFile(Object objectGroup, String transactionId) throws IOException {
+        File file = PropertiesUtils.fileFromTmpFolder(
+            MetadataType.OBJECTGROUP.getName() + "_" + transactionId + VitamConstants.JSONL_EXTENSION);
+        try (JsonLineWriter writer = new JsonLineWriter(new FileOutputStream(file, true), file.length() == 0)) {
+            JsonNode objectGroupToSave = buildSerializationObjectMapper().convertValue(objectGroup, JsonNode.class);
+            writer.addEntry(objectGroupToSave);
         }
     }
 
+    private int writeUnitToTemporaryFile(int level, int maxLevel, Object unit, String transactionId)
+        throws IOException {
+        File file = PropertiesUtils.fileFromTmpFolder(
+            MetadataType.UNIT.getName() + "_" + level + "_" + transactionId + VitamConstants.JSONL_EXTENSION);
+        try (JsonLineWriter writer = new JsonLineWriter(new FileOutputStream(file, true), file.length() == 0)) {
+            JsonNode unitToSave = buildSerializationObjectMapper().convertValue(unit, JsonNode.class);
+            writer.addEntry(unitToSave);
+        }
+        return Math.max(maxLevel, level);
+    }
 
-    private void uploadBinary(String unitId, InputStream uploadedInputStream) throws CollectInternalException {
-        try {
-            JsonNode unitResponse = metadataService.selectUnitById(unitId);
-            CollectUnitModel unitModel =
-                JsonHandler.getFromJsonNode(unitResponse.get(TAG_RESULTS).get(0), CollectUnitModel.class);
-            if (unitModel.getOg() == null) {
-                LOGGER.debug("Cannot found any got attached to unit with id({}))", unitModel.getId());
-                throw new IllegalArgumentException(
-                    "Cannot found any object attached to unit with id(" + unitModel.getId() + ")");
-            }
-            final RequestResponseOK<JsonNode> result =
-                RequestResponseOK.getFromJsonNode(metadataService.selectObjectGroupById(unitModel.getOg(), true));
-            final DbObjectGroupModel dbObjectGroupModel =
-                JsonHandler.getFromJsonNode(result.getResults().get(0), DbObjectGroupModel.class);
-            collectService.addBinaryInfoToQualifier(dbObjectGroupModel, DataObjectVersionType.BINARY_MASTER, 1,
-                uploadedInputStream);
-        } catch (InvalidParseOperationException e) {
-            throw new CollectInternalException(e);
+    private Entry<String, Long> writeObjectToWorkspace(String transactionId, ArchiveEntryInputStream entryInputStream,
+        String fileName) throws IOException, CollectInternalException {
+        try (CountingInputStream countingInputStream = new CountingInputStream(entryInputStream)) {
+            String digest = collectService.pushStreamToWorkspace(transactionId, countingInputStream,
+                CONTENT_FOLDER.concat(File.separator).concat(fileName));
+
+            return new SimpleEntry<>(digest, countingInputStream.getByteCount());
         }
     }
 }

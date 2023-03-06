@@ -60,6 +60,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_UPSERT;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_ID_READ;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
 
 
 @Path("/collect-external/v1")
@@ -99,7 +100,7 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         }
     }
 
@@ -123,7 +124,7 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         }
     }
 
@@ -141,7 +142,7 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         }
     }
 
@@ -159,14 +160,15 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter("usage({}), unitId({}) or version({}) can't be null", unitId, usageString,
                 version);
             ParametersChecker.checkParameter("You must supply a file!", uploadedInputStream);
-            Response response = client.addBinary(unitId, version, uploadedInputStream, usageString);
-            return Response.status(Response.Status.OK).entity(response).build();
+            RequestResponse<JsonNode> requestResponse =
+                client.addBinary(unitId, version, uploadedInputStream, usageString);
+            return Response.status(Response.Status.OK).entity(requestResponse).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when adding binary    ", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         }
     }
 
@@ -182,14 +184,13 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
             SanityChecker.checkParameter(String.valueOf(version.intValue()));
             ParametersChecker.checkParameter("usage({}), unitId({}) or version({}) can't be null", unitId, usageString,
                 version);
-            Response response = client.getObjectStreamByUnitId(unitId, usageString, version);
-            return Response.status(Response.Status.OK).entity(response).build();
+            return client.getObjectStreamByUnitId(unitId, usageString, version);
         } catch (final VitamClientException e) {
             LOGGER.error("Error when downloading object ", e);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+            return Response.status(BAD_REQUEST).build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         }
     }
 

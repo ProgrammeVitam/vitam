@@ -36,10 +36,10 @@ import java.util.Objects;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ObjectDto implements Serializable {
 
-    @JsonProperty("id")
+    @JsonProperty("_id")
     private String id;
 
-    @JsonProperty("fileInfo")
+    @JsonProperty("FileInfo")
     private FileInfoDto fileInfo;
 
     public ObjectDto() {

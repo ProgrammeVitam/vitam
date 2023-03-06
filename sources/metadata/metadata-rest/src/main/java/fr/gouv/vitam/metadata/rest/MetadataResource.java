@@ -28,14 +28,18 @@ package fr.gouv.vitam.metadata.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.internal.bulk.InsertRequest;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
+import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ArrayListScrollSpliterator;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -149,7 +153,17 @@ public class MetadataResource extends ApplicationStatusResource {
     public Response insertUnitBulk(BulkUnitInsertRequest request) {
         Status status;
         try {
-            metaData.insertUnits(request);
+            List<JsonNode> requests = request.getUnits().stream().map(e -> {
+                try {
+                    InsertMultiQuery query = new InsertMultiQuery();
+                    query.addData((ObjectNode) e.getUnit());
+                    query.addRoots(e.getParentUnitIds().toArray(String[]::new));
+                    return query.getFinalInsert();
+                } catch (InvalidParseOperationException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }).collect(Collectors.toList());
+            metaData.insertUnits(requests);
         } catch (final MetaDataExecutionException ve) {
             LOGGER.error(ve);
             status = Status.INTERNAL_SERVER_ERROR;
@@ -751,7 +765,7 @@ public class MetadataResource extends ApplicationStatusResource {
         ArrayNode arrayNode = JsonHandler.createArrayNode();
         insertRequests.forEach(arrayNode::add);
 
-        RequestResponseOK<?> responseOK = new RequestResponseOK<>(arrayNode);
+        RequestResponseOK<?> responseOK = new RequestResponseOK<>();
         responseOK.setHits(arrayNode.size(), 0, arrayNode.size())
             .setHttpCode(Status.CREATED.getStatusCode());
         return Response.status(Status.CREATED)

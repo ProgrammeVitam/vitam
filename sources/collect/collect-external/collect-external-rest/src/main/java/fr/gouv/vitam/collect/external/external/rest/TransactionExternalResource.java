@@ -195,7 +195,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             SanityChecker.checkParameter(transactionId);
             SanityChecker.checkJsonAll(jsonQuery);
             RequestResponse<JsonNode> response = client.getUnitsByTransaction(transactionId, jsonQuery);
-            return Response.status(Response.Status.OK).entity(response).build();
+            return Response.ok(response).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when selecting units by transaction   ", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
@@ -267,7 +267,6 @@ public class TransactionExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_SEND, description = "Envoi vers VITAM la transaction")
     public Response generateAndSendSip(@PathParam("transactionId") String transactionId) {
-
         try (CollectInternalClient collectClient = collectInternalClientFactory.getClient();
             IngestExternalClient clientIngest = ingestExternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);

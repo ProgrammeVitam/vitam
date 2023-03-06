@@ -1155,13 +1155,12 @@ public class DbRequest {
      * @throws MetaDataExecutionException when insert on metadata collection exception occurred
      * @throws MetaDataNotFoundException when metadata not found exception
      */
+    @Deprecated
     public void execInsertUnitRequest(InsertParserMultiple requestParser)
         throws MetaDataExecutionException, MetaDataNotFoundException {
 
         LOGGER.debug("Exec db insert unit request: %s", requestParser);
-        execInsertUnitRequests(new BulkUnitInsertRequest(Collections.singletonList(
-            new BulkUnitInsertEntry(requestParser.getRequest().getRoots(), requestParser.getRequest().getData())
-        )));
+        execInsertUnitRequests(Collections.singletonList(requestParser));
     }
 
     /**
@@ -1262,14 +1261,14 @@ public class DbRequest {
     /**
      * Inserts a unit
      *
-     * @param request list of unit insert requests
+     * @param requests list of unit insert requests
      * @throws MetaDataExecutionException when insert on metadata collection exception occurred
      * @throws MetaDataNotFoundException when metadata not found exception
      */
-    public void execInsertUnitRequests(BulkUnitInsertRequest request)
+    public void execInsertUnitRequests(List<InsertParserMultiple> requests)
         throws MetaDataExecutionException, MetaDataNotFoundException {
 
-        LOGGER.debug("Exec db insert unit request: %s", request);
+        LOGGER.debug("Exec db insert unit request: %s", requests);
 
         List<Unit> unitToSave = Lists.newArrayList();
         Map<String, ObjectGroupGraphUpdates> objectGroupGraphUpdatesMap = new HashMap<>();
@@ -1278,8 +1277,8 @@ public class DbRequest {
         try (GraphLoader graphLoader = new GraphLoader(mongoDbUnitRepository)) {
 
             Set<String> allRoots = new HashSet<>();
-            for (BulkUnitInsertEntry entry : request.getUnits()) {
-                allRoots.addAll(entry.getParentUnitIds());
+            for (InsertParserMultiple entry : requests) {
+                allRoots.addAll(entry.getRequest().getRoots());
             }
 
             Stopwatch loadParentAU = Stopwatch.createStarted();
@@ -1289,11 +1288,11 @@ public class DbRequest {
 
             Stopwatch computeAU = Stopwatch.createStarted();
 
-            for (BulkUnitInsertEntry entry : request.getUnits()) {
+            for (InsertParserMultiple entry : requests) {
 
 
-                final Unit unit = new Unit(entry.getUnit());
-                Set<String> roots = entry.getParentUnitIds();
+                final Unit unit = new Unit(entry.getRequest().getData());
+                Set<String> roots = entry.getRequest().getRoots();
 
                 UnitGraphModel unitGraphModel = new UnitGraphModel(unit);
                 roots.forEach(parentId -> {

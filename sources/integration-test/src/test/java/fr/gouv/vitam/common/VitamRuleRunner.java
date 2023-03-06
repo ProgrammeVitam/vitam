@@ -137,13 +137,13 @@ public class VitamRuleRunner {
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
         MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
-            new ElasticsearchAccessMetadata(elasticsearchRule.getClusterName(), esNodes,
+            new ElasticsearchAccessMetadata(ElasticsearchRule.getClusterName(), esNodes,
                 metadataIndexManager));
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
-            new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.getClusterName(), esNodes,
                 functionalAdminIndexManager));
         LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
-            new LogbookElasticsearchAccess(elasticsearchRule.getClusterName(), esNodes, logbookIndexManager));
+            new LogbookElasticsearchAccess(ElasticsearchRule.getClusterName(), esNodes, logbookIndexManager));
     }
 
     public static void handleAfterClass() {

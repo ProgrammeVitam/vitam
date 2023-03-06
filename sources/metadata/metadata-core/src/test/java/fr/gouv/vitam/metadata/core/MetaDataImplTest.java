@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoDatabase;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
+import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
@@ -178,13 +179,13 @@ public class MetaDataImplTest {
     public void givenInsertUnitThenOK() throws Exception {
 
         // Given
-        BulkUnitInsertRequest bulkUnitInsertRequest = mock(BulkUnitInsertRequest.class);
+        JsonNode bulkUnitInsertRequest = new InsertMultiQuery().getFinalInsert();
 
         // When
-        metaDataImpl.insertUnits(bulkUnitInsertRequest);
+        metaDataImpl.insertUnits(List.of(bulkUnitInsertRequest));
 
         // Then
-        verify(request).execInsertUnitRequests(bulkUnitInsertRequest);
+        verify(request).execInsertUnitRequests(anyList());
     }
 
     @Test(expected = InvalidParseOperationException.class)

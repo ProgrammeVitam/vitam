@@ -84,28 +84,27 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
         this.indexManager = indexManager;
     }
 
-    public void createIndexesAndAliases(MetadataCollections objectCollection, MetadataCollections unitCollection) {
+    public void createIndexesAndAliases(MetadataCollections ...collections) {
 
         try {
-            createIndexesAndAliasesForDedicatedTenants(objectCollection, unitCollection);
-            createIndexesAndAliasesForTenantGroups(unitCollection, objectCollection);
+            createIndexesAndAliasesForDedicatedTenants(collections);
+            createIndexesAndAliasesForTenantGroups(collections);
         } catch (final Exception e) {
             throw new RuntimeException("Could not create indexes and aliases", e);
         }
     }
 
-    private void createIndexesAndAliasesForDedicatedTenants(MetadataCollections objectCollection,
-        MetadataCollections unitCollection) throws MetaDataExecutionException {
+    private void createIndexesAndAliasesForDedicatedTenants(MetadataCollections ...collections) throws MetaDataExecutionException {
         Collection<Integer> dedicatedTenants = this.indexManager.getDedicatedTenants();
 
         for (int tenantId : dedicatedTenants) {
-            createIndexAndAliasIfAliasNotExists(unitCollection, tenantId);
-            createIndexAndAliasIfAliasNotExists(objectCollection, tenantId);
+            for (MetadataCollections collection : collections) {
+                createIndexAndAliasIfAliasNotExists(collection, tenantId);
+            }
         }
     }
 
-    private void createIndexesAndAliasesForTenantGroups(MetadataCollections unitCollection,
-        MetadataCollections objectCollection) throws MetaDataExecutionException {
+    private void createIndexesAndAliasesForTenantGroups(MetadataCollections ...collections) throws MetaDataExecutionException {
         Collection<String> tenantGroups = this.indexManager.getTenantGroups();
         for (String tenantGroup : tenantGroups) {
 
@@ -115,8 +114,9 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             }
 
             int tenantId = tenantGroupTenants.iterator().next();
-            createIndexAndAliasIfAliasNotExists(unitCollection, tenantId);
-            createIndexAndAliasIfAliasNotExists(objectCollection, tenantId);
+            for (MetadataCollections collection : collections) {
+                createIndexAndAliasIfAliasNotExists(collection, tenantId);
+            }
         }
     }
 

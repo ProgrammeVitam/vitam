@@ -44,6 +44,7 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 
@@ -237,8 +238,9 @@ public class ProjectInternalResource {
                 throw new CollectInternalException("Could not find transaction");
             }
 
-            JsonNode response = metadataService.selectUnits(queryDsl, transaction.get().getId());
-            return Response.status(Response.Status.OK).entity(response).build();
+            List<JsonNode> units = metadataService.selectUnits(queryDsl, transaction.get().getId());
+            return Response.status(Response.Status.OK).entity(new RequestResponseOK<JsonNode>().addAllResults(units))
+                .build();
         } catch (CollectInternalException e) {
             LOGGER.error(ERROR_GETTING_UNITS_BY_PROJECT_ID_MSG, e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());

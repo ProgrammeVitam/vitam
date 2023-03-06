@@ -1,0 +1,8 @@
+File;Content.DescriptionLevel;Content.Title.0;Content.Title.0.attr;Content.Title.1;Content.Title.1.attr;Content.Description;Content.Description.attr;Content.StartDate;Content.EndDate;Management.AppraisalRule.Rule.0;Management.AppraisalRule.StartDate.0;Management.AppraisalRule.Rule.1;Management.AppraisalRule.StartDate.1;Management.AppraisalRule.PreventInheritance;Management.AppraisalRule.RefNonRuleId;Management.AppraisalRule.FinalAction;Management.AccessRule.Rule;Management.AccessRule.StartDate;Management.ReuseRule.Rule;Management.ReuseRule.StartDate;Management.HoldRule.Rule;Management.HoldRule.StartDate;Management.HoldRule.HoldEndDate;Management.HoldRule.HoldOwner;Management.HoldRule.HoldReason
+ROOT/Parent A/Child C;Item;Child C;"xml:lang=""en""";Enfant C;"xml:lang=""fr""";Child C Description;"xml:lang=""en""";;;;;;;;;;;;;;;;;;
+ROOT/Parent A/Child D;Item;Child D;;;;;;;;APP-00002;2022-10-04;APP-00003;2022-10-05;true;APP-00001;Destroy;;;;;HOL-00002;2022-10-12;2022-10-29;Vitam;IDK
+ROOT/Parent A;RecordGrp;Parent A;;;;;;;;APP-00001;2022-10-05;;;;;;;;;;;;;;
+ROOT/Parent B/Child E;Item;Child E;"xml:lang=""en""";Enfant E;"xml:lang=""fr""";Child E Description;;2022-10-06T00:30:00;2022-10-08T01:00:00;;;;;;;;;;;;;;;;
+ROOT/Parent B/Child F;Item;Child F;;;;;;;;APP-00001;2022-10-07;;;;;Keep;ACC-00001;2022-10-06;;;HOL-00001;2022-10-06;;;
+ROOT/Parent B;RecordGrp;Parent B;;;;;;;;;;;;;;;;;STO-00001;2022-10-06;;;;;
+ROOT;RecordGrp;ROOT;;;;;;;;;;;;;;;;;;;;;;;

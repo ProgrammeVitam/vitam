@@ -1,40 +1,36 @@
-{
-  $results: [
     {
-      _id: 'aeeaaaaaacfm6tqsaa4kkamaddhfjfyaaaaq',
-      _tenant: 0,
-      FileInfo: {
-        Filename: '123.txt'
+      "_id": "aeeaaaaaacfm6tqsaa4kkamaddhfjfyaaaaq",
+      "_tenant": 0,
+      "FileInfo": {
+        "Filename": "123.txt"
       },
-      _nbc: 1,
-      _opi: 'aeeaaaaaacfm6tqsaawpgamadc37f5iaaaaq',
-      _qualifiers: [
+      "_nbc": 1,
+      "_opi": "aeeaaaaaacfm6tqsaawpgamadc37f5iaaaaq",
+      "_qualifiers": [
         {
-          qualifier: 'TextContent',
-          _nbc: 1,
-          versions: [
+          "qualifier": "TextContent",
+          "_nbc": 1,
+          "versions": [
             {
-              _id: 'aeeaaaaaacfm6tqsaa4kkamaddhfjgaaaaaq',
-              DataObjectVersion: 'TextContent_1',
-              FormatIdentification: {
-                FormatLitteral: 'Plain Text File',
-                MimeType: 'text/plain',
-                FormatId: 'x-fmt/111'
+              "_id": "aeeaaaaaacfm6tqsaa4kkamaddhfjgaaaaaq",
+              "DataObjectVersion": "TextContent_1",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
               },
-              FileInfo: {
-                Filename: '123.txt'
+              "FileInfo": {
+                "Filename": "123.txt"
               },
-              Size: 197,
-              Uri: 'Content/aeeaaaaaacfm6tqsaa4kkamaddhfjgaaaaaq.txt',
-              MessageDigest: 'afb0fc6db17d41192e482b378362d07535bec6870c7fb23c3cf7cb43163a4778006b718fa4f876626885a2d3e1b1c2f87006b5b9dd1936b529dfe7dab9635dd0',
-              Algorithm: 'SHA-512',
-              _opi: 'aeeaaaaaacfm6tqsaawpgamadc37f5iaaaaq'
+              "Size": 197,
+              "Uri": "Content/aeeaaaaaacfm6tqsaa4kkamaddhfjgaaaaaq.txt",
+              "MessageDigest": "afb0fc6db17d41192e482b378362d07535bec6870c7fb23c3cf7cb43163a4778006b718fa4f876626885a2d3e1b1c2f87006b5b9dd1936b529dfe7dab9635dd0",
+              "Algorithm": "SHA-512",
+              "_opi": "aeeaaaaaacfm6tqsaawpgamadc37f5iaaaaq"
             }
           ]
         }
       ],
-      _v: 1,
-      _av: 1
+      "_v": 1,
+      "_av": 1
     }
-  ]
-}

@@ -31,6 +31,7 @@ import com.mongodb.client.MongoClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfiguration;
+import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
 import fr.gouv.vitam.collect.internal.core.service.CollectService;
@@ -101,18 +102,20 @@ public class BusinessApplication extends ConfigurationApplication {
             // Repositories
             TransactionRepository transactionRepository = new TransactionRepository(mongoDbAccess);
             ProjectRepository projectRepository = new ProjectRepository(mongoDbAccess);
+            MetadataRepository metadataRepository = new MetadataRepository(metadataCollectClientFactory);
 
             // Services
-            MetadataService metadataService = new MetadataService(metadataCollectClientFactory);
+            MetadataService metadataService = new MetadataService(metadataRepository, projectRepository);
             ProjectService projectService = new ProjectService(projectRepository);
             TransactionService transactionService =
-                new TransactionService(transactionRepository, projectService, metadataService,
+                new TransactionService(transactionRepository, projectService, metadataRepository,
                     workspaceCollectClientFactory, accessInternalClientFactory, ingestInternalClientFactory);
-            SipService sipService = new SipService(workspaceCollectClientFactory, metadataService);
+            SipService sipService = new SipService(workspaceCollectClientFactory, metadataRepository);
             CollectService collectService =
-                new CollectService(metadataService, workspaceCollectClientFactory,
+                new CollectService(metadataRepository, workspaceCollectClientFactory,
                     FormatIdentifierFactory.getInstance());
-            FluxService fluxService = new FluxService(collectService, metadataService);
+            FluxService fluxService = new FluxService(collectService, metadataService, projectRepository,
+                metadataRepository);
 
 
             // Resources

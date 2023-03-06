@@ -38,6 +38,7 @@ import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionStatus;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
+import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -101,20 +102,20 @@ public class TransactionService {
         StatusCode.WARNING.name(), TransactionStatus.ACK_WARNING);
 
     private final TransactionRepository transactionRepository;
+    private final MetadataRepository metadataRepository;
     private final ProjectService projectService;
-    private final MetadataService metadataService;
     private final WorkspaceClientFactory workspaceCollectClientFactory;
     private final AccessInternalClientFactory accessInternalClientFactory;
 
     private final IngestInternalClientFactory ingestInternalClientFactory;
 
     public TransactionService(TransactionRepository transactionRepository, ProjectService projectService,
-        MetadataService metadataService, WorkspaceClientFactory workspaceCollectClientFactory,
+        MetadataRepository metadataRepository, WorkspaceClientFactory workspaceCollectClientFactory,
         AccessInternalClientFactory accessInternalClientFactory,
         IngestInternalClientFactory ingestInternalClientFactory) {
         this.transactionRepository = transactionRepository;
         this.projectService = projectService;
-        this.metadataService = metadataService;
+        this.metadataRepository = metadataRepository;
         this.workspaceCollectClientFactory = workspaceCollectClientFactory;
         this.accessInternalClientFactory = accessInternalClientFactory;
         this.ingestInternalClientFactory = ingestInternalClientFactory;
@@ -165,7 +166,7 @@ public class TransactionService {
             QueryProjection queryProjection = new QueryProjection();
             queryProjection.setFields(Map.of(VitamFieldsHelper.id(), 1, VitamFieldsHelper.object(), 1));
             request.setProjection(JsonHandler.toJsonNode(queryProjection));
-            final ScrollSpliterator<JsonNode> scrollRequest = metadataService.selectUnits(request, id);
+            final ScrollSpliterator<JsonNode> scrollRequest = metadataRepository.selectUnits(request, id);
             Iterator<List<JsonNode>> iterator =
                 Iterators.partition(new SpliteratorIterator<>(scrollRequest), VitamConfiguration.getBatchSize());
 
@@ -174,11 +175,11 @@ public class TransactionService {
                 final List<String> idObjectGroups =
                     units.stream().map(e -> e.get(VitamFieldsHelper.object())).filter(Objects::nonNull)
                         .map(JsonNode::asText).collect(Collectors.toList());
-                metadataService.deleteObjectGroups(idObjectGroups);
+                metadataRepository.deleteObjectGroups(idObjectGroups);
                 final List<String> idUnits =
                     units.stream().map(e -> e.get(VitamFieldsHelper.id())).map(JsonNode::asText)
                         .collect(Collectors.toList());
-                metadataService.deleteUnits(idUnits);
+                metadataRepository.deleteUnits(idUnits);
             }
         } catch (InvalidParseOperationException e) {
             throw new CollectInternalException(e);

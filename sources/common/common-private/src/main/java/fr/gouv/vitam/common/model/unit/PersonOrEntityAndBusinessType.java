@@ -217,9 +217,6 @@ public class PersonOrEntityAndBusinessType {
     }
 
     public List<String> getNationalities() {
-        if (nationalities == null) {
-            nationalities = new ArrayList<>();
-        }
         return nationalities;
     }
 
@@ -236,9 +233,6 @@ public class PersonOrEntityAndBusinessType {
     }
 
     public List<String> getIdentifiers() {
-        if (identifiers == null) {
-            identifiers = new ArrayList<>();
-        }
         return identifiers;
     }
 

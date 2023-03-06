@@ -27,65 +27,48 @@
 package fr.gouv.vitam.collect.common.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.LocalDateUtil;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
-import java.util.Objects;
+public class MetadataUnitUp {
 
-public class FileInfoDto implements Serializable {
+    @JsonProperty("UnitUp")
+    private String unitUp;
 
-    @JsonProperty("Filename")
-    private String fileName;
+    @JsonProperty("MetadataKey")
+    private String metadataKey;
 
+    @JsonProperty("MetadataValue")
+    private String metadataValue;
 
-    @JsonProperty("LastModified")
-    private String lastModified;
-
-    public FileInfoDto() {
-        setLastModified(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
+    public MetadataUnitUp() {
     }
 
-    public FileInfoDto(String fileName, String lastModified) {
-        this.fileName = fileName;
-        this.setLastModified(lastModified);
+    public MetadataUnitUp(String unitUp, String metadataKey, String metadataValue) {
+        this.unitUp = unitUp;
+        this.metadataKey = metadataKey;
+        this.metadataValue = metadataValue;
     }
 
-    public String getFileName() {
-        return fileName;
+    public String getUnitUp() {
+        return unitUp;
     }
 
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
+    public void setUnitUp(String unitUp) {
+        this.unitUp = unitUp;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        FileInfoDto that = (FileInfoDto) o;
-        return Objects.equals(fileName, that.fileName);
+    public String getMetadataKey() {
+        return metadataKey;
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(fileName);
+    public void setMetadataKey(String metadataKey) {
+        this.metadataKey = metadataKey;
     }
 
-    public String getLastModified() {
-        return lastModified;
+    public String getMetadataValue() {
+        return metadataValue;
     }
 
-    public void setLastModified(String lastModified) {
-        this.lastModified = lastModified;
-    }
-
-    @Override
-    public String toString() {
-        return "FileInfoDto{" +
-            "fileName='" + fileName + '\'' +
-            '}';
+    public void setMetadataValue(String metadataValue) {
+        this.metadataValue = metadataValue;
     }
 }

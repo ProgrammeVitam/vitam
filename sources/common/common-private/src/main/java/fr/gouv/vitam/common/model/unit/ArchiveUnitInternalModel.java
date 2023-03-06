@@ -53,7 +53,7 @@ public class ArchiveUnitInternalModel {
     private DescriptiveMetadataModel descriptiveMetadataModel;
 
     @JsonProperty("_history")
-    private List<ArchiveUnitHistoryModel> history = new ArrayList<>();
+    private List<ArchiveUnitHistoryModel> history;
 
     @JsonProperty("_sedaVersion")
     private String sedaVersion;
@@ -78,6 +78,12 @@ public class ArchiveUnitInternalModel {
 
     @JsonProperty("_sps")
     private List<String> originatingAgencies;
+
+    @JsonProperty("_up")
+    private List<String> unitups;
+
+    @JsonProperty("_us")
+    private List<String> allunitups;
 
     /**
      * Constructor
@@ -202,5 +208,21 @@ public class ArchiveUnitInternalModel {
 
     public void setOpts(List<String> opts) {
         this.opts = opts;
+    }
+
+    public List<String> getUnitups() {
+        return unitups;
+    }
+
+    public void setUnitups(List<String> unitups) {
+        this.unitups = unitups;
+    }
+
+    public List<String> getAllunitups() {
+        return allunitups;
+    }
+
+    public void setAllunitups(List<String> allunitups) {
+        this.allunitups = allunitups;
     }
 }
