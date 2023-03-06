@@ -81,7 +81,7 @@ public class DescriptiveMetadataMapper {
         DescriptiveMetadataModel descriptiveMetadataModel = new DescriptiveMetadataModel();
         descriptiveMetadataModel.setAcquiredDate(
             LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getAcquiredDate()));
-        descriptiveMetadataModel.getAddressee().addAll(metadataContentType.getAddressee());
+        descriptiveMetadataModel.setAddressee(metadataContentType.getAddressee());
 
         descriptiveMetadataModel.setAny(ElementMapper.toMap(metadataContentType.getAny()));
         descriptiveMetadataModel
@@ -123,7 +123,7 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel
             .setOriginatingAgencyArchiveUnitIdentifier(metadataContentType.getOriginatingAgencyArchiveUnitIdentifier());
         descriptiveMetadataModel.setOriginatingSystemId(metadataContentType.getOriginatingSystemId());
-        descriptiveMetadataModel.getRecipient().addAll(metadataContentType.getRecipient());
+        descriptiveMetadataModel.setRecipient(metadataContentType.getRecipient());
 
         descriptiveMetadataModel.setRegisteredDate(
             LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getRegisteredDate()));

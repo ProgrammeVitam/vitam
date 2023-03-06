@@ -42,11 +42,8 @@ import static java.util.Arrays.asList;
 /**
  * Object mapping VersionsResponse
  */
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class VersionsModel {
-
-    @JsonProperty("#rank")
-    private int rank;
 
     @JsonProperty("#id")
     private String id;
@@ -131,14 +128,6 @@ public class VersionsModel {
     public void setPhysicalDimensionsModel(
         PhysicalDimensionsModel physicalDimensionsModel) {
         this.physicalDimensionsModel = physicalDimensionsModel;
-    }
-
-    public int getRank() {
-        return rank;
-    }
-
-    public void setRank(int rank) {
-        this.rank = rank;
     }
 
     public String getId() {
@@ -254,8 +243,7 @@ public class VersionsModel {
     @Override
     public String toString() {
         return "VersionsModel{" +
-            "rank=" + rank +
-            ", id='" + id + '\'' +
+            "id='" + id + '\'' +
             ", dataObjectVersion='" + dataObjectVersion + '\'' +
             ", dataObjectProfile='" + dataObjectProfile + '\'' +
             ", dataObjectGroupId='" + dataObjectGroupId + '\'' +

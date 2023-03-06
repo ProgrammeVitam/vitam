@@ -85,9 +85,12 @@ public class MongoDbAccessMetadataFactory {
         if (Boolean.TRUE.equals(configuration.getCollectModule())) {
             unitCollection.setPrefix(COLLECT_PREFIX);
             objectCollection.setPrefix(COLLECT_PREFIX);
+        }else {
+            unitCollection.setPrefix("");
+            objectCollection.setPrefix("");
         }
 
-        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), true, esClient, unitCollection,
+        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), false, esClient, unitCollection,
             objectCollection);
     }
 }

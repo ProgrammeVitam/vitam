@@ -80,7 +80,9 @@ public class DescriptiveMetadataMapper {
         DescriptiveMetadataContentType dmc = new DescriptiveMetadataContentType();
         dmc.setAcquiredDate(metadataModel.getAcquiredDate());
 
-        dmc.getAddressee().addAll(metadataModel.getAddressee());
+        if(metadataModel.getAddressee() != null) {
+            dmc.getAddressee().addAll(metadataModel.getAddressee());
+        }
         dmc.getAny().addAll(
             TransformJsonTreeToListOfXmlElement.mapJsonToElement(metadataModel.getAny()));
 
@@ -102,7 +104,9 @@ public class DescriptiveMetadataMapper {
         dmc.setDescriptionLevel(metadataModel.getDescriptionLevel());
         dmc.setDocumentType(metadataModel.getDocumentType());
         dmc.setEndDate(metadataModel.getEndDate());
-        dmc.getEvent().addAll(mapEvents(metadataModel.getEvent()));
+        if(metadataModel.getEvent() != null) {
+            dmc.getEvent().addAll(mapEvents(metadataModel.getEvent()));
+        }
         dmc.setGps(metadataModel.getGps());
         dmc.setOriginatingAgency(metadataModel.getOriginatingAgency());
 
@@ -180,7 +184,9 @@ public class DescriptiveMetadataMapper {
         dmc.setStatus(metadataModel.getStatus());
         dmc.setSubmissionAgency(metadataModel.getSubmissionAgency());
 
-        dmc.getTag().addAll(metadataModel.getTag());
+        if(metadataModel.getTag() != null) {
+            dmc.getTag().addAll(metadataModel.getTag());
+        }
 
         if (metadataModel.getTitle_() != null) {
             dmc.getTitle().addAll(metadataModel.getTitle_().getTextTypes());
@@ -193,11 +199,15 @@ public class DescriptiveMetadataMapper {
         dmc.setTransactedDate(metadataModel.getTransactedDate());
         dmc.setType(metadataModel.getType());
         dmc.setVersion(metadataModel.getVersion());
-        dmc.getWriter().addAll(metadataModel.getWriter());
-
-        dmc.getTransmitter().addAll(metadataModel.getTransmitter());
-        dmc.getSender().addAll(metadataModel.getSender());
-
+        if(metadataModel.getWriter() != null) {
+            dmc.getWriter().addAll(metadataModel.getWriter());
+        }
+        if(metadataModel.getTransmitter() != null) {
+            dmc.getTransmitter().addAll(metadataModel.getTransmitter());
+        }
+        if(metadataModel.getSender() != null) {
+            dmc.getSender().addAll(metadataModel.getSender());
+        }
 
         fillHistory(historyListModel, dmc.getHistory());
 

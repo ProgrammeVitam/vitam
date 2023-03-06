@@ -27,24 +27,19 @@
 
 package fr.gouv.vitam.collect.internal.core.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.collect.common.dto.ObjectDto;
-import fr.gouv.vitam.collect.common.dto.ProjectDto;
-import fr.gouv.vitam.collect.common.dto.TransactionDto;
-import fr.gouv.vitam.collect.internal.core.common.CollectUnitModel;
-import fr.gouv.vitam.collect.internal.core.helpers.builders.DbObjectGroupModelBuilder;
+import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
+import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
+import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
+import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
+import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
-import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
-import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
-import fr.gouv.vitam.common.guid.GUIDFactory;
+import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
-import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -55,6 +50,8 @@ import net.javacrumbs.jsonunit.core.Option;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -64,31 +61,33 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static fr.gouv.vitam.collect.internal.core.service.FluxService.METADATA_CSV_FILE;
+import static fr.gouv.vitam.common.SedaConstants.TAG_FILE_INFO;
+import static fr.gouv.vitam.common.SedaConstants.TAG_URI;
+import static fr.gouv.vitam.common.SedaConstants.TAG_VERSIONS;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class FluxServiceTest {
 
     private static final int TENANT_ID = 0;
+    private static final String TRANSACTION_ID = "TRANSACTION_ID";
+    private static final String PROJECT_ID = "PROJECT_ID";
 
     private static final String UNITS_PATH = "streamZip/units.json";
 
     private static final String OBJECTGROUPS_PATH = "streamZip/objectgroups.json";
-
-    private static final String UNITS_WITH_GRAPH_PATH = "streamZip/units_with_graph.json";
-
-    private static final String QUERIES_PATH = "streamZip/queries.json";
 
     private static final String TRANSACTION_ZIP_PATH = "streamZip/transaction.zip";
 
@@ -102,66 +101,60 @@ public class FluxServiceTest {
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     @Mock private CollectService collectService;
-
     @Mock private MetadataService metadataService;
 
-    FluxService fluxService;
+    @Mock private ProjectRepository projectRepository;
+    @Mock private MetadataRepository metadataRepository;
+
+    @InjectMocks private FluxService fluxService;
+
+    private TransactionModel transactionModel;
+    private ProjectModel projectModel;
 
     @Before
     public void setUp() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        fluxService = new FluxService(collectService, metadataService);
+
+        transactionModel = new TransactionModel();
+        transactionModel.setId(TRANSACTION_ID);
+        transactionModel.setProjectId(PROJECT_ID);
+        projectModel = new ProjectModel();
+        projectModel.setId(PROJECT_ID);
+
+        projectModel.setManifestContext(new ManifestContext());
+        when(collectService.detectFileFormat(anyString(), anyString())).thenReturn(
+            new FormatIdentifierResponse("", "", "", ""));
     }
 
     @Test
     @RunWithCustomExecutor
     public void processStream() throws Exception {
-        TransactionDto transactionDto = new TransactionDto();
-        transactionDto.setId("TRANSACTION_ID");
-        ProjectDto projectDto = new ProjectDto();
-        projectDto.setId("PROJECT_ID");
+        when(projectRepository.findProjectById(anyString())).thenReturn(Optional.of(projectModel));
         Map<String, JsonNode> units = new HashMap<>();
         Map<String, JsonNode> objectGroups = new HashMap<>();
-        when(metadataService.saveArchiveUnit(any())).thenAnswer(e -> {
-            final JsonNode unit = e.getArgument(0);
-            units.put(unit.get(VitamFieldsHelper.id()).asText(), unit);
-            return JsonHandler.toJsonNode(new RequestResponseOK<>(JsonHandler.createObjectNode(), List.of(unit), 1));
+        when(metadataRepository.saveArchiveUnits(ArgumentMatchers.anyList())).thenAnswer(e -> {
+            final List<ObjectNode> unitsToSave = e.getArgument(0);
+            for (ObjectNode unit : unitsToSave) {
+                units.put(unit.get(VitamFieldsHelper.id()).asText(), unit);
+            }
+            return JsonHandler.toJsonNode(
+                new RequestResponseOK<>(JsonHandler.createObjectNode(), unitsToSave, unitsToSave.size()));
         });
 
-        when(metadataService.selectUnitById(any())).thenAnswer(e -> {
-            final JsonNode unit = units.get((String) e.getArgument(0));
-            return JsonHandler.toJsonNode(new RequestResponseOK<>(JsonHandler.createObjectNode(), List.of(unit), 1));
+        when(metadataRepository.saveObjectGroups(anyList())).thenAnswer(e -> {
+            final List<ObjectNode> ogToSave = e.getArgument(0);
+            for (ObjectNode og : ogToSave) {
+                objectGroups.put(og.get(VitamFieldsHelper.id()).asText(), og);
+            }
+            return JsonHandler.toJsonNode(
+                new RequestResponseOK<>(JsonHandler.createObjectNode(), ogToSave, ogToSave.size()));
         });
 
-        when(collectService.updateOrSaveObjectGroup(any(), any(), anyInt(), any())).thenAnswer(e -> {
-            var unit = units.get(((CollectUnitModel) e.getArgument(0)).getId());
-            var usage = (DataObjectVersionType) e.getArgument(1);
-            int version = e.getArgument(2);
-            var objectDto = (ObjectDto) e.getArgument(3);
+        when(metadataService.prepareAttachmentUnits(any(), anyString())).thenReturn(new HashMap<>());
 
-            DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModelBuilder().withId(
-                    GUIDFactory.newObjectGroupGUID(ParameterHelper.getTenantParameter()).getId())
-                .withOpi(unit.get(VitamFieldsHelper.initialOperation()).asText())
-                .withFileInfoModel(objectDto.getFileInfo().getFileName())
-                .withQualifiers(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage, version).build();
-
-
-            ((ObjectNode) unit).put(VitamFieldsHelper.object(), dbObjectGroupModel.getId());
-
-            units.put(unit.get(VitamFieldsHelper.id()).asText(), unit);
-            final JsonNode objectGroup = JsonHandler.toJsonNode(dbObjectGroupModel);
-            objectGroups.put(dbObjectGroupModel.getId(), objectGroup);
-
-            return new ObjectDto(dbObjectGroupModel.getId(), null);
-        });
-
-        when(metadataService.selectObjectGroupById(any(), anyBoolean())).thenAnswer(e -> {
-            final JsonNode og = objectGroups.get((String) e.getArgument(0));
-            return JsonHandler.toJsonNode(new RequestResponseOK<>(JsonHandler.createObjectNode(), List.of(og), 1));
-        });
 
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
-            fluxService.processStream(resourceAsStream, transactionDto, projectDto);
+            fluxService.processStream(resourceAsStream, transactionModel);
         }
 
 
@@ -171,70 +164,21 @@ public class FluxServiceTest {
             .whenIgnoringPaths(List.of("[*]." + VitamFieldsHelper.id(), "[*]." + VitamFieldsHelper.unitups(),
                 "[*]." + VitamFieldsHelper.object())));
 
-
-
         final JsonNode expectedGots = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(OBJECTGROUPS_PATH));
 
         JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(objectGroups.values()), expectedGots,
-            JsonAssert.when(Option.IGNORING_ARRAY_ORDER)
-                .whenIgnoringPaths(List.of("[*]." + "_id", "[*]." + "_qualifiers[*].versions[*]._id")));
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths(List.of("[*]." + VitamFieldsHelper.id(),
+                "[*]." + VitamFieldsHelper.qualifiers() + "[*]." + TAG_VERSIONS + "[*]." + VitamFieldsHelper.id(),
+                "[*]." + TAG_FILE_INFO + "." + FileInfoModel.LAST_MODIFIED,
+                "[*]." + VitamFieldsHelper.qualifiers() + "[*]." + TAG_VERSIONS + "[*]." + TAG_FILE_INFO + "." +
+                    FileInfoModel.LAST_MODIFIED,
+                "[*]." + VitamFieldsHelper.qualifiers() + "[*]." + TAG_VERSIONS + "[*]." + TAG_URI)));
     }
 
     @Test
     @RunWithCustomExecutor
     public void processStream_with_metadata_update() throws Exception {
-        TransactionDto transactionDto = new TransactionDto();
-        transactionDto.setId("TRANSACTION_ID");
-        ProjectDto projectDto = new ProjectDto();
-        projectDto.setId("PROJECT_ID");
-        Map<String, JsonNode> units = new HashMap<>();
-        Map<String, JsonNode> objectGroups = new HashMap<>();
-        when(metadataService.saveArchiveUnit(any())).thenAnswer(e -> {
-            final JsonNode unit = e.getArgument(0);
-            units.put(unit.get(VitamFieldsHelper.id()).asText(), unit);
-            return JsonHandler.toJsonNode(new RequestResponseOK<>(JsonHandler.createObjectNode(), List.of(unit), 1));
-        });
-
-        when(metadataService.selectUnitById(any())).thenAnswer(e -> {
-            final JsonNode unit = units.get((String) e.getArgument(0));
-            return JsonHandler.toJsonNode(new RequestResponseOK<>(JsonHandler.createObjectNode(), List.of(unit), 1));
-        });
-
-        when(collectService.updateOrSaveObjectGroup(any(), any(), anyInt(), any())).thenAnswer(e -> {
-            var unit = units.get(((CollectUnitModel) e.getArgument(0)).getId());
-            var usage = (DataObjectVersionType) e.getArgument(1);
-            int version = e.getArgument(2);
-            var objectDto = (ObjectDto) e.getArgument(3);
-
-            DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModelBuilder().withId(
-                    GUIDFactory.newObjectGroupGUID(ParameterHelper.getTenantParameter()).getId())
-                .withOpi(unit.get(VitamFieldsHelper.initialOperation()).asText())
-                .withFileInfoModel(objectDto.getFileInfo().getFileName())
-                .withQualifiers(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage, version).build();
-
-
-            ((ObjectNode) unit).put(VitamFieldsHelper.object(), dbObjectGroupModel.getId());
-
-            units.put(unit.get(VitamFieldsHelper.id()).asText(), unit);
-            final JsonNode objectGroup = JsonHandler.toJsonNode(dbObjectGroupModel);
-            objectGroups.put(dbObjectGroupModel.getId(), objectGroup);
-
-            return new ObjectDto(dbObjectGroupModel.getId(), null);
-        });
-
-        when(metadataService.selectObjectGroupById(any(), anyBoolean())).thenAnswer(e -> {
-            final JsonNode og = objectGroups.get((String) e.getArgument(0));
-            return JsonHandler.toJsonNode(new RequestResponseOK<>(JsonHandler.createObjectNode(), List.of(og), 1));
-        });
-
-        final List<JsonNode> unitsJson =
-            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(UNITS_WITH_GRAPH_PATH),
-                new TypeReference<>() {
-                });
-
-        when(metadataService.selectUnits(any(SelectMultiQuery.class), any())).thenReturn(
-            new ScrollSpliterator<>(mock(SelectMultiQuery.class),
-                (query) -> new RequestResponseOK<JsonNode>().addAllResults(new ArrayList<>(unitsJson)), 0, 0));
+        when(projectRepository.findProjectById(anyString())).thenReturn(Optional.of(projectModel));
 
         final AtomicReference<File> fileReference = new AtomicReference<>();
         when(collectService.pushStreamToWorkspace(any(), any(InputStream.class), eq(METADATA_CSV_FILE))).thenAnswer(
@@ -249,44 +193,12 @@ public class FluxServiceTest {
         when(collectService.getInputStreamFromWorkspace(any(), eq(METADATA_CSV_FILE))).thenAnswer(
             (e) -> new FileInputStream(fileReference.get()));
 
-
-        AtomicReference<List<JsonNode>> requestReference = new AtomicReference<>();
-
-        when(metadataService.atomicBulkUpdate(any())).thenAnswer((e) -> {
-            final List<JsonNode> argument = e.getArgument(0);
-            requestReference.set(argument);
-            return new RequestResponseOK<>().addAllResults(
-                List.of(JsonHandler.toJsonNode(
-                    new RequestResponseOK<>().addResult(JsonHandler.createObjectNode().put("#status", "OK")))));
-        });
+        when(metadataService.prepareAttachmentUnits(any(), anyString())).thenReturn(new HashMap<>());
 
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION2_ZIP_PATH)) {
-            fluxService.processStream(resourceAsStream, transactionDto, projectDto);
+            fluxService.processStream(resourceAsStream, transactionModel);
         }
 
-        final JsonNode expectedQueries =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(QUERIES_PATH));
-
-        JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(requestReference.get()), expectedQueries);
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void uploadArchiveUnit() {
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void getUnitParentByPath() {
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void uploadObjectGroup() {
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void uploadBinary() {
+        verify(metadataService).updateUnitsWithMetadataFile(eq("TRANSACTION_ID"), any());
     }
 }

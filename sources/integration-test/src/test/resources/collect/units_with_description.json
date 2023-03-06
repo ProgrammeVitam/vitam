@@ -84,7 +84,7 @@
     "#unitType": "INGEST",
     "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
     "#originating_agencies": [],
-    "#version": 2,
+    "#version": 1,
     "#approximate_creation_date": "2022-10-18T19:39:29.507",
     "#approximate_update_date": "2022-10-18T19:39:29.969"
   },
@@ -108,12 +108,12 @@
     "#unitType": "INGEST",
     "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
     "#originating_agencies": [],
-    "#version": 1,
+    "#version": 0,
     "#approximate_creation_date": "2022-10-18T19:39:29.181",
     "#approximate_update_date": "2022-10-18T19:39:29.228"
   },
   {
-    "Title": "AU de Rattachement",
+    "Title": "STATIC_ATTACHEMENT",
     "DescriptionLevel": "Series",
     "#id": "aeaqaaaaaaeaaaaba3gnkamd5sn2v3aaaaaq",
     "#tenant": 0,
@@ -506,7 +506,7 @@
     "RegisteredDate": "2017-01-01T00:00:00",
     "EndDate": "2017-04-04T08:07:00",
     "Arrangement": [
-      "<Arrangement>Hi\u00E9rarchique</Arrangement>"
+      "Hi\u00E9rarchique"
     ],
     "Sender": [
       {
@@ -788,7 +788,7 @@
     "#unitType": "INGEST",
     "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
     "#originating_agencies": [],
-    "#version": 1,
+    "#version": 0,
     "#approximate_creation_date": "2022-10-18T19:39:28.816",
     "#approximate_update_date": "2022-10-18T19:39:29.032"
   },
@@ -813,7 +813,7 @@
     "#unitType": "INGEST",
     "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
     "#originating_agencies": [],
-    "#version": 1,
+    "#version": 0,
     "#approximate_creation_date": "2022-10-18T19:39:29.694",
     "#approximate_update_date": "2022-10-18T19:39:29.739"
   },
@@ -836,7 +836,7 @@
     "#unitType": "INGEST",
     "#opi": "aeeaaaaaaceaaaaba3gnkamd5sn2uwqaaaaq",
     "#originating_agencies": [],
-    "#version": 1,
+    "#version": 0,
     "#approximate_creation_date": "2022-10-18T19:39:29.3",
     "#approximate_update_date": "2022-10-18T19:39:29.348"
   },

@@ -35,6 +35,7 @@ import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionStatus;
+import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
@@ -115,7 +116,7 @@ public class TransactionServiceTest {
     @Mock
     private IngestInternalClient ingestInternalClient;
     @Mock
-    private MetadataService metadataService;
+    private MetadataRepository metadataRepository;
 
     @Before
     public void setup() {
@@ -260,14 +261,14 @@ public class TransactionServiceTest {
             JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(UNITS_WITH_GRAPH_PATH),
                 new TypeReference<>() {
                 });
-        when(metadataService.selectUnits(any(SelectMultiQuery.class), any())).thenReturn(
+        when(metadataRepository.selectUnits(any(SelectMultiQuery.class), any())).thenReturn(
             new ScrollSpliterator<>(mock(SelectMultiQuery.class),
                 (query) -> new RequestResponseOK<JsonNode>().addAllResults(new ArrayList<>(unitsJson)), 0, 0));
         doNothing().when(workspaceClient).deleteContainer(any(), eq(true));
         // When
         transactionService.deleteTransaction("1");
         // Then
-        verify(metadataService, times(1)).deleteUnits(
+        verify(metadataRepository, times(1)).deleteUnits(
             List.of("aeaqaaaaaacpbveraqxzuamdvda5j5yaaaaq", "aeaqaaaaaacpbveraqxzuamdvda5l4qaaaaq",
                 "aeaqaaaaaacpbveraqxzuamdvda5l4qaaaba", "aeaqaaaaaacpbveraqxzuamdvda5lcyaaaaq",
                 "aeaqaaaaaacpbveraqxzuamdvda5l5qaaaaq", "aeaqaaaaaacpbveraqxzuamdvda5lcqaaaaq",

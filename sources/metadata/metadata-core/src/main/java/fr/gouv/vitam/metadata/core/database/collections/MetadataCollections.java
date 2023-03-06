@@ -101,6 +101,10 @@ public enum MetadataCollections {
         return this.prefix + vitamCollection.getName();
     }
 
+    public String getPrefix() {
+        return prefix;
+    }
+
     public void setPrefix(String prefix) {
         this.prefix = prefix;
     }

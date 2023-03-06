@@ -267,7 +267,7 @@ public interface CollectExternalClient extends MockOrRestClient {
      * @return RequestResponse<JsonNode>
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    RequestResponse uploadProjectZip(VitamContext vitamContext, String transactionId, InputStream inputStreamUploaded)
+    RequestResponse<JsonNode> uploadProjectZip(VitamContext vitamContext, String transactionId, InputStream inputStreamUploaded)
         throws VitamClientException;
 
 
@@ -311,7 +311,7 @@ public interface CollectExternalClient extends MockOrRestClient {
 
 
 
-    RequestResponse updateUnits(VitamContext vitamContext, String transactionId, InputStream is)
+    RequestResponse<JsonNode> updateUnits(VitamContext vitamContext, String transactionId, InputStream is)
         throws VitamClientException;
 }
 

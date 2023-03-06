@@ -79,6 +79,12 @@ public class ArchiveUnitModel {
     @JsonProperty("#originating_agencies")
     private List<String> originatingAgencies;
 
+    @JsonProperty("#unitups")
+    private List<String> unitups;
+
+    @JsonProperty("#allunitups")
+    private List<String> allunitups;
+
     /**
      * Constructor
      */
@@ -196,6 +202,22 @@ public class ArchiveUnitModel {
     public ArchiveUnitModel setOriginatingAgencies(List<String> originatingAgencies) {
         this.originatingAgencies = originatingAgencies;
         return this;
+    }
+
+    public List<String> getUnitups() {
+        return unitups;
+    }
+
+    public void setUnitups(List<String> unitups) {
+        this.unitups = unitups;
+    }
+
+    public List<String> getAllunitups() {
+        return allunitups;
+    }
+
+    public void setAllunitups(List<String> allunitups) {
+        this.allunitups = allunitups;
     }
 
     public List<String> getOpts() {

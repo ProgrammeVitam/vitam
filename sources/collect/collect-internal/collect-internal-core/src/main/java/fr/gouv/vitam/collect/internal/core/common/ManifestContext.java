@@ -62,9 +62,6 @@ public class ManifestContext {
     @JsonProperty("Comment")
     private String comment;
 
-    @JsonProperty("UnitUp")
-    private String unitUp;
-
     public ManifestContext() {
     }
 
@@ -82,7 +79,6 @@ public class ManifestContext {
         this.submissionAgencyIdentifier = submissionAgencyIdentifier;
         this.archivalProfile = archivalProfile;
         this.comment = comment;
-        this.unitUp = unitUp;
     }
 
     public String getArchivalAgreement() {
@@ -163,13 +159,5 @@ public class ManifestContext {
 
     public void setLegalStatus(String legalStatus) {
         this.legalStatus = legalStatus;
-    }
-
-    public String getUnitUp() {
-        return unitUp;
-    }
-
-    public void setUnitUp(String unitUp) {
-        this.unitUp = unitUp;
     }
 }

@@ -52,7 +52,7 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
     private static final int TENANT = 0;
     public static final String UNITS = "units";
 
-    public static final String QUERY_OBJECT = "{ \"id\" : \"1\",  \"fileInfo\" : {\"filename\" : \"name\"} }";
+    public static final String QUERY_OBJECT = "{ \"_id\" : \"1\",  \"FileInfo\" : {\"Filename\" : \"name\"} }";
     public static final String OBJECTS = "objects";
     private static final String OBJECT_ZIP_PATH = "streamZip/transaction.zip";
     public static final String OK_RESULT = "{\n" +
@@ -150,7 +150,7 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
 
     @Test
     public void getObjectById() throws Exception {
-        when(metadataService.selectObjectGroupById(any(), eq(true))).thenReturn(JsonHandler.getFromString(OK_RESULT));
+        when(metadataService.selectObjectGroupById(any())).thenReturn(JsonHandler.getFromString(OK_RESULT));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -164,7 +164,7 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
 
     @Test
     public void getObjectById_ko_collect_error() throws Exception {
-        when(metadataService.selectObjectGroupById("1", true)).thenThrow(new CollectInternalException("error"));
+        when(metadataService.selectObjectGroupById("1")).thenThrow(new CollectInternalException("error"));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -177,7 +177,7 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
 
     @Test
     public void getObjectById_ko_parsing_error() throws Exception {
-        when(metadataService.selectObjectGroupById("1", true)).thenThrow(new IllegalArgumentException("error"));
+        when(metadataService.selectObjectGroupById("1")).thenThrow(new IllegalArgumentException("error"));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)

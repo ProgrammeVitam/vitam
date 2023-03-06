@@ -94,15 +94,14 @@ public final class MetadataCollectionsTestUtils {
         ParametersChecker.checkParameter("metadataCollections is required", metadataCollections);
         for (MetadataCollections collection : metadataCollections) {
             collection.getVitamCollection()
-                .setName(prefix + collection.getVitamCollection().getClasz().getSimpleName());
-            collection.initialize(db, false);
+                .setName(prefix + collection.getPrefix() + collection.getVitamCollection().getClasz().getSimpleName());
+            collection.initialize(db, true);
             if (collection.getEsClient() == null) {
                 collection.initialize(esClient);
             }
-        }
-
-        if (esClient != null) {
-            esClient.createIndexesAndAliases(MetadataCollections.OBJECTGROUP, MetadataCollections.UNIT);
+            if (esClient != null) {
+                esClient.createIndexesAndAliases(collection);
+            }
         }
     }
 

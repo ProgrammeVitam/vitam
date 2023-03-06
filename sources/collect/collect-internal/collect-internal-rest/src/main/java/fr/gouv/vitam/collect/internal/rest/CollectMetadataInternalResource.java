@@ -40,13 +40,13 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 
+import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -96,7 +96,7 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response uploadObjectGroup(@PathParam("unitId") String unitId, @PathParam("usage") String usageString,
-        @PathParam("version") Integer version, ObjectDto objectDto) {
+        @PathParam("version") Integer version, @Valid ObjectDto objectDto) {
         try {
             SanityChecker.checkParameter(unitId);
             SanityChecker.checkParameter(usageString);
@@ -128,9 +128,8 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
 
         try {
             SanityChecker.checkParameter(gotId);
-            final RequestResponseOK<JsonNode> response =
-                RequestResponseOK.getFromJsonNode(metadataService.selectObjectGroupById(gotId, true));
-            return response.toResponse();
+            JsonNode objectGroup = metadataService.selectObjectGroupById(gotId);
+            return CollectRequestResponse.toResponseOK(objectGroup);
         } catch (CollectInternalException e) {
             LOGGER.error("Error when fetching object in metadata : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -191,13 +190,12 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
             return collectService.getBinaryByUsageAndVersion(archiveUnitModel, usage, version);
         } catch (CollectInternalException e) {
             LOGGER.debug("An error occurs when try to fetch binary from database : {}", e);
-            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("An error occurs when try to fetch binary from database : {}", e);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         } catch (StorageNotFoundException e) {
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
-
 }

@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -83,6 +84,9 @@ public class ProjectDto implements Serializable {
 
     @JsonProperty(value = "LastUpdate")
     private String lastUpdate;
+
+    @JsonProperty("UnitUps")
+    private List<MetadataUnitUp> unitUps;
 
     @JsonProperty(value = "Status")
     private String status;
@@ -244,6 +248,14 @@ public class ProjectDto implements Serializable {
 
     public void setLastUpdate(String lastUpdate) {
         this.lastUpdate = lastUpdate;
+    }
+
+    public List<MetadataUnitUp> getUnitUps() {
+        return unitUps;
+    }
+
+    public void setUnitUps(List<MetadataUnitUp> unitUps) {
+        this.unitUps = unitUps;
     }
 
     public String getStatus() {

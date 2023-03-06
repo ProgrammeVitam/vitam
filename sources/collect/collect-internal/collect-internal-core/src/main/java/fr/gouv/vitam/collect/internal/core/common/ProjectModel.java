@@ -27,7 +27,9 @@
 package fr.gouv.vitam.collect.internal.core.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -53,6 +55,12 @@ public class ProjectModel {
     @JsonProperty("LastUpdate")
     private String lastUpdate;
 
+    @JsonProperty("UnitUp")
+    private String unitUp;
+
+    @JsonProperty("UnitUps")
+    private List<MetadataUnitUp> unitUps;
+
     @JsonProperty("_tenant")
     private Integer tenant;
 
@@ -62,13 +70,14 @@ public class ProjectModel {
 
 
     public ProjectModel(String id, String name, ManifestContext manifestContext, ProjectStatus status,
-        String creationDate, String lastUpdate, Integer tenant) {
+        String creationDate, String lastUpdate, List<MetadataUnitUp> unitUps, Integer tenant) {
         this.id = id;
         this.name = name;
         this.manifestContext = manifestContext;
         this.status = status;
         this.creationDate = creationDate;
         this.lastUpdate = lastUpdate;
+        this.unitUps = unitUps;
         this.tenant = tenant;
     }
 
@@ -118,6 +127,22 @@ public class ProjectModel {
 
     public void setLastUpdate(String lastUpdate) {
         this.lastUpdate = lastUpdate;
+    }
+
+    public String getUnitUp() {
+        return unitUp;
+    }
+
+    public void setUnitUp(String unitUp) {
+        this.unitUp = unitUp;
+    }
+
+    public List<MetadataUnitUp> getUnitUps() {
+        return unitUps;
+    }
+
+    public void setUnitUps(List<MetadataUnitUp> unitUps) {
+        this.unitUps = unitUps;
     }
 
     public Integer getTenant() {

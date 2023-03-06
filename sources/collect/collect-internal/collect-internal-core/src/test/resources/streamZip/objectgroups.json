@@ -1,99 +1,119 @@
 [
   {
-    "_id": "aebaaaaaaacpbveraqxzuamdvda5l3yaaaaq",
-    "_tenant": 0,
+    "#id": "aebaaaaaaaeaaaabad3hgamgpfdfiwyaaaaq",
+    "#tenant": 0,
     "FileInfo": {
-      "Filename": "Child C"
+      "Filename": "Child C",
+      "LastModified": "2023-02-22T14:18:17.685"
     },
-    "_nbc": 1,
-    "_opi": "TRANSACTION_ID",
-    "_qualifiers": [
+    "#nbobjects": 1,
+    "#opi": "TRANSACTION_ID",
+    "#qualifiers": [
       {
-        "qualifier": "BinaryMaster",
-        "_nbc": 1,
+        "#nbc": "1",
         "versions": [
           {
-            "_id": "aebqaaaaaccpbveraqxzuamdvda5l3qaaaba",
+            "#id": "aebqaaaaaceaaaabad3hgamgpfdfiwaaaaaq",
             "DataObjectVersion": "BinaryMaster_1",
+            "FormatIdentification": {},
             "FileInfo": {
-              "Filename": "Child C"
+              "Filename": "Child C",
+              "LastModified": "2023-02-22T14:18:17.685"
             },
-            "Size": 0
+            "Size": 0,
+            "Uri": "Content/aeaaaaaaaaeaaaabad3hgamgpfdfiuaaaaaq",
+            "Algorithm": "SHA-512",
+            "#opi": "TRANSACTION_ID"
           }
         ]
       }
     ]
   },
   {
-    "_id": "aebaaaaaaacpbveraqxzuamdvda5l6yaaaaq",
-    "_tenant": 0,
+    "#id": "aebaaaaaaaeaaaabad3hgamgpfdfjciaaaca",
+    "#tenant": 0,
     "FileInfo": {
-      "Filename": "Child F"
+      "Filename": "Child F",
+      "LastModified": "2023-02-22T14:18:17.737"
     },
-    "_nbc": 1,
-    "_opi": "TRANSACTION_ID",
-    "_qualifiers": [
+    "#nbobjects": 1,
+    "#opi": "TRANSACTION_ID",
+    "#qualifiers": [
       {
-        "qualifier": "BinaryMaster",
-        "_nbc": 1,
+        "#nbc": "1",
         "versions": [
           {
-            "_id": "aebqaaaaaccpbveraqxzuamdvda5l6qaaaaq",
+            "#id": "aebqaaaaaceaaaabad3hgamgpfdfjciaaabq",
             "DataObjectVersion": "BinaryMaster_1",
+            "FormatIdentification": {},
             "FileInfo": {
-              "Filename": "Child F"
+              "Filename": "Child F",
+              "LastModified": "2023-02-22T14:18:17.737"
             },
-            "Size": 0
+            "Size": 0,
+            "Uri": "Content/aeaaaaaaaaeaaaabad3hgamgpfdfjciaaaba",
+            "Algorithm": "SHA-512",
+            "#opi": "TRANSACTION_ID"
           }
         ]
       }
     ]
   },
   {
-    "_id": "aebaaaaaaacpbveraqxzuamdvda5l4yaaaba",
-    "_tenant": 0,
+    "#id": "aebaaaaaaaeaaaabad3hgamgpfdfjaaaaaca",
+    "#tenant": 0,
     "FileInfo": {
-      "Filename": "Child E"
+      "Filename": "Child E",
+      "LastModified": "2023-02-22T14:18:17.728"
     },
-    "_nbc": 1,
-    "_opi": "TRANSACTION_ID",
-    "_qualifiers": [
+    "#nbobjects": 1,
+    "#opi": "TRANSACTION_ID",
+    "#qualifiers": [
       {
-        "qualifier": "BinaryMaster",
-        "_nbc": 1,
+        "#nbc": "1",
         "versions": [
           {
-            "_id": "aebqaaaaaccpbveraqxzuamdvda5l4yaaaaq",
+            "#id": "aebqaaaaaceaaaabad3hgamgpfdfjaaaaabq",
             "DataObjectVersion": "BinaryMaster_1",
+            "FormatIdentification": {},
             "FileInfo": {
-              "Filename": "Child E"
+              "Filename": "Child E",
+              "LastModified": "2023-02-22T14:18:17.728"
             },
-            "Size": 0
+            "Size": 0,
+            "Uri": "Content/aeaaaaaaaaeaaaabad3hgamgpfdfjaaaaaba",
+            "Algorithm": "SHA-512",
+            "#opi": "TRANSACTION_ID"
           }
         ]
       }
     ]
   },
   {
-    "_id": "aebaaaaaaacpbveraqxzuamdvda5lfiaaaaq",
-    "_tenant": 0,
+    "#id": "aebaaaaaaaeaaaabad3hgamgpfdfi4iaaaca",
+    "#tenant": 0,
     "FileInfo": {
-      "Filename": "Child D"
+      "Filename": "Child D",
+      "LastModified": "2023-02-22T14:18:17.713"
     },
-    "_nbc": 1,
-    "_opi": "TRANSACTION_ID",
-    "_qualifiers": [
+    "#nbobjects": 1,
+    "#opi": "TRANSACTION_ID",
+    "#qualifiers": [
       {
-        "qualifier": "BinaryMaster",
-        "_nbc": 1,
+        "#nbc": "1",
         "versions": [
           {
-            "_id": "aebqaaaaaccpbveraqxzuamdvda5leiaaaaq",
+            "#id": "aebqaaaaaceaaaabad3hgamgpfdfi4iaaabq",
             "DataObjectVersion": "BinaryMaster_1",
+            "FormatIdentification": {},
             "FileInfo": {
-              "Filename": "Child D"
+              "Filename": "Child D",
+              "LastModified": "2023-02-22T14:18:17.713"
             },
-            "Size": 0
+            "Size": 0,
+            "Uri": "Content/aeaaaaaaaaeaaaabad3hgamgpfdfi4iaaaba",
+            "Algorithm": "SHA-512",
+            "#opi": "TRANSACTION_ID"
           }
         ]
       }

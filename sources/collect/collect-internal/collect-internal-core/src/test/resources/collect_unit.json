@@ -168,11 +168,10 @@
       }
     },
     "NeedAuthorization": true,
-    "AnyOtherField": "AnyOtherValue",
     "UpdateOperation": {
       "SystemId": "",
       "ToDelete": {
-        "ArchiveUnitRefId": ["DEL001", "DEL002"],
+        "ArchiveUnitRefId": [],
         "FullUpdate": false
       }
     },

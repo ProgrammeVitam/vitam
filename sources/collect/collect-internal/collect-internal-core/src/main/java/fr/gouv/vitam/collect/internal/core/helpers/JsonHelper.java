@@ -27,35 +27,19 @@
 package fr.gouv.vitam.collect.internal.core.helpers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.collect.internal.core.helpers.adapters.CollectVarNameAdapter;
-import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.json.JsonHandler;
-import org.assertj.core.api.Assertions;
-import org.junit.Test;
 
-import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 
-public class CollectVarNameAdapterTest {
+public class JsonHelper {
 
-    @Test
-    public void should_filter_jsonvariable_name_beginning_by_dash()
-        throws FileNotFoundException, InvalidParseOperationException {
-        // GIVEN
-        CollectVarNameAdapter collectVarNameAdapter = new CollectVarNameAdapter();
-        ObjectNode result = JsonHandler.createObjectNode();
-        JsonNode actual = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("collect_unit.json"));
+    private JsonHelper() {
+    }
 
-        // WHEN
-        collectVarNameAdapter.setVarsValue(result, actual);
-
-        // THEN
-        Assertions.assertThat(result.has("_mgt")).isTrue();
-        Assertions.assertThat(result.has("_up")).isTrue();
-        Assertions.assertThat(result.has("Title")).isTrue();
-        Assertions.assertThat(result.has("_Title")).isFalse();
-        Assertions.assertThat(result.has("#Title")).isFalse();
+    public static Map<String, JsonNode> jsonToMap(JsonNode unit) {
+        Map<String, JsonNode> map = new HashMap<>();
+        unit.fieldNames().forEachRemaining(key -> map.put(key, unit.get(key)));
+        return map;
     }
 
 }

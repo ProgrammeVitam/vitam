@@ -241,7 +241,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
     public void uploadArchiveUnit() throws Exception {
         when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
         when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
-        when(metadataService.saveArchiveUnit(any())).thenReturn(JsonHandler.getFromString("{}"));
+        when(metadataService.saveArchiveUnit(any(), any(TransactionModel.class))).thenReturn(JsonHandler.getFromString("{}"));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -301,7 +301,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
     public void uploadArchiveUnit_ko_saving_error() throws Exception {
         when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
         when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
-        when(metadataService.saveArchiveUnit(any())).thenReturn(null);
+        when(metadataService.saveArchiveUnit(any(), any(TransactionModel.class))).thenReturn(null);
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -675,7 +675,8 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
         transactionModel.setProjectId("1");
         when(transactionService.findTransaction("1")).thenReturn(Optional.of(transactionModel));
         when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
-        when(projectService.findProject("1")).thenReturn(Optional.empty());
+        doThrow(new CollectInternalException("error")).when(fluxService)
+            .processStream(any(), any(TransactionModel.class));
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
             given()
                 .contentType("application/zip")
@@ -685,7 +686,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
                 .when()
                 .post(TRANSACTIONS + "/1/upload")
                 .then()
-                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
     }
 

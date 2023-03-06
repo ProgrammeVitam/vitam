@@ -227,7 +227,7 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
         String gotId) throws VitamClientException {
 
         VitamRequestBuilder request = get()
-            .withPath("/objects/" + gotId)
+            .withPath(OBJECTS_PATH + "/" + gotId)
 
             .withJsonAccept();
 
@@ -273,7 +273,7 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
     public RequestResponseOK<JsonNode> addObjectGroup(
         String unitId, Integer version, JsonNode objectJsonNode, String usage) throws VitamClientException {
         try (Response response = make(
-            post().withPath(UNITS_PATH + "/" + unitId + "/objects/" + usage + "/" + version)
+            post().withPath(UNITS_PATH + "/" + unitId + OBJECTS_PATH  + "/" + usage + "/" + version)
                 .withBody(objectJsonNode)
                 .withJson())) {
             check(response);
@@ -283,16 +283,16 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
     }
 
     @Override
-    public Response addBinary(String unitId, Integer version,
+    public RequestResponse<JsonNode> addBinary(String unitId, Integer version,
         InputStream inputStreamUploaded, String usage)
         throws VitamClientException {
         try (Response response = make(post()
-            .withPath(UNITS_PATH + "/" + unitId + "/objects/" + usage + "/" + version + "/binary")
+            .withPath(UNITS_PATH + "/" + unitId + OBJECTS_PATH + "/" + usage + "/" + version + "/binary")
             .withBody(inputStreamUploaded)
             .withJsonAccept()
             .withOctetContentType())) {
             check(response);
-            return response;
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
     }
 
@@ -374,7 +374,6 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
         throws VitamClientException {
         VitamRequestBuilder request = get()
             .withPath(UNITS_PATH + "/" + unitId + OBJECTS_PATH + "/" + usage + "/" + version + BINARY_PATH)
-            .withJsonContentType()
             .withOctetAccept();
         Response response = null;
         try {

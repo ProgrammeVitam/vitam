@@ -148,6 +148,7 @@ public class CollectHelper {
         projectDto.setLastUpdate(projectModel.getLastUpdate());
         projectDto.setStatus(Objects.requireNonNullElse(projectModel.getStatus(), ProjectStatus.OPEN).toString());
         projectDto.setTenant(projectModel.getTenant());
+        projectDto.setUnitUps(projectModel.getUnitUps());
         if (projectModel.getManifestContext() != null) {
             projectDto.setArchivalAgreement(projectModel.getManifestContext().getArchivalAgreement());
             projectDto.setMessageIdentifier(projectModel.getManifestContext().getMessageIdentifier());
@@ -161,7 +162,7 @@ public class CollectHelper {
             projectDto.setComment(projectModel.getManifestContext().getComment());
             projectDto.setAcquisitionInformation(projectModel.getManifestContext().getAcquisitionInformation());
             projectDto.setLegalStatus(projectModel.getManifestContext().getLegalStatus());
-            projectDto.setUnitUp(projectModel.getManifestContext().getUnitUp());
+            projectDto.setUnitUp(projectModel.getUnitUp());
         }
         return projectDto;
     }

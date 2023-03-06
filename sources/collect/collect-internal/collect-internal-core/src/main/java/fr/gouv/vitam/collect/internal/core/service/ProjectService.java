@@ -59,7 +59,7 @@ public class ProjectService {
 
         ProjectModel projectModel = new ProjectModel(projectDto.getId(), projectDto.getName(),
             CollectHelper.mapProjectDtoToManifestContext(projectDto), ProjectStatus.OPEN,
-            creationDate, creationDate, projectDto.getTenant());
+            creationDate, creationDate, projectDto.getUnitUps(), projectDto.getTenant());
 
         projectRepository.createProject(projectModel);
     }
@@ -82,7 +82,7 @@ public class ProjectService {
 
         ProjectModel projectModel = new ProjectModel(projectDto.getId(), projectDto.getName(),
             CollectHelper.mapProjectDtoToManifestContext(projectDto), ProjectStatus.valueOf(projectDto.getStatus()),
-            projectDto.getCreationDate(), lastUpdate, projectDto.getTenant());
+            projectDto.getCreationDate(), lastUpdate, projectDto.getUnitUps(), projectDto.getTenant());
 
         projectRepository.replaceProject(projectModel);
     }
