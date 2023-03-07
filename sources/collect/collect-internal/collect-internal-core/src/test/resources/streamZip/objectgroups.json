@@ -10,7 +10,7 @@
     "#opi": "TRANSACTION_ID",
     "#qualifiers": [
       {
-        "#nbc": "1",
+        "#nbobjects": "1",
         "versions": [
           {
             "#id": "aebqaaaaaceaaaabad3hgamgpfdfiwaaaaaq",
@@ -40,7 +40,7 @@
     "#opi": "TRANSACTION_ID",
     "#qualifiers": [
       {
-        "#nbc": "1",
+        "#nbobjects": "1",
         "versions": [
           {
             "#id": "aebqaaaaaceaaaabad3hgamgpfdfjciaaabq",
@@ -70,7 +70,7 @@
     "#opi": "TRANSACTION_ID",
     "#qualifiers": [
       {
-        "#nbc": "1",
+        "#nbobjects": "1",
         "versions": [
           {
             "#id": "aebqaaaaaceaaaabad3hgamgpfdfjaaaaabq",
@@ -100,7 +100,7 @@
     "#opi": "TRANSACTION_ID",
     "#qualifiers": [
       {
-        "#nbc": "1",
+        "#nbobjects": "1",
         "versions": [
           {
             "#id": "aebqaaaaaceaaaabad3hgamgpfdfi4iaaabq",

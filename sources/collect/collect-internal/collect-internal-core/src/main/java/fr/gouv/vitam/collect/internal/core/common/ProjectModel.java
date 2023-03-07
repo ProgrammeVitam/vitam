@@ -70,7 +70,7 @@ public class ProjectModel {
 
 
     public ProjectModel(String id, String name, ManifestContext manifestContext, ProjectStatus status,
-        String creationDate, String lastUpdate, List<MetadataUnitUp> unitUps, Integer tenant) {
+        String creationDate, String lastUpdate, String unitUp, List<MetadataUnitUp> unitUps, Integer tenant) {
         this.id = id;
         this.name = name;
         this.manifestContext = manifestContext;
@@ -78,6 +78,7 @@ public class ProjectModel {
         this.creationDate = creationDate;
         this.lastUpdate = lastUpdate;
         this.unitUps = unitUps;
+        this.unitUp = unitUp;
         this.tenant = tenant;
     }
 

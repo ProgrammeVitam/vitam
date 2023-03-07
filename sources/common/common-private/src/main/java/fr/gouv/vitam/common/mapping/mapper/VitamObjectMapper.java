@@ -60,16 +60,16 @@ import javax.xml.datatype.XMLGregorianCalendar;
  */
 public class VitamObjectMapper {
 
-    private VitamObjectMapper(){
-    }
+    private static final ObjectMapper deserializationObjectMapper = new ObjectMapper();
 
-    public static ObjectMapper buildDeserializationObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final ObjectMapper serializationObjectMapper = new ObjectMapper();
+
+    static {
+        deserializationObjectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE);
+        deserializationObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        deserializationObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        deserializationObjectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        deserializationObjectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         SimpleModule module = new SimpleModule();
 
@@ -77,21 +77,18 @@ public class VitamObjectMapper {
         module.addDeserializer(LevelType.class, new LevelTypeDeserializer());
         module.addDeserializer(IdentifierType.class, new IdentifierTypeDeserializer());
         module.addDeserializer(OrganizationDescriptiveMetadataType.class,
-            new OrganizationDescriptiveMetadataTypeDeserializer(objectMapper));
+            new OrganizationDescriptiveMetadataTypeDeserializer(deserializationObjectMapper));
         module.addDeserializer(TextType.class, new TextTypeDeSerializer());
         module.addDeserializer(KeyType.class, new KeywordTypeDeserializer());
 
-        objectMapper.registerModule(module);
-
-        return objectMapper;
+        deserializationObjectMapper.registerModule(module);
     }
 
-    public  static ObjectMapper buildSerializationObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+    static {
+        serializationObjectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.UPPER_CAMEL_CASE);
+        serializationObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        serializationObjectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        serializationObjectMapper.enable(SerializationFeature.INDENT_OUTPUT);
 
         SimpleModule module = new SimpleModule();
         module.addSerializer(TextType.class, new TextTypeSerializer());
@@ -103,11 +100,20 @@ public class VitamObjectMapper {
         module.addSerializer(TextByLang.class, new TextByLangSerializer());
         module.addSerializer(KeyType.class, new KeywordTypeSerializer());
 
-        objectMapper.registerModule(module);
+        serializationObjectMapper.registerModule(module);
         JavaTimeModule module1 = new JavaTimeModule();
-        objectMapper.registerModule(module1);
+        serializationObjectMapper.registerModule(module1);
+    }
 
-        return objectMapper;
+    private VitamObjectMapper() {
+    }
+
+    public static ObjectMapper buildDeserializationObjectMapper() {
+        return deserializationObjectMapper;
+    }
+
+    public static ObjectMapper buildSerializationObjectMapper() {
+        return serializationObjectMapper;
     }
 
 }

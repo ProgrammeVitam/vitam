@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.collect.internal.core.helpers;
 
-import com.google.common.collect.Iterators;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import org.apache.commons.collections4.IteratorUtils;
@@ -41,7 +40,6 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CsvHelper {
 
@@ -55,13 +53,13 @@ public class CsvHelper {
             JsonLineWriter writer = new JsonLineWriter(new FileOutputStream(metadataFile, true), true)) {
             final List<String> headerNames = parser.getHeaderNames();
 
-            Iterator<List<JsonLineModel>> iterator =
-                IteratorUtils.transformedIterator(Iterators.partition(parser.iterator(), 1000),
-                    list -> list.stream().map(e -> CsvMetadataMapper.map(e, headerNames))
-                        .map(e -> new JsonLineModel(e.getKey(), null, e.getValue())).collect(Collectors.toList()));
+            Iterator<JsonLineModel> iterator = IteratorUtils.transformedIterator(
+                IteratorUtils.transformedIterator(parser.iterator(),
+                    e -> CsvMetadataMapper.map(e, headerNames)),
+                e -> new JsonLineModel(e.getKey(), null, e.getValue()));
 
             while (iterator.hasNext()) {
-                writer.addEntries(iterator.next());
+                writer.addEntry(iterator.next());
             }
         }
     }
