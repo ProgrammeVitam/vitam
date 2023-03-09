@@ -77,22 +77,34 @@ public final class FunctionalAdministrationReconstructionMetrics {
         for (FunctionalAdminCollections collection : supportedCollections) {
             for (Integer tenant : VitamConfiguration.getTenants()) {
 
-                Duration reconstructionLatency = reconstructionMetricsCache.
+                Duration durationSinceLastReconstruction = reconstructionMetricsCache.
                     getReconstructionLatency(collection, tenant);
-
-                if (reconstructionLatency == null) {
-                    continue;
-                }
 
                 List<String> labelValues = List.of(
                     Integer.toString(tenant),
                     collection.getName().toLowerCase()
                 );
 
-                metricsByLabelValues.put(labelValues, (double) Math.max(0, reconstructionLatency.toSeconds()));
+                metricsByLabelValues.put(labelValues, getReconstructionLatency(durationSinceLastReconstruction));
             }
 
         }
         return metricsByLabelValues;
+    }
+
+    private static double getReconstructionLatency(Duration durationSinceLastReconstruction) {
+
+        // Returns :
+        //   - Actual latency (in seconds) when available (eg. 100 seconds)
+        //   - +∞ (positive infinity) when no latency information is available for current functional-admin instance (reconstruction is KO, server just restarted, reconstruction happened on other instances...)
+        //
+        // Aggregated latency can be computed using a simple "min"/"max" PromQL operators.
+        // PromQL queries would be :
+        //   - `min by (tenant) (vitam_functional_administration_reconstruction_latency_seconds{labels})`: Tenant aggregated reconstruction latency (across functional-admin instances)
+        //   - `max (min by (tenant) (vitam_functional_administration_reconstruction_latency_seconds{labels}))`: Global aggregated reconstruction latency
+
+        return durationSinceLastReconstruction == null ?
+            Double.POSITIVE_INFINITY :
+            Math.max(0.0, durationSinceLastReconstruction.toSeconds());
     }
 }
