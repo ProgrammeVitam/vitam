@@ -112,6 +112,7 @@ public class MetadataHelper {
 
         versionsModel.setFormatIdentification(formatIdentificationModel);
 
+        qualifiersModel.setQualifier(DataObjectVersionType.BINARY_MASTER.getName());
         qualifiersModel.setVersions(Collections.singletonList(versionsModel));
         qualifiersModel.setNbc("1");
 

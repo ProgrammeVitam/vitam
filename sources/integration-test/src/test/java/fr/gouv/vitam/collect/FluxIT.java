@@ -46,6 +46,7 @@ import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -62,6 +63,8 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,6 +73,7 @@ import java.util.List;
 
 import static fr.gouv.vitam.collect.ProjectIT.initProjectData;
 import static fr.gouv.vitam.collect.TransactionIT.initTransaction;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @Ignore
 public class FluxIT extends VitamRuleRunner {
@@ -146,6 +150,7 @@ public class FluxIT extends VitamRuleRunner {
                     transactionDtoResult.getId(), new SelectMultiQuery().getFinalSelect());
 
 
+
             final JsonNode expectedUnits =
                 JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UNITS_UPDATED_BY_ZIP_PATH));
 
@@ -156,6 +161,19 @@ public class FluxIT extends VitamRuleRunner {
                         "[*]." + VitamFieldsHelper.initialOperation(),
                         "[*]." + VitamFieldsHelper.approximateCreationDate(),
                         "[*]." + VitamFieldsHelper.approximateUpdateDate())));
+
+
+
+            // test download got
+
+            String unitId = unitsByTransaction.getResults().get(1).get(VitamFieldsHelper.id()).asText();
+            Response response = collectClient
+                .getObjectStreamByUnitId(vitamContext, unitId, DataObjectVersionType.BINARY_MASTER.getName(), 1);
+
+            assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+            assertThat(response.readEntity(InputStream.class))
+                .hasSameContentAs(new ByteArrayInputStream(
+                    "Link to 2_Front-Populaire/Porte-de-la-Chapelle/Marx-Dormoy/Saint-Lazare".getBytes()));
         }
     }
 

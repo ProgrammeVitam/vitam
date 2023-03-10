@@ -10,6 +10,7 @@
     "#opi": "TRANSACTION_ID",
     "#qualifiers": [
       {
+        "qualifier": "BinaryMaster",
         "#nbobjects": "1",
         "versions": [
           {
@@ -40,6 +41,7 @@
     "#opi": "TRANSACTION_ID",
     "#qualifiers": [
       {
+        "qualifier": "BinaryMaster",
         "#nbobjects": "1",
         "versions": [
           {
@@ -70,6 +72,7 @@
     "#opi": "TRANSACTION_ID",
     "#qualifiers": [
       {
+        "qualifier": "BinaryMaster",
         "#nbobjects": "1",
         "versions": [
           {
@@ -100,6 +103,7 @@
     "#opi": "TRANSACTION_ID",
     "#qualifiers": [
       {
+        "qualifier": "BinaryMaster",
         "#nbobjects": "1",
         "versions": [
           {
