@@ -11,7 +11,7 @@ Source0:       vitam-mongos.service
 
 BuildRequires: systemd-units
 Requires:      systemd
-Requires:      mongodb-org >= 4.2.1
+Requires:      mongodb-org-mongos
 Requires:      vitam-user-vitamdb
 
 %description

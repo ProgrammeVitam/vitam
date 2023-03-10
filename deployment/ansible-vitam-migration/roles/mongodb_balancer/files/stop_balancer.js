@@ -1,6 +1,8 @@
+// https://www.mongodb.com/docs/manual/tutorial/manage-sharded-cluster-balancer/#disable-the-balancer
+
 // Script to stop the mongodb balancer
 sh.stopBalancer();
-// Check if the balancer will not start again
+// Check if the balancer is properly stopped
 if (sh.getBalancerState()) {
     print("Failed to stop the balancer");
     quit(1);

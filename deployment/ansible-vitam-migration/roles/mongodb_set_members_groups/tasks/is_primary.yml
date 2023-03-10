@@ -1,46 +1,27 @@
 ---
 
-- name: Copy the database scripts files
-  template:
-    src: "is_master.js.j2"
-    dest: "{{ vitam_defaults.folder.root_path }}/app/{{ mongo_type }}/is_master.js"
+- name: Copy is_master database script
+  copy:
+    src: is_master.js
+    dest: "{{ vitam_defaults.folder.root_path }}/script/{{ mongo_type }}"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
 
 - name: Check if the member is primary of the replicaset or not
-  shell: "mongo {{ ip_service }}:{{ mongo_port }}/admin -u {{ mongodb[mongo_cluster_name].localadmin.user }} -p {{ mongodb[mongo_cluster_name].localadmin.password }} --quiet < {{ vitam_defaults.folder.root_path }}/app/{{ mongo_type }}/is_master.js"
-  register: "primary_test_command"
+  shell: "mongo {{ ip_service }}:{{ mongo_port }}/admin -u {{ mongodb[mongo_cluster_name].localadmin.user }} -p {{ mongodb[mongo_cluster_name].localadmin.password }} --quiet < {{ vitam_defaults.folder.root_path }}/script/{{ mongo_type }}/is_master.js"
+  register: primary_test_command
   no_log: "{{ hide_passwords_during_deploy }}"
 
-# Set var for mongoc
-
-- name: Set is_primary_mongoc = true var
+# Set is_primary variable, used later to upgrade first secondary nodes
+- name: Set is_primary = true var
   set_fact:
-    is_primary_mongoc: true
+    is_primary: true
   when:
-    - "primary_test_command.stdout == 'true'"
-    - "mongo_type == 'mongoc'"
+    - primary_test_command.stdout == 'true'
 
-- name: Set is_primary_mongoc = false var
+- name: Set is_primary = false var
   set_fact:
-    is_primary_mongoc: false
+    is_primary: false
   when:
-    - "primary_test_command.stdout != 'true'"
-    - "mongo_type == 'mongoc'"
-
- # Set var for mongod
-
-- name: Set is_primary_mongod = true var
-  set_fact:
-    is_primary_mongod: true
-  when:
-    - "primary_test_command.stdout == 'true'"
-    - "mongo_type == 'mongod'"
-
-- name: Set is_primary_mongod = false var
-  set_fact:
-    is_primary_mongod: false
-  when:
-    - "primary_test_command.stdout != 'true'"
-    - "mongo_type == 'mongod'"
+    - primary_test_command.stdout != 'true'
