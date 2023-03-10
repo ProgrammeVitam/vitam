@@ -79,6 +79,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
 
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
 
+    private static final String PROJECT_NOT_FOUND = "Unable to find project Id or invalid status";
 
     private final CollectInternalClientFactory collectInternalClientFactory;
 
@@ -174,7 +175,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
             return Response.status(Response.Status.OK).entity(projectResponse).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when fetching project   ", e);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             return Response.status(Response.Status.PRECONDITION_FAILED).build();
