@@ -27,7 +27,7 @@
     - mongodb_check_feature_compatibility
     - mongodb_check_replica_state
   vars:
-    mongo_compatibility_list: ['4.4']
+    mongo_compatibility_list: ['4.4', '5.0']
     mongo_type: mongoc
     mongo_port: "{{ mongodb.mongoc_port }}"
 
@@ -37,7 +37,7 @@
     - mongodb_check_feature_compatibility
     - mongodb_check_replica_state
   vars:
-    mongo_compatibility_list: ['4.4']
+    mongo_compatibility_list: ['4.4', '5.0']
     mongo_type: mongod
     mongo_port: "{{ mongodb.mongod_port }}"
 
@@ -187,7 +187,7 @@
     - mongodb_check_feature_compatibility
     - mongodb_check_replica_state
   vars:
-    mongo_compatibility_list: ['4.4']
+    mongo_compatibility_list: ['4.4', '5.0']
     mongo_type: mongoc
     mongo_port: "{{ mongodb.mongoc_port }}"
 
@@ -197,7 +197,7 @@
     - mongodb_check_feature_compatibility
     - mongodb_check_replica_state
   vars:
-    mongo_compatibility_list: ['4.4']
+    mongo_compatibility_list: ['4.4', '5.0']
     mongo_type: mongod
     mongo_port: "{{ mongodb.mongod_port }}"
 
