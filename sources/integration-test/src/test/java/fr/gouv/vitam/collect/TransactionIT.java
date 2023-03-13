@@ -189,6 +189,52 @@ public class TransactionIT extends VitamRuleRunner {
         }
     }
 
+
+
+    @Test
+    public void initTransactionFromProject() throws Exception {
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            ProjectDto projectDto = initProjectData();
+            String newComment = "New Comment";
+            final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+
+            ProjectDto projectDtoResult =
+                JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                    ProjectDto.class);
+
+            TransactionDto initialTransaction = new TransactionDto();
+            initialTransaction.setName("Transaction1");
+
+            // INSERT TRANSACTION
+            RequestResponse<JsonNode> transactionResponse =
+                collectClient.initTransaction(vitamContext, initialTransaction, projectDtoResult.getId());
+            Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(SC_OK);
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
+            TransactionDto transactionDtoResult =
+                JsonHandler.getFromJsonNode(requestResponseOK.getFirstResult(), TransactionDto.class);
+
+            // GET PERSISTED TRANSACTION
+            RequestResponse<JsonNode> persistedTransactionResponse =
+                collectClient.getTransactionById(vitamContext, transactionDtoResult.getId());
+            Assertions.assertThat(persistedTransactionResponse.getStatus()).isEqualTo(SC_OK);
+            TransactionDto persistedTransaction = JsonHandler.getFromJsonNode(
+                (((RequestResponseOK<JsonNode>) persistedTransactionResponse).getFirstResult()), TransactionDto.class);
+            assertNotNull(persistedTransaction.getCreationDate());
+            assertEquals(persistedTransaction.getCreationDate(), persistedTransaction.getLastUpdate());
+            assertEquals(TransactionStatus.OPEN.toString(), persistedTransaction.getStatus());
+            assertEquals(initialTransaction.getName(), persistedTransaction.getName());
+            assertEquals(projectDto.getArchivalProfile(), persistedTransaction.getArchivalProfile());
+            assertEquals(projectDto.getAcquisitionInformation(),
+                persistedTransaction.getAcquisitionInformation());
+            assertEquals(projectDto.getMessageIdentifier(), persistedTransaction.getMessageIdentifier());
+
+            assertThat(persistedTransaction.getComment()).isNotEqualTo(newComment);
+
+
+        }
+    }
+
     @Test
     @Ignore
     public void should_delete_transaction() throws Exception {
