@@ -56,13 +56,11 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbFormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
-import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStreamResponse;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
@@ -82,6 +80,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -90,7 +89,6 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
-import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 
 public class CollectService {
 
@@ -180,10 +178,12 @@ public class CollectService {
     private void insertNewObjectGroup(CollectUnitModel unitModel, DataObjectVersionType usage, int version,
         ObjectDto objectDto) throws CollectInternalException {
 
+        boolean gotCreated = false;
+        String gotId = null;
         try {
             CollectHelper.checkVersion(version, 1);
-            DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModelBuilder().withId(
-                    GUIDFactory.newObjectGroupGUID(ParameterHelper.getTenantParameter()).getId())
+            DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModelBuilder()
+                .withId(objectDto.getId())
                 .withOpi(unitModel.getOpi()).withFileInfoModel(objectDto.getFileInfo().getFileName())
                 .withQualifiers(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage, version).build();
 
@@ -193,13 +193,18 @@ public class CollectService {
                 LOGGER.error("Error when trying to insert ObjectGroup : {})", dbObjectGroupModel);
                 throw new CollectInternalException("Error when trying to insert ObjectGroup : : " + dbObjectGroupModel);
             }
+            gotCreated = true;
+            gotId = dbObjectGroupModel.getId();
 
             UpdateMultiQuery multiQuery = new UpdateMultiQuery();
             multiQuery.addActions(UpdateActionHelper.set(VitamFieldsHelper.object(), dbObjectGroupModel.getId()));
             multiQuery.resetRoots().addRoots(unitModel.getId());
 
-            metadataRepository.updateUnitById(multiQuery, unitModel.getOpi());
+            metadataRepository.updateUnitById(multiQuery, unitModel.getOpi(), unitModel.getId());
         } catch (final CollectInternalException | InvalidCreateOperationException | InvalidParseOperationException e) {
+            if(gotCreated){
+                metadataRepository.deleteObjectGroups(Arrays.asList(gotId));
+            }
             LOGGER.error("Error when saving new objectGroup in metadata : {}", e);
             throw new CollectInternalException("Error when saving new objectGroup in metadata: " + e);
         }
@@ -363,9 +368,9 @@ public class CollectService {
             Files.delete(path);
             return formatIdentificationModel;
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException |
-                 FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException |
-                 FormatIdentifierNotFoundException | FormatIdentifierFactoryException |
-                 FormatIdentifierTechnicalException e) {
+            FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException |
+            FormatIdentifierNotFoundException | FormatIdentifierFactoryException |
+            FormatIdentifierTechnicalException e) {
             LOGGER.error("Can't detect format for the object : {}", e);
             throw new CollectInternalException("Can't detect format for the object : " + e);
         }
@@ -385,9 +390,9 @@ public class CollectService {
                 return CollectHelper.getFirstPronomFormat(formats);
             }
         } catch (ContentAddressableStorageNotFoundException | FormatIdentifierNotFoundException | IOException |
-                 FormatIdentifierBadRequestException | ContentAddressableStorageServerException |
-                 FormatIdentifierTechnicalException | FormatIdentifierFactoryException |
-                 FileFormatNotFoundException e) {
+            FormatIdentifierBadRequestException | ContentAddressableStorageServerException |
+            FormatIdentifierTechnicalException | FormatIdentifierFactoryException |
+            FileFormatNotFoundException e) {
             throw new CollectInternalException("Can't detect format for the object : ", e);
         }
     }

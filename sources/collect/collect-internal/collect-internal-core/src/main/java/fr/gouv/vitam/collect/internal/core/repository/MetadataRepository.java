@@ -191,7 +191,7 @@ public class MetadataRepository {
         }
     }
 
-    public void updateUnitById(UpdateMultiQuery updateQuery, String transactionId) throws CollectInternalException {
+    public void updateUnitList(UpdateMultiQuery updateQuery, String transactionId) throws CollectInternalException {
         try (MetaDataClient client = metaDataCollectClientFactory.getClient()) {
             applyTransactionToQuery(transactionId, updateQuery);
             client.updateUnitBulk(updateQuery.getFinalUpdate());
@@ -200,6 +200,17 @@ public class MetadataRepository {
             throw new CollectInternalException("Error while updating unit in metadata: " + e);
         }
     }
+
+    public void updateUnitById(UpdateMultiQuery updateQuery, String transactionId, String unitId) throws CollectInternalException {
+        try (MetaDataClient client = metaDataCollectClientFactory.getClient()) {
+            applyTransactionToQuery(transactionId, updateQuery);
+            client.updateUnitById(updateQuery.getFinalUpdateById(), unitId);
+        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
+            LOGGER.error("Error while update updating in metadata: {}", e);
+            throw new CollectInternalException("Error while updating unit in metadata: " + e);
+        }
+    }
+
 
     public JsonNode saveObjectGroup(ObjectNode og) throws CollectInternalException {
         try (MetaDataClient client = metaDataCollectClientFactory.getClient()) {

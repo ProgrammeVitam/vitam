@@ -36,7 +36,7 @@ import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
-import fr.gouv.vitam.collect.internal.core.common.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
@@ -134,7 +134,8 @@ public class TransactionService {
             throw new CollectInternalException("project with id " + projectId + "not found");
         }
         TransactionModel transactionModel = new TransactionModel(transactionDto.getId(), transactionDto.getName(),
-            CollectHelper.mapTransactionDtoToManifestContext(transactionDto, projectOpt.get()), TransactionStatus.OPEN, projectId,
+            CollectHelper.mapTransactionDtoToManifestContext(transactionDto, projectOpt.get()), TransactionStatus.OPEN,
+            projectId,
             creationDate, creationDate, transactionDto.getTenant());
 
         transactionRepository.createTransaction(transactionModel);
@@ -224,12 +225,22 @@ public class TransactionService {
     }
 
 
-    public void closeTransaction(String transactionId) throws CollectInternalException {
-        Optional<TransactionModel> transactionModel = findTransaction(transactionId);
-        if (transactionModel.isEmpty() || !checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
+    public void checkReadyTransaction(TransactionModel transactionModel) throws CollectInternalException {
+        if (!checkStatus(transactionModel, TransactionStatus.OPEN)) {
             throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
         }
-        changeStatusTransaction(TransactionStatus.READY, transactionModel.get());
+    }
+
+    public void checkSendingTransaction(TransactionModel transactionModel) throws CollectInternalException {
+        if (!checkStatus(transactionModel, TransactionStatus.READY)) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
+        }
+    }
+
+    public void checkSendTransaction(TransactionModel transactionModel) throws CollectInternalException {
+        if (!checkStatus(transactionModel, TransactionStatus.SENDING)) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
+        }
     }
 
     public void replaceTransaction(TransactionModel transactionModel) throws CollectInternalException {
@@ -238,12 +249,51 @@ public class TransactionService {
         transactionRepository.replaceTransaction(transactionModel);
     }
 
+    public void checkAbortTransaction(TransactionModel transactionModel) throws CollectInternalException {
+        if (!checkStatus(transactionModel, TransactionStatus.OPEN,
+            TransactionStatus.READY, TransactionStatus.ACK_KO, TransactionStatus.KO)) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_UPDATED);
+        }
+    }
+
+    public void checkReopenTransaction(TransactionModel transactionModel) throws CollectInternalException {
+        if (!checkStatus(transactionModel, TransactionStatus.READY, TransactionStatus.ACK_KO,
+            TransactionStatus.KO)) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_UPDATED);
+        }
+    }
+
     public boolean checkStatus(TransactionModel transactionModel, TransactionStatus... transactionStatus) {
         return Arrays.stream(transactionStatus).anyMatch(tr -> transactionModel.getStatus().equals(tr));
     }
 
-    public void changeStatusTransaction(TransactionStatus transactionStatus, TransactionModel transactionModel)
+    public void changeTransactionStatus(TransactionStatus transactionStatus, String transactionId)
         throws CollectInternalException {
+        Optional<TransactionModel> transactionModelOptional = findTransaction(transactionId);
+        if (transactionModelOptional.isEmpty()) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
+        }
+        TransactionModel transactionModel = transactionModelOptional.get();
+
+        switch (transactionStatus) {
+            case OPEN:
+                checkReopenTransaction(transactionModel);
+                break;
+            case READY:
+                checkReadyTransaction(transactionModel);
+                break;
+            case SENT:
+                checkSendTransaction(transactionModel);
+                break;
+            case SENDING:
+                checkSendingTransaction(transactionModel);
+                break;
+            case ABORTED:
+                checkAbortTransaction(transactionModel);
+                break;
+            default:
+                break;
+        }
         transactionModel.setStatus(transactionStatus);
         transactionModel.setLastUpdate(LocalDateUtil.now().toString());
         replaceTransaction(transactionModel);
@@ -398,31 +448,6 @@ public class TransactionService {
         this.transactionRepository.replaceTransactions(transactionsToUpdate);
     }
 
-    public void abortTransaction(String transactionId) throws CollectInternalException {
-        Optional<TransactionModel> transactionModel = findTransaction(transactionId);
-        if (transactionModel.isEmpty()) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
-        }
-        if (!checkStatus(transactionModel.get(), TransactionStatus.OPEN,
-            TransactionStatus.READY, TransactionStatus.ACK_KO, TransactionStatus.KO)) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_UPDATED);
-        }
-        changeStatusTransaction(TransactionStatus.ABORTED, transactionModel.get());
-
-    }
-
-    public void reopenTransaction(String transactionId) throws CollectInternalException {
-        Optional<TransactionModel> transactionModel = findTransaction(transactionId);
-        if (transactionModel.isEmpty()) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
-        }
-        if (!checkStatus(transactionModel.get(), TransactionStatus.READY, TransactionStatus.ACK_KO,
-            TransactionStatus.KO)) {
-            throw new IllegalArgumentException(TRANSACTION_NOT_UPDATED);
-        }
-        changeStatusTransaction(TransactionStatus.OPEN, transactionModel.get());
-    }
-
     /**
      * update a transaction model
      *
@@ -436,7 +461,8 @@ public class TransactionService {
         TransactionModel transactionModel = new TransactionModel();
         transactionModel.setId(transactionDto.getId());
         transactionModel.setName(transactionDto.getName());
-        transactionModel.setManifestContext(CollectHelper.mapTransactionDtoToManifestContext(transactionDto, projectOpt.get()));
+        transactionModel
+            .setManifestContext(CollectHelper.mapTransactionDtoToManifestContext(transactionDto, projectOpt.get()));
         transactionModel.setTenant(transactionDto.getTenant());
         transactionModel.setProjectId(transactionDto.getProjectId());
         transactionModel.setStatus(TransactionStatus.valueOf(transactionDto.getStatus()));

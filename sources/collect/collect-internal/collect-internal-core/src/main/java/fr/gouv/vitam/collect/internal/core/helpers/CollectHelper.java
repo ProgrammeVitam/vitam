@@ -37,7 +37,7 @@ import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.ProjectStatus;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
-import fr.gouv.vitam.collect.internal.core.common.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.core.helpers.builders.ManifestContextBuilder;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
@@ -221,4 +221,6 @@ public class CollectHelper {
             .withAcquisitionInformation(transactionDto.getAcquisitionInformation() != null ? transactionDto.getAcquisitionInformation() : projectDto.getAcquisitionInformation())
             .withLegalStatus(transactionDto.getLegalStatus() != null ? transactionDto.getLegalStatus() : projectDto.getLegalStatus()).build();
     }
+
+
 }
