@@ -263,8 +263,8 @@ public class TransferAndDipIT extends VitamRuleRunner {
         JsonNode logbook = VitamTestHelper.findLogbook(exportOperationId);
         ArrayNode events = (ArrayNode) RequestResponseOK.getFromJsonNode(logbook).getResults().get(0).get("events");
         JsonNode evDetData = events.get(events.size() - 2).get("evDetData");
-        assertTrue(evDetData.asText().contains("Digest"));
-        assertTrue(evDetData.asText().contains("DigestType"));
+        assertTrue(evDetData.asText().contains("SystemMessageDigest"));
+        assertTrue(evDetData.asText().contains("SystemAlgorithm"));
     }
 
     @Test
