@@ -94,7 +94,7 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
 
         generateX509Certificate();
 
-        x509CertificateToPem();
+        x509CertificateToHttpPemFormat();
 
 
 
@@ -103,12 +103,12 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
         when(requestNull.getRemoteHost()).thenReturn("127.0.0.1");
     }
 
-    private void x509CertificateToPem() throws CertificateEncodingException {
+    private void x509CertificateToHttpPemFormat() throws CertificateEncodingException {
         StringWriter sw = new StringWriter();
         sw.write(BEGIN_CERT);
-        sw.write("\n");
+        sw.write(" ");
         sw.write(Base64.getEncoder().encodeToString(cert.getEncoded()));
-        sw.write("\n");
+        sw.write(" ");
         sw.write(END_CERT);
 
         pem = sw.toString();
