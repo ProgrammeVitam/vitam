@@ -33,8 +33,11 @@ import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.StringTokenizer;
 
 /**
  *
@@ -42,6 +45,11 @@ import java.security.cert.X509Certificate;
 public class CertUtils {
 
     public static final String REQUEST_PERSONAL_CERTIFICATE_ATTRIBUTE = "Personae";
+    public static final String JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE = "javax.servlet.request.X509Certificate";
+    private static final String NGINX_URL_ENCODED_PEM_HEADER_SIGNATURE = "-----BEGIN%20CERTIFICATE-----";
+    private static final String BEGIN_CERT_PREFIX = "-----BEGIN";
+    private static final String END_CERT_PREFIX = "-----END";
+    private static final String NULL_HTTPD_HEADER = "(null)";
 
 
     /**
@@ -52,7 +60,7 @@ public class CertUtils {
      * @return the extracted certificate
      */
     public static X509Certificate[] extractCert(ServletRequest request, boolean useHeader) {
-        Object attribute = request.getAttribute("javax.servlet.request.X509Certificate");
+        Object attribute = request.getAttribute(JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
 
         X509Certificate[] clientCertChain = (null == attribute) ? null : (X509Certificate[]) attribute;
         //If request attribute certificate not found, try to get certificate from header
@@ -60,25 +68,15 @@ public class CertUtils {
 
             final HttpServletRequest httpRequest = (HttpServletRequest) request;
             String pem = httpRequest.getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
-            if (null != pem) {
+            if (null != pem && !NULL_HTTPD_HEADER.equals(pem)) {
 
                 try {
 
-                    /*
-                     * TODO use instead the official PemReader that implement RFC 7468 when released
-                     * Implementation of RFC 7468 (PEM can have empty space, an other characters
-                     * PemReader is RFC 1421 and do not handle character other than \n
-                     * This implementation replace those characters with \n
-                     */
-                    pem = pem.replaceAll("-----BEGIN CERTIFICATE-----", "-----BEGIN_CERTIFICATE-----");
-                    pem = pem.replaceAll("-----END CERTIFICATE-----", "-----END_CERTIFICATE-----");
-                    pem = pem.replace((char) 0x09, (char) 0x0A); // Line Feed
-                    pem = pem.replace((char) 0x0B, (char) 0x0A); // Vertical Tab
-                    pem = pem.replace((char) 0x0C, (char) 0x0A); // Form Feed
-                    pem = pem.replace((char) 0x20, (char) 0x0A); // Space
-                    pem = pem.replace((char) 0x0D, (char) 0x0A); // Carriage Return
-                    pem = pem.replaceAll("-----BEGIN_CERTIFICATE-----", "-----BEGIN CERTIFICATE-----");
-                    pem = pem.replaceAll("-----END_CERTIFICATE-----", "-----END CERTIFICATE-----");
+                    if (hasNginxSignature(pem)) {
+                        pem = extractNginxEncodedCertificateAsPEM(pem);
+                    } else {
+                        pem = extractHttpdEncodedCertificateAsPEM(pem);
+                    }
 
                     final InputStream pemStream = new ByteArrayInputStream(pem.getBytes());
                     final CertificateFactory cf = CertificateFactory.getInstance("X.509");
@@ -88,10 +86,47 @@ public class CertUtils {
                     throw new ShiroException(ce);
                 }
             }
-
-
         }
 
         return clientCertChain;
+    }
+
+    private static boolean hasNginxSignature(String pem) {
+        return pem.startsWith(NGINX_URL_ENCODED_PEM_HEADER_SIGNATURE);
+    }
+
+    private static String extractNginxEncodedCertificateAsPEM(String pem) {
+        // NGINX header: proxy_set_header X-SSL-CLIENT-CERT $ssl_client_escaped_cert;
+        // Format : url-encoded PEM certificate (url-encoded base64)
+        // Ex: "-----BEGIN%20CERTIFICATE-----%0AMIIGejCCBGKgAwIBAgIBBTANBgkqhkiG9w0BAQsFADB6MQswCQYDVQQGEwJmcjEM%0AMAoGA1U...Vsh8vQ%2FAbF3aYeWcKOa%0A-----END%20CERTIFICATE-----%0A"
+        pem = URLDecoder.decode(pem, StandardCharsets.UTF_8);
+        return pem;
+    }
+
+    private static String extractHttpdEncodedCertificateAsPEM(String pem) {
+
+        // Apache httpd header: RequestHeader set X-SSL-CLIENT-CERT "%{SSL_CLIENT_CERT}s"
+        // Expected format : PEM certificate (base64 charset + spacing)
+        // Ex: "-----BEGIN CERTIFICATE----- MIIGfzCCBGegAwIBAgIBCDANBgkqhkiG9w0BAQsFADB7MQswCQYDVQQGEwJmcjEM s5pz...N7zg= -----END CERTIFICATE-----"
+
+        StringTokenizer stringTokenizer = new StringTokenizer(pem, " ", false);
+        StringBuilder stringBuilder = new StringBuilder(pem.length());
+        while (stringTokenizer.hasMoreTokens()) {
+            String token = stringTokenizer.nextToken();
+            switch (token) {
+                case BEGIN_CERT_PREFIX:
+                case END_CERT_PREFIX:
+                    // "-----BEGIN CERTIFICATE----- ==> needs a spacing here
+                    // -----END CERTIFICATE-----    ==> needs a spacing here
+                    stringBuilder.append(token).append(' ');
+                    break;
+                default:
+                    // Needs a new line here
+                    stringBuilder.append(token).append('\n');
+                    break;
+            }
+        }
+        pem = stringBuilder.toString();
+        return pem;
     }
 }
