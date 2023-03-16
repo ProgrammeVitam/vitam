@@ -80,7 +80,7 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
     public Response getUnitById(@PathParam("unitId") String unitId) {
         try {
             JsonNode response = metadataService.selectUnitById(unitId);
-            return Response.status(OK).entity(response).build();
+            return CollectRequestResponse.toResponseOK(response);
         } catch (CollectInternalException e) {
             LOGGER.error("Error when fetching unit in metadata : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());

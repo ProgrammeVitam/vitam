@@ -209,7 +209,7 @@ public class StoreExportsTest {
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
         assertNotNull(imap);
         assertFalse(imap.isEmpty());
-        assertEquals("{\"Digest\":\"e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804\",\"DigestType\":\"SHA-512\"}", imap.get(TRANSFER_DIP).getEvDetailData());
+        assertEquals("{\"SystemMessageDigest\":\"e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804\",\"SystemAlgorithm\":\"SHA-512\"}", imap.get(TRANSFER_DIP).getEvDetailData());
 
 
     }

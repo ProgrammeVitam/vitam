@@ -66,8 +66,8 @@ public class StoreExports extends ActionHandler {
     static final String DIP_CONTAINER = "DIP";
     public static final String TRANSFER_CONTAINER = "TRANSFER";
     private static final String JSONL_EXTENSION = ".jsonl";
-    private static final String DIGEST = "Digest";
-    private static final String DIGEST_TYPE = "DigestType";
+    private static final String DIGEST = "SystemMessageDigest";
+    private static final String DIGEST_TYPE = "SystemAlgorithm";
     private final StorageClientFactory storageClientFactory;
 
     public StoreExports() {
