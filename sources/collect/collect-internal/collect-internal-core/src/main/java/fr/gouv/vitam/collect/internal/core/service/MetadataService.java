@@ -175,10 +175,6 @@ public class MetadataService {
         metadataRepository.saveArchiveUnit(objectNode);
     }
 
-    public List<JsonNode> selectUnits(JsonNode queryDsl, String transactionId) throws CollectInternalException {
-        return metadataRepository.selectUnits(queryDsl, transactionId).getResults();
-    }
-
     public void updateUnits(TransactionModel transaction, InputStream is) throws CollectInternalException {
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
         File file = PropertiesUtils.fileFromTmpFolder("metadata_" + requestId + VitamConstants.JSONL_EXTENSION);
@@ -199,6 +195,10 @@ public class MetadataService {
         throws CollectInternalException, IOException {
         Map<String, String> unitIdsByURI = buildGraphFromExistingUnits(transactionId);
         updateUnitsMetadata(is, unitIdsByURI);
+    }
+
+    public RequestResponseOK<JsonNode> selectUnitsByTransactionId(JsonNode queryDsl, String transactionId) throws CollectInternalException {
+        return metadataRepository.selectUnits(queryDsl, transactionId);
     }
 
     private void updateUnitsMetadata(InputStream is, Map<String, String> unitIdsByURI) throws CollectInternalException {

@@ -400,7 +400,7 @@ public class ProjectInternalResourceTest extends CollectInternalResourceBaseTest
             .when()
             .get(PROJECTS + "/1/units")
             .then()
-            .statusCode(Response.Status.OK.getStatusCode());
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test

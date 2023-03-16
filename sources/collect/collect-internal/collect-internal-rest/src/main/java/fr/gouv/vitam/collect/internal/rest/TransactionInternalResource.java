@@ -223,8 +223,9 @@ public class TransactionInternalResource {
     @Produces(APPLICATION_JSON)
     public Response selectUnits(@PathParam("transactionId") String transactionId, JsonNode jsonQuery) {
         try {
-            final List<JsonNode> units = metadataService.selectUnits(jsonQuery, transactionId);
-            return Response.status(Response.Status.OK).entity(new RequestResponseOK<JsonNode>().addAllResults(units))
+            final RequestResponseOK<JsonNode>
+                units = metadataService.selectUnitsByTransactionId(jsonQuery, transactionId);
+            return Response.status(Response.Status.OK).entity(units)
                 .build();
         } catch (CollectInternalException e) {
             LOGGER.error("Error when getting units in metadata : {}", e);

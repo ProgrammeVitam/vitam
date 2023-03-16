@@ -238,7 +238,8 @@ public class ProjectInternalResource {
                 throw new CollectInternalException("Could not find transaction");
             }
 
-            List<JsonNode> units = metadataService.selectUnits(queryDsl, transaction.get().getId());
+            List<JsonNode> units = metadataService.selectUnitsByTransactionId(queryDsl, transaction.get().getId())
+                .getResults();
             return Response.status(Response.Status.OK).entity(new RequestResponseOK<JsonNode>().addAllResults(units))
                 .build();
         } catch (CollectInternalException e) {
