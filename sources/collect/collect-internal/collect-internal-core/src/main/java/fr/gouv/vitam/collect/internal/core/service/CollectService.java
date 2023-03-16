@@ -111,8 +111,7 @@ public class CollectService {
 
         try {
             JsonNode jsonNode = metadataRepository.selectUnitById(unitId);
-            final CollectUnitModel unitModel =
-                JsonHandler.getFromJsonNode(jsonNode, CollectUnitModel.class);
+            final CollectUnitModel unitModel = JsonHandler.getFromJsonNode(jsonNode, CollectUnitModel.class);
             if (unitModel == null) {
                 LOGGER.error(UNABLE_TO_FIND_ARCHIVE_UNIT_ID);
                 throw new CollectInternalException(UNABLE_TO_FIND_ARCHIVE_UNIT_ID);
@@ -376,23 +375,14 @@ public class CollectService {
         }
     }
 
-    public FormatIdentifierResponse detectFileFormat(String transactionId, String fileName)
-        throws CollectInternalException {
-        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
+    public FormatIdentifierResponse detectFileFormat(File fileToDetect) throws CollectInternalException {
+        try {
             FormatIdentifier formatIdentifier = formatIdentifierFactory.getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
-            try (InputStream is = workspaceClient.getObject(transactionId, CONTENT_FOLDER + File.separator + fileName)
-                .readEntity(InputStream.class)) {
-                Path path = Paths.get(VitamConfiguration.getVitamTmpFolder(), fileName);
-                Files.copy(is, path);
-                File tmpFile = path.toFile();
-                final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(tmpFile.toPath());
-                Files.deleteIfExists(path);
-                return CollectHelper.getFirstPronomFormat(formats);
-            }
-        } catch (ContentAddressableStorageNotFoundException | FormatIdentifierNotFoundException | IOException |
-            FormatIdentifierBadRequestException | ContentAddressableStorageServerException |
-            FormatIdentifierTechnicalException | FormatIdentifierFactoryException |
-            FileFormatNotFoundException e) {
+            final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(fileToDetect.toPath());
+            return CollectHelper.getFirstPronomFormat(formats);
+        } catch (FormatIdentifierNotFoundException | FormatIdentifierBadRequestException |
+                 FormatIdentifierTechnicalException | FormatIdentifierFactoryException |
+                 FileFormatNotFoundException e) {
             throw new CollectInternalException("Can't detect format for the object : ", e);
         }
     }

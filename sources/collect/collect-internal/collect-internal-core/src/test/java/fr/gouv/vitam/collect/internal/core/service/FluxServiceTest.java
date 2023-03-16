@@ -37,6 +37,7 @@ import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
@@ -75,7 +76,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -114,6 +114,7 @@ public class FluxServiceTest {
     @Before
     public void setUp() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID).getId());
 
         transactionModel = new TransactionModel();
         transactionModel.setId(TRANSACTION_ID);
@@ -122,8 +123,7 @@ public class FluxServiceTest {
         projectModel.setId(PROJECT_ID);
 
         projectModel.setManifestContext(new ManifestContext());
-        when(collectService.detectFileFormat(anyString(), anyString())).thenReturn(
-            new FormatIdentifierResponse("", "", "", ""));
+        when(collectService.detectFileFormat(any(File.class))).thenReturn(new FormatIdentifierResponse("", "", "", ""));
     }
 
     @Test

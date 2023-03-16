@@ -28,7 +28,6 @@ package fr.gouv.vitam.collect.internal.core.helpers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ListMultimap;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
@@ -46,23 +45,17 @@ import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
-import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 
 public class CollectHelper {
-
-    public static final String UP = "_up";
 
     private CollectHelper() throws IllegalAccessException {
         throw new IllegalAccessException("Utility class!");
@@ -128,16 +121,6 @@ public class CollectHelper {
         if (objectIdNode != null) {
             ogs.put(archiveUnitId, objectIdNode.asText());
         }
-    }
-
-    public static List<BulkUnitInsertEntry> fetchBulkUnitInsertEntries(ObjectNode unitJson) {
-        if (null != unitJson.get(UP) && unitJson.get(UP).size() != 0) {
-            Set<String> parentUnitIds =
-                StreamSupport.stream(unitJson.get(UP).spliterator(), false).map(JsonNode::asText)
-                    .collect(Collectors.toSet());
-            return Collections.singletonList(new BulkUnitInsertEntry(parentUnitIds, unitJson));
-        }
-        return Collections.singletonList(new BulkUnitInsertEntry(Collections.emptySet(), unitJson));
     }
 
     public static ProjectDto convertProjectModeltoProjectDto(ProjectModel projectModel) {

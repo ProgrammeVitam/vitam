@@ -41,6 +41,7 @@ import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
@@ -52,9 +53,12 @@ import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.security.IllegalPathException;
+import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.storage.compress.ArchiveEntryInputStream;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
@@ -74,8 +78,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.Files;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -90,7 +93,6 @@ import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.STATIC_ATTACHMENT;
 import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.findUnitParent;
-import static fr.gouv.vitam.common.SedaConstants.PREFIX_UP;
 import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.buildSerializationObjectMapper;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
 
@@ -129,29 +131,30 @@ public class FluxService {
             CommonMediaType.ZIP_TYPE, inputStreamClosable)) {
             ArchiveEntry entry;
             boolean isEmpty = true;
-            HashMap<String, String> attachmentGUID =
+            Map<String, String> unitIds =
                 metadataService.prepareAttachmentUnits(projectModel, transactionModel.getId());
             boolean isExtraMetadataExist = false;
             // create entryInputStream to resolve the stream closed problem
             final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
             int maxLevel = -1;
-            Map<String, String> unitIds = new HashMap<>();
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {
-                    String path = entry.getName().replaceAll("/$", "");
-                    if (Strings.isEmpty(path)) {
+                    String path = FilenameUtils.normalize(entry.getName());
+                    if (!FilenameUtils.equals(entry.getName(), path)) {
+                        throw new IllegalStateException("path " + path + " is not canonical");
+                    }
+                    if (Strings.isNullOrEmpty(path)) {
                         continue;
                     }
-                    String fileName = Paths.get(path).getFileName().toString();
-                    if (!entry.isDirectory() && fileName.equals(METADATA_CSV_FILE)) {
+                    path = FilenameUtils.normalizeNoEndSeparator(path);
+                    if (!entry.isDirectory() && path.equals(METADATA_CSV_FILE)) {
                         // save file in workspace
                         collectService.pushStreamToWorkspace(transactionModel.getId(), entryInputStream,
                             METADATA_CSV_FILE);
                         isExtraMetadataExist = true;
                     } else {
-                        maxLevel =
-                            createMetadata(transactionModel, entry, attachmentGUID, entryInputStream, maxLevel, unitIds,
-                                path, fileName, projectModel.getUnitUp() != null);
+                        maxLevel = createMetadata(transactionModel, entry, entryInputStream, maxLevel, unitIds, path,
+                            projectModel.getUnitUp() != null);
                     }
                     isEmpty = false;
                 }
@@ -172,7 +175,7 @@ public class FluxService {
             }
 
             Map<String, String> unitUps =
-                (isExtraMetadataExist) ? findUnitUps(projectModel, transactionModel, attachmentGUID) : new HashMap<>();
+                (isExtraMetadataExist) ? findUnitUps(projectModel, transactionModel, unitIds) : new HashMap<>();
 
             bulkWriteUnits(maxLevel, unitUps, transactionModel.getId());
 
@@ -209,66 +212,89 @@ public class FluxService {
     }
 
     private Map<String, String> findUnitUps(ProjectModel projectModel, TransactionModel transactionModel,
-        HashMap<String, String> attachmentGUID) throws FileNotFoundException {
+        Map<String, String> unitIds) throws FileNotFoundException {
         if (projectModel.getUnitUps() != null) {
             File metadataFile = PropertiesUtils.fileFromTmpFolder(
                 METADATA + "_" + transactionModel.getId() + VitamConstants.JSONL_EXTENSION);
-            JsonLineGenericIterator<JsonLineModel> iterator =
-                new JsonLineGenericIterator<>(new FileInputStream(metadataFile), new TypeReference<>() {
-                });
-            return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
-                .filter(e -> StringUtils.countMatches(e.getId().replaceAll("/$", ""), File.separator) == 0).map(e -> {
-                    String id = e.getId();
-                    ObjectNode unit = (ObjectNode) e.getParams();
-                    unit.put(VitamFieldsHelper.id(), id);
-                    return unit;
-                }).map(e -> findUnitParent(e, projectModel.getUnitUps(), attachmentGUID))
-                .filter(e -> Objects.nonNull(e.getValue()))
-                .collect(Collectors.toMap(Entry<String, String>::getKey, Entry<String, String>::getValue));
+            try (JsonLineGenericIterator<JsonLineModel> iterator = new JsonLineGenericIterator<>(
+                new FileInputStream(metadataFile), new TypeReference<>() {
+            })) {
+                return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, Spliterator.ORDERED), false)
+                    .filter(e -> StringUtils.countMatches(e.getId(), File.separator) == 0).map(e -> {
+                        String id = e.getId();
+                        ObjectNode unit = (ObjectNode) e.getParams();
+                        unit.put(VitamFieldsHelper.id(), id);
+                        return unit;
+                    }).map(e -> findUnitParent(e, projectModel.getUnitUps(), unitIds))
+                    .filter(e -> Objects.nonNull(e.getValue()))
+                    .collect(Collectors.toMap(Entry<String, String>::getKey, Entry<String, String>::getValue));
+            }
         } else {
             return new HashMap<>();
         }
     }
 
     private int createMetadata(TransactionModel transactionModel, ArchiveEntry entry,
-        HashMap<String, String> attachmentGUID, ArchiveEntryInputStream entryInputStream, int maxLevel,
-        Map<String, String> unitIds, String path, String fileName, boolean isAttachmentAuExist)
-        throws IOException, CollectInternalException, InvalidParseOperationException {
+        ArchiveEntryInputStream entryInputStream, int maxLevel, Map<String, String> unitIds, String path,
+        boolean isAttachmentAuExist) throws IOException, CollectInternalException, InvalidParseOperationException {
         DescriptionLevel descriptionLevel = (entry.isDirectory()) ? DescriptionLevel.RECORD_GRP : DescriptionLevel.ITEM;
 
-        Path parent = Paths.get(path).getParent();
+        String parent = FilenameUtils.getPathNoEndSeparator(path);
 
         String parentUnit;
-        if (path.lastIndexOf(File.separator) == -1) {
-            parentUnit = (isAttachmentAuExist) ? attachmentGUID.get(STATIC_ATTACHMENT) : null;
+        if (Strings.isNullOrEmpty(parent)) {
+            if (isAttachmentAuExist) {
+                parentUnit = unitIds.get(STATIC_ATTACHMENT);
+            } else {
+                parentUnit = null;
+            }
         } else {
-            parentUnit = parent != null ? unitIds.get(parent.getFileName().toString()) : null;
+            parentUnit = unitIds.get(parent);
+            if (parentUnit == null) {
+                throw new IllegalStateException("Malformed zip file : cannot import tree");
+            }
         }
+        String fileName = FilenameUtils.getName(path);
+
         ArchiveUnitModel unit =
             MetadataHelper.createUnit(transactionModel.getId(), LevelType.fromValue(descriptionLevel.getValue()),
                 fileName, parentUnit);
 
-        unitIds.put(fileName, unit.getId());
+        unitIds.put(path, unit.getId());
         if (!entry.isDirectory()) {
             String extension = FilenameUtils.getExtension(fileName).toLowerCase();
             String objectId = GUIDFactory.newGUID().getId();
             String newFilename = (Strings.isNullOrEmpty(extension)) ? objectId : objectId + "." + extension;
 
-            Entry<String, Long> binaryInformations =
-                writeObjectToWorkspace(transactionModel.getId(), entryInputStream, newFilename);
-            FormatIdentifierResponse formatIdentifierResponse =
-                collectService.detectFileFormat(transactionModel.getId(), newFilename);
-
-            ObjectGroupResponse objectGroup =
-                MetadataHelper.createObjectGroup(transactionModel.getId(), fileName, objectId, newFilename,
-                    formatIdentifierResponse, binaryInformations.getKey(), binaryInformations.getValue());
-            writeObjectGroupToTemporaryFile(objectGroup, transactionModel.getId());
-            unit.setOg(objectGroup.getId());
+            File file = writeToTemporaryFile(entryInputStream);
+            try {
+                FormatIdentifierResponse formatIdentifierResponse = collectService.detectFileFormat(file);
+                Entry<String, Long> binaryInformations =
+                    writeObjectToWorkspace(transactionModel.getId(), file, newFilename);
+                ObjectGroupResponse objectGroup =
+                    MetadataHelper.createObjectGroup(transactionModel.getId(), fileName, objectId, newFilename,
+                        formatIdentifierResponse, binaryInformations.getKey(), binaryInformations.getValue());
+                writeObjectGroupToTemporaryFile(objectGroup, transactionModel.getId());
+                unit.setOg(objectGroup.getId());
+            } finally {
+                Files.deleteIfExists(file.toPath());
+            }
         }
 
         maxLevel = writeUnitToTemporaryFile(StringUtils.countMatches(path, File.separator), maxLevel, unit,
             transactionModel.getId());
         return maxLevel;
+    }
+
+    private static File writeToTemporaryFile(ArchiveEntryInputStream entryInputStream) throws IOException {
+        try {
+            String fileName = VitamThreadUtils.getVitamSession().getRequestId();
+            File file = SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), fileName);
+            Files.copy(entryInputStream, file.toPath());
+            return file;
+        } catch (IllegalPathException e) {
+            throw new IOException(e);
+        }
     }
 
     private void bulkWriteUnits(int maxLevel, Map<String, String> unitUps, String transactionId)
@@ -298,7 +324,7 @@ public class FluxService {
         String title = unit.get(TITLE).asText();
         String up = unitUps.get(title);
         if (up != null) {
-            unit.set(PREFIX_UP, JsonHandler.createArrayNode().add(up));
+            unit.set(VitamFieldsHelper.unitups(), JsonHandler.createArrayNode().add(up));
         }
         return unit;
     }
@@ -338,9 +364,9 @@ public class FluxService {
         return Math.max(maxLevel, level);
     }
 
-    private Entry<String, Long> writeObjectToWorkspace(String transactionId, ArchiveEntryInputStream entryInputStream,
-        String fileName) throws IOException, CollectInternalException {
-        try (CountingInputStream countingInputStream = new CountingInputStream(entryInputStream)) {
+    private Entry<String, Long> writeObjectToWorkspace(String transactionId, File fileToWrite, String fileName)
+        throws IOException, CollectInternalException {
+        try (CountingInputStream countingInputStream = new CountingInputStream(new FileInputStream(fileToWrite))) {
             String digest = collectService.pushStreamToWorkspace(transactionId, countingInputStream,
                 CONTENT_FOLDER.concat(File.separator).concat(fileName));
 

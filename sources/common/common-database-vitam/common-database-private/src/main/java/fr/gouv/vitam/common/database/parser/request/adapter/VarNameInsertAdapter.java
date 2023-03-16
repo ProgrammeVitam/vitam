@@ -80,24 +80,31 @@ public class VarNameInsertAdapter extends VarNameAdapter {
         // Note: some values are not allowed, as #id
         if (rootNode instanceof ArrayNode) {
             final ArrayNode object = JsonHandler.createArrayNode();
-            final Iterator<JsonNode> fieldIterator = ((ArrayNode) rootNode).elements();
+            final Iterator<JsonNode> fieldIterator = rootNode.elements();
             while (fieldIterator.hasNext()) {
                 final JsonNode node = getFixedVarNameJsonNode(fieldIterator.next());
                 object.add(node);
             }
             return object;
         }
-        final ObjectNode object = JsonHandler.createObjectNode();
-        final Iterator<Entry<String, JsonNode>> fieldIterator = rootNode.fields();
-        while (fieldIterator.hasNext()) {
-            final Entry<String, JsonNode> entry = fieldIterator.next();
-            String name = entry.getKey();
-            final String newname = getVariableName(name);
-            if (newname != null) {
-                name = newname;
+        if (rootNode.isObject()) {
+            final ObjectNode object = JsonHandler.createObjectNode();
+            final Iterator<Entry<String, JsonNode>> fieldIterator = rootNode.fields();
+            while (fieldIterator.hasNext()) {
+                final Entry<String, JsonNode> entry = fieldIterator.next();
+                String name = entry.getKey();
+                final String newname = getVariableName(name);
+                if (newname != null) {
+                    name = newname;
+                }
+                if (entry.getValue().isObject() || entry.getValue().isArray()) {
+                    object.set(name, getFixedVarNameJsonNode(entry.getValue()));
+                } else {
+                    object.set(name, entry.getValue());
+                }
             }
-            object.set(name, entry.getValue());
+            return object;
         }
-        return object;
+        return rootNode;
     }
 }

@@ -29,7 +29,6 @@ package fr.gouv.vitam.collect.internal.core.repository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
-import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -164,8 +163,10 @@ public class MetadataRepository {
 
     public JsonNode saveArchiveUnit(ObjectNode unit) throws CollectInternalException {
         try (MetaDataClient client = metaDataCollectClientFactory.getClient()) {
-            List<BulkUnitInsertEntry> units = CollectHelper.fetchBulkUnitInsertEntries(unit);
-            return client.insertUnitBulk(new BulkUnitInsertRequest(units));
+            return client.insertUnitBulk(new BulkUnitInsertRequest(
+                Collections.singletonList(new BulkUnitInsertEntry(
+                    JsonHandler.getFromJsonNode(unit.get(VitamFieldsHelper.unitups()), Set.class, String.class), unit))
+            ));
         } catch (final MetaDataException | InvalidParseOperationException e) {
             LOGGER.error("Error while saving unit in metadata: {}", e);
             throw new CollectInternalException("Error while saving unit in metadata: " + e);

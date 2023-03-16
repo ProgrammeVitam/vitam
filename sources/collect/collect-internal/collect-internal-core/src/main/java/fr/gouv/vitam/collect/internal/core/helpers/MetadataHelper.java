@@ -51,7 +51,6 @@ import java.io.File;
 import java.time.LocalDateTime;
 import java.util.AbstractMap;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -84,8 +83,8 @@ public class MetadataHelper {
         return unitInternalModel;
     }
 
-    public static ObjectGroupResponse createObjectGroup(String transactionId, String fileName,String objectId, String newFilename,
-        FormatIdentifierResponse format, String digest, Long size) {
+    public static ObjectGroupResponse createObjectGroup(String transactionId, String fileName, String objectId,
+        String newFilename, FormatIdentifierResponse format, String digest, Long size) {
 
 
         FileInfoModel fileInfoModel = new FileInfoModel();
@@ -127,12 +126,12 @@ public class MetadataHelper {
     }
 
     public static Map.Entry<String, String> findUnitParent(ObjectNode unit, @Nonnull List<MetadataUnitUp> unitUps,
-        HashMap<String, String> attachmentGUID) {
+        Map<String, String> unitIds) {
         for (MetadataUnitUp unitUp : unitUps) {
             if (unit.get(unitUp.getMetadataKey()) != null &&
                 unit.get(unitUp.getMetadataKey()).asText().equals(unitUp.getMetadataValue())) {
                 final String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, unitUp.getUnitUp());
-                String unitUpId = attachmentGUID.get(unitTitle);
+                String unitUpId = unitIds.get(unitTitle);
                 return new AbstractMap.SimpleEntry<>(unit.get(VitamFieldsHelper.id()).asText(), unitUpId);
             }
         }
