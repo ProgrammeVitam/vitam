@@ -51,6 +51,7 @@ import java.util.Map;
 /**
  * VitamError class
  */
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class VitamError<T> extends RequestResponse<T> {
 
 
