@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.external.external.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
@@ -274,6 +275,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             InputStream responseStream = collectClient.generateSip(transactionId);
             clientIngest.ingest(new VitamContext(ParameterHelper.getTenantParameter()),
                 responseStream, DEFAULT_WORKFLOW.name(), RESUME.name());
+            collectClient.changeTransactionStatus(transactionId, TransactionStatus.SENT);
             LOGGER.info("SIP sent with success ");
             return Response.ok().build();
         } catch (InvalidParseOperationException e) {

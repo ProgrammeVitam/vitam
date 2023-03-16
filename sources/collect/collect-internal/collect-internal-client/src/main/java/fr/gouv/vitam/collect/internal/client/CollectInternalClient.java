@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -318,5 +319,15 @@ public interface CollectInternalClient extends MockOrRestClient {
 
     RequestResponseOK<JsonNode> updateUnits(String transactionId, InputStream is)
         throws VitamClientException;
+
+    /**
+     * Change Transaction Status
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return Response
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    Response changeTransactionStatus(String transactionId, TransactionStatus transactionStatus) throws VitamClientException;
 }
 

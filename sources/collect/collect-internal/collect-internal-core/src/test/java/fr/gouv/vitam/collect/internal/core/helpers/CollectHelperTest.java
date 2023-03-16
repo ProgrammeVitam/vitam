@@ -29,7 +29,7 @@ package fr.gouv.vitam.collect.internal.core.helpers;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
-import fr.gouv.vitam.collect.internal.core.common.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.common.LocalDateUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;

@@ -34,6 +34,7 @@ import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.collect.external.external.rest.CollectExternalMain;
@@ -179,9 +180,18 @@ public class CollectIngestIT extends VitamRuleRunner {
             collectClient.closeTransaction(vitamContext, transactionDtoResult.getId());
         }
         InputStream inputStream;
-        try(CollectInternalClient client = CollectInternalClientFactory.getInstance().getClient()) {
+        try (CollectInternalClient client = CollectInternalClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
             inputStream = client.generateSip(idTransaction);
+            RequestResponse<JsonNode> transactionResponse =
+                client.getTransactionById(idTransaction);
+            Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
+
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
+            TransactionDto transactionDtoResult =
+                JsonHandler.getFromJsonNode(requestResponseOK.getFirstResult(), TransactionDto.class);
+            Assertions.assertThat(transactionDtoResult.getStatus()).isEqualTo(TransactionStatus.SENDING.toString());
+
         }
 
         // turn off metadata-collect and run metadata
@@ -190,7 +200,7 @@ public class CollectIngestIT extends VitamRuleRunner {
 
         String processId;
 
-        try(IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
+        try (IngestExternalClient ingestExternalClient = IngestExternalClientFactory.getInstance().getClient()) {
             RequestResponse<Void> ingest = ingestExternalClient.ingest(vitamContext, inputStream,
                 DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             processId = ingest.getVitamHeaders().get(GlobalDataRest.X_REQUEST_ID);
@@ -198,8 +208,7 @@ public class CollectIngestIT extends VitamRuleRunner {
             VitamTestHelper.waitOperation(processId);
             VitamTestHelper.verifyOperation(processId, StatusCode.OK);
         }
-
-        try(AccessExternalClient accessExternalClient = AccessExternalClientFactory.getInstance().getClient()) {
+        try (AccessExternalClient accessExternalClient = AccessExternalClientFactory.getInstance().getClient()) {
             SelectMultiQuery select = new SelectMultiQuery();
             select.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), processId));
             vitamContext.setAccessContract(ACCESS_CONTRACT);
@@ -208,5 +217,7 @@ public class CollectIngestIT extends VitamRuleRunner {
 
             assertEquals(6, ((RequestResponseOK<JsonNode>) results).getResults().size());
         }
+
+
     }
 }

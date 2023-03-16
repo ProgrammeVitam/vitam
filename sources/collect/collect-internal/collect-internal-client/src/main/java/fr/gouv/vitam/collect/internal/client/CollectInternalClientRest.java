@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -439,6 +440,18 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
         try (Response response = make(request)) {
             check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
+        }
+    }
+
+
+    @Override
+    public Response changeTransactionStatus(String transactionId, TransactionStatus transactionStatus)
+        throws VitamClientException {
+        try (Response response = make(put()
+            .withPath(TRANSACTION_PATH + "/" + transactionId + "/status/"+transactionStatus)
+            .withJsonAccept())) {
+            check(response);
+            return response;
         }
     }
 }

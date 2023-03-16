@@ -31,7 +31,7 @@ import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
-import fr.gouv.vitam.collect.internal.core.common.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.rest.TransactionInternalResource;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
@@ -355,7 +355,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void closeTransaction_ko_collect_error() throws Exception {
-        doThrow(new CollectInternalException("error")).when(transactionService).closeTransaction(any());
+        doThrow(new CollectInternalException("error")).when(transactionService).changeTransactionStatus(any(), any());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -368,7 +368,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void closeTransaction_ko_parsing_error() throws Exception {
-        doThrow(new IllegalArgumentException("error")).when(transactionService).closeTransaction(any());
+        doThrow(new IllegalArgumentException("error")).when(transactionService).changeTransactionStatus(any(), any());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -393,7 +393,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void abortTransaction_ko_collect_error() throws Exception {
-        doThrow(new CollectInternalException("error")).when(transactionService).abortTransaction(any());
+        doThrow(new CollectInternalException("error")).when(transactionService).changeTransactionStatus(any(), any());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -406,7 +406,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void abortTransaction_ko_parsing_error() throws Exception {
-        doThrow(new IllegalArgumentException("error")).when(transactionService).abortTransaction(any());
+        doThrow(new IllegalArgumentException("error")).when(transactionService).changeTransactionStatus(any(), any());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -431,7 +431,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void reopenTransaction_ko_collect_error() throws Exception {
-        doThrow(new CollectInternalException("error")).when(transactionService).reopenTransaction(any());
+        doThrow(new CollectInternalException("error")).when(transactionService).changeTransactionStatus(any(), any());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -444,7 +444,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void reopenTransaction_ko_parsing_error() throws Exception {
-        doThrow(new IllegalArgumentException("error")).when(transactionService).reopenTransaction(any());
+        doThrow(new IllegalArgumentException("error")).when(transactionService).changeTransactionStatus(any(), any());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)

@@ -30,7 +30,7 @@ import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.ProjectStatus;
-import fr.gouv.vitam.collect.internal.core.common.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.LocalDateUtil;

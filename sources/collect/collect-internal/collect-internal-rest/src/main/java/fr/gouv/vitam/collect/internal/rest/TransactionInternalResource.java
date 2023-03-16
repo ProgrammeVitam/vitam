@@ -27,13 +27,12 @@
 package fr.gouv.vitam.collect.internal.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
-import fr.gouv.vitam.collect.internal.core.common.TransactionStatus;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.service.FluxService;
 import fr.gouv.vitam.collect.internal.core.service.MetadataService;
@@ -240,7 +239,7 @@ public class TransactionInternalResource {
     public Response closeTransaction(@PathParam("transactionId") String transactionId) {
         try {
             SanityChecker.checkParameter(transactionId);
-            transactionService.closeTransaction(transactionId);
+            transactionService.changeTransactionStatus(TransactionStatus.READY, transactionId);
             return Response.status(OK).build();
         } catch (CollectInternalException e) {
             LOGGER.error("An error occurs when try to close transaction : {}", e);
@@ -258,13 +257,13 @@ public class TransactionInternalResource {
     public Response abortTransaction(@PathParam("transactionId") String transactionId) {
         try {
             SanityChecker.checkParameter(transactionId);
-            transactionService.abortTransaction(transactionId);
+            transactionService.changeTransactionStatus(TransactionStatus.ABORTED, transactionId);
             return Response.status(OK).build();
         } catch (CollectInternalException e) {
-            LOGGER.error("An error occurs when try to close transaction : {}", e);
+            LOGGER.error("An error occurs when try to abort transaction : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
-            LOGGER.error("An error occurs when try to close transaction : {}", e);
+            LOGGER.error("An error occurs when try to abort transaction : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
@@ -276,13 +275,13 @@ public class TransactionInternalResource {
     public Response reopenTransaction(@PathParam("transactionId") String transactionId) {
         try {
             SanityChecker.checkParameter(transactionId);
-            transactionService.reopenTransaction(transactionId);
+            transactionService.changeTransactionStatus(TransactionStatus.OPEN, transactionId);
             return Response.status(OK).build();
         } catch (CollectInternalException e) {
-            LOGGER.error("An error occurs when try to close transaction : {}", e);
+            LOGGER.error("An error occurs when try to reopen transaction : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
-            LOGGER.error("An error occurs when try to close transaction : {}", e);
+            LOGGER.error("An error occurs when try to reopen transaction : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
@@ -303,11 +302,11 @@ public class TransactionInternalResource {
             }
             transaction = transactionModel.get();
             transactionService.isTransactionContentEmpty(transaction.getId());
-            transactionService.changeStatusTransaction(TransactionStatus.SENDING, transaction);
+            transactionService.changeTransactionStatus(TransactionStatus.SENDING, transactionId);
             String digest = sipService.generateSip(transaction);
             if (digest == null) {
                 LOGGER.error(SIP_GENERATED_MANIFEST_CAN_T_BE_NULL);
-                transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
+                transactionService.changeTransactionStatus(TransactionStatus.KO, transactionId);
                 return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, SIP_GENERATED_MANIFEST_CAN_T_BE_NULL);
             }
             sipInputStream = sipService.getIngestedFileFromWorkspace(transaction);
@@ -317,11 +316,11 @@ public class TransactionInternalResource {
             return Response.ok(sipInputStream).build();
         } catch (CollectInternalException e) {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
-            transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
+            transactionService.changeTransactionStatus(TransactionStatus.KO, transactionId);
             return Response.status(BAD_REQUEST).build();
         } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
-            transactionService.changeStatusTransaction(TransactionStatus.KO, transaction);
+            transactionService.changeTransactionStatus(TransactionStatus.KO, transactionId);
             return Response.status(BAD_REQUEST).build();
         } catch (Exception e) {
             if (sipInputStream != null) {
@@ -375,8 +374,6 @@ public class TransactionInternalResource {
                 FileUtils.deleteQuietly(file);
             }
 
-
-
             return Response.ok(new RequestResponseOK<>()).build();
         } catch (CollectInternalException | IOException e) {
             LOGGER.error("An error occurs when try to update metadata : {}", e);
@@ -411,6 +408,24 @@ public class TransactionInternalResource {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (IllegalArgumentException e) {
             LOGGER.error("An error occurs when try to upload the ZIP: {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
+
+    @Path("/{transactionId}/status/{transactionStatus}")
+    @PUT
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response changeTransactionStatus(@PathParam("transactionId") String transactionId, @PathParam("transactionStatus") TransactionStatus transactionStatus) {
+        try {
+            SanityChecker.checkParameter(transactionId);
+            transactionService.changeTransactionStatus(transactionStatus, transactionId);
+            return Response.status(OK).build();
+        } catch (CollectInternalException e) {
+            LOGGER.error("An error occurs when try to update transaction : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error("An error occurs when try to update transaction : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }

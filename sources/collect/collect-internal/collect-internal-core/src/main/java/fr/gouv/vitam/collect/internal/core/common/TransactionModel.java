@@ -27,6 +27,7 @@
 package fr.gouv.vitam.collect.internal.core.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 
 import java.util.Objects;
 
