@@ -323,32 +323,36 @@ public class MetadataService {
                 List<JsonNode> attachmentUnits = findAttachmentUnits(transactionId, unitsToFetchBySystemId);
 
                 for (JsonNode attachmentUnit : attachmentUnits) {
-                    String systemId = attachmentUnit.get(SYSTEM_ID_FIELD_PATH).asText();
+                    String systemId = findSystemId(attachmentUnit);
                     if (systemId.equals(projectModel.getUnitUp())) {
                         savedGuidUnits.put(STATIC_ATTACHMENT, attachmentUnit.get(VitamFieldsHelper.id()).asText());
                     } else {
-                        final String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, attachmentUnit);
+                        final String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, systemId);
                         savedGuidUnits.put(unitTitle, attachmentUnit.get(VitamFieldsHelper.id()).asText());
                     }
                 }
 
-                if (!savedGuidUnits.containsKey(STATIC_ATTACHMENT)) {
-                    ArchiveUnitModel unit =
-                        createAttachmentUnit(transactionId, STATIC_ATTACHMENT, projectModel.getUnitUp());
-                    units.add(unit);
-                    savedGuidUnits.put(STATIC_ATTACHMENT, unit.getId());
-                    unitsToFetchBySystemId.remove(projectModel.getUnitUp());
+                if (projectModel.getUnitUp() != null) {
+                    if (!savedGuidUnits.containsKey(STATIC_ATTACHMENT)) {
+                        ArchiveUnitModel unit =
+                            createAttachmentUnit(transactionId, STATIC_ATTACHMENT, projectModel.getUnitUp());
+                        units.add(unit);
+                        savedGuidUnits.put(STATIC_ATTACHMENT, unit.getId());
+                        unitsToFetchBySystemId.remove(projectModel.getUnitUp());
+                    }
                 }
 
-                unitsToFetchBySystemId.stream().filter(e -> {
-                    String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, e);
-                    return !savedGuidUnits.containsKey(unitTitle);
-                }).forEach(e -> {
-                    String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, e);
-                    ArchiveUnitModel unit = createAttachmentUnit(transactionId, unitTitle, e);
-                    units.add(unit);
-                    savedGuidUnits.put(unitTitle, unit.getId());
-                });
+                if (projectModel.getUnitUps() != null) {
+                    unitsToFetchBySystemId.stream().filter(e -> {
+                        String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, e);
+                        return !savedGuidUnits.containsKey(unitTitle);
+                    }).forEach(e -> {
+                        String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, e);
+                        ArchiveUnitModel unit = createAttachmentUnit(transactionId, unitTitle, e);
+                        units.add(unit);
+                        savedGuidUnits.put(unitTitle, unit.getId());
+                    });
+                }
 
                 if (!units.isEmpty()) {
                     ObjectMapper objectMapper = buildSerializationObjectMapper();
@@ -362,5 +366,13 @@ public class MetadataService {
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             throw new CollectInternalException(e);
         }
+    }
+
+    private String findSystemId(JsonNode attachmentUnit) {
+        JsonNode value = attachmentUnit;
+        for (String field : SYSTEM_ID_FIELD_PATH.split("\\.")) {
+            value = value.get(field);
+        }
+        return value.asText();
     }
 }
