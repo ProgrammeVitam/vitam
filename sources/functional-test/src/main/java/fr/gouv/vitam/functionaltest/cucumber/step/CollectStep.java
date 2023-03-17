@@ -332,8 +332,8 @@ public class CollectStep extends CommonStep {
                 world.getTenantId()), unitId, version, gotJson, usage);
         assertThat(response.isOk()).isTrue();
         assertThat(((RequestResponseOK) response).getFirstResult()).isNotNull();
-        assertThat(((RequestResponseOK<JsonNode>) response).getFirstResult().get("id")).isNotNull();
-        ((RequestResponseOK<JsonNode>) response).getFirstResult().get("id").textValue();
+        assertThat(((RequestResponseOK<JsonNode>) response).getFirstResult().get("_id")).isNotNull();
+        ((RequestResponseOK<JsonNode>) response).getFirstResult().get("_id").textValue();
     }
 
     @When("^j'upload le fichier suivant (.*)$")

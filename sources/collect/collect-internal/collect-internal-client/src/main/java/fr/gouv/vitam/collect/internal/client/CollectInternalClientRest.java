@@ -35,6 +35,8 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -421,9 +423,17 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
             return;
         }
 
-        throw new VitamClientException(String
-            .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                fromStatusCode(response.getStatus()).getReasonPhrase()));
+        try {
+            RequestResponse<JsonNode> requestResponse = RequestResponse.parseVitamError(response);
+            if (!requestResponse.isOk() && requestResponse instanceof VitamError) {
+                throw new VitamClientException(String
+                    .format("Error with the response, get status: '%d' and reason '%s'.", requestResponse.getStatus(), ((VitamError<JsonNode>) requestResponse).getMessage()));
+            }
+        } catch (InvalidParseOperationException e) {
+            throw new VitamClientException(String
+                .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
+                    fromStatusCode(response.getStatus()).getReasonPhrase()));
+        }
     }
 
     @Override
