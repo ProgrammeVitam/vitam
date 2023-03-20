@@ -29,19 +29,24 @@ package fr.gouv.vitam.collect.internal.core.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
+import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -59,15 +64,19 @@ import org.mockito.junit.MockitoRule;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -76,6 +85,7 @@ public class MetadataServiceTest {
     private static final String TRANSACTION_ID = "TRANSACTION_ID";
     private static final String PROJECT_ID = "PROJECT_ID";
     private static final String UNIT_ID = "UNIT_ID";
+    private static final int TENANT_ID = 0;
     private static final String UNITS_WITH_GRAPH_PATH = "streamZip/units_with_graph.json";
     private static final String QUERIES_PATH = "streamZip/queries.json";
     private static final String METADATA_FILE = "update/metadata.csv";
@@ -242,7 +252,78 @@ public class MetadataServiceTest {
     }
 
     @Test
-    public void updateUnitsWithMetadataFile() {
-        // really ?
+    public void given_only_unitup_then_prepareAttachmentUnits_return_only_static() throws Exception {
+        projectModel.setUnitUp("SYSTEM_ID");
+        JsonNode unitJson = createAttachmentUnit();
+
+        when(metadataRepository.selectUnits(any(JsonNode.class), eq(TRANSACTION_ID))).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(unitJson));
+        HashMap<String, String> result = metadataService.prepareAttachmentUnits(projectModel, TRANSACTION_ID);
+
+        assertThat(result).containsOnlyKeys(MetadataHelper.STATIC_ATTACHMENT);
+        assertThat(result.values()).containsOnly("UNIT_ID");
+        verify(metadataRepository, never()).saveArchiveUnits(anyList());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_create_unit_when_prepareAttachmentUnits_with_unitup_only() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        projectModel.setUnitUp("SYSTEM_ID");
+        when(metadataRepository.selectUnits(any(JsonNode.class), eq(TRANSACTION_ID))).thenReturn(
+            new RequestResponseOK<>());
+        HashMap<String, String> result = metadataService.prepareAttachmentUnits(projectModel, TRANSACTION_ID);
+
+        assertThat(result).containsOnlyKeys(MetadataHelper.STATIC_ATTACHMENT);
+        assertThat(result.values()).hasSize(1);
+        verify(metadataRepository, times(1)).saveArchiveUnits(anyList());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_create_unit_when_prepareAttachmentUnits_with_unitups_only() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        MetadataUnitUp up = new MetadataUnitUp();
+        up.setUnitUp("SYSTEM_ID");
+        up.setMetadataKey("KEY");
+        up.setMetadataKey("VALUE");
+        projectModel.setUnitUps(List.of(up));
+        when(metadataRepository.selectUnits(any(JsonNode.class), eq(TRANSACTION_ID))).thenReturn(
+            new RequestResponseOK<>());
+        HashMap<String, String> result = metadataService.prepareAttachmentUnits(projectModel, TRANSACTION_ID);
+
+        assertThat(result).containsOnlyKeys(MetadataHelper.DYNAMIC_ATTACHEMENT + "_" + "SYSTEM_ID");
+        assertThat(result.values()).hasSize(1);
+        verify(metadataRepository, times(1)).saveArchiveUnits(anyList());
+    }
+
+    @Test
+    public void given_only_unitups_then_prepareAttachmentUnits_return_only_dynamic() throws Exception {
+        MetadataUnitUp up = new MetadataUnitUp();
+        up.setUnitUp("SYSTEM_ID");
+        up.setMetadataKey("KEY");
+        up.setMetadataKey("VALUE");
+        projectModel.setUnitUps(List.of(up));
+        JsonNode unitJson = createAttachmentUnit();
+
+        when(metadataRepository.selectUnits(any(JsonNode.class), eq(TRANSACTION_ID))).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(unitJson));
+        HashMap<String, String> result = metadataService.prepareAttachmentUnits(projectModel, TRANSACTION_ID);
+
+        assertThat(result).containsOnlyKeys(MetadataHelper.DYNAMIC_ATTACHEMENT + "_" + "SYSTEM_ID");
+        assertThat(result.values()).containsOnly("UNIT_ID");
+        verify(metadataRepository, never()).saveArchiveUnits(anyList());
+    }
+
+    private static JsonNode createAttachmentUnit() throws InvalidParseOperationException {
+        ArchiveUnitModel unit = new ArchiveUnitModel();
+        unit.setId("UNIT_ID");
+        ManagementModel managementModel = new ManagementModel();
+        UpdateOperationType updateOperationType = new UpdateOperationType();
+        updateOperationType.setSystemId("SYSTEM_ID");
+        managementModel.setUpdateOperationType(updateOperationType);
+        unit.setManagement(managementModel);
+
+        return JsonHandler.toJsonNode(unit);
     }
 }
