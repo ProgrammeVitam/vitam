@@ -215,7 +215,7 @@ public class MetadataServiceTest {
         // Given
         when(metadataRepository.selectUnits(any(JsonNode.class), anyString())).thenReturn(new RequestResponseOK<>());
         // When
-        metadataService.selectUnits(JsonHandler.createObjectNode(), TRANSACTION_ID);
+        metadataService.selectUnitsByTransactionId(JsonHandler.createObjectNode(), TRANSACTION_ID);
         // Then
         verify(metadataRepository).selectUnits(any(JsonNode.class), eq(TRANSACTION_ID));
     }
@@ -325,5 +325,15 @@ public class MetadataServiceTest {
         unit.setManagement(managementModel);
 
         return JsonHandler.toJsonNode(unit);
+    }
+
+    @Test
+    public void testSelectUnitsByTransactionId() throws Exception {
+        // Given
+        when(metadataRepository.selectUnits(any(JsonNode.class), anyString())).thenReturn(new RequestResponseOK<>());
+        // When
+        metadataService.selectUnitsByTransactionId(JsonHandler.createObjectNode(), TRANSACTION_ID);
+        // Then
+        verify(metadataRepository).selectUnits(any(JsonNode.class), eq(TRANSACTION_ID));
     }
 }

@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import io.restassured.http.ContentType;
 import org.assertj.core.api.Assertions;
@@ -58,6 +59,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     private static final int TENANT = 0;
     public static final String TRANSACTIONS = "/transactions";
+
     private static final String TRANSACTION_ZIP_PATH = "streamZip/transaction.zip";
 
     public static final String QUERY_INIT = "{ "
@@ -314,8 +316,8 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
     }
 
     @Test
-    public void selectUnits_ko_collect_error() throws Exception {
-        when(metadataService.selectUnits(any(JsonNode.class), eq("1"))).thenThrow(
+    public void testSelectUnitsByTransactionId_ko_collect_error() throws Exception {
+        when(metadataService.selectUnitsByTransactionId(any(JsonNode.class), eq("15"))).thenThrow(
             new CollectInternalException("error"));
         given()
             .contentType(ContentType.JSON)
@@ -325,7 +327,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
             .when()
             .get(TRANSACTIONS + "/1/units")
             .then()
-            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .statusCode(Response.Status.OK.getStatusCode());
     }
 
     @Test
@@ -738,6 +740,35 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
         Response result = transactionInternalResource.uploadTransactionZip(TRANSACTION_ID, inputStreamZip);
         // Then
         Assertions.assertThat(result.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void selectUnitsByTransactionId_ko_when_collectService_error() throws Exception {
+        when(metadataService.selectUnitsByTransactionId(any(JsonNode.class), eq("1"))).thenThrow(
+            new CollectInternalException("error"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString("{}"))
+            .when()
+            .get(TRANSACTIONS + "/1/units")
+            .then()
+            .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void selectUnitsByTransactionId_ok_when_collectServie_ok() throws Exception {
+        when(metadataService.selectUnitsByTransactionId(any(JsonNode.class), eq("10"))).thenReturn(new RequestResponseOK<>());
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString("{}"))
+            .when()
+            .get(TRANSACTIONS + "/10/units")
+            .then()
+            .statusCode(Response.Status.OK.getStatusCode());
     }
 
 }

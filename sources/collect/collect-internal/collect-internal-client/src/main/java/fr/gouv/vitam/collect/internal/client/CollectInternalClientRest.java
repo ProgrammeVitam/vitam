@@ -214,10 +214,8 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
 
         VitamRequestBuilder request = get()
             .withPath(TRANSACTION_PATH + "/" + transactionId + UNITS_PATH)
-
             .withJson()
             .withBody(query);
-
         try (Response response = make(request)) {
             check(response);
             RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
