@@ -1,0 +1,65 @@
+groups:
+  - name: reconstruction
+    rules:
+      # Metadata reconstruction (unit/objectgroup documents & graph)
+      - alert: MetadataReconstruction
+        expr: ceil(max by(collection) (min by(collection, tenant, strategy) (vitam_metadata_reconstruction_metadata_latency_seconds)) / 60) >= 30
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          description: |-
+            Metadata ({{ $labels.collection }}) reconstruction delay > 30 minutes
+          summary: Last reconstructed metadata ({{ $labels.collection }}) is at least 30 minutes old
+
+      - alert: MetadataReconstruction
+        expr: ceil(max by(collection) (min by(collection, tenant, strategy) (vitam_metadata_reconstruction_metadata_latency_seconds)) / 60) >= 120
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          description: |-
+            Metadata ({{ $labels.collection }}) reconstruction delay > 120 minutes
+          summary: Last reconstructed metadata ({{ $labels.collection }}) is at least 120 minutes old
+
+      # Logbook operation reconstruction
+      - alert: LogbookOperationReconstruction
+        expr: ceil(max(min by(tenant) (vitam_logbook_reconstruction_operation_latency_seconds)) / 60) >= 30
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          description: |-
+            Logbook operation reconstruction delay > 30 minutes
+          summary: Last reconstructed logbook operation is at least 30 minutes old
+
+      - alert: LogbookOperationReconstruction
+        expr: ceil(max(min by(tenant) (vitam_logbook_reconstruction_operation_latency_seconds)) / 60) >= 120
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          description: |-
+            Logbook operation reconstruction delay > 120 minutes
+          summary: Last reconstructed logbook operation is at least 120 minutes old
+
+      # Functional-administration reconstruction (Accession Register Details & Accession Register Symbolic)
+      - alert: FunctionalAdministrationReconstruction
+        expr: ceil(max by(collection) (min by(collection, tenant) (vitam_functional_administration_reconstruction_latency_seconds)) / 60) >= 30
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          description: |-
+            Functional-administration ({{ $labels.collection }}) reconstruction delay > 30 minutes
+          summary: Last reconstructed functional-administration ({{ $labels.collection }}) is at least 30 minutes old
+
+      - alert: FunctionalAdministrationReconstruction
+        expr: ceil(max by(collection) (min by(collection, tenant) (vitam_functional_administration_reconstruction_latency_seconds)) / 60) >= 120
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          description: |-
+            Functional-administration ({{ $labels.collection }}) reconstruction delay > 120 minutes
+          summary: Last reconstructed functional-administration ({{ $labels.collection }}) is at least 120 minutes old

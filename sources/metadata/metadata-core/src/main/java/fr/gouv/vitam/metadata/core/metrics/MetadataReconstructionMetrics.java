@@ -85,12 +85,8 @@ public final class MetadataReconstructionMetrics {
             for (Integer tenant : VitamConfiguration.getTenants()) {
                 for (String storageStrategy : storageStrategies) {
 
-                    Duration reconstructionLatency = reconstructionMetricsCache.
+                    Duration durationSinceLastReconstruction = reconstructionMetricsCache.
                         getDocumentReconstructionLatency(metadataCollection, tenant, storageStrategy);
-
-                    if (reconstructionLatency == null) {
-                        continue;
-                    }
 
                     List<String> labelValues = List.of(
                         Integer.toString(tenant),
@@ -98,7 +94,7 @@ public final class MetadataReconstructionMetrics {
                         storageStrategy
                     );
 
-                    metricsByLabelValues.put(labelValues, (double) Math.max(0, reconstructionLatency.toSeconds()));
+                    metricsByLabelValues.put(labelValues, getReconstructionLatency(durationSinceLastReconstruction));
                 }
             }
 
@@ -116,17 +112,30 @@ public final class MetadataReconstructionMetrics {
 
         for (MetadataCollections metadataCollection : metadataCollections) {
 
-            Duration reconstructionLatency = reconstructionMetricsCache.
+            Duration durationSinceLastReconstruction = reconstructionMetricsCache.
                 getGraphReconstructionLatency(metadataCollection);
-
-            if (reconstructionLatency == null) {
-                continue;
-            }
 
             List<String> labelValues = List.of(metadataCollection.getName().toLowerCase());
 
-            metricsByLabelValues.put(labelValues, (double) Math.max(0, reconstructionLatency.toSeconds()));
+            metricsByLabelValues.put(labelValues, getReconstructionLatency(durationSinceLastReconstruction));
         }
         return metricsByLabelValues;
+    }
+
+    private static double getReconstructionLatency(Duration durationSinceLastReconstruction) {
+
+        // Returns :
+        //   - Actual latency (in seconds) when available (eg. 100 seconds)
+        //   - +∞ (positive infinity) when no latency information is available for current metadata instance (reconstruction is KO, server just restarted, reconstruction happened on other instances...)
+        //
+        // Aggregated latency can be computed using a simple "min"/"max" PromQL operators.
+        // PromQL queries would be :
+        //   - `min by (tenant, strategy) (vitam_metadata_reconstruction_metadata_latency_seconds)`: Tenant/strategy aggregated document reconstruction latency (across metadata instances)
+        //   - `max (min by (tenant, strategy) (vitam_metadata_reconstruction_metadata_latency_seconds))`: Global aggregated document reconstruction latency
+        //   - `min by (vitam_metadata_reconstruction_graph_latency_seconds)`: Graph reconstruction latency (across metadata instances)
+
+        return durationSinceLastReconstruction == null ?
+            Double.POSITIVE_INFINITY :
+            Math.max(0.0, durationSinceLastReconstruction.toSeconds());
     }
 }
