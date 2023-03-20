@@ -59,6 +59,7 @@ import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.model.administration.SecurityProfileModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.functional.administration.common.ReconstructionRequestItem;
@@ -85,11 +86,15 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
@@ -151,6 +156,9 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
     private static final String NAME = "Name";
     public static final String PERMISSIONS = "Permissions";
+
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -530,28 +538,36 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .createOrUpdateOffset(TENANT_1, VitamConfiguration.getDefaultStrategy(),
                 FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
 
+        logicalClock.freezeTime();
+
+
         // Insert new register detail
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             register1 =
                 JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_1),
                     AccessionRegisterDetailModel.class);
             client.createOrUpdateAccessionRegister(register1);
+            logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
 
             register2 =
                 JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_2),
                     AccessionRegisterDetailModel.class);
             client.createOrUpdateAccessionRegister(register2);
+            logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
 
             register3 =
                 JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_3),
                     AccessionRegisterDetailModel.class);
             client.createOrUpdateAccessionRegister(register3);
+            logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
+
 
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
             register4 =
                 JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ACCESSION_REGISTER_DETAIL_DATA_4),
                     AccessionRegisterDetailModel.class);
             client.createOrUpdateAccessionRegister(register4);
+            logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
         }
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
@@ -675,6 +691,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         ardEs.purge();
         arsMongo.purge();
         arsEs.purge();
+
+        LocalDateTime accessionRegisterDetailReconstructionDate = LocalDateUtil.now();
 
         registerDetailDoc = ardMongo.getByID(register1.getId(), TENANT_1);
         assertThat(registerDetailDoc).isEmpty();
@@ -856,6 +874,20 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
         assertThat(newOffset0).isEqualTo(4L);
         assertThat(newOffset1).isEqualTo(3L);
+
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        assertThat(reconstructionMetricsCache.getReconstructionLatency(
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, 0)
+        ).isEqualTo(Duration.between(accessionRegisterDetailReconstructionDate, LocalDateUtil.now()));
+
+        assertThat(reconstructionMetricsCache.getReconstructionLatency(
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, 1)
+        ).isEqualTo(Duration.between(accessionRegisterDetailReconstructionDate, LocalDateUtil.now()));
+
+        assertThat(reconstructionMetricsCache.getReconstructionLatency(
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, 2)
+        ).isNull();
     }
 
     @Test
@@ -878,11 +910,15 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
         initializeDbWithUnitAndObjectGroupData();
 
+        logicalClock.freezeTime();
+
         // Compute Accession Register Symbolic
 
         try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
             adminManagementClient.createAccessionRegisterSymbolic(Collections.singletonList(TENANT_1));
         }
+
+        logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
 
         ArrayNode registerSymbolicDocs = (ArrayNode) JsonHandler.toJsonNode(
             Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getCollection().find()));
@@ -917,6 +953,8 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             new ReconstructionServiceImpl(vitamRepository, new RestoreBackupServiceImpl(), offsetRepository,
                 functionalAdminIndexManager, reconstructionMetricsCache);
 
+        LocalDateTime accessionRegisterReconstructionDate = LocalDateUtil.now();
+
         // Reconstruct Accession Register Detail
         ReconstructionRequestItem reconstructionItem = new ReconstructionRequestItem();
         reconstructionItem.setCollection(FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC.getName());
@@ -930,6 +968,17 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         assertThat(registerSymbolicDocs.size()).isEqualTo(3);
         checkSymbolicRegisterResult(registerSymbolicDocs);
 
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        assertThat(reconstructionMetricsCache.getReconstructionLatency(
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC, 0)
+        ).isNull();
+        assertThat(reconstructionMetricsCache.getReconstructionLatency(
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC, 1)
+        ).isEqualTo(Duration.between(accessionRegisterReconstructionDate, LocalDateUtil.now()));
+        assertThat(reconstructionMetricsCache.getReconstructionLatency(
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC, 2)
+        ).isNull();
     }
 
     @Test
@@ -1250,7 +1299,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void importSecurityProfileUnknowPermission_KO() throws Exception {
+    public void importSecurityProfileUnknownPermission_KO() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));

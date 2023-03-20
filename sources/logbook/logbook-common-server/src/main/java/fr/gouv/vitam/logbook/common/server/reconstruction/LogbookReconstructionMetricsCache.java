@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.common.server.reconstruction;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.metrics.PassiveExpiringCache;
 
 import java.time.Duration;
@@ -42,6 +43,7 @@ public class LogbookReconstructionMetricsCache {
     }
 
     public void registerLastReconstructedDocumentDate(int tenant, LocalDateTime lastReconstructedDocumentDate) {
+        ParametersChecker.checkParameter("Missing lastReconstructedDocumentDate", lastReconstructedDocumentDate);
         reconstructionStatsCache.put(tenant, lastReconstructedDocumentDate);
     }
 

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functional.administration.core.reconstruction;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.metrics.PassiveExpiringCache;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -49,12 +50,16 @@ public class FunctionalAdministrationReconstructionMetricsCache {
 
     public void registerLastDocumentReconstructionDate(FunctionalAdminCollections collection, int tenant,
         LocalDateTime lastDocumentReconstructionDate) {
+        ParametersChecker.checkParameter("Missing collection", collection);
+        ParametersChecker.checkParameter("Missing lastReconstructedDocumentDate", lastDocumentReconstructionDate);
+
         reconstructionMetricsCache.put(
             new ImmutablePair<>(collection, tenant),
             lastDocumentReconstructionDate);
     }
 
     public Duration getReconstructionLatency(FunctionalAdminCollections collection, int tenant) {
+        ParametersChecker.checkParameter("Missing collection", collection);
 
         LocalDateTime lastReconstructionDate = this.reconstructionMetricsCache.get(
             new ImmutablePair<>(collection, tenant));
