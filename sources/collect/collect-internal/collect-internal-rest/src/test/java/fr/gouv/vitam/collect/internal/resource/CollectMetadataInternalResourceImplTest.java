@@ -232,7 +232,7 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
                 .when()
                 .post(UNITS + "/1/objects/BinaryMaster/1/binary")
                 .then()
-                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
     }
 

@@ -60,6 +60,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_OBJECT_UPSERT;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_ID_READ;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
 
 
@@ -165,7 +166,7 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
             return Response.status(Response.Status.OK).entity(requestResponse).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when adding binary    ", e);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             return Response.status(PRECONDITION_FAILED).build();
