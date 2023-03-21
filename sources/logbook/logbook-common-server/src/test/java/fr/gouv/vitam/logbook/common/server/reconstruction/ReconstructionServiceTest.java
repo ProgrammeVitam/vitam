@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.logbook.common.server.reconstruction;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
@@ -37,6 +38,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionRequestItem;
 import fr.gouv.vitam.logbook.common.model.reconstruction.ReconstructionResponseItem;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
@@ -52,13 +54,20 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static fr.gouv.vitam.logbook.common.server.reconstruction.ReconstructionService.LOGBOOK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doThrow;
@@ -76,6 +85,9 @@ public class ReconstructionServiceTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
     private VitamRepositoryProvider vitamRepositoryProvider;
     private VitamMongoRepository mongoRepository;
@@ -113,31 +125,84 @@ public class ReconstructionServiceTest {
 
     @RunWithCustomExecutor
     @Test
-    public void should_return_new_offset_when_item_unit_is_ok()
+    public void should_reconstruct_logbook_few_new_entries_then_reconstruction_ok_of_all()
         throws Exception {
         // given
+        logicalClock.freezeTime();
+
         when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(
             LAST_OFFSET);
 
         when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET,
             requestItem.getLimit()))
             .thenReturn(IteratorUtils.singletonIterator(Arrays.asList(getOfferLog(100), getOfferLog(101))));
+
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "100", OFFSET))
             .thenReturn(getLogbookBackupModel("100", OFFSET));
+
+        logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
         when(restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(), "101", NEXT_OFFSET))
             .thenReturn(getLogbookBackupModel("101", NEXT_OFFSET));
+
+        logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
 
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
                 new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
+
+        LocalDateTime reconstructionInstant = LocalDateUtil.now();
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
+
         // then
         assertThat(realResponseItem).isNotNull();
         verify(offsetRepository).createOrUpdateOffset(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK,
             NEXT_OFFSET);
         assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+
+        verify(reconstructionMetricsCache).registerLastReconstructedDocumentDate(TENANT, reconstructionInstant);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void should_reconstruct_logbook_too_many_new_entries_then_reconstruct_up_to_limit()
+        throws Exception {
+        // given
+        logicalClock.freezeTime();
+
+        when(offsetRepository.findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK)).thenReturn(
+            LAST_OFFSET);
+
+        List<OfferLog> offerLogs = IntStream.rangeClosed(100, 199).mapToObj(sequence -> {
+            logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
+            return getOfferLog(sequence);
+        }).collect(Collectors.toList());
+
+        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFSET,
+            requestItem.getLimit()))
+            .thenReturn(IteratorUtils.singletonIterator(offerLogs));
+
+        when(restoreBackupService.loadData(eq(VitamConfiguration.getDefaultStrategy()), anyString(), anyLong()))
+            .thenAnswer(args -> getLogbookBackupModel(args.getArgument(1), args.getArgument(2)));
+
+        ReconstructionService reconstructionService =
+            new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
+                new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
+
+        // when
+        ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
+
+        // then
+        assertThat(realResponseItem).isNotNull();
+        verify(offsetRepository).createOrUpdateOffset(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK,
+            199L);
+        assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
+        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+
+        verify(reconstructionMetricsCache).registerLastReconstructedDocumentDate(TENANT, offerLogs.get(99).getTime());
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -167,6 +232,7 @@ public class ReconstructionServiceTest {
             eq(LOGBOOK), anyLong());
         assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -184,8 +250,13 @@ public class ReconstructionServiceTest {
         ReconstructionService reconstructionService =
             new ReconstructionService(vitamRepositoryProvider, restoreBackupService,
                 new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
+
+        logicalClock.freezeTime();
+        LocalDateTime reconstructionInstant = LocalDateUtil.now();
+
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
+
         // then
         verify(offsetRepository).findOffsetBy(TENANT, VitamConfiguration.getDefaultStrategy(), LOGBOOK);
         verifyNoMoreInteractions(mongoRepository);
@@ -193,6 +264,9 @@ public class ReconstructionServiceTest {
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+
+        verify(reconstructionMetricsCache).registerLastReconstructedDocumentDate(TENANT, reconstructionInstant);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -232,6 +306,7 @@ public class ReconstructionServiceTest {
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
             .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -244,6 +319,7 @@ public class ReconstructionServiceTest {
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
             .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -256,6 +332,7 @@ public class ReconstructionServiceTest {
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setTenant(null)))
             .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -285,6 +362,7 @@ public class ReconstructionServiceTest {
             eq(LOGBOOK), anyLong());
         assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -313,6 +391,7 @@ public class ReconstructionServiceTest {
             eq(LOGBOOK), anyLong());
         assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
 
@@ -344,6 +423,7 @@ public class ReconstructionServiceTest {
             eq(LOGBOOK), anyLong());
         assertThat(realResponseItem.getTenant()).isEqualTo(TENANT);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     private LogbookBackupModel getLogbookBackupModel(String id, Long offset) {

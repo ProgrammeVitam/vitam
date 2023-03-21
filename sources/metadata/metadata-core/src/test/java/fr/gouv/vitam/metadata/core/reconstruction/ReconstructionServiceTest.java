@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.MongoBulkWriteException;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
@@ -45,14 +46,15 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
+import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
+import fr.gouv.vitam.metadata.api.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
-import fr.gouv.vitam.metadata.api.model.ReconstructionRequestItem;
-import fr.gouv.vitam.metadata.api.model.ReconstructionResponseItem;
 import fr.gouv.vitam.metadata.core.metrics.MetadataReconstructionMetricsCache;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -73,11 +75,16 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.mongodb.client.model.Projections.include;
 import static fr.gouv.vitam.common.database.utils.MetadataDocumentHelper.getComputedGraphObjectGroupFields;
@@ -93,6 +100,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -112,6 +120,9 @@ public class ReconstructionServiceTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
     private VitamRepositoryProvider vitamRepositoryProvider;
     private VitamMongoRepository mongoRepository;
@@ -180,6 +191,9 @@ public class ReconstructionServiceTest {
         when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
         when(findIterable.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(Boolean.FALSE);
+
+        logicalClock.freezeTime();
+        LocalDateTime reconstructionDateTime = LocalDateUtil.now();
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -188,8 +202,57 @@ public class ReconstructionServiceTest {
         verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName(), 101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+        verify(reconstructionMetricsCache).registerLastDocumentReconstructionDate(MetadataCollections.UNIT, 10,
+            STRATEGY_UNIT, reconstructionDateTime);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
+    @RunWithCustomExecutor
+    @Test
+    public void should_return_new_offset_when_too_many_units_ok() throws Exception {
+        // given
+        when(offsetRepository.findOffsetBy(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName())).thenReturn(99L);
+        logicalClock.freezeTime();
+        List<OfferLog> offerLogs = IntStream.rangeClosed(100, 199).mapToObj(sequence -> {
+            logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
+            return getOfferLog(sequence);
+        }).collect(Collectors.toList());
+        requestItem.setLimit(100);
+        when(restoreBackupService.getListing(STRATEGY_UNIT, DEFAULT_OFFER, DataCategory.UNIT, 100L,
+            requestItem.getLimit(), Order.ASC, VitamConfiguration.getBatchSize())).thenReturn(offerLogs.iterator());
+        for (int i = 100; i < 200; i++) {
+            when(restoreBackupService.loadData(STRATEGY_UNIT, DEFAULT_OFFER, MetadataCollections.UNIT,
+                String.valueOf(i), i))
+                .thenReturn(getUnitMetadataBackupModel(String.valueOf(i), (long) i));
+        }
+        when(storageClient.getStorageStrategies()).thenReturn(getStorageStrategies());
+        ArgumentCaptor<List<JsonNode>> unitLfcsCaptor = ArgumentCaptor.forClass(List.class);
+        doNothing().when(logbookLifecycleClient).createRawbulkUnitlifecycles(unitLfcsCaptor.capture());
+        when(storageClient.getReferentOffer(STRATEGY_UNIT)).thenReturn(DEFAULT_OFFER);
+
+        ReconstructionService reconstructionService =
+            new ReconstructionService(vitamRepositoryProvider, restoreBackupService, logbookLifecycleClientFactory,
+                storageClientFactory, offsetRepository, indexManager, reconstructionMetricsCache);
+
+        FindIterable findIterable = mock(FindIterable.class);
+        final MongoCursor<String> iterator = mock(MongoCursor.class);
+        when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
+        when(findIterable.iterator()).thenReturn(iterator);
+        when(iterator.hasNext()).thenReturn(Boolean.FALSE);
+
+        logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
+        // when
+        ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
+        // then
+        assertThat(realResponseItem).isNotNull();
+        assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
+        verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName(), 199L);
+        assertThat(realResponseItem.getTenant()).isEqualTo(10);
+        assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+        verify(reconstructionMetricsCache).registerLastDocumentReconstructionDate(MetadataCollections.UNIT, 10,
+            STRATEGY_UNIT, offerLogs.get(99).getTime());
+        verifyNoMoreInteractions(reconstructionMetricsCache);
+    }
 
     @RunWithCustomExecutor
     @Test
@@ -201,9 +264,11 @@ public class ReconstructionServiceTest {
             restoreBackupService.getListing(contains(STRATEGY_UNIT), eq(DEFAULT_OFFER), eq(DataCategory.UNIT), eq(100L),
                 eq(requestItem.getLimit()), eq(Order.ASC), eq(VitamConfiguration.getBatchSize()))).thenReturn(
             IteratorUtils.arrayIterator(getOfferLog(100L), getOfferLog(101L)));
-        when(restoreBackupService.loadData(contains(STRATEGY_UNIT), eq(DEFAULT_OFFER), eq(MetadataCollections.UNIT), eq("100"), eq(100L)))
+        when(restoreBackupService.loadData(contains(STRATEGY_UNIT), eq(DEFAULT_OFFER), eq(MetadataCollections.UNIT),
+            eq("100"), eq(100L)))
             .thenReturn(getUnitMetadataBackupModel("100", 100L));
-        when(restoreBackupService.loadData(contains(STRATEGY_UNIT), eq(DEFAULT_OFFER), eq(MetadataCollections.UNIT), eq("101"), eq(101L)))
+        when(restoreBackupService.loadData(contains(STRATEGY_UNIT), eq(DEFAULT_OFFER), eq(MetadataCollections.UNIT),
+            eq("101"), eq(101L)))
             .thenReturn(getUnitMetadataBackupModel("101", 101L));
         when(storageClient.getStorageStrategies()).thenReturn(
             getStorageStrategiesWithSameReferentOfferForDifferentStrategies());
@@ -220,6 +285,9 @@ public class ReconstructionServiceTest {
         when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
         when(findIterable.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(Boolean.FALSE);
+
+        logicalClock.freezeTime();
+        LocalDateTime reconstructionDateTime = LocalDateUtil.now();
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -229,6 +297,11 @@ public class ReconstructionServiceTest {
             eq(MetadataCollections.UNIT.getName()), eq(101L));
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+        verify(reconstructionMetricsCache).registerLastDocumentReconstructionDate(MetadataCollections.UNIT, 10,
+            STRATEGY_UNIT, reconstructionDateTime);
+        verify(reconstructionMetricsCache).registerLastDocumentReconstructionDate(MetadataCollections.UNIT, 10,
+            STRATEGY_UNIT + "-bis", reconstructionDateTime);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -257,6 +330,9 @@ public class ReconstructionServiceTest {
         when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
         when(findIterable.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(Boolean.FALSE);
+
+        logicalClock.freezeTime();
+        LocalDateTime reconstructionDateTime = LocalDateUtil.now();
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -265,6 +341,9 @@ public class ReconstructionServiceTest {
         verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName(), 101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+        verify(reconstructionMetricsCache).registerLastDocumentReconstructionDate(MetadataCollections.UNIT, 10,
+            STRATEGY_UNIT, reconstructionDateTime);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -295,6 +374,9 @@ public class ReconstructionServiceTest {
         when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
         when(findIterable.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(Boolean.FALSE);
+
+        logicalClock.freezeTime();
+        LocalDateTime reconstructionDateTime = LocalDateUtil.now();
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -304,6 +386,9 @@ public class ReconstructionServiceTest {
             101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+        verify(reconstructionMetricsCache).registerLastDocumentReconstructionDate(MetadataCollections.OBJECTGROUP, 10,
+            STRATEGY_UNIT, reconstructionDateTime);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -334,6 +419,9 @@ public class ReconstructionServiceTest {
         when(mongoRepository.findDocuments(any(), any())).thenReturn(findIterable);
         when(findIterable.iterator()).thenReturn(iterator);
         when(iterator.hasNext()).thenReturn(Boolean.FALSE);
+
+        logicalClock.freezeTime();
+        LocalDateTime reconstructionDateTime = LocalDateUtil.now();
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -343,6 +431,9 @@ public class ReconstructionServiceTest {
             101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+        verify(reconstructionMetricsCache).registerLastDocumentReconstructionDate(MetadataCollections.OBJECTGROUP, 10,
+            STRATEGY_UNIT, reconstructionDateTime);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -391,6 +482,15 @@ public class ReconstructionServiceTest {
             DataCategory.OBJECTGROUP_GRAPH.name(), 101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(1);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+        InOrder inOrder = inOrder(reconstructionMetricsCache);
+        inOrder.verify(reconstructionMetricsCache).registerLastGraphReconstructionDate(MetadataCollections.OBJECTGROUP,
+            LocalDateTime.of(1970, 1, 1, 0, 0, 0, 0));
+        inOrder.verify(reconstructionMetricsCache, times(2))
+            .registerLastGraphReconstructionDate(MetadataCollections.OBJECTGROUP,
+                LocalDateTime.of(2018, 4, 20, 17, 0, 1, 444000000));
+        inOrder.verify(reconstructionMetricsCache).registerLastGraphReconstructionDate(MetadataCollections.OBJECTGROUP,
+            LocalDateTime.of(2018, 5, 20, 17, 0, 1, 445000000));
+        inOrder.verifyNoMoreInteractions();
     }
 
     @RunWithCustomExecutor
@@ -439,6 +539,13 @@ public class ReconstructionServiceTest {
             DataCategory.OBJECTGROUP_GRAPH.name(), 100L);
         assertThat(realResponseItem.getTenant()).isEqualTo(1);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+        InOrder inOrder = inOrder(reconstructionMetricsCache);
+        inOrder.verify(reconstructionMetricsCache).registerLastGraphReconstructionDate(MetadataCollections.OBJECTGROUP,
+            LocalDateTime.of(1970, 1, 1, 0, 0, 0, 0));
+        inOrder.verify(reconstructionMetricsCache, times(2))
+            .registerLastGraphReconstructionDate(MetadataCollections.OBJECTGROUP,
+                LocalDateTime.of(2018, 4, 20, 17, 0, 1, 444000000));
+        inOrder.verifyNoMoreInteractions();
     }
 
     @RunWithCustomExecutor
@@ -487,6 +594,15 @@ public class ReconstructionServiceTest {
             DataCategory.UNIT_GRAPH.name(), 101L);
         assertThat(realResponseItem.getTenant()).isEqualTo(1);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+        InOrder inOrder = inOrder(reconstructionMetricsCache);
+        inOrder.verify(reconstructionMetricsCache).registerLastGraphReconstructionDate(MetadataCollections.UNIT,
+            LocalDateTime.of(1970, 1, 1, 0, 0, 0, 0));
+        inOrder.verify(reconstructionMetricsCache, times(2))
+            .registerLastGraphReconstructionDate(MetadataCollections.UNIT,
+                LocalDateTime.of(2018, 4, 20, 17, 0, 1, 444000000));
+        inOrder.verify(reconstructionMetricsCache).registerLastGraphReconstructionDate(MetadataCollections.UNIT,
+            LocalDateTime.of(2018, 5, 20, 17, 0, 1, 445000000));
+        inOrder.verifyNoMoreInteractions();
     }
 
     @RunWithCustomExecutor
@@ -537,6 +653,9 @@ public class ReconstructionServiceTest {
         verifyNoMoreInteractions(esRepository);
         assertThat(realResponseItem.getTenant()).isEqualTo(1);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+        verify(reconstructionMetricsCache).registerLastGraphReconstructionDate(MetadataCollections.UNIT,
+            LocalDateTime.of(1970, 1, 1, 0, 0, 0, 0));
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
 
@@ -589,6 +708,8 @@ public class ReconstructionServiceTest {
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager, reconstructionMetricsCache);
 
+        logicalClock.freezeTime();
+        LocalDateTime reconstructionDate = LocalDateUtil.now();
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
         // then
@@ -602,6 +723,9 @@ public class ReconstructionServiceTest {
         verifyNoMoreInteractions(offsetRepository);
         verifyNoMoreInteractions(mongoRepository);
         verifyNoMoreInteractions(esRepository);
+        verify(reconstructionMetricsCache).registerLastGraphReconstructionDate(MetadataCollections.UNIT,
+            reconstructionDate);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -615,6 +739,7 @@ public class ReconstructionServiceTest {
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
             .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -627,6 +752,7 @@ public class ReconstructionServiceTest {
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(null))
             .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -639,6 +765,7 @@ public class ReconstructionServiceTest {
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setCollection(null)))
             .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -651,6 +778,7 @@ public class ReconstructionServiceTest {
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setCollection("toto")))
             .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -663,6 +791,7 @@ public class ReconstructionServiceTest {
         // when + then
         assertThatCode(() -> reconstructionService.reconstruct(requestItem.setTenant(null)))
             .isInstanceOf(IllegalArgumentException.class);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -712,6 +841,7 @@ public class ReconstructionServiceTest {
         verify(mongoRepository, times(2)).update(anyList());
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
 
@@ -751,6 +881,7 @@ public class ReconstructionServiceTest {
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -790,6 +921,7 @@ public class ReconstructionServiceTest {
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -824,6 +956,7 @@ public class ReconstructionServiceTest {
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -853,6 +986,7 @@ public class ReconstructionServiceTest {
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.KO);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     @RunWithCustomExecutor
@@ -880,14 +1014,20 @@ public class ReconstructionServiceTest {
             restoreBackupService, logbookLifecycleClientFactory, storageClientFactory, offsetRepository,
             indexManager, reconstructionMetricsCache);
 
+        logicalClock.freezeTime();
+        LocalDateTime reconstructionDateTime = LocalDateUtil.now();
         // when
         ReconstructionResponseItem realResponseItem = reconstructionService.reconstruct(requestItem);
+
         // then
         assertThat(realResponseItem).isNotNull();
         assertThat(realResponseItem.getCollection()).isEqualTo(MetadataCollections.UNIT.name());
         verify(offsetRepository).createOrUpdateOffset(10, STRATEGY_UNIT, MetadataCollections.UNIT.getName(), 100L);
         assertThat(realResponseItem.getTenant()).isEqualTo(10);
         assertThat(realResponseItem.getStatus()).isEqualTo(StatusCode.OK);
+        verify(reconstructionMetricsCache).registerLastDocumentReconstructionDate(MetadataCollections.UNIT, 10,
+            STRATEGY_UNIT, reconstructionDateTime);
+        verifyNoMoreInteractions(reconstructionMetricsCache);
     }
 
     private MetadataBackupModel getUnitMetadataBackupModel(String id, Long offset) {

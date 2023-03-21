@@ -27,6 +27,7 @@
 package fr.gouv.vitam.metadata.core.metrics;
 
 import fr.gouv.vitam.common.LocalDateUtil;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.metrics.PassiveExpiringCache;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import org.apache.commons.lang3.tuple.ImmutableTriple;
@@ -52,6 +53,10 @@ public class MetadataReconstructionMetricsCache {
 
     public void registerLastDocumentReconstructionDate(MetadataCollections metadataCollection, int tenant,
         String strategy, LocalDateTime lastDocumentReconstructionDate) {
+        ParametersChecker.checkParameter("Missing metadataCollection", metadataCollection);
+        ParametersChecker.checkParameter("Missing strategy", strategy);
+        ParametersChecker.checkParameter("Missing lastDocumentReconstructionDate", lastDocumentReconstructionDate);
+
         Triple<MetadataCollections, Integer, String> metadataKey =
             new ImmutableTriple<>(metadataCollection, tenant, strategy);
         documentReconstructionStatsCache.put(metadataKey, lastDocumentReconstructionDate);
@@ -59,6 +64,8 @@ public class MetadataReconstructionMetricsCache {
 
     public Duration getDocumentReconstructionLatency(MetadataCollections metadataCollection, int tenant,
         String strategy) {
+        ParametersChecker.checkParameter("Missing metadataCollection", metadataCollection);
+        ParametersChecker.checkParameter("Missing strategy", strategy);
 
         Triple<MetadataCollections, Integer, String> metadataKey =
             new ImmutableTriple<>(metadataCollection, tenant, strategy);
@@ -73,10 +80,14 @@ public class MetadataReconstructionMetricsCache {
 
     public void registerLastGraphReconstructionDate(
         MetadataCollections metadataCollection, LocalDateTime lastGraphReconstructionDate) {
+        ParametersChecker.checkParameter("Missing metadataCollection", metadataCollection);
+        ParametersChecker.checkParameter("Missing lastGraphReconstructionDate", lastGraphReconstructionDate);
+
         graphReconstructionStatsCache.put(metadataCollection, lastGraphReconstructionDate);
     }
 
     public Duration getGraphReconstructionLatency(MetadataCollections metadataCollection) {
+        ParametersChecker.checkParameter("Missing metadataCollection", metadataCollection);
 
         LocalDateTime lastGraphReconstructionDate = this.graphReconstructionStatsCache.get(metadataCollection);
 
