@@ -260,14 +260,43 @@
         - update_mongodb_configuration
 
     # Make sure the service is open (mongos listening on 27017 by default)
-
     - name: Wait for the service port to be open
-      wait_for: host={{ ip_service }} port={{ mongodb.mongos_port }} timeout="{{ vitam_defaults.services.start_timeout }}"
+      wait_for:
+        host: "{{ ip_service }}"
+        port: "{{ mongodb.mongos_port }}"
+        timeout: "{{ vitam_defaults.services.start_timeout }}"
+      tags:
+        - update_mongodb_configuration
+
+    - name: Copy wait_until_mongos_is_ok script
+      copy:
+        src: "{{ item }}"
+        dest: "{{ vitam_defaults.folder.root_path }}/script/mongos"
+        owner: "{{ vitam_defaults.users.vitamdb }}"
+        group: "{{ vitam_defaults.users.group }}"
+        mode: "{{ vitam_defaults.folder.conf_permission }}"
+      with_items:
+        - wait_until_mongos_is_ok.js
+      tags:
+        - update_mongodb_configuration
+
+    - name: Wait for mongos to be properly connected to databases
+      shell: "mongosh {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb[mongo_cluster_name].admin.user }} -p {{ mongodb[mongo_cluster_name].admin.password }} --quiet --file {{ vitam_defaults.folder.root_path }}/script/mongos/wait_until_mongos_is_ok.js"
+      no_log: "{{ hide_passwords_during_deploy }}"
+      ignore_errors: true # To properly catch output on the next task
+      register: output_mongos_state
+      tags:
+        - update_mongodb_configuration
+
+    - name: Fail if mongos state is incorrect
+      assert:
+        fail_msg: "{{ output_mongos_state.stderr_lines }}"
+        success_msg: "{{ output_mongos_state.stdout_lines }}"
+        that: output_mongos_state.rc == 0
       tags:
         - update_mongodb_configuration
 
     # Initiate the databases (now we know that authentication is enabled)
-
     - name: Initiate the databases
       command: "mongo {{ ip_service }}:{{ mongodb.mongos_port }}/admin -u {{ mongodb[mongo_cluster_name].admin.user }} -p {{ mongodb[mongo_cluster_name].admin.password }} --quiet {{ vitam_defaults.folder.root_path }}/app/mongos/init-{{ item }}-database.js"
       with_items:
