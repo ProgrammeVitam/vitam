@@ -196,6 +196,19 @@ public class MetadataRepositoryTest {
     }
 
     @Test
+    public void saveArchiveUnit_without_unit_up() throws Exception {
+        // Given
+        ObjectNode objectNode = JsonHandler.createObjectNode().put("#id", "1").put("Identifier", "value" + 1)
+            .put("Name", "Lorem ipsum dolor sit amet, consectetur adipiscing elit");
+        when(metaDataCollectClient.insertUnitBulk(any())).thenReturn(JsonHandler.getFromString("{\"test\":\"true\"}"));
+        // When
+        JsonNode jsonNode = metadataRepository.saveArchiveUnit(objectNode);
+        // Then
+        Assertions.assertThat(jsonNode).isNotNull();
+        Assertions.assertThat(jsonNode.get("test").asText()).isEqualTo("true");
+    }
+
+    @Test
     public void saveObjectGroup() throws Exception {
         // Given
         ObjectNode objectNode = JsonHandler.createObjectNode().put("#id", "1").put("Identifier", "value" + 1)

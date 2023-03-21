@@ -36,6 +36,7 @@ import fr.gouv.vitam.collect.external.external.rest.CollectExternalMain;
 import fr.gouv.vitam.collect.internal.CollectInternalMain;
 import fr.gouv.vitam.collect.internal.model.TransactionStatus;
 import fr.gouv.vitam.common.DataLoader;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -54,6 +55,7 @@ import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -68,12 +70,15 @@ public class TransactionIT extends VitamRuleRunner {
     private static final Integer TENANT_ID = 0;
     private static final String SUBMISSION_AGENCY_IDENTIFIER = "Service_versant";
     private static final String MESSAGE_IDENTIFIER = "20220302-000005";
+
+    private static final String AU_TO_UPLOAD = "collect/upload_au_collect.json";
     private final VitamContext vitamContext = new VitamContext(TENANT_ID);
 
     @ClassRule public static VitamServerRunner runner =
         new VitamServerRunner(ProjectIT.class, mongoRule.getMongoDatabase().getName(),
             ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(AdminManagementMain.class, LogbookMain.class, WorkspaceMain.class,  CollectInternalMain.class, CollectExternalMain.class));
+            Sets.newHashSet(AdminManagementMain.class, LogbookMain.class, WorkspaceMain.class,
+                CollectInternalMain.class, CollectExternalMain.class));
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -225,13 +230,45 @@ public class TransactionIT extends VitamRuleRunner {
             assertEquals(TransactionStatus.OPEN.toString(), persistedTransaction.getStatus());
             assertEquals(initialTransaction.getName(), persistedTransaction.getName());
             assertEquals(projectDto.getArchivalProfile(), persistedTransaction.getArchivalProfile());
-            assertEquals(projectDto.getAcquisitionInformation(),
-                persistedTransaction.getAcquisitionInformation());
+            assertEquals(projectDto.getAcquisitionInformation(), persistedTransaction.getAcquisitionInformation());
             assertEquals(projectDto.getMessageIdentifier(), persistedTransaction.getMessageIdentifier());
 
             assertThat(persistedTransaction.getComment()).isNotEqualTo(newComment);
 
 
+        }
+    }
+
+    @Test
+    @Ignore
+    public void should_create_unit() throws Exception {
+        try (CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
+            ProjectDto projectDto = initProjectData();
+
+            final RequestResponse<JsonNode> projectResponse = client.initProject(vitamContext, projectDto);
+            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+
+            ProjectDto projectDtoResult =
+                JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                    ProjectDto.class);
+
+            TransactionDto transactiondto = initTransaction();
+
+            RequestResponse<JsonNode> transactionResponse =
+                client.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
+            Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
+
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
+            TransactionDto transactionDtoResult =
+                JsonHandler.getFromJsonNode(requestResponseOK.getFirstResult(), TransactionDto.class);
+
+            try (InputStream is = PropertiesUtils.getResourceAsStream(AU_TO_UPLOAD)) {
+                RequestResponse<JsonNode> response =
+                    client.uploadArchiveUnit(vitamContext, JsonHandler.getFromInputStream(is),
+                        transactionDtoResult.getId());
+                assertThat(response.getStatus()).isEqualTo(200);
+
+            }
         }
     }
 
