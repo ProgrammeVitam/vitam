@@ -80,7 +80,8 @@ public class MetadataRepository {
         this.metaDataCollectClientFactory = metaDataCollectClientFactory;
     }
 
-    public RequestResponseOK<JsonNode> selectUnits(JsonNode queryDsl, @Nonnull String transactionId) throws CollectInternalException {
+    public RequestResponseOK<JsonNode> selectUnits(JsonNode queryDsl, @Nonnull String transactionId)
+        throws CollectInternalException {
         try (MetaDataClient metaDataClient = metaDataCollectClientFactory.getClient()) {
             SelectParserMultiple parser = new SelectParserMultiple();
             parser.parse(queryDsl);
@@ -163,10 +164,8 @@ public class MetadataRepository {
 
     public JsonNode saveArchiveUnit(ObjectNode unit) throws CollectInternalException {
         try (MetaDataClient client = metaDataCollectClientFactory.getClient()) {
-            return client.insertUnitBulk(new BulkUnitInsertRequest(
-                Collections.singletonList(new BulkUnitInsertEntry(
-                    JsonHandler.getFromJsonNode(unit.get(VitamFieldsHelper.unitups()), Set.class, String.class), unit))
-            ));
+            BulkUnitInsertEntry insertEntry = createInsertEntry(unit);
+            return client.insertUnitBulk(new BulkUnitInsertRequest(Collections.singletonList(insertEntry)));
         } catch (final MetaDataException | InvalidParseOperationException e) {
             LOGGER.error("Error while saving unit in metadata: {}", e);
             throw new CollectInternalException("Error while saving unit in metadata: " + e);
@@ -175,16 +174,8 @@ public class MetadataRepository {
 
     public JsonNode saveArchiveUnits(List<ObjectNode> units) throws CollectInternalException {
         try (MetaDataClient client = metaDataCollectClientFactory.getClient()) {
-            List<BulkUnitInsertEntry> list = units.stream().map(e -> {
-                JsonNode jsonNode = e.get(VitamFieldsHelper.unitups());
-                try {
-                    if (jsonNode == null)
-                        return new BulkUnitInsertEntry(Collections.emptySet(), e);
-                    return new BulkUnitInsertEntry(JsonHandler.getFromJsonNode(jsonNode, Set.class, String.class), e);
-                } catch (InvalidParseOperationException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }).collect(Collectors.toList());
+            List<BulkUnitInsertEntry> list =
+                units.stream().map(MetadataRepository::createInsertEntry).collect(Collectors.toList());
             return client.insertUnitBulk(new BulkUnitInsertRequest(list));
         } catch (final MetaDataException | InvalidParseOperationException e) {
             LOGGER.error("Error while saving unit in metadata: {}", e);
@@ -192,17 +183,20 @@ public class MetadataRepository {
         }
     }
 
-    public void updateUnitList(UpdateMultiQuery updateQuery, String transactionId) throws CollectInternalException {
-        try (MetaDataClient client = metaDataCollectClientFactory.getClient()) {
-            applyTransactionToQuery(transactionId, updateQuery);
-            client.updateUnitBulk(updateQuery.getFinalUpdate());
-        } catch (final MetaDataException | InvalidParseOperationException | InvalidCreateOperationException e) {
-            LOGGER.error("Error while update updating in metadata: {}", e);
-            throw new CollectInternalException("Error while updating unit in metadata: " + e);
+    private static BulkUnitInsertEntry createInsertEntry(ObjectNode e) {
+        JsonNode jsonNode = e.get(VitamFieldsHelper.unitups());
+        try {
+            if (jsonNode == null || jsonNode.isNull()) {
+                return new BulkUnitInsertEntry(Collections.emptySet(), e);
+            }
+            return new BulkUnitInsertEntry(JsonHandler.getFromJsonNode(jsonNode, Set.class, String.class), e);
+        } catch (InvalidParseOperationException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
-    public void updateUnitById(UpdateMultiQuery updateQuery, String transactionId, String unitId) throws CollectInternalException {
+    public void updateUnitById(UpdateMultiQuery updateQuery, String transactionId, String unitId)
+        throws CollectInternalException {
         try (MetaDataClient client = metaDataCollectClientFactory.getClient()) {
             applyTransactionToQuery(transactionId, updateQuery);
             client.updateUnitById(updateQuery.getFinalUpdateById(), unitId);
