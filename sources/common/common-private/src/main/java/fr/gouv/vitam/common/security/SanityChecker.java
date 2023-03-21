@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.security;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.json.JsonSanitizer;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -74,6 +75,7 @@ public class SanityChecker {
     private static final String HTTP_PARAMETER_NAME = "HTTPParameterName";
     private static final String HTTP_HEADER_NAME = "HTTPHeaderName";
     private static final String HTTP_HEADER_VALUE = "HTTPHeaderValue";
+    private static final String HTTP_HEADER_SSL_CLIENT_CERT_VALUE = "HTTPHeaderSslClientCertValue";
 
     // TODO : verify the difference between this defined limit and the previous ones
     private static final int REQUEST_LIMIT = 10000;
@@ -242,6 +244,11 @@ public class SanityChecker {
                     throw new InvalidParseOperationException(String.format("%s header has wrong name", header));
                 }
 
+                if (header.equals(GlobalDataRest.X_SSL_CLIENT_CERT)) {
+                    validateSslClientCertHeader(requestHeaders, header);
+                    continue;
+                }
+
                 // Validate Header's values
                 final List<String> values = requestHeaders.get(header);
                 if (values != null && values.stream()
@@ -249,6 +256,19 @@ public class SanityChecker {
                     throw new InvalidParseOperationException(String.format("%s header has wrong value", header));
                 }
             }
+        }
+    }
+
+    private static void validateSslClientCertHeader(MultivaluedMap<String, String> requestHeaders, String header)
+        throws InvalidParseOperationException {
+        final List<String> values = requestHeaders.get(header);
+
+        if (values.size() > 1) {
+            throw new InvalidParseOperationException(
+                String.format("Multiple %s headers detected. SSL Certificate injection attack?", header));
+        }
+        if (isStringInfected(requestHeaders.getFirst(header), HTTP_HEADER_SSL_CLIENT_CERT_VALUE, false)) {
+            throw new InvalidParseOperationException(String.format("%s header has wrong value", header));
         }
     }
 
@@ -286,7 +306,11 @@ public class SanityChecker {
      * @return boolean
      */
     private static boolean isStringInfected(String value, String validator) {
-        return !ESAPI.isValidInput(validator, value, validator, REQUEST_LIMIT, true);
+        return isStringInfected(value, validator, true);
+    }
+
+    private static boolean isStringInfected(String value, String validator, boolean canonicalize) {
+        return !ESAPI.isValidInput(validator, value, validator, REQUEST_LIMIT, true, canonicalize);
     }
 
     private static boolean isIssueOnParam(String param) {

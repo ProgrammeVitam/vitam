@@ -50,10 +50,57 @@ import java.util.Locale;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 public class SanityCheckerTest {
+
+    private static final String HTTPD_CERTIFICATE_FORMAT = "" +
+        "-----BEGIN CERTIFICATE----- " +
+        "MIIDeTCCAmGgAwIBAgIUSCGUFJwxYU4vMvX1nbRiqHIDUOUwDQYJKoZIhvcNAQEL " +
+        "BQAwGjEYMBYGA1UEAwwPaW50ZXJtZWRpYXRlLWNhMB4XDTIzMDMxNTA3NDcyMloX " +
+        "DTQzMDMxMDA3NDcyMlowETEPMA0GA1UEAwwGY2xpZW50MIIBIjANBgkqhkiG9w0B " +
+        "AQEFAAOCAQ8AMIIBCgKCAQEApvEtXTG0+XF9jjKZJANVVvz09uHAegZk/31PaWCr " +
+        "1Uakq3UlG4sMO7/gYpam/sbOnA/6qNGmVWsh1O0kI6+eKTA3H4cWpqrGJ1UCNFpV " +
+        "Uu5rWg8NCFR0Vc40TRaJYb0mCE0Tz5qSXw/tJwiHekpI3xyAlIZRax8hxiViOCKs " +
+        "bhgCTTTjiVwcjwyBnlCOqT/d3ZGOLWaHDMvSKc20TctuhLlmblTwYoWoaCHN3zlC " +
+        "d3j3oyZ+WQKU3KvRF6lKhS1pug5thEQPGrP4/W1A7W1367BOEnYZI3rzAnTO8WB4 " +
+        "kBi/j3pmoPJRBT8fmlIW4qecRiGlhksLgkeLHaAAC0ZH0QIDAQABo4G/MIG8MB0G " +
+        "A1UdDgQWBBSXiTHUVeNgrAKV/XGt4J7QEKmMazBNBgNVHSMERjBEgBSmY2e3H14U " +
+        "4xvnvLwZDxVkeI1xG6EWpBQwEjEQMA4GA1UEAwwHcm9vdC1jYYIUO/EBBATyqs07 " +
+        "wOzMDxZ/D9QlHLswCQYDVR0SBAIwADAMBgNVHRMBAf8EAjAAMAsGA1UdDwQEAwIH " +
+        "gDARBglghkgBhvhCAQEEBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwIwDQYJKoZI " +
+        "hvcNAQELBQADggEBAETePX/A5kUDedD9jJR1aPhMF6VSU55Fh9DXeDrVyTRae46P " +
+        "TV4LYF7fmgI+jBTSxTCzAzZzMXmLK5UIUGH62X9vgT34F5Btk3KE4jBfsaWMn3Mc " +
+        "WNtZsomhnVekrLe1ZBBhlNwRF5WaX9zYk8kyMw3ZWKDwb/dXnikqqIK2+E2WuPgU " +
+        "t1ef0wHJRmaDnoox6vm/K1rYYo4jykuhdVYXxBXz7Vm0i7jUoN+BYmAgQ3zRFIv9 " +
+        "bwPhO3KheGRPkB8ZUtZuSfxBTTLX+AVGjCHGC/SB4O5HMdwe+QANdyr61RQZV39C " +
+        "WK31zmcgpI+s9vol2bn/VQL6szy47RXmctnkZVk= " +
+        "-----END CERTIFICATE----- ";
+
+    private static final String NGINX_CERTIFICATE_FORMAT = "" +
+        "-----BEGIN%20CERTIFICATE-----%0A" +
+        "MIIDeTCCAmGgAwIBAgIUSCGUFJwxYU4vMvX1nbRiqHIDUOUwDQYJKoZIhvcNAQEL%0A" +
+        "BQAwGjEYMBYGA1UEAwwPaW50ZXJtZWRpYXRlLWNhMB4XDTIzMDMxNTA3NDcyMloX%0A" +
+        "DTQzMDMxMDA3NDcyMlowETEPMA0GA1UEAwwGY2xpZW50MIIBIjANBgkqhkiG9w0B%0A" +
+        "AQEFAAOCAQ8AMIIBCgKCAQEApvEtXTG0%2BXF9jjKZJANVVvz09uHAegZk%2F31PaWCr%0A" +
+        "1Uakq3UlG4sMO7%2FgYpam%2FsbOnA%2F6qNGmVWsh1O0kI6%2BeKTA3H4cWpqrGJ1UCNFpV%0A" +
+        "Uu5rWg8NCFR0Vc40TRaJYb0mCE0Tz5qSXw%2FtJwiHekpI3xyAlIZRax8hxiViOCKs%0A" +
+        "bhgCTTTjiVwcjwyBnlCOqT%2Fd3ZGOLWaHDMvSKc20TctuhLlmblTwYoWoaCHN3zlC%0A" +
+        "d3j3oyZ%2BWQKU3KvRF6lKhS1pug5thEQPGrP4%2FW1A7W1367BOEnYZI3rzAnTO8WB4%0A" +
+        "kBi%2Fj3pmoPJRBT8fmlIW4qecRiGlhksLgkeLHaAAC0ZH0QIDAQABo4G%2FMIG8MB0G%0A" +
+        "A1UdDgQWBBSXiTHUVeNgrAKV%2FXGt4J7QEKmMazBNBgNVHSMERjBEgBSmY2e3H14U%0A" +
+        "4xvnvLwZDxVkeI1xG6EWpBQwEjEQMA4GA1UEAwwHcm9vdC1jYYIUO%2FEBBATyqs07%0A" +
+        "wOzMDxZ%2FD9QlHLswCQYDVR0SBAIwADAMBgNVHRMBAf8EAjAAMAsGA1UdDwQEAwIH%0A" +
+        "gDARBglghkgBhvhCAQEEBAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwIwDQYJKoZI%0A" +
+        "hvcNAQELBQADggEBAETePX%2FA5kUDedD9jJR1aPhMF6VSU55Fh9DXeDrVyTRae46P%0A" +
+        "TV4LYF7fmgI%2BjBTSxTCzAzZzMXmLK5UIUGH62X9vgT34F5Btk3KE4jBfsaWMn3Mc%0A" +
+        "WNtZsomhnVekrLe1ZBBhlNwRF5WaX9zYk8kyMw3ZWKDwb%2FdXnikqqIK2%2BE2WuPgU%0A" +
+        "t1ef0wHJRmaDnoox6vm%2FK1rYYo4jykuhdVYXxBXz7Vm0i7jUoN%2BBYmAgQ3zRFIv9%0A" +
+        "bwPhO3KheGRPkB8ZUtZuSfxBTTLX%2BAVGjCHGC%2FSB4O5HMdwe%2BQANdyr61RQZV39C%0A" +
+        "WK31zmcgpI%2Bs9vol2bn%2FVQL6szy47RXmctnkZVk%3D%0A" +
+        "-----END%20CERTIFICATE-----%0A";
 
     private final String pathXMLOK = "testOK.xml";
     private final String pathXMLKO = "testKO.xml";
@@ -301,5 +348,69 @@ public class SanityCheckerTest {
         final String textContent = new String(Files.readAllBytes(
             PropertiesUtils.getResourceFile("text-content.txt").toPath()));
         SanityChecker.checkJsonAll(JsonHandler.createObjectNode().put("TextContent", textContent.repeat(19)));
+    }
+
+    @Test
+    public void test_header_validation_success() throws Exception {
+        MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
+        requestHeaders.putSingle("Host", "my-server");
+        requestHeaders.putSingle("User-Agent", "my-client");
+        requestHeaders.putSingle("Accept", "application/json");
+        requestHeaders.putSingle("Content-Type", "application/json");
+        requestHeaders.putSingle("x-access-contract-id", "ContratTNR");
+        requestHeaders.putSingle("x-tenant-id", "0");
+        requestHeaders.putSingle("Accept-Encoding", "gzip, deflate");
+        requestHeaders.putSingle("X-Forwarded-Proto", "https");
+        requestHeaders.putSingle("X-Forwarded-Port", "443");
+        requestHeaders.putSingle("X-SSL-CLIENT-CERT", NGINX_CERTIFICATE_FORMAT);
+        requestHeaders.put("X-Forwarded-For", List.of("123.123.123.123", "1.1.1.1"));
+        requestHeaders.putSingle("X-Forwarded-Host", "my.host.fr");
+        requestHeaders.putSingle("X-Forwarded-Server", "my-server");
+        requestHeaders.putSingle("Content-Length", "186");
+        requestHeaders.putSingle("Connection", "keep-alive");
+
+        assertThatCode(() -> SanityChecker.checkHeadersMap(requestHeaders))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    public void test_certificate_header_validation_nginx_format() throws Exception {
+        MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
+        requestHeaders.putSingle("X-SSL-CLIENT-CERT", NGINX_CERTIFICATE_FORMAT);
+
+        assertThatCode(() -> SanityChecker.checkHeadersMap(requestHeaders))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    public void test_certificate_header_validation_httpd_format() throws Exception {
+        MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
+        requestHeaders.putSingle("X-SSL-CLIENT-CERT", HTTPD_CERTIFICATE_FORMAT);
+
+        assertThatCode(() -> SanityChecker.checkHeadersMap(requestHeaders))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    public void test_certificate_header_validation_with_illegal_characters_ko() {
+        MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
+        requestHeaders.putSingle("X-SSL-CLIENT-CERT", "Illegal###");
+        assertThatThrownBy(() -> SanityChecker.checkHeadersMap(requestHeaders))
+            .isInstanceOf(InvalidParseOperationException.class)
+            .hasMessageContaining("X-SSL-CLIENT-CERT header has wrong value");
+    }
+
+    @Test
+    public void test_certificate_header_multivalued_ko() {
+        MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
+        requestHeaders.put("X-SSL-CLIENT-CERT",
+            List.of(
+                HTTPD_CERTIFICATE_FORMAT,
+                NGINX_CERTIFICATE_FORMAT
+            ));
+
+        assertThatThrownBy(() -> SanityChecker.checkHeadersMap(requestHeaders))
+            .isInstanceOf(InvalidParseOperationException.class)
+            .hasMessageContaining("Multiple X-SSL-CLIENT-CERT headers detected");
     }
 }
