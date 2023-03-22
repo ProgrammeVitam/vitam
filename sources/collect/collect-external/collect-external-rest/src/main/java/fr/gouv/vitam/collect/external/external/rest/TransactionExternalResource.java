@@ -311,6 +311,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
     @Path("/{transactionId}/upload")
     @POST
     @Consumes({CommonMediaType.ZIP})
+    @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_ZIP_CREATE, description = "Charge les binaires d'une transaction")
     public Response uploadTransactionZip(@PathParam("transactionId") String transactionId,
         InputStream inputStreamObject) {
