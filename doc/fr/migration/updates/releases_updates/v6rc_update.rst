@@ -1,7 +1,52 @@
 Notes et procédures spécifiques V6RC
-##################################
+####################################
 
 .. caution:: Pour une montée de version depuis la version R16 de Vitam, veuillez appliquer les procédures spécifiques de la V5RC et de la V5 en complément des procédures suivantes. Pour une montée de version depuis la version V5RC de Vitam, veuillez appliquer les procédures spécifiques de la V5 en complément des procédures suivantes. Pour une montée de version depuis la V5, vous pouvez appliquer la procédure suivante directement.
+
+Adaptation des sources de déploiement ansible
+=============================================
+
+Réorganisation des variables
+----------------------------
+
+Afin de simplifier la préparation des sources de déploiement, les fichiers ont étés répartis dans 2 sous répertoires ``main`` et ``advanced``.
+Le répertoire ``main`` est le répertoire principal qui nécessite une attention particulière à la préparation des sources de déploiement.
+
+Afin de vous adapter à cette nouvelle organisation, vous devez redispatcher les fichiers de configuration initialement sous ``environments/group_vars/all/`` dans les 2 sous répertoires ``environments/group_vars/all/{main,advanced}/``.
+
+Ajout du nouveau composant scheduler
+------------------------------------
+
+.. caution:: À préparer dans les sources de déploiement AVANT le déploiement de la V6RC. Ce nouveau module est obligatoire et vient en remplacement des timers systemd pour l'ordonnancement des tâches planifiées dans Vitam.
+
+- Ajout du groupe ``[hosts_scheduler]`` à votre fichier d'inventaire (cf. fichier d'inventaire d'exemple: ``environments/hosts.example``).
+
+  .. code-block:: ini
+
+    [zone_applicative:children]
+    hosts_scheduler
+
+    [hosts_scheduler]
+    # TODO: Put here servers where this service will be deployed : scheduler
+    # Optional parameter after each host : vitam_scheduler_thread_count=<integer> ; This is the number of threads that are available for concurrent execution of jobs. ; default is 3 thread
+
+  ..
+
+- Ajout des bases mongo pour le scheduler dans le fichier ``environments/group_vars/all/main/vault-vitam.yml``:
+
+  .. caution:: Pensez à éditer les password avec des passwords sécurisés.
+
+  .. code-block:: yaml
+
+    mongodb:
+      mongo-data:
+        scheduler:
+          user: scheduler
+          password: change_it_xyz
+
+  ..
+
+- Personnaliser les paramètres jvm pour le scheduler dans le fichier de configuration ``environments/group_vars/all/main/jvm_opts.yml``.
 
 Procédures à exécuter AVANT la montée de version
 ================================================
@@ -22,12 +67,27 @@ Les timers et les externals de Vitam doivent être arrêtés sur **tous les site
 
 ..
 
+Mise à jour des dépôts (YUM/APT)
+--------------------------------
+
+.. caution:: Cette opération doit être effectuée AVANT la montée de version
+
+Afin de pouvoir déployer la nouvelle version, vous devez mettre à jour la variable ``vitam_repositories`` sous ``environments/group_vars/all/main/repositories.yml`` afin de renseigner les dépôts à la version cible.
+
+Puis exécutez le playbook suivant **sur tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-extra/bootstrap.yml --ask-vault-pass
+
+..
+
 Montée de version vers mongo 4.4
 --------------------------------
 
 .. caution:: Cette opération doit être effectuée AVANT la montée de version vers la V6RC
 
-.. caution:: Sans cette opération, la montée de version d'une version existante vers une v6rc sera bloquée au démarrage des instances mongod par une incompatibilité.
+.. caution:: Sans cette opération, la montée de version d'une version existante vers une V6RC sera bloquée au démarrage des instances mongod par une incompatibilité.
 
 Exécutez le playbook suivant:
 
@@ -35,13 +95,12 @@ Exécutez le playbook suivant:
 
      ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_mongodb_44.yml --ask-vault-pass
 
-Ce playbook effectue la montée de version de mongodb d'une version 4.2 vers une version 4.4 selon la procédure indiquée dans la documentation Mongodb
-https://www.mongodb.com/docs/v4.4/release-notes/4.4-upgrade-replica-set/ . Cette procédure n'a pas été testée avec une version mongodb inférieure à 4.2.
+Ce playbook effectue la montée de version de mongodb d'une version 4.2 vers une version 4.4 selon la procédure indiquée dans la documentation Mongodb. Cette procédure n'a pas été testée avec une version mongodb inférieure à 4.2.
 
 Montée de version vers mongo 5.0
 --------------------------------
 
-.. caution:: Cette montée de version doit être effectuée AVANT la montée de version V6RC de vitam et après la montée de version en mongodb 4.4 ci dessus.
+.. caution:: Cette montée de version doit être effectuée AVANT la montée de version V6RC de vitam et après la montée de version en mongodb 4.4 ci-dessus.
 
 Exécutez le playbook suivant:
 
@@ -49,8 +108,7 @@ Exécutez le playbook suivant:
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_mongodb_50.yml --ask-vault-pass
 
-Ce playbook change le "Read and write Concern" des replicaset par reconfiguration, il désinstalle et réinstalle les binaires et . Il change également le paramètre
-"SetFeatureCompatibility" à 5.0.
+Ce playbook change le "Read and write Concern" des replicaset par reconfiguration, il désinstalle et réinstalle les binaires et il change également le paramètre "SetFeatureCompatibility" à 5.0.
 
 Une fois ces montées de version de Mongodb réalisées la montée de version Vitam classique peut être réalisée.
 
@@ -123,6 +181,29 @@ Vitam doit être arrêté sur **tous les sites** :
 .. code-block:: bash
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam.yml --ask-vault-pass
+
+..
+
+Application de la montée de version
+===================================
+
+.. caution:: L'application de la montée de version s'effectue d'abord sur les sites secondaires puis sur le site primaire.
+
+Lancement du master playbook vitam
+----------------------------------
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam/vitam.yml --ask-vault-pass
+
+..
+
+Lancement du master playbook extra
+----------------------------------
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-extra/extra.yml --ask-vault-pass
 
 ..
 
