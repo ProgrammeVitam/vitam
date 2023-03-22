@@ -29,10 +29,10 @@ package fr.gouv.vitam.collect.internal.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.service.FluxService;
 import fr.gouv.vitam.collect.internal.core.service.MetadataService;
@@ -69,7 +69,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Optional;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -388,6 +387,7 @@ public class TransactionInternalResource {
     @Path("/{transactionId}/upload")
     @POST
     @Consumes({CommonMediaType.ZIP})
+    @Produces(APPLICATION_JSON)
     public Response uploadTransactionZip(@PathParam("transactionId") String transactionId,
         InputStream inputStreamObject) {
         try {
@@ -417,7 +417,8 @@ public class TransactionInternalResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response changeTransactionStatus(@PathParam("transactionId") String transactionId, @PathParam("transactionStatus") TransactionStatus transactionStatus) {
+    public Response changeTransactionStatus(@PathParam("transactionId") String transactionId,
+        @PathParam("transactionStatus") TransactionStatus transactionStatus) {
         try {
             SanityChecker.checkParameter(transactionId);
             transactionService.changeTransactionStatus(transactionStatus, transactionId);
