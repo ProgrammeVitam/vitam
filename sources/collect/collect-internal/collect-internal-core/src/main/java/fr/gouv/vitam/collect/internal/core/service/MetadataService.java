@@ -375,4 +375,25 @@ public class MetadataService {
         }
         return value.asText();
     }
+
+
+
+    private void resetQuery(JsonNode result, JsonNode queryDsl) {
+        if (result != null && result.has(RequestResponseOK.TAG_CONTEXT)) {
+            ((ObjectNode) result).set(RequestResponseOK.TAG_CONTEXT, queryDsl);
+        }
+    }
+
+    public JsonNode selectUnitsWithInheritedRules(String transactionId, JsonNode queryDsl)
+        throws InvalidParseOperationException {
+        JsonNode result;
+        LOGGER.debug("DEBUG: start selectUnitsWithInheritedRules {}", queryDsl);
+
+        result = metadataRepository.selectUnitsWithInheritedRules(queryDsl, transactionId);
+
+        resetQuery(result, queryDsl);
+        LOGGER.debug("DEBUG: end selectUnitsWithInheritedRules {}");
+        return result;
+
+    }
 }

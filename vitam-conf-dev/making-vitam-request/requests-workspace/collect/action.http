@@ -307,7 +307,22 @@ X-Tenant-Id: {{tenant}}
 {}
 
 
+### Récuperation d'une unit avec calcul des règles de gestion (sans persistence)
+GET {{url-collect}}/collect-external/v1/transactions/{{transaction-id}}/unitsWithInheritedRules
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: {{tenant}}
+
+{
+  "$roots": [],
+  "$query": [ { "$eq":  { "#id": "{{unitId}}" } } ],
+  "$filter": {},
+  "$projection": { "$fields": { "#id": 1, "Title": 1 } }
+}
+
 ###
 
 OPTIONS {{url-collect}}/collect-external/v1
 X-Tenant-Id: {{tenant}}
+
+

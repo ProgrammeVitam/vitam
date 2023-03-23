@@ -328,6 +328,18 @@ public interface CollectInternalClient extends MockOrRestClient {
      * @return Response
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    Response changeTransactionStatus(String transactionId, TransactionStatus transactionStatus) throws VitamClientException;
+    Response changeTransactionStatus(String transactionId, TransactionStatus transactionStatus)
+        throws VitamClientException;
+
+    /**
+     * select Units With Inherited Rules
+     *
+     * @param transactionId transaction Id
+     * @param selectQuery dsl query
+     * @return Response
+     * @throws VitamClientException exception
+     */
+    RequestResponse<JsonNode> selectUnitsWithInheritedRules(String transactionId, JsonNode selectQuery)
+        throws VitamClientException;
 }
 

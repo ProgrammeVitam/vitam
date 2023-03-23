@@ -201,7 +201,7 @@ public class CollectService {
 
             metadataRepository.updateUnitById(multiQuery, unitModel.getOpi(), unitModel.getId());
         } catch (final CollectInternalException | InvalidCreateOperationException | InvalidParseOperationException e) {
-            if(gotCreated){
+            if (gotCreated) {
                 metadataRepository.deleteObjectGroups(Arrays.asList(gotId));
             }
             LOGGER.error("Error when saving new objectGroup in metadata : {}", e);
@@ -367,9 +367,9 @@ public class CollectService {
             Files.delete(path);
             return formatIdentificationModel;
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException |
-            FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException |
-            FormatIdentifierNotFoundException | FormatIdentifierFactoryException |
-            FormatIdentifierTechnicalException e) {
+                 FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException |
+                 FormatIdentifierNotFoundException | FormatIdentifierFactoryException |
+                 FormatIdentifierTechnicalException e) {
             LOGGER.error("Can't detect format for the object : {}", e);
             throw new CollectInternalException("Can't detect format for the object : " + e);
         }

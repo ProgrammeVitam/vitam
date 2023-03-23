@@ -190,6 +190,31 @@ documentation:
                   type: object
                   example: !include libraries/examples/CollectUnitObjectResponse.json
 
+  /{id}/unitsWithInheritedRules:
+        is: [ StandardTraits.StandardOptionalHeader,
+              StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+               StandardTraits.StandardHeader409, StandardTraits.StandardHeader412]
+        get:
+         description: |
+           API pour accéder aux Unités d'archives liées à une transaction avec leurs règles de gestion héritées .
+           La requête utilise le langage de requête DSL de Vitam en entrée et retourne une liste d'Unités d'archives avec leurs règles de gestion selon le DSL Vitam en cas de succès.
+         uriParameters:
+             transactionId:
+               required: true
+               description: Identifiant de la transaction
+         Permissions requises:
+                 - transaction:unitsWithInheritedRules:read
+             is: [CollectTraits.CollectUnitWithInheritedRulesResponse]
+         headers:
+          X-tenant-Id:
+           required: true
+         responses:
+            200:
+              body:
+                application/json:
+                  type: object
+                  example: !include libraries/examples/CollectUnitWithInheritedRulesResponse.json
+
   /{id}/close:
         displayName: Fermer une transaction -> statut Close
         is: [ StandardTraits.StandardOptionalHeader,
@@ -376,3 +401,4 @@ documentation:
                 application/json:
                   type: object
                   example: !include libraries/examples/objectGroupResponse.json
+

@@ -29,13 +29,14 @@ package fr.gouv.vitam.collect.internal.resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.rest.TransactionInternalResource;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -62,6 +63,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     private static final String TRANSACTION_ZIP_PATH = "streamZip/transaction.zip";
 
+    private static final String UNITS_WITH_INHERITED_RULES_URI = "/unitsWithInheritedRules";
     public static final String QUERY_INIT = "{ "
         + "\"#id\": \"1\","
         + "\"ArchivalAgencyIdentifier\": \"Identifier0\","
@@ -74,6 +76,21 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
         + "\"AcquisitionInformation\": \"Versement\","
         + "\"ArchivalAgreement\":\"IC-000001\","
         + "\"Comment\": \"Versement du service producteur : Cabinet de Michel Mercier\"}";
+
+    private static final String DATA2 =
+        "{ \"#id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
+
+    private static final String DATA_HTML =
+        "{ \"#id\": \"<a href='www.culture.gouv.fr'>Culture</a>\"," + "\"data\": \"data2\" }";
+
+
+    private static final String QUERY_TEST =
+        "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
+            " \"$filter\": { \"$orderby\": \"#id\" }, " +
+            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
+            " }";
+    private static final String QUERY_SIMPLE_TEST = "{ \"$eq\" : { \"title\" : \"test\" } }";
+    private static final String EMPTY_QUERY = "{ \"$query\" : \"\", \"$roots\" : []  }";
 
     @Test
     public void getTransactionById() throws Exception {
@@ -243,7 +260,8 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
     public void uploadArchiveUnit() throws Exception {
         when(transactionService.findTransaction("1")).thenReturn(Optional.of(new TransactionModel()));
         when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
-        when(metadataService.saveArchiveUnit(any(), any(TransactionModel.class))).thenReturn(JsonHandler.getFromString("{}"));
+        when(metadataService.saveArchiveUnit(any(), any(TransactionModel.class))).thenReturn(
+            JsonHandler.getFromString("{}"));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -759,7 +777,8 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
 
     @Test
     public void selectUnitsByTransactionId_ok_when_collectServie_ok() throws Exception {
-        when(metadataService.selectUnitsByTransactionId(any(JsonNode.class), eq("10"))).thenReturn(new RequestResponseOK<>());
+        when(metadataService.selectUnitsByTransactionId(any(JsonNode.class), eq("10"))).thenReturn(
+            new RequestResponseOK<>());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -771,4 +790,54 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
             .statusCode(Response.Status.OK.getStatusCode());
     }
 
+
+    @Test
+    public void givenStartedServer_WhenSelectUnitsWithInheritedRulesWithNotJsonRequest_ThenReturnError_UnsupportedMediaType()
+        throws Exception {
+        given()
+            .contentType(ContentType.XML)
+            .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
+            .when().get(TRANSACTIONS + "/1" + UNITS_WITH_INHERITED_RULES_URI).then()
+            .statusCode(Response.Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+    }
+
+    @Test
+    public void givenStartedServer_WhenSelectUnitsWithInheritedRulesWithJsonContainsHtml_ThenReturnError_BadRequest()
+        throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .body(buildDSLWithRoots(DATA_HTML)).when()
+            .get(TRANSACTIONS + "/1" + UNITS_WITH_INHERITED_RULES_URI).then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+    }
+
+    @Test
+    public void givenStartedServer_WhenSelectUnitsWithInheritedRulesWithEmptyQuery_ThenReturnError_Forbidden()
+        throws Exception {
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.getFromString(EMPTY_QUERY)).when()
+            .get(TRANSACTIONS + "/1" + UNITS_WITH_INHERITED_RULES_URI).then()
+            .statusCode(Response.Status.FORBIDDEN.getStatusCode());
+    }
+
+    /**
+     * @param data
+     * @return query DSL with Options
+     * @throws InvalidParseOperationException
+     */
+    private static JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
+        return JsonHandler
+            .getFromString("{ \"$roots\" : [], \"$query\" : [ " + query + " ], \"$data\" : " + data + " }");
+    }
+
+    /**
+     * @param data
+     * @return query DSL with id as Roots
+     * @throws InvalidParseOperationException
+     */
+    private static JsonNode buildDSLWithRoots(String data) throws InvalidParseOperationException {
+        return JsonHandler
+            .getFromString("{ \"$roots\" : [ " + data + " ], \"$query\" : [ \"\" ], \"$data\" : " + data + " }");
+    }
 }
