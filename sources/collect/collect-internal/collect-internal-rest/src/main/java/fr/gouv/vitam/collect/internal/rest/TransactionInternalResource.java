@@ -84,7 +84,6 @@ import static javax.ws.rs.core.Response.Status.OK;
 
 @Path("/collect-internal/v1/transactions")
 public class TransactionInternalResource {
-    public static final String ERROR_WHILE_TRYING_TO_SAVE_UNITS = "Error while trying to save units";
     public static final String SIP_GENERATED_MANIFEST_CAN_T_BE_NULL = "SIP generated manifest can't be null";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionInternalResource.class);
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
@@ -325,11 +324,7 @@ public class TransactionInternalResource {
                 throw new CollectInternalException("Can't fetch SIP file from Collect workspace!");
             }
             return Response.ok(sipInputStream).build();
-        } catch (CollectInternalException e) {
-            LOGGER.error("An error occurs when try to generate SIP : {}", e);
-            transactionService.changeTransactionStatus(TransactionStatus.KO, transactionId);
-            return Response.status(BAD_REQUEST).build();
-        } catch (IllegalArgumentException | InvalidParseOperationException e) {
+        } catch (CollectInternalException | IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("An error occurs when try to generate SIP : {}", e);
             transactionService.changeTransactionStatus(TransactionStatus.KO, transactionId);
             return Response.status(BAD_REQUEST).build();
@@ -403,17 +398,13 @@ public class TransactionInternalResource {
         InputStream inputStreamObject) {
         try {
             ParametersChecker.checkParameter("You must supply a file!", inputStreamObject);
-
             Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
-
-
             if (transactionModel.isEmpty() ||
                 !transactionService.checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
                 LOGGER.error(TRANSACTION_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(NOT_FOUND, TRANSACTION_NOT_FOUND);
             }
             fluxService.processStream(inputStreamObject, transactionModel.get());
-
             return Response.ok().build();
         } catch (CollectInternalException e) {
             LOGGER.error("An error occurs when try to upload the ZIP: {}", e);

@@ -323,7 +323,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             return Response.ok().build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when uploading transaction Zip   ", e);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+            return CollectRequestResponse.toVitamError(Response.Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             return Response.status(Response.Status.PRECONDITION_FAILED).build();

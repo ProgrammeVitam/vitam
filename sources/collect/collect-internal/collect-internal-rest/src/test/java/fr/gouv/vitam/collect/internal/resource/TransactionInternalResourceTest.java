@@ -42,6 +42,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import io.restassured.http.ContentType;
 import org.assertj.core.api.Assertions;
+import org.hamcrest.CoreMatchers;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -362,7 +363,7 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
     }
 
     @Test
-    public void closeTransaction() throws Exception {
+    public void closeTransaction() {
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -707,6 +708,29 @@ public class TransactionInternalResourceTest extends CollectInternalResourceBase
                 .post(TRANSACTIONS + "/1/upload")
                 .then()
                 .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        }
+    }
+
+    @Test
+    public void uploadTransactionZip_ko_with_mapping_error_in_metadata_csv() throws Exception {
+        TransactionModel transactionModel = new TransactionModel();
+        transactionModel.setProjectId("1");
+        when(transactionService.findTransaction("1"))
+                .thenReturn(Optional.of(transactionModel));
+        when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(true);
+        doThrow(new CollectInternalException("Mapping for File not found, expected one of [Content.DescriptionLevel, Content.Title]"))
+                .when(fluxService).processStream(any(), any(TransactionModel.class));
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
+            given()
+                    .contentType("application/zip")
+                    .accept(ContentType.JSON)
+                    .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                    .body(resourceAsStream)
+                    .when()
+                    .post(TRANSACTIONS + "/1/upload")
+                    .then()
+                    .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                    .body("message", CoreMatchers.equalTo("Mapping for File not found, expected one of [Content.DescriptionLevel, Content.Title]"));
         }
     }
 

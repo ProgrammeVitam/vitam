@@ -92,7 +92,7 @@ public class CsvMetadataMapper {
             return new AbstractMap.SimpleEntry<>(FilenameUtils.separatorsToUnix(record.get(FILE_FIELD)), unit);
         } catch (Exception e) {
             LOGGER.debug("Cannot parse json entry {}", node.toString());
-            throw new CsvParseInternalException(e);
+            throw new CsvParseInternalException(e.getMessage(), e);
         }
     }
 
