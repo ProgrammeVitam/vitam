@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Iterators;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
+import fr.gouv.vitam.collect.common.exception.CsvParseInternalException;
 import fr.gouv.vitam.collect.internal.core.common.DescriptionLevel;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
@@ -195,8 +196,8 @@ public class FluxService {
         } catch (IOException | ArchiveException e) {
             LOGGER.error("An error occurs when try to upload the ZIP: {}", e);
             throw new CollectInternalException("An error occurs when try to upload the ZIP: {}");
-        } catch (InvalidParseOperationException e) {
-            throw new CollectInternalException(e);
+        } catch (InvalidParseOperationException | CsvParseInternalException e) {
+            throw new CollectInternalException(e.getMessage(), e);
         }
     }
 

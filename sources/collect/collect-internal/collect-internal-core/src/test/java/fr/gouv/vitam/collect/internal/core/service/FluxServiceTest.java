@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.internal.core.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
@@ -48,6 +49,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -76,6 +78,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -200,5 +203,35 @@ public class FluxServiceTest {
         }
 
         verify(metadataService).updateUnitsWithMetadataFile(eq("TRANSACTION_ID"), any());
+    }
+    private static final String TRANSACTION_WITHOUT_FILE_COLUMN_ZIP_PATH = "streamZip/transaction_without_file_column.zip";
+
+    @Test
+    @RunWithCustomExecutor
+    public void processStream_without_file_column_in_csv_file() throws Exception {
+        // Given
+        when(projectRepository.findProjectById(anyString())).thenReturn(Optional.of(projectModel));
+        final AtomicReference<File> fileReference = new AtomicReference<>();
+        when(metadataService.prepareAttachmentUnits(any(), anyString())).thenReturn(new HashMap<>());
+        when(collectService.pushStreamToWorkspace(any(), any(InputStream.class), eq(METADATA_CSV_FILE))).thenAnswer((e) -> {
+            final InputStream is = e.getArgument(1);
+            final File file = tempFolder.newFile(METADATA_CSV_FILE);
+            Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            fileReference.set(file);
+            return "";
+        });
+        when(collectService.getInputStreamFromWorkspace(any(), eq(METADATA_CSV_FILE))).thenAnswer((e) -> new FileInputStream(fileReference.get()));
+
+        // When
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_WITHOUT_FILE_COLUMN_ZIP_PATH)) {
+            CollectInternalException exception = Assert.assertThrows(CollectInternalException.class, () -> fluxService.processStream(resourceAsStream, transactionModel));
+            Assert.assertEquals("Mapping for File not found, expected one of [Content.DescriptionLevel, Content.Title]", exception.getMessage());
+        }
+
+        // Then
+        // bulkWriteUnits
+        verify(metadataRepository, never()).saveArchiveUnits(any());
+        // bulkWriteObjectGroups
+        verify(metadataRepository, never()).saveObjectGroups(any());
     }
 }
