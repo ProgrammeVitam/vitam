@@ -75,6 +75,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_REOPEN;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_SEND;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_CREATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_READ;
+import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UNIT_WITH_INHERITED_RULES_READ;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ZIP_CREATE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -326,6 +327,27 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             return Response.status(Response.Status.PRECONDITION_FAILED).build();
+        }
+    }
+    
+    @Path("/{transactionId}/unitsWithInheritedRules")
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Secured(permission = TRANSACTION_UNIT_WITH_INHERITED_RULES_READ, description = "Récupérer la liste des unités archivistiques avec leurs règles de gestion héritées")
+    public Response selectUnitsWithInheritedRules(@PathParam("transactionId") String transactionId,
+        @Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
+
+        try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
+            SanityChecker.checkParameter(transactionId);
+            RequestResponse<JsonNode> result = client.selectUnitsWithInheritedRules(transactionId, queryJson);
+            int st = result.isOk() ? Response.Status.OK.getStatusCode() : result.getHttpCode();
+            return Response.status(st).entity(result).build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+        } catch (VitamClientException e) {
+            LOGGER.error("Error when selecting Units With Inherited Rules ", e);
+            return Response.status(BAD_REQUEST).build();
         }
     }
 }

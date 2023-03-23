@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.internal.core.repository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.Query;
@@ -40,6 +41,8 @@ import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserHelper;
+import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -60,6 +63,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 
 import javax.annotation.Nonnull;
+import javax.ws.rs.ProcessingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -72,7 +76,9 @@ import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.init
 
 public class MetadataRepository {
 
+    private static final String DATA_CATEGORY = "Data category ";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataRepository.class);
+    private static final String NOT_A_SELECT_OPERATION = "Not a Select operation";
 
     private final MetaDataClientFactory metaDataCollectClientFactory;
 
@@ -275,6 +281,29 @@ public class MetadataRepository {
             Query lastQuery = queryList.get(queryList.size() - 1);
             Query mergedQuery = and().add(lastQuery, inQuery);
             queries.set(queryList.size() - 1, mergedQuery);
+        }
+    }
+
+
+    public JsonNode selectUnitsWithInheritedRules(JsonNode jsonQuery, @Nonnull String transactionId)
+        throws InvalidParseOperationException {
+
+        ParametersChecker.checkParameter(DATA_CATEGORY, jsonQuery);
+
+        // Check correctness of request
+        final RequestParserMultiple parser = RequestParserHelper.getParser(jsonQuery.deepCopy());
+        if (!(parser instanceof SelectParserMultiple)) {
+            LOGGER.error(NOT_A_SELECT_OPERATION);
+            throw new InvalidParseOperationException(NOT_A_SELECT_OPERATION);
+        }
+
+        try (MetaDataClient metaDataClient = metaDataCollectClientFactory.getClient()) {
+            applyTransactionToQuery(transactionId, parser.getRequest());
+            return metaDataClient.selectUnitsWithInheritedRules(jsonQuery);
+        } catch (MetaDataDocumentSizeException | ProcessingException | MetaDataClientServerException |
+                 MetaDataExecutionException | InvalidCreateOperationException e) {
+            LOGGER.error("Error on selecting units with Inherited Rules", e);
+            throw new InvalidParseOperationException(e);
         }
     }
 }

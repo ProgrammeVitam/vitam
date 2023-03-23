@@ -43,6 +43,10 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -85,6 +89,13 @@ public class TransactionInternalResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionInternalResource.class);
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
     private static final String PROJECT_NOT_FOUND = "Unable to find project Id or invalid status";
+
+    private static final String EMPTY_QUERY_IS_IMPOSSIBLE = "Empty query is impossible";
+    private static final String INVALID_QUERY_DSL_EXCEPTION = "Invalid query DSL ";
+    private static final String EXECUTION_OF_DSL_VITAM_FROM_COLLECT_ONGOING =
+        "Execution of DSL Vitam from Collect ongoing...";
+    private static final String DEBUG = "DEBUG {}";
+
     private final TransactionService transactionService;
     private final MetadataService metadataService;
     private final SipService sipService;
@@ -430,5 +441,56 @@ public class TransactionInternalResource {
             LOGGER.error("An error occurs when try to update transaction : {}", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
+    }
+
+
+    private void checkEmptyQuery(JsonNode queryDsl)
+        throws InvalidParseOperationException, BadRequestException {
+        final SelectParserMultiple parser = new SelectParserMultiple();
+        parser.parse(queryDsl.deepCopy());
+        if (parser.getRequest().getNbQueries() == 0 && parser.getRequest().getRoots().isEmpty()) {
+            throw new BadRequestException("Query cant be empty");
+        }
+    }
+
+    /**
+     * Select units with inherited rules
+     *
+     * @param transactionId as transaction Id
+     * @param queryDsl as JsonNode
+     * @return an archive unit result list with inherited rules
+     */
+
+    @GET
+    @Path("/{transactionId}/unitsWithInheritedRules")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response selectUnitsWithInheritedRules(@PathParam("transactionId") String transactionId, JsonNode queryDsl) {
+        LOGGER.debug(EXECUTION_OF_DSL_VITAM_FROM_COLLECT_ONGOING);
+        Response.Status status;
+        JsonNode result;
+        LOGGER.debug("DEBUG: start selectUnitsWithInheritedRules {}", queryDsl);
+        try {
+            SanityChecker.checkJsonAll(queryDsl);
+            checkEmptyQuery(queryDsl);
+            result = metadataService.selectUnitsWithInheritedRules(transactionId, queryDsl);
+            LOGGER.debug(DEBUG, result);
+        } catch (final InvalidParseOperationException e) {
+            LOGGER.error(INVALID_QUERY_DSL_EXCEPTION, e);
+            return CollectRequestResponse.toVitamError(Response.Status.BAD_REQUEST, EMPTY_QUERY_IS_IMPOSSIBLE);
+        } catch (BadRequestException e) {
+            LOGGER.error(EMPTY_QUERY_IS_IMPOSSIBLE, e);
+            return CollectRequestResponse.toVitamError(VitamCode.GLOBAL_EMPTY_QUERY.getStatus(),
+                EMPTY_QUERY_IS_IMPOSSIBLE);
+        } catch (final Exception ve) {
+            LOGGER.error(ve);
+            status = Response.Status.INTERNAL_SERVER_ERROR;
+            return Response.status(status)
+                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                    .setMessage(ve.getMessage())
+                    .setDescription(status.getReasonPhrase()))
+                .build();
+        }
+        return Response.status(Response.Status.OK).entity(result).build();
     }
 }

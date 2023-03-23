@@ -60,6 +60,10 @@ public class CollectExternalClientRest extends DefaultClient implements CollectE
     private static final String OBJECTS_PATH = "/objects";
     private static final String BINARY_PATH = "/binary";
 
+    private static final String UNITS_WITH_INHERITED_RULES = "/unitsWithInheritedRules";
+
+    private static final String BLANK_DSL = "select DSL is blank";
+
     public CollectExternalClientRest(VitamClientFactoryInterface<?> factory) {
         super(factory);
     }
@@ -436,6 +440,23 @@ public class CollectExternalClientRest extends DefaultClient implements CollectE
             .withBody(transactionDto)
             .withJsonContentType()
             .withJsonAccept();
+
+        try (Response response = make(request)) {
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> selectUnitsWithInheritedRules(VitamContext vitamContext, String transactionId,
+        JsonNode selectQuery)
+        throws VitamClientException {
+
+        VitamRequestBuilder request = get()
+            .withPath(TRANSACTION_PATH + "/" + transactionId + UNITS_WITH_INHERITED_RULES)
+            .withBody(selectQuery, BLANK_DSL)
+            .withHeaders(vitamContext.getHeaders())
+            .withJson();
 
         try (Response response = make(request)) {
             check(response);

@@ -194,5 +194,5 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
             return Response.status(PRECONDITION_FAILED).build();
         }
     }
-
+    
 }

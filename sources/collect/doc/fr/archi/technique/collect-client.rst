@@ -28,14 +28,28 @@ Le client
 *********
 Le client propose actuellement plusieurs méthodes : 
 
-  initTransaction(TransactionDto transactionDto);
-  uploadArchiveUnit(String transactionId, JsonNode unitJsonNode);
-  addObjectGroup(String unitId, String usage, Integer version, JsonNode objectJsonNode);
-  addBinary(String unitId, String usage, Integer version, InputStream inputStreamUploaded);
-  closeTransaction(String transactionId);
-  ingest(String transactionId);
-  uploadProjectZip(VitamContext vitamContext, String projectId, InputStream inputStreamUploaded);
-  selectUnits(VitamContext vitamContext, JsonNode jsonQuery);
-  getUnitsByProjectId(VitamContext vitamContext, String projectId, JsonNode dslQuery)
+  initProject(VitamContext vitamContext, ProjectDto projectDto)
+  updateProject(VitamContext vitamContext, ProjectDto projectDto)
+  getProjectById(VitamContext vitamContext, String projectId)
+  getTransactionByProjectId(VitamContext vitamContext, String projectId)
+  getTransactionById(VitamContext vitamContext, String transactionId)
+  getProjects(VitamContext vitamContext)
+  deleteTransactionById(VitamContext vitamContext, String transactionId)
+  deleteProjectById(VitamContext vitamContext, String projectId)
+  getUnitById(VitamContext vitamContext, String unitId)
+  getUnitsByTransaction(VitamContext vitamContext, String transactionId, JsonNode query)
+  getObjectById(VitamContext vitamContext, String gotId)
+  initTransaction(VitamContext vitamContext, TransactionDto transactionDto, String projectId)
+  uploadArchiveUnit(VitamContext vitamContext, JsonNode unitJsonNode, String transactionId)
+  addObjectGroup(VitamContext vitamContext, String unitId, Integer version, JsonNode objectJsonNode, String usage)
+  addBinary(VitamContext vitamContext, String unitId, Integer version, InputStream inputStreamUploaded, String usage)
+  closeTransaction(VitamContext vitamContext, String transactionId)
+  ingest(VitamContext vitamContext, String transactionId)
+  abortTransaction(VitamContext vitamContext, String transactionId)
+  reopenTransaction(VitamContext vitamContext, String transactionId)
+  uploadProjectZip(VitamContext vitamContext, String transactionId, InputStream inputStreamUploaded)
   getObjectStreamByUnitId(VitamContext vitamContext, String unitId, String usage, int version)
-
+  searchProject(VitamContext vitamContext, CriteriaProjectDto criteria)
+  updateTransaction(VitamContext vitamContext, TransactionDto transactionDto)
+  updateUnits(VitamContext vitamContext, String transactionId, InputStream is)
+  selectUnitsWithInheritedRules(VitamContext vitamContext, JsonNode selectQuery)

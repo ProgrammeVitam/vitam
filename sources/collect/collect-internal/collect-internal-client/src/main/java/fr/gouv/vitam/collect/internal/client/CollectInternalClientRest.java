@@ -63,6 +63,10 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
     private static final String OBJECTS_PATH = "/objects";
     private static final String BINARY_PATH = "/binary";
 
+    private static final String UNITS_WITH_INHERITED_RULES = "/unitsWithInheritedRules";
+
+    private static final String BLANK_DSL = "select DSL is blank";
+
     public CollectInternalClientRest(VitamClientFactoryInterface<?> factory) {
         super(factory);
     }
@@ -274,7 +278,7 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
     public RequestResponseOK<JsonNode> addObjectGroup(
         String unitId, Integer version, JsonNode objectJsonNode, String usage) throws VitamClientException {
         try (Response response = make(
-            post().withPath(UNITS_PATH + "/" + unitId + OBJECTS_PATH  + "/" + usage + "/" + version)
+            post().withPath(UNITS_PATH + "/" + unitId + OBJECTS_PATH + "/" + usage + "/" + version)
                 .withBody(objectJsonNode)
                 .withJson())) {
             check(response);
@@ -425,7 +429,8 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
             RequestResponse<JsonNode> requestResponse = RequestResponse.parseVitamError(response);
             if (!requestResponse.isOk() && requestResponse instanceof VitamError) {
                 throw new VitamClientException(String
-                    .format("Error with the response, get status: '%d' and reason '%s'.", requestResponse.getStatus(), ((VitamError<JsonNode>) requestResponse).getMessage()));
+                    .format("Error with the response, get status: '%d' and reason '%s'.", requestResponse.getStatus(),
+                        ((VitamError<JsonNode>) requestResponse).getMessage()));
             }
         } catch (InvalidParseOperationException e) {
             throw new VitamClientException(String
@@ -440,7 +445,6 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
 
         VitamRequestBuilder request = put()
             .withPath(TRANSACTION_PATH)
-
             .withBody(transactionDto)
             .withJsonContentType()
             .withJsonAccept();
@@ -456,10 +460,26 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
     public Response changeTransactionStatus(String transactionId, TransactionStatus transactionStatus)
         throws VitamClientException {
         try (Response response = make(put()
-            .withPath(TRANSACTION_PATH + "/" + transactionId + "/status/"+transactionStatus)
+            .withPath(TRANSACTION_PATH + "/" + transactionId + "/status/" + transactionStatus)
             .withJsonAccept())) {
             check(response);
             return response;
+        }
+    }
+
+
+    @Override
+    public RequestResponse<JsonNode> selectUnitsWithInheritedRules(String transactionId, JsonNode selectQuery)
+        throws VitamClientException {
+
+        VitamRequestBuilder request = get()
+            .withPath(TRANSACTION_PATH + "/" + transactionId + UNITS_WITH_INHERITED_RULES)
+            .withBody(selectQuery, BLANK_DSL)
+            .withJson();
+        try (Response response = make(request)) {
+            check(response);
+            RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
+            return result;
         }
     }
 }
