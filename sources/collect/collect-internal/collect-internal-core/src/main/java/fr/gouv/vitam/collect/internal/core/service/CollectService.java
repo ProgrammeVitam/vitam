@@ -75,16 +75,15 @@ import org.apache.commons.io.input.CountingInputStream;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static fr.gouv.vitam.collect.internal.core.helpers.CollectHelper.writeToTemporaryFile;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.QUALIFIERS;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
@@ -181,10 +180,10 @@ public class CollectService {
         String gotId = null;
         try {
             CollectHelper.checkVersion(version, 1);
-            DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModelBuilder()
-                .withId(objectDto.getId())
-                .withOpi(unitModel.getOpi()).withFileInfoModel(objectDto.getFileInfo().getFileName())
-                .withQualifiers(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage, version).build();
+            DbObjectGroupModel dbObjectGroupModel =
+                new DbObjectGroupModelBuilder().withId(objectDto.getId()).withOpi(unitModel.getOpi())
+                    .withFileInfoModel(objectDto.getFileInfo().getFileName())
+                    .withQualifiers(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage, version).build();
 
             JsonNode jsonNode =
                 metadataRepository.saveObjectGroup((ObjectNode) JsonHandler.toJsonNode(dbObjectGroupModel));
@@ -202,7 +201,7 @@ public class CollectService {
             metadataRepository.updateUnitById(multiQuery, unitModel.getOpi(), unitModel.getId());
         } catch (final CollectInternalException | InvalidCreateOperationException | InvalidParseOperationException e) {
             if (gotCreated) {
-                metadataRepository.deleteObjectGroups(Arrays.asList(gotId));
+                metadataRepository.deleteObjectGroups(Collections.singletonList(gotId));
             }
             LOGGER.error("Error when saving new objectGroup in metadata : {}", e);
             throw new CollectInternalException("Error when saving new objectGroup in metadata: " + e);
@@ -275,26 +274,37 @@ public class CollectService {
 
         String extension = FilenameUtils.getExtension(dbVersionsModel.getFileInfoModel().getFilename()).toLowerCase();
         String fileName = dbVersionsModel.getId() + (extension.equals("") ? "" : "." + extension);
-        CountingInputStream countingInputStream = new CountingInputStream(uploadedInputStream);
-        String digest = pushStreamToWorkspace(dbObjectGroupModel.getOpi(), countingInputStream,
-            CONTENT_FOLDER.concat(File.separator).concat(fileName));
-        DbFormatIdentificationModel formatIdentifierResponse =
-            getFormatIdentification(dbObjectGroupModel.getOpi(), fileName);
+        try {
+            File file = writeToTemporaryFile(uploadedInputStream, extension);
 
-        if (null != formatIdentifierResponse) {
-            dbVersionsModel.setFormatIdentificationModel(formatIdentifierResponse);
+            CountingInputStream countingInputStream = new CountingInputStream(new FileInputStream(file));
+            String digest = pushStreamToWorkspace(dbObjectGroupModel.getOpi(), countingInputStream,
+                CONTENT_FOLDER.concat(File.separator).concat(fileName));
+
+
+            FormatIdentifierResponse formatIdentifierResponse = detectFileFormat(file);
+            if (null != formatIdentifierResponse) {
+                DbFormatIdentificationModel formatIdentificationModel = new DbFormatIdentificationModel();
+                formatIdentificationModel.setFormatId(formatIdentifierResponse.getPuid());
+                formatIdentificationModel.setMimeType(formatIdentifierResponse.getMimetype());
+                formatIdentificationModel.setFormatLitteral(formatIdentifierResponse.getFormatLiteral());
+                dbVersionsModel.setFormatIdentificationModel(formatIdentificationModel);
+            }
+
+            int indexQualifier = dbObjectGroupModel.getQualifiers().indexOf(qualifierModelToUpdate);
+            int indexVersionsModel = qualifierModelToUpdate.getVersions().indexOf(dbVersionsModel);
+            dbVersionsModel.setOpi(dbObjectGroupModel.getOpi());
+            dbVersionsModel.setUri(CONTENT_FOLDER + File.separator + fileName);
+            dbVersionsModel.setMessageDigest(digest);
+            dbVersionsModel.setAlgorithm(DigestType.SHA512.getName());
+            dbVersionsModel.setSize(countingInputStream.getByteCount());
+
+
+            qualifierModelToUpdate.getVersions().set(indexVersionsModel, dbVersionsModel);
+            dbObjectGroupModel.getQualifiers().set(indexQualifier, qualifierModelToUpdate);
+        } catch (IOException e) {
+            throw new CollectInternalException("Error when writing object to workspace", e);
         }
-
-        int indexQualifier = dbObjectGroupModel.getQualifiers().indexOf(qualifierModelToUpdate);
-        int indexVersionsModel = qualifierModelToUpdate.getVersions().indexOf(dbVersionsModel);
-        dbVersionsModel.setOpi(dbObjectGroupModel.getOpi());
-        dbVersionsModel.setUri(CONTENT_FOLDER + File.separator + fileName);
-        dbVersionsModel.setMessageDigest(digest);
-        dbVersionsModel.setAlgorithm(DigestType.SHA512.getName());
-        dbVersionsModel.setSize(countingInputStream.getByteCount());
-
-        qualifierModelToUpdate.getVersions().set(indexVersionsModel, dbVersionsModel);
-        dbObjectGroupModel.getQualifiers().set(indexQualifier, qualifierModelToUpdate);
         try {
             Map<String, JsonNode> action = new HashMap<>();
             action.put(QUALIFIERS.exactToken(), toJsonNode(dbObjectGroupModel.getQualifiers()));
@@ -304,8 +314,7 @@ public class CollectService {
             query.addActions(setQualifier);
             metadataRepository.updateObjectGroupById(query, dbObjectGroupModel.getId(), dbObjectGroupModel.getOpi());
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
-            LOGGER.error("Error when updating existing qualifier: {}", e);
-            throw new CollectInternalException("Error when updating existing qualifier: " + e);
+            throw new CollectInternalException("Error when updating existing qualifier: ", e);
         }
     }
 
@@ -323,8 +332,7 @@ public class CollectService {
             LOGGER.debug("Push stream to workspace finished");
             return digest.digestHex();
         } catch (ContentAddressableStorageException e) {
-            LOGGER.error("Error when trying to push stream to workspace: {} ", e);
-            throw new CollectInternalException("Error when trying to push stream to workspace: " + e);
+            throw new CollectInternalException("Error when trying to push stream to workspace: ", e);
         }
     }
 
@@ -337,41 +345,7 @@ public class CollectService {
             }
             return response.readEntity(InputStream.class);
         } catch (ContentAddressableStorageException e) {
-            LOGGER.error("Error while retrieving stream from workspace: {} ", e);
-            throw new CollectInternalException("Error while retrieving stream from workspace: " + e);
-        }
-    }
-
-    public DbFormatIdentificationModel getFormatIdentification(String transactionId, String fileName)
-        throws CollectInternalException {
-        try (WorkspaceClient workspaceClient = workspaceCollectClientFactory.getClient()) {
-            FormatIdentifier formatIdentifier = formatIdentifierFactory.getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
-            if (!workspaceClient.isExistingContainer(transactionId)) {
-                return null;
-            }
-            InputStream is = workspaceClient.getObject(transactionId, CONTENT_FOLDER + File.separator + fileName)
-                .readEntity(InputStream.class);
-            Path path = Paths.get(VitamConfiguration.getVitamTmpFolder(), fileName);
-            Files.copy(is, path);
-            File tmpFile = path.toFile();
-            final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(tmpFile.toPath());
-            final FormatIdentifierResponse format = CollectHelper.getFirstPronomFormat(formats);
-            if (format == null) {
-                LOGGER.error("Can't not found format !");
-                throw new CollectInternalException("Can't not found format !");
-            }
-            DbFormatIdentificationModel formatIdentificationModel = new DbFormatIdentificationModel();
-            formatIdentificationModel.setFormatId(format.getPuid());
-            formatIdentificationModel.setMimeType(format.getMimetype());
-            formatIdentificationModel.setFormatLitteral(format.getFormatLiteral());
-            Files.delete(path);
-            return formatIdentificationModel;
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException |
-                 FileFormatNotFoundException | FormatIdentifierBadRequestException | IOException |
-                 FormatIdentifierNotFoundException | FormatIdentifierFactoryException |
-                 FormatIdentifierTechnicalException e) {
-            LOGGER.error("Can't detect format for the object : {}", e);
-            throw new CollectInternalException("Can't detect format for the object : " + e);
+            throw new CollectInternalException("Error while retrieving stream from workspace: ", e);
         }
     }
 
