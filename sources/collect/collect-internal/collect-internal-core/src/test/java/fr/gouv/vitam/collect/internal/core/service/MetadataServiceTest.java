@@ -146,6 +146,35 @@ public class MetadataServiceTest {
 
     @Test
     @RunWithCustomExecutor
+    public void save_no_root_ArchiveUnit() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        try (InputStream is = PropertiesUtils.getResourceAsStream(UNIT_FILE)) {
+            ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(is);
+            projectModel.setUnitUp(UNIT_UP);
+            unit.set(VitamFieldsHelper.unitups(), JsonHandler.createArrayNode().add("ID"));
+
+            when(projectRepository.findProjectById(eq(PROJECT_ID))).thenReturn(Optional.of(projectModel));
+
+            when(metadataRepository.selectUnits(any(JsonNode.class), anyString())).thenReturn(
+                new RequestResponseOK<>());
+
+            AtomicReference<String> unitUp = new AtomicReference<>();
+            when(metadataRepository.saveArchiveUnits(anyList())).thenAnswer(a -> {
+                List<ObjectNode> units = a.getArgument(0);
+                unitUp.set(units.get(0).get(VitamFieldsHelper.id()).asText());
+                return null;
+            });
+
+            metadataService.saveArchiveUnit(unit, transactionModel);
+
+            verify(metadataRepository).saveArchiveUnit(ArgumentMatchers.argThat(
+                e -> !e.get(VitamFieldsHelper.unitups()).get(0).asText().equals(unitUp.get()) &&
+                    e.get(VitamFieldsHelper.unitups()).get(0).asText().equals("ID")));
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void saveArchiveUnit_with_simple_attachment() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         try (InputStream is = PropertiesUtils.getResourceAsStream(UNIT_FILE)) {

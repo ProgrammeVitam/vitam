@@ -136,15 +136,17 @@ public class MetadataService {
 
         ProjectModel projectModel = project.get();
         HashMap<String, String> attachmentUnits = prepareAttachmentUnits(projectModel, transactionModel.getId());
-
-        if (projectModel.getUnitUp() != null) {
-            unitModel.setUnitups(Collections.singletonList(attachmentUnits.get(STATIC_ATTACHMENT)));
-        }
-        if (projectModel.getUnitUps() != null) {
-            String attachmentId = MetadataHelper.findUnitParent(((ObjectNode) unit).put(VitamFieldsHelper.id(), unitId),
-                projectModel.getUnitUps(), attachmentUnits).getValue();
-            if (attachmentId != null) {
-                unitModel.setUnitups(Collections.singletonList(attachmentId));
+        if (unitModel.getUnitups() == null || unitModel.getUnitups().isEmpty()) {
+            if (projectModel.getUnitUp() != null) {
+                unitModel.setUnitups(Collections.singletonList(attachmentUnits.get(STATIC_ATTACHMENT)));
+            }
+            if (projectModel.getUnitUps() != null) {
+                String attachmentId =
+                    MetadataHelper.findUnitParent(((ObjectNode) unit).put(VitamFieldsHelper.id(), unitId),
+                        projectModel.getUnitUps(), attachmentUnits).getValue();
+                if (attachmentId != null) {
+                    unitModel.setUnitups(Collections.singletonList(attachmentId));
+                }
             }
         }
 
@@ -197,7 +199,8 @@ public class MetadataService {
         updateUnitsMetadata(is, unitIdsByURI);
     }
 
-    public RequestResponseOK<JsonNode> selectUnitsByTransactionId(JsonNode queryDsl, String transactionId) throws CollectInternalException {
+    public RequestResponseOK<JsonNode> selectUnitsByTransactionId(JsonNode queryDsl, String transactionId)
+        throws CollectInternalException {
         return metadataRepository.selectUnits(queryDsl, transactionId);
     }
 

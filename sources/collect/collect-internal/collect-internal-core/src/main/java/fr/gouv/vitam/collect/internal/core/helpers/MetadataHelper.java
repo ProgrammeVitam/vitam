@@ -26,7 +26,9 @@
  */
 package fr.gouv.vitam.collect.internal.core.helpers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.base.Strings;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.common.LocalDateUtil;
@@ -50,9 +52,14 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
 
@@ -128,10 +135,9 @@ public class MetadataHelper {
 
     public static Map.Entry<String, String> findUnitParent(ObjectNode unit, @Nonnull List<MetadataUnitUp> unitUps,
         Map<String, String> unitIds) {
-        for (MetadataUnitUp unitUp : unitUps) {
-            if (unit.get(unitUp.getMetadataKey()) != null &&
-                unit.get(unitUp.getMetadataKey()).asText().equals(unitUp.getMetadataValue())) {
-                final String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, unitUp.getUnitUp());
+        for (MetadataUnitUp metadataUnitUp : unitUps) {
+            if (metadataMatches(unit, metadataUnitUp.getMetadataKey(), metadataUnitUp.getMetadataValue())) {
+                final String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, metadataUnitUp.getUnitUp());
                 String unitUpId = unitIds.get(unitTitle);
                 return new AbstractMap.SimpleEntry<>(unit.get(VitamFieldsHelper.id()).asText(), unitUpId);
             }
@@ -139,4 +145,28 @@ public class MetadataHelper {
         return new AbstractMap.SimpleEntry<>(unit.get(VitamFieldsHelper.id()).asText(),
             (unit.get(VitamFieldsHelper.unitups()) != null) ? unit.get(VitamFieldsHelper.unitups()).asText() : null);
     }
+
+    private static boolean metadataMatches(JsonNode objectNode, String path, String value) {
+        if (Strings.isNullOrEmpty(path)) {
+            return false;
+        }
+        String[] paths = path.split("\\.");
+        JsonNode obj = objectNode.get(paths[0]);
+        if (obj == null || obj.isNull()) {
+            return false;
+        }
+        if (paths.length == 1 && (obj.isNumber() || obj.isTextual())) {
+            return obj.asText().equals(value);
+        }
+        if (obj.isObject()) {
+            return metadataMatches(obj, Arrays.stream(paths).skip(1).collect(Collectors.joining(".")), value);
+        }
+        if (obj.isArray()) {
+            return StreamSupport.stream(Spliterators.spliteratorUnknownSize(obj.elements(), Spliterator.ORDERED), false)
+                .map(e -> metadataMatches(e, Arrays.stream(paths).skip(1).collect(Collectors.joining(".")), value))
+                .reduce(false, Boolean::logicalOr);
+        }
+        return false;
+    }
+
 }
