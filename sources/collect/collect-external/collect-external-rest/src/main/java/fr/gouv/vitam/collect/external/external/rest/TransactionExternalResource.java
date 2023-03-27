@@ -34,6 +34,7 @@ import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
 import fr.gouv.vitam.common.CommonMediaType;
+import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
@@ -274,8 +275,9 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             SanityChecker.checkParameter(transactionId);
             LOGGER.info("Preparing SIP transaction to workspace");
             InputStream responseStream = collectClient.generateSip(transactionId);
-            clientIngest.ingest(new VitamContext(ParameterHelper.getTenantParameter()),
+            RequestResponse<Void> response = clientIngest.ingest(new VitamContext(ParameterHelper.getTenantParameter()),
                 responseStream, DEFAULT_WORKFLOW.name(), RESUME.name());
+            collectClient.attachVitamOperationId(transactionId, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
             collectClient.changeTransactionStatus(transactionId, TransactionStatus.SENT);
             LOGGER.info("SIP sent with success ");
             return Response.ok().build();
@@ -329,7 +331,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             return Response.status(Response.Status.PRECONDITION_FAILED).build();
         }
     }
-    
+
     @Path("/{transactionId}/unitsWithInheritedRules")
     @GET
     @Produces(MediaType.APPLICATION_JSON)

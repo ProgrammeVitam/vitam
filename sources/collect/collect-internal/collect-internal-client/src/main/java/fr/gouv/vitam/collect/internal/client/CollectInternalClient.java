@@ -332,6 +332,17 @@ public interface CollectInternalClient extends MockOrRestClient {
         throws VitamClientException;
 
     /**
+     * Attach Vitam Operation Id To Transaction
+     *
+     * Consume and produce MediaType.APPLICATION_JSON
+     *
+     * @return Response
+     * @throws VitamClientException exception occurs when parse operation failed
+     */
+    Response attachVitamOperationId(String transactionId, String operationId)
+        throws VitamClientException;
+
+    /**
      * select Units With Inherited Rules
      *
      * @param transactionId transaction Id

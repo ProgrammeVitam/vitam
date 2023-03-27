@@ -434,6 +434,25 @@ public class TransactionInternalResource {
         }
     }
 
+    @Path("/{transactionId}/operation-id/{operationId}")
+    @PUT
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_JSON)
+    public Response attachVitamOperationId(@PathParam("transactionId") String transactionId,
+        @PathParam("operationId") String operationId) {
+        try {
+            SanityChecker.checkParameter(transactionId);
+            SanityChecker.checkParameter(operationId);
+            transactionService.attachVitamOperationId(transactionId, operationId);
+            return Response.status(OK).build();
+        } catch (CollectInternalException e) {
+            LOGGER.error("An error occurs when try to update transaction : {}", e);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error("An error occurs when try to update transaction : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        }
+    }
 
     private void checkEmptyQuery(JsonNode queryDsl)
         throws InvalidParseOperationException, BadRequestException {
