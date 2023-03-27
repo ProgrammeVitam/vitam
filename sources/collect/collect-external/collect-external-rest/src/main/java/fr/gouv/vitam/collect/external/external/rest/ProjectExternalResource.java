@@ -68,6 +68,8 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.PROJECT_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_CREATE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.fromStatusCode;
 
 
 @Path("/collect-external/v1/projects")
@@ -111,18 +113,36 @@ public class ProjectExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = PROJECT_QUERY_READ, description = "Récupérer une liste des projets par query")
     public Response searchProject(CriteriaProjectDto criteriaProjectDto) {
-        try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
-            SanityChecker.checkJsonAll(JsonHandler.toJsonNode(criteriaProjectDto));
-            ParametersChecker.checkParameter("You must supply criteria of Project!", criteriaProjectDto);
-            RequestResponseOK<JsonNode> listProjectsResponse = client.searchProject(criteriaProjectDto);
-            return Response.status(Response.Status.OK).entity(listProjectsResponse).build();
-        } catch (final VitamClientException e) {
-            LOGGER.error("Error when searching projects  ", e);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+        final JsonNode criteriaProjectJsonNode;
+
+        try {
+            criteriaProjectJsonNode = JsonHandler.toJsonNode(criteriaProjectDto);
         } catch (InvalidParseOperationException e) {
-            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            final String message = "An error occurred while converting the DTO to a JsonNode";
+            LOGGER.error(message);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, message);
         }
+
+        try {
+            SanityChecker.checkJsonAll(criteriaProjectJsonNode);
+        } catch (InvalidParseOperationException e) {
+            final String message = e.getLocalizedMessage();
+            LOGGER.error("Input seems contains insane data: {}", message);
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, message);
+        }
+
+        ParametersChecker.checkParameter("You must supply criteria of Project!", criteriaProjectDto);
+
+        final RequestResponseOK<JsonNode> listProjectsResponse;
+        try (final CollectInternalClient client = collectInternalClientFactory.getClient()) {
+            listProjectsResponse = client.searchProject(criteriaProjectDto);
+        } catch (VitamClientException e) {
+            final String message = e.getLocalizedMessage();
+            LOGGER.error("Client error : {}", message);
+            return CollectRequestResponse.toVitamError(fromStatusCode(e.getVitamError().getStatus()), e.getVitamError().getMessage());
+        }
+
+        return Response.status(Response.Status.OK).entity(listProjectsResponse).build();
     }
 
     @POST
