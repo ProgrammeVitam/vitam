@@ -99,6 +99,9 @@ public class CollectInternalClientFactory extends VitamClientFactory<CollectInte
             case PRODUCTION:
                 client = new CollectInternalClientRest(this);
                 break;
+            case MOCK:
+                client = new CollectInternalClientRestMock();
+                break;
             default:
                 throw new IllegalArgumentException("Collect client type unknown");
         }
