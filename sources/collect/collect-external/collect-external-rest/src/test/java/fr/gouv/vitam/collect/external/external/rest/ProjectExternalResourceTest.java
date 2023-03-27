@@ -45,7 +45,11 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
+import org.hamcrest.text.MatchesPattern;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -58,6 +62,9 @@ import java.util.Set;
 
 import static io.restassured.RestAssured.given;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
 import static org.apache.http.HttpHeaders.EXPECT;
 import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
 import static org.mockito.ArgumentMatchers.any;
@@ -302,4 +309,85 @@ public class ProjectExternalResourceTest extends ResteasyTestApplication {
             .statusCode(Response.Status.OK.getStatusCode());
     }
 
+    @Test
+    public void shouldGetInternalServerErrorWhenSearchProjectWithoutQuery() {
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON) // If Content-Type: application/json is set, searchProject is called instead getProjects
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+        .when()
+            .get(PROJECTS_URI)
+        .then()
+            .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
+            .body("message", Matchers.equalTo("An error occurred while converting the DTO to a JsonNode"));
+    }
+
+    @Test
+    public void shouldGetInternalServerErrorWhenSearchProjectWithNonJsonQuery() {
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON) // If Content-Type: application/json is set, searchProject is called instead getProjects
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body("no_json_content")
+        .when()
+            .get(PROJECTS_URI)
+        .then()
+            .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
+            .body("description", Matchers.containsString("Unrecognized token 'no_json_content'"));
+    }
+
+    @Test
+    public void shouldGetInternalServerErrorWhenSearchProjectWithInsaneJsonQuery() {
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON) // If Content-Type: application/json is set, searchProject is called instead getProjects
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body("{ \"$query\": \"<div>malicious input</div>\" }")
+        .when()
+            .get(PROJECTS_URI)
+        .then()
+            .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
+            .body("message", Matchers.containsString("HTML PATTERN found"));
+    }
+
+    @Test
+    public void shouldThrowWhenCreateProjectWithNullProject() {
+        Assert.assertThrows(IllegalArgumentException.class, () -> {
+            given()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body((String) null)
+            .when()
+                .post(PROJECTS_URI);
+        });
+    }
+
+    @Test
+    public void shouldThrowWhenCreateProjectWithEmptyStringProject() {
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body("")
+        .when()
+            .post(PROJECTS_URI)
+        .then()
+            .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
+            .body("message", Matchers.equalTo("Internal Server Error"))
+            .body("description", Matchers.equalTo("You must supply projects data!"));
+    }
+
+    @Test
+    public void shouldCreateProjectWithEmptyProject() {
+        given()
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body("{}")
+        .when()
+            .post(PROJECTS_URI)
+        .then()
+            .statusCode(OK.getStatusCode());
+    }
 }
