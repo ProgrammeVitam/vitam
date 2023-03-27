@@ -299,6 +299,20 @@ public class TransactionService {
         replaceTransaction(transactionModel);
     }
 
+
+    public void attachVitamOperationId(String transactionId, String operationId)
+        throws CollectInternalException {
+        Optional<TransactionModel> transactionModelOptional = findTransaction(transactionId);
+        if (transactionModelOptional.isEmpty()) {
+            throw new IllegalArgumentException(TRANSACTION_NOT_FOUND);
+        }
+        TransactionModel transactionModel = transactionModelOptional.get();
+
+        transactionModel.setVitamOperationId(operationId);
+        transactionModel.setLastUpdate(LocalDateUtil.now().toString());
+        replaceTransaction(transactionModel);
+    }
+
     public List<TransactionModel> getListTransactionToDeleteByTenant(Integer tenantId) throws CollectInternalException {
         return transactionRepository.getListTransactionToDeleteByTenant(tenantId);
     }

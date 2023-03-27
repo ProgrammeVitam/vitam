@@ -486,4 +486,15 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
             return result;
         }
     }
+
+    @Override
+    public Response attachVitamOperationId(String transactionId, String operationId) throws VitamClientException {
+        try (Response response = make(put()
+            .withPath(TRANSACTION_PATH + "/" + transactionId + "/operation-id/" + operationId)
+            .withJsonAccept())) {
+            check(response);
+            return response;
+        }
+    }
 }
+
