@@ -42,7 +42,6 @@ import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
@@ -54,12 +53,9 @@ import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
-import fr.gouv.vitam.common.security.IllegalPathException;
-import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.storage.compress.ArchiveEntryInputStream;
 import fr.gouv.vitam.common.storage.compress.VitamArchiveStreamFactory;
 import fr.gouv.vitam.common.stream.StreamUtils;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
@@ -92,6 +88,7 @@ import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static fr.gouv.vitam.collect.internal.core.helpers.CollectHelper.writeToTemporaryFile;
 import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.STATIC_ATTACHMENT;
 import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.findUnitParent;
 import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.buildSerializationObjectMapper;
@@ -267,7 +264,7 @@ public class FluxService {
             String objectId = GUIDFactory.newGUID().getId();
             String newFilename = (Strings.isNullOrEmpty(extension)) ? objectId : objectId + "." + extension;
 
-            File file = writeToTemporaryFile(entryInputStream);
+            File file = writeToTemporaryFile(entryInputStream, extension);
             try {
                 FormatIdentifierResponse formatIdentifierResponse = collectService.detectFileFormat(file);
                 Entry<String, Long> binaryInformations =
@@ -285,17 +282,6 @@ public class FluxService {
         maxLevel = writeUnitToTemporaryFile(StringUtils.countMatches(path, File.separator), maxLevel, unit,
             transactionModel.getId());
         return maxLevel;
-    }
-
-    private static File writeToTemporaryFile(ArchiveEntryInputStream entryInputStream) throws IOException {
-        try {
-            String fileName = VitamThreadUtils.getVitamSession().getRequestId();
-            File file = SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), fileName);
-            Files.copy(entryInputStream, file.toPath());
-            return file;
-        } catch (IllegalPathException e) {
-            throw new IOException(e);
-        }
     }
 
     private void bulkWriteUnits(int maxLevel, Map<String, String> unitUps, String transactionId)

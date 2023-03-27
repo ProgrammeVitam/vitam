@@ -35,7 +35,10 @@ import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.builders.DbVersionsModelBuilder;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
+import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
+import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
@@ -65,33 +68,28 @@ import java.util.List;
 import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class CollectServiceTest {
-
+    private static final int TENANT_ID = 0;
     private static final String SAMPLE_ARCHIVE_UNIT = "archive_unit_from_metadata.json";
     private static final String SAMPLE_OBJECT_GROUP2 = "object_group_from_metadata2.json";
     private static final String SAMPLE_OBJECT_GROUP_WITH_QUALIFIER = "object_group_from_metadata3.json";
     private static final String SAMPLE_OBJECT_GROUP_NEW_VERSION = "object_group_from_metadata4.json";
     private static final String SAMPLE_OBJECT_GROUP5 = "object_group_from_metadata5.json";
 
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
+    @Rule public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @InjectMocks
-    private CollectService collectService;
+    @InjectMocks private CollectService collectService;
 
-    @Mock
-    private MetadataRepository metadataRepository;
-    @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
-    @Mock
-    private WorkspaceClient workspaceClient;
-    @Mock
-    private FormatIdentifierFactory formatIdentifierFactory;
+    @Mock private MetadataRepository metadataRepository;
+    @Mock private WorkspaceClientFactory workspaceClientFactory;
+    @Mock private WorkspaceClient workspaceClient;
+    @Mock private FormatIdentifierFactory formatIdentifierFactory;
 
     @Test
     public void getArchiveUnitModel() throws Exception {
@@ -250,8 +248,10 @@ public class CollectServiceTest {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void testAddBinaryInfoToQualifier() throws Exception {
         // Given
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
         DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModel();
         dbObjectGroupModel.setOpi("opi");
         DbQualifiersModel qualifiersModel = new DbQualifiersModel();
@@ -271,6 +271,9 @@ public class CollectServiceTest {
         Response response =
             Response.ok(new ByteArrayInputStream("ResponseOK".getBytes())).status(Response.Status.OK).build();
         when(workspaceClient.getObject(any(), any())).thenReturn(response);
+        FormatIdentifier formatIdentifier = mock(FormatIdentifier.class);
+        when(formatIdentifierFactory.getFormatIdentifierFor(anyString())).thenReturn(formatIdentifier);
+        when(formatIdentifier.analysePath(any())).thenReturn(List.of(new FormatIdentifierResponse("", "", "", "")));
         // When
         collectService.addBinaryInfoToQualifier(dbObjectGroupModel, BINARY_MASTER, 1,
             StreamUtils.toInputStream("Vitam test"));

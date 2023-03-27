@@ -28,16 +28,18 @@ package fr.gouv.vitam.collect.internal.core.helpers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.google.common.base.Strings;
 import com.google.common.collect.ListMultimap;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.ProjectStatus;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.core.helpers.builders.ManifestContextBuilder;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.format.identification.siegfried.FormatIdentifierSiegfried;
@@ -45,7 +47,14 @@ import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.common.model.objectgroup.DbQualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.DbVersionsModel;
+import fr.gouv.vitam.common.security.IllegalPathException;
+import fr.gouv.vitam.common.security.SafeFileChecker;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -188,37 +197,48 @@ public class CollectHelper {
             .withSubmissionAgencyIdentifier(projectDto.getSubmissionAgencyIdentifier())
             .withArchivalProfile(projectDto.getArchivalProfile()).withComment(projectDto.getComment())
             .withAcquisitionInformation(projectDto.getAcquisitionInformation())
-            .withLegalStatus(projectDto.getLegalStatus())
-            .withUnitUp(projectDto.getUnitUp()).build();
+            .withLegalStatus(projectDto.getLegalStatus()).withUnitUp(projectDto.getUnitUp()).build();
     }
 
-    public static ManifestContext mapTransactionDtoToManifestContext(TransactionDto transactionDto, ProjectDto projectDto) {
-        return new ManifestContextBuilder()
-            .withArchivalAgreement(transactionDto.getArchivalAgreement() != null ?
+    public static ManifestContext mapTransactionDtoToManifestContext(TransactionDto transactionDto,
+        ProjectDto projectDto) {
+        return new ManifestContextBuilder().withArchivalAgreement(transactionDto.getArchivalAgreement() != null ?
                 transactionDto.getArchivalAgreement() :
-                projectDto.getArchivalAgreement())
-            .withMessageIdentifier(transactionDto.getMessageIdentifier() != null ?
+                projectDto.getArchivalAgreement()).withMessageIdentifier(transactionDto.getMessageIdentifier() != null ?
                 transactionDto.getMessageIdentifier() :
-                projectDto.getMessageIdentifier())
-            .withArchivalAgencyIdentifier(transactionDto.getArchivalAgencyIdentifier() != null ?
-                transactionDto.getArchivalAgencyIdentifier() :
-                projectDto.getArchivalAgencyIdentifier())
-            .withTransferringAgencyIdentifier(transactionDto.getTransferringAgencyIdentifier() != null ?
-                transactionDto.getTransferringAgencyIdentifier() :
-                projectDto.getTransferringAgencyIdentifier())
-            .withOriginatingAgencyIdentifier(transactionDto.getOriginatingAgencyIdentifier() != null ?
-                transactionDto.getOriginatingAgencyIdentifier() :
-                projectDto.getOriginatingAgencyIdentifier())
-            .withSubmissionAgencyIdentifier(transactionDto.getSubmissionAgencyIdentifier() != null ?
-                transactionDto.getSubmissionAgencyIdentifier() :
-                projectDto.getSubmissionAgencyIdentifier())
-            .withArchivalProfile(transactionDto.getArchivalProfile() != null ?
-                transactionDto.getArchivalProfile() :
-                projectDto.getArchivalProfile())
+                projectDto.getMessageIdentifier()).withArchivalAgencyIdentifier(
+                transactionDto.getArchivalAgencyIdentifier() != null ?
+                    transactionDto.getArchivalAgencyIdentifier() :
+                    projectDto.getArchivalAgencyIdentifier()).withTransferringAgencyIdentifier(
+                transactionDto.getTransferringAgencyIdentifier() != null ?
+                    transactionDto.getTransferringAgencyIdentifier() :
+                    projectDto.getTransferringAgencyIdentifier()).withOriginatingAgencyIdentifier(
+                transactionDto.getOriginatingAgencyIdentifier() != null ?
+                    transactionDto.getOriginatingAgencyIdentifier() :
+                    projectDto.getOriginatingAgencyIdentifier()).withSubmissionAgencyIdentifier(
+                transactionDto.getSubmissionAgencyIdentifier() != null ?
+                    transactionDto.getSubmissionAgencyIdentifier() :
+                    projectDto.getSubmissionAgencyIdentifier()).withArchivalProfile(
+                transactionDto.getArchivalProfile() != null ?
+                    transactionDto.getArchivalProfile() :
+                    projectDto.getArchivalProfile())
             .withComment(transactionDto.getComment() != null ? transactionDto.getComment() : projectDto.getComment())
-            .withAcquisitionInformation(transactionDto.getAcquisitionInformation() != null ? transactionDto.getAcquisitionInformation() : projectDto.getAcquisitionInformation())
-            .withLegalStatus(transactionDto.getLegalStatus() != null ? transactionDto.getLegalStatus() : projectDto.getLegalStatus()).build();
+            .withAcquisitionInformation(transactionDto.getAcquisitionInformation() != null ?
+                transactionDto.getAcquisitionInformation() :
+                projectDto.getAcquisitionInformation()).withLegalStatus(
+                transactionDto.getLegalStatus() != null ? transactionDto.getLegalStatus() : projectDto.getLegalStatus())
+            .build();
     }
 
-
+    public static File writeToTemporaryFile(InputStream inputStream, String extension) throws IOException {
+        try {
+            String requestId = VitamThreadUtils.getVitamSession().getRequestId();
+            String fileName = Strings.isNullOrEmpty(extension) ? requestId : requestId + "." + extension;
+            File file = SafeFileChecker.checkSafeFilePath(VitamConfiguration.getVitamTmpFolder(), fileName);
+            Files.copy(inputStream, file.toPath());
+            return file;
+        } catch (IllegalPathException e) {
+            throw new IOException(e);
+        }
+    }
 }
