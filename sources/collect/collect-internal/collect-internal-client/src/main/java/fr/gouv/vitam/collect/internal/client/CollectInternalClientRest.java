@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -420,22 +421,25 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
     }
 
     private void check(Response response) throws VitamClientException {
-        Response.Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
             return;
         }
 
+        final String template = "Error with the response, get status: '%d' and reason '%s'.";
+        final String defaultReasonPhrase = fromStatusCode(response.getStatus()).getReasonPhrase();
+        String message = String.format(template, response.getStatus(), defaultReasonPhrase);
+
         try {
-            RequestResponse<JsonNode> requestResponse = RequestResponse.parseVitamError(response);
-            if (!requestResponse.isOk() && requestResponse instanceof VitamError) {
-                throw new VitamClientException(String
-                    .format("Error with the response, get status: '%d' and reason '%s'.", requestResponse.getStatus(),
-                        ((VitamError<JsonNode>) requestResponse).getMessage()));
+            final VitamError<JsonNode> vitamError = RequestResponse.parseVitamError(response);
+
+            if (StringUtils.isNotBlank(vitamError.getDescription())) {
+                message = String.format(template, response.getStatus(), vitamError.getDescription());
+            } else if (StringUtils.isNotBlank(vitamError.getMessage())) {
+                message = String.format(template, response.getStatus(), vitamError.getMessage());
             }
+            throw new VitamClientException(message);
         } catch (InvalidParseOperationException e) {
-            throw new VitamClientException(String
-                .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                    fromStatusCode(response.getStatus()).getReasonPhrase()));
+            throw new VitamClientException(message);
         }
     }
 
