@@ -188,6 +188,11 @@ public class CollectInternalClientRestMock extends AbstractMockClient implements
     }
 
     @Override
+    public Response attachVitamOperationId(String transactionId, String operationId) {
+        return null;
+    }
+
+    @Override
     public RequestResponse<JsonNode> selectUnitsWithInheritedRules(String transactionId, JsonNode selectQuery) {
         return null;
     }
