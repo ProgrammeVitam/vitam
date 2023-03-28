@@ -20,7 +20,47 @@ groups:
         annotations:
           description: |-
             Metadata ({{ $labels.collection }}) reconstruction delay > 120 minutes
-          summary: Last reconstructed metadata ({{ $labels.collection }}) is at least 120 minutes old
+          summary: Last reconstructed Metadata ({{ $labels.collection }}) is at least 120 minutes old
+
+      - alert: MetadataReconstruction
+        expr: absent_over_time(vitam_metadata_reconstruction_metadata_latency_seconds[5m])
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          description: |-
+            Missing Metadata reconstruction metrics. Reconstruction might be KO or not running?
+          summary: Missing Metadata reconstruction metrics. Reconstruction might be KO or not running?
+
+      - alert: MetadataReconstruction
+        expr: ceil(min by(collection) (vitam_metadata_reconstruction_graph_latency_seconds) / 60) >= 30
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          description: |-
+            Metadata ({{ $labels.collection }}) graph reconstruction delay > 30 minutes
+          summary: Last reconstructed Metadata ({{ $labels.collection }}) graph is at least 30 minutes old
+
+      - alert: MetadataReconstruction
+        expr: ceil(min by(collection) (vitam_metadata_reconstruction_graph_latency_seconds) / 60) >= 120
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          description: |-
+            Metadata ({{ $labels.collection }}) graph reconstruction delay > 30 minutes
+          summary: Last reconstructed Metadata ({{ $labels.collection }}) graph is at least 120 minutes old
+
+      - alert: MetadataReconstruction
+        expr: absent_over_time(vitam_metadata_reconstruction_graph_latency_seconds[5m])
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          description: |-
+            Missing Metadata Graph reconstruction metrics. Reconstruction might be KO or not running?
+          summary: Missing Metadata Graph reconstruction metrics. Reconstruction might be KO or not running?
 
       # Logbook operation reconstruction
       - alert: LogbookOperationReconstruction
@@ -30,8 +70,8 @@ groups:
           severity: warning
         annotations:
           description: |-
-            Logbook operation reconstruction delay > 30 minutes
-          summary: Last reconstructed logbook operation is at least 30 minutes old
+            Logbook Operation reconstruction delay > 30 minutes
+          summary: Last reconstructed Logbook Operation is at least 30 minutes old
 
       - alert: LogbookOperationReconstruction
         expr: ceil(max(min by(tenant) (vitam_logbook_reconstruction_operation_latency_seconds)) / 60) >= 120
@@ -40,8 +80,18 @@ groups:
           severity: critical
         annotations:
           description: |-
-            Logbook operation reconstruction delay > 120 minutes
-          summary: Last reconstructed logbook operation is at least 120 minutes old
+            Logbook Operation reconstruction delay > 120 minutes
+          summary: Last reconstructed Logbook Operation is at least 120 minutes old
+
+      - alert: LogbookOperationReconstruction
+        expr: absent_over_time(vitam_logbook_reconstruction_operation_latency_seconds[5m])
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          description: |-
+            Missing Logbook Operation reconstruction metrics. Reconstruction might be KO or not running?
+          summary: Missing Logbook Operation reconstruction metrics. Reconstruction might be KO or not running?
 
       # Functional-administration reconstruction (Accession Register Details & Accession Register Symbolic)
       - alert: FunctionalAdministrationReconstruction
@@ -63,3 +113,13 @@ groups:
           description: |-
             Functional-administration ({{ $labels.collection }}) reconstruction delay > 120 minutes
           summary: Last reconstructed functional-administration ({{ $labels.collection }}) is at least 120 minutes old
+
+      - alert: FunctionalAdministrationReconstruction
+        expr: absent_over_time(vitam_functional_administration_reconstruction_latency_seconds[5m])
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          description: |-
+            Missing Functional-Administration reconstruction metrics. Reconstruction might be KO or not running?
+          summary: Missing Functional-Administration reconstruction metrics. Reconstruction might be KO or not running?
