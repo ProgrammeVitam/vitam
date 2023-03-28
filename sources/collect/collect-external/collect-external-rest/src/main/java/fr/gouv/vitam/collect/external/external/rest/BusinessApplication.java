@@ -80,7 +80,7 @@ public class BusinessApplication extends Application {
                 new ProjectExternalResource();
             final TransactionExternalResource transactionExternalResource =
                 new TransactionExternalResource();
-            singletons.add(new InternalSecurityFilter());
+            singletons.add(new InternalSecurityFilter(configuration.isAllowSslClientHeader()));
             singletons.add(new AuthorizationFilter());
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(collectExternalResource);

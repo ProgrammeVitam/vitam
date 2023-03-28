@@ -83,7 +83,7 @@ public class BusinessApplication extends Application {
                 new AdminManagementExternalResource(secureEndpointRegistry);
 
             singletons = new HashSet<>();
-            singletons.add(new InternalSecurityFilter());
+            singletons.add(new InternalSecurityFilter(configuration.isAllowSslClientHeader()));
             singletons.add(new AuthorizationFilter());
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(accessExternalResource);

@@ -74,7 +74,7 @@ public class BusinessApplication extends Application {
                 PropertiesUtils.readYaml(yamlIS, IngestExternalConfiguration.class);
             commonBusinessApplication = new CommonBusinessApplication(true);
             singletons = new HashSet<>();
-            singletons.add(new InternalSecurityFilter());
+            singletons.add(new InternalSecurityFilter(configuration.isAllowSslClientHeader()));
             singletons.add(new AuthorizationFilter());
             singletons.addAll(commonBusinessApplication.getResources());
             singletons.add(

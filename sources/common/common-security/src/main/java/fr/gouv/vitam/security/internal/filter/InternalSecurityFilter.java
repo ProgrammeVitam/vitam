@@ -83,6 +83,7 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
 
     public static final String ACCESS_EXTERNAL = "/access-external/";
     public static final String INGEST_EXTERNAL = "/ingest-external/";
+    private final boolean allowSslClientHeader;
 
 
     @Context
@@ -92,8 +93,9 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
 
     private AdminManagementClientFactory adminManagementClientFactory;
 
-    public InternalSecurityFilter() {
+    public InternalSecurityFilter(boolean allowSslClientHeader) {
         super();
+        this.allowSslClientHeader = allowSslClientHeader;
         this.internalSecurityClientFactory = InternalSecurityClientFactory.getInstance();
         this.adminManagementClientFactory = AdminManagementClientFactory.getInstance();
     }
@@ -101,16 +103,17 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
     @VisibleForTesting
     InternalSecurityFilter(HttpServletRequest httpServletRequest,
         InternalSecurityClientFactory internalSecurityClientFactory,
-        AdminManagementClientFactory adminManagementClientFactory) {
+        AdminManagementClientFactory adminManagementClientFactory,
+        boolean allowSslClientHeader) {
         this.httpServletRequest = httpServletRequest;
         this.internalSecurityClientFactory = internalSecurityClientFactory;
         this.adminManagementClientFactory = adminManagementClientFactory;
+        this.allowSslClientHeader = allowSslClientHeader;
     }
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        // FIXME #11036: Make certificate extration from header optional
-        X509Certificate[] clientCertChain = CertUtils.extractCert(httpServletRequest, true);
+        X509Certificate[] clientCertChain = CertUtils.extractCert(httpServletRequest, allowSslClientHeader);
         if (clientCertChain == null || clientCertChain.length < 1) {
             throw new VitamSecurityException("Request do not contain any X509Certificate ");
         }
@@ -162,7 +165,7 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
                 .setSecurityProfileIdentifier(contextModel.getSecurityProfileIdentifier());
 
         } catch (VitamClientInternalException | InternalSecurityException |
-            CertificateEncodingException | VitamSecurityException e) {
+                 CertificateEncodingException | VitamSecurityException e) {
 
             LOGGER.error("Security Error :", e);
             final VitamError vitamError = generateVitamError(e);
@@ -296,8 +299,8 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
                 throw new VitamSecurityException("The context " + contextId + "  not found in database");
             }
         } catch (InvalidParseOperationException |
-            ReferentialNotFoundException |
-            AdminManagementClientServerException e) {
+                 ReferentialNotFoundException |
+                 AdminManagementClientServerException e) {
             throw new VitamSecurityException(e);
         }
     }
