@@ -110,7 +110,7 @@ public class CertUtilsTest {
         // Then
         assertThat(result).isNull();
         verify(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
-        verify(servletRequest, never()).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
+        verify(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
         verifyNoMoreInteractions(servletRequest);
     }
 
@@ -223,7 +223,7 @@ public class CertUtilsTest {
         // Then
         assertThat(result).isNull();
         verify(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
-        verify(servletRequest, never()).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
+        verify(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
         verifyNoMoreInteractions(servletRequest);
     }
 
@@ -241,8 +241,7 @@ public class CertUtilsTest {
         // Then
         assertThat(result).isNull();
         verify(servletRequest).getAttribute(CertUtils.JAVAX_SERVLET_REQUEST_X_509_CERTIFICATE);
-        verify(servletRequest, never()).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
-        verifyNoMoreInteractions(servletRequest);
+        verify(servletRequest).getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
     }
 
 

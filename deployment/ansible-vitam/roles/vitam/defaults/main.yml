@@ -18,9 +18,6 @@ vitam_scheduler_thread_count: "{{ vitam.scheduler.schedulerThreadSize | default(
 
 vitam_site_id: 1
 
-# Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)
-vitam_ssl_user_header: "{{ vitam_defaults.vitam_ssl_user_header | default(false) }}"
-
 consul_business_check: "{{ vitam_defaults.consul_business_check | default(10) }}"
 consul_admin_check: "{{ vitam_defaults.consul_admin_check | default(10) }}"
 

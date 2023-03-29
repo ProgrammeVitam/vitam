@@ -27,6 +27,9 @@
 package fr.gouv.vitam.common.auth.web.filter;
 
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.alert.AlertService;
+import fr.gouv.vitam.common.alert.AlertServiceImpl;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.shiro.ShiroException;
 
 import javax.servlet.ServletRequest;
@@ -51,6 +54,7 @@ public class CertUtils {
     private static final String END_CERT_PREFIX = "-----END";
     private static final String NULL_HTTPD_HEADER = "(null)";
 
+    private static final AlertService alertService = new AlertServiceImpl();
 
     /**
      * Extract certificate from request or from header
@@ -64,31 +68,39 @@ public class CertUtils {
 
         X509Certificate[] clientCertChain = (null == attribute) ? null : (X509Certificate[]) attribute;
         //If request attribute certificate not found, try to get certificate from header
-        if ((clientCertChain == null || clientCertChain.length < 1) && useHeader) {
+        if (ArrayUtils.isNotEmpty(clientCertChain)) {
+            return clientCertChain;
+        }
 
-            final HttpServletRequest httpRequest = (HttpServletRequest) request;
-            String pem = httpRequest.getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
-            if (null != pem && !NULL_HTTPD_HEADER.equals(pem)) {
+        final HttpServletRequest httpRequest = (HttpServletRequest) request;
+        String pem = httpRequest.getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
+        if (null != pem && !NULL_HTTPD_HEADER.equals(pem)) {
 
-                try {
+            if (!useHeader) {
+                alertService.createAlert("SEVERE. Illegal access with " + GlobalDataRest.X_SSL_CLIENT_CERT
+                    + " header. Forged header attack?");
+                return null;
+            }
 
-                    if (hasNginxSignature(pem)) {
-                        pem = extractNginxEncodedCertificateAsPEM(pem);
-                    } else {
-                        pem = extractHttpdEncodedCertificateAsPEM(pem);
-                    }
+            try {
 
-                    final InputStream pemStream = new ByteArrayInputStream(pem.getBytes());
-                    final CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                    final X509Certificate cert = (X509Certificate) cf.generateCertificate(pemStream);
-                    clientCertChain = new X509Certificate[] {cert};
-                } catch (Exception ce) {
-                    throw new ShiroException(ce);
+                if (hasNginxSignature(pem)) {
+                    pem = extractNginxEncodedCertificateAsPEM(pem);
+                } else {
+                    pem = extractHttpdEncodedCertificateAsPEM(pem);
                 }
+
+                final InputStream pemStream = new ByteArrayInputStream(pem.getBytes());
+                final CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                final X509Certificate cert = (X509Certificate) cf.generateCertificate(pemStream);
+                return new X509Certificate[] {cert};
+            } catch (Exception ce) {
+                alertService.createAlert("Could not read certificate" + ce.getMessage());
+                throw new ShiroException(ce);
             }
         }
 
-        return clientCertChain;
+        return null;
     }
 
     private static boolean hasNginxSignature(String pem) {

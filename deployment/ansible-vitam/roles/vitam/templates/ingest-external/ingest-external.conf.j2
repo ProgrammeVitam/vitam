@@ -8,3 +8,4 @@ baseUploadPath: {{ vitam_struct.upload_dir | default('/vitam/data/ingest-externa
 successfulUploadDir: {{ vitam_struct.success_dir | default('/vitam/data/ingest-external/upload/success') }}
 failedUploadDir: {{ vitam_struct.fail_dir | default('/vitam/data/ingest-external/upload/failure') }}
 fileActionAfterUpload: {{ vitam_struct.upload_final_action | default('MOVE') }}
+allowSslClientHeader: {{ vitam_defaults.trust_client_certificate_header | default(false) | bool }}

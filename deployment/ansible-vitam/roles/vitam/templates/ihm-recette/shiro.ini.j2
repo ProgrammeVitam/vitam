@@ -3,7 +3,7 @@
 {% if vitam_struct.secure_mode == 'x509' %}
 x509 = fr.gouv.vitam.common.auth.web.filter.X509AuthenticationFilter
 
-x509.useHeader = {{ vitam_ssl_user_header }}
+x509.useHeader = {{ vitam_defaults.vitam_ssl_user_header | default(false) }}
 
 x509credentialsMatcher = fr.gouv.vitam.common.auth.core.authc.X509CredentialsSha256Matcher
 

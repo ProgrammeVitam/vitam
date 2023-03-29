@@ -6,3 +6,4 @@ objectGroupBlackListedFieldsForVisualizationByTenant:
 {% for tenant in vitam_tenant_ids %}
    {{ tenant }} : ['Filename']
 {% endfor %}
+allowSslClientHeader: {{ vitam_defaults.trust_client_certificate_header | default(false) | bool }}

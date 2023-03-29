@@ -153,7 +153,11 @@
         <Set name="TrustStorePath">{{ vitam_folder_conf }}/truststore_{{ vitam_struct.vitam_component }}.jks</Set>
         <Set name="TrustStorePassword">{{ password_truststore }}</Set>
         <Set name="TrustStoreType">JKS</Set>
+{% if (vitam_struct.vitam_component in [ vitam.ingestexternal.vitam_component, vitam.accessexternal.vitam_component, vitam.collect_external.vitam_component ]) %}
+        <Set name="NeedClientAuth">{{ (not(vitam_defaults.trust_client_certificate_header | default(false) | bool)) | lower }}</Set>
+{% else %}
         <Set name="NeedClientAuth">false</Set>
+{% endif %}
         <Set name="WantClientAuth">true</Set>
       <Set name="IncludeCipherSuites">
         <Array type="String">

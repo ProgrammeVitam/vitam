@@ -37,6 +37,7 @@ import java.util.Map;
 public class AccessExternalConfiguration extends DefaultVitamApplicationConfiguration {
 
     private Map<Integer, List<String>> objectGroupBlackListedFieldsForVisualizationByTenant;
+    private boolean allowSslClientHeader = false;
 
     /**
      * AccessExternalConfiguration empty constructor for YAMLFactory
@@ -53,5 +54,13 @@ public class AccessExternalConfiguration extends DefaultVitamApplicationConfigur
         Map<Integer, List<String>> objectGroupBlackListedFieldsForVisualizationByTenant) {
         this.objectGroupBlackListedFieldsForVisualizationByTenant =
             objectGroupBlackListedFieldsForVisualizationByTenant;
+    }
+
+    public boolean isAllowSslClientHeader() {
+        return allowSslClientHeader;
+    }
+
+    public void setAllowSslClientHeader(boolean allowSslClientHeader) {
+        this.allowSslClientHeader = allowSslClientHeader;
     }
 }

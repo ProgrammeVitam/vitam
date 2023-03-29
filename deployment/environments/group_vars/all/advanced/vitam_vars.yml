@@ -33,8 +33,14 @@ vitam_defaults:
     status_retries_number: 60
     status_retries_delay: 5
     at_boot: false
-  ### Trust X-SSL-CLIENT-CERT header for external api auth ? (true | false)
-  vitam_ssl_user_header: true
+  ### Trust X-SSL-CLIENT-CERT header for external api auth ? true | false (default)
+  # Should only be enabled when accessing to vitam externals through a Reverse Proxy that does "SSL offloading"
+  # NGINX configuration        : proxy_set_header X-SSL-CLIENT-CERT $ssl_client_escaped_cert;
+  # Apache httpd configuration : RequestHeader set X-SSL-CLIENT-CERT "%{SSL_CLIENT_CERT}s"
+  # Important : When enabled, special care must be taken to ensure firewall rules are properly set to ensure only
+  #             reverse proxy can access vitam external applications through their respective port_service to avoid
+  #             malicious header injection.
+  trust_client_certificate_header: false
   ### Force chunk mode : set true if chunk header should be checked
   vitam_force_chunk_mode: false
   # syslog_facility

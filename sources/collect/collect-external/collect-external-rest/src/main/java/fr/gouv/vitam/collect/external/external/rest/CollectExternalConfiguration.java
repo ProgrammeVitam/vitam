@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.server.application.configuration.DefaultVitamApplica
  */
 public class CollectExternalConfiguration extends DefaultVitamApplicationConfiguration {
 
+    private boolean allowSslClientHeader = false;
 
     /**
      * CollectExternalConfiguration empty constructor for YAMLFactory
@@ -41,4 +42,11 @@ public class CollectExternalConfiguration extends DefaultVitamApplicationConfigu
         // Empty constructor
     }
 
+    public boolean isAllowSslClientHeader() {
+        return allowSslClientHeader;
+    }
+
+    public void setAllowSslClientHeader(boolean allowSslClientHeader) {
+        this.allowSslClientHeader = allowSslClientHeader;
+    }
 }

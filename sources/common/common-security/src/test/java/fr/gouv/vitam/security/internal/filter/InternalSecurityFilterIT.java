@@ -48,10 +48,8 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
@@ -79,22 +77,26 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InternalSecurityFilterIT.class);
 
+    // Static
+    private static volatile InternalSecurityFilter currentInternalSecurityFilter;
+
     private GenericContainer<?> reverseContainer;
 
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    public static VitamServerTestRunner vitamServerTestRunner;
+    public VitamServerTestRunner vitamServerTestRunner;
 
-    @BeforeClass
-    public static void initializeTest() throws Exception {
+    public void initializeTestServer(boolean allowSslClientHeader) throws Exception {
 
         LOGGER.info("Starting app server...");
         SslConfig sslConfig = new SslConfig(
             PropertiesUtils.getResourceFile("tls/app/app.jks").getAbsolutePath(), "azerty",
             PropertiesUtils.getResourceFile("tls/app/truststore.jks").getAbsolutePath(), "azerty"
         );
+        // Hack: Using a static variable to pass InternalSecurityFilter instance to the Application
+        InternalSecurityFilterIT.currentInternalSecurityFilter = new InternalSecurityFilter(allowSslClientHeader);
         vitamServerTestRunner =
             new VitamServerTestRunner(InternalSecurityFilterIT.class, InternalSecurityFilterIT.class,
                 sslConfig, null, false, false, false, false, false);
@@ -106,19 +108,11 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
 
     }
 
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
+    @After
+    public void after() throws Exception {
         if (vitamServerTestRunner != null) {
             vitamServerTestRunner.runAfter();
         }
-    }
-
-    @Before
-    public void init() {
-    }
-
-    @After
-    public void after() {
         if (reverseContainer != null) {
             reverseContainer.stop();
         }
@@ -127,6 +121,7 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void testAccessWithoutReverseProxyWithClientCert() throws Exception {
+        initializeTestServer(false);
         VitamThreadUtils.getVitamSession().setTenantId(0);
         SSLKey clientKeyStore =
             new SSLKey(PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(), "azerty");
@@ -149,6 +144,7 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void testAccessWithoutReverseProxyWithoutClientCert() throws Exception {
+        initializeTestServer(false);
         VitamThreadUtils.getVitamSession().setTenantId(0);
         SSLKey clientTrustStore =
             new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
@@ -168,8 +164,32 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
 
     @Test
     @RunWithCustomExecutor
-    public void testAccessThroughNginxReverseProxyWithClientCert() throws Exception {
+    public void testAccessThroughNginxReverseProxyAndHeaderCertDisabledWithClientCert() throws Exception {
+        initializeTestServer(false);
+        initializeNginxContainer();
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        SSLKey clientKeyStore =
+            new SSLKey(PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(), "azerty");
+        SSLKey clientTrustStore =
+            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
+        SSLConfiguration sslConfiguration =
+            new SSLConfiguration(List.of(clientKeyStore), List.of(clientTrustStore));
+        MyVitamClientFactory factory = new MyVitamClientFactory(
+            new SecureClientConfigurationImpl("localhost", reverseContainer.getFirstMappedPort(), true,
+                sslConfiguration,
+                false));
 
+        try (TestClient client = factory.getClient()) {
+            assertThatThrownBy(client::sayHello)
+                .isInstanceOf(VitamClientInternalException.class)
+                .hasMessageContaining("Request do not contain any X509Certificate");
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testAccessThroughNginxReverseProxyAndHeaderCertEnabledWithClientCert() throws Exception {
+        initializeTestServer(true);
         initializeNginxContainer();
         VitamThreadUtils.getVitamSession().setTenantId(0);
         SSLKey clientKeyStore =
@@ -192,8 +212,8 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
 
     @Test
     @RunWithCustomExecutor
-    public void testAccessThroughNginxReverseProxyWithoutClientCert() throws Exception {
-
+    public void testAccessThroughNginxReverseProxyAndHeaderCertDisabledWithoutClientCert() throws Exception {
+        initializeTestServer(false);
         initializeNginxContainer();
         VitamThreadUtils.getVitamSession().setTenantId(0);
         SSLKey clientTrustStore =
@@ -214,8 +234,30 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
 
     @Test
     @RunWithCustomExecutor
-    public void testAccessThroughHttpdReverseProxyWithClientCert() throws Exception {
+    public void testAccessThroughNginxReverseProxyAndHeaderCertEnabledWithoutClientCert() throws Exception {
+        initializeTestServer(true);
+        initializeNginxContainer();
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        SSLKey clientTrustStore =
+            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
+        SSLConfiguration sslConfiguration = new SSLConfiguration();
+        sslConfiguration.setTruststore(List.of(clientTrustStore));
+        MyVitamClientFactory factory = new MyVitamClientFactory(
+            new SecureClientConfigurationImpl("localhost", reverseContainer.getFirstMappedPort(), true,
+                sslConfiguration,
+                false));
 
+        try (TestClient client = factory.getClient()) {
+            assertThatThrownBy(client::sayHello)
+                .isInstanceOf(VitamClientInternalException.class)
+                .hasMessageContaining("Request do not contain any X509Certificate");
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testAccessThroughHttpdReverseProxyAndHeaderCertEnabledWithClientCert() throws Exception {
+        initializeTestServer(true);
         initializeHttpdContainer();
         VitamThreadUtils.getVitamSession().setTenantId(0);
         SSLKey clientKeyStore =
@@ -239,8 +281,54 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
 
     @Test
     @RunWithCustomExecutor
-    public void testAccessThroughHttpdReverseProxyWithoutClientCert() throws Exception {
+    public void testAccessThroughHttpdReverseProxyAndHeaderCertDisabledWithClientCert() throws Exception {
+        initializeTestServer(false);
+        initializeHttpdContainer();
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        SSLKey clientKeyStore =
+            new SSLKey(PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(), "azerty");
+        SSLKey clientTrustStore =
+            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
+        SSLConfiguration sslConfiguration =
+            new SSLConfiguration(List.of(clientKeyStore), List.of(clientTrustStore));
+        MyVitamClientFactory factory = new MyVitamClientFactory(
+            new SecureClientConfigurationImpl("localhost", reverseContainer.getFirstMappedPort(), true,
+                sslConfiguration,
+                false));
 
+        try (TestClient client = factory.getClient()) {
+            assertThatThrownBy(client::sayHello)
+                .isInstanceOf(VitamClientInternalException.class)
+                .hasMessageContaining("Request do not contain any X509Certificate");
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testAccessThroughHttpdReverseProxyAndHeaderCertEnabledWithoutClientCert() throws Exception {
+        initializeTestServer(true);
+        initializeHttpdContainer();
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        SSLKey clientTrustStore =
+            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
+        SSLConfiguration sslConfiguration = new SSLConfiguration();
+        sslConfiguration.setTruststore(List.of(clientTrustStore));
+        MyVitamClientFactory factory = new MyVitamClientFactory(
+            new SecureClientConfigurationImpl("localhost", reverseContainer.getFirstMappedPort(), true,
+                sslConfiguration,
+                false));
+
+        try (TestClient client = factory.getClient()) {
+            assertThatThrownBy(client::sayHello)
+                .isInstanceOf(VitamClientInternalException.class)
+                .hasMessageContaining("Request do not contain any X509Certificate");
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testAccessThroughHttpdReverseProxyAndHeaderCertDisabledWithoutClientCert() throws Exception {
+        initializeTestServer(false);
         initializeHttpdContainer();
         VitamThreadUtils.getVitamSession().setTenantId(0);
         SSLKey clientTrustStore =
@@ -261,7 +349,7 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
 
     private void initializeNginxContainer() throws Exception {
 
-        updateReverseConfigWithPort("tls/reverse-nginx/nginx.conf");
+        updateReverseConfigWithPort("tls/reverse-nginx/nginx.conf.template");
 
         String nginxContainerVersion = System.getProperty("nginxContainerVersion");
 
@@ -280,7 +368,7 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
 
     private void initializeHttpdContainer() throws Exception {
 
-        updateReverseConfigWithPort("tls/reverse-httpd/httpd.conf");
+        updateReverseConfigWithPort("tls/reverse-httpd/httpd.conf.template");
 
 
         String httpdContainerVersion = System.getProperty("httpdContainerVersion");
@@ -297,9 +385,11 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
         LOGGER.info("Running test with httpd port " + reverseContainer.getFirstMappedPort());
     }
 
-    private static void updateReverseConfigWithPort(String resourcesFile) throws IOException {
-        File confFile = PropertiesUtils.getResourceFile(resourcesFile);
-        String config = FileUtils.readFileToString(confFile, StandardCharsets.UTF_8);
+    private void updateReverseConfigWithPort(String templateResourcesFile) throws IOException {
+        File templateConfFile = PropertiesUtils.getResourceFile(templateResourcesFile);
+        File confFile = new File(templateConfFile.getParentFile(),
+            StringUtils.remove(templateConfFile.getName(), ".template"));
+        String config = FileUtils.readFileToString(templateConfFile, StandardCharsets.UTF_8);
         String updatedConfig = config.replaceAll("####PORT####", vitamServerTestRunner.getBusinessPort() + "");
         FileUtils.write(confFile, updatedConfig, StandardCharsets.UTF_8);
         LOGGER.info("Running test with conf file " + confFile);
@@ -314,7 +404,7 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
     public Set<Object> getResources() {
         return Sets.newHashSet(
             new EchoResource(),
-            new InternalSecurityFilter(),
+            currentInternalSecurityFilter,
             new SanityCheckerCommonFilter()
         );
     }

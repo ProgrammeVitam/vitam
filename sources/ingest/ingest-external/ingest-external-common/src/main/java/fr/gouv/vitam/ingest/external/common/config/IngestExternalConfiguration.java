@@ -42,6 +42,8 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
     private String successfulUploadDir;
     private String failedUploadDir;
 
+    private boolean allowSslClientHeader = false;
+
     /**
      * IngestExternalConfiguration empty constructor for YAMLFactory
      */
@@ -140,5 +142,13 @@ public class IngestExternalConfiguration extends DefaultVitamApplicationConfigur
     public IngestExternalConfiguration setFailedUploadDir(String failedUploadDir) {
         this.failedUploadDir = failedUploadDir;
         return this;
+    }
+
+    public boolean isAllowSslClientHeader() {
+        return allowSslClientHeader;
+    }
+
+    public void setAllowSslClientHeader(boolean allowSslClientHeader) {
+        this.allowSslClientHeader = allowSslClientHeader;
     }
 }
