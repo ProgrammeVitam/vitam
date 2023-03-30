@@ -1,0 +1,8 @@
+---
+
+
+- name: "Remove consul agent service declaration for collect service"
+  file:
+    state: absent
+    path: "{{ consul_folder_conf }}/service-collect.json"
+  notify: "collect - reload consul configuration"

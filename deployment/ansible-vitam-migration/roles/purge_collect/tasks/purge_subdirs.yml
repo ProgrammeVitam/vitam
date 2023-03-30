@@ -1,0 +1,16 @@
+---
+
+- name: Check that the directories are absent
+  file:
+    path: "{{ vitam_defaults.folder.root_path | default('/vitam') }}/{{ item }}/collect/"
+    state: absent
+  with_items:
+    - app
+    - bin
+    - conf
+    - data
+    - lib
+    - log
+    - script
+    - tmp
+    - run

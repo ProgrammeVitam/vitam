@@ -1,0 +1,19 @@
+---
+
+- name: stopped "vitam-collect" services
+  service:
+    name: "vitam-collect"
+    state: stopped
+    enabled: false
+
+- name: Remove vitam-collect systemd service file
+  file:
+    dest: "{{ '/usr' if ansible_os_family == 'RedHat' }}/lib/systemd/system/vitam-collect.service"
+    state: absent
+  notify: "collect - reload systemd services"
+
+
+- name: remove VITAM packages
+  package:
+    name: "vitam-collect"
+    state: absent
