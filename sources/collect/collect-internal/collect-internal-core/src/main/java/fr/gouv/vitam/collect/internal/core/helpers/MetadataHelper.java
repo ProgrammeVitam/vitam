@@ -148,6 +148,9 @@ public class MetadataHelper {
 
     private static boolean metadataMatches(JsonNode objectNode, String path, String value) {
         if (Strings.isNullOrEmpty(path)) {
+            if (objectNode.isTextual() || objectNode.isNumber()) {
+                return objectNode.asText().equals(value);
+            }
             return false;
         }
         String[] paths = path.split("\\.");
