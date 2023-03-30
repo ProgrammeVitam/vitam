@@ -1,0 +1,11 @@
+db = db.getSiblingDB('collect')
+
+var project = db.Project.find({ "Context.UnitUp": { "$exists": true }})
+
+var bulkUpdateOps = [];
+
+project.forEach(e => {
+    bulkUpdateOps.push({ "updateOne": { "filter": { "_id": e._id }, "update": { $set: { UnitUp: e.Context.UnitUp }, $unset: { "Context.UnitUp": ""} }}});
+});
+
+db.Project.bulkWrite(bulkUpdateOps,{ordered : false});

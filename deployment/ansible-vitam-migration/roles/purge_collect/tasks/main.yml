@@ -1,0 +1,8 @@
+---
+
+- include_tasks: remove_package.yml
+
+- include_tasks: purge_subdirs.yml
+
+- include_tasks: remove_consul_file.yml
+
