@@ -179,11 +179,14 @@ public class SipService {
             manifestBuilder.endDescriptiveMetadata();
 
             String submissionAgencyIdentifier = transactionModel.getManifestContext().getSubmissionAgencyIdentifier();
+            String legalStatus = transactionModel.getManifestContext().getLegalStatus();
+            String acquisitionInformation = transactionModel.getManifestContext().getAcquisitionInformation();
             if (submissionAgencyIdentifier == null) {
                 submissionAgencyIdentifier = transactionModel.getManifestContext().getOriginatingAgencyIdentifier();
             }
 
-            manifestBuilder.writeManagementMetadata(
+
+            manifestBuilder.writeManagementMetadata(acquisitionInformation, legalStatus,
                 transactionModel.getManifestContext().getOriginatingAgencyIdentifier(), submissionAgencyIdentifier);
             manifestBuilder.endDataObjectPackage();
 
