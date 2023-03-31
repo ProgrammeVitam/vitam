@@ -42,6 +42,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventLogBookOgType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.LegalStatusType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LogBookOgType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LogBookType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementMetadataType;
@@ -448,12 +449,9 @@ public class ManifestBuilder implements AutoCloseable {
         writer.writeEndElement();
     }
 
+    private ManagementMetadataType buildManagementMetadata(String originatingAgency,
+        String submissionAgencyIdentifier) {
 
-    public void writeManagementMetadata(String originatingAgency, String submissionAgencyIdentifier)
-        throws JAXBException, ExportException {
-        if (Strings.isNullOrEmpty(originatingAgency)) {
-            throw new ExportException(TAG_ORIGINATINGAGENCYIDENTIFIER + " parameter is required");
-        }
         ManagementMetadataType managementMetadataType = new ManagementMetadataType();
         IdentifierType identifierType = new IdentifierType();
         identifierType.setValue(originatingAgency);
@@ -465,12 +463,56 @@ public class ManifestBuilder implements AutoCloseable {
             managementMetadataType.setSubmissionAgencyIdentifier(identifierType);
 
         }
+        return managementMetadataType;
+    }
+
+
+
+    public void writeManagementMetadata(String acquisitionInformation, String legalStatus, String originatingAgency,
+        String submissionAgencyIdentifier)
+        throws JAXBException, ExportException {
+
+        if (Strings.isNullOrEmpty(originatingAgency)) {
+            throw new ExportException(TAG_ORIGINATINGAGENCYIDENTIFIER + " parameter is required");
+        }
+
+        ManagementMetadataType managementMetadataType =
+            buildManagementMetadata(originatingAgency, submissionAgencyIdentifier);
+
+
+        if (!Strings.isNullOrEmpty(legalStatus)) {
+            managementMetadataType.setLegalStatus(LegalStatusType.fromValue(legalStatus));
+        }
+
+        if (!Strings.isNullOrEmpty(acquisitionInformation)) {
+            managementMetadataType.setAcquisitionInformation(acquisitionInformation);
+        }
 
         marshaller.marshal(
             new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_MANAGEMENT_METADATA), ManagementMetadataType.class,
                 managementMetadataType), writer);
 
     }
+
+
+    public void writeManagementMetadata(String originatingAgency, String submissionAgencyIdentifier)
+        throws JAXBException, ExportException {
+
+        if (Strings.isNullOrEmpty(originatingAgency)) {
+            throw new ExportException(TAG_ORIGINATINGAGENCYIDENTIFIER + " parameter is required");
+        }
+
+        ManagementMetadataType managementMetadataType =
+            buildManagementMetadata(originatingAgency, submissionAgencyIdentifier);
+
+
+        marshaller.marshal(
+            new JAXBElement<>(new QName(UNIFIED_NAMESPACE, TAG_MANAGEMENT_METADATA), ManagementMetadataType.class,
+                managementMetadataType), writer);
+
+    }
+
+
 
     public void writeCodeListVersions(int tenant) throws JAXBException {
         CodeListVersionsType codeListVersionsType = new CodeListVersionsType();
