@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -104,7 +105,7 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     throw new RuntimeException(e);
                 }
             }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit()));
-            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(new RequestResponseOK<>(updateResults));
+            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(RequestResponseOK.getFromJsonNode(updateResults));
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
@@ -115,6 +116,73 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     .put("transactions/" + transaction.getId() + "/units")
                     .then()
                     .statusCode(OK.getStatusCode());
+            } catch (FileNotFoundException e) {
+                Assert.fail(String.format("File not found on %s: %s", metadataResourcePath, e.getLocalizedMessage()));
+            } catch (IOException e) {
+                Assert.fail(String.format("IO exception on %s: %s", metadataResourcePath, e.getLocalizedMessage()));
+            }
+        } catch (FileNotFoundException e) {
+            Assert.fail("File not found: " + e.getLocalizedMessage());
+        } catch (InvalidParseOperationException e) {
+            Assert.fail("Fail while parsing resources: " + e.getLocalizedMessage());
+        }
+    }
+
+    @Test
+    public void shouldGetErrorWhenUpdateWithBadDateFormat() throws CollectInternalException {
+        final String metadataResourcePath = "transaction/units/update/metadata-with-bad-date-format.csv";
+        final String projectsResourcePath = "transaction/units/update/projects.json";
+        final String transactionsResourcePath = "transaction/units/update/transactions.json";
+        final String getUnitsResultsResourcePath = "transaction/units/update/get-units-results.json";
+        final String updateResultsResourcePath = "transaction/units/update/update-results-with-error.json";
+
+        try {
+            final ProjectModel[] projects =
+                JsonHandler.getFromString(PropertiesUtils.getResourceAsString(projectsResourcePath),
+                    ProjectModel[].class);
+            final TransactionModel[] transactions =
+                JsonHandler.getFromString(PropertiesUtils.getResourceAsString(transactionsResourcePath),
+                    TransactionModel[].class);
+            final JsonNode getUnitsResults = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(getUnitsResultsResourcePath), JsonNode.class);
+            final JsonNode updateResults =
+                JsonHandler.getFromString(PropertiesUtils.getResourceAsString(updateResultsResourcePath),
+                    JsonNode.class);
+            final ProjectModel project = projects[0];
+            final TransactionModel transaction = transactions[0];
+            final SelectMultiQuery select = new SelectMultiQuery();
+            try {
+                select.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), transaction.getId()));
+            } catch (InvalidCreateOperationException e) {
+                throw new RuntimeException(e);
+            }
+            select.addUsedProjection(VitamFieldsHelper.id(), "Title", VitamFieldsHelper.unitups(),
+                VitamFieldsHelper.allunitups());
+
+            when(transactionService.findTransaction(transaction.getId())).thenReturn(Optional.of(transaction));
+            when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(
+                true);
+            when(projectService.findProject(project.getId())).thenReturn(
+                Optional.of(CollectHelper.convertProjectModeltoProjectDto(project)));
+            when(metadataRepository.selectUnits(any(SelectMultiQuery.class), eq(transaction.getId()))).thenReturn(new ScrollSpliterator<>(select, selectMultiQuery -> {
+                try {
+                    return JsonHandler.getFromJsonNode(getUnitsResults, RequestResponseOK.class, JsonNode.class);
+                } catch (InvalidParseOperationException e) {
+                    throw new RuntimeException(e);
+                }
+            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit()));
+            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(RequestResponseOK.getFromJsonNode(updateResults));
+
+            try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
+                given()
+                    .contentType(ContentType.BINARY)
+                    .header(GlobalDataRest.X_TENANT_ID, 0)
+                    .body(resourceAsStream)
+                    .when()
+                    .put("transactions/" + transaction.getId() + "/units")
+                    .then()
+                    .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
+                    .body("message", Matchers.equalTo("Error when trying to update units metadata"))
+                    .body("description", Matchers.equalTo(null));
             } catch (FileNotFoundException e) {
                 Assert.fail(String.format("File not found on %s: %s", metadataResourcePath, e.getLocalizedMessage()));
             } catch (IOException e) {
@@ -170,7 +238,7 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     throw new RuntimeException(e);
                 }
             }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit()));
-            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(new RequestResponseOK<>(updateResults));
+            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(RequestResponseOK.getFromJsonNode(updateResults));
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
@@ -238,7 +306,7 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     throw new RuntimeException(e);
                 }
             }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit()));
-            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(new RequestResponseOK<>(updateResults));
+            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(RequestResponseOK.getFromJsonNode(updateResults));
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
@@ -305,7 +373,7 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     throw new RuntimeException(e);
                 }
             }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit()));
-            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(new RequestResponseOK<>(updateResults));
+            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(RequestResponseOK.getFromJsonNode(updateResults));
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
@@ -373,7 +441,7 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     throw new RuntimeException(e);
                 }
             }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit()));
-            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(new RequestResponseOK<>(updateResults));
+            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(RequestResponseOK.getFromJsonNode(updateResults));
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()

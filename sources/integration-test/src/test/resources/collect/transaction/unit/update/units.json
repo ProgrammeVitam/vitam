@@ -1,0 +1,61 @@
+[
+  {
+    "_id": "aeaqaaaaaeekagw6aahg6amhbdmd2cyaaaaq",
+    "DescriptionLevel": "Series",
+    "Title": "versement",
+    "_mgt": {},
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaagekagw6aahg6amhbdmdvkqaaaaq",
+    "_up": [],
+    "_us": [],
+    "_graph": [],
+    "_sps": [],
+    "_uds": {},
+    "_min": 1,
+    "_max": 1,
+    "_glpd": "2023-03-22T10:23:21.941",
+    "_acd": "2023-03-22T10:23:21.941",
+    "_aud": "2023-03-22T14:39:23.368",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 1,
+    "StartDate": "2022-10-10",
+    "Description": "Description versement",
+    "EndDate": "2022-10-10"
+  },
+  {
+    "_id": "aeaqaaaaaeekagw6aahg6amhbdmd2daaaaaq",
+    "DescriptionLevel": "Item",
+    "Title": "versement/pastis.json",
+    "_og": "aebaaaaaaeekagw6aahg6amhbdmd2riaaaaq",
+    "_mgt": {},
+    "_unitType": "INGEST",
+    "_opi": "aeeaaaaaagekagw6aahg6amhbdmdvkqaaaaq",
+    "_up": [
+      "aeaqaaaaaeekagw6aahg6amhbdmd2cyaaaaq"
+    ],
+    "_us": [
+      "aeaqaaaaaeekagw6aahg6amhbdmd2cyaaaaq"
+    ],
+    "_graph": [
+      "aeaqaaaaaeekagw6aahg6amhbdmd2daaaaaq/aeaqaaaaaeekagw6aahg6amhbdmd2cyaaaaq"
+    ],
+    "_sps": [],
+    "_uds": {
+      "1": [
+        "aeaqaaaaaeekagw6aahg6amhbdmd2cyaaaaq"
+      ]
+    },
+    "_min": 1,
+    "_max": 2,
+    "_glpd": "2023-03-22T10:23:22.094",
+    "_acd": "2023-03-22T10:23:22.094",
+    "_aud": "2023-03-22T14:39:23.462",
+    "_v": 2,
+    "_av": 2,
+    "_tenant": 1,
+    "StartDate": "2022-10-10",
+    "Description": "Description pastis",
+    "EndDate": "2022-10-10"
+  }
+]

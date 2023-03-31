@@ -302,7 +302,6 @@ public class TransactionIT extends VitamRuleRunner {
         }
     }
 
-
     static TransactionDto initTransaction() {
         TransactionDto transaction = new TransactionDto();
         transaction.setName("My Transaction");

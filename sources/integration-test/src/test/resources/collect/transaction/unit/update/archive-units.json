@@ -1,0 +1,64 @@
+[
+  {
+    "DescriptionLevel": "Series",
+    "Title": "versement",
+    "Description": "Simple dossier contenant une fichier json.",
+    "Status": "Pret",
+    "Tag": [
+      "Grande Collecte"
+    ],
+    "Source": "Quelque part sur le PC d'un développeur.",
+    "CreatedDate": "2022-10-10T10:00:00",
+    "TransactedDate": "2022-10-10T10:00:00",
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00002"
+          }
+        ],
+        "FinalAction": "Destroy"
+      },
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00016",
+            "StartDate": "2022-12-20"
+          }
+        ]
+      }
+    },
+    "#originating_agencies": []
+  },
+  {
+    "DescriptionLevel": "Item",
+    "Title": "versement/pastis.json",
+    "Description": "Fichier JSON.",
+    "Status": "Pret",
+    "Tag": [
+      "Grande Collecte"
+    ],
+    "Source": "Quelque part sur le PC d'un développeur.",
+    "CreatedDate": "2022-10-10T10:00:00",
+    "TransactedDate": "2022-10-10T10:00:00",
+    "#management": {
+      "AppraisalRule": {
+        "Rules": [
+          {
+            "Rule": "APP-00002"
+          }
+        ],
+        "FinalAction": "Destroy"
+      },
+      "AccessRule": {
+        "Rules": [
+          {
+            "Rule": "ACC-00016",
+            "StartDate": "2022-12-20"
+          }
+        ]
+      }
+    },
+    "#originating_agencies": []
+  }
+]

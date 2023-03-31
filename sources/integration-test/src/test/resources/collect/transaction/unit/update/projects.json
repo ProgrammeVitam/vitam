@@ -1,0 +1,18 @@
+[
+  {
+    "_id": "aeaaaaaaaaekagw6aahg6amhbdmdqoyaaaaq",
+    "Name": "PV - DR",
+    "Context": {
+      "ArchivalAgreement": "IC-000001",
+      "MessageIdentifier": "PV - DR",
+      "ArchivalAgencyIdentifier": "Moi",
+      "TransferringAgencyIdentifier": "Moi",
+      "OriginatingAgencyIdentifier": "Moi",
+      "SubmissionAgencyIdentifier": "Moi"
+    },
+    "Status": "OPEN",
+    "CreationDate": "2023-03-22T10:23:20.635",
+    "LastUpdate": "2023-03-22T10:26:16.861",
+    "_tenant": 1
+  }
+]

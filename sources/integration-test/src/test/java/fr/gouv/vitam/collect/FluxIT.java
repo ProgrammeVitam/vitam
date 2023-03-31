@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -56,12 +57,7 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.*;
 
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
@@ -71,9 +67,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static fr.gouv.vitam.collect.ProjectIT.initProjectData;
-import static fr.gouv.vitam.collect.TransactionIT.initTransaction;
+import static fr.gouv.vitam.collect.CollectTestHelper.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertThrows;
 
 @Ignore
 public class FluxIT extends VitamRuleRunner {
@@ -94,7 +90,7 @@ public class FluxIT extends VitamRuleRunner {
     private static final String UNITS_TO_UPDATE = "collect/updateMetadata/units.json";
     private static final String UNITS_UPDATED_BY_CSV_PATH = "collect/updateMetadata/units_updated.json";
     private static final String METADATA_FILE = "collect/updateMetadata/metadata.csv";
-    private final static String ATTACHEMENT_UNIT_ID = "aeeaaaaaaceevqftaammeamaqvje33aaaaaq";
+    private final static String ATTACHMENT_UNIT_ID = "aeeaaaaaaceevqftaammeamaqvje33aaaaaq";
     private final VitamContext vitamContext = new VitamContext(TENANT_ID);
 
     @BeforeClass
@@ -118,39 +114,28 @@ public class FluxIT extends VitamRuleRunner {
     @Test
     public void should_upload_project_zip() throws Exception {
         try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
-            ProjectDto projectDto = initProjectData();
-            projectDto.setUnitUp(ATTACHEMENT_UNIT_ID);
-
-
+            final ProjectDto projectDto = initProjectData();
+            projectDto.setUnitUp(ATTACHMENT_UNIT_ID);
             final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
             Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
-
-            ProjectDto projectDtoResult =
+            final ProjectDto projectDtoResult =
                 JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
                     ProjectDto.class);
-
-            TransactionDto transactiondto = initTransaction();
-
-            RequestResponse<JsonNode> transactionResponse =
+            final TransactionDto transactiondto = initTransaction();
+            final RequestResponse<JsonNode> transactionResponse =
                 collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
             Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
-
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
-            TransactionDto transactionDtoResult =
+            final RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
+            final TransactionDto transactionDtoResult =
                 JsonHandler.getFromJsonNode(requestResponseOK.getFirstResult(), TransactionDto.class);
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(ZIP_FILE)) {
-                RequestResponse<JsonNode> response =
+                final RequestResponse<JsonNode> response =
                     collectClient.uploadProjectZip(vitamContext, transactionDtoResult.getId(), inputStream);
                 Assertions.assertThat(response.getStatus()).isEqualTo(200);
             }
-
-
             final RequestResponseOK<JsonNode> unitsByTransaction =
                 (RequestResponseOK<JsonNode>) collectClient.getUnitsByTransaction(vitamContext,
                     transactionDtoResult.getId(), new SelectMultiQuery().getFinalSelect());
-
-
-
             final JsonNode expectedUnits =
                 JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UNITS_UPDATED_BY_ZIP_PATH));
 
@@ -161,8 +146,6 @@ public class FluxIT extends VitamRuleRunner {
                         "[*]." + VitamFieldsHelper.initialOperation(),
                         "[*]." + VitamFieldsHelper.approximateCreationDate(),
                         "[*]." + VitamFieldsHelper.approximateUpdateDate())));
-
-
 
             // test download got
 
@@ -181,7 +164,7 @@ public class FluxIT extends VitamRuleRunner {
     public void should_upload_project_zip_with_multi_rattachement() throws Exception {
         try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
             ProjectDto projectDto = initProjectData();
-            projectDto.setUnitUp(ATTACHEMENT_UNIT_ID);
+            projectDto.setUnitUp(ATTACHMENT_UNIT_ID);
             List<MetadataUnitUp> metadataUnitUps = new ArrayList<>();
             metadataUnitUps.add(new MetadataUnitUp(GUID_ILE_DE_FRANCE, "Departement", "75"));
             metadataUnitUps.add(new MetadataUnitUp(GUID_ILE_DE_FRANCE, "Departement", "77"));
@@ -285,5 +268,115 @@ public class FluxIT extends VitamRuleRunner {
                         "[*]." + VitamFieldsHelper.approximateCreationDate(),
                         "[*]." + VitamFieldsHelper.approximateUpdateDate())));
         }
+    }
+
+    @Test
+    public void shouldUpdateTransactionFailWhenCsvLinesAreTooLong() {
+        final String unitUploadResourcePath = "collect/upload_au_collect.json";
+        final String unitUpdateResourcePath = "collect/metadata.csv";
+        final ProjectDto project = createProject(vitamContext).orElseThrow();
+        final TransactionDto transaction = createTransaction(vitamContext, project.getId()).orElseThrow();
+
+        assertThat(transaction).isNotNull();
+        assertThat(transaction.getId()).isNotBlank();
+
+        CollectTestHelper.uploadUnit(vitamContext, transaction.getId(), unitUploadResourcePath);
+
+        final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
+                () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+
+        assertThat(vitamClientException.getLocalizedMessage()).contains("Invalid input bytes length");
+    }
+
+    @Test
+    public void shouldUpdateTransactionFailWhenNotAllowedFileFormatHasMetadata() {
+        final String unitUploadResourcePath = "collect/upload_au_collect.json";
+        final String unitUpdateResourcePath = "collect/transaction/unit/update/metadata.pdf";
+        final ProjectDto project = createProject(vitamContext).orElseThrow();
+        final TransactionDto transaction = createTransaction(vitamContext, project.getId()).orElseThrow();
+
+        assertThat(transaction).isNotNull();
+        assertThat(transaction.getId()).isNotBlank();
+
+        CollectTestHelper.uploadUnit(vitamContext, transaction.getId(), unitUploadResourcePath);
+
+        final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
+                () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+
+        assertThat(vitamClientException.getLocalizedMessage()).contains("Invalid input bytes");
+    }
+
+    @Test
+    public void shouldUpdateTransactionFailWhenCsvContainsWrongFilePath() {
+        final String unitUpdateResourcePath = "collect/transaction/unit/update/metadata-with-wrong-file-path.csv";
+        final String zipPath = "collect/transaction/unit/update/versement.zip";
+        final ProjectDto project = createProject(vitamContext).orElseThrow();
+        final TransactionDto transaction = createTransaction(vitamContext, project.getId()).orElseThrow();
+
+        assertThat(transaction).isNotNull();
+        assertThat(transaction.getId()).isNotBlank();
+
+        uploadZipTransaction(vitamContext, transaction.getId(), zipPath);
+
+        final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
+                () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+
+        assertThat(vitamClientException.getLocalizedMessage()).contains("Cannot find unit with path no-dir");
+    }
+
+    @Test
+    public void shouldUpdateTransactionFailWhenCsvContainsFileDupes() {
+        final String unitUpdateResourcePath = "collect/transaction/unit/update/metadata-with-duplicates.csv";
+        final String zipPath = "collect/transaction/unit/update/versement.zip";
+        final ProjectDto project = createProject(vitamContext).orElseThrow();
+        final TransactionDto transaction = createTransaction(vitamContext, project.getId()).orElseThrow();
+
+        assertThat(transaction).isNotNull();
+        assertThat(transaction.getId()).isNotBlank();
+
+        uploadZipTransaction(vitamContext, transaction.getId(), zipPath);
+
+        final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
+                () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+
+        assertThat(vitamClientException.getLocalizedMessage()).contains("Duplicate key versement/pastis.json");
+    }
+
+    @Test
+    public void shouldUpdateTransactionFailWhenCsvContainsBadDateFormat() {
+        final String unitUpdateResourcePath = "collect/transaction/unit/update/metadata-with-bad-date-format.csv";
+        final String zipPath = "collect/transaction/unit/update/versement.zip";
+        final ProjectDto project = createProject(vitamContext).orElseThrow();
+        final TransactionDto transaction = createTransaction(vitamContext, project.getId()).orElseThrow();
+
+        assertThat(transaction).isNotNull();
+        assertThat(transaction.getId()).isNotBlank();
+
+        uploadZipTransaction(vitamContext, transaction.getId(), zipPath);
+
+        final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
+                () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+
+        assertThat(vitamClientException.getLocalizedMessage()).contains("Error when trying to update units metadata");
+    }
+
+    @Test
+    public void shouldUpdateTransactionFailWhenTransactionIsNotOpen() {
+        final String unitUpdateResourcePath = "collect/transaction/unit/update/metadata.csv";
+        final String zipPath = "collect/transaction/unit/update/versement.zip";
+        final ProjectDto project = createProject(vitamContext).orElseThrow();
+        final TransactionDto transaction = createTransaction(vitamContext, project.getId()).orElseThrow();
+
+        assertThat(transaction).isNotNull();
+        assertThat(transaction.getId()).isNotBlank();
+
+        uploadZipTransaction(vitamContext, transaction.getId(), zipPath);
+        closeTransaction(vitamContext, transaction.getId());
+
+        final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
+                () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+
+        assertThat(vitamClientException.getLocalizedMessage())
+                .contains("Unable to find transaction Id or invalid status");
     }
 }
