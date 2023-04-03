@@ -70,6 +70,8 @@ public class TransactionDto implements Serializable {
 
     @JsonProperty(value = "ProjectId") private String projectId;
 
+    @JsonProperty(value = "VitamOperationId") private String vitamOperationId;
+
 
     public TransactionDto() {
         //Empty constructor for serialization
@@ -234,6 +236,14 @@ public class TransactionDto implements Serializable {
 
     public String getProjectId() {
         return projectId;
+    }
+
+    public String getVitamOperationId() {
+        return vitamOperationId;
+    }
+
+    public void setVitamOperationId(String vitamOperationId) {
+        this.vitamOperationId = vitamOperationId;
     }
 
     @Override
