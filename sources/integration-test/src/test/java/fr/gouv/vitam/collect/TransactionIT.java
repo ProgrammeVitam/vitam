@@ -28,6 +28,7 @@ package fr.gouv.vitam.collect;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+import fr.gouv.culture.archivesdefrance.seda.v2.LegalStatusType;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
@@ -313,7 +314,7 @@ public class TransactionIT extends VitamRuleRunner {
         transaction.setSubmissionAgencyIdentifier(SUBMISSION_AGENCY_IDENTIFIER);
         transaction.setMessageIdentifier(MESSAGE_IDENTIFIER);
         transaction.setArchivalProfile("ArchiveProfile");
-        transaction.setLegalStatus(TransactionStatus.OPEN.name());
+        transaction.setLegalStatus(LegalStatusType.PRIVATE_ARCHIVE.value());
         transaction.setComment("Versement du service producteur : Cabinet de Michel Mercier");
         return transaction;
     }
