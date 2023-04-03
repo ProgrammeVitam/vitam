@@ -184,6 +184,7 @@ public class CollectHelper {
             transactionDto.setComment(transactionModel.getManifestContext().getComment());
             transactionDto.setAcquisitionInformation(transactionModel.getManifestContext().getAcquisitionInformation());
             transactionDto.setLegalStatus(transactionModel.getManifestContext().getLegalStatus());
+            transactionDto.setVitamOperationId(transactionModel.getVitamOperationId());
         }
         return transactionDto;
     }

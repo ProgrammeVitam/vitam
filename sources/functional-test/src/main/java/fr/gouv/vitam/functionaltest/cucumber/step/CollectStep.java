@@ -391,6 +391,8 @@ public class CollectStep extends CommonStep {
                 JsonHandler.getFromString(requestResponseOK.getResults().get(0).toString(),
                     TransactionDto.class);
             assertThat(myTransactionDto.getStatus()).isEqualTo(status);
+            assertThat(myTransactionDto.getVitamOperationId()).isNotNull();
+            assertThat(myTransactionDto.getVitamOperationId()).isNotEmpty();
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail(TRANSACTION_RETURN_AN_ERROR + vitamError.getCode());
