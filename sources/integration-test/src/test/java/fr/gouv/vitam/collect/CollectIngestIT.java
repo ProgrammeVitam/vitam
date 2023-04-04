@@ -28,8 +28,11 @@ package fr.gouv.vitam.collect;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+import fr.gouv.culture.archivesdefrance.seda.v2.LegalStatusType;
 import fr.gouv.vitam.access.external.client.AccessExternalClient;
 import fr.gouv.vitam.access.external.client.AccessExternalClientFactory;
+import fr.gouv.vitam.access.external.client.AdminExternalClient;
+import fr.gouv.vitam.access.external.client.AdminExternalClientFactory;
 import fr.gouv.vitam.access.external.rest.AccessExternalMain;
 import fr.gouv.vitam.access.internal.rest.AccessInternalMain;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
@@ -57,6 +60,7 @@ import fr.gouv.vitam.common.model.ProcessAction;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -208,6 +212,8 @@ public class CollectIngestIT extends VitamRuleRunner {
             VitamTestHelper.waitOperation(processId);
             VitamTestHelper.verifyOperation(processId, StatusCode.OK);
         }
+
+        String opi;
         try (AccessExternalClient accessExternalClient = AccessExternalClientFactory.getInstance().getClient()) {
             SelectMultiQuery select = new SelectMultiQuery();
             select.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), processId));
@@ -216,6 +222,40 @@ public class CollectIngestIT extends VitamRuleRunner {
                 accessExternalClient.selectUnits(vitamContext, select.getFinalSelect());
 
             assertEquals(6, ((RequestResponseOK<JsonNode>) results).getResults().size());
+
+
+            opi = ((RequestResponseOK<JsonNode>) results).getResults().get(0).get(VitamFieldsHelper.initialOperation())
+                .toString();
+        }
+
+        try (AdminExternalClient adminExternalClient = AdminExternalClientFactory.getInstance().getClient()) {
+
+            final String query =
+                "{\n" +
+                    "  \"$query\":\n" +
+                    "    {\n" +
+                    "      \"$eq\": {\n" +
+                    "        \"Opi\": " + opi + "\n" +
+                    "      }\n" +
+                    "    },\n" +
+                    "  \"$projection\": {},\n" +
+                    "  \"$filter\":{}\n" +
+                    "}";
+
+            var acRegDetResponseAfterUpdate =
+                adminExternalClient.findAccessionRegisterDetails(vitamContext, JsonHandler.getFromString(query));
+
+            AccessionRegisterDetailModel accessionRegisterDetail =
+                ((RequestResponseOK<AccessionRegisterDetailModel>)
+                    acRegDetResponseAfterUpdate).getResults().get(0);
+
+            Assertions.assertThat(accessionRegisterDetail.getLegalStatus())
+                .isEqualTo(LegalStatusType.PRIVATE_ARCHIVE.value());
+            Assertions.assertThat(accessionRegisterDetail.getComment().get(0))
+                .isEqualTo("Versement du service producteur : Cabinet de Michel Mercier");
+            Assertions.assertThat(accessionRegisterDetail.getAcquisitionInformation())
+                .isEqualTo("AcquisitionInformation");
+
         }
 
 
