@@ -89,6 +89,18 @@ Pour la mise en oeuvre de cette nouvelle application, veuillez éditer les param
 
   ..
 
+* Ajouter des mots de passe des keystores du module de collecte le fichier ``environments/group_vars/all/vault-keystores.yml``:
+
+  .. code-block:: diff
+
+   keystores:
+     server:
+  +    collect: changeit6kQ16eyDYAoPS9fy
+     client_external:
+  +    collect: changeitz6xZe5gDu7nhDZA12
+
+  ..
+
 - Création de certificats dédiés au module de collecte
 
   - Créer un certificat client et un certificat serveur dédiés au module de collecte à l'aide de votre ``PKI`` et le mettre dans les chemins attendus (``environments/certs/client-external/clients/collect/`` et ``environments/certs/server/hosts/{hosts}``).
@@ -179,6 +191,29 @@ Vitam doit être arrêté sur **tous les sites** :
 .. code-block:: bash
 
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam.yml --ask-vault-pass
+
+..
+
+Application de la montée de version
+===================================
+
+.. caution:: L'application de la montée de version s'effectue d'abord sur les sites secondaires puis sur le site primaire.
+
+Lancement du master playbook vitam
+----------------------------------
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam/vitam.yml --ask-vault-pass
+
+..
+
+Lancement du master playbook extra
+----------------------------------
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-extra/extra.yml --ask-vault-pass
 
 ..
 
