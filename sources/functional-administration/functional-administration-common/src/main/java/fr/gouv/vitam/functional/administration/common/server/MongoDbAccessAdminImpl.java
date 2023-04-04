@@ -255,7 +255,7 @@ public class MongoDbAccessAdminImpl extends MongoDbAccess implements MongoDbAcce
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new BadRequestException(e);
         } catch (final DatabaseException | VitamDBException e) {
-            throw new ReferentialException("find Document Exception", e);
+            throw new ReferentialException("Document not found", e);
         }
     }
 

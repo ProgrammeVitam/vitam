@@ -405,6 +405,12 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
+     * Harmonization needed :
+     * AccessionRegisterDetailModel  getTotalObjectsGroups
+     * AccessionRegisterDetail       getTotalObjectGroups
+     * AccessionRegisterDetailModel  TOTAL_OBJECT_GROUPS    = "TotalObjectGroups";
+     * AccessionRegisterDetail       TOTAL_OBJECTGROUPS     = "TotalObjectGroups"
+     *
      * @return totalObjectsGroups
      */
     public RegisterValueDetailModel getTotalObjectsGroups() {
@@ -453,6 +459,12 @@ public class AccessionRegisterDetailModel {
     }
 
     /**
+     * Harmonization needed :
+     * AccessionRegisterDetail       getTotalObjectSize
+     * AccessionRegisterDetailModel  getObjectSize
+     * AccessionRegisterDetailModel  OBJECT_SIZE = "ObjectSize"
+     * AccessionRegisterDetail       OBJECT_SIZE = "ObjectSize";
+     *
      * @return ObjectSize
      */
     public RegisterValueDetailModel getObjectSize() {
