@@ -32,9 +32,9 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -130,13 +130,10 @@ public class TransactionServiceTest {
             new TransactionDto("XXXX00000111111", null, null, null, null, null, null, null, null, null, null, null,
                 null, null,
                 TransactionStatus.OPEN.toString());
-
-
+        ProjectDto project = new ProjectDto();
 
         // When
-        ProjectDto project = new ProjectDto();
-        doReturn(Optional.of(project)).when(projectService).findProject("id");
-        transactionService.createTransaction(transactionDto, "id");
+        transactionService.createTransaction(transactionDto, project);
 
         // Then
         ArgumentCaptor<TransactionModel> collectModelCaptor = ArgumentCaptor.forClass(TransactionModel.class);
@@ -144,7 +141,6 @@ public class TransactionServiceTest {
         TransactionModel transactionModelAdded = collectModelCaptor.getValue();
         Assertions.assertThat(transactionModelAdded.getId()).isEqualTo(
             transactionDto.getId());
-
     }
 
     @Test

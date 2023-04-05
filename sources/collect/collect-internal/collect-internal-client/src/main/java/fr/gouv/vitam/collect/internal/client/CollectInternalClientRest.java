@@ -425,7 +425,7 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
             return;
         }
 
-        final String template = "Error with the response, get status: '%d' and reason '%s'.";
+        final String template = "Error with the response, status: '%d' and reason '%s'.";
         final String defaultReasonPhrase = fromStatusCode(response.getStatus()).getReasonPhrase();
         String message = String.format(template, response.getStatus(), defaultReasonPhrase);
 
@@ -497,4 +497,3 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
         }
     }
 }
-

@@ -73,7 +73,7 @@ public class ProjectInternalResource {
 
     private static final String YOU_MUST_SUPPLY_PROJECTS_DATAS = "You must supply projects datas!";
 
-    private static final String PROJECT_NOT_FOUND = "Unable to find project Id or invalid status";
+    public static final String PROJECT_NOT_FOUND = "Unable to find project Id or invalid status";
 
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
 
@@ -174,13 +174,13 @@ public class ProjectInternalResource {
     public Response getProjectById(@PathParam("projectId") String projectId) {
         try {
             SanityChecker.checkParameter(projectId);
-            Optional<ProjectDto> projectDtoOptional = projectService.findProject(projectId);
+            Optional<ProjectDto> projectOpt = projectService.findProject(projectId);
 
-            if (projectDtoOptional.isEmpty()) {
+            if (projectOpt.isEmpty()) {
                 LOGGER.error(PROJECT_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
             }
-            return CollectRequestResponse.toResponseOK(projectDtoOptional.get());
+            return CollectRequestResponse.toResponseOK(projectOpt.get());
         } catch (CollectInternalException e) {
             LOGGER.error("Error when fetching project by Id : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
@@ -196,9 +196,9 @@ public class ProjectInternalResource {
     public Response deleteProjectById(@PathParam("projectId") String projectId) {
         try {
             SanityChecker.checkParameter(projectId);
-            Optional<ProjectDto> projectDto = projectService.findProject(projectId);
+            Optional<ProjectDto> projectOpt = projectService.findProject(projectId);
 
-            if (projectDto.isEmpty()) {
+            if (projectOpt.isEmpty()) {
                 LOGGER.error(PROJECT_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
             }
@@ -284,7 +284,12 @@ public class ProjectInternalResource {
             String requestId = GUIDFactory.newRequestIdGUID(tenantId).getId();
             transactionDto.setId(requestId);
             transactionDto.setTenant(tenantId);
-            transactionService.createTransaction(transactionDto, projectId);
+            Optional<ProjectDto> projectOpt = projectService.findProject(projectId);
+            if (projectOpt.isEmpty()) {
+                LOGGER.error(PROJECT_NOT_FOUND);
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
+            }
+            transactionService.createTransaction(transactionDto, projectOpt.get());
             return CollectRequestResponse.toResponseOK(transactionDto);
         } catch (CollectInternalException e) {
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());

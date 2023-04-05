@@ -34,9 +34,9 @@ import fr.gouv.vitam.access.internal.client.AccessInternalClient;
 import fr.gouv.vitam.access.internal.client.AccessInternalClientFactory;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
@@ -126,16 +126,13 @@ public class TransactionService {
      *
      * @throws CollectInternalException exception thrown in case of error
      */
-    public void createTransaction(TransactionDto transactionDto, String projectId) throws CollectInternalException {
-        Optional<ProjectDto> projectOpt = projectService.findProject(projectId);
+    public void createTransaction(TransactionDto transactionDto, ProjectDto projectDto)
+        throws CollectInternalException {
         final String creationDate = LocalDateUtil.now().toString();
 
-        if (projectOpt.isEmpty()) {
-            throw new CollectInternalException("project with id " + projectId + "not found");
-        }
         TransactionModel transactionModel = new TransactionModel(transactionDto.getId(), transactionDto.getName(),
-            CollectHelper.mapTransactionDtoToManifestContext(transactionDto, projectOpt.get()), TransactionStatus.OPEN,
-            projectId,
+            CollectHelper.mapTransactionDtoToManifestContext(transactionDto, projectDto), TransactionStatus.OPEN,
+            projectDto.getId(),
             creationDate, creationDate, transactionDto.getTenant());
 
         transactionRepository.createTransaction(transactionModel);
@@ -470,7 +467,7 @@ public class TransactionService {
     public void replaceTransaction(TransactionDto transactionDto) throws CollectInternalException {
         Optional<ProjectDto> projectOpt = projectService.findProject(transactionDto.getProjectId());
         if (projectOpt.isEmpty()) {
-            throw new CollectInternalException("project with id " + transactionDto.getProjectId() + "not found");
+            throw new CollectInternalException("project with id " + transactionDto.getProjectId() + " not found");
         }
         TransactionModel transactionModel = new TransactionModel();
         transactionModel.setId(transactionDto.getId());

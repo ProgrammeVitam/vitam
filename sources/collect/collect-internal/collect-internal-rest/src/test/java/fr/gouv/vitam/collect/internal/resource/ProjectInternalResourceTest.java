@@ -31,11 +31,14 @@ import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
+import fr.gouv.vitam.collect.internal.rest.ProjectInternalResource;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.json.JsonHandler;
 import io.restassured.http.ContentType;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -48,6 +51,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -504,6 +508,9 @@ public class ProjectInternalResourceTest extends CollectInternalResourceBaseTest
     @Test
     public void initTransaction() throws Exception {
         ArgumentCaptor<TransactionDto> transactionDtoArgumentCaptor = forClass(TransactionDto.class);
+
+        ProjectDto project = new ProjectDto();
+        Mockito.doReturn(Optional.of(project)).when(projectService).findProject(eq("1"));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -513,11 +520,13 @@ public class ProjectInternalResourceTest extends CollectInternalResourceBaseTest
             .post(PROJECTS + "/1/transactions")
             .then()
             .statusCode(Response.Status.OK.getStatusCode());
-        verify(transactionService, times(1)).createTransaction(transactionDtoArgumentCaptor.capture(), eq("1"));
+        verify(projectService).findProject(eq("1"));
+        verify(transactionService, times(1)).createTransaction(transactionDtoArgumentCaptor.capture(), eq(project));
     }
 
     @Test
     public void initTransaction_ko_with_collect_error() throws Exception {
+        Mockito.doReturn(Optional.of(new ProjectDto())).when(projectService).findProject(eq("1"));
         doThrow(new CollectInternalException("error")).when(transactionService).createTransaction(any(), any());
         given()
             .contentType(ContentType.JSON)
@@ -529,6 +538,22 @@ public class ProjectInternalResourceTest extends CollectInternalResourceBaseTest
             .then()
             .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
+    }
+
+    @Test
+    public void initTransaction_ko_with_project_not_found() throws Exception {
+        Mockito.doReturn(Optional.empty()).when(projectService).findProject(eq("1"));
+        given()
+            .contentType(ContentType.JSON)
+            .accept(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT)
+            .body(JsonHandler.getFromString(QUERY_INIT_TRANSACTION))
+            .when()
+            .post(PROJECTS + "/1/transactions")
+            .then()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode())
+            .body("message", Matchers.equalTo(ProjectInternalResource.PROJECT_NOT_FOUND));
+        verify(transactionService, never()).createTransaction(any(), any());
     }
 
     @Test
