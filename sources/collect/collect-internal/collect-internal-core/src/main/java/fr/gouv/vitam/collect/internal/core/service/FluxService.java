@@ -29,6 +29,7 @@ package fr.gouv.vitam.collect.internal.core.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.Iterators;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
@@ -81,8 +82,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
@@ -172,7 +173,7 @@ public class FluxService {
                 }
             }
 
-            Map<String, String> unitUps =
+            Map<String, Set<String>> unitUps =
                 (isExtraMetadataExist) ? findUnitUps(projectModel, transactionModel, unitIds) : new HashMap<>();
 
             bulkWriteUnits(maxLevel, unitUps, transactionModel.getId());
@@ -209,7 +210,7 @@ public class FluxService {
         }
     }
 
-    private Map<String, String> findUnitUps(ProjectModel projectModel, TransactionModel transactionModel,
+    private Map<String, Set<String>> findUnitUps(ProjectModel projectModel, TransactionModel transactionModel,
         Map<String, String> unitIds) throws FileNotFoundException {
         if (projectModel.getUnitUps() != null) {
             File metadataFile = PropertiesUtils.fileFromTmpFolder(
@@ -222,10 +223,10 @@ public class FluxService {
                         String id = e.getId();
                         ObjectNode unit = (ObjectNode) e.getParams();
                         unit.put(VitamFieldsHelper.id(), id);
-                        return unit;
-                    }).map(e -> findUnitParent(e, projectModel.getUnitUps(), unitIds))
-                    .filter(e -> Objects.nonNull(e.getValue()))
-                    .collect(Collectors.toMap(Entry<String, String>::getKey, Entry<String, String>::getValue));
+                        Set<String> unitUps = findUnitParent(unit, projectModel.getUnitUps(), unitIds);
+                        return new SimpleEntry<>(id, unitUps);
+                    }).filter(e -> !e.getValue().isEmpty()).collect(
+                        Collectors.toMap(Entry<String, Set<String>>::getKey, Entry<String, Set<String>>::getValue));
             }
         } else {
             return new HashMap<>();
@@ -284,7 +285,7 @@ public class FluxService {
         return maxLevel;
     }
 
-    private void bulkWriteUnits(int maxLevel, Map<String, String> unitUps, String transactionId)
+    private void bulkWriteUnits(int maxLevel, Map<String, Set<String>> unitUps, String transactionId)
         throws FileNotFoundException {
         for (int level = 0; level <= maxLevel; level++) {
             File unitFile = PropertiesUtils.fileFromTmpFolder(
@@ -307,11 +308,12 @@ public class FluxService {
         }
     }
 
-    private ObjectNode updateParent(ObjectNode unit, Map<String, String> unitUps) {
+    private ObjectNode updateParent(ObjectNode unit, Map<String, Set<String>> unitUps) {
         String title = unit.get(TITLE).asText();
-        String up = unitUps.get(title);
-        if (up != null) {
-            unit.set(VitamFieldsHelper.unitups(), JsonHandler.createArrayNode().add(up));
+        Set<String> up = unitUps.get(title);
+        if (!up.isEmpty()) {
+            unit.set(VitamFieldsHelper.unitups(),
+                JsonHandler.createArrayNode().addAll(up.stream().map(TextNode::new).collect(Collectors.toList())));
         }
         return unit;
     }

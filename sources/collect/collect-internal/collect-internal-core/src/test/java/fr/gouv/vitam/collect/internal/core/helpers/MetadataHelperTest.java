@@ -31,18 +31,23 @@ import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
-import org.junit.Assert;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.DYNAMIC_ATTACHEMENT;
 
 public class MetadataHelperTest {
     private static final String UNIT_UP = "UNIT_UP";
+    private static final String UNIT_UP_1 = "UNIT_UP_1";
+    private static final String UNIT_UP_2 = "UNIT_UP_2";
     private static final String UNIT_GUID = "UNIT_GUID";
+    private static final String UNIT_GUID_1 = "UNIT_GUID_1";
+    private static final String UNIT_GUID_2 = "UNIT_GUID_2";
     private static final String COMPLEX_PATH = "Keyword.KeywordContent";
     private static final String SIMPLE_PATH = "Title";
     private static final String SIMPLE_PATH_ARRAY_VALUE = "OriginatingSystemId";
@@ -52,11 +57,11 @@ public class MetadataHelperTest {
         try (InputStream is = PropertiesUtils.getResourceAsStream("collect_unit.json")) {
             ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(is);
             unit.put(VitamFieldsHelper.id(), "ID");
-            Map.Entry<String, String> unitParent = MetadataHelper.findUnitParent(unit,
+            Set<String> unitParent = MetadataHelper.findUnitParent(unit,
                 List.of(new MetadataUnitUp(UNIT_UP, COMPLEX_PATH, "Aisne (departement)")),
                 Map.of(DYNAMIC_ATTACHEMENT + "_" + UNIT_UP, UNIT_GUID));
 
-            Assert.assertEquals(UNIT_GUID, unitParent.getValue());
+            Assertions.assertThat(unitParent).containsOnly(UNIT_GUID);
         }
     }
 
@@ -65,11 +70,12 @@ public class MetadataHelperTest {
         try (InputStream is = PropertiesUtils.getResourceAsStream("collect_unit.json")) {
             ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(is);
             unit.put(VitamFieldsHelper.id(), "ID");
-            Map.Entry<String, String> unitParent =
+
+            Set<String> unitParent =
                 MetadataHelper.findUnitParent(unit, List.of(new MetadataUnitUp(UNIT_UP, SIMPLE_PATH, "My title")),
                     Map.of(DYNAMIC_ATTACHEMENT + "_" + UNIT_UP, UNIT_GUID));
 
-            Assert.assertEquals(UNIT_GUID, unitParent.getValue());
+            Assertions.assertThat(unitParent).containsOnly(UNIT_GUID);
         }
     }
 
@@ -79,11 +85,25 @@ public class MetadataHelperTest {
         try (InputStream is = PropertiesUtils.getResourceAsStream("collect_unit.json")) {
             ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(is);
             unit.put(VitamFieldsHelper.id(), "ID");
-            Map.Entry<String, String> unitParent = MetadataHelper.findUnitParent(unit,
+            Set<String> unitParent = MetadataHelper.findUnitParent(unit,
                 List.of(new MetadataUnitUp(UNIT_UP, SIMPLE_PATH_ARRAY_VALUE, "ID01")),
                 Map.of(DYNAMIC_ATTACHEMENT + "_" + UNIT_UP, UNIT_GUID));
 
-            Assert.assertEquals(UNIT_GUID, unitParent.getValue());
+            Assertions.assertThat(unitParent).containsOnly(UNIT_GUID);
+        }
+    }
+
+    @Test
+    public void findUnitParentWithMultiParameters() throws Exception {
+        try (InputStream is = PropertiesUtils.getResourceAsStream("collect_unit.json")) {
+            ObjectNode unit = (ObjectNode) JsonHandler.getFromInputStream(is);
+            unit.put(VitamFieldsHelper.id(), "ID");
+            Set<String> unitParent = MetadataHelper.findUnitParent(unit,
+                List.of(new MetadataUnitUp(UNIT_UP_1, SIMPLE_PATH_ARRAY_VALUE, "ID01"),
+                    new MetadataUnitUp(UNIT_UP_2, SIMPLE_PATH, "My title")),
+                Map.of(DYNAMIC_ATTACHEMENT + "_" + UNIT_UP_1, UNIT_GUID_1, DYNAMIC_ATTACHEMENT + "_" + UNIT_UP_2,
+                    UNIT_GUID_2));
+            Assertions.assertThat(unitParent).containsOnly(UNIT_GUID_1, UNIT_GUID_2);
         }
     }
 }
