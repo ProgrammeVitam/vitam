@@ -52,6 +52,10 @@
         name: "{{ package_name }}={{ force_vitam_version }}"
         force: yes
         state: present
+      register: result
+      retries: "{{ packages_install_retries_number }}"
+      until: result is succeeded
+      delay: "{{ packages_install_retries_delay }}"
       tags:
         - update_package_vitam
       notify:
