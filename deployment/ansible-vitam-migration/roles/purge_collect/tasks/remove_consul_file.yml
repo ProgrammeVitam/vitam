@@ -1,6 +1,5 @@
 ---
 
-
 - name: "Remove consul agent service declaration for collect service"
   file:
     state: absent
