@@ -153,6 +153,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper.applyAccessContractRestrictionForObjectGroupForSelect;
 import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect;
 import static fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForUpdate;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
@@ -334,6 +335,34 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     }
 
     /**
+     * get objects list by query based on identifier
+     *
+     * @param queryDsl as JsonNode
+     * @return an objects result list
+     */
+    @Override
+    @GET
+    @Path("/objects/stream")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    public Response streamObjects(JsonNode queryDsl) {
+        try {
+            SanityChecker.checkJsonAll(queryDsl);
+            checkEmptyQuery(queryDsl);
+            JsonNode jsonNode = applyAccessContractRestrictionForObjectGroupForSelect(queryDsl,
+                getVitamSession().getContract());
+            return accessModule.streamObjects(jsonNode);
+        } catch (final MetadataScrollThresholdExceededException e) {
+            return Response.status(Status.EXPECTATION_FAILED).build();
+        } catch (final MetadataScrollLimitExceededException e) {
+            return Response.status(Status.UNAUTHORIZED).build();
+        } catch (final Exception ve) {
+            LOGGER.error(ve);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    /**
      * Select units with inherited rules
      *
      * @param queryDsl as JsonNode
@@ -489,9 +518,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 operationId, contexts.name(), RESUME.getValue());
             return jsonNodeRequestResponse.toResponse();
         } catch (ContentAddressableStorageServerException | OperationContextException |
-            InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
-            LogbookClientAlreadyExistsException |
-            VitamClientException | InternalServerException | InvalidCreateOperationException e) {
+                 InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
+                 LogbookClientAlreadyExistsException |
+                 VitamClientException | InternalServerException | InvalidCreateOperationException e) {
             LOGGER.error("Error while generating " + exportRequest.getExportType(), e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -664,9 +693,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             }
 
         } catch (ContentAddressableStorageServerException |
-            InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
-            LogbookClientAlreadyExistsException |
-            VitamClientException | InternalServerException | OperationContextException e) {
+                 InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
+                 LogbookClientAlreadyExistsException |
+                 VitamClientException | InternalServerException | OperationContextException e) {
             LOGGER.error("Error while starting unit reclassification workflow", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -771,8 +800,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             }
 
         } catch (ContentAddressableStorageServerException | OperationContextException |
-            InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
-            LogbookClientAlreadyExistsException | VitamClientException | InternalServerException e) {
+                 InvalidGuidOperationException | LogbookClientServerException | LogbookClientBadRequestException |
+                 LogbookClientAlreadyExistsException | VitamClientException | InternalServerException e) {
             LOGGER.error("An error occurred during " + eliminationWorkflowContext.getEventType() + " workflow", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -935,7 +964,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     idObjectGroup);
             return Response.status(Status.OK).entity(result).build();
         } catch (final InvalidParseOperationException | IllegalArgumentException |
-            InvalidCreateOperationException exc) {
+                       InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status).entity(getErrorEntity(status, exc.getMessage())).build();
@@ -1363,9 +1392,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     .executeOperationProcess(operationId, Contexts.MASS_UPDATE_UNIT_DESC.name(), RESUME.getValue());
             return requestResponse.toResponse();
         } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
-            LogbookClientAlreadyExistsException | InvalidGuidOperationException |
-            LogbookClientServerException | VitamClientException | InternalServerException |
-            OperationContextException e) {
+                 LogbookClientAlreadyExistsException | InvalidGuidOperationException |
+                 LogbookClientServerException | VitamClientException | InternalServerException |
+                 OperationContextException e) {
             LOGGER.error("An error occured while mass updating archive units", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -1449,9 +1478,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return requestResponse.toResponse();
 
         } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
-            LogbookClientAlreadyExistsException | InvalidGuidOperationException |
-            LogbookClientServerException | VitamClientException | InternalServerException |
-            OperationContextException e) {
+                 LogbookClientAlreadyExistsException | InvalidGuidOperationException |
+                 LogbookClientServerException | VitamClientException | InternalServerException |
+                 OperationContextException e) {
             LOGGER.error("An error occured while mass updating archive units", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -1528,9 +1557,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                         RESUME.getValue());
             return requestResponse.toResponse();
         } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
-            LogbookClientAlreadyExistsException | InvalidGuidOperationException |
-            LogbookClientServerException | VitamClientException | InternalServerException |
-            OperationContextException e) {
+                 LogbookClientAlreadyExistsException | InvalidGuidOperationException |
+                 LogbookClientServerException | VitamClientException | InternalServerException |
+                 OperationContextException e) {
             LOGGER.error("An error occured while bulk atomic updating archive units", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -1601,9 +1630,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                     .executeOperationProcess(operationId, Contexts.REVERT_ESSENTIAL_METADATA.name(), RESUME.getValue());
             return requestResponse.toResponse();
         } catch (ContentAddressableStorageServerException | LogbookClientBadRequestException |
-            LogbookClientAlreadyExistsException | InvalidGuidOperationException |
-            LogbookClientServerException | VitamClientException | InternalServerException |
-            OperationContextException e) {
+                 LogbookClientAlreadyExistsException | InvalidGuidOperationException |
+                 LogbookClientServerException | VitamClientException | InternalServerException |
+                 OperationContextException e) {
             LOGGER.error("An error occured while reverting update archive units", e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage())).build();
@@ -1688,9 +1717,10 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 .build();
         } catch (BadRequestException e) {
             return buildErrorResponse(VitamCode.GLOBAL_EMPTY_QUERY, null);
-        } catch (InvalidGuidOperationException | LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
-            LogbookClientServerException | ContentAddressableStorageServerException | OperationContextException |
-            InternalServerException | VitamClientException e) {
+        } catch (InvalidGuidOperationException | LogbookClientBadRequestException |
+                 LogbookClientAlreadyExistsException |
+                 LogbookClientServerException | ContentAddressableStorageServerException | OperationContextException |
+                 InternalServerException | VitamClientException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR,

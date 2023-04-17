@@ -29,7 +29,6 @@ package fr.gouv.vitam.metadata.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.internal.bulk.InsertRequest;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -39,7 +38,6 @@ import fr.gouv.vitam.common.database.index.model.ReindexationResult;
 import fr.gouv.vitam.common.database.index.model.SwitchIndexResult;
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
-import fr.gouv.vitam.common.database.parser.request.multiple.InsertParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ArrayListScrollSpliterator;
 import fr.gouv.vitam.common.error.VitamCode;
@@ -103,7 +101,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.GlobalDataRest.X_CONTENT_LENGTH;
+import static fr.gouv.vitam.common.GlobalDataRest.X_OBJECTS_COUNT;
 import static fr.gouv.vitam.common.GlobalDataRest.X_UNITS_COUNT;
+import static fr.gouv.vitam.metadata.core.metrics.CommonMetadataMetrics.OBJECT_SCROLL_COUNTER;
+import static fr.gouv.vitam.metadata.core.metrics.CommonMetadataMetrics.OBJECT_SCROLL_DURATION_HISTOGRAM;
+import static fr.gouv.vitam.metadata.core.metrics.CommonMetadataMetrics.UNIT_SCROLL_DURATION_HISTOGRAM;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
@@ -1215,14 +1217,13 @@ public class MetadataResource extends ApplicationStatusResource {
     public Response streamUnits(JsonNode request) {
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         try {
-            metaData.checkStreamUnits(tenantId, configuration.getStreamExecutionLimit());
+            metaData.checkStreamUnits(tenantId, configuration.getUnitsStreamExecutionLimit());
         } catch (MetaDataException e) {
             return Response.status(Status.UNAUTHORIZED).build();
         }
         long threshold = configuration.getUnitsStreamThreshold();
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
-        Histogram.Timer unitStreamDuration =
-            CommonMetadataMetrics.UNIT_SCROLL_DURATION_HISTOGRAM.labels(requestId).startTimer();
+        Histogram.Timer unitStreamDuration = UNIT_SCROLL_DURATION_HISTOGRAM.labels(requestId).startTimer();
         File file = null;
         try {
             file = FileUtil.createFileInTempDirectoryWithPathCheck(requestId, VitamConstants.JSONL_EXTENSION);
@@ -1249,7 +1250,9 @@ public class MetadataResource extends ApplicationStatusResource {
                                     .addResult(metadataResult.getResults())
                                     .addAllFacetResults(metadataResult.getFacetResults())
                                     .setHits(metadataResult.getHits());
-                            } catch (MetaDataExecutionException | MetaDataDocumentSizeException | InvalidParseOperationException | VitamDBException | BadRequestException | MetaDataNotFoundException e) {
+                            } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
+                                     InvalidParseOperationException | VitamDBException | BadRequestException |
+                                     MetaDataNotFoundException e) {
                                 throw new VitamRuntimeException(e);
                             }
                         }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
@@ -1283,4 +1286,87 @@ public class MetadataResource extends ApplicationStatusResource {
             FileUtils.deleteQuietly(file);
         }
     }
+
+
+
+    @GET
+    @Consumes(APPLICATION_JSON)
+    @Produces(APPLICATION_OCTET_STREAM)
+    @Path("/objects/stream")
+    public Response streamObjects(JsonNode request) {
+        int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+        try {
+            metaData.checkStreamObjects(tenantId, configuration.getObjectsStreamExecutionLimit());
+        } catch (MetaDataException e) {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+        String requestId = VitamThreadUtils.getVitamSession().getRequestId();
+        Histogram.Timer objectStreamDuration = OBJECT_SCROLL_DURATION_HISTOGRAM.labels(requestId).startTimer();
+        File file = null;
+        try {
+            long documentCount;
+            file = FileUtil.createFileInTempDirectoryWithPathCheck(requestId, VitamConstants.JSONL_EXTENSION);
+            try (OutputStream out = new FileOutputStream(file);
+                JsonLineWriter writer = new JsonLineWriter(out)) {
+                SelectParserMultiple parser = new SelectParserMultiple();
+                parser.parse(request);
+                ArrayListScrollSpliterator<JsonNode> scrollRequest =
+                    new ArrayListScrollSpliterator<>(parser.getRequest(),
+                        query -> selectObjectGroupsByQuery(query, requestId),
+                        VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+                        VitamConfiguration.getElasticSearchScrollLimit());
+
+                documentCount = scrollRequest.estimateSize();
+                if (objectsStreamThresholdExceed(documentCount, parser)) {
+                    return Response.status(Status.CONFLICT).build();
+                }
+
+                final SpliteratorIterator<List<JsonNode>> jsonNodeSpliteratorIterator =
+                    new SpliteratorIterator<>(scrollRequest);
+                while (jsonNodeSpliteratorIterator.hasNext()) {
+                    writer.addEntries(jsonNodeSpliteratorIterator.next());
+                }
+            }
+            metaData.updateParameterStreamObjects(tenantId);
+
+
+            InputStream is = new FileInputStream(file);
+            return Response.ok(new ExactSizeInputStream(is, file.length()))
+                .header(X_OBJECTS_COUNT, documentCount)
+                .header(X_CONTENT_LENGTH, file.length())
+                .build();
+        } catch (Exception e) {
+            LOGGER.error(e);
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            objectStreamDuration.observeDuration();
+            FileUtils.deleteQuietly(file);
+        }
+    }
+
+    private RequestResponse<List<JsonNode>> selectObjectGroupsByQuery(SelectMultiQuery query, String requestId) {
+        try {
+            final MetadataResult metadataResult = metaData.selectObjectGroupsByQuery(query.getFinalSelect());
+            OBJECT_SCROLL_COUNTER.labels(requestId)
+                .inc(metadataResult.getResults().size());
+
+            return new RequestResponseOK<List<JsonNode>>(metadataResult.getQuery())
+                .addResult(metadataResult.getResults())
+                .addAllFacetResults(metadataResult.getFacetResults())
+                .setHits(metadataResult.getHits());
+        } catch (MetaDataExecutionException | MetaDataDocumentSizeException | InvalidParseOperationException |
+                 VitamDBException | BadRequestException | MetaDataNotFoundException e) {
+            throw new VitamRuntimeException(e);
+        }
+    }
+
+    private boolean objectsStreamThresholdExceed(long documentCount, SelectParserMultiple parser) {
+        SelectMultiQuery selectQuery = parser.getRequest();
+        long threshold = configuration.getObjectsStreamThreshold();
+        if (selectQuery.getThreshold() != null) {
+            threshold = Math.min(threshold, selectQuery.getThreshold());
+        }
+        return documentCount > threshold;
+    }
+
 }

@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
+import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
@@ -104,6 +105,7 @@ import org.junit.Test;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1352,5 +1354,23 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
-}
 
+    @Test
+    @RunWithCustomExecutor
+    public void streamObjects_test()
+        throws Exception {
+        when(metaDataClient.streamObjects(any()))
+            .thenReturn(javax.ws.rs.core.Response.ok(new ByteArrayInputStream("okokok".getBytes())).build());
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(buildDSLWithRoots(DATA))
+            .when().log().all()
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .get("/objects/stream")
+            .then().log().all()
+            .statusCode(Status.OK.getStatusCode());
+    }
+}

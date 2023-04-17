@@ -34,6 +34,7 @@ import com.google.common.collect.Lists;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.SystemPropertyUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
@@ -64,6 +65,7 @@ import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminColl
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollectionsTestUtils;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
+import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.config.DefaultCollectionConfiguration;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
@@ -83,11 +85,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.Mockito;
 
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -143,9 +147,10 @@ public class MetadataResourceTest {
     private static int serverPort;
 
     private static MetadataMain metadataMain;
-    private static final int tenantId = 0;
-    private static final List<Integer> tenantList = Lists.newArrayList(tenantId);
+    private final MetaDataImpl metaData = Mockito.mock(MetaDataImpl.class);
     private static final Integer TENANT_ID = 0;
+    private static final String REQUEST_ID = "rgertgerge";
+    private static final List<Integer> tenantList = Lists.newArrayList(TENANT_ID);
     private static final ElasticsearchMetadataIndexManager metadataIndexManager = MetadataCollectionsTestUtils
         .createTestIndexManager(tenantList, emptyMap(), MappingLoaderTestUtils.getTestMappingLoader());
     private static final ElasticsearchFunctionalAdminIndexManager functionalAdminIndexManager =
@@ -177,6 +182,8 @@ public class MetadataResourceTest {
             Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
                 FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY));
         configuration.setJettyConfig(JETTY_CONFIG);
+        configuration.setUnitsStreamExecutionLimit((short) 5);
+        configuration.setObjectsStreamExecutionLimit((short) 5);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
         configuration.setContextPath("/metadata");
         configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
@@ -214,6 +221,10 @@ public class MetadataResourceTest {
         VitamClientFactory.resetConnections();
     }
 
+    @Before
+    public void before() {
+        mongoRule.getMongoDatabase().getCollection("Snapshot").deleteMany(new Document());
+    }
 
     @After
     public void tearDown() {
@@ -580,5 +591,35 @@ public class MetadataResourceTest {
         parameters.setIndexName("indexName");
         given().contentType(MediaType.APPLICATION_JSON).body(parameters)
             .when().post("/alias").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+    }
+
+    @Test
+    public void streamUnits_OK() throws Exception {
+        SystemPropertyUtil.set("vitam.tmp.folder", tempFolder.newFolder().getAbsolutePath());
+
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, "qsdfghgfdsqsdfghgfcvghfds")
+            .contentType(ContentType.JSON)
+            .body(INVALID_DATA)
+            .when().log().all()
+            .get("/units/stream")
+            .then().log().all()
+            .statusCode(Status.OK.getStatusCode());
+    }
+
+    @Test
+    public void streamObjects_OK() throws Exception {
+        SystemPropertyUtil.set("vitam.tmp.folder", tempFolder.newFolder().getAbsolutePath());
+
+        given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, "qsdfghgfdsqsdfghgfcvghfds")
+            .contentType(ContentType.JSON)
+            .body(INVALID_DATA)
+            .when().log().all()
+            .get("/objects/stream")
+            .then().log().all()
+            .statusCode(Status.OK.getStatusCode());
     }
 }

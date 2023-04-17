@@ -335,4 +335,9 @@ public class MetaDataClientMock extends AbstractMockClient implements MetaDataCl
     public Response streamUnits(JsonNode selectQuery) throws MetaDataClientServerException {
         throw new IllegalStateException(STOP_USING_MOCKS_IN_PRODUCTION);
     }
+
+    @Override
+    public Response streamObjects(JsonNode selectQuery) {
+        return Response.ok(selectQuery).build();
+    }
 }

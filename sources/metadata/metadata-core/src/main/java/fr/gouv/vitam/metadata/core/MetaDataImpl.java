@@ -34,7 +34,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.UpdateOptions;
-import com.mongodb.client.model.Updates;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.database.builder.facet.Facet;
@@ -92,7 +91,6 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
-import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
@@ -151,15 +149,23 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
+import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.inc;
 import static com.mongodb.client.model.Updates.set;
+import static com.mongodb.client.model.Updates.setOnInsert;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
+import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_ID;
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.NAME;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollDate;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollNumber;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollDate;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollNumber;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.CHECK_UNIT_SCHEMA;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA;
@@ -177,6 +183,14 @@ public class MetaDataImpl {
     public static final int MAX_PRECISION_THRESHOLD = 40000;
     private static final int AGGREGATION_SIZE = 10_000;
     public static final String SNAPSHOT_COLLECTION = "Snapshot";
+    public static final String FILTER = "$filter";
+    public static final String OFFSET = "$offset";
+    public static final String LIMIT = "$limit";
+    public static final String ORIGINATING_AGENCY = "originatingAgency";
+    public static final String ORIGINATING_AGENCIES = "originatingAgencies";
+    public static final String NESTED_VERSIONS = "nestedVersions";
+    public static final String BINARY_OBJECT_SIZE = "binaryObjectSize";
+    public static final String BINARY_OBJECT_COUNT = "binaryObjectCount";
 
     private final MongoDbAccessMetadataImpl mongoDbAccess;
     private final IndexationHelper indexationHelper;
@@ -422,15 +436,15 @@ public class MetaDataImpl {
         Aggregations objectGroupAccessionRegisterInformation, String creationDate, Integer tenant,
         Map<String, AccessionRegisterSymbolic> accessionRegisterSymbolicByOriginatingAgency) {
 
-        Terms objectGroupOriginatingAgencies = objectGroupAccessionRegisterInformation.get("originatingAgencies");
-        Terms objectGroupOriginatingAgency = objectGroupAccessionRegisterInformation.get("originatingAgency");
+        Terms objectGroupOriginatingAgencies = objectGroupAccessionRegisterInformation.get(ORIGINATING_AGENCIES);
+        Terms objectGroupOriginatingAgency = objectGroupAccessionRegisterInformation.get(ORIGINATING_AGENCY);
 
         Map<String, OriginatingAgencyBucketResult> objectGroupByOriginatingAgency =
             objectGroupOriginatingAgency.getBuckets().stream()
                 .map(bucket -> OriginatingAgencyBucketResult
                     .of(bucket.getKeyAsString(),
                         bucket.getDocCount(),
-                        bucket.getAggregations().get("nestedVersions")
+                        bucket.getAggregations().get(NESTED_VERSIONS)
                     ))
                 .collect(Collectors.toMap(e -> e.originatingAgency, e -> e));
 
@@ -444,7 +458,7 @@ public class MetaDataImpl {
                     OriginatingAgencyBucketResult
                         .of(bucket.getKeyAsString(),
                             bucket.getDocCount(),
-                            bucket.getAggregations().get("nestedVersions")
+                            bucket.getAggregations().get(NESTED_VERSIONS)
                         )
                 )
             );
@@ -491,15 +505,12 @@ public class MetaDataImpl {
                     .setBinaryObjectSize(binaryObjectSize));
             return;
         }
-
-        return;
-
     }
 
     private Map<String, AccessionRegisterSymbolic> fillWithArchiveUnitInformation(
         Aggregations archiveUnitAccessionRegisterformation, String creationDate, Integer tenant) {
-        Terms archiveUnitOriginatingAgencies = archiveUnitAccessionRegisterformation.get("originatingAgencies");
-        Terms archiveUnitOriginatingAgency = archiveUnitAccessionRegisterformation.get("originatingAgency");
+        Terms archiveUnitOriginatingAgencies = archiveUnitAccessionRegisterformation.get(ORIGINATING_AGENCIES);
+        Terms archiveUnitOriginatingAgency = archiveUnitAccessionRegisterformation.get(ORIGINATING_AGENCY);
 
         Map<String, Long> archiveUnitByOriginatingAgency = archiveUnitOriginatingAgency.getBuckets().stream()
             .collect(Collectors
@@ -525,17 +536,17 @@ public class MetaDataImpl {
 
     private Aggregations selectObjectGroupAccessionRegisterInformation(Integer tenant)
         throws MetaDataExecutionException {
-        TermsAggregationBuilder ogs = AggregationBuilders.terms("originatingAgencies")
+        TermsAggregationBuilder ogs = AggregationBuilders.terms(ORIGINATING_AGENCIES)
             .field("_sps").size(AGGREGATION_SIZE)
-            .subAggregation(AggregationBuilders.nested("nestedVersions", "_qualifiers.versions")
-                .subAggregation(AggregationBuilders.sum("binaryObjectSize").field("_qualifiers.versions.Size"))
-                .subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id")));
+            .subAggregation(AggregationBuilders.nested(NESTED_VERSIONS, "_qualifiers.versions")
+                .subAggregation(AggregationBuilders.sum(BINARY_OBJECT_SIZE).field("_qualifiers.versions.Size"))
+                .subAggregation(AggregationBuilders.count(BINARY_OBJECT_COUNT).field("_qualifiers.versions._id")));
 
-        TermsAggregationBuilder og = AggregationBuilders.terms("originatingAgency")
+        TermsAggregationBuilder og = AggregationBuilders.terms(ORIGINATING_AGENCY)
             .field("_sp").size(AGGREGATION_SIZE)
-            .subAggregation(AggregationBuilders.nested("nestedVersions", "_qualifiers.versions")
-                .subAggregation(AggregationBuilders.sum("binaryObjectSize").field("_qualifiers.versions.Size"))
-                .subAggregation(AggregationBuilders.count("binaryObjectCount").field("_qualifiers.versions._id")));
+            .subAggregation(AggregationBuilders.nested(NESTED_VERSIONS, "_qualifiers.versions")
+                .subAggregation(AggregationBuilders.sum(BINARY_OBJECT_SIZE).field("_qualifiers.versions.Size"))
+                .subAggregation(AggregationBuilders.count(BINARY_OBJECT_COUNT).field("_qualifiers.versions._id")));
 
         return OBJECTGROUP.getEsClient()
             .basicAggregationSearch(OBJECTGROUP, tenant, Arrays.asList(og, ogs), QueryBuilders.matchAllQuery());
@@ -544,8 +555,8 @@ public class MetaDataImpl {
     private Aggregations selectArchiveUnitAccessionRegisterInformation(Integer tenant)
         throws MetaDataExecutionException {
         List<AggregationBuilder> aggregations = Arrays.asList(
-            AggregationBuilders.terms("originatingAgency").field("_sp").size(AGGREGATION_SIZE),
-            AggregationBuilders.terms("originatingAgencies").field("_sps").size(AGGREGATION_SIZE)
+            AggregationBuilders.terms(ORIGINATING_AGENCY).field("_sp").size(AGGREGATION_SIZE),
+            AggregationBuilders.terms(ORIGINATING_AGENCIES).field("_sps").size(AGGREGATION_SIZE)
         );
         return MetadataCollections.UNIT.getEsClient()
             .basicAggregationSearch(MetadataCollections.UNIT, tenant, aggregations, QueryBuilders.matchAllQuery());
@@ -562,7 +573,7 @@ public class MetaDataImpl {
             .basicAggregationSearch(OBJECTGROUP, tenant, Collections.singletonList(originatingAgencyAgg), query);
 
         List<ObjectGroupPerOriginatingAgency> listOgsPerSps = new ArrayList<>();
-        Terms originatingAgencyResult = result.get("originatingAgency");
+        Terms originatingAgencyResult = result.get(ORIGINATING_AGENCY);
         for (Bucket originatingAgencyBucket : originatingAgencyResult.getBuckets()) {
             String sp = originatingAgencyBucket.getKeyAsString();
             ObjectGroupPerOriginatingAgency ogPerSp = new ObjectGroupPerOriginatingAgency(operationId, sp, 0L, 0L, 0L);
@@ -572,8 +583,8 @@ public class MetaDataImpl {
                 Nested versionResult = operationBucket.getAggregations().get("version");
                 Filter versionOperationResult = versionResult.getAggregations().get("versionOperation");
                 Cardinality gotCountResult = versionOperationResult.getAggregations().get("gotCount");
-                Sum binaryObjectSizeResult = versionOperationResult.getAggregations().get("binaryObjectSize");
-                ValueCount binaryObjectCountResult = versionOperationResult.getAggregations().get("binaryObjectCount");
+                Sum binaryObjectSizeResult = versionOperationResult.getAggregations().get(BINARY_OBJECT_SIZE);
+                ValueCount binaryObjectCountResult = versionOperationResult.getAggregations().get(BINARY_OBJECT_COUNT);
 
                 long gotCount = gotCountResult.getValue();
                 long binaryObjectSize = (long) binaryObjectSizeResult.getValue();
@@ -600,9 +611,9 @@ public class MetaDataImpl {
     private AggregationBuilder aggregationForObjectGroupAccessionRegisterByOperationId(String operationId) {
         AggregationBuilder gotCountAgg = AggregationBuilders.cardinality("gotCount")
             .field("_qualifiers.versions.DataObjectGroupId").precisionThreshold(MAX_PRECISION_THRESHOLD);
-        AggregationBuilder binaryObjectSizeAgg = AggregationBuilders.sum("binaryObjectSize")
+        AggregationBuilder binaryObjectSizeAgg = AggregationBuilders.sum(BINARY_OBJECT_SIZE)
             .field("_qualifiers.versions.Size");
-        AggregationBuilder binaryObjectCountAgg = AggregationBuilders.count("binaryObjectCount")
+        AggregationBuilder binaryObjectCountAgg = AggregationBuilders.count(BINARY_OBJECT_COUNT)
             .field("_qualifiers.versions._id");
         AggregationBuilder versionOperationAgg = AggregationBuilders
             .filter("versionOperation", QueryBuilders.matchQuery("_qualifiers.versions._opi", operationId))
@@ -611,7 +622,7 @@ public class MetaDataImpl {
             .subAggregation(versionOperationAgg);
         AggregationBuilder operationAgg = AggregationBuilders.terms("operation").field("_opi")
             .subAggregation(versionAgg);
-        return AggregationBuilders.terms("originatingAgency").field("_sp")
+        return AggregationBuilders.terms(ORIGINATING_AGENCY).field("_sp")
             .subAggregation(operationAgg);
     }
 
@@ -661,12 +672,12 @@ public class MetaDataImpl {
         final JsonNode queryCopy = selectQuery.deepCopy();
         long offset = 0;
         long limit = 0;
-        if (selectQuery.get("$filter") != null) {
-            if (selectQuery.get("$filter").get("$offset") != null) {
-                offset = selectQuery.get("$filter").get("$offset").asLong();
+        if (selectQuery.get(FILTER) != null) {
+            if (selectQuery.get(FILTER).get(OFFSET) != null) {
+                offset = selectQuery.get(FILTER).get(OFFSET).asLong();
             }
-            if (selectQuery.get("$filter").get("$limit") != null) {
-                limit = selectQuery.get("$filter").get("$limit").asLong();
+            if (selectQuery.get(FILTER).get(LIMIT) != null) {
+                limit = selectQuery.get(FILTER).get(LIMIT).asLong();
             }
         }
 
@@ -1043,63 +1054,75 @@ public class MetaDataImpl {
     /*
      * this is an evolution requested by the client
      */
-    public void checkStreamUnits(int tenantId, short streamExecutionLimit) throws MetaDataException {
-        final MongoCollection<MetadataSnapshot> snapshotCollection =
-            mongoDbAccess.getMongoDatabase().getCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class);
+    public void checkStreamUnits(int tenantId, short unitsStreamExecutionLimit) throws MetaDataException {
+        checkStream(tenantId, unitsStreamExecutionLimit, UnitsScrollDate, UnitsScrollNumber);
+    }
 
-        final Bson scrollRequestDateFilter = Filters.and(
-            Filters.eq(MetadataSnapshot.TENANT_ID, tenantId),
-            Filters.eq(MetadataSnapshot.NAME, MetadataSnapshot.PARAMETERS.LastScrollRequestDate.name())
+    public void checkStreamObjects(int tenantId, short objectsStreamExecutionLimit) throws MetaDataException {
+        checkStream(tenantId, objectsStreamExecutionLimit, ObjectsScrollDate, ObjectsScrollNumber);
+    }
+
+    private void checkStream(int tenantId, short streamExecutionLimit,
+        MetadataSnapshot.PARAMETERS scrollDate,
+        MetadataSnapshot.PARAMETERS scrollNumber) throws MetaDataException {
+        final MongoCollection<MetadataSnapshot> snapshotCollection = mongoDbAccess.getMongoDatabase()
+            .getCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class);
+        final Bson unitsScrollDateFilter = Filters.and(
+            Filters.eq(TENANT_ID, tenantId),
+            Filters.eq(NAME, scrollDate.name())
         );
-
-        final Bson scrollFilter = Filters.and(
-            Filters.eq(MetadataSnapshot.TENANT_ID, tenantId),
-            Filters.eq(MetadataSnapshot.NAME, MetadataSnapshot.PARAMETERS.Scroll.name())
+        final Bson unitsScrollNumberFilter = Filters.and(
+            Filters.eq(TENANT_ID, tenantId),
+            Filters.eq(NAME, scrollNumber.name())
         );
-
-        final MetadataSnapshot lastScrollRequestDate = snapshotCollection.find(scrollRequestDateFilter).first();
-        if (lastScrollRequestDate != null) {
-            final LocalDate value =
-                LocalDateUtil.parseMongoFormattedDate(lastScrollRequestDate.getValue(String.class)).toLocalDate();
-            if (value.isBefore(LocalDate.now())) {
-                snapshotCollection.updateOne(scrollFilter, set(MetadataSnapshot.VALUE, 0));
+        final MetadataSnapshot unitsScrollDate = snapshotCollection.find(unitsScrollDateFilter).first();
+        if (unitsScrollDate != null) {
+            final LocalDate unitsScrollLocalDate =
+                LocalDateUtil.parseMongoFormattedDate(unitsScrollDate.getValue(String.class)).toLocalDate();
+            if (unitsScrollLocalDate.isBefore(LocalDate.now())) {
+                // reset
+                snapshotCollection.updateOne(unitsScrollNumberFilter, set(MetadataSnapshot.VALUE, 0));
                 return;
             }
         }
-
-
-        final MetadataSnapshot scroll = snapshotCollection.find(scrollFilter).first();
-        if (streamExecutionLimit != 0 && scroll != null) {
-            if (scroll.getValue(Integer.class) >= streamExecutionLimit) {
-                throw new MetaDataException("Scroll execution limit reached, please re-try next day");
-            }
+        final MetadataSnapshot unitsScrollNumber = snapshotCollection.find(unitsScrollNumberFilter).first();
+        if (streamExecutionLimit != 0 && unitsScrollNumber != null
+            && unitsScrollNumber.getValue(Integer.class) >= streamExecutionLimit) {
+            throw new MetaDataException("Scroll execution limit reached, please re-try next day");
         }
-
     }
 
     /*
      * this is an evolution requested by the client
      */
     public void updateParameterStreamUnits(int tenantId) {
-        final MongoCollection<MetadataSnapshot> snapshotCollection =
-            mongoDbAccess.getMongoDatabase().getCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class);
-        final Bson scrollRequestDateFilter = Filters.and(
-            Filters.eq(MetadataSnapshot.TENANT_ID, tenantId),
-            Filters.eq(MetadataSnapshot.NAME, MetadataSnapshot.PARAMETERS.LastScrollRequestDate.name())
+        updateParameterStream(tenantId, UnitsScrollDate, UnitsScrollNumber);
+    }
+
+    public void updateParameterStreamObjects(int tenantId) {
+        updateParameterStream(tenantId, ObjectsScrollDate, ObjectsScrollNumber);
+    }
+
+    private void updateParameterStream(int tenantId,
+        MetadataSnapshot.PARAMETERS scrollDate,
+        MetadataSnapshot.PARAMETERS scrollNumber) {
+        final MongoCollection<MetadataSnapshot> snapshotCollection = mongoDbAccess.getMongoDatabase()
+            .getCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class);
+        final Bson scrollDateFilter = Filters.and(
+            Filters.eq(TENANT_ID, tenantId),
+            Filters.eq(NAME, scrollDate.name())
         );
-
-        final Bson scrollFilter = Filters.and(
-            Filters.eq(MetadataSnapshot.TENANT_ID, tenantId),
-            Filters.eq(MetadataSnapshot.NAME, MetadataSnapshot.PARAMETERS.Scroll.name())
+        final Bson scrollNumberFilter = Filters.and(
+            Filters.eq(TENANT_ID, tenantId),
+            Filters.eq(NAME, scrollNumber.name())
         );
-
-        snapshotCollection.updateOne(scrollFilter, Updates
-            .combine(Updates.setOnInsert(VitamDocument.ID, GUIDFactory.newGUID().getId()),
-                inc(MetadataSnapshot.VALUE, 1)), new UpdateOptions().upsert(true));
-
-        snapshotCollection.updateOne(scrollRequestDateFilter, Updates
-                .combine(Updates.setOnInsert(VitamDocument.ID, GUIDFactory.newGUID().getId()),
-                    set(MetadataSnapshot.VALUE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))),
+        snapshotCollection.updateOne(scrollNumberFilter,
+            combine(setOnInsert(VitamDocument.ID, GUIDFactory.newGUID().getId()),
+                inc(MetadataSnapshot.VALUE, 1)),
+            new UpdateOptions().upsert(true));
+        snapshotCollection.updateOne(scrollDateFilter,
+            combine(setOnInsert(VitamDocument.ID, GUIDFactory.newGUID().getId()),
+                set(MetadataSnapshot.VALUE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))),
             new UpdateOptions().upsert(true));
     }
 }

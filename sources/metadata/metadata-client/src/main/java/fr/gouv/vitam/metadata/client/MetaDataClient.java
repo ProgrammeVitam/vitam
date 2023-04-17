@@ -466,4 +466,8 @@ public interface MetaDataClient extends BasicClient {
     Response streamUnits(JsonNode selectQuery)
         throws MetaDataClientServerException, MetadataScrollThresholdExceededException,
         MetadataScrollLimitExceededException;
+
+    Response streamObjects(JsonNode selectQuery)
+        throws MetaDataClientServerException, MetadataScrollThresholdExceededException,
+        MetadataScrollLimitExceededException;
 }

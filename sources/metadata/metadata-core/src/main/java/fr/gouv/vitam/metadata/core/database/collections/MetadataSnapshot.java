@@ -46,12 +46,11 @@ public class MetadataSnapshot extends VitamDocument<MetadataSnapshot> {
      * Parameters
      */
     public enum PARAMETERS {
-        Scroll,
-        LastScrollRequestDate
+        UnitsScrollNumber,
+        UnitsScrollDate,
+        ObjectsScrollNumber,
+        ObjectsScrollDate,
     }
-
-
-    ;
 
     @Override
     public MetadataSnapshot newInstance(JsonNode content) {

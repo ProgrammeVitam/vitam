@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamContext;
-import fr.gouv.vitam.common.database.api.VitamRepositoryFactory;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
@@ -69,7 +68,6 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
-import org.bson.Document;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -96,7 +94,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
 
 public class AccessExternalIT extends VitamRuleRunner {
     private static final Integer tenantId = 0;
@@ -223,9 +220,9 @@ public class AccessExternalIT extends VitamRuleRunner {
     public void shouldStreamUnitsWithExceedExecutionLimitKO() throws Exception {
         // given
         mongoRule.getMongoCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class).insertOne(new MetadataSnapshot(
-            "{ \"_id\" : \"aeaaaaaaaaeaaaabag5swal7ivc47uqaaaaq\", \"Name\" : \"Scroll\", \"_tenant\" : 0, \"Value\" : 3 }"));
+            "{ \"_id\" : \"aeaaaaaaaaeaaaabag5swal7ivc47uqaaaaq\", \"Name\" : \"UnitsScrollNumber\", \"_tenant\" : 0, \"Value\" : 3 }"));
         mongoRule.getMongoCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class).insertOne(new MetadataSnapshot(
-            "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"LastScrollRequestDate\", \"_tenant\" : 0, \"Value\" : \"" +
+            "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"UnitsScrollDate\", \"_tenant\" : 0, \"Value\" : \"" +
                 LocalDateUtil.getFormattedDateForMongo(LocalDate.now().atStartOfDay()) + "\" }"));
         VitamContext vitamContext = new VitamContext(tenantId)
             .setApplicationSessionId(APPLICATION_SESSION_ID)
@@ -236,9 +233,8 @@ public class AccessExternalIT extends VitamRuleRunner {
         query.addProjection(JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1));
 
         // THEN
-        assertThatCode(() ->
-            accessExternalClient.streamUnits(vitamContext, query.getFinalSelect())).isInstanceOf(
-            VitamClientException.class);
+        assertThatCode(() -> accessExternalClient.streamUnits(vitamContext, query.getFinalSelect()))
+            .isInstanceOf(VitamClientException.class);
     }
 
     @RunWithCustomExecutor
@@ -246,9 +242,9 @@ public class AccessExternalIT extends VitamRuleRunner {
     public void shouldStreamUnitsWithExceedExecutionLimitNextDayOK() throws Exception {
         // given
         mongoRule.getMongoCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class).insertOne(new MetadataSnapshot(
-            "{ \"_id\" : \"aeaaaaaaaaeaaaabag5swal7ivc47uqaaaaq\", \"Name\" : \"Scroll\", \"_tenant\" : 0, \"Value\" : 3 }"));
+            "{ \"_id\" : \"aeaaaaaaaaeaaaabag5swal7ivc47uqaaaaq\", \"Name\" : \"UnitsScrollNumber\", \"_tenant\" : 0, \"Value\" : 3 }"));
         mongoRule.getMongoCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class).insertOne(new MetadataSnapshot(
-            "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"LastScrollRequestDate\", \"_tenant\" : 0, \"Value\" : \"" +
+            "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"UnitsScrollDate\", \"_tenant\" : 0, \"Value\" : \"" +
                 LocalDateUtil.getFormattedDateForMongo(LocalDate.now().minusDays(1).atStartOfDay()) + "\" }"));
         VitamContext vitamContext = new VitamContext(tenantId)
             .setApplicationSessionId(APPLICATION_SESSION_ID)
@@ -277,13 +273,98 @@ public class AccessExternalIT extends VitamRuleRunner {
 
         SelectMultiQuery query = new SelectMultiQuery();
         query.addQueries(QueryHelper.exists(VitamFieldsHelper.id()));
-        query.addProjection(JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1));
+        //query.addProjection(JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1));
         query.setThreshold(12000L);
 
         // THEN
-        assertThatCode(() ->
-            accessExternalClient.streamUnits(vitamContext, query.getFinalSelect())).isInstanceOf(
-            VitamClientException.class);
+        assertThatCode(() -> accessExternalClient.streamUnits(vitamContext, query.getFinalSelect()))
+            .isInstanceOf(VitamClientException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void shouldStreamObjectsOK() throws Exception {
+        // given
+        VitamContext vitamContext = new VitamContext(tenantId)
+            .setApplicationSessionId(APPLICATION_SESSION_ID)
+            .setAccessContract(ACCESS_CONTRACT);
+
+        SelectMultiQuery query = new SelectMultiQuery();
+        query.addQueries(QueryHelper.exists(VitamFieldsHelper.id()));
+        query.addProjection(JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1));
+
+        // WHEN
+        final JsonLineIterator<JsonNode> iterator =
+            accessExternalClient.streamObjects(vitamContext, query.getFinalSelect());
+        // THEN
+        AtomicInteger size = new AtomicInteger();
+        iterator.forEachRemaining(e -> size.getAndIncrement());
+        assertEquals(2, size.get());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void shouldStreamObjectsWithExceedExecutionLimitKO() throws Exception {
+        // given
+        mongoRule.getMongoCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class).insertOne(new MetadataSnapshot(
+            "{ \"_id\" : \"aeaaaaaaaaeaaaabag5swal7ivc47uqaaaaq\", \"Name\" : \"ObjectsScrollNumber\", \"_tenant\" : 0, \"Value\" : 3 }"));
+        mongoRule.getMongoCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class).insertOne(new MetadataSnapshot(
+            "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"ObjectsScrollDate\", \"_tenant\" : 0, \"Value\" : \"" +
+                LocalDateUtil.getFormattedDateForMongo(LocalDate.now().atStartOfDay()) + "\" }"));
+        VitamContext vitamContext = new VitamContext(tenantId)
+            .setApplicationSessionId(APPLICATION_SESSION_ID)
+            .setAccessContract(ACCESS_CONTRACT);
+
+        SelectMultiQuery query = new SelectMultiQuery();
+        query.addQueries(QueryHelper.exists(VitamFieldsHelper.id()));
+        query.addProjection(JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1));
+
+        // THEN
+        assertThatCode(() -> accessExternalClient.streamObjects(vitamContext, query.getFinalSelect()))
+            .isInstanceOf(VitamClientException.class);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void shouldStreamObjectsWithExceedExecutionLimitNextDayOK() throws Exception {
+        // given
+        mongoRule.getMongoCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class).insertOne(new MetadataSnapshot(
+            "{ \"_id\" : \"aeaaaaaaaaeaaaabag5swal7ivc47uqaaaaq\", \"Name\" : \"Scroll\", \"_tenant\" : 0, \"Value\" : 3 }"));
+        mongoRule.getMongoCollection(SNAPSHOT_COLLECTION, MetadataSnapshot.class).insertOne(new MetadataSnapshot(
+            "{ \"_id\" : \"aeaaaaaaaaeaaaabahd72al7ivfrywiaaaaq\", \"Name\" : \"LastScrollRequestDate\", \"_tenant\" : 0, \"Value\" : \"" +
+                LocalDateUtil.getFormattedDateForMongo(LocalDate.now().minusDays(1).atStartOfDay()) + "\" }"));
+        VitamContext vitamContext = new VitamContext(tenantId)
+            .setApplicationSessionId(APPLICATION_SESSION_ID)
+            .setAccessContract(ACCESS_CONTRACT);
+
+        SelectMultiQuery query = new SelectMultiQuery();
+        query.addQueries(QueryHelper.exists(VitamFieldsHelper.id()));
+        query.addProjection(JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1));
+
+        // WHEN
+        final JsonLineIterator<JsonNode> iterator =
+            accessExternalClient.streamObjects(vitamContext, query.getFinalSelect());
+        // THEN
+        AtomicInteger size = new AtomicInteger();
+        iterator.forEachRemaining(e -> size.getAndIncrement());
+        assertEquals(2, size.get());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void shouldStreamObjectsWithThresholdKO() throws Exception {
+        // given
+        VitamContext vitamContext = new VitamContext(tenantId)
+            .setApplicationSessionId(APPLICATION_SESSION_ID)
+            .setAccessContract(ACCESS_CONTRACT);
+
+        SelectMultiQuery query = new SelectMultiQuery();
+        query.addQueries(QueryHelper.exists(VitamFieldsHelper.id()));
+        query.setThreshold(1L);
+
+        // THEN
+        assertThatCode(() -> accessExternalClient.streamObjects(vitamContext, query.getFinalSelect()))
+            .isInstanceOf(VitamClientException.class);
     }
 
     @RunWithCustomExecutor

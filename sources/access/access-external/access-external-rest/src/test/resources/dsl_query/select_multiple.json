@@ -1,0 +1,34 @@
+{
+	"$roots": ["aeaqaaaaaagdmvr3abnwoak7fzjq75qaaaca"],
+	"$query": [
+        {
+          "$match": {
+            "Title": "assemblée"
+          },
+          "$depth": 0
+        },
+        {
+         "$match": {
+            "Title": "discours"
+         },
+         "$depth": 20
+        },
+        {
+         "$in": {
+            "Title": ["discours"]
+         },
+         "$depth": 0
+        }
+    ],
+	"$filter": {
+		"$orderby": {
+			"Identifier": -1
+		}
+	},
+	"$projection": {
+		"$fields": {
+			"#id": 1,
+			"Title": 1
+		}
+	}
+}

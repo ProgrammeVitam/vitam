@@ -83,6 +83,12 @@ class AccessInternalClientMock extends AbstractMockClient implements AccessInter
     }
 
     @Override
+    public Response streamObjects(JsonNode selectQuery)
+        throws AccessInternalClientServerException, ExpectationFailedClientException {
+        return null;
+    }
+
+    @Override
     public RequestResponse<JsonNode> selectUnitbyId(JsonNode sqlQuery, String id)
         throws InvalidParseOperationException {
         return new RequestResponseOK().addResult(JsonHandler.getFromString(

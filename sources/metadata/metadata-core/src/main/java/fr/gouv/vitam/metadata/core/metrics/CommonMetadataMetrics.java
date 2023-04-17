@@ -43,10 +43,28 @@ public class CommonMetadataMetrics {
         .register();
 
     /**
+     * Compute metadata stream document duration.
+     */
+    public static final Histogram OBJECT_SCROLL_DURATION_HISTOGRAM = Histogram.build()
+        .name(VitamMetricsNames.VITAM_METADATA_OBJECT_SCROLL_DURATION)
+        .labelNames("requestId")
+        .help("Vitam metadata stream histogram duration metric")
+        .register();
+
+    /**
      * Count metadata stream documents
      */
     public static final Counter UNIT_SCROLL_COUNTER = Counter.build()
         .name(VitamMetricsNames.VITAM_METADATA_UNIT_SCROLL_TOTAL)
+        .labelNames("requestId")
+        .help("Vitam metadata stream document counter")
+        .register();
+
+    /**
+     * Count metadata stream documents
+     */
+    public static final Counter OBJECT_SCROLL_COUNTER = Counter.build()
+        .name(VitamMetricsNames.VITAM_METADATA_OBJECT_SCROLL_TOTAL)
         .labelNames("requestId")
         .help("Vitam metadata stream document counter")
         .register();

@@ -66,6 +66,12 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
+    public JsonLineIterator<JsonNode> streamObjects(VitamContext vitamContext, JsonNode selectQuery)
+        throws VitamClientException {
+        return null;
+    }
+
+    @Override
     public RequestResponse<JsonNode> selectUnitbyId(VitamContext vitamContext, JsonNode selectQuery, String unitId)
         throws VitamClientException {
         return ClientMockResultHelper.getArchiveUnitSimpleResult(selectQuery);

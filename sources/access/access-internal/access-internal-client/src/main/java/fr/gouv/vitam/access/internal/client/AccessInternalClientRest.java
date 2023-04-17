@@ -109,6 +109,7 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     private static final String UNITS_RULES = "/units/rules";
     private static final String UNITS_WITH_INHERITED_RULES = "unitsWithInheritedRules";
     private static final String UNITS_STREAM = "/units/stream";
+    private static final String OBJECTS_STREAM = "/objects/stream";
 
     private static final Runnable CHECK_REQUEST_ID = () -> VitamThreadUtils.getVitamSession().checkValidRequestId();
 
@@ -142,6 +143,38 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             response =
                 make(get().withBefore(CHECK_REQUEST_ID).withPath(UNITS_STREAM).withBody(selectQuery, BLANK_DSL).
                     withJsonContentType().withOctetAccept());
+            Status status = response.getStatusInfo().toEnum();
+            if (!SUCCESSFUL.equals(status.getFamily())) {
+                switch (status) {
+                    case EXPECTATION_FAILED:
+                        throw new ExpectationFailedClientException(REQUEST_PRECONDITION_FAILED);
+                    case UNAUTHORIZED:
+                        throw new AccessUnauthorizedException(status.toString());
+                    default:
+                        throw new AccessInternalClientServerException(status.toString());
+                }
+            }
+            return response;
+        } catch (VitamClientInternalException e) {
+            throw new AccessInternalClientServerException(e);
+        } finally {
+            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+                response.close();
+            }
+        }
+    }
+
+    @Override
+    public Response streamObjects(JsonNode selectQuery)
+        throws AccessInternalClientServerException, ExpectationFailedClientException, AccessUnauthorizedException {
+        Response response = null;
+        try {
+            VitamRequestBuilder request = get().withBefore(CHECK_REQUEST_ID)
+                .withPath(OBJECTS_STREAM)
+                .withBody(selectQuery, BLANK_DSL)
+                .withJsonContentType()
+                .withOctetAccept();
+            response = make(request);
             Status status = response.getStatusInfo().toEnum();
             if (!SUCCESSFUL.equals(status.getFamily())) {
                 switch (status) {

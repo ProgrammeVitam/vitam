@@ -36,6 +36,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientNotFou
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientServerException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalClientUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -2769,5 +2770,23 @@ public class AccessExternalResourceTest extends ResteasyTestApplication {
             .when().delete("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+    }
+
+    @Test
+    public void streamObjects_test() throws Exception {
+        // Given
+        when(accessInternalClient.streamObjects(any()))
+            .thenReturn(Response.ok(new ByteArrayInputStream("test".getBytes())).build());
+        // When / Then
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(JsonHandler.getFromFile(PropertiesUtils.findFile("dsl_query/select_multiple.json")))
+            .when().log().all()
+            .get("/objects/stream")
+            .then().log().all()
+            .statusCode(Status.OK.getStatusCode());
     }
 }

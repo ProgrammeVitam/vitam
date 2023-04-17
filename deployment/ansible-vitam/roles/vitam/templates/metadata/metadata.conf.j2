@@ -23,9 +23,11 @@ transfersSIPTimeToLiveInMinutes: {{ vitam.metadata.transfersSIPTimeToLiveInMinut
 reconstructionMetricsCacheDurationInMinutes: {{ vitam.metadata.reconstructionMetricsCacheDurationInMinutes | default(15) }}
 {% endif %}
 
-# Units Stream Threshold
-unitsStreamThreshold: {{ vitam.metadata.unitsStreamThreshold | default(1000000) }}
-streamExecutionLimit: {{ vitam.metadata.streamExecutionLimit | default(3) }}
+# Units and Objects Stream Threshold
+unitsStreamThreshold: {{ vitam.metadata.unitsStreamThreshold | default(1_000_000) }}
+unitsStreamExecutionLimit: {{ vitam.metadata.unitsStreamExecutionLimit | default(3) }}
+objectsStreamThreshold: {{ vitam.metadata.objectsStreamThreshold | default(1_000_000) }}
+objectsStreamExecutionLimit: {{ vitam.metadata.objectsStreamExecutionLimit | default(3) }}
 
 # Configuration MongoDB
 mongoDbNodes:

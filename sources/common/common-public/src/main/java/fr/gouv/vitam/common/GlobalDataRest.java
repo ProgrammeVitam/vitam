@@ -204,6 +204,11 @@ public class GlobalDataRest {
     public static final String X_UNITS_COUNT = "X-Units-Count";
 
     /**
+     * Objects Count Header
+     */
+    public static final String X_OBJECTS_COUNT = "X-Objects-Count";
+
+    /**
      * FIRST_PRIORITY_FILTER
      */
     public static final int FIRST_PRIORITY_FILTER = 1000;

@@ -1804,4 +1804,14 @@ public class AccessInternalModuleImplTest {
         assertThatThrownBy(() -> accessModuleImpl.removeAccessRequest("async_strategy", "accessRequestId1"))
             .isInstanceOf(AccessInternalExecutionException.class);
     }
+
+    @Test
+    public void streamObjects_OK() throws Exception {
+        // Given
+        JsonNode query = fromStringToJson(QUERY);
+        when(metaDataClient.streamObjects(any())).thenReturn(Response.status(200).build());
+        // When / Then
+        assertThat(accessModuleImpl.streamObjects(query).getStatus())
+            .isEqualTo(200);
+    }
 }

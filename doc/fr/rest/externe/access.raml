@@ -231,6 +231,13 @@ documentation:
       application/json:
         description: Requête permettant de rechercher un ou plusieurs groupes d'objets
         example: !include libraries/examples/object-group-search.json
+  /stream:
+    get:
+      description: |
+        Requête qui déclenche la récupération de toutes les unités d'archives dans un Json Stream.
+        Permissions requises:
+          - objects:stream
+      is: [AccessTraits.AccessObjectStreamResponse]
 
 /revert/units:
   displayName: Restauration des métadonnées
