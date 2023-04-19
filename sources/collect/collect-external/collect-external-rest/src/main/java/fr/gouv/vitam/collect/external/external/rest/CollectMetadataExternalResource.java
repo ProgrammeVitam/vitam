@@ -122,7 +122,7 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
             return Response.status(Response.Status.OK).entity(response).build();
         } catch (final VitamClientException e) {
             LOGGER.error(ERROR_WHEN_CREATING_AN_OBJECT_GROUP_UNIT_BY_ID, e);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             return Response.status(PRECONDITION_FAILED).build();
