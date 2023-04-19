@@ -68,7 +68,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import static fr.gouv.vitam.batch.report.model.ReportType.UPDATE_UNIT;
+import static fr.gouv.vitam.batch.report.model.ReportType.BULK_UPDATE_UNIT;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
@@ -313,7 +313,7 @@ public class RevertUpdateUnitFinalizePluginTest {
         revertUpdateUnitFinalizePlugin.execute(workerParameter, handlerIO);
 
         // Then
-        verify(batchReportClient).cleanupReport(operationId, UPDATE_UNIT);
+        verify(batchReportClient).cleanupReport(operationId, BULK_UPDATE_UNIT);
     }
 
     private JsonNode getLogbookOperationRequestResponseOK() throws InvalidParseOperationException {

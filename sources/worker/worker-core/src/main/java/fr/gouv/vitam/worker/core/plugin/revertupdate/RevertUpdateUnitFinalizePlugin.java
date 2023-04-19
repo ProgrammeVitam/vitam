@@ -35,7 +35,7 @@ import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.worker.core.plugin.UpdateUnitFinalize;
 
-import static fr.gouv.vitam.batch.report.model.ReportType.UPDATE_UNIT;
+import static fr.gouv.vitam.batch.report.model.ReportType.BULK_UPDATE_UNIT;
 import static fr.gouv.vitam.worker.core.plugin.revertupdate.RevertUpdateUnitPlugin.REVERT_UPDATE_UNITS;
 
 public class RevertUpdateUnitFinalizePlugin extends UpdateUnitFinalize {
@@ -76,7 +76,7 @@ public class RevertUpdateUnitFinalizePlugin extends UpdateUnitFinalize {
 
     @Override
     protected ReportType getReportType() {
-        return UPDATE_UNIT;
+        return BULK_UPDATE_UNIT;
     }
 
 }
