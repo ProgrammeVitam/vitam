@@ -147,6 +147,7 @@ import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.GENERATE;
 import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
 import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.DISSEMINATION;
+import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.PHYSICAL_MASTER;
 import static fr.gouv.vitam.common.thread.VitamThreadUtils.getVitamSession;
 import static fr.gouv.vitam.metadata.client.MetaDataClientFactory.getInstance;
 import static fr.gouv.vitam.purge.EndToEndEliminationAndTransferReplyIT.prepareVitamSession;
@@ -189,6 +190,8 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
     public static final String OPI = "Opi";
 
     String ingestOperationId;
+
+    String secondIngestOperationId;
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -961,6 +964,90 @@ public class DeleteGotVersionsIT extends VitamRuleRunner {
             assertThat(accessRegisterDetailCreatedByPreservation.getTotalObjects().getDeleted()).isGreaterThan(0);
         }
     }
+
+    @RunWithCustomExecutor
+    @Test
+    public void givenPhysicalMasterThenDeleteGotVersions_OK() throws Exception {
+        secondIngestOperationId = doIngest(TENANT_ID, "deleteGotVersions/OK_AU_Physiques.zip");
+        try (AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient()) {
+            // GIVEN
+            SelectMultiQuery getGotsRequest = new SelectMultiQuery();
+            getGotsRequest.addQueries(
+                QueryHelper.eq(VitamFieldsHelper.initialOperation(), secondIngestOperationId));
+
+            RequestResponse<JsonNode> gots =
+                accessClient.selectObjects(getGotsRequest.getFinalSelect());
+
+            List<VersionsModel> qualifersBeforeDelete = getFromJsonNode(
+                (((ObjectNode) ((RequestResponseOK) gots).getResults().get(0)).get("#qualifiers")
+                    .get(0).get("versions")), new TypeReference<>() {
+                });
+            List<String> dataObjectVersionsBeforeDelete =
+                qualifersBeforeDelete.stream().map(VersionsModel::getDataObjectVersion).collect(Collectors.toList());
+
+            assertEquals(1, dataObjectVersionsBeforeDelete.size());
+            assertTrue(dataObjectVersionsBeforeDelete.contains("PhysicalMaster_1"));
+
+            // Prepare Request for delete got versions
+            SelectMultiQuery searchDslQuery = new SelectMultiQuery();
+            searchDslQuery
+                .addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), secondIngestOperationId));
+            DeleteGotVersionsRequest deleteGotVersionsRequest =
+                new DeleteGotVersionsRequest(searchDslQuery.getFinalSelect(),
+                    PHYSICAL_MASTER.getName(), List.of(1));
+
+            GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
+            getVitamSession().setRequestId(operationGuid);
+            final RequestResponse<JsonNode> actionResult =
+                accessClient.deleteGotVersions(deleteGotVersionsRequest);
+            assertThat(actionResult.isOk()).isTrue();
+            VitamTestHelper.awaitForWorkflowTerminationWithStatus(operationGuid, OK);
+
+            LogbookOperation logbookOperation = getLogbookOperation();
+            assertThat(logbookOperation.getEvents().stream().map(LogbookEventOperation::getOutcome)
+                .collect(Collectors.toList()))
+                .allMatch(outcome -> outcome.equals(OK.name()));
+
+            RequestResponse<JsonNode> gotsAfterDelete =
+                accessClient.selectObjects(getGotsRequest.getFinalSelect());
+            List<VersionsModel> qualifersAfterDelete = getFromJsonNode(
+                (((ObjectNode) ((RequestResponseOK) gotsAfterDelete).getResults().get(0)).get("#qualifiers")
+                    .get(0).get("versions")), new TypeReference<>() {
+                });
+            List<String> dataObjectVersionsAfterDelete =
+                qualifersAfterDelete.stream().map(VersionsModel::getDataObjectVersion).collect(Collectors.toList());
+
+            assertEquals(1, dataObjectVersionsAfterDelete.size());
+            assertFalse(dataObjectVersionsAfterDelete.contains("PhysicalMaster_1"));
+            assertTrue(
+                qualifersAfterDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("PhysicalMaster_1"))
+                    .findFirst().isEmpty());
+
+            // Check report
+            JsonNode reportsNode =
+                JsonHandler.toJsonNode(VitamTestHelper.getReports(getVitamSession().getRequestId()).stream()
+                    .filter(elmt -> elmt.has("objectGroupGlobal")).collect(Collectors.toList()));
+            List<DeleteGotVersionsReportEntry> reportsList =
+                getFromJsonNode(reportsNode, new TypeReference<>() {
+                });
+            assertEquals(reportsList.get(0).getObjectGroupGlobal().get(0).getStatus(), OK);
+            assertNull(reportsList.get(0).getObjectGroupGlobal().get(0).getOutcome());
+            assertEquals(reportsList.get(0).getObjectGroupGlobal().get(0).getDeletedVersions().size(), 1);
+            assertThat(reportsList.get(0).getObjectGroupGlobal().get(0).getDeletedVersions().stream().map(
+                VersionsModelCustomized::getDataObjectVersion).collect(Collectors.toList()))
+                .contains("PhysicalMaster_1");
+
+            String opcDeletedObjectGroup =
+                qualifersBeforeDelete.stream().filter(elmt -> elmt.getDataObjectVersion().equals("PhysicalMaster_1"))
+                    .findFirst().get().getOpi();
+            JsonNode accessRegisterDetailNode = JsonHandler.toJsonNode(
+                Lists.newArrayList(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection().find(eq(
+                    OPI, opcDeletedObjectGroup))));
+            assertNotNull(accessRegisterDetailNode);
+        }
+    }
+
+
 
     public void launchPreservation(DataObjectVersionType sourceType, DataObjectVersionType targetType)
         throws Exception {

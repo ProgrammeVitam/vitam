@@ -90,8 +90,7 @@ import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
-import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.PHYSICAL_MASTER;
+import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.*;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
@@ -100,7 +99,10 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
 
     private static final String PLUGIN_NAME = "DELETE_GOT_VERSIONS_PREPARATION";
     public static final String FIRST_BINARY_MASTER = BINARY_MASTER.getName() + "_1";
+
+    public static final String FIRST_PHYSICAL_MASTER= PHYSICAL_MASTER.getName() + "_1";
     public static final String DISTRIBUTION_FILE_OG = "distributionFileOG.jsonl";
+
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final DeleteGotVersionsReportService reportService;
@@ -213,7 +215,7 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
         }
     }
 
-    private List<ObjectGroupToDeleteReportEntry> generateGotWithDetails(ObjectGroupResponse objectGroup,
+    public List<ObjectGroupToDeleteReportEntry> generateGotWithDetails(ObjectGroupResponse objectGroup,
         DeleteGotVersionsRequest deleteGotVersionsRequest) {
         List<ObjectGroupToDeleteReportEntry> objectGroupReportEntries = new ArrayList<>();
         List<QualifiersModel> qualifiers = objectGroup.getQualifiers();
@@ -243,6 +245,16 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
                 qualifierToUpdate.getVersions().stream().filter(elmt -> elmt.getDataObjectVersion().equals(
                     deleteGotVersionsRequest.getUsageName() + "_" + version)).findFirst();
 
+            if (deleteGotVersionsRequest.getUsageName().equals(PHYSICAL_MASTER.getName())) {
+                String msgError = checkPhysicalCase(qualifiers, deleteGotVersionsRequest, version);
+                if (!msgError.isEmpty()) {
+                    ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
+                        new ObjectGroupToDeleteReportEntry(WARNING, msgError, null);
+                    objectGroupReportEntries.add(objectGroupToDeleteReportEntry);
+                    continue;
+                }
+            }
+
             if (specificVersionModel.isEmpty()) {
                 ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
                     new ObjectGroupToDeleteReportEntry(WARNING,
@@ -260,7 +272,8 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
                 continue;
             }
 
-            if (checkLastUsageVersion(deleteGotVersionsRequest.getUsageName(), qualifierToUpdate, version)) {
+            if (!versionModelToDelete.getDataObjectVersion().equals(FIRST_PHYSICAL_MASTER) &&
+                checkLastUsageVersion(deleteGotVersionsRequest.getUsageName(), qualifierToUpdate, version)) {
                 ObjectGroupToDeleteReportEntry objectGroupToDeleteReportEntry =
                     new ObjectGroupToDeleteReportEntry(WARNING,
                         String.format("The last version of %s usage cannot be deleted.",
@@ -305,9 +318,35 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
         return Integer.parseInt(objectVersion.getDataObjectVersion().split("_")[1]);
     }
 
+    private String checkPhysicalCase(List<QualifiersModel> qualifiers,
+        DeleteGotVersionsRequest deleteGotVersionsRequest, int version) {
+        final String USAGE_NAME = deleteGotVersionsRequest.getUsageName();
+        final String BINARY_MASTER_NAME = BINARY_MASTER.getName();
+        final String QUALIFIER_REQUIRED_ERROR_MSG = "Qualifier %s required for removing that %s usage";
+        final String VERSION_REQUIRED_ERROR_MSG = "Qualifier %s with version %d required for removing that %s usage";
+
+        if (version == 1) {
+            Optional<QualifiersModel> optionalQualifierToUpdate = qualifiers.stream()
+                .filter(qualifier -> qualifier.getQualifier().equals(BINARY_MASTER_NAME))
+                .findFirst();
+
+            if (optionalQualifierToUpdate.isEmpty()) {
+                return String.format(QUALIFIER_REQUIRED_ERROR_MSG, BINARY_MASTER_NAME, USAGE_NAME);
+            }
+
+            QualifiersModel binaryMasterQualifier = optionalQualifierToUpdate.get();
+            Optional<VersionsModel> optionalBinaryMasterVersion = binaryMasterQualifier.getVersions().stream()
+                .filter(versionModel -> versionModel.getDataObjectVersion().equals(FIRST_BINARY_MASTER))
+                .findFirst();
+            if (optionalBinaryMasterVersion.isEmpty()) {
+                return String.format(VERSION_REQUIRED_ERROR_MSG, BINARY_MASTER_NAME, 1, USAGE_NAME);
+            }
+        }
+        return "";
+    }
+
     private boolean checkForbiddenVersion(VersionsModel specificVersionMode) {
-        return FIRST_BINARY_MASTER.equals(specificVersionMode.getDataObjectVersion()) ||
-            specificVersionMode.getDataObjectVersion().startsWith(PHYSICAL_MASTER.getName());
+        return FIRST_BINARY_MASTER.equals(specificVersionMode.getDataObjectVersion());
     }
 
     private Pair<StatusCode, String> validateRequest(DeleteGotVersionsRequest deleteGotVersionsRequest) {
