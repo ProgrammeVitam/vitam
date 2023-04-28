@@ -112,19 +112,6 @@ Ce playbook change le "Read and write Concern" des replicaset par reconfiguratio
 
 Une fois ces montées de version de Mongodb réalisées la montée de version Vitam classique peut être réalisée.
 
-Nettoyage des fichiers timers, services et conf suite à la migration vers le scheduler
---------------------------------------------------------------------------------------
-
-.. caution:: Cette étape doit être effectuée AVANT la montée de version V6RC de vitam et après l'arrêt des Timers.
-
-Executez le playbook suivant :
-
-.. code-block:: bash
-
-    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/remove_old_files_for_scheduler_migration.yml --ask-vault-pass
-
-Ce playbook supprime les fichiers .service, .sh, .timers et .conf suite au passage vers le scheduler Quartz sur les hosts concernés.
-
 Réinitialisation de la reconstruction des registres de fond des sites secondaires
 ---------------------------------------------------------------------------------
 
@@ -183,6 +170,21 @@ Vitam doit être arrêté sur **tous les sites** :
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam.yml --ask-vault-pass
 
 ..
+
+Nettoyage des fichiers timers, services et conf suite à la migration vers le scheduler
+--------------------------------------------------------------------------------------
+
+.. caution:: Cette étape doit être effectuée AVANT la montée de version V6RC et sur un Vitam éteint.
+
+.. caution:: Cette opération doit être effectuée avec les sources de déploiement de la nouvelle version.
+
+Executez le playbook suivant :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/remove_old_files_for_scheduler_migration.yml --ask-vault-pass
+
+Ce playbook supprime les fichiers .service, .sh, .timers et .conf suite au passage vers le scheduler Quartz sur les hosts concernés.
 
 Application de la montée de version
 ===================================
