@@ -14,10 +14,12 @@ db.LogbookOperation.createIndex( { "_lastPersistedDate": 1, "_tenant" : 1 })
 //db.LogbookLifeCycleUnit.createIndex( { "_id" : 1 , "_tenant" : 1 , "evIdProc" : 1 , "events.evIdProc" : 1 } )
 // Required for unit lifecycle traceability (select by _lastPersistedDate && _tenant, order by _lastPersistedDate via index prefix)
 db.LogbookLifeCycleUnit.createIndex( { "_tenant": 1, "_lastPersistedDate": 1 })
+db.LogbookLifeCycleUnitInProcess.createIndex( { "_tenant": 1, "_lastPersistedDate": 1 })
 
 //db.LogbookLifeCycleObjectGroup.createIndex( { "_id" : 1 , "_tenant" : 1 , "evIdProc" : 1 , "events.evIdProc" : 1 , "_tenant" : 1 } )
 // Required for object group lifecycle traceability (select by _lastPersistedDate && _tenant, order by _lastPersistedDate via index prefix)
 db.LogbookLifeCycleObjectGroup.createIndex( { "_tenant": 1, "_lastPersistedDate": 1 })
+db.LogbookLifeCycleObjectGroupInProcess.createIndex( { "_tenant": 1, "_lastPersistedDate": 1 })
 
 // Drop obsolete indexes, if any (they where required for traceability at some point because of an bug that no longer exists)
 db.LogbookLifeCycleUnit.dropIndex( { "evDateTime" : 1} )

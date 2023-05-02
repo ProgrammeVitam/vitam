@@ -1,6 +1,11 @@
 // Switch to report database
 db = db.getSiblingDB('report')
 
+// Migration : remove Indexes
+
+db.PreservationReport.dropIndex({"processId" : 1, "_tenant" : 1, "id" : 1 })
+db.ExtractedMetadata.dropIndex( { "processId" : 1, "tenant" : 1, "id" : 1 } )
+db.BulkUpdateUnitMetadataReport.dropIndex( { "processId" : 1, "_tenant" : 1, "id" : 1 } )
 
 // Create indexes Report List
 
@@ -30,7 +35,6 @@ db.TransferReplyUnit.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.i
 
 // Create indexes PreservationReport
 db.PreservationReport.createIndex({"processId" : 1, "_tenant" : 1})
-db.PreservationReport.createIndex({"processId" : 1, "_tenant" : 1, "id" : 1 })
 db.PreservationReport.createIndex({"processId" : 1, "_tenant" : 1, "status" : 1 })
 
 // Create indexes AuditObjectGroup
@@ -49,11 +53,16 @@ db.EvidenceAuditReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata
 db.EvidenceAuditReport.createIndex( { "processId" : 1, "_tenant" : 1, "_metadata.status" : 1 } )
 
 // Create indexes ExtractedMetadata
-db.ExtractedMetadata.createIndex( { "processId" : 1, "tenant" : 1, "id" : 1 } )
+db.ExtractedMetadata.createIndex( { "processId" : 1, "tenant" : 1 } )
 
 // Create indexes BulkUpdateUnitMetadataReport
-db.BulkUpdateUnitMetadataReport.createIndex( { "processId" : 1, "_tenant" : 1, "id" : 1 } )
 db.BulkUpdateUnitMetadataReport.createIndex( { "processId" : 1, "_tenant" : 1, "statusId" : 1 } )
 
 // Create indexes DeleteGotVersionsReport
 db.DeleteGotVersionsReport.createIndex( { "processId" : 1, "_tenant" : 1 } )
+
+// Create indexes TraceabilityReport
+db.TraceabilityReport.createIndex( { "processId" : 1, "_tenant" : 1 } )
+
+// Create indexes TraceabilityReport
+db.UpdateUnitReport.createIndex( { "processId" : 1, "_tenant" : 1 } )
