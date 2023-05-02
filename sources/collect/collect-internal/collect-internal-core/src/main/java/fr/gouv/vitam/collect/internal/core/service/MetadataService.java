@@ -141,11 +141,11 @@ public class MetadataService {
                 unitModel.setUnitups(Collections.singletonList(attachmentUnits.get(STATIC_ATTACHMENT)));
             }
             if (projectModel.getUnitUps() != null) {
-                String attachmentId =
+                Set<String> unitUpSet =
                     MetadataHelper.findUnitParent(((ObjectNode) unit).put(VitamFieldsHelper.id(), unitId),
-                        projectModel.getUnitUps(), attachmentUnits).getValue();
-                if (attachmentId != null) {
-                    unitModel.setUnitups(Collections.singletonList(attachmentId));
+                        projectModel.getUnitUps(), attachmentUnits);
+                if (!attachmentUnits.isEmpty()) {
+                    unitModel.setUnitups(new ArrayList<>(unitUpSet));
                 }
             }
         }

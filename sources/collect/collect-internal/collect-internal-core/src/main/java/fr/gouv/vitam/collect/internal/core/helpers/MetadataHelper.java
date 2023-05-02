@@ -51,11 +51,12 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.time.LocalDateTime;
-import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
 import java.util.stream.Collectors;
@@ -133,17 +134,23 @@ public class MetadataHelper {
         return dbObjectGroupModel;
     }
 
-    public static Map.Entry<String, String> findUnitParent(ObjectNode unit, @Nonnull List<MetadataUnitUp> unitUps,
+    public static Set<String> findUnitParent(ObjectNode unit, @Nonnull List<MetadataUnitUp> unitUps,
         Map<String, String> unitIds) {
+        Set<String> attachmentUnits = new HashSet<>();
         for (MetadataUnitUp metadataUnitUp : unitUps) {
             if (metadataMatches(unit, metadataUnitUp.getMetadataKey(), metadataUnitUp.getMetadataValue())) {
                 final String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, metadataUnitUp.getUnitUp());
                 String unitUpId = unitIds.get(unitTitle);
-                return new AbstractMap.SimpleEntry<>(unit.get(VitamFieldsHelper.id()).asText(), unitUpId);
+                attachmentUnits.add(unitUpId);
             }
         }
-        return new AbstractMap.SimpleEntry<>(unit.get(VitamFieldsHelper.id()).asText(),
-            (unit.get(VitamFieldsHelper.unitups()) != null) ? unit.get(VitamFieldsHelper.unitups()).asText() : null);
+        if (attachmentUnits.isEmpty()) {
+            return (unit.get(VitamFieldsHelper.unitups()) != null) ?
+                Collections.singleton(unit.get(VitamFieldsHelper.unitups()).asText()) :
+                Collections.emptySet();
+        } else {
+            return attachmentUnits;
+        }
     }
 
     private static boolean metadataMatches(JsonNode objectNode, String path, String value) {
