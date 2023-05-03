@@ -69,7 +69,15 @@
             }
           },
           "OtherMetadata": {
-            "testMD": "test value"
+            "OtherMetadata01": "test value",
+            "OtherMetadata02": "test value",
+            "OtherMetadata03": "test value",
+            "OtherMetadata04": "test value",
+            "OtherMetadata05": "test value",
+            "OtherMetadata06": "test value",
+            "OtherMetadata07": "test value",
+            "OtherMetadata08": "test value",
+            "OtherMetadata09": "test value"
           },
           "Size": 8067,
           "Uri": "Content/1NUM_4.JPG",
