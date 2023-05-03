@@ -33,7 +33,6 @@ import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.collect.external.external.rest.CollectExternalMain;
 import fr.gouv.vitam.collect.internal.CollectInternalMain;
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamRuleRunner;
@@ -54,7 +53,10 @@ import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.text.ParseException;
+import java.util.Arrays;
+import java.util.Collections;
 
+import static fr.gouv.vitam.collect.CollectTestHelper.initProjectData;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.junit.Assert.assertTrue;
@@ -70,24 +72,24 @@ public class ProjectIT extends VitamRuleRunner {
 
 
     private static final Integer TENANT_ID = 0;
-    private static final String SUBMISSION_AGENCY_IDENTIFIER = "Service_versant";
-    private static final String MESSAGE_IDENTIFIER = "20220302-000005";
     private final VitamContext vitamContext = new VitamContext(TENANT_ID);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         new DataLoader("integration-ingest-internal").prepareData();
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        runner.stopMetadataServer(true);
         fr.gouv.vitam.common.client.VitamClientFactory.resetConnections();
         fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }
 
     @Test
     public void shoud_update_project() throws VitamClientException, InvalidParseOperationException, ParseException {
-        try(CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
+        try (CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
             // GIVEN
             ProjectDto projectDto = initProjectData();
             RequestResponse<JsonNode> createdProject = client.initProject(vitamContext, projectDto);
@@ -145,20 +147,5 @@ public class ProjectIT extends VitamRuleRunner {
             assertThat(response.isOk()).isTrue();
             return JsonHandler.getFromJsonNode(response.getFirstResult(), ProjectDto.class);
         }
-    }
-
-    static ProjectDto initProjectData() {
-        ProjectDto projectDto = new ProjectDto();
-        projectDto.setTransferringAgencyIdentifier("Identifier5");
-        projectDto.setOriginatingAgencyIdentifier("Service_producteur");
-        projectDto.setSubmissionAgencyIdentifier(SUBMISSION_AGENCY_IDENTIFIER);
-        projectDto.setMessageIdentifier(MESSAGE_IDENTIFIER);
-        projectDto.setArchivalAgencyIdentifier("Identifier4");
-        projectDto.setArchivalProfile("ArchiveProfile");
-        projectDto.setLegalStatus(TransactionStatus.OPEN.name());
-        projectDto.setComment("Versement du service producteur : Cabinet de Michel Mercier");
-        projectDto.setName("Projet de versement");
-        projectDto.setArchivalAgreement("ArchivalAgreement0");
-        return projectDto;
     }
 }

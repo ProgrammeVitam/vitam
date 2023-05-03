@@ -35,6 +35,8 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterSummary;
 import fr.gouv.vitam.functional.administration.common.config.ElasticsearchFunctionalAdminIndexManager;
@@ -51,6 +53,7 @@ import java.util.List;
  * ElasticSearch model with MongoDB as main database
  */
 public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessFunctionalAdmin.class);
 
     private final ElasticsearchFunctionalAdminIndexManager indexManager;
 
@@ -80,6 +83,7 @@ public class ElasticsearchAccessFunctionalAdmin extends ElasticsearchAccess {
                     indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(null),
                     indexManager.getElasticsearchIndexSettings(collection));
         } catch (final Exception e) {
+            LOGGER.error(e);
             throw new ReferentialException(e);
         }
     }

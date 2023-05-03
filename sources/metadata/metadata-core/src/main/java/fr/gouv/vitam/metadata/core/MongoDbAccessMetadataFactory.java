@@ -36,7 +36,6 @@ import fr.gouv.vitam.metadata.core.database.collections.ElasticsearchAccessMetad
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
-import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,14 +55,13 @@ public class MongoDbAccessMetadataFactory {
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration, MappingLoader mappingLoader,
+    public static MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration,
         ElasticsearchMetadataIndexManager elasticsearchMetadataIndexManager) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
 
         ElasticsearchAccessMetadata esClient;
         try {
-            esClient = ElasticsearchAccessMetadataFactory.create(configuration,
-                elasticsearchMetadataIndexManager);
+            esClient = ElasticsearchAccessMetadataFactory.create(configuration, elasticsearchMetadataIndexManager);
 
         } catch (final MetaDataException e1) {
             throw new IllegalArgumentException(e1);
@@ -76,8 +74,7 @@ public class MongoDbAccessMetadataFactory {
 
         classList.add(MetadataSnapshot.class);
 
-        MongoClient mongoClient =
-            MongoDbAccess.createMongoClient(configuration, classList);
+        MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, classList);
 
         MetadataCollections unitCollection = MetadataCollections.UNIT;
         MetadataCollections objectCollection = MetadataCollections.OBJECTGROUP;
@@ -85,7 +82,7 @@ public class MongoDbAccessMetadataFactory {
         if (Boolean.TRUE.equals(configuration.getCollectModule())) {
             unitCollection.setPrefix(COLLECT_PREFIX);
             objectCollection.setPrefix(COLLECT_PREFIX);
-        }else {
+        } else {
             unitCollection.setPrefix("");
             objectCollection.setPrefix("");
         }

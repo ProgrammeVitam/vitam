@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.scheduler.server.job;
 
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -42,13 +43,14 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.quartz.JobExecutionContext;
 
-import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class PurgeSipJobTest {
+
+    private static final int TENANT_ID = 1;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -74,6 +76,7 @@ public class PurgeSipJobTest {
         Mockito.reset(metaDataClient);
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         purgeSipJob = new PurgeSipJob(metaDataClientFactory);
+        VitamConfiguration.setAdminTenant(TENANT_ID);
     }
 
     @Test

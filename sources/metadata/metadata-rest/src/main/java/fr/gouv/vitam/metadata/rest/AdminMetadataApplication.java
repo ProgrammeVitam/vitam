@@ -59,7 +59,7 @@ public class AdminMetadataApplication extends Application {
 
     private final AdminApplication adminApplication;
 
-    private Set<Object> singletons;
+    private final Set<Object> singletons;
 
     /**
      * Constructor
@@ -87,7 +87,7 @@ public class AdminMetadataApplication extends Application {
             adminApplication = new AdminApplication();
             // Hack to instance metadatas collections
             MongoDbAccessMetadataImpl mongoDbAccessMetadata =
-                MongoDbAccessMetadataFactory.create(metaDataConfiguration, mappingLoader, indexManager);
+                MongoDbAccessMetadataFactory.create(metaDataConfiguration, indexManager);
 
             // TODO: Ugly fix as we have to change all unit test
             if (null != metaDataConfiguration.getWorkspaceUrl() && !metaDataConfiguration.getWorkspaceUrl().isEmpty()) {

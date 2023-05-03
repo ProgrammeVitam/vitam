@@ -203,15 +203,13 @@ import static fr.gouv.vitam.common.model.ProcessState.COMPLETED;
 import static fr.gouv.vitam.common.model.ProcessState.PAUSE;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
-import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.administration.RuleType.AccessRule;
 import static fr.gouv.vitam.common.model.administration.RuleType.AppraisalRule;
 import static fr.gouv.vitam.common.model.logbook.LogbookEvent.OUT_DETAIL;
 import static fr.gouv.vitam.common.model.logbook.LogbookOperation.EVENTS;
 import static fr.gouv.vitam.common.model.unit.RuleCategoryModel.FINAL_ACTION;
-import static fr.gouv.vitam.ingest.external.IngestExternalIT.INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON;
-import static fr.gouv.vitam.ingest.external.IngestExternalIT.OPERATION_ID_REPLACE;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.COMPUTE_INHERITED_RULES;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.INGEST;
@@ -232,6 +230,11 @@ public class ProcessingIT extends VitamRuleRunner {
 
     private static final String BIG_WORKFLOW = "BIG_WORKFLOW";
     private static final String CONTRACT_RULE_ID = "contract_rule";
+
+
+    public static final String INTEGRATION_INGEST_EXTERNAL_EXPECTED_LOGBOOK_JSON =
+        "integration-ingest-external/expected-logbook.json";
+    public static final String OPERATION_ID_REPLACE = "OPERATION_ID_REPLACE";
 
     @ClassRule
     public static VitamServerRunner runner =
@@ -1151,7 +1154,7 @@ public class ProcessingIT extends VitamRuleRunner {
             "UnvalidGuid:");
         // prepare zip
         String zipPath =
-            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
                 "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
         ProcessWorkflow processWorflow =
@@ -1177,7 +1180,7 @@ public class ProcessingIT extends VitamRuleRunner {
             "aeaqaaaabeha2624aaqjmalhotiigyyaaaca");
         // prepare zip
         zipPath =
-            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() + "/" +
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() + "/" +
                 zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
         processWorflow =
@@ -1514,7 +1517,7 @@ public class ProcessingIT extends VitamRuleRunner {
             idGot);
 
         String zipPath =
-            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
+            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
                 "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME), zipPath);
 
@@ -1577,7 +1580,7 @@ public class ProcessingIT extends VitamRuleRunner {
             "(?<=<MetadataName>).*?(?=</MetadataName>)", "#object");
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml",
             "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
-        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
             "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME), zipPath);
 
@@ -1630,7 +1633,7 @@ public class ProcessingIT extends VitamRuleRunner {
             "(?<=<MetadataName>).*?(?=</MetadataName>)", "#object");
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME + "/manifest.xml",
             "(?<=<MetadataValue>).*?(?=</MetadataValue>)", idGOT);
-        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
             "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_BY_QUERY_OK_NAME), zipPath);
 
@@ -1686,7 +1689,7 @@ public class ProcessingIT extends VitamRuleRunner {
         replaceStringInFile(SIP_FILE_ADD_AU_LINK_OK_NAME + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
             "GUID_ARCHIVE_UNIT_PARENT");
         // prepare zip
-        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+        zipPath = PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
             "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME), zipPath);
 
@@ -1758,7 +1761,7 @@ public class ProcessingIT extends VitamRuleRunner {
             "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
             idGot);
 
-        zipPath = PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
+        zipPath = PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
             "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME), zipPath);
 
@@ -1852,7 +1855,7 @@ public class ProcessingIT extends VitamRuleRunner {
             "(?<=<DataObjectGroupExistingReferenceId>).*?(?=</DataObjectGroupExistingReferenceId>)",
             idGot);
         zipFolder(PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME),
-            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
+            PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
                 "/" + zipName);
 
 
@@ -1888,7 +1891,7 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(processWorkflow.getSteps());
         try {
             Files.delete(new File(
-                PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath().toString() +
+                PropertiesUtils.getResourcePath(LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET).toAbsolutePath() +
                     "/" + zipName).toPath());
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
@@ -1919,7 +1922,7 @@ public class ProcessingIT extends VitamRuleRunner {
                 }
 
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                    zos.putNextEntry(new ZipEntry(path.relativize(dir).toString() + "/"));
+                    zos.putNextEntry(new ZipEntry(path.relativize(dir) + "/"));
                     zos.closeEntry();
                     return FileVisitResult.CONTINUE;
                 }
@@ -2708,7 +2711,7 @@ public class ProcessingIT extends VitamRuleRunner {
         replaceStringInFile(ADD_OBJET_TO_GOT + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
             idUnit);
         String zipPath =
-            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
                 "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(ADD_OBJET_TO_GOT), zipPath);
 
@@ -2849,7 +2852,7 @@ public class ProcessingIT extends VitamRuleRunner {
         replaceStringInFile(SIP_PROD_SERV_B_ATTACHED + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
             idUnit);
         String zipPath =
-            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
                 "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(SIP_PROD_SERV_B_ATTACHED), zipPath);
 
@@ -2938,7 +2941,7 @@ public class ProcessingIT extends VitamRuleRunner {
         replaceStringInFile(ADD_OBJET_TO_GOT + "/manifest.xml", "(?<=<SystemId>).*?(?=</SystemId>)",
             idUnit);
         zipPath =
-            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath().toString() +
+            PropertiesUtils.getResourcePath(SIP_FILE_ADD_AU_LINK_OK_NAME_TARGET).toAbsolutePath() +
                 "/" + zipName;
         zipFolder(PropertiesUtils.getResourcePath(ADD_OBJET_TO_GOT), zipPath);
 

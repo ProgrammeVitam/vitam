@@ -27,6 +27,7 @@
 package fr.gouv.vitam.collect;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
@@ -51,7 +52,6 @@ import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
@@ -60,7 +60,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -71,24 +70,29 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static fr.gouv.vitam.collect.ProjectIT.initProjectData;
-import static fr.gouv.vitam.collect.TransactionIT.initTransaction;
+import static fr.gouv.vitam.collect.CollectTestHelper.initProjectData;
+import static fr.gouv.vitam.collect.CollectTestHelper.initTransaction;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
-@Ignore
 public class FluxIT extends VitamRuleRunner {
 
     private static final String GUID_ILE_DE_FRANCE = "aeaqaaaaaahb5rlnaat5yamglule7mqaaabq";
 
+    private static final String UNIT_TITLE = "Paris";
+
     @ClassRule public static VitamServerRunner runner =
         new VitamServerRunner(FluxIT.class, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(MetadataMain.class, AdminManagementMain.class, LogbookMain.class, WorkspaceMain.class,
+            Sets.newHashSet(AdminManagementMain.class, LogbookMain.class, WorkspaceMain.class,
                 CollectInternalMain.class, CollectExternalMain.class));
 
     private static final Integer TENANT_ID = 0;
     private static final String UNITS_UPDATED_BY_ZIP_PATH = "collect/units_with_description.json";
     private static final String UPDATED_UNITS_WITH_DYNAMIC_ATTACHMENT =
         "collect/updated_units_with_dynamic_attachment.json";
+
+    private static final String CREATED_UNIT_WITH_DYNAMIC_ATTACHMENT =
+        "collect/created_unit_with_dynamic_attachment.json";
     private static final String ZIP_FILE = "collect/sampleStream.zip";
     private static final String FILE_ZIP_FILE = "collect/file.zip";
     private static final String UNITS_TO_UPDATE = "collect/updateMetadata/units.json";
@@ -109,6 +113,7 @@ public class FluxIT extends VitamRuleRunner {
     public static void tearDownAfterClass() throws Exception {
         runner.stopMetadataCollectServer(false);
         runner.stopWorkspaceCollectServer();
+        runner.stopMetadataServer(true);
         handleAfterClass();
         runAfter();
         fr.gouv.vitam.common.client.VitamClientFactory.resetConnections();
@@ -165,15 +170,15 @@ public class FluxIT extends VitamRuleRunner {
 
 
             // test download got
-
-            String unitId = unitsByTransaction.getResults().get(1).get(VitamFieldsHelper.id()).asText();
-            Response response = collectClient
-                .getObjectStreamByUnitId(vitamContext, unitId, DataObjectVersionType.BINARY_MASTER.getName(), 1);
+            String unitId = unitsByTransaction.getResults().stream()
+                .filter(a -> a.get("Title").asText().equals("Saint-Lazare.link"))
+                .map(a -> a.get(VitamFieldsHelper.id()).asText()).findFirst().get();
+            Response response = collectClient.getObjectStreamByUnitId(vitamContext, unitId,
+                DataObjectVersionType.BINARY_MASTER.getName(), 1);
 
             assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
-            assertThat(response.readEntity(InputStream.class))
-                .hasSameContentAs(new ByteArrayInputStream(
-                    "Link to 2_Front-Populaire/Porte-de-la-Chapelle/Marx-Dormoy/Saint-Lazare".getBytes()));
+            assertThat(response.readEntity(InputStream.class)).hasSameContentAs(new ByteArrayInputStream(
+                "Link to 2_Front-Populaire/Porte-de-la-Chapelle/Marx-Dormoy/Saint-Lazare".getBytes()));
         }
     }
 
@@ -229,6 +234,61 @@ public class FluxIT extends VitamRuleRunner {
                         "[*]." + VitamFieldsHelper.initialOperation(),
                         "[*]." + VitamFieldsHelper.approximateCreationDate(),
                         "[*]." + VitamFieldsHelper.approximateUpdateDate())));
+        }
+    }
+
+
+    @Test
+    public void should_create_unit_with_multi_rattachement() throws Exception {
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            ProjectDto projectDto = initProjectData();
+            List<MetadataUnitUp> metadataUnitUps = new ArrayList<>();
+            metadataUnitUps.add(new MetadataUnitUp(GUID_ILE_DE_FRANCE, "Departement", "75"));
+            projectDto.setUnitUps(metadataUnitUps);
+            final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+
+            ProjectDto projectDtoResult =
+                JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                    ProjectDto.class);
+
+            TransactionDto transactiondto = initTransaction();
+
+            RequestResponse<JsonNode> transactionResponse =
+                collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
+            Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
+
+            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
+            TransactionDto transactionDtoResult =
+                JsonHandler.getFromJsonNode(requestResponseOK.getFirstResult(), TransactionDto.class);
+
+            ObjectNode unit = JsonHandler.createObjectNode();
+            unit.put("Title", UNIT_TITLE);
+            unit.put("DescriptionLevel", "Item");
+            unit.put("Departement", 75);
+
+            collectClient.uploadArchiveUnit(vitamContext, unit, transactionDtoResult.getId());
+
+            final RequestResponseOK<JsonNode> unitsByTransaction =
+                (RequestResponseOK<JsonNode>) collectClient.getUnitsByTransaction(vitamContext,
+                    transactionDtoResult.getId(), new SelectMultiQuery().getFinalSelect());
+
+            final JsonNode expectedUnits =
+                JsonHandler.getFromFile(PropertiesUtils.getResourceFile(CREATED_UNIT_WITH_DYNAMIC_ATTACHMENT));
+
+            JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(unitsByTransaction.getResults()), expectedUnits,
+                JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths(
+                    List.of("[*]." + VitamFieldsHelper.id(), "[*]." + VitamFieldsHelper.unitups(),
+                        "[*]." + VitamFieldsHelper.object(), "[*]." + VitamFieldsHelper.allunitups(),
+                        "[*]." + VitamFieldsHelper.initialOperation(),
+                        "[*]." + VitamFieldsHelper.approximateCreationDate(),
+                        "[*]." + VitamFieldsHelper.approximateUpdateDate())));
+
+
+            int unitUpSize =
+                unitsByTransaction.getResults().stream().filter(e -> e.get("Title").asText().equals(UNIT_TITLE))
+                    .map(e -> e.get(VitamFieldsHelper.unitups())).map(JsonNode::size).reduce(0, Integer::sum);
+            assertEquals(1, unitUpSize);
         }
     }
 

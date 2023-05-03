@@ -139,7 +139,7 @@
 
         <!-- tests -->
         <maven.surefire.version>3.0.0</maven.surefire.version>
-        <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.9</jacoco-maven-plugin.version>
         <mockito.version>2.28.2</mockito.version>
         <junit.version>4.13</junit.version>
         <json-unit-version>2.13.0</json-unit-version>
@@ -436,7 +436,8 @@
                     <artifactId>maven-surefire-plugin</artifactId>
                     <version>${maven.surefire.version}</version>
                     <configuration>
-                        <argLine>-Xmx2048m -Dvitam.tmp.folder=/tmp ${coverageAgent}</argLine>
+                        <argLine>-XX:+HeapDumpOnOutOfMemoryError -Xmx4092m -Dvitam.tmp.folder=/tmp ${coverageAgent}
+                        </argLine>
                         <runOrder>alphabetical</runOrder>
                         <!-- Non Parallel mode -->
                         <parallel>classes</parallel>

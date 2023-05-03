@@ -207,7 +207,7 @@ public class WebApplicationResourceDelete {
             indexManager);
         mongoDbAccessLogbook = LogbookMongoDbAccessFactory.create(logbookConfiguration, ontologyLoader,
             logbookIndexManager);
-        mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration, mappingLoader,
+        mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(metaDataConfiguration,
             metadataIndexManager);
         LOGGER.debug("init Admin Management Resource server");
     }

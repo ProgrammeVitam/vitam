@@ -40,7 +40,6 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -50,18 +49,20 @@ public class ManageStatusThread implements Runnable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ManageStatusThread.class);
     private final TransactionService transactionService;
-    private final CollectInternalConfiguration collectInternalConfiguration;
-    private static final String ERROR_THREAD_EXECUTING = "Error when executing threads:";
+    private final ExecutorService executorService;
 
 
     public ManageStatusThread(CollectInternalConfiguration collectInternalConfiguration,
         TransactionService transactionService) {
         this.transactionService = transactionService;
-        this.collectInternalConfiguration = collectInternalConfiguration;
 
         Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance())
             .scheduleAtFixedRate(this, Math.min(5, collectInternalConfiguration.getStatusTransactionThreadFrequency()),
                 collectInternalConfiguration.getStatusTransactionThreadFrequency(), TimeUnit.MINUTES);
+
+        final int threadPoolSize = Math.min(collectInternalConfiguration.getTransactionStatusThreadPoolSize(),
+            VitamConfiguration.getTenants().size());
+        executorService = ExecutorUtils.createScalableBatchExecutorService(threadPoolSize);
     }
 
     @Override
@@ -78,39 +79,26 @@ public class ManageStatusThread implements Runnable {
         VitamThreadUtils.getVitamSession()
             .setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
         List<Integer> tenants = VitamConfiguration.getTenants();
-        int threadPoolSize = Math.min(this.collectInternalConfiguration.getTransactionStatusThreadPoolSize(),
-            tenants.size());
-        ExecutorService executorService = ExecutorUtils.createScalableBatchExecutorService(threadPoolSize);
         try {
             List<CompletableFuture<Void>> completableFuturesList = new ArrayList<>();
             for (var tenant : tenants) {
-                CompletableFuture<Void> traceabilityCompletableFuture =
-                    CompletableFuture.runAsync(() -> {
-                        Thread.currentThread().setName(ManageStatusThread.class.getName() + "-" + tenant);
-                        VitamThreadUtils.getVitamSession().setTenantId(tenant);
-                        try {
-                            this.transactionService.manageTransactionsStatus();
-                        } catch (CollectInternalException e) {
-                            LOGGER.error("Error when managing status transaction: {}", e);
-                        }
-                    }, executorService);
+                CompletableFuture<Void> traceabilityCompletableFuture = CompletableFuture.runAsync(() -> {
+                    Thread.currentThread().setName(ManageStatusThread.class.getName() + "-" + tenant);
+                    VitamThreadUtils.getVitamSession().setTenantId(tenant);
+                    try {
+                        this.transactionService.manageTransactionsStatus();
+                    } catch (CollectInternalException e) {
+                        LOGGER.error("Error when managing status transaction: {}", e);
+                    }
+                }, executorService);
 
                 completableFuturesList.add(traceabilityCompletableFuture);
             }
             CompletableFuture<Void> combinedFuture =
                 CompletableFuture.allOf(completableFuturesList.toArray(new CompletableFuture[0]));
-            combinedFuture.get();
-        } catch (InterruptedException e) {
-            LOGGER.error(ERROR_THREAD_EXECUTING + " {}", e);
-            Thread.currentThread().interrupt();
-            throw new CollectInternalException(ERROR_THREAD_EXECUTING + " {}" + e);
-        } catch (ExecutionException e) {
-            LOGGER.error(ERROR_THREAD_EXECUTING + " {}", e);
-            throw new CollectInternalException(ERROR_THREAD_EXECUTING + " {}" + e);
+            combinedFuture.join();
         } finally {
             executorService.shutdown();
         }
     }
-
-
 }

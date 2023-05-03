@@ -54,7 +54,7 @@ public final class MongoDbAccessAdminFactory {
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static final MongoDbAccessAdminImpl create(DbConfiguration configuration, OntologyLoader ontologyLoader,
+    public static MongoDbAccessAdminImpl create(DbConfiguration configuration, OntologyLoader ontologyLoader,
         ElasticsearchFunctionalAdminIndexManager indexManager) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
         final List<Class<?>> classList = new ArrayList<>();
@@ -80,7 +80,7 @@ public final class MongoDbAccessAdminFactory {
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static final MongoDbAccessAdminImpl create(DbConfiguration configuration, String clusterName,
+    public static MongoDbAccessAdminImpl create(DbConfiguration configuration, String clusterName,
         List<ElasticsearchNode> nodes, OntologyLoader ontologyLoader,
         ElasticsearchFunctionalAdminIndexManager indexManager) {
         ElasticsearchAccessAdminFactory.create(clusterName, nodes, indexManager);

@@ -80,7 +80,7 @@ public class MongoDbAccessMetadataFactoryTest {
             new MetaDataConfiguration(mongoNodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
                 mappingLoader);
         VitamConfiguration.setTenants(tenantList);
-        MongoDbAccessMetadataImpl mongoDbAccess = MongoDbAccessMetadataFactory.create(config, mappingLoader,
+        MongoDbAccessMetadataImpl mongoDbAccess = MongoDbAccessMetadataFactory.create(config,
             indexManager);
 
         assertNotNull(mongoDbAccess);

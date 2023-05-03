@@ -59,7 +59,7 @@ public class BusinessApplication extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
 
-    private Set<Object> singletons;
+    private final Set<Object> singletons;
 
     /**
      * Constructor
@@ -86,7 +86,7 @@ public class BusinessApplication extends Application {
                     mappingLoader);
 
             MongoDbAccessMetadataImpl mongoAccessMetadata = MongoDbAccessMetadataFactory.create(
-                metaDataConfiguration, mappingLoader, indexManager);
+                metaDataConfiguration, indexManager);
 
             OffsetRepository offsetRepository = new OffsetRepository(mongoAccessMetadata);
 

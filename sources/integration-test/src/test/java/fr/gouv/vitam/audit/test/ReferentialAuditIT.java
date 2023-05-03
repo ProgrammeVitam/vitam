@@ -53,10 +53,13 @@ import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.FileNotFoundException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.fail;
@@ -128,6 +131,11 @@ public class ReferentialAuditIT extends VitamRuleRunner {
             fail(String.format("Error on running audit on admin collection %s",
                 FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.name()));
         }
+    }
+
+    @BeforeClass
+    public static void setUpClass() throws Exception {
+        handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
     }
 
     @AfterClass

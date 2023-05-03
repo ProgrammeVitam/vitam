@@ -90,6 +90,7 @@ public class ElasticsearchAccessMetadata extends ElasticsearchAccess {
             createIndexesAndAliasesForDedicatedTenants(collections);
             createIndexesAndAliasesForTenantGroups(collections);
         } catch (final Exception e) {
+            LOGGER.error(e);
             throw new RuntimeException("Could not create indexes and aliases", e);
         }
     }
