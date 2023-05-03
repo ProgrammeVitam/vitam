@@ -53,8 +53,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -68,8 +67,8 @@ public class DataLoader {
 
     private final int tenant1 = 1;
     private final int tenantId = 0;
-    private String dataFodler;
-    private TypeReference<List<AccessContractModel>> valueTypeRef = new TypeReference<>() {
+    private final String dataFodler;
+    private final TypeReference<List<AccessContractModel>> valueTypeRef = new TypeReference<>() {
     };
 
     public DataLoader(String dataFodler) {
@@ -77,19 +76,11 @@ public class DataLoader {
     }
 
     public void prepareData() throws InterruptedException {
-
-        CountDownLatch countDownLatch = new CountDownLatch(1);
-        VitamThreadPoolExecutor.getDefaultExecutor().submit(() -> {
-            try {
-                System.err.println("===============  initialize(); =======================");
-
-                initialize();
-            } finally {
-                countDownLatch.countDown();
-            }
-
-        });
-        countDownLatch.await(1, TimeUnit.MINUTES);
+        CompletableFuture<Void> process = CompletableFuture.runAsync(() -> {
+            System.err.println("===============  initialize(); =======================");
+            initialize();
+        }, VitamThreadPoolExecutor.getDefaultExecutor());
+        process.join();
     }
 
     public void prepareVitamSession() {
@@ -99,16 +90,14 @@ public class DataLoader {
     }
 
     private void initialize() {
-
         VitamServerRunner.cleanOffers();
-
         prepareVitamSession();
         LOGGER.error("++++++++ tryImportFile....");
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             client.importFormat(
-                PropertiesUtils.getResourceAsStream(dataFodler + "/DROID_SignatureFile_V94.xml"),
-                "DROID_SignatureFile_V94.xml");
+                PropertiesUtils.getResourceAsStream(dataFodler + "/DROID_SignatureFile_V109.xml"),
+                "DROID_SignatureFile_V109.xml");
 
             // Import ontologies
             int initialTenant = VitamThreadUtils.getVitamSession().getTenantId();

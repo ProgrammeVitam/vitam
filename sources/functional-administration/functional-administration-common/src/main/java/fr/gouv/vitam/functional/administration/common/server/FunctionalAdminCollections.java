@@ -176,7 +176,7 @@ public enum FunctionalAdminCollections {
      * @param db database type
      * @param recreate true is as recreate type
      */
-    protected void initialize(final MongoDatabase db, final boolean recreate) {
+    void initialize(final MongoDatabase db, final boolean recreate) {
         vitamCollection.initialize(db, recreate);
     }
 
@@ -185,7 +185,7 @@ public enum FunctionalAdminCollections {
      *
      * @param esClient
      */
-    protected void initialize(final ElasticsearchAccessFunctionalAdmin esClient) {
+    void initialize(final ElasticsearchAccessFunctionalAdmin esClient) {
         vitamCollection.initialize(esClient);
         try {
             esClient.addIndex(this);
@@ -220,7 +220,7 @@ public enum FunctionalAdminCollections {
     /**
      * @return the associated class
      */
-    protected Class<? extends VitamDocument<?>> getClasz() {
+    Class<? extends VitamDocument<?>> getClasz() {
         return vitamCollection.getClasz();
     }
 

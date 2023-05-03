@@ -129,8 +129,8 @@ public final class MetadataCollectionsTestUtils {
 
                     for (Integer tenant : indexManager.getDedicatedTenants()) {
                         if (deleteEsIndexes) {
-                            collection.getEsClient().deleteIndexByAliasForTesting(
-                                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
+                           collection.getEsClient().deleteIndexByAliasForTesting(
+                               indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
                         } else {
                             collection.getEsClient().purgeIndexForTesting(
                                 indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));

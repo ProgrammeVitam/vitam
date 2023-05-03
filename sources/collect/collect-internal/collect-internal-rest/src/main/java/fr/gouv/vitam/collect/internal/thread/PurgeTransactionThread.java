@@ -45,7 +45,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -60,17 +59,19 @@ public class PurgeTransactionThread implements Runnable {
 
     private final Map<Integer, Integer> purgeTransactionDelayInMinutes;
 
-    private final int purgeTransactionThreadPoolSize;
+    private final ExecutorService executorService;
 
     public PurgeTransactionThread(CollectInternalConfiguration collectInternalConfiguration,
         TransactionService transactionService) {
         this.transactionService = transactionService;
         purgeTransactionDelayInMinutes = collectInternalConfiguration.getPurgeTransactionDelayInMinutes();
-        this.purgeTransactionThreadPoolSize = collectInternalConfiguration.getPurgeTransactionThreadPoolSize();
 
         Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance())
             .scheduleAtFixedRate(this, collectInternalConfiguration.getPurgeTransactionThreadFrequency(),
                 collectInternalConfiguration.getPurgeTransactionThreadFrequency(), TimeUnit.MINUTES);
+
+        executorService = ExecutorUtils.createScalableBatchExecutorService(
+            collectInternalConfiguration.getPurgeTransactionThreadPoolSize());
     }
 
     @Override
@@ -108,8 +109,6 @@ public class PurgeTransactionThread implements Runnable {
         Thread.currentThread().setName(PurgeTransactionThread.class.getName());
         VitamThreadUtils.getVitamSession()
             .setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
-        ExecutorService executorService =
-            ExecutorUtils.createScalableBatchExecutorService(this.purgeTransactionThreadPoolSize);
         try {
             List<CompletableFuture<Void>> completableFuturesList = new ArrayList<>();
             for (var entry : purgeTransactionDelayInMinutes.entrySet()) {
@@ -126,14 +125,7 @@ public class PurgeTransactionThread implements Runnable {
             }
             CompletableFuture<Void> combinedFuture =
                 CompletableFuture.allOf(completableFuturesList.toArray(new CompletableFuture[0]));
-            combinedFuture.get();
-        } catch (InterruptedException e) {
-            LOGGER.error("Error when executing threads: {}", e);
-            Thread.currentThread().interrupt();
-            throw new CollectInternalException("Error when executing threads: " + e);
-        } catch (ExecutionException e) {
-            LOGGER.error("Error when executing threads: {}", e);
-            throw new CollectInternalException("Error when executing threads: " + e);
+            combinedFuture.join();
         } finally {
             executorService.shutdown();
         }

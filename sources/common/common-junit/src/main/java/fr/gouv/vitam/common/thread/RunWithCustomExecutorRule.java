@@ -33,9 +33,10 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import java.lang.annotation.Annotation;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 
 /**
  * Junit Test rule used to run tests with a given {@link Executor} ; such tests should be annotated with the
@@ -92,9 +93,7 @@ public class RunWithCustomExecutorRule implements TestRule, ClassRule {
      * Statement used to launch decorated statement in a VitamThread
      */
     private class RunInVitamThreadStatement extends Statement {
-
         private final Statement baseStatement;
-        private volatile Throwable throwable;
 
         public RunInVitamThreadStatement(Statement base) {
             baseStatement = base;
@@ -102,19 +101,17 @@ public class RunWithCustomExecutorRule implements TestRule, ClassRule {
 
         @Override
         public void evaluate() throws Throwable {
-            // Submit work in another thread
-            final Future<?> future = executor.submit(() -> {
-                try {
-                    baseStatement.evaluate();
-                } catch (final Throwable t) {
-                    throwable = t;
-                }
-            });
-            // Wait for result
-            future.get();
-            // Recatch exception if needed
-            if (throwable != null) {
-                throw throwable;
+            try {
+                CompletableFuture<Void> run = CompletableFuture.runAsync(() -> {
+                    try {
+                        baseStatement.evaluate();
+                    } catch (Throwable e) {
+                        throw new CompletionException(e);
+                    }
+                }, executor);
+                run.join();
+            } catch (CompletionException e) {
+                throw e.getCause();
             }
         }
     }

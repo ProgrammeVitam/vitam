@@ -37,6 +37,8 @@ import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
@@ -56,6 +58,7 @@ import java.util.List;
  * ElasticSearch model with MongoDB as main database with management of index and index entries
  */
 public class LogbookElasticsearchAccess extends ElasticsearchAccess {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookElasticsearchAccess.class);
 
     public static final String MAPPING_LOGBOOK_OPERATION_FILE = "/logbook-es-mapping.json";
 
@@ -84,6 +87,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
             createIndexesAndAliasesForTenantGroups();
 
         } catch (final Exception e) {
+            LOGGER.error(e);
             throw new RuntimeException("Could not create indexes and aliases", e);
         }
     }
@@ -110,7 +114,7 @@ public class LogbookElasticsearchAccess extends ElasticsearchAccess {
         }
     }
 
-    public final void createIndexAndAliasIfAliasNotExists(final LogbookCollections collection, final Integer tenantId)
+    private void createIndexAndAliasIfAliasNotExists(final LogbookCollections collection, final Integer tenantId)
         throws LogbookExecutionException {
         try {
             ElasticsearchIndexAlias indexAlias =

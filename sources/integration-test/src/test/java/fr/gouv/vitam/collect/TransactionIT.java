@@ -28,7 +28,6 @@ package fr.gouv.vitam.collect;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
-import fr.gouv.culture.archivesdefrance.seda.v2.LegalStatusType;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
@@ -53,14 +52,14 @@ import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 
-import static fr.gouv.vitam.collect.ProjectIT.initProjectData;
+import static fr.gouv.vitam.collect.CollectTestHelper.initProjectData;
+import static fr.gouv.vitam.collect.CollectTestHelper.initTransaction;
 import static org.apache.hc.core5.http.HttpStatus.SC_OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -69,26 +68,27 @@ import static org.junit.Assert.assertNotNull;
 public class TransactionIT extends VitamRuleRunner {
 
     private static final Integer TENANT_ID = 0;
-    private static final String SUBMISSION_AGENCY_IDENTIFIER = "Service_versant";
-    private static final String MESSAGE_IDENTIFIER = "20220302-000005";
 
     private static final String AU_TO_UPLOAD = "collect/upload_au_collect.json";
     private final VitamContext vitamContext = new VitamContext(TENANT_ID);
 
     @ClassRule public static VitamServerRunner runner =
-        new VitamServerRunner(ProjectIT.class, mongoRule.getMongoDatabase().getName(),
+        new VitamServerRunner(TransactionIT.class, mongoRule.getMongoDatabase().getName(),
             ElasticsearchRule.getClusterName(),
             Sets.newHashSet(AdminManagementMain.class, LogbookMain.class, WorkspaceMain.class,
                 CollectInternalMain.class, CollectExternalMain.class));
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        runner.startMetadataCollectServer();
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
         new DataLoader("integration-ingest-internal").prepareData();
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        runner.stopMetadataCollectServer(true);
+        runner.stopMetadataServer(true);
         fr.gouv.vitam.common.client.VitamClientFactory.resetConnections();
         fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }
@@ -241,7 +241,6 @@ public class TransactionIT extends VitamRuleRunner {
     }
 
     @Test
-    @Ignore
     public void should_create_unit() throws Exception {
         try (CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
             ProjectDto projectDto = initProjectData();
@@ -274,7 +273,6 @@ public class TransactionIT extends VitamRuleRunner {
     }
 
     @Test
-    @Ignore
     public void should_delete_transaction() throws Exception {
         try (CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
             ProjectDto projectDto = initProjectData();
@@ -300,22 +298,5 @@ public class TransactionIT extends VitamRuleRunner {
                 client.deleteTransactionById(vitamContext, transactionDtoResult.getId());
             assertThat(response.getStatus()).isEqualTo(200);
         }
-    }
-
-
-    static TransactionDto initTransaction() {
-        TransactionDto transaction = new TransactionDto();
-        transaction.setName("My Transaction");
-        transaction.setArchivalAgreement("ArchivalAgreement0");
-        transaction.setAcquisitionInformation("AcquisitionInformation");
-        transaction.setArchivalAgencyIdentifier("Identifier4");
-        transaction.setTransferringAgencyIdentifier("Identifier5");
-        transaction.setOriginatingAgencyIdentifier("Service_producteur");
-        transaction.setSubmissionAgencyIdentifier(SUBMISSION_AGENCY_IDENTIFIER);
-        transaction.setMessageIdentifier(MESSAGE_IDENTIFIER);
-        transaction.setArchivalProfile("ArchiveProfile");
-        transaction.setLegalStatus(LegalStatusType.PRIVATE_ARCHIVE.value());
-        transaction.setComment("Versement du service producteur : Cabinet de Michel Mercier");
-        return transaction;
     }
 }

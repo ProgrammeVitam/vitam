@@ -1,0 +1,45 @@
+[
+  {
+    "DescriptionLevel": "Series",
+    "Title": "DYNAMIC_ATTACHEMENT_aeaqaaaaaahb5rlnaat5yamglule7mqaaabq",
+    "#id": "aeaqaaaaaaeaaaabacazqamgxo3ssbaaaaaq",
+    "#tenant": 0,
+    "#unitups": [],
+    "#min": 1,
+    "#max": 1,
+    "#allunitups": [],
+    "#management": {
+      "UpdateOperation": {
+        "SystemId": "aeaqaaaaaahb5rlnaat5yamglule7mqaaabq"
+      }
+    },
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaabacazqamgxo3mcxaaaaaq",
+    "#originating_agencies": [],
+    "#version": 0,
+    "#approximate_creation_date": "2023-03-07T10:56:28.574",
+    "#approximate_update_date": "2023-03-07T10:56:28.574"
+  },
+  {
+    "Title": "Paris",
+    "DescriptionLevel": "Item",
+    "Departement": [
+      "75"
+    ],
+    "#id": "aeaqaaaaaaeaaaabacazqamgxo3rfhaaaaaq",
+    "#tenant": 0,
+    "#unitups": [
+      "aeaqaaaaaaeaaaabacazqamgxo3ssbaaaaaq"
+    ],
+    "#min": 1,
+    "#max": 2,
+    "#allunitups": [],
+    "#management": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaaceaaaabacazqamgxo3mcxaaaaaq",
+    "#originating_agencies": [],
+    "#version": 1,
+    "#approximate_creation_date": "2023-03-07T10:56:58.820",
+    "#approximate_update_date": "2023-03-07T10:56:58.820"
+  }
+]

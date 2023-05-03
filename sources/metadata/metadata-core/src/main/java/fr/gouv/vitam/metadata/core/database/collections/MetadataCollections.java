@@ -79,7 +79,7 @@ public enum MetadataCollections {
      * @param recreate true is as recreate type
      */
 
-    protected void initialize(MongoDatabase db, boolean recreate) {
+    void initialize(MongoDatabase db, boolean recreate) {
         vitamCollection.initialize(db, recreate);
     }
 
@@ -90,7 +90,7 @@ public enum MetadataCollections {
      * @param esClient ElasticsearchAccessMetadata
      */
 
-    protected void initialize(ElasticsearchAccessMetadata esClient) {
+    void initialize(ElasticsearchAccessMetadata esClient) {
         vitamCollection.initialize(esClient);
     }
 
@@ -98,7 +98,7 @@ public enum MetadataCollections {
      * @return the name of the collection
      */
     public String getName() {
-        return this.prefix + vitamCollection.getName();
+        return vitamCollection.getName();
     }
 
     public String getPrefix() {
