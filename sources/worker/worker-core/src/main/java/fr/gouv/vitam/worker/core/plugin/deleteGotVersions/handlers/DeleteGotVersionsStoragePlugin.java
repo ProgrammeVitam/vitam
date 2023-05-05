@@ -62,6 +62,8 @@ public class DeleteGotVersionsStoragePlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DeleteGotVersionsStoragePlugin.class);
 
     private static final String PLUGIN_NAME = "DELETE_GOT_VERSIONS_STORAGE";
+
+    private static final String PHYSICAL_MASTER = "PhysicalMaster";
     private final StorageClientFactory storageClientFactory;
 
     public DeleteGotVersionsStoragePlugin() {
@@ -115,7 +117,9 @@ public class DeleteGotVersionsStoragePlugin extends ActionHandler {
             }
 
             for (VersionsModelCustomized versionToDelete : versionsToDelete) {
-                storageClient.delete(versionToDelete.getStrategyId(), DataCategory.OBJECT, versionToDelete.getId());
+                if(!versionToDelete.getDataObjectVersion().startsWith(PHYSICAL_MASTER)){
+                    storageClient.delete(versionToDelete.getStrategyId(), DataCategory.OBJECT, versionToDelete.getId());
+                }
             }
 
             return buildItemStatus(PLUGIN_NAME, statusCode);

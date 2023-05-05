@@ -27,10 +27,14 @@
 
 package fr.gouv.vitam.worker.core.plugin.deleteGotVersions;
 
+import fr.gouv.vitam.batch.report.model.entry.ObjectGroupToDeleteReportEntry;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
+import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
+import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -50,12 +54,19 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
+import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
+import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.PHYSICAL_MASTER;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -178,8 +189,117 @@ public class DeleteGotVersionsPreparationPluginTest {
         ItemStatus itemStatus = deleteGotVersionsPreparationPlugin.execute(params, handlerIO);
 
         // THEN
-        assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
         verify(reportService, times(1)).appendEntries(any(), any());
         verify(handlerIO, times(1)).transferFileToWorkspace(any(), any(), anyBoolean(), anyBoolean());
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenValidRequestForPhysicalThenReturnOK() throws Exception {
+        // GIVEN
+        DeleteGotVersionsRequest deleteGotVersionsRequest =
+            new DeleteGotVersionsRequest(new Select().getFinalSelect(), PHYSICAL_MASTER.getName(), List.of(5));
+        when(handlerIO.getJsonFromWorkspace(DELETE_GOT_VERSIONS_REQUEST))
+            .thenReturn(toJsonNode(deleteGotVersionsRequest));
+        doAnswer((args) -> temporaryFolder.newFile()).when(handlerIO).getNewLocalFile(anyString());
+
+        // WHEN
+        ItemStatus itemStatus = deleteGotVersionsPreparationPlugin.execute(params, handlerIO);
+
+        // THEN
+        assertThat(itemStatus.getGlobalStatus()).isEqualTo(OK);
+        verify(reportService, times(1)).appendEntries(any(), any());
+        verify(handlerIO, times(1)).transferFileToWorkspace(any(), any(), anyBoolean(), anyBoolean());
+    }
+
+
+    @Test
+
+    @RunWithCustomExecutor
+    public void testGenerateGotWithDetails_FirstPhysicalUsageCannotBeDeleted() {
+        ObjectGroupResponse objectGroupResponse = new ObjectGroupResponse();
+        objectGroupResponse.setOpi("aedqaaaaaceevqfthhidqamhwlhxneaaaaaq");
+        QualifiersModel qualifiersModel = new QualifiersModel();
+        qualifiersModel.setQualifier(PHYSICAL_MASTER.getName());
+        VersionsModel versionsModel = new VersionsModel();
+        versionsModel.setDataObjectVersion(PHYSICAL_MASTER.getName() + "_1");
+        qualifiersModel.setVersions(Collections.singletonList(versionsModel));
+        objectGroupResponse.setQualifiers(Collections.singletonList(qualifiersModel));
+
+        DeleteGotVersionsRequest deleteGotVersionsRequest = new DeleteGotVersionsRequest();
+        deleteGotVersionsRequest.setUsageName(PHYSICAL_MASTER.getName());
+        deleteGotVersionsRequest.setSpecificVersions(Collections.singletonList(1));
+
+        List<ObjectGroupToDeleteReportEntry> reportEntries =
+            deleteGotVersionsPreparationPlugin.generateGotWithDetails(objectGroupResponse, deleteGotVersionsRequest);
+        assertEquals(1, reportEntries.size());
+
+        ObjectGroupToDeleteReportEntry reportEntry = reportEntries.get(0);
+        assertEquals(WARNING, reportEntry.getStatus());
+        assertEquals("Qualifier BinaryMaster required for removing that PhysicalMaster usage",
+            reportEntry.getOutcome());
+        assertNull(reportEntry.getDeletedVersions());
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void testGenerateGotWithDetails_FirstPhysicalUsageShouldBeDeleted() {
+        List<QualifiersModel> qualifiersModelList = new ArrayList<>();
+        ObjectGroupResponse objectGroupResponse = new ObjectGroupResponse();
+        objectGroupResponse.setOpi("aedqaaaaaceevqfthhidqamhwlhxneaaaaaq");
+        QualifiersModel qualifiersModel = new QualifiersModel();
+        qualifiersModel.setQualifier(PHYSICAL_MASTER.getName());
+        VersionsModel versionsModel = new VersionsModel();
+        versionsModel.setDataObjectVersion(PHYSICAL_MASTER.getName() + "_1");
+        qualifiersModel.setVersions(Collections.singletonList(versionsModel));
+        qualifiersModelList.add(qualifiersModel);
+
+        QualifiersModel qualifiersModel1 = new QualifiersModel();
+        qualifiersModel1.setQualifier(BINARY_MASTER.getName());
+        VersionsModel versionsModel1 = new VersionsModel();
+        versionsModel1.setDataObjectVersion(BINARY_MASTER.getName() + "_1");
+        qualifiersModel1.setVersions(Collections.singletonList(versionsModel1));
+        qualifiersModelList.add(qualifiersModel1);
+        objectGroupResponse.setQualifiers(qualifiersModelList);
+
+        DeleteGotVersionsRequest deleteGotVersionsRequest = new DeleteGotVersionsRequest();
+        deleteGotVersionsRequest.setUsageName(PHYSICAL_MASTER.getName());
+        deleteGotVersionsRequest.setSpecificVersions(Collections.singletonList(1));
+
+        List<ObjectGroupToDeleteReportEntry> reportEntries =
+            deleteGotVersionsPreparationPlugin.generateGotWithDetails(objectGroupResponse, deleteGotVersionsRequest);
+        assertEquals(1, reportEntries.size());
+
+        ObjectGroupToDeleteReportEntry reportEntry = reportEntries.get(0);
+        assertEquals(OK, reportEntry.getStatus());
+    }
+
+    @RunWithCustomExecutor
+    public void testGenerateGotWithDetails_LastUsageVersionCannotBeDeleted() {
+        ObjectGroupResponse objectGroupResponse = new ObjectGroupResponse();
+        objectGroupResponse.setOpi("aedqaaaaaceevqfthhidqamhwlhxneaaaaaq");
+        QualifiersModel qualifiersModel = new QualifiersModel();
+        qualifiersModel.setQualifier(PHYSICAL_MASTER.getName());
+        VersionsModel versionsModel = new VersionsModel();
+        versionsModel.setDataObjectVersion(PHYSICAL_MASTER.getName() + "_1");
+        qualifiersModel.setVersions(Collections.singletonList(versionsModel));
+        objectGroupResponse.setQualifiers(Collections.singletonList(qualifiersModel));
+
+        DeleteGotVersionsRequest deleteGotVersionsRequest = new DeleteGotVersionsRequest();
+        deleteGotVersionsRequest.setUsageName(PHYSICAL_MASTER.getName());
+        deleteGotVersionsRequest.setSpecificVersions(Collections.singletonList(1));
+
+        List<ObjectGroupToDeleteReportEntry> reportEntries =
+            deleteGotVersionsPreparationPlugin.generateGotWithDetails(objectGroupResponse, deleteGotVersionsRequest);
+        assertEquals(1, reportEntries.size());
+
+        ObjectGroupToDeleteReportEntry reportEntry = reportEntries.get(0);
+        assertEquals(WARNING, reportEntry.getStatus());
+        assertEquals("The last version of test-qualifier usage cannot be deleted.", reportEntry.getOutcome());
+        assertNull(reportEntry.getDeletedVersions());
+    }
+
+
 }

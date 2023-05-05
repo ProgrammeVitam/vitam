@@ -199,6 +199,8 @@ public class DeleteGotVersionsActionPlugin extends ActionHandler {
                         .mapToInt(DbQualifiersModel::getNbc)
                         .sum();
 
+                   qualifiers = qualifiers.stream().filter(qualifier -> qualifier.getNbc() > 0).collect(Collectors.toList());
+
                     Map<String, JsonNode> action = new HashMap<>();
                     action.put(QUALIFIERS.exactToken(), toJsonNode(qualifiers));
                     SetAction setQualifier = new SetAction(action);
@@ -216,7 +218,7 @@ public class DeleteGotVersionsActionPlugin extends ActionHandler {
             }
             return buildItemStatus(PLUGIN_NAME, status);
         } catch (InvalidParseOperationException | InvalidCreateOperationException |
-            MetaDataClientServerException | MetaDataExecutionException e) {
+                 MetaDataClientServerException | MetaDataExecutionException e) {
             LOGGER.error(String.format("Delete got versions action failed with status [%s]", FATAL), e);
             ObjectNode error = createObjectNode().put("error", e.getMessage());
             return buildItemStatus(PLUGIN_NAME, FATAL, error);
