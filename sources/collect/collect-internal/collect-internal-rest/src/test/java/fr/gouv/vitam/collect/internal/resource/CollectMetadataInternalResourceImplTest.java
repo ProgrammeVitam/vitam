@@ -27,8 +27,10 @@
 package fr.gouv.vitam.collect.internal.resource;
 
 import fr.gouv.vitam.collect.common.dto.ObjectDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.CollectUnitModel;
+import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -36,10 +38,13 @@ import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import io.restassured.http.ContentType;
+import io.restassured.response.ResponseBodyExtractionOptions;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
+import java.util.Optional;
 
 import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
 import static io.restassured.RestAssured.given;
@@ -190,7 +195,35 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
 
     @Test
     public void upload() throws Exception {
-        when(collectService.getArchiveUnitModel("1")).thenReturn(new CollectUnitModel());
+        CollectUnitModel uaWithExistingOpi= new CollectUnitModel();
+        uaWithExistingOpi.setOpi("1");
+
+        CollectUnitModel uaWithBadTransactionStatus= new CollectUnitModel();
+        uaWithBadTransactionStatus.setOpi("2");
+
+        CollectUnitModel uaWithOpiNull= new CollectUnitModel();
+
+        CollectUnitModel uaWithOpiAndBadTransaction= new CollectUnitModel();
+        uaWithOpiAndBadTransaction.setOpi("2");
+
+        TransactionModel transactionWithCorrectStatus = new TransactionModel();
+        transactionWithCorrectStatus.setStatus(TransactionStatus.OPEN);
+
+        TransactionModel transactionWithBadStatus = new TransactionModel();
+        transactionWithBadStatus.setStatus(TransactionStatus.SENT);
+
+        //ua with opi ok & tranction ok
+        when(collectService.getArchiveUnitModel("11")).thenReturn(uaWithExistingOpi);
+        //ua with opi ok & tranction ko
+        when(collectService.getArchiveUnitModel("12")).thenReturn(uaWithBadTransactionStatus);
+        //ua with opi ko & tranction ko
+        when(collectService.getArchiveUnitModel("21")).thenReturn(uaWithOpiNull);
+        //ua with opi ok & tranction ko
+        when(collectService.getArchiveUnitModel("22")).thenReturn(uaWithOpiNull);
+
+        when(transactionService.findTransaction("1")).thenReturn(Optional.of(transactionWithCorrectStatus));
+        when(transactionService.findTransaction("2")).thenReturn(Optional.of(transactionWithBadStatus));
+
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(OBJECT_ZIP_PATH)) {
             given()
                 .contentType(ContentType.BINARY)
@@ -198,9 +231,57 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
                 .header(GlobalDataRest.X_TENANT_ID, TENANT)
                 .body(resourceAsStream)
                 .when()
-                .post(UNITS + "/1/objects/BinaryMaster/1/binary")
+                .post(UNITS + "/11/objects/BinaryMaster/1/binary")
                 .then()
                 .statusCode(Response.Status.OK.getStatusCode());
+        }
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(OBJECT_ZIP_PATH)) {
+            given()
+                .contentType(ContentType.BINARY)
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .post(UNITS + "/6/objects/BinaryMaster/1/binary")
+                .then()
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .body("message", Matchers.equalTo("UA not found"));
+        }
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(OBJECT_ZIP_PATH)) {
+            given()
+                .contentType(ContentType.BINARY)
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .post(UNITS + "/12/objects/BinaryMaster/1/binary")
+                .then()
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .body("message", Matchers.equalTo("Invalid transaction status"));
+        }
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(OBJECT_ZIP_PATH)) {
+            given()
+                .contentType(ContentType.BINARY)
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .post(UNITS + "/21/objects/BinaryMaster/1/binary")
+                .then()
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .body("message", Matchers.equalTo("Operation Id not found"));
+        }
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(OBJECT_ZIP_PATH)) {
+            given()
+                .contentType(ContentType.BINARY)
+                .accept(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, TENANT)
+                .body(resourceAsStream)
+                .when()
+                .post(UNITS + "/22/objects/BinaryMaster/1/binary")
+                .then()
+                .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .body("message", Matchers.equalTo("Operation Id not found"));
         }
     }
 

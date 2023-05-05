@@ -29,12 +29,15 @@ package fr.gouv.vitam.collect.internal.rest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.common.dto.ObjectDto;
+import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.core.common.CollectUnitModel;
+import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.helpers.CollectHelper;
 import fr.gouv.vitam.collect.internal.core.service.CollectService;
 import fr.gouv.vitam.collect.internal.core.service.MetadataService;
+import fr.gouv.vitam.collect.internal.core.service.TransactionService;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -68,10 +71,12 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
 
     private final MetadataService metadataService;
     private final CollectService collectService;
+    private final TransactionService transactionService;
 
-    public CollectMetadataInternalResource(MetadataService metadataService, CollectService collectService) {
+    public CollectMetadataInternalResource(MetadataService metadataService, CollectService collectService, TransactionService transactionService) {
         this.metadataService = metadataService;
         this.collectService = collectService;
+        this.transactionService = transactionService;
     }
 
     @Path("/units/{unitId}")
@@ -156,6 +161,24 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
                 version);
 
             CollectUnitModel archiveUnitModel = collectService.getArchiveUnitModel(unitId);
+
+
+            if (archiveUnitModel == null){
+                throw new CollectInternalException("UA not found");
+            }
+            if (archiveUnitModel.getOpi() != null && !archiveUnitModel.getOpi().isBlank()) {
+                TransactionModel uaTransaction =
+                    transactionService.findTransaction(archiveUnitModel.getOpi()).orElse(null);
+                if (uaTransaction == null){
+                    throw new CollectInternalException("Transaction Id not found");
+                } else {
+                    if(!uaTransaction.getStatus().equals(TransactionStatus.OPEN))
+                        throw new CollectInternalException("Invalid transaction status");
+                }
+            } else {
+                throw new CollectInternalException("Operation Id not found");
+            }
+
             DbObjectGroupModel dbObjectGroupModel = collectService.getDbObjectGroup(archiveUnitModel);
             collectService.addBinaryInfoToQualifier(dbObjectGroupModel, usage, version, uploadedInputStream);
 
