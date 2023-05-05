@@ -152,7 +152,7 @@ public class CollectInternalResourceBaseIT {
                     new TransactionInternalResource(transactionService, sipService, metadataService, fluxService,
                         projectService);
                 final CollectMetadataInternalResource collectMetadataInternalResource =
-                    new CollectMetadataInternalResource(metadataService, collectService);
+                    new CollectMetadataInternalResource(metadataService, collectService, transactionService);
                 singletons.add(projectInternalResource);
                 singletons.add(transactionInternalResource);
                 singletons.add(collectMetadataInternalResource);

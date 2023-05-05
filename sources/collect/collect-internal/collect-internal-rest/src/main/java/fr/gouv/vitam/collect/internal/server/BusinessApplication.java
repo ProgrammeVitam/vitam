@@ -126,7 +126,7 @@ public class BusinessApplication extends ConfigurationApplication {
                 new ProjectInternalResource(projectService, transactionService, metadataService);
             final CollectMetadataInternalResource collectMetadataInternalResource =
                 new CollectMetadataInternalResource(metadataService,
-                    collectService);
+                    collectService, transactionService);
 
             // Threads
             new PurgeTransactionThread(configuration, transactionService);
