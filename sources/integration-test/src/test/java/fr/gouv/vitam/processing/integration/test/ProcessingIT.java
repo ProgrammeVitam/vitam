@@ -57,8 +57,6 @@ import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.GLOBAL;
-import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -119,12 +117,10 @@ import fr.gouv.vitam.metadata.api.model.BulkUnitInsertEntry;
 import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.UnitInheritedRule;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
-import fr.gouv.vitam.metadata.core.database.configuration.GlobalDatasDb;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.common.ProcessingEntry;
 import fr.gouv.vitam.processing.common.exception.ProcessingStorageWorkspaceException;
@@ -195,7 +191,6 @@ import static fr.gouv.vitam.common.VitamTestHelper.insertWaitForStepEssentialFil
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.verifyProcessState;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
-import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTION.FIELDS;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.json.JsonHandler.writeToInpustream;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
@@ -307,8 +302,6 @@ public class ProcessingIT extends VitamRuleRunner {
     private static final String LINK_AU_TO_EXISTING_GOT_OK_NAME = "integration-processing/OK_LINK_AU_TO_EXISTING_GOT";
     private static final String LINK_AU_TO_EXISTING_GOT_OK_NAME_TARGET = "integration-processing";
     private static final String SIP_FILE_TAR_OK_NAME = "integration-processing/SIP.tar";
-    private static final String SIP_INHERITED_RULE_CA1_OK = "integration-processing/1069_CA1.zip";
-    private static final String SIP_INHERITED_RULE_CA4_OK = "integration-processing/1069_CA4.zip";
     private static final String SIP_FUND_REGISTER_OK = "integration-processing/OK-registre-fonds.zip";
     private static final String SIP_WITHOUT_MANIFEST = "integration-processing/SIP_no_manifest.zip";
     private static final String SIP_NO_FORMAT = "integration-processing/SIP_NO_FORMAT.zip";
@@ -911,86 +904,6 @@ public class ProcessingIT extends VitamRuleRunner {
         assertNotNull(processWorkflow);
         assertEquals(COMPLETED, processWorkflow.getState());
         assertEquals(WARNING, processWorkflow.getStatus());
-    }
-
-
-    @RunWithCustomExecutor
-    @Test
-    public void testWorkflow_with_herited_ruleCA1() throws Exception {
-        prepareVitamSession();
-
-        final String containerName = createOperationContainer();
-
-        // call processing
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-
-        // workspace client dezip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_INHERITED_RULE_CA1_OK);
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
-        // Insert sanityCheck file & StpUpload
-        insertWaitForStepEssentialFiles(containerName);
-
-        processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
-        final RequestResponse<ItemStatus> ret =
-            processingClient.executeOperationProcess(containerName, DEFAULT_WORKFLOW.name(),
-                RESUME.getValue());
-
-        assertNotNull(ret);
-        assertThat(ret.isOk()).isTrue();
-        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-        waitOperation(containerName);
-        ProcessWorkflow processWorkflow =
-            processMonitoring.findOneProcessWorkflow(containerName, tenantId);
-        assertNotNull(processWorkflow);
-        assertEquals(COMPLETED, processWorkflow.getState());
-        assertEquals(WARNING, processWorkflow.getStatus());
-
-        MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-        SelectMultiQuery query = new SelectMultiQuery();
-        query.addQueries(QueryHelper.eq("Title", "AU4").setRelativeDepthLimit(5));
-        query.addProjection(JsonHandler.createObjectNode().set(FIELDS.exactToken(),
-            JsonHandler.createObjectNode()
-                .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
-                .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
-
-        JsonNode resultNoScroll = metaDataClient.selectUnits(query.getFinalSelect());
-        assertFalse(JsonHandler.unprettyPrint(resultNoScroll.get("$hits")).contains("scrollId"));
-
-        query.setScrollFilter(GlobalDatasDb.SCROLL_ACTIVATE_KEYWORD, GlobalDatasDb.DEFAULT_SCROLL_TIMEOUT, 100);
-        JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
-        assertNotNull(result.get(TAG_RESULTS).get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule")
-            .get("R1"));
-        assertNotNull(result.get("$hits").get("scrollId"));
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            client.importRulesFile(PropertiesUtils.getResourceAsStream("integration-processing/new_rule.csv"),
-                "new_rule.csv");
-            JsonNode response = client.getRuleByID("R7");
-            assertTrue(response.get(TAG_RESULTS).size() > 0);
-        }
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void testWorkflow_with_herited_ruleCA4() throws Exception {
-        prepareVitamSession();
-
-        ingestSIP(SIP_INHERITED_RULE_CA4_OK, DEFAULT_WORKFLOW.name(), WARNING);
-
-        MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient();
-        SelectMultiQuery query = new SelectMultiQuery();
-        query.addQueries(QueryHelper.eq("Title", "ArchiveUnite4").setRelativeDepthLimit(5));
-        query.addProjection(JsonHandler.createObjectNode().set(FIELDS.exactToken(),
-            JsonHandler.createObjectNode()
-                .put(GLOBAL.RULES.exactToken(), 1).put("Title", 1)
-                .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
-        JsonNode result = metaDataClient.selectUnits(query.getFinalSelect());
-        assertNotNull(result.get(TAG_RESULTS).get(0).get(UnitInheritedRule.INHERITED_RULE).get("StorageRule")
-            .get("R1"));
-        assertNull(result.get(TAG_RESULTS).get(0).get(VitamFieldsHelper.management()).get("OriginatingAgency"));
     }
 
     @RunWithCustomExecutor

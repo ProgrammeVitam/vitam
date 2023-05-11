@@ -402,6 +402,21 @@ public class AccessStep extends CommonStep {
     }
 
 
+    /**
+     * check if the description message  of the select result is correct
+     *
+     * @param message
+     * @throws Throwable
+     */
+    @Then("^le message d'erreur renvoyé est (.*)$")
+    public void the_description_message_of_the_select_result(String message) throws Throwable {
+        String expectedMessage = ((VitamError) requestResponse).getDescription();
+
+        assertThat(expectedMessage).isNotNull();
+        assertThat(expectedMessage).isEqualTo("Projection field $rules is no longer supported.");
+    }
+
+
 
     /**
      * check if the status of the select result is unauthorized

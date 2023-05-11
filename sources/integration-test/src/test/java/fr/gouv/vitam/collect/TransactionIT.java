@@ -89,8 +89,10 @@ public class TransactionIT extends VitamRuleRunner {
     public static void tearDownAfterClass() throws Exception {
         runner.stopMetadataCollectServer(true);
         runner.stopMetadataServer(true);
-        fr.gouv.vitam.common.client.VitamClientFactory.resetConnections();
+        handleAfterClass();
+        runAfter();
         fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
+        fr.gouv.vitam.common.client.VitamClientFactory.resetConnections();
     }
 
     @Test
