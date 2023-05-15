@@ -1,4 +1,5 @@
 ---
+
 #### Installation ####
 - name: Install vitam-consul-exporter package
   package:
@@ -8,6 +9,15 @@
   retries: "{{ packages_install_retries_number | default(1) }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay | default(10) }}"
+  notify: "prometheus-consul-exporter - restart service"
+
+- name: Deploy systemd service file for vitam-consul-exporter
+  template:
+    src: vitam-consul-exporter.service.j2
+    dest: "{{ '/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}/vitam-consul-exporter.service"
+    owner: root
+    group: root
+    mode: "0644"
   notify: "prometheus-consul-exporter - restart service"
 
 #### Configuration ####
@@ -30,8 +40,8 @@
 
 - name: Apply consul_exporter sysconfig settings
   template:
-    src: "consul_exporter.j2"
-    dest: "{{ prometheus_consul_exporter_config_path }}/sysconfig/consul_exporter"
+    src: sysconfig.j2
+    dest: "{{ prometheus_consul_exporter_config_path }}/sysconfig"
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"

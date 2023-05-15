@@ -9,6 +9,12 @@
   until: result is succeeded
   delay: "{{ packages_install_retries_delay | default(10) }}"
 
+- name: Remove systemd service file for vitam-elasticsearch-exporter
+  file:
+    path: "{{ '/lib/systemd/system' if ansible_distribution == 'Debian' else '/usr/lib/systemd/system' }}/vitam-elasticsearch-exporter.service"
+    state: absent
+    notify: daemon reload
+
 - name: Remove logrotate configuration for elasticsearch-exporter
   file:
     path: /etc/logrotate.d/elasticsearch-exporter

@@ -86,7 +86,7 @@ rm -rf ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/conf/*
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/app/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/bin/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/data/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/conf/${PACKAGE_NAME}/sysconfig
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/conf/${PACKAGE_NAME}
 
 pushd ${WORKING_FOLDER}/sources/
 echo "Repertoire courant: $(pwd)"
@@ -132,7 +132,7 @@ rm -rf ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/conf/*
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/app/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/bin/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/data/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/conf/${PACKAGE_NAME}/sysconfig
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/conf/${PACKAGE_NAME}
 
 
 pushd ${WORKING_FOLDER}/sources/
@@ -179,7 +179,7 @@ rm -rf ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/conf/*
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/app/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/bin/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/data/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/conf/${PACKAGE_NAME}/sysconfig
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/conf/${PACKAGE_NAME}
 
 
 pushd ${WORKING_FOLDER}/sources/

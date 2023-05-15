@@ -10,3 +10,7 @@
   systemd:
     name: vitam-consul
     state: reloaded
+
+- name: daemon reload
+  systemd:
+    daemon_reload: yes
