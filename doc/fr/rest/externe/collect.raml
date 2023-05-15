@@ -2,7 +2,7 @@
 
 title: API-Vitam Version Alpha - Collect
 version: v1
-baseUri: https://api.vitam.gouv.fr/collect-internal/{version}
+baseUri: https://api.vitam.gouv.fr/collect-external/{version}
 protocols: [ HTTP ]
 
 uses:
@@ -10,9 +10,8 @@ uses:
   StandardTraits: libraries/StandardTraits.raml
   CollectTraits: libraries/CollectTraits.raml
 
-
 securitySchemes:
-  VitamPlatform: !include ../interne/securitySchemes/SecuritySchemeVitamInternal.raml
+  VitamPlatform: !include ../externe/securitySchemes/SecuritySchemeVitam.raml
 
 securedBy: [ VitamPlatform ]
 
@@ -24,10 +23,10 @@ types:
 
 documentation:
   - title: Avertissements
-    content: !include ../interne/docs-fr/avertissement.md
+    content: !include ../externe/docs-fr/avertissement-collect.md
 
   - title: Licence
-    content: !include ../interne/docs-fr/license.md
+    content: !include ../externe/docs-fr/license.md
 
   - title: API Collect
     content: API Collect
@@ -106,10 +105,6 @@ documentation:
             type: object
             example: !include libraries/examples/CollectListProjectsObjectResponse.json
   /{id}:
-    uriParameters:
-      id:
-        required: true
-        description: Identifiant du projet
     description: |
       API de collecte. Ce point d'entrée permet de supprimer un projet.
     delete:
@@ -121,55 +116,11 @@ documentation:
           required: true
       responses:
         200:
-  /{id}/units:
-    uriParameters:
-      id:
-        required: true
-        description: Identifiant du projet
-    is: [ StandardTraits.StandardOptionalHeader,
-          StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-          StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
-    get:
-      description: |
-        Permet de retourner la liste des unités archivistique associés à l'identifiant du projet
-      body:
-        application/json:
-          type: object
-          example: !include libraries/examples/CollectStreamUnitRequest.json
-      headers:
-        X-tenant-Id:
-          required: true
-      responses:
-        200:
-          body:
-            application/json:
-              type: object
-              example: !include libraries/examples/CollectUnitObjectResponse.json
   /{id}/transactions:
-    uriParameters:
-      id:
-        required: true
-        description: Identifiant du projet
     displayName: Permet de gerer les transactions d'un projet
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
-    get:
-      description: |
-        - request body : JSON object
-        - response : JSON of saved transactions / HTTP CODE 200
-      is: [ StandardTraits.StandardOptionalHeader,
-            StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-            StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
-      headers:
-        x-tenant-id:
-          required: true
-      responses:
-        200:
-          body:
-            application/json:
-              type: object
-              example: !include libraries/examples/transactionResponse.json
     post:
       description: |
         - request body : JSON object
@@ -214,21 +165,20 @@ documentation:
             type: object
             example: !include libraries/examples/transactionResponse.json
   /{id}/units:
+    is: [ StandardTraits.StandardOptionalHeader,
+          StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+          StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
     uriParameters:
       id:
         required: true
-        description: Identifiant de la transaction
-    displayName: Ajout d'une unité archivistique
-    is: [ StandardTraits.StandardOptionalHeader,
-          StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
-          StandardTraits.StandardHeader409, StandardTraits.StandardHeader412,CollectTraits.TransactionResponse ]
-    post:
+        description: Identifiant du projet
+    get:
       description: |
-        Permet de soumettre une unité archivistique
+        Permet de retourner la liste des unités archivistique associés à l'identifiant du projet
       body:
         application/json:
           type: object
-          example: !include libraries/examples/CollectUnitObjectRequest.json
+          example: !include libraries/examples/streamUnitRequest.json
       headers:
         X-tenant-Id:
           required: true
@@ -240,32 +190,38 @@ documentation:
               example: !include libraries/examples/CollectUnitObjectResponse.json
 
   /{id}/unitsWithInheritedRules:
-    uriParameters:
-      id:
-        required: true
-        description: Identifiant de la transaction
-    displayName: Accéder aux Unités d'archives liées à une transaction avec leurs règles de gestion héritées .
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+    uriParameters:
+      id:
+        required: true
+        description: |
+          Identifiant de la transaction
+
     get:
       description: |
         API pour accéder aux Unités d'archives liées à une transaction avec leurs règles de gestion héritées .
-        La requête utilise le langage de requête DSL de Vitam en entrée et retourne une liste d'Unités d'archives avec leurs règles de gestion selon le DSL Vitam en cas de succès.
+        La requête utilise le langage de requête DSL de Vitam en entrée et retourne une liste d'Unités d'archives 
+        avec leurs règles de gestion selon le DSL Vitam en cas de succès.
+
+        Permissions requises:
+          - transaction:unitsWithInheritedRules:read
+      is: [ CollectTraits.CollectUnitWithInheritedRulesResponse ]
       headers:
         X-tenant-Id:
           required: true
+      body:
+        application/json:
+          type: object
       responses:
         200:
           body:
             application/json:
               type: object
               example: !include libraries/examples/CollectUnitWithInheritedRulesResponse.json
+
   /{id}/close:
-    uriParameters:
-      id:
-        required: true
-        description: Identifiant de la transaction
     displayName: Fermer une transaction -> statut Close
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -286,10 +242,6 @@ documentation:
               example: !include libraries/examples/CollectTransactionCloseObjectResponse.json
 
   /{id}/send:
-    uriParameters:
-      id:
-        required: true
-        description: Identifiant de la transaction
     displayName: Générer un SIP et envoyer le SIP a Vitam (Ingest)
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -309,12 +261,21 @@ documentation:
               type: object
               example: !include libraries/examples/CollectIngestObjectResponse.json
   /{id}:
-    uriParameters:
-      id:
-        required: true
-        description: Identifiant de la transaction
     description: |
       API de collecte. Ce point d'entrée permet de supprimer une transaction.
+    get:
+      is: [ StandardTraits.StandardOptionalHeader,
+            StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+            StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+      headers:
+        x-tenant-id:
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/examples/transactionResponse.json
     delete:
       is: [ StandardTraits.StandardOptionalHeader,
             StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -325,10 +286,6 @@ documentation:
       responses:
         200:
   /{id}/upload:
-    uriParameters:
-      id:
-        required: true
-        description: Identifiant de la transaction
     displayName: upload d'une archive Zip
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -345,6 +302,7 @@ documentation:
         200:
           body:
             application/json:
+              type: object
 
 /units:
   displayName: Units
@@ -354,27 +312,7 @@ documentation:
         StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
         StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
 
-  get:
-    description: |
-      Permet de récuperer une ou plusieurs unité archivistique par DSL QUERY
-    body:
-      application/json:
-        type: object
-        example: !include libraries/examples/CollectGetUnitByDslQuery.json
-    headers:
-      X-tenant-Id:
-        required: true
-    responses:
-      200:
-        body:
-          application/json:
-            type: object
-            example: !include libraries/examples/CollectUnitResponse.json
   /{id}:
-    uriParameters:
-      id:
-        required: true
-        description: Identifiant de l'unité archivistique
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
@@ -392,16 +330,6 @@ documentation:
               example: !include libraries/examples/CollectUnitObjectResponse.json
 
   /{id}/objects/{usage}/{version}:
-    uriParameters:
-      id:
-        required: true
-        description: Identifiant de l'unité archivistique
-      usage:
-        required: true
-        description: Usage du groupe d'objects
-      version:
-        required: true
-        description: Version du groupe d'objects
     displayName: Ajout d'un groupe d'objects
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -424,16 +352,6 @@ documentation:
               example: !include libraries/examples/CollectObjectGroupObjectResponse.json
 
   /{id}/objects/{usage}/{version}/binary:
-    uriParameters:
-      id:
-        required: true
-        description: Identifiant de l'unité archivistique
-      usage:
-        required: true
-        description: Usage du groupe d'objects
-      version:
-        required: true
-        description: Version du groupe d'objects
     displayName: Ajout d'un binaire
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
@@ -465,3 +383,28 @@ documentation:
             application/json:
               type: object
               example: !include libraries/examples/CollectBinaryObjectResponse.json
+
+/objects:
+  displayName: Objects
+  description: |
+    API de collecte. Ce point d'entrée permet de gérer les groupe d'objets.
+  is: [ StandardTraits.StandardOptionalHeader,
+        StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+        StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+
+  /{id}:
+    is: [ StandardTraits.StandardOptionalHeader,
+          StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
+          StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
+    get:
+      description: |
+        Permet de retourner une groupe d'object par son id
+      headers:
+        X-tenant-Id:
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: object
+              example: !include libraries/examples/objectGroupResponse.json
