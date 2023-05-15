@@ -1,25 +1,43 @@
 ---
 
-- name: Set java_package for RedHat family
-  set_fact:
-    java_package: "{{ java_prerequisites.redhat }}"
-  when: ansible_os_family == "RedHat"
-
-- name: Set java_package for Debian
-  set_fact:
-    java_package: "{{ java_prerequisites.debian }}"
-  when: ansible_os_family == "Debian"
-
-- name: install vitam-elasticsearch-cerebro package
+- name: Install vitam-elasticsearch-cerebro package
   package:
     name:
       - vitam-elasticsearch-cerebro
-      - "{{ java_package }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
+  notify:
+    - "cerebro - restart service"
+
+- name: Deploy systemd service file for vitam-elasticsearch-cerebro
+  template:
+    src: vitam-elasticsearch-cerebro.service.j2
+    dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/vitam-elasticsearch-cerebro.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - "cerebro - restart service"
+
+#### Configuration ####
+
+- name: Check that the cerebro directories exist
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/cerebro"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+  with_items:
+    - app
+    - bin
+    - conf
+    - log
+    - data
+    - tmp
   notify:
     - "cerebro - restart service"
 
@@ -33,31 +51,15 @@
   notify:
     - "cerebro - restart service"
 
-- name: ensure cerebro sysconfig subdir is present
-  file:
-    path: "{{ vitam_defaults.folder.root_path }}/conf/cerebro/sysconfig"
-    state: directory
-    owner: "{{ vitam_defaults.users.vitam }}"
-    group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.folder_permission }}"
-
 - name: apply cerebro sysconfig custom configuration
   template:
-    src: cerebro.j2
-    dest: "{{ vitam_defaults.folder.root_path }}/conf/cerebro/sysconfig/cerebro"
+    src: sysconfig.j2
+    dest: "{{ vitam_defaults.folder.root_path }}/conf/cerebro/sysconfig"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
     - "cerebro - restart service"
-
-- name: Ensure cerebro log dir is present
-  file:
-    path: "{{ vitam_defaults.folder.root_path }}/log/cerebro/"
-    state: directory
-    owner: "{{ vitam_defaults.users.vitam }}"
-    group: "{{ vitam_defaults.users.group }}"
-    mode: "{{ vitam_defaults.folder.folder_permission }}"
 
 - name: apply cerebro custom configuration for logs
   template:

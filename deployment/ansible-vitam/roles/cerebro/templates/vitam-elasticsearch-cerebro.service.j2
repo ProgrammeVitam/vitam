@@ -5,11 +5,11 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-WorkingDirectory=/vitam/app/cerebro
-User=vitam
-Group=vitam
-EnvironmentFile=-/vitam/conf/cerebro/sysconfig/cerebro
-ExecStart=/vitam/app/cerebro/bin/cerebro -Dconfig.file=/vitam/conf/cerebro/application.conf
+WorkingDirectory={{ vitam_defaults.folder.root_path }}/app/cerebro
+User={{ vitam_defaults.users.vitam }}
+Group={{ vitam_defaults.users.group }}
+EnvironmentFile=-{{ vitam_defaults.folder.root_path }}/conf/cerebro/sysconfig
+ExecStart={{ vitam_defaults.folder.root_path }}/app/cerebro/bin/cerebro -Dconfig.file={{ vitam_defaults.folder.root_path }}/conf/cerebro/application.conf
 
 StandardOutput=journal
 StandardError=inherit
