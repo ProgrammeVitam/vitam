@@ -1,10 +1,10 @@
 ---
 
 #### Kibana installation ####
-- name: Install vitam-kibana package from repo
+- name: "Install {{ kibana_package }} package"
   package:
-    name: vitam-kibana
-    state: latest
+    name: "{{ kibana_package }}"
+    state: present
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
