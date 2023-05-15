@@ -139,7 +139,7 @@
 
 - name: Deploy systemd service file
   template:
-    src: "vitam-componentid.service.j2"
+    src: vitam-componentid.service.j2
     dest: "{{ systemd_directory }}/vitam-{{ vitam_struct.vitam_component }}.service"
     owner: "root"
     group: "root"

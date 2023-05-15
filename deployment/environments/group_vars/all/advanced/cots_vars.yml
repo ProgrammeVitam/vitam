@@ -328,10 +328,6 @@ ldap_authentification:
     ldap_user_group: "cn=user,ou=groups,dc=programmevitam, dc=fr"
     ldap_guest_group: "cn=guest,ou=groups,dc=programmevitam, dc=fr"
 
-java_prerequisites:
-    debian: "openjdk-11-jre-headless"
-    redhat: "java-11-openjdk-headless"
-
 # Backup tool on storage-offer
 restic:
     snapshot_retention: 30 # number of snapshots to keep

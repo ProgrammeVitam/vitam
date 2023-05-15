@@ -1,6 +1,0 @@
----
-# vars file for offer
-vitam_component: "offer"
-vitam_folder_conf: "{{ vitam_defaults.folder.root_path }}/conf/{{ vitam_component }}"
-vitam_folder_log: "{{ vitam_defaults.folder.root_path }}/log/{{ vitam_component }}"
-vitam_folder_data: "{{ vitam_defaults.folder.root_path }}/data/{{ vitam_component }}"

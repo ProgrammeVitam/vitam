@@ -6,15 +6,16 @@ Group:         System Environment/Daemons
 License:       Mozilla Public License, version 2.0
 BuildArch:     x86_64
 URL:           http://gatling.io/
+
 Source0:       https://repo1.maven.org/maven2/io/gatling/highcharts/gatling-charts-highcharts-bundle/%{version}/gatling-charts-highcharts-bundle-%{version}-bundle.zip
 Source1:       run.sh
-%global vitam_service_name gatling
 
+%global vitam_service_name gatling
 
 BuildRequires: systemd-units
 Requires:      systemd
 Requires:      java-1.8.0
-Requires:      vitam-user-vitam 
+Requires:      vitam-user-vitam
 
 %description
 Gatling is a highly capable load testing tool. It is designed for ease of use, maintainability and high performance.
@@ -25,7 +26,7 @@ Gatling’s architecture is asynchronous as long as the underlying protocol, suc
 
 
 %prep
-%setup -q -c
+%setup -c
 
 %install
 mkdir -p %{buildroot}/vitam/bin/%{vitam_service_name}

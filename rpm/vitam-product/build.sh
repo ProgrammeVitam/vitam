@@ -96,7 +96,7 @@ function clean_exit(){
 for SPECFILE in $(ls ${COMPONENT_FOLDER}/rpmbuild/SPECS/*.spec); do
 	echo "Building specfile ${SPECFILE}..."
 
-	HOME=${COMPONENT_FOLDER} spectool -g -R ${SPECFILE}
+	HOME=${COMPONENT_FOLDER} spectool -v -g -R ${SPECFILE}
 	if [ ! $? -eq 0 ]; then
 		echo "Error preparing the build ! Aborting."
 		popd
