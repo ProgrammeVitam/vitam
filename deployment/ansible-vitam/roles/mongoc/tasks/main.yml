@@ -1,9 +1,11 @@
 ---
 
-- name: Install vitam-mongoc package
+- name: Install mongodb-org-server package
   package:
-    name: vitam-mongoc
-    state: latest
+    name:
+      - mongodb-org-server
+      - vitam-user-vitamdb
+    state: present
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
@@ -16,6 +18,16 @@
     name: mongod
     state: stopped
     enabled: no
+
+- name: Deploy systemd service file for vitam-mongoc
+  template:
+    src: vitam-mongoc.service.j2
+    dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/vitam-mongoc.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - "mongoc - restart service"
 
 #### Configuration ####
 

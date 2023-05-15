@@ -1,13 +1,25 @@
 ---
 
-- name: Install vitam-mongos package
+- name: Install mongodb-org-mongos package
   package:
-    name: vitam-mongos
-    state: latest
+    name:
+      - mongodb-org-mongos
+      - vitam-user-vitamdb
+    state: present
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
+  notify:
+    - "mongos - restart service"
+
+- name: Deploy systemd service file for vitam-mongos
+  template:
+    src: vitam-mongos.service.j2
+    dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/vitam-mongos.service"
+    owner: root
+    group: root
+    mode: "0644"
   notify:
     - "mongos - restart service"
 

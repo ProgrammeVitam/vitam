@@ -1,8 +1,0 @@
-Package: vitam-mongoc
-Version: 5.0
-Section: database
-Priority: optional
-Architecture: amd64
-Depends: systemd, mongodb-org-server, vitam-user-vitamdb
-Maintainer: French Prime minister Office/SGMAP/DINSIC/Vitam Program <contact.vitam@culture.gouv.fr>
-Description: Service files for Vitam mongoc cluster configuration nodes
