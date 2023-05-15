@@ -1,8 +1,10 @@
 ---
-# defaults file for elasticsearrch-cluster
 
 # Memory used by elasticsearch ; if empty, will use the official elastic recommendations
 # Value must be expressed with the unit (lower case) ; for example : 32g, 512m, ...
 elasticsearch_memory: ""
 # Default port configuration
 port_http: 9200
+
+elasticsearch_version: "{{ elasticsearch.version | default('7.17.8') }}"
+elasticsearch_package: "elasticsearch{{ '=' if ansible_os_family == 'Debian' else '-' }}{{ elasticsearch_version }}"
