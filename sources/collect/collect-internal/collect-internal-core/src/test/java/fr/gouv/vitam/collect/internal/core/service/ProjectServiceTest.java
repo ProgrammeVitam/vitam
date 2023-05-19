@@ -120,7 +120,7 @@ public class ProjectServiceTest {
         projectDto.setCreationDate(creationDate.toString());
         projectService.updateProject(projectDto);
 
-        Mockito.verify(projectRepository).replaceProject(argThat(e ->
+        Mockito.verify(projectRepository).updateProject(argThat(e ->
             PROJECT_ID.equals(e.getId()) &&
                 currentTime.isAfter(LocalDateUtil.parseMongoFormattedDate(e.getCreationDate()))
                 && currentTime.equals(LocalDateUtil.parseMongoFormattedDate(e.getLastUpdate()))));

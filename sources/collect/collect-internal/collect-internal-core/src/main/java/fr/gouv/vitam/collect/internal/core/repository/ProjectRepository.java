@@ -92,20 +92,25 @@ public class ProjectRepository {
     }
 
     /**
-     * replace a project model
+     * update a project model
      *
      * @param projectModel project model to replace
      * @throws CollectInternalException exception thrown in case of error
      */
-    public void replaceProject(ProjectModel projectModel) throws CollectInternalException {
-        LOGGER.debug("Project to replace: {}", projectModel);
+    public void updateProject(ProjectModel projectModel) throws CollectInternalException {
+        LOGGER.debug("Project to update: {}", projectModel);
+
         try {
             String json = JsonHandler.writeAsString(projectModel);
-            final Bson condition = and(eq(ID, projectModel.getId()));
-            projectCollection.replaceOne(condition, Document.parse(json));
+            Bson filter = Filters.eq(ID, projectModel.getId());
+            // Exclude the _id field from the update Document
+            Document update = Document.parse(json);
+            update.remove("_id");
+            Bson updateOperation = new Document("$set", update);
+            projectCollection.updateOne(filter, updateOperation);
         } catch (InvalidParseOperationException e) {
-            LOGGER.error("Error when replacing project: ", e);
-            throw new CollectInternalException("Error when replacing project: " + e);
+            LOGGER.error("Error when updating project: ", e);
+            throw new CollectInternalException("Error when updating project: " + e.getMessage());
         }
     }
 
