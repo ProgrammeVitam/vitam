@@ -1,0 +1,107 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 1,
+    "offset": 0,
+    "limit": 10000,
+    "size": 1
+  },
+  "$results": [
+    {
+      "Title": "BP_123457_20230131.pdf",
+      "#id": "aeaqaaaaaehmdzhmaayjqamhbiwrgnaaaaaq",
+      "InheritedRules": {
+        "GlobalProperties": [],
+        "HoldRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "StorageRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AppraisalRule": {
+          "Rules": [
+            {
+              "UnitId": "aeaqaaaaaehmdzhmaayjqamhbiwrgnaaaaaq",
+              "Paths": [
+                [
+                  "aeaqaaaaaehmdzhmaayjqamhbiwrgnaaaaaq"
+                ]
+              ],
+              "Rule": "APP-00002"
+            }
+          ],
+          "Properties": [
+            {
+              "UnitId": "aeaqaaaaaehmdzhmaayjqamhbiwrgnaaaaaq",
+              "Paths": [
+                [
+                  "aeaqaaaaaehmdzhmaayjqamhbiwrgnaaaaaq"
+                ]
+              ],
+              "PropertyName": "FinalAction",
+              "PropertyValue": "Destroy"
+            }
+          ]
+        },
+        "DisseminationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ReuseRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "ClassificationRule": {
+          "Rules": [],
+          "Properties": []
+        },
+        "AccessRule": {
+          "Rules": [
+            {
+              "UnitId": "aeaqaaaaaehmdzhmaayjqamhbiwrgnaaaaaq",
+              "Paths": [
+                [
+                  "aeaqaaaaaehmdzhmaayjqamhbiwrgnaaaaaq"
+                ]
+              ],
+              "Rule": "ACC-00016",
+              "StartDate": "2023-01-20"
+            },
+            {
+              "UnitId": "aeaqaaaaaehmdzhmaayjqamhbiwrfoiaaaaq",
+              "Paths": [
+                [
+                  "aeaqaaaaaehmdzhmaayjqamhbiwrgnaaaaaq",
+                  "aeaqaaaaaehmdzhmaayjqamhbiwrfoiaaaaq"
+                ]
+              ],
+              "Rule": "ACC-00001",
+              "StartDate": "2023-01-27"
+            }
+          ],
+          "Properties": []
+        }
+      }
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$eq": {
+          "#id": "aeaqaaaaaehmdzhmaayjqamhbiwrgnaaaaaq"
+        }
+      }
+    ],
+    "$filter": {},
+    "$projection": {
+      "$fields": {
+        "#id": 1,
+        "Title": 1
+      }
+    }
+  }
+}
