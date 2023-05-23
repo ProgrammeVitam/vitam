@@ -36,7 +36,9 @@ public enum SupportedSedaVersions {
     SEDA_2_1("2.1", "fr:gouv:culture:archivesdefrance:seda:v2.1", "seda-2.1/seda-2.1-main.xsd",
         "seda-2.1/vitam-validation/seda-vitam-main.xsd"),
     SEDA_2_2("2.2", "fr:gouv:culture:archivesdefrance:seda:v2.2", "seda-2.2/seda-2.2-main.xsd",
-        "seda-2.2/vitam-validation/seda-vitam-main.xsd");
+        "seda-2.2/vitam-validation/seda-vitam-main.xsd"),
+    SEDA_2_3("2.3", "fr:gouv:culture:archivesdefrance:seda:v2.3", "seda-2.3/seda-2.3-main.xsd",
+        "seda-2.3/vitam-validation/seda-vitam-main.xsd");
 
     public static final String UNIFIED_NAMESPACE = "fr:gouv:culture:archivesdefrance:seda:v2";
     public static final String GENERIC_VITAM_VALIDATOR = "seda-vitam/seda-vitam-main.xsd";
@@ -79,9 +81,14 @@ public enum SupportedSedaVersions {
     }
 
     public static boolean isSedaVersionsCompatible(String metadataSedaVersion, String sedaVersionToExport) {
-        return (metadataSedaVersion != null && sedaVersionToExport != null &&
-            (metadataSedaVersion.equals(sedaVersionToExport) ||
+        return metadataSedaVersion != null && sedaVersionToExport != null &&
+            ((metadataSedaVersion.equals(sedaVersionToExport)) ||
                 (sedaVersionToExport.equals(SEDA_2_2.getVersion()) &&
-                    metadataSedaVersion.equals(SEDA_2_1.getVersion()))));
+                    (metadataSedaVersion.equals(SEDA_2_1.getVersion()) ||
+                        metadataSedaVersion.equals(SEDA_2_3.getVersion()))) ||
+                (sedaVersionToExport.equals(SEDA_2_3.getVersion()) &&
+                    (metadataSedaVersion.equals(SEDA_2_1.getVersion()) ||
+                        metadataSedaVersion.equals(SEDA_2_2.getVersion()))));
     }
+
 }

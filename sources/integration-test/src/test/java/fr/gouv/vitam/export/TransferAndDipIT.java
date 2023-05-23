@@ -156,6 +156,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
         "integration-ingest-internal/SIP_EXTENDED.zip";
 
     private static final String WARNING_SIP_mail_Seda2_2 = "sip/WARNING_SIP_mail_Seda2.2.zip";
+    private static final String WARNING_SIP_mail_Seda2_3 = "sip/WARNING_SIP_mail_Seda2.3.zip";
 
     private static final BinarySizePlatformThreshold binarySizePlatformThreshold =
         VitamConfiguration.getBinarySizePlatformThreshold();
@@ -266,6 +267,58 @@ public class TransferAndDipIT extends VitamRuleRunner {
         assertTrue(evDetData.asText().contains("SystemMessageDigest"));
         assertTrue(evDetData.asText().contains("SystemAlgorithm"));
     }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_export_DIP_with_all_seda2_3_fields() throws Exception {
+        // Given
+        final String ingestOpId = VitamTestHelper.doIngest(TENANT_ID, WARNING_SIP_mail_Seda2_3);
+        verifyOperation(ingestOpId, OK);
+
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestOpId));
+
+        ExportRequest exportRequest = new ExportRequest(
+            new DataObjectVersions(Collections.singleton("BinaryMaster")),
+            select.getFinalSelect(),
+            true
+        );
+
+        exportRequest.setExportType(ExportType.ArchiveDeliveryRequestReply);
+        ExportRequestParameters exportRequestParameters = getExportRequestParameters();
+        exportRequest.setExportRequestParameters(exportRequestParameters);
+        exportRequest.setSedaVersion(SupportedSedaVersions.SEDA_2_3.getVersion());
+
+        // When ArchiveDeliveryRequestReply
+        String exportOperationId = exportDIP(exportRequest);
+
+        // Then
+        VitamTestHelper.verifyOperation(exportOperationId, OK);
+
+
+        String manifest = getManifestString(getDip(exportOperationId));
+
+        assertThat(manifest).contains(
+            String.format(EXPECTED_MANIFEST_START_WITH_SEDA_VERSION, SupportedSedaVersions.SEDA_2_3.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_3.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_3.getSedaValidatorXSD()));
+
+        assertThat(manifest).contains("<DateLitteral>XXème siècle</DateLitteral>");
+        assertThat(manifest).contains(
+            "<LinkingAgentIdentifier><LinkingAgentIdentifierType>Agent</LinkingAgentIdentifierType><LinkingAgentIdentifierValue>Catherine Jablasy</LinkingAgentIdentifierValue><LinkingAgentRole>Standardiste</LinkingAgentRole></LinkingAgentIdentifier>");
+        assertThat(manifest).contains(
+            "<OriginatingSystemIdReplyTo>catherine.jablasy@culture.gouv.fr</OriginatingSystemIdReplyTo>");
+        assertThat(manifest).contains("<TextContent>").contains("</TextContent>");
+        assertThat(manifest).contains("<DataObjectProfile>AUP_IDENTIFIER</DataObjectProfile>");
+
+        JsonNode logbook = VitamTestHelper.findLogbook(exportOperationId);
+        ArrayNode events = (ArrayNode) RequestResponseOK.getFromJsonNode(logbook).getResults().get(0).get("events");
+        JsonNode evDetData = events.get(events.size() - 2).get("evDetData");
+        assertTrue(evDetData.asText().contains("SystemMessageDigest"));
+        assertTrue(evDetData.asText().contains("SystemAlgorithm"));
+    }
+
 
     @Test
     @RunWithCustomExecutor
@@ -1219,6 +1272,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
             return client.findExportByID(operationId).readEntity(InputStream.class);
         }
     }
+
 
     private InputStream getTransferSIP(String operationId) throws Exception {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
