@@ -85,7 +85,7 @@ public class ProjectService {
             projectDto.getCreationDate(), lastUpdate, projectDto.getUnitUp(), projectDto.getUnitUps(),
             projectDto.getTenant());
 
-        projectRepository.replaceProject(projectModel);
+        projectRepository.updateProject(projectModel);
     }
 
     public List<ProjectDto> findProjects() throws CollectInternalException {
