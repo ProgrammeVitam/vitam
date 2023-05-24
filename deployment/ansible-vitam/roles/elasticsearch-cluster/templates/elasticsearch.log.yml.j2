@@ -41,6 +41,14 @@ path.data: {{ elasticsearch_data_dir }}
 # Path to log files:
 #
 path.logs: {{ elasticsearch_log_dir }}
+
+#
+# Path for backup/snapshots:
+#
+{% if (composant.repo is defined) and (composant.repo|length > 0) and ("" not in composant.repo) %}
+path.repo: ["{{ composant.repo | list | join ('\',\'') }}"]
+{% endif %}
+
 #
 # ----------------------------------- Memory -----------------------------------
 #
