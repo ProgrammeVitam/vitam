@@ -24,9 +24,9 @@ reconstructionMetricsCacheDurationInMinutes: {{ vitam.metadata.reconstructionMet
 {% endif %}
 
 # Units and Objects Stream Threshold
-unitsStreamThreshold: {{ vitam.metadata.unitsStreamThreshold | default(1_000_000) }}
+unitsStreamThreshold: {{ vitam.metadata.unitsStreamThreshold | default(1000000) }}
 unitsStreamExecutionLimit: {{ vitam.metadata.unitsStreamExecutionLimit | default(3) }}
-objectsStreamThreshold: {{ vitam.metadata.objectsStreamThreshold | default(1_000_000) }}
+objectsStreamThreshold: {{ vitam.metadata.objectsStreamThreshold | default(1000000) }}
 objectsStreamExecutionLimit: {{ vitam.metadata.objectsStreamExecutionLimit | default(3) }}
 
 # Configuration MongoDB
