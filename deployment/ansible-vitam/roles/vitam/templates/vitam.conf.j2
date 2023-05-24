@@ -54,8 +54,8 @@ eliminationReportExtraFields:
 {% endfor %}
 {% endif %}
 
-keywordMaxLength: 32766
-textMaxLength: 32766
+keywordMaxLength: {{ vitam_defaults.keywordMaxLength | default(32766) }}
+textMaxLength: {{ vitam_defaults.textMaxLength | default(32766) }}
 
 classificationLevel :
   allowList : [{% for classification in classificationList %}{{ classification }}{% if not loop.last %},{% endif %}{% endfor %}]
