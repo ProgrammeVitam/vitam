@@ -39,6 +39,10 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.dsl.schema.Dsl;
 import fr.gouv.vitam.common.dsl.schema.DslSchema;
+import fr.gouv.vitam.common.dsl.schema.ValidationException;
+import fr.gouv.vitam.common.dsl.schema.validator.SelectMultipleSchemaValidator;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -91,21 +95,26 @@ public class TransactionExternalResource extends ApplicationStatusResource {
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
     private static final String YOU_MUST_SUPPLY_TRANSACTION_DATA = "You must supply transaction data!";
     public static final String ERROR_WHEN_UPDATE_TRANSACTION__ = "Error when update transaction  ";
+
+    private static final String UNAUTHORIZED_DSL_PARAMETER = "DSL parameter is unauthorized";
     private final CollectInternalClientFactory collectInternalClientFactory;
     private final IngestExternalClientFactory ingestExternalClientFactory;
+
+    private final CollectExternalConfiguration configuration;
 
     /**
      * Constructor CollectExternalResource
      */
-    TransactionExternalResource() {
-        this(CollectInternalClientFactory.getInstance(), IngestExternalClientFactory.getInstance());
+    TransactionExternalResource(CollectExternalConfiguration configuration) {
+        this(CollectInternalClientFactory.getInstance(), IngestExternalClientFactory.getInstance(), configuration);
     }
 
     @VisibleForTesting
     TransactionExternalResource(CollectInternalClientFactory collectInternalClientFactory,
-        IngestExternalClientFactory ingestExternalClientFactory) {
+        IngestExternalClientFactory ingestExternalClientFactory, CollectExternalConfiguration configuration) {
         this.collectInternalClientFactory = collectInternalClientFactory;
         this.ingestExternalClientFactory = ingestExternalClientFactory;
+        this.configuration = configuration;
     }
 
     @Path("/{transactionId}")
@@ -197,6 +206,8 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
             SanityChecker.checkJsonAll(jsonQuery);
+            SelectMultipleSchemaValidator.checkAuthorizeTrackTotalHits(jsonQuery,
+                configuration.isAuthorizeTrackTotalHits());
             RequestResponse<JsonNode> response = client.getUnitsByTransaction(transactionId, jsonQuery);
             return Response.ok(response).build();
         } catch (final VitamClientException e) {
@@ -205,6 +216,12 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             return Response.status(Response.Status.PRECONDITION_FAILED).build();
+        } catch (ValidationException e) {
+            LOGGER.error(UNAUTHORIZED_DSL_PARAMETER, e);
+            return Response.status(Response.Status.UNAUTHORIZED)
+                .entity(VitamCodeHelper.toVitamError(VitamCode.COLLECT_EXTERNAL_SELECT_UNITS_ERROR,
+                    e.getLocalizedMessage()).setHttpCode(Response.Status.UNAUTHORIZED.getStatusCode()))
+                .build();
         }
     }
 

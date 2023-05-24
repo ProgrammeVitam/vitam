@@ -486,6 +486,7 @@ vitam:
     baseuri: "collect-external"
     https_enabled: true
     secret_platform: "false"
+    authorizeTrackTotalHits: false # if false, limit results to 10K. if true, authorize results overs 10K (can overload elasticsearch-data)
   metadata_collect:
     vitam_component: metadata-collect
     host: "metadata-collect.service.{{ consul_domain }}"

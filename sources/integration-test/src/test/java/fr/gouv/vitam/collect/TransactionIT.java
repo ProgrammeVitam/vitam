@@ -40,13 +40,23 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
 import fr.gouv.vitam.common.VitamServerRunner;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
@@ -54,15 +64,19 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import static fr.gouv.vitam.collect.CollectTestHelper.initProjectData;
 import static fr.gouv.vitam.collect.CollectTestHelper.initTransaction;
 import static org.apache.hc.core5.http.HttpStatus.SC_OK;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 public class TransactionIT extends VitamRuleRunner {
@@ -299,6 +313,36 @@ public class TransactionIT extends VitamRuleRunner {
             RequestResponse<JsonNode> response =
                 client.deleteTransactionById(vitamContext, transactionDtoResult.getId());
             assertThat(response.getStatus()).isEqualTo(200);
+        }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void selectUnitsWithTrackTotalHitsInDSL() throws Exception {
+        // given
+        VitamContext vitamContext = new VitamContext(0)
+            .setApplicationSessionId("APPLICATION_SESSION_ID")
+            .setAccessContract("ACCESS_CONTRACT");
+
+        // WHEN
+        assertThatThrownBy(() -> {
+            getMetadataWithTrackTotalHits(true, vitamContext);
+        }).isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Error with the response, get status: '401' and reason 'Unauthorized'.");
+    }
+
+    private RequestResponse<JsonNode> getMetadataWithTrackTotalHits(boolean shouldTrackTotalHits,
+        VitamContext vitamContext)
+        throws VitamClientException, InvalidParseOperationException, InvalidCreateOperationException {
+        SelectMultiQuery select = new SelectMultiQuery();
+        select.addQueries(QueryHelper.exists(VitamFieldsHelper.id()));
+        select.trackTotalHits(shouldTrackTotalHits);
+        select.setProjection(
+            JsonHandler.createObjectNode().set(
+                BuilderToken.PROJECTION.FIELDS.name(),
+                JsonHandler.createObjectNode().put(VitamFieldsHelper.id(), 1)));
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            return collectClient.getUnitsByTransaction(vitamContext, "aeeaaaaaacezlakvcyequamii7qkn4aaaaaq", select.getFinalSelect());
         }
     }
 }

@@ -75,7 +75,7 @@ public class BusinessApplicationTest extends Application {
 
         final CollectExternalResource collectExternalResource =
             new CollectExternalResource(secureEndpointRegistry);
-        final TransactionExternalResource transactionExternalResource = new TransactionExternalResource();
+        final TransactionExternalResource transactionExternalResource = new TransactionExternalResource(null);
 
         final ProjectExternalResource projectExternalResource =
             new ProjectExternalResource(collectInternalClientFactory);
