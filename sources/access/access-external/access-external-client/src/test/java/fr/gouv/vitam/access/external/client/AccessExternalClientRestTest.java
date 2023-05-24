@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamClientIllegalAccessRequestOperationOnSyncOfferException;
 import fr.gouv.vitam.common.external.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.JsonLineIterator;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
@@ -134,7 +135,7 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
     @RunWithCustomExecutor
     public void givenRessourceOKWhenSelectTehnReturnOK()
         throws Exception {
-        when(mock.post()).thenReturn(Response.status(Status.OK).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).build());
         assertThat(client.selectUnits(new VitamContext(TENANT_ID).setAccessContract(CONTRACT),
             JsonHandler.getFromString(queryDsql))).isNotNull();
     }
@@ -1083,6 +1084,17 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
         ).isInstanceOf(VitamClientException.class);
     }
 
+    @Test
+    @RunWithCustomExecutor
+    public void streamObjects() throws Exception {
+        // Given
+        JsonNode query = createDslQueryById(queryDsql);
+
+        // When / Then
+        assertThat(client.streamObjects(new VitamContext(TENANT_ID).setAccessContract(CONTRACT), query))
+            .isInstanceOf(JsonLineIterator.class);
+    }
+
 
     @Path("/access-external/v1")
     public static class MockResource {
@@ -1362,6 +1374,14 @@ public class AccessExternalClientRestTest extends ResteasyTestApplication {
                 default:
                     return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
+        }
+
+        @GET
+        @Path("/objects/stream")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response streamObjectsMock(JsonNode queryDsl) {
+            return Response.status(Status.OK).build();
         }
     }
 }

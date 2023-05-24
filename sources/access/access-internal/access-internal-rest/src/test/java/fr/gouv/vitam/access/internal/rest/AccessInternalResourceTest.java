@@ -407,4 +407,3 @@ public class AccessInternalResourceTest {
             .putObject(eq(VitamThreadUtils.getVitamSession().getRequestId()), eq(s), any());
     }
 }
-

@@ -512,7 +512,7 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
             check(response);
             return ((RequestResponseOK<ReconstructionResponseItem>)
                 RequestResponse.parseFromResponse(response, ReconstructionResponseItem.class))
-                    .getResults();
+                .getResults();
         } catch (MetaDataExecutionException | MetaDataDocumentSizeException | VitamClientInternalException e) {
             throw new MetaDataClientServerException(e);
         }
@@ -597,6 +597,38 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
                 return response;
             }
 
+            switch (status) {
+                case CONFLICT:
+                    throw new MetadataScrollThresholdExceededException(status.toString());
+                case UNAUTHORIZED:
+                    throw new MetadataScrollLimitExceededException(status.toString());
+                default:
+                    throw new MetaDataClientServerException(status.toString());
+            }
+        } catch (VitamClientInternalException e) {
+            throw new MetaDataClientServerException(e);
+        } finally {
+            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+                response.close();
+            }
+        }
+    }
+
+    @Override
+    public Response streamObjects(JsonNode selectQuery)
+        throws MetaDataClientServerException, MetadataScrollThresholdExceededException,
+        MetadataScrollLimitExceededException {
+        Response response = null;
+        try {
+            response = make(get().withPath("/objects/stream")
+                .withJsonContentType()
+                .withOctetAccept()
+                .withBody(selectQuery, SELECT_OBJECT_GROUP_QUERY_NULL.getMessage()));
+
+            Status status = response.getStatusInfo().toEnum();
+            if (status.getFamily() == SUCCESSFUL) {
+                return response;
+            }
             switch (status) {
                 case CONFLICT:
                     throw new MetadataScrollThresholdExceededException(status.toString());

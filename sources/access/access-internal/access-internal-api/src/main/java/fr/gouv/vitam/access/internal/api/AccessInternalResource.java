@@ -58,6 +58,8 @@ public interface AccessInternalResource {
 
     Response streamUnits(JsonNode queryDsl);
 
+    Response streamObjects(JsonNode queryDsl);
+
     Response selectUnitsWithInheritedRules(JsonNode queryDsl);
 
     /**

@@ -46,6 +46,7 @@ public enum SecurityProfilePermissions {
     UNITS_BULK_UPDATE("units:bulk:update"),
     UNITS_READ("units:read"),
     UNITS_STREAM("units:stream"),
+    OBJECTS_STREAM("objects:stream"),
     UNITS_ID_READ_JSON("units:id:read:json"),
     UNITS_ID_UPDATE("units:id:update"),
     UNITS_ID_OBJECTS_READ_JSON("units:id:objects:read:json"),

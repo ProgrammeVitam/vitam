@@ -161,9 +161,21 @@ public final class VitamMetricsNames {
     public static final String VITAM_METADATA_UNIT_SCROLL_DURATION = "vitam_metadata_unit_scroll_duration";
 
     /**
+     * Unit scroll duration
+     * Type: Histogram
+     * Labels: "collection"
+     */
+    public static final String VITAM_METADATA_OBJECT_SCROLL_DURATION = "vitam_metadata_object_scroll_duration";
+
+    /**
      * Vitam metadata stream documents
      */
     public static final String VITAM_METADATA_UNIT_SCROLL_TOTAL = "vitam_metadata_unit_scroll_total";
+
+    /**
+     * Vitam metadata stream documents
+     */
+    public static final String VITAM_METADATA_OBJECT_SCROLL_TOTAL = "vitam_metadata_object_scroll_total";
 
     /**
      * Vitam metadata effective log shipping histogram duration metric

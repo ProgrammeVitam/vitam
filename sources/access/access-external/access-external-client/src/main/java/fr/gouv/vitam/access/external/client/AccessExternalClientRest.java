@@ -79,6 +79,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
     private static final String BLANK_TRANSFER_ID = "Transfer identifier should be filled";
     private static final String MISSING_RECLASSIFICATION_REQUEST = "Missing reclassification request";
     private static final String MISSING_ELIMINATION_REQUEST = "Missing elimination request";
+    public static final String PATH_STREAM_OBJECTS = "/objects/stream";
 
     AccessExternalClientRest(AccessExternalClientFactory factory) {
         super(factory);
@@ -109,6 +110,20 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         VitamRequestBuilder request =
             get().withPath("/units/stream").withHeaders(vitamContext.getHeaders()).withBody(selectQuery, BLANK_QUERY)
                 .withJsonContentType().withOctetAccept();
+        try (Response response = make(request)) {
+            check(response);
+            return JsonLineIterator.parseFromResponse(response, JsonNode.class);
+        }
+    }
+
+    @Override
+    public JsonLineIterator<JsonNode> streamObjects(VitamContext vitamContext, JsonNode selectQuery)
+        throws VitamClientException {
+        VitamRequestBuilder request = get().withPath(PATH_STREAM_OBJECTS)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(selectQuery, BLANK_QUERY)
+            .withJsonContentType()
+            .withOctetAccept();
         try (Response response = make(request)) {
             check(response);
             return JsonLineIterator.parseFromResponse(response, JsonNode.class);

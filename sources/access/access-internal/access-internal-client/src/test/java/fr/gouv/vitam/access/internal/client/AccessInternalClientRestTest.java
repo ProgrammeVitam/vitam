@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
+import fr.gouv.vitam.common.exception.ExpectationFailedClientException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -165,6 +166,15 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         @Produces(MediaType.APPLICATION_JSON)
         public Response streamUnits(JsonNode queryDsl) {
             return expectedResponse.post();
+        }
+
+        @Override
+        @GET
+        @Path("/objects/stream")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_OCTET_STREAM)
+        public Response streamObjects(JsonNode queryDsl) {
+            return expectedResponse.get();
         }
 
         @Override
@@ -1095,5 +1105,19 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
         // When / Then
         assertThatThrownBy(() -> client.removeAccessRequest(accessRequest))
             .isInstanceOf(AccessInternalClientServerException.class);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void streamObjects()
+        throws InvalidParseOperationException, ExpectationFailedClientException, AccessInternalClientServerException,
+        AccessUnauthorizedException {
+        // Given
+        VitamThreadUtils.getVitamSession().setRequestId(DUMMY_REQUEST_ID);
+        when(mock.get()).thenReturn(Response.status(202).build());
+        JsonNode selectQuery = JsonHandler.getFromString(emptyQueryDsl);
+
+        // When / Then
+        assertThat(client.streamObjects(selectQuery).getStatus()).isEqualTo(202);
     }
 }

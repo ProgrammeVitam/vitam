@@ -200,4 +200,8 @@ public interface AccessInternalModule {
     Response streamUnits(JsonNode applyAccessContractRestrictionForUnitForSelect)
         throws AccessInternalExecutionException, MetadataScrollLimitExceededException,
         MetadataScrollThresholdExceededException;
+
+    Response streamObjects(JsonNode applyAccessContractRestrictionForObjectForSelect)
+        throws AccessInternalExecutionException, MetadataScrollLimitExceededException,
+        MetadataScrollThresholdExceededException;
 }

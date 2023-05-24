@@ -65,8 +65,14 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
     @JsonProperty("unitsStreamThreshold")
     private long unitsStreamThreshold = 1_000_000;
 
-    @JsonProperty("streamExecutionLimit")
-    private short streamExecutionLimit = 3;
+    @JsonProperty("unitsStreamExecutionLimit")
+    private short unitsStreamExecutionLimit = 3;
+
+    @JsonProperty("objectsStreamThreshold")
+    private long objectsStreamThreshold = 1_000_000;
+
+    @JsonProperty("objectsStreamExecutionLimit")
+    private short objectsStreamExecutionLimit = 3;
 
     @JsonProperty("elasticsearchTenantIndexation")
     private MetadataIndexationConfiguration indexationConfiguration;
@@ -277,12 +283,28 @@ public class MetaDataConfiguration extends DbConfigurationImpl {
         this.unitsStreamThreshold = unitsStreamThreshold;
     }
 
-    public short getStreamExecutionLimit() {
-        return streamExecutionLimit;
+    public long getObjectsStreamThreshold() {
+        return objectsStreamThreshold;
     }
 
-    public void setStreamExecutionLimit(short streamExecutionLimit) {
-        this.streamExecutionLimit = streamExecutionLimit;
+    public void setObjectsStreamThreshold(long objectsStreamThreshold) {
+        this.objectsStreamThreshold = objectsStreamThreshold;
+    }
+
+    public short getUnitsStreamExecutionLimit() {
+        return unitsStreamExecutionLimit;
+    }
+
+    public void setUnitsStreamExecutionLimit(short unitsStreamExecutionLimit) {
+        this.unitsStreamExecutionLimit = unitsStreamExecutionLimit;
+    }
+
+    public short getObjectsStreamExecutionLimit() {
+        return objectsStreamExecutionLimit;
+    }
+
+    public void setObjectsStreamExecutionLimit(short objectsStreamExecutionLimit) {
+        this.objectsStreamExecutionLimit = objectsStreamExecutionLimit;
     }
 
     public MetadataIndexationConfiguration getIndexationConfiguration() {

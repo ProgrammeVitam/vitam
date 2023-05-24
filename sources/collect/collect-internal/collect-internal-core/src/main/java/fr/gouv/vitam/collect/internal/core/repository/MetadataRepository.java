@@ -91,7 +91,6 @@ public class MetadataRepository {
         try (MetaDataClient metaDataClient = metaDataCollectClientFactory.getClient()) {
             SelectParserMultiple parser = new SelectParserMultiple();
             parser.parse(queryDsl);
-
             applyTransactionToQuery(transactionId, parser.getRequest());
             JsonNode jsonNode = metaDataClient.selectUnits(parser.getRequest().getFinalSelect());
             return JsonHandler.getFromJsonNode(jsonNode, RequestResponseOK.class, JsonNode.class);

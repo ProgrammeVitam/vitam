@@ -27,7 +27,11 @@
 package fr.gouv.vitam.metadata.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.UpdateOptions;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS;
 import fr.gouv.vitam.common.database.builder.request.multiple.InsertMultiQuery;
@@ -38,6 +42,7 @@ import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
 import fr.gouv.vitam.common.database.parser.request.multiple.RequestParserMultiple;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.server.elasticsearch.IndexationHelper;
+import fr.gouv.vitam.common.database.server.mongodb.VitamDocument;
 import fr.gouv.vitam.common.exception.DatabaseException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -52,13 +57,14 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.api.model.BulkUnitInsertRequest;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestUtils;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot;
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImpl;
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
@@ -70,11 +76,17 @@ import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
 import fr.gouv.vitam.metadata.core.validation.UnitValidator;
+import org.bson.BsonArray;
+import org.bson.BsonDocument;
+import org.bson.conversions.Bson;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -83,6 +95,10 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollDate;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollNumber;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollDate;
+import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollNumber;
 import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -92,6 +108,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -100,6 +117,7 @@ import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -115,6 +133,8 @@ public class MetaDataImplTest {
     private AdminManagementClientFactory adminManagementClientFactory;
     private IndexationHelper indexationHelper;
     private MongoDbAccessMetadataImpl mongoDbAccessFactory;
+    private MongoDatabase mongoDatabase;
+    private MongoCollection mongoCollection = mock(MongoCollection.class);
     private static final String DATA_INSERT = "{ \"data\": \"test\" }";
 
     private static final String SAMPLE_OBJECTGROUP_FILENAME = "sample_objectGroup_document.json";
@@ -152,6 +172,7 @@ public class MetaDataImplTest {
         request = mock(DbRequest.class);
         indexationHelper = mock(IndexationHelper.class);
         mongoDbAccessFactory = mock(MongoDbAccessMetadataImpl.class);
+        mongoDatabase = mock(MongoDatabase.class);
         adminManagementClientFactory = mock(AdminManagementClientFactory.class);
         adminManagementClient = mock(AdminManagementClient.class);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
@@ -167,6 +188,9 @@ public class MetaDataImplTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
+        Mockito.when(mongoDbAccessFactory.getMongoDatabase()).thenReturn(mongoDatabase);
+        Mockito.when(mongoDatabase.getCollection(MetaDataImpl.SNAPSHOT_COLLECTION, MetadataSnapshot.class))
+            .thenReturn(mongoCollection);
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -514,5 +538,147 @@ public class MetaDataImplTest {
     public void switchIndexOKTest() throws Exception {
         doReturn(mock(SwitchIndexResult.class)).when(indexationHelper).switchIndex(any(), any(), any());
         metaDataImpl.switchIndex("alias", "index_name");
+    }
+
+    @Test
+    public void checkStreamUnits_OK() throws Exception {
+        // Given
+        MetadataSnapshot unitsScrollDate = newMetadataSnapshot(UnitsScrollDate.name(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        MetadataSnapshot unitsScrollNumber = newMetadataSnapshot(UnitsScrollNumber.name(), 1);
+        FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
+        Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
+        Mockito.when(findIterable.first())
+            .thenReturn(unitsScrollDate)
+            .thenReturn(unitsScrollNumber);
+        // When
+        metaDataImpl.checkStreamUnits(1, (short) 3);
+    }
+
+    @Test
+    public void checkStreamUnits_OK_without_data() throws Exception {
+        // Given
+
+        FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
+        Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
+        Mockito.when(findIterable.first())
+            .thenReturn(null);
+        // When
+        metaDataImpl.checkStreamUnits(1, (short) 3);
+    }
+
+    @Test
+    public void checkStreamUnits_limit_reach() throws Exception {
+        // Given
+        MetadataSnapshot unitsScrollDate = newMetadataSnapshot(UnitsScrollDate.name(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        MetadataSnapshot unitsScrollNumber = newMetadataSnapshot(UnitsScrollNumber.name(), 3);
+        FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
+        Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
+        Mockito.when(findIterable.first())
+            .thenReturn(unitsScrollDate)
+            .thenReturn(unitsScrollNumber);
+        // When
+        assertThrows(MetaDataException.class, () -> metaDataImpl.checkStreamUnits(1, (short) 3));
+    }
+
+    @Test
+    public void checkStreamObjects_OK() throws Exception {
+        // Given
+        MetadataSnapshot objectsScrollDate = newMetadataSnapshot(ObjectsScrollDate.name(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        MetadataSnapshot objectsScrollNumber = newMetadataSnapshot(ObjectsScrollNumber.name(), 1);
+        FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
+        Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
+        Mockito.when(findIterable.first())
+            .thenReturn(objectsScrollDate)
+            .thenReturn(objectsScrollNumber);
+        // When
+        metaDataImpl.checkStreamObjects(1, (short) 3);
+    }
+
+    @Test
+    public void checkStreamObjects_OK_without_data() throws Exception {
+        // Given
+        FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
+        Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
+        Mockito.when(findIterable.first())
+            .thenReturn(null);
+        // When
+        metaDataImpl.checkStreamObjects(1, (short) 3);
+    }
+
+    @Test
+    public void checkStreamObjects_limit_reach() throws Exception {
+        // Given
+        MetadataSnapshot ObjectsScrollDate = newMetadataSnapshot(MetadataSnapshot.PARAMETERS.ObjectsScrollDate.name(),
+            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        MetadataSnapshot objectsScrollNumber = newMetadataSnapshot(ObjectsScrollNumber.name(), 3);
+        FindIterable<MetadataSnapshot> findIterable = mock(FindIterable.class);
+        Mockito.when(mongoCollection.find(any(Bson.class))).thenReturn(findIterable);
+        Mockito.when(findIterable.first())
+            .thenReturn(ObjectsScrollDate)
+            .thenReturn(objectsScrollNumber);
+        // When
+        assertThrows(MetaDataException.class, () -> metaDataImpl.checkStreamObjects(1, (short) 3));
+    }
+
+    @Test
+    public void updateParameterStreamUnits_OK() throws Exception {
+        // Given
+        ArgumentCaptor<Bson> firstArgument = ArgumentCaptor.forClass(Bson.class);
+        ArgumentCaptor<Bson> secondArgument = ArgumentCaptor.forClass(Bson.class);
+        ArgumentCaptor<UpdateOptions> thirdArgument = ArgumentCaptor.forClass(UpdateOptions.class);
+        LocalDateTime startTime = LocalDateUtil.now();
+        // When
+        metaDataImpl.updateParameterStreamUnits(1);
+        // Then
+        verify(mongoCollection, times(2))
+            .updateOne(firstArgument.capture(), secondArgument.capture(), thirdArgument.capture());
+        BsonArray values = firstArgument.getValue().toBsonDocument().get("$and").asArray();
+
+        assertEquals(1, values.get(0).asDocument().get(VitamDocument.TENANT_ID).asInt32().getValue());
+        assertEquals(UnitsScrollDate.name(),
+            values.get(1).asDocument().get(MetadataSnapshot.NAME).asString().getValue());
+        BsonDocument secondArgumentDocument = secondArgument.getValue().toBsonDocument();
+        assertThat(secondArgumentDocument.get("$setOnInsert").asDocument().get(VitamDocument.ID).asString().getValue())
+            .isNotEmpty().hasSize(36);
+        assertThat(secondArgumentDocument.get("$set").asDocument().get(MetadataSnapshot.VALUE).asString().getValue())
+            .isBetween(LocalDateUtil.getFormattedDateForMongo(startTime),
+                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        assertThat(thirdArgument.getValue().isUpsert()).isTrue();
+    }
+
+    @Test
+    public void updateParameterStreamObjects_OK() throws Exception {
+        // Given
+        ArgumentCaptor<Bson> firstArgument = ArgumentCaptor.forClass(Bson.class);
+        ArgumentCaptor<Bson> secondArgument = ArgumentCaptor.forClass(Bson.class);
+        ArgumentCaptor<UpdateOptions> thirdArgument = ArgumentCaptor.forClass(UpdateOptions.class);
+        LocalDateTime startTime = LocalDateUtil.now();
+        // When
+        metaDataImpl.updateParameterStreamObjects(1);
+        // Then
+        verify(mongoCollection, times(2))
+            .updateOne(firstArgument.capture(), secondArgument.capture(), thirdArgument.capture());
+        BsonArray values = firstArgument.getValue().toBsonDocument().get("$and").asArray();
+
+        assertEquals(1, values.get(0).asDocument().get(VitamDocument.TENANT_ID).asInt32().getValue());
+        assertEquals(ObjectsScrollDate.name(),
+            values.get(1).asDocument().get(MetadataSnapshot.NAME).asString().getValue());
+        BsonDocument secondArgumentDocument = secondArgument.getValue().toBsonDocument();
+        assertThat(secondArgumentDocument.get("$setOnInsert").asDocument().get(VitamDocument.ID).asString().getValue())
+            .isNotEmpty().hasSize(36);
+        assertThat(secondArgumentDocument.get("$set").asDocument().get(MetadataSnapshot.VALUE).asString().getValue())
+            .isBetween(LocalDateUtil.getFormattedDateForMongo(startTime),
+                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        assertThat(thirdArgument.getValue().isUpsert()).isTrue();
+    }
+
+    private MetadataSnapshot newMetadataSnapshot(String name, Object value) {
+        MetadataSnapshot metadataSnapshot = new MetadataSnapshot();
+        metadataSnapshot.setName(name);
+        metadataSnapshot.setValue(value);
+        return metadataSnapshot;
     }
 }

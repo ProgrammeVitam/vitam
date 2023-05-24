@@ -334,7 +334,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     throw new IllegalArgumentException(UNSUPPORTED_CATEGORY + dataCategory);
             }
         } catch (MetadataInvalidSelectException | MetaDataDocumentSizeException | MetaDataExecutionException |
-            ProcessingException | MetaDataClientServerException e) {
+                 ProcessingException | MetaDataClientServerException e) {
             throw new AccessInternalExecutionException(e);
         }
         return jsonNode;
@@ -726,8 +726,19 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
     public Response streamUnits(JsonNode query)
         throws AccessInternalExecutionException, MetadataScrollLimitExceededException,
         MetadataScrollThresholdExceededException {
-        try (MetaDataClient metaDataClient = MetaDataClientFactory.getInstance().getClient()) {
+        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             return metaDataClient.streamUnits(query);
+        } catch (MetaDataClientServerException e) {
+            throw new AccessInternalExecutionException(e);
+        }
+    }
+
+    @Override
+    public Response streamObjects(JsonNode query)
+        throws AccessInternalExecutionException, MetadataScrollLimitExceededException,
+        MetadataScrollThresholdExceededException {
+        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
+            return metaDataClient.streamObjects(query);
         } catch (MetaDataClientServerException e) {
             throw new AccessInternalExecutionException(e);
         }
@@ -908,7 +919,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
                     masterStpOperation,
                     requestUpdateManagment);
             } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                LogbookClientServerException e1) {
+                     LogbookClientServerException e1) {
                 LOGGER.error(STORAGE_SERVER_EXCEPTION, e1);
             }
             LOGGER.error(STORAGE_SERVER_EXCEPTION, e);
@@ -1900,7 +1911,7 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             return metaDataClient.selectUnitsWithInheritedRules(jsonQuery);
         } catch (MetaDataDocumentSizeException |
-            ProcessingException | MetaDataClientServerException | MetaDataExecutionException e) {
+                 ProcessingException | MetaDataClientServerException | MetaDataExecutionException e) {
             throw new AccessInternalExecutionException(e);
         }
     }

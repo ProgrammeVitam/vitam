@@ -57,6 +57,33 @@ traits:
             type: AccessTypes.AccessStreamResponse
             example: !include examples/streamUnitResponse.jsonl
 
+  AccessObjectStreamResponse:
+    description: Response model for Objects collection in access
+    is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.AllowsHeader,
+      StandardTraits.StandardHeader200, StandardTraits.StandardHeader417, StandardTraits.StandardHeader500 ]
+    body:
+      application/json:
+        description: Contient la requête DSL multiple au format JSON. cette fonctionnalité ne supporte pas les facets et les filtres $limit et $offset
+        type: AccessTypes.AccessStreamMultipleQuery
+        example: !include examples/streamObjectRequest.json
+    responses:
+      200:
+        description: Renvoie la liste des résultats d'objets correspondant à la requête DSL
+        headers:
+          X-Objects-Count:
+            type: number
+            description: nombre des objets retournés dans le flux
+            example: 141202
+          X-Content-Length:
+            type: number
+            description: la taille du flux de données
+            example: 13978998
+        body:
+          application/octet-stream:
+            description: Réponse un Json stream contenant les métadonnées des objets
+            type: AccessTypes.AccessStreamResponse
+            example: !include examples/streamObjectResponse.jsonl
+
   AccessUniqueUnitResponse:
     description: Response model for Unit item in access
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader, StandardTraits.AllowsHeader,

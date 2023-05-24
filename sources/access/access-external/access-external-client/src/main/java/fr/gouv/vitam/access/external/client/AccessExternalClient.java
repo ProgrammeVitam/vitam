@@ -76,6 +76,17 @@ public interface AccessExternalClient extends BasicClient {
         throws VitamClientException;
 
     /**
+     * streamUnits /objects
+     *
+     * @param vitamContext the vitam context
+     * @param selectQuery the select query
+     * @return Json representation
+     * @throws VitamClientException
+     */
+    JsonLineIterator<JsonNode> streamObjects(VitamContext vitamContext, JsonNode selectQuery)
+        throws VitamClientException;
+
+    /**
      * selectUnitbyId GET(POST overrided) /units/{id}
      *
      * @param vitamContext the vitam context

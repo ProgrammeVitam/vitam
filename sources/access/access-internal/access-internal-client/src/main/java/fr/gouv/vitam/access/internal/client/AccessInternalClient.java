@@ -79,6 +79,9 @@ public interface AccessInternalClient extends MockOrRestClient {
     Response streamUnits(JsonNode selectQuery)
         throws AccessInternalClientServerException, ExpectationFailedClientException, AccessUnauthorizedException;
 
+    Response streamObjects(JsonNode selectQuery)
+        throws AccessInternalClientServerException, ExpectationFailedClientException, AccessUnauthorizedException;
+
     /**
      * select Unit By Id
      *
