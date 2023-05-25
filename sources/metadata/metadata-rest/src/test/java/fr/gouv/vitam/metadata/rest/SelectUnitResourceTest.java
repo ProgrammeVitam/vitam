@@ -175,6 +175,9 @@ public class SelectUnitResourceTest {
      * @deprecated : obsolete $rules projection. Use /unitsWithInheritedRules API
      */
     private static final String SEARCH_QUERY_WITH_RULE =
+        "{\"$query\": [], \"$projection\": {}, \"$filter\": {}}";
+
+    private static final String SEARCH_QUERY_WITHOUT_RULE =
         "{\"$query\": [], \"$projection\": {\"$fields\" : {\"$rules\" : 1}}, \"$filter\": {}}";
     private static final String SEARCH_QUERY_WITH_FACET_FILTERS =
         "{" +
@@ -492,6 +495,31 @@ public class SelectUnitResourceTest {
             .body(JsonHandler.getFromString(SEARCH_QUERY_WITH_RULE)).when()
             .get("/units/" + GUID_1).then()
             .statusCode(Status.OK.getStatusCode());
+    }
+    @Test
+    @RunWithCustomExecutor
+    public void given_2units_insert_when_searchUnitsByIDWithRule_thenReturn_Bad_Request() throws Exception {
+
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(bulkInsertRequest(DATA_0)).when()
+            .post("/units/bulk").then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        with()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(bulkInsertRequest(GUID_0, DATA_1)).when()
+            .post("/units/bulk").then()
+            .statusCode(Status.CREATED.getStatusCode());
+
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(SEARCH_QUERY_WITHOUT_RULE)).when()
+            .get("/units/" + GUID_1).then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
 

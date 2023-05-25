@@ -697,8 +697,8 @@ public class AccessExternalResource extends ApplicationStatusResource {
             RequestResponse<JsonNode> result = client.selectUnits(selectMultiQuery.getFinalSelect());
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             // FIXME hack for bug in Metadata when DSL contains unexisting root id without query
-            if (((RequestResponseOK<JsonNode>) result).getResults() == null ||
-                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty()) {
+            if (!(result instanceof VitamError) && (((RequestResponseOK<JsonNode>) result).getResults() == null ||
+                ((RequestResponseOK<JsonNode>) result).getResults().isEmpty())) {
                 throw new AccessInternalClientNotFoundException(UNIT_NOT_FOUND);
             }
 

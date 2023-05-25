@@ -119,12 +119,25 @@ public class MetaDataClientRest extends DefaultClient implements MetaDataClient 
     public JsonNode selectUnits(JsonNode selectQuery)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException {
-        try (Response response = make(
-            get().withPath("/units").withBody(selectQuery, SELECT_UNITS_QUERY_NULL.getMessage()).withJson())) {
+
+        Response response = null;
+        try {
+            response = make(
+                get().withPath("/units").withBody(selectQuery, SELECT_UNITS_QUERY_NULL.getMessage()).withJson());
             check(response);
             return response.readEntity(JsonNode.class);
-        } catch (MetaDataNotFoundException | VitamClientInternalException e) {
+        } catch (InvalidParseOperationException e) {
+            JsonNode resp = response.readEntity(JsonNode.class);
+            if (resp != null && resp.get("description") != null) {
+                throw new InvalidParseOperationException(resp.get("description").asText(), e);
+            }
+            throw new InvalidParseOperationException(ErrorMessage.INVALID_PARSE_OPERATION.getMessage(), e);
+        } catch (VitamClientInternalException | MetaDataNotFoundException e) {
             throw new MetaDataClientServerException(e);
+        } finally {
+            if (response != null) {
+                response.close();
+            }
         }
     }
 

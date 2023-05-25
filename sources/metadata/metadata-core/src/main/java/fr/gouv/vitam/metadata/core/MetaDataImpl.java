@@ -179,6 +179,7 @@ public class MetaDataImpl {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetaDataImpl.class);
 
     private static final String REQUEST_IS_NULL = "Request select is null or is empty";
+    private static final String UNSUPPORTED_RULES_PROJECTION = "Projection field $rules is no longer supported.";
     private static final MongoDbVarNameAdapter DEFAULT_VARNAME_ADAPTER = new MongoDbVarNameAdapter();
     public static final int MAX_PRECISION_THRESHOLD = 40000;
     private static final int AGGREGATION_SIZE = 10_000;
@@ -684,6 +685,12 @@ public class MetaDataImpl {
         // parse Select request
         final RequestParserMultiple selectRequest = new SelectParserMultiple(DEFAULT_VARNAME_ADAPTER);
         selectRequest.parse(selectQuery);
+
+        ObjectNode fieldsProjection =
+            (ObjectNode) selectRequest.getRequest().getProjection().get(PROJECTION.FIELDS.exactToken());
+        if (fieldsProjection != null && fieldsProjection.get(GLOBAL.RULES.exactToken()) != null) {
+            throw new InvalidParseOperationException(UNSUPPORTED_RULES_PROJECTION);
+        }
         // Reset $roots (add or override id on roots)
         if (unitOrObjectGroupId != null && !unitOrObjectGroupId.isEmpty()) {
             final RequestMultiple request = selectRequest.getRequest();
@@ -703,13 +710,6 @@ public class MetaDataImpl {
             }
         }
 
-        boolean shouldComputeUnitRule = false;
-        ObjectNode fieldsProjection =
-            (ObjectNode) selectRequest.getRequest().getProjection().get(PROJECTION.FIELDS.exactToken());
-        if (fieldsProjection != null && fieldsProjection.get(GLOBAL.RULES.exactToken()) != null) {
-            shouldComputeUnitRule = true;
-            fieldsProjection.removeAll();
-        }
 
         List<OntologyModel> ontologies;
         if (selectRequest.model() == BuilderToken.FILTERARGS.UNITS) {
@@ -720,11 +720,6 @@ public class MetaDataImpl {
 
         result = dbRequest.execRequest(selectRequest, ontologies);
         arrayNodeResponse = MetadataJsonResponseUtils.populateJSONObjectResponse(result, selectRequest);
-
-        // Compute Rule for unit(only with search by Id)
-        if (shouldComputeUnitRule && result.hasFinalResult()) {
-            computeRuleForUnit(arrayNodeResponse);
-        }
 
         List<JsonNode> res = toArrayList(arrayNodeResponse);
         List<FacetResult> facetResults = (result != null) ? result.getFacet() : new ArrayList<>();
@@ -893,39 +888,6 @@ public class MetaDataImpl {
                     .put(PROJECTIONARGS.UNITUPS.exactToken(), 1)
                     .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
         return newSelectQuery;
-    }
-
-    /**
-     * @deprecated : Use the new api /unitsWithInheritedRules instead. To be removed in future releases.
-     */
-    private void computeRuleForUnit(ArrayNode arrayNodeResponse)
-        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException,
-        MetaDataNotFoundException, BadRequestException, VitamDBException {
-        Map<String, UnitNode> allUnitNode = new HashMap<>();
-        Set<String> rootList = new HashSet<>();
-        List<String> unitParentIdList = new ArrayList<>();
-        String unitId = "";
-        for (JsonNode unitNode : arrayNodeResponse) {
-            ArrayNode unitParentId = (ArrayNode) unitNode.get(PROJECTIONARGS.ALLUNITUPS.exactToken());
-            for (JsonNode parentIdNode : unitParentId) {
-                unitParentIdList.add(parentIdNode.asText());
-            }
-            String currentUnitId = unitNode.get(PROJECTIONARGS.ID.exactToken()).asText();
-            if (unitId.isEmpty()) {
-                unitId = currentUnitId;
-            }
-            unitParentIdList.add(currentUnitId);
-        }
-        SelectMultiQuery newSelectQuery = createSearchParentSelect(unitParentIdList);
-        final MetadataResult metadataResult = selectMetadataObject(newSelectQuery.getFinalSelect(), null,
-            singletonList(BuilderToken.FILTERARGS.UNITS));
-
-        Map<String, UnitSimplified> unitMap = UnitSimplified.getUnitIdMap(metadataResult.getResults());
-        UnitRuleCompute unitNode = new UnitRuleCompute(unitMap.get(unitId));
-        unitNode.buildAncestors(unitMap, allUnitNode, rootList);
-        unitNode.computeRule();
-        JsonNode rule = JsonHandler.toJsonNode(unitNode.getHeritedRules().getInheritedRule());
-        ((ObjectNode) arrayNodeResponse.get(0)).set(UnitInheritedRule.INHERITED_RULE, rule);
     }
 
     public void refreshUnit()

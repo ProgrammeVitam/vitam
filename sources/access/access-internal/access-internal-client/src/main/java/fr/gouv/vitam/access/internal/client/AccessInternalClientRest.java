@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
+import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.ExpectationFailedClientException;
@@ -57,6 +58,8 @@ import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -121,8 +124,10 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
     public RequestResponse<JsonNode> selectUnits(JsonNode selectQuery) throws InvalidParseOperationException,
         AccessInternalClientServerException, AccessInternalClientNotFoundException, AccessUnauthorizedException,
         BadRequestException {
-        try (Response response = make(
-            get().withBefore(CHECK_REQUEST_ID).withPath(UNITS).withBody(selectQuery, BLANK_DSL).withJson())) {
+        Response response = null;
+        try {
+            response =
+                make(get().withBefore(CHECK_REQUEST_ID).withPath(UNITS).withBody(selectQuery, BLANK_DSL).withJson());
             check(response);
             return RequestResponse.parseFromResponse(response);
         } catch (VitamClientInternalException | PreconditionFailedClientException |
@@ -130,8 +135,10 @@ class AccessInternalClientRest extends DefaultClient implements AccessInternalCl
             throw new AccessInternalClientServerException(e);
         } catch (ForbiddenClientException e) {
             throw new BadRequestException(e);
-        } catch (NoWritingPermissionException | BadRequestException e) {
+        } catch (NoWritingPermissionException e) {
             throw new InvalidParseOperationException(e);
+        } catch (BadRequestException e) {
+            return RequestResponse.parseVitamError(response);
         }
     }
 
