@@ -97,7 +97,12 @@ public enum ServiceName {
     /**
      * Used for Functional Administration error
      */
-    FUNCTIONAL_ADMINISTRATION("12", "Functional_Administration");
+    FUNCTIONAL_ADMINISTRATION("12", "Functional_Administration"),
+
+    /**
+     * Used for collect external access error
+     */
+    COLLECT_EXTERNAL_ACCESS("13", "Collect External Access");
 
 
     private final String code;

@@ -212,6 +212,10 @@ public enum VitamCode {
         Status.BAD_REQUEST,
         "Access external client error in selectUnits method."),
 
+    COLLECT_EXTERNAL_SELECT_UNITS_ERROR(ServiceName.COLLECT_EXTERNAL_ACCESS, DomainName.IO, "00",
+        Status.BAD_REQUEST,
+        "Collect external client error in selectUnits method."),
+
     ACCESS_EXTERNAL_SELECT_UNIT_BY_ID_ERROR(ServiceName.EXTERNAL_ACCESS, DomainName.IO, "01",
         Status.BAD_REQUEST,
         "Access external client error in selectUnitbyId method."),
