@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -x
 MINIO_SSL_CERTIF_FOLDER="/tmp/minio_ssl_certs"
 DOCKER_COMPOSE_DIRNAME="$(dirname ${BASH_SOURCE[0]})"
 VITAMDEV_GIT_REPO="$( cd "$( readlink -f ${DOCKER_COMPOSE_DIRNAME} )/../.." ; pwd )"
@@ -38,12 +38,14 @@ until $(curl --output /dev/null --silent --head --fail http://127.0.0.1:35357/v3
 done
 
 echo "Configuring swift container"
+cd $DOCKER_COMPOSE_DIRNAME
 docker-compose exec swift "swift/bin/register-swift-endpoint.sh" http://127.0.0.1:8080
+cd -
 
 echo "Tail docker logs..."
 echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml up logs -f --tail=all"
 docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml logs -f --tail=all
 
 echo "Stopping docker-compose..."
-echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down"
-docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down
+echo "docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down -v"
+docker-compose --file ${DOCKER_COMPOSE_DIRNAME}/docker-compose.yml down -v
