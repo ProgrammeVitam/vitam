@@ -930,7 +930,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             SanityChecker.checkParameter(idObjectGroup);
             JsonNode result = accessModule
                 .selectObjectGroupById(AccessContractRestrictionHelper
-                        .applyAccessContractRestrictionForObjectGroupForSelect(query,
+                        .applyAccessContractExceptRuleRestrictionsForObjectGroupForSelect(query,
                             getVitamSession().getContract()),
                     idObjectGroup);
             return Response.status(Status.OK).entity(result).build();

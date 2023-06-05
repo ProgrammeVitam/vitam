@@ -76,7 +76,7 @@ public final class AccessContractRestrictionHelper {
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(queryDsl);
-        applyAccessContractRestriction(parser, contract, true);
+        applyAccessContractRestriction(parser, contract, true, true);
         return parser.getRequest().getFinalSelect();
     }
 
@@ -94,7 +94,25 @@ public final class AccessContractRestrictionHelper {
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(queryDsl);
-        applyAccessContractRestriction(parser, contract, false);
+        applyAccessContractRestriction(parser, contract, false, true);
+        return parser.getRequest().getFinalSelect();
+    }
+
+    /**
+     * Apply access contract restriction except rule restrictions for object group for select request
+     *
+     * @param queryDsl
+     * @param contract
+     * @return JsonNode contains restriction
+     * @throws InvalidParseOperationException
+     * @throws InvalidCreateOperationException
+     */
+    public static JsonNode applyAccessContractExceptRuleRestrictionsForObjectGroupForSelect(JsonNode queryDsl,
+        AccessContractModel contract)
+        throws InvalidParseOperationException, InvalidCreateOperationException {
+        final SelectParserMultiple parser = new SelectParserMultiple();
+        parser.parse(queryDsl);
+        applyAccessContractRestriction(parser, contract, false, false);
         return parser.getRequest().getFinalSelect();
     }
 
@@ -112,7 +130,7 @@ public final class AccessContractRestrictionHelper {
         throws InvalidParseOperationException, InvalidCreateOperationException {
         final UpdateParserMultiple parser = new UpdateParserMultiple();
         parser.parse(queryDsl);
-        applyAccessContractRestriction(parser, contract, true);
+        applyAccessContractRestriction(parser, contract, true, true);
         return parser.getRequest().getFinalUpdate();
     }
 
@@ -122,11 +140,12 @@ public final class AccessContractRestrictionHelper {
      * @param parser
      * @param contract
      * @param isUnit
+     * @param applyRuleRestrictions
      * @return JsonNode contains restriction
      * @throws InvalidCreateOperationException
      */
     private static void applyAccessContractRestriction(RequestParserMultiple parser, AccessContractModel contract,
-        boolean isUnit) throws InvalidCreateOperationException {
+        boolean isUnit, boolean applyRuleRestrictions) throws InvalidCreateOperationException {
         Set<String> rootUnits = contract.getRootUnits();
         Set<String> excludedRootUnits = contract.getExcludedRootUnits();
 
@@ -158,7 +177,7 @@ public final class AccessContractRestrictionHelper {
             restrictionQueries.add(excludeRootUnitsRestriction);
         }
 
-        if (!contract.getRuleCategoryToFilter().isEmpty()) {
+        if (applyRuleRestrictions && !contract.getRuleCategoryToFilter().isEmpty()) {
             Query rulesRestrictionQuery = getRulesRestrictionQuery(contract);
             restrictionQueries.add(rulesRestrictionQuery);
         }
