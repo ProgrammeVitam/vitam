@@ -28,6 +28,7 @@ package fr.gouv.vitam.common;
 
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
+import fr.gouv.vitam.common.configuration.EliminiationReportConfiguration;
 import fr.gouv.vitam.common.model.dip.BinarySizePlatformThreshold;
 import fr.gouv.vitam.common.model.dip.BinarySizeTenantThreshold;
 
@@ -399,6 +400,9 @@ public class VitamConfigurationParameters {
     private Integer elasticSearchTimeoutWaitRequestInMilliseconds;
 
     private Integer elasticSearchScrollLimit;
+
+    private List<EliminiationReportConfiguration> eliminationReportExtraFields;
+
 
     /**
      * VitamData empty constructor for YAMLFactory
@@ -1312,7 +1316,7 @@ public class VitamConfigurationParameters {
      * @param expireCacheEntriesDelay
      */
     public void setExpireCacheEntriesDelay(Integer expireCacheEntriesDelay) {
-        this.expireCacheEntriesDelay = expireCacheEntriesDelay;
+        VitamConfigurationParameters.expireCacheEntriesDelay = expireCacheEntriesDelay;
     }
 
     /**
@@ -1616,5 +1620,14 @@ public class VitamConfigurationParameters {
 
     public void setBinarySizeTenantThreshold(List<BinarySizeTenantThreshold> binarySizeTenantThreshold) {
         this.binarySizeTenantThreshold = binarySizeTenantThreshold;
+    }
+
+    public List<EliminiationReportConfiguration> getEliminationReportExtraFields() {
+        return eliminationReportExtraFields;
+    }
+
+    public void setEliminationReportExtraFields(
+        List<EliminiationReportConfiguration> eliminationReportExtraFields) {
+        this.eliminationReportExtraFields = eliminationReportExtraFields;
     }
 }

@@ -111,9 +111,9 @@ public class PurgeReportServiceTest {
 
         // Given
         List<PurgeUnitReportEntry> entries = Arrays.asList(
-            new PurgeUnitReportEntry("unit1", "sp1", "opi1", "got1", PurgeUnitStatus.DELETED.name(), "INGEST"),
+            new PurgeUnitReportEntry("unit1", "sp1", "opi1", "got1", PurgeUnitStatus.DELETED.name(), null,"INGEST"),
             new PurgeUnitReportEntry("unit2", "sp2", "opi2", "got2",
-                PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name(), "INGEST")
+                PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name(), null,"INGEST")
         );
 
         // When

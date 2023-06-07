@@ -28,12 +28,14 @@ package fr.gouv.vitam.batch.report.model.entry;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public class PurgeUnitReportEntry {
     private final static String ID = "id";
     private final static String ORIGINATING_AGENCY = "originatingAgency";
     private final static String OPI = "opi";
     private final static String OBJECT_GROUP = "objectGroupId";
+    private final static String EXTRA_INFO = "extraInfo";
     private final static String STATUS = "status";
     private final static String TYPE = "type";
 
@@ -41,6 +43,7 @@ public class PurgeUnitReportEntry {
     private final String originatingAgency;
     private final String initialOperation;
     private final String objectGroupId;
+    private final JsonNode extraInfo;
     private final String status;
     private final String type;
 
@@ -51,12 +54,14 @@ public class PurgeUnitReportEntry {
         @JsonProperty(OPI) String initialOperation,
         @JsonProperty(OBJECT_GROUP) String objectGroupId,
         @JsonProperty(STATUS) String status,
+        @JsonProperty(EXTRA_INFO) JsonNode extraInfo,
         @JsonProperty(TYPE) String type) {
         this.id = id;
         this.originatingAgency = originatingAgency;
         this.initialOperation = initialOperation;
         this.objectGroupId = objectGroupId;
         this.status = status;
+        this.extraInfo = extraInfo;
         this.type = type;
     }
 
@@ -83,6 +88,11 @@ public class PurgeUnitReportEntry {
     @JsonProperty(STATUS)
     public String getStatus() {
         return status;
+    }
+
+    @JsonProperty(EXTRA_INFO)
+    public JsonNode getExtraInfo() {
+        return extraInfo;
     }
 
     @JsonProperty(TYPE)

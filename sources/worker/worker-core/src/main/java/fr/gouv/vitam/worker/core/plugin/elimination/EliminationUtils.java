@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -36,6 +37,7 @@ import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
 import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
+import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -48,12 +50,23 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerExce
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 public final class EliminationUtils {
 
     private static final String REQUEST_JSON = "request.json";
     private static final String INVALID_REQUEST = "Invalid request";
     private static final String COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE = "Could not load request from workspace";
+
+    public static final Set<String> WHITELISTED_FIELDS =
+        Set.of(VitamFieldsHelper.id(), VitamFieldsHelper.version(), VitamFieldsHelper.unitups(),
+            VitamFieldsHelper.originatingAgency(), VitamFieldsHelper.approximateCreationDate(),
+            VitamFieldsHelper.approximateUpdateDate(), "FilePlanPosition", "SystemId", "OriginatingSystemId",
+            "ArchivalAgencyArchiveUnitIdentifier", "OriginatingAgencyArchiveUnitIdentifier",
+            "TransferringAgencyArchiveUnitIdentifier");
 
     private EliminationUtils() {
         // Private constructor
@@ -108,12 +121,20 @@ public final class EliminationUtils {
         try {
             return JsonHandler.getFromInputStream(
                 handler.getInputStreamFromWorkspace(REQUEST_JSON), EliminationRequestBody.class);
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | IOException e) {
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException |
+                 IOException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE, e);
         } catch (InvalidParseOperationException e) {
             EliminationEventDetails eventDetails = new EliminationEventDetails()
                 .setError(INVALID_REQUEST);
             throw new ProcessingStatusException(StatusCode.KO, eventDetails, INVALID_REQUEST, e);
         }
+    }
+
+    public static List<String> getReportExtraFields() {
+        List<String> strings = Objects.requireNonNullElse(VitamConfiguration.getEliminationReportExtraFields()
+            .get(VitamThreadUtils.getVitamSession().getTenantId()), Collections.emptyList());
+        strings.retainAll(WHITELISTED_FIELDS);
+        return strings;
     }
 }

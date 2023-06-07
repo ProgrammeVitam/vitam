@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.purge;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -40,6 +41,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.guid.GUIDReader;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -65,6 +67,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
+import fr.gouv.vitam.worker.core.plugin.elimination.EliminationUtils;
 import fr.gouv.vitam.worker.core.utils.PluginHelper;
 import org.apache.commons.collections4.SetUtils;
 
@@ -104,10 +107,7 @@ public class PurgeUnitPlugin extends ActionHandler {
      * @param actionId
      */
     public PurgeUnitPlugin(String actionId) {
-        this(
-            actionId, new PurgeDeleteService(),
-            MetaDataClientFactory.getInstance(),
-            new PurgeReportService(),
+        this(actionId, new PurgeDeleteService(), MetaDataClientFactory.getInstance(), new PurgeReportService(),
             LogbookLifeCyclesClientFactory.getInstance());
     }
 
@@ -115,10 +115,8 @@ public class PurgeUnitPlugin extends ActionHandler {
      * Test only constructor
      */
     @VisibleForTesting
-    protected PurgeUnitPlugin(
-        String actionId, PurgeDeleteService purgeDeleteService,
-        MetaDataClientFactory metaDataClientFactory,
-        PurgeReportService purgeReportService,
+    protected PurgeUnitPlugin(String actionId, PurgeDeleteService purgeDeleteService,
+        MetaDataClientFactory metaDataClientFactory, PurgeReportService purgeReportService,
         LogbookLifeCyclesClientFactory llfcClientFactory) {
         this.actionId = actionId;
         this.purgeDeleteService = purgeDeleteService;
@@ -128,8 +126,7 @@ public class PurgeUnitPlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         throw new ProcessingException("No need to implements method");
     }
 
@@ -140,23 +137,17 @@ public class PurgeUnitPlugin extends ActionHandler {
             return processUnits(param.getContainerName(), param);
         } catch (ProcessingStatusException e) {
             LOGGER.error("Unit purge failed with status " + e.getStatusCode(), e);
-            return singletonList(
-                buildItemStatus(actionId, e.getStatusCode(), e.getEventDetails()));
+            return singletonList(buildItemStatus(actionId, e.getStatusCode(), e.getEventDetails()));
         }
     }
 
-    private List<ItemStatus> processUnits(String processId, WorkerParameters param)
-        throws ProcessingStatusException {
+    private List<ItemStatus> processUnits(String processId, WorkerParameters param) throws ProcessingStatusException {
         List<JsonNode> units = param.getObjectMetadataList();
-        List<String> unitIds = units.stream()
-            .map(unit -> unit.get(VitamFieldsHelper.id()).asText())
-            .collect(Collectors.toList());
+        List<String> unitIds =
+            units.stream().map(unit -> unit.get(VitamFieldsHelper.id()).asText()).collect(Collectors.toList());
 
-        Map<String, JsonNode> unitsById = units.stream()
-            .collect(Collectors.toMap(
-                unit -> unit.get(VitamFieldsHelper.id()).asText(),
-                unit -> unit
-            ));
+        Map<String, JsonNode> unitsById =
+            units.stream().collect(Collectors.toMap(unit -> unit.get(VitamFieldsHelper.id()).asText(), unit -> unit));
 
         List<ItemStatus> itemStatuses = new ArrayList<>();
 
@@ -164,11 +155,10 @@ public class PurgeUnitPlugin extends ActionHandler {
 
         Set<String> unitsToDelete = getUnitsToDelete(unitsById.keySet());
 
-        Map<String, String> unitIdsWithStrategiesToDelete = unitsById.entrySet().stream()
-            .filter(e -> unitsToDelete.contains(e.getKey()))
-            .collect(Collectors.toMap(Entry::getKey,
-                entry -> MetadataDocumentHelper.getStrategyIdFromUnit(entry.getValue())
-            ));
+        Map<String, String> unitIdsWithStrategiesToDelete =
+            unitsById.entrySet().stream().filter(e -> unitsToDelete.contains(e.getKey())).collect(
+                Collectors.toMap(Entry::getKey,
+                    entry -> MetadataDocumentHelper.getStrategyIdFromUnit(entry.getValue())));
 
         for (String unitId : unitIds) {
 
@@ -186,7 +176,7 @@ public class PurgeUnitPlugin extends ActionHandler {
                     try {
                         writeLfcForUnpurgedUnit(lfcClientFactory.getClient(), param, unitId);
                     } catch (InvalidGuidOperationException | LogbookClientServerException |
-                        LogbookClientBadRequestException | LogbookClientNotFoundException e) {
+                             LogbookClientBadRequestException | LogbookClientNotFoundException e) {
                         LOGGER.error(e);
                     }
                 }
@@ -197,25 +187,41 @@ public class PurgeUnitPlugin extends ActionHandler {
             String objectGroupId =
                 unit.has(VitamFieldsHelper.object()) ? unit.get(VitamFieldsHelper.object()).asText() : null;
             String originatingAgency = unit.has(VitamFieldsHelper.originatingAgency()) ?
-                unit.get(VitamFieldsHelper.originatingAgency()).asText() : null;
+                unit.get(VitamFieldsHelper.originatingAgency()).asText() :
+                null;
             String unitType =
                 unit.has(VitamFieldsHelper.unitType()) ? unit.get(VitamFieldsHelper.unitType()).asText() : null;
 
-            purgeUnitReportEntries.add(new PurgeUnitReportEntry(
-                unitId, originatingAgency, initialOperation, objectGroupId, purgeUnitStatus.name(), unitType));
+            JsonNode extraInfo = extractExtraInfoFromUnit(unit);
+
+
+            purgeUnitReportEntries.add(
+                new PurgeUnitReportEntry(unitId, originatingAgency, initialOperation, objectGroupId,
+                    purgeUnitStatus.name(), extraInfo, unitType));
+
         }
 
         purgeReportService.appendUnitEntries(processId, purgeUnitReportEntries);
 
         try {
             purgeDeleteService.deleteUnits(unitIdsWithStrategiesToDelete);
-        } catch (MetaDataExecutionException | MetaDataClientServerException |
-            LogbookClientBadRequestException | StorageServerClientException | LogbookClientServerException e) {
+        } catch (MetaDataExecutionException | MetaDataClientServerException | LogbookClientBadRequestException |
+                 StorageServerClientException | LogbookClientServerException e) {
             throw new ProcessingStatusException(StatusCode.FATAL,
                 "Could not delete units [" + String.join(", ", unitsToDelete) + "]", e);
         }
 
         return itemStatuses;
+    }
+
+    private static JsonNode extractExtraInfoFromUnit(JsonNode unit) {
+        ObjectNode extraInfo = JsonHandler.createObjectNode();
+        for (String metadataKey : EliminationUtils.getReportExtraFields()) {
+            if (unit.has(metadataKey)) {
+                extraInfo.set(metadataKey, unit.get(metadataKey));
+            }
+        }
+        return extraInfo;
     }
 
     private Set<String> getUnitsToDelete(Set<String> unitIds) throws ProcessingStatusException {
@@ -246,7 +252,8 @@ public class PurgeUnitPlugin extends ActionHandler {
 
             return result;
 
-        } catch (InvalidParseOperationException | InvalidCreateOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
+        } catch (InvalidParseOperationException | InvalidCreateOperationException | MetaDataExecutionException |
+                 MetaDataDocumentSizeException | MetaDataClientServerException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not check child units", e);
         }
     }
@@ -266,13 +273,12 @@ public class PurgeUnitPlugin extends ActionHandler {
         Set<String> foundUnitIds = new HashSet<>();
 
         for (JsonNode childUnit : results) {
-            childUnit.get(VitamFieldsHelper.unitups()).elements()
-                .forEachRemaining(jsonNode -> {
-                    String unitId = jsonNode.asText();
-                    if (unitsToFetch.contains(unitId)) {
-                        foundUnitIds.add(unitId);
-                    }
-                });
+            childUnit.get(VitamFieldsHelper.unitups()).elements().forEachRemaining(jsonNode -> {
+                String unitId = jsonNode.asText();
+                if (unitsToFetch.contains(unitId)) {
+                    foundUnitIds.add(unitId);
+                }
+            });
         }
 
         return foundUnitIds;
@@ -281,16 +287,11 @@ public class PurgeUnitPlugin extends ActionHandler {
     private void writeLfcForUnpurgedUnit(LogbookLifeCyclesClient lfcClient, WorkerParameters param, String unitId)
         throws InvalidGuidOperationException, LogbookClientNotFoundException, LogbookClientBadRequestException,
         LogbookClientServerException {
-        LogbookLifeCycleParameters logbookLfcParam =
-            LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
-                GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
-                VitamLogbookMessages.getEventTypeLfc(UNIT_DELETION_ABORT),
-                GUIDReader.getGUID(param.getContainerName()),
-                param.getLogbookTypeProcess(),
-                OK,
-                VitamLogbookMessages.getOutcomeDetailLfc(UNIT_DELETION_ABORT, OK),
-                VitamLogbookMessages.getCodeLfc(UNIT_DELETION_ABORT, OK),
-                GUIDReader.getGUID(unitId));
+        LogbookLifeCycleParameters logbookLfcParam = LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
+            GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
+            VitamLogbookMessages.getEventTypeLfc(UNIT_DELETION_ABORT), GUIDReader.getGUID(param.getContainerName()),
+            param.getLogbookTypeProcess(), OK, VitamLogbookMessages.getOutcomeDetailLfc(UNIT_DELETION_ABORT, OK),
+            VitamLogbookMessages.getCodeLfc(UNIT_DELETION_ABORT, OK), GUIDReader.getGUID(unitId));
         lfcClient.update(logbookLfcParam, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
     }
 
