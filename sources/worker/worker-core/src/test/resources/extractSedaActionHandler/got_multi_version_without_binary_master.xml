@@ -1,0 +1,885 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 file:/Z:/espacePOBA/SEDA/seda-2.1_Draft_0.6/sch%C3%A9mas/seda-2.1-main.xsd"
+ xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1">
+    <Comment>Cartes postales (Grande Collecte)</Comment>
+    <Date>2016-10-12T16:28:40</Date>
+    <MessageIdentifier>SIP déclarant un document-type</MessageIdentifier>
+    <!-- Balise signature ajoutée pour faire les tests  -->
+    <Signature></Signature>
+    <ArchivalAgreement>IC-000001</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage>
+        <BinaryDataObject id="ID1">
+            <DataObjectGroupId>ID0001</DataObjectGroupId>
+            <DataObjectVersion>BinaryMaster_19</DataObjectVersion>
+            <Uri>Content/1NUM_1.JPG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_1.JPG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Audio>
+                    <Lenght>117x76</Lenght>
+                </Audio>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID12">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>Dissemination_1</DataObjectVersion>
+            <Uri>Content/1NUM_1.PNG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_1.PNG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <ColorDepth>24</ColorDepth>
+                    <Depth>11</Depth>
+                    <Diameter>5.4</Diameter>
+                    <Shape>Square</Shape>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID2">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>BinaryMaster_2</DataObjectVersion>
+            <Uri>Content/1NUM_2.JPG</Uri>
+            <MessageDigest algorithm="SHA-512">3adb5ccfef14423678c2fb6a437ec104a6ee053f34b1c6a7755abc22eb54fb95133bef03fb142c6182377dbdadc9fa8ae8dd31dc3bb0fb038d93f51cafd90239</MessageDigest>
+            <Size>8067</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_2.JPG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Document>
+                    <Dimensions>143x93</Dimensions>
+                    <Width>143px</Width>
+                    <Height>93px</Height>
+                    <VerticalResolution>96ppp</VerticalResolution>
+                    <HorizontalResolution>96ppp</HorizontalResolution>
+                    <ColorDepth>24</ColorDepth>
+                </Document>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID13">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>Dissemination_2</DataObjectVersion>
+            <Uri>Content/1NUM_2.PNG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_2.PNG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Video>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <ColorDepth>24</ColorDepth>
+                </Video>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID3">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>BinaryMaster_3</DataObjectVersion>
+            <Uri>Content/1NUM_3.JPG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_3.JPG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Code>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <VerticalResolution>96ppp</VerticalResolution>
+                    <HorizontalResolution>96ppp</HorizontalResolution>
+                    <ColorDepth>24</ColorDepth>
+                </Code>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID14">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>Dissemination_3</DataObjectVersion>
+            <Uri>Content/1NUM_3.PNG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_3.PNG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID4">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>BinaryMaster_4</DataObjectVersion>
+            <Uri>Content/1NUM_4.JPG</Uri>
+            <MessageDigest algorithm="SHA-512">3adb5ccfef14423678c2fb6a437ec104a6ee053f34b1c6a7755abc22eb54fb95133bef03fb142c6182377dbdadc9fa8ae8dd31dc3bb0fb038d93f51cafd90239</MessageDigest>
+            <Size>8067</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_4.JPG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>143x93</Dimensions>
+                    <Width>143px</Width>
+                    <Height>93px</Height>
+                    <VerticalResolution>96ppp</VerticalResolution>
+                    <HorizontalResolution>96ppp</HorizontalResolution>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID15">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>Dissemination_4</DataObjectVersion>
+            <Uri>Content/1NUM_4.PNG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_4.PNG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>143x93</Dimensions>
+                    <Width>143px</Width>
+                    <Height>93px</Height>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID5">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>BinaryMaster_5</DataObjectVersion>
+            <Uri>Content/1NUM_5.JPG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_5.JPG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <VerticalResolution>96ppp</VerticalResolution>
+                    <HorizontalResolution>96ppp</HorizontalResolution>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID16">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>Dissemination_5</DataObjectVersion>
+            <Uri>Content/1NUM_5.PNG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_5.PNG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID6">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>BinaryMaster_6</DataObjectVersion>
+            <Uri>Content/1NUM_6.JPG</Uri>
+            <MessageDigest algorithm="SHA-512">3adb5ccfef14423678c2fb6a437ec104a6ee053f34b1c6a7755abc22eb54fb95133bef03fb142c6182377dbdadc9fa8ae8dd31dc3bb0fb038d93f51cafd90239</MessageDigest>
+            <Size>8067</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_6.JPG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>143x93</Dimensions>
+                    <Width>143px</Width>
+                    <Height>93px</Height>
+                    <VerticalResolution>96ppp</VerticalResolution>
+                    <HorizontalResolution>96ppp</HorizontalResolution>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID17">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>Dissemination_6</DataObjectVersion>
+            <Uri>Content/1NUM_6.PNG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_6.PNG</Filename>
+            </FileInfo>
+            <Metadata>
+                <OtherMetadata>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <ColorDepth>24</ColorDepth>
+                </OtherMetadata>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID7">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>BinaryMaster_7</DataObjectVersion>
+            <Uri>Content/1NUM_7.JPG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_7.JPG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <VerticalResolution>96ppp</VerticalResolution>
+                    <HorizontalResolution>96ppp</HorizontalResolution>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID18">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>Dissemination_7</DataObjectVersion>
+            <Uri>Content/1NUM_7.PNG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_7.PNG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID8">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>BinaryMaster_8</DataObjectVersion>
+            <Uri>Content/1NUM_8.JPG</Uri>
+            <MessageDigest algorithm="SHA-512">3adb5ccfef14423678c2fb6a437ec104a6ee053f34b1c6a7755abc22eb54fb95133bef03fb142c6182377dbdadc9fa8ae8dd31dc3bb0fb038d93f51cafd90239</MessageDigest>
+            <Size>8067</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_8.JPG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>143x93</Dimensions>
+                    <Width>143px</Width>
+                    <Height>93px</Height>
+                    <VerticalResolution>96ppp</VerticalResolution>
+                    <HorizontalResolution>96ppp</HorizontalResolution>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID19">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>Dissemination_8</DataObjectVersion>
+            <Uri>Content/1NUM_8.PNG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_8.PNG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Text>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <ColorDepth>24</ColorDepth>
+                </Text>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID9">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>BinaryMaster_9</DataObjectVersion>
+            <Uri>Content/1NUM_9.JPG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_9.JPG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <VerticalResolution>96ppp</VerticalResolution>
+                    <HorizontalResolution>96ppp</HorizontalResolution>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID20">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>Dissemination_9</DataObjectVersion>
+            <Uri>Content/1NUM_9.PNG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_9.PNG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID10">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>BinaryMaster_10</DataObjectVersion>
+            <Uri>Content/1NUM_10.JPG</Uri>
+            <MessageDigest algorithm="SHA-512">3adb5ccfef14423678c2fb6a437ec104a6ee053f34b1c6a7755abc22eb54fb95133bef03fb142c6182377dbdadc9fa8ae8dd31dc3bb0fb038d93f51cafd90239</MessageDigest>
+            <Size>8067</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_10.JPG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>143x93</Dimensions>
+                    <Width>143px</Width>
+                    <Height>93px</Height>
+                    <VerticalResolution>96ppp</VerticalResolution>
+                    <HorizontalResolution>96ppp</HorizontalResolution>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID21">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>Dissemination_10</DataObjectVersion>
+            <Uri>Content/1NUM_10.PNG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_10.PNG</Filename>
+            </FileInfo>
+            <Metadata>
+                <!-- correspond à la balise OtherCoreTechnicalMetadataAbstract -->
+                <MyOtherCoreTechnicalMetadataAbstract>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <ColorDepth>24</ColorDepth>
+                </MyOtherCoreTechnicalMetadataAbstract>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID11">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>BinaryMaster_11</DataObjectVersion>
+            <Uri>Content/1NUM_11.JPG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_11.JPG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <VerticalResolution>96ppp</VerticalResolution>
+                    <HorizontalResolution>96ppp</HorizontalResolution>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <BinaryDataObject id="ID22">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>Dissemination_11</DataObjectVersion>
+            <Uri>Content/1NUM_11.PNG</Uri>
+            <MessageDigest algorithm="SHA-512">0e0cec05a1d72ee5610eaa5afbc904c012d190037cbc827d08272102cdecf0226efcad122b86e7699f767c661c9f3702379b8c2cb01c4f492f69deb200661bb9</MessageDigest>
+            <Size>7702</Size>
+            <FormatIdentification>
+                <FormatLitteral>JPEG File Interchange Format</FormatLitteral>
+                <MimeType>image/jpeg</MimeType>
+                <FormatId>fmt/43</FormatId>
+            </FormatIdentification>
+            <FileInfo>
+                <Filename>1NUM_11.PNG</Filename>
+            </FileInfo>
+            <Metadata>
+                <Image>
+                    <Dimensions>117x76</Dimensions>
+                    <Width>117px</Width>
+                    <Height>76px</Height>
+                    <ColorDepth>24</ColorDepth>
+                </Image>
+            </Metadata>
+        </BinaryDataObject>
+        <PhysicalDataObject id="ID101">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster_1</DataObjectVersion>
+            <PhysicalId>1 Num 1/204-3</PhysicalId>
+            <PhysicalDimensions>
+                <Width unit="centimetre">10</Width>
+                <Height unit="centimetre">10.5</Height>
+                <Depth unit="centimetre">14</Depth>
+                <Shape>O</Shape>
+                <Diameter unit="centimetre">3.5</Diameter>
+                <Length unit="centimetre">14.8</Length>
+                <Thickness unit="micrometre">350</Thickness>
+                <Weight unit="gram">3</Weight>
+                <NumberOfPage>22</NumberOfPage>
+            </PhysicalDimensions>
+            <MyDImensionAbstract>10.8</MyDImensionAbstract>
+            <Extent>1 carte imprimée</Extent>
+            <Dimensions>10,5cm x 14,8cm</Dimensions>
+            <Color>Noir et blanc</Color>
+            <Framing>Paysage</Framing>
+            <Technique>Phototypie</Technique>
+        </PhysicalDataObject>
+        <PhysicalDataObject id="ID102">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster_2</DataObjectVersion>
+            <PhysicalId>1 Num 1/187-1</PhysicalId>
+            <PhysicalDimensions>
+                <Height unit="centimetre">10.5</Height>
+                <Length unit="centimetre">14.8</Length>
+                <Thickness unit="micrometre">350</Thickness>
+                <Weight unit="gram">3</Weight>
+            </PhysicalDimensions>
+            <Extent>1 carte imprimée</Extent>
+            <Dimensions>10,5cm x 14,8cm</Dimensions>
+            <Color>Noir et blanc</Color>
+            <Framing>Paysage</Framing>
+            <Technique>Phototypie</Technique>
+        </PhysicalDataObject>
+        <PhysicalDataObject id="ID103">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster_3</DataObjectVersion>
+            <PhysicalId>1 Num 1/204-4</PhysicalId>
+            <PhysicalDimensions>
+                <Height unit="centimetre">10.5</Height>
+                <Length unit="centimetre">14.8</Length>
+                <Thickness unit="micrometre">350</Thickness>
+                <Weight unit="gram">3</Weight>
+            </PhysicalDimensions>
+            <Extent>1 carte imprimée</Extent>
+            <Dimensions>10,5cm x 14,8cm</Dimensions>
+            <Color>Noir et blanc</Color>
+            <Framing>Paysage</Framing>
+            <Technique>Phototypie</Technique>
+        </PhysicalDataObject>
+        <PhysicalDataObject id="ID104">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster_4</DataObjectVersion>
+            <PhysicalId>1 Num 416/70</PhysicalId>
+            <PhysicalDimensions>
+                <Height unit="centimetre">10.5</Height>
+                <Length unit="centimetre">14.8</Length>
+                <Thickness unit="micrometre">350</Thickness>
+                <Weight unit="gram">3</Weight>
+            </PhysicalDimensions>
+            <Extent>1 carte imprimée</Extent>
+            <Dimensions>10,5cm x 14,8cm</Dimensions>
+            <Color>Noir et blanc</Color>
+            <Framing>Paysage</Framing>
+            <Technique>Phototypie</Technique>
+        </PhysicalDataObject>
+        <PhysicalDataObject id="ID105">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster_5</DataObjectVersion>
+            <PhysicalId>1 Num 1/191-1</PhysicalId>
+            <PhysicalDimensions>
+                <Height unit="centimetre">10.5</Height>
+                <Length unit="centimetre">14.8</Length>
+                <Thickness unit="micrometre">350</Thickness>
+                <Weight unit="gram">3</Weight>
+                <NumberOfPage>1</NumberOfPage>
+            </PhysicalDimensions>
+            <Extent>1 carte imprimée</Extent>
+            <Dimensions>10,5cm x 14,8cm</Dimensions>
+            <Color>Noir et blanc</Color>
+            <Framing>Paysage</Framing>
+            <Technique>Phototypie</Technique>
+        </PhysicalDataObject>
+        <PhysicalDataObject id="ID106">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster_6</DataObjectVersion>
+            <PhysicalId>1 Num 1/187-1</PhysicalId>
+            <PhysicalDimensions>
+                <Height unit="centimetre">10.5</Height>
+                <Length unit="centimetre">14.8</Length>
+                <Thickness unit="micrometre">350</Thickness>
+                <Weight unit="gram">3</Weight>
+            </PhysicalDimensions>
+            <Extent>1 carte imprimée</Extent>
+            <Dimensions>10,5cm x 14,8cm</Dimensions>
+            <Color>Noir et blanc</Color>
+            <Framing>Paysage</Framing>
+            <Technique>Phototypie</Technique>
+        </PhysicalDataObject>
+        <PhysicalDataObject id="ID107">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster_7</DataObjectVersion>
+            <PhysicalId>1 Num 1/224-4</PhysicalId>
+            <PhysicalDimensions>
+                <Height unit="centimetre">10.5</Height>
+                <Length unit="centimetre">14.8</Length>
+                <Thickness unit="micrometre">350</Thickness>
+                <Weight unit="gram">3</Weight>
+            </PhysicalDimensions>
+            <Extent>1 carte imprimée</Extent>
+            <Dimensions>10,5cm x 14,8cm</Dimensions>
+            <Color>Noir et blanc</Color>
+            <Framing>Paysage</Framing>
+            <Technique>Phototypie</Technique>
+        </PhysicalDataObject>
+        <PhysicalDataObject id="ID108">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster_8</DataObjectVersion>
+            <PhysicalId>1 Num 1/191-2</PhysicalId>
+            <PhysicalDimensions>
+                <Height unit="centimetre">10.5</Height>
+                <Length unit="centimetre">14.8</Length>
+                <Thickness unit="micrometre">350</Thickness>
+                <Weight unit="gram">3</Weight>
+            </PhysicalDimensions>
+            <Extent>1 carte imprimée</Extent>
+            <Dimensions>10,5cm x 14,8cm</Dimensions>
+            <Color>Noir et blanc</Color>
+            <Framing>Paysage</Framing>
+            <Technique>Phototypie</Technique>
+        </PhysicalDataObject>
+        <PhysicalDataObject id="ID109">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster_9</DataObjectVersion>
+            <PhysicalId>1 Num 1/191-3</PhysicalId>
+            <PhysicalDimensions>
+                <Height unit="centimetre">10.5</Height>
+                <Length unit="centimetre">14.8</Length>
+                <Thickness unit="micrometre">350</Thickness>
+                <Weight unit="gram">3</Weight>
+            </PhysicalDimensions>
+            <Extent>1 carte imprimée</Extent>
+            <Dimensions>10,5cm x 14,8cm</Dimensions>
+            <Color>Noir et blanc</Color>
+            <Framing>Paysage</Framing>
+            <Technique>Phototypie</Technique>
+        </PhysicalDataObject>
+        <PhysicalDataObject id="ID110">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster_10</DataObjectVersion>
+            <PhysicalId>1 Num 1/204-5</PhysicalId>
+            <PhysicalDimensions>
+                <Height unit="centimetre">10.5</Height>
+                <Length unit="centimetre">14.8</Length>
+                <Thickness unit="micrometre">350</Thickness>
+                <Weight unit="gram">3</Weight>
+            </PhysicalDimensions>
+            <Extent>1 carte imprimée</Extent>
+            <Dimensions>10,5cm x 14,8cm</Dimensions>
+            <Color>Noir et blanc</Color>
+            <Framing>Paysage</Framing>
+            <Technique>Phototypie</Technique>
+        </PhysicalDataObject>
+        <PhysicalDataObject id="ID111">
+            <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+            <DataObjectVersion>PhysicalMaster_11</DataObjectVersion>
+            <PhysicalId>1 Num 1/187-2</PhysicalId>
+            <PhysicalDimensions>
+                <Height unit="centimetre">10.5</Height>
+                <Length unit="centimetre">14.8</Length>
+                <Thickness unit="micrometre">350</Thickness>
+                <Weight unit="gram">3</Weight>
+            </PhysicalDimensions>
+            <Extent>1 carte imprimée</Extent>
+            <Dimensions>10,5cm x 14,8cm</Dimensions>
+            <Color>Noir et blanc</Color>
+            <Framing>Paysage</Framing>
+            <Technique>Phototypie</Technique>
+        </PhysicalDataObject>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID187">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>diversificationSIPv5.py</Title>
+                    <Description>Pseudo Archive Unit du fichier :/home/pipav/partage_vm/VITAM/tools/Nouveau dossier/diversificationSIPv5.py</Description>
+                    <TransactedDate>2017-04-05T17:50:20</TransactedDate>
+                </Content>
+            </ArchiveUnit>
+            <ArchiveUnit id="ID01">
+                <Management>
+                    <AccessRule>
+                        <RefNonRuleId>ACC-00001</RefNonRuleId>
+                    </AccessRule>
+                </Management>
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title xml:lang="fr">Chemin des dames - Le château de la Motte</Title>
+                    <Title xml:lang="en">Chemin des dames - The Castle of La Motte</Title>
+                    <FilePlanPosition>AB-001</FilePlanPosition>
+                    <OriginatingSystemId>ID01</OriginatingSystemId>
+                    <ArchivalAgencyArchiveUnitIdentifier>1 Num 1/204-3</ArchivalAgencyArchiveUnitIdentifier>
+                    <OriginatingAgencyArchiveUnitIdentifier>CP1</OriginatingAgencyArchiveUnitIdentifier>
+                    <TransferringAgencyArchiveUnitIdentifier>CP1</TransferringAgencyArchiveUnitIdentifier>
+                    <Description>Allemant. - Au chemin des Dames : le château et la ferme de la Motte totalement détruits.</Description>
+                    <Description>2 cartes postales anciennes, noir et blanc</Description>
+                    <Description>Légendes traduites en anglais.</Description>
+                    <CustodialHistory>
+                        <CustodialHistoryItem>La collection de cartes postales présentée ici provient des
+                            nombreux prêts qui ont été proposés aux Archives de la Vendée lors de la Grande
+                            Collecte 1914-1918.</CustodialHistoryItem>
+                        <CustodialHistoryItem>Ces cartes postales, écrites pour la plupart, ont été dans bien
+                            des cas numérisées recto verso, sauf avis contraire des prêteurs ou lorsqu'il s'agit
+                            d'une série. La date de la correspondance, ou plus rarement celle de l'oblitération,
+                            est précisée en présentation du contenu, ainsi que le nom de son auteur si son
+                            témoignage apporte un éclairage nouveau (une mention permet de retrouver ses autres
+                            écrits).</CustodialHistoryItem>
+                        <CustodialHistoryItem>A noter : les cartes représentant des périodes de manoeuvres ou
+                            des armes proviennent de clichés pris avant le conflit.</CustodialHistoryItem>
+                        <CustodialHistoryItem>Dans le cas présent : Collecte 14-18. Prêt Hervé,
+                            2014</CustodialHistoryItem>
+                    </CustodialHistory>
+                    <Language>french</Language>
+                    <Tag>Grande Collecte</Tag>
+                    <Keyword>
+                        <KeywordContent>Aisne (département)</KeywordContent>
+                        <!--<KeywordReference>Index géographique des Archives départementales de la
+                            Vendée</KeywordReference>-->
+                        <KeywordType>geogname</KeywordType>
+                    </Keyword>
+                    <Keyword>
+                        <KeywordContent>Guerre 1914-1918</KeywordContent>
+                        <!--<KeywordReference>Thésaurus pour la description et l'indexation des archives
+                            locales</KeywordReference>-->
+                        <KeywordType>subject</KeywordType>
+                    </Keyword>
+                    <Keyword>
+                        <KeywordContent>Dommages de guerre</KeywordContent>
+                        <!--<KeywordReference>Thésaurus pour la description et l'indexation des archives
+                            locales</KeywordReference>-->
+                        <KeywordType>subject</KeywordType>
+                    </Keyword>
+                    <Keyword>
+                        <KeywordContent>Carte postale</KeywordContent>
+                        <!--<KeywordReference>Thésaurus pour la description et l'indexation des archives
+                            locales</KeywordReference>-->
+                        <KeywordType>genreform</KeywordType>
+                    </Keyword>
+                    <AuthorizedAgent>
+                        <FirstName>John</FirstName>
+                        <BirthName>Doe</BirthName>
+                        <GivenName>Martin</GivenName>
+                        <Gender>Male</Gender>
+                        <BirthDate>2000-01-01</BirthDate>
+                        <BirthPlace>
+                            <Geogname>Geogname</Geogname>
+                            <Address>123 my Street</Address>
+                            <PostalCode>CD255</PostalCode>
+                            <City>Toronto</City>
+                            <Region>Ontario</Region>
+                            <Country>Canada</Country>
+                        </BirthPlace>
+                        <DeathDate>2000-01-01</DeathDate>
+                        <DeathPlace>
+                            <Geogname>Geogname</Geogname>
+                            <Address>123 my Street</Address>
+                            <PostalCode>CD255</PostalCode>
+                            <City>Toronto</City>
+                            <Region>Ontario</Region>
+                            <Country>Canada</Country>
+                        </DeathPlace>
+                        <Nationality>Canadian</Nationality>
+                        <Identifier>ABC</Identifier>
+                    </AuthorizedAgent>
+                    <Source>Prêt Hervé, 2014, CP1</Source>
+                    <TransactedDate>2017-06-01T09:31:00</TransactedDate><!-- date de versement de la copie numerique dans Vitam -->
+                    <AcquiredDate>2016-01-05T09:31:00</AcquiredDate><!-- date de numerisation -->
+                    <RegisteredDate>2014-06-12T09:31:00</RegisteredDate><!-- date de versement de l'original -->
+                    <StartDate>1914-01-01T09:31:00</StartDate><!-- dates de debut du document -->
+                    <EndDate>1918-12-31T19:06:44</EndDate><!-- dates de fin du document -->
+                    <Signature>
+                        
+                        <Signer>
+                            <FirstName>John</FirstName>
+                            <BirthName>Doe</BirthName>
+                            <SigningTime>2017-08-24T14:56:31.000+02:00</SigningTime>
+                        </Signer>
+                        <Validator>
+                            <FirstName>Jane</FirstName>
+                            <BirthName>Doe</BirthName>
+                            <ValidationTime>2017-08-24T14:56:31.000+02:00</ValidationTime>
+                        </Validator>
+                        <ReferencedObject>
+                            <SignedObjectId>ID5</SignedObjectId>
+                            <SignedObjectDigest algorithm="SHA-512">fec135f80c1996d1f281183aa260609d3dde1a831b593ba3f62c78a794b298fe22e4f305c419ffc54185477098da99b58e9627b9a78429d11fc4a12c6aed125b</SignedObjectDigest>
+                        </ReferencedObject>
+                    </Signature>
+                    <Gps>
+                        <GpsVersionID>52.7</GpsVersionID>
+                        <GpsAltitude>255</GpsAltitude>
+                        <GpsAltitudeRef>GpsAltitudeRef</GpsAltitudeRef>
+                        <GpsLatitude>49.4769199</GpsLatitude>
+                        <GpsLatitudeRef>GpsLatitudeRef</GpsLatitudeRef>
+                        <GpsLongitude>3.4417368</GpsLongitude>
+                        <GpsLongitudeRef>GpsLongitudeRef</GpsLongitudeRef>
+                        <GpsDateStamp>22:44 24/10/11</GpsDateStamp>
+                    </Gps>
+                </Content>
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID0001</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <OriginatingAgencyIdentifier>Vitam</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>Vitam</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <RelatedTransferReference>RelatedTransferReference0</RelatedTransferReference>
+    <TransferRequestReplyIdentifier>TransferRequestReplyIdentifier0</TransferRequestReplyIdentifier>
+    <ArchivalAgency>
+        <Identifier>BBBBBB</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>FRAN_NP_050758</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

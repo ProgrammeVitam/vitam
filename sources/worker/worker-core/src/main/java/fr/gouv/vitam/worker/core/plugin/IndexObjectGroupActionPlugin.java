@@ -282,16 +282,18 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
                     ObjectNode current = (ObjectNode) finalQualifiers.get(j);
                     if (current.get(SedaConstants.PREFIX_QUALIFIER).asText()
                         .equals(qualifierNode.get(SedaConstants.PREFIX_QUALIFIER).asText())) {
-                        int nbCopy = current.get(NBCHILD).asInt() + 1;
-                        current.put(NBCHILD, current.get(NBCHILD).asInt() + 1);
-                        ArrayNode currentArray = (ArrayNode) current.get(SedaConstants.TAG_VERSIONS);
-                        ((ObjectNode) qualifierNode.get(SedaConstants.TAG_VERSIONS).get(0)).put(
-                            SedaConstants.TAG_DO_VERSION,
-                            current.get(SedaConstants.PREFIX_QUALIFIER).asText() + "_" + nbCopy);
-                        currentArray.add(qualifierNode.get(SedaConstants.TAG_VERSIONS).get(0));
-
-                        IntNode version = new IntNode(nbCopy);
-                        updatedQualifiers.set(current.get(SedaConstants.PREFIX_QUALIFIER).asText(), version);
+                        ArrayNode versionsNode = (ArrayNode) qualifierNode.get(SedaConstants.TAG_VERSIONS);
+                        for (JsonNode versionNode : versionsNode) {
+                            int nbCopy = current.get(NBCHILD).asInt() + 1;
+                            current.put(NBCHILD, current.get(NBCHILD).asInt() + 1);
+                            ArrayNode currentArray = (ArrayNode) current.get(SedaConstants.TAG_VERSIONS);
+                            ((ObjectNode) versionNode).put(
+                                SedaConstants.TAG_DO_VERSION,
+                                current.get(SedaConstants.PREFIX_QUALIFIER).asText() + "_" + nbCopy);
+                            currentArray.add(versionNode);
+                            IntNode version = new IntNode(nbCopy);
+                            updatedQualifiers.set(current.get(SedaConstants.PREFIX_QUALIFIER).asText(), version);
+                        }
                         break;
                     }
                 }

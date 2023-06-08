@@ -139,6 +139,10 @@ public class ExtractSedaActionHandlerTest {
     private static final String OK_EHESS_LIGHT = "extractSedaActionHandler/OK_EHESS_LIGHT.xml";
     private static final String MERCIER = "extractSedaActionHandler/Mercier.xml";
     private static final String EMPTY_TEXT_TYPE = "extractSedaActionHandler/empty_text_type.xml";
+
+    private static final String SIP_GOT_MULTI_VERSION = "extractSedaActionHandler/got_multi_version.xml";
+
+    private static final String SIP_GOT_MULTI_VERSION_NO_BINARY_MASTER = "extractSedaActionHandler/got_multi_version_without_binary_master.xml";
     private static final String SIP_RULES = "extractSedaActionHandler/rules-test.xml";
     private static final String SIP_ARBO_RULES_MD = "extractSedaActionHandler/OK_arbo_RG_MD_complexe.xml";
     private static final String SIP_RULES_INHERITANCE = "extractSedaActionHandler/1066_SIP_RULES_INHERITENCE.xml";
@@ -366,6 +370,39 @@ public class ExtractSedaActionHandlerTest {
 
         final ItemStatus response = handler.execute(params, handlerIO, ingestSession);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithGotMultiVersionThenOK() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        prepareIngestContractsAndManagementContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(SIP_GOT_MULTI_VERSION);
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        handlerIO.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, handlerIO, ingestSession);
+        assertEquals(StatusCode.OK, response.getGlobalStatus());
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void givenManifestWithGotMultiVersionAndNoBinaryMaster1ThenKO() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        assertNotNull(ExtractSedaActionHandler.getId());
+        prepareIngestContractsAndManagementContracts(INGEST_CONTRACT_MASTER_MANDATORY_FALSE);
+        final InputStream seda_arborescence =
+            PropertiesUtils.getResourceAsStream(SIP_GOT_MULTI_VERSION_NO_BINARY_MASTER);
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
+            .thenReturn(Response.status(Status.OK).entity(seda_arborescence).build());
+        handlerIO.addOutIOParameters(out);
+
+        final ItemStatus response = handler.execute(params, handlerIO, ingestSession);
+        assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
 
@@ -1375,13 +1412,13 @@ public class ExtractSedaActionHandlerTest {
         assertEquals("default", gotJson.get(SedaConstants.STORAGE).get(SedaConstants.STRATEGY_ID).asText());
         Assert.assertFalse(gotJson.get(SedaConstants.STORAGE).has(SedaConstants.OFFER_IDS));
         Assert.assertFalse(gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS)
-            .get("PhysicalMaster").get(SedaConstants.TAG_VERSIONS).get(0).has(SedaConstants.STORAGE));
+            .get("PhysicalMaster_1").get(SedaConstants.TAG_VERSIONS).get(0).has(SedaConstants.STORAGE));
         assertEquals("offerId",
-            gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS).get("BinaryMaster")
+            gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS).get("BinaryMaster_1")
                 .get(SedaConstants.TAG_VERSIONS).get(0).get(SedaConstants.STORAGE)
                 .get(SedaConstants.STRATEGY_ID).asText());
         Assert.assertFalse(
-            gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS).get("BinaryMaster")
+            gotJson.get(SedaConstants.PREFIX_WORK).get(SedaConstants.PREFIX_QUALIFIERS).get("BinaryMaster_1")
                 .get(SedaConstants.TAG_VERSIONS).get(0).get(SedaConstants.STORAGE)
                 .has(SedaConstants.OFFER_IDS));
 

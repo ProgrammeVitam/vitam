@@ -29,27 +29,27 @@ package fr.gouv.vitam.processing.common.exception;
 /**
  * Define a Processing Exception to be thrown when an error occurred, not a fatal error
  */
-public class ProcessingTooManyVersionsByUsageException extends ProcessingException {
+public class MissingMandatoryVersionException extends ProcessingException {
 
     /**
      * @param message associated message
      * @param cause associated cause
      */
-    public ProcessingTooManyVersionsByUsageException(String message, Throwable cause) {
+    public MissingMandatoryVersionException(String message, Throwable cause) {
         super(message, cause);
     }
 
     /**
      * @param cause associated cause
      */
-    public ProcessingTooManyVersionsByUsageException(Throwable cause) {
+    public MissingMandatoryVersionException(Throwable cause) {
         super(cause);
     }
 
     /**
      * @param message associated message
      */
-    public ProcessingTooManyVersionsByUsageException(String message) {
+    public MissingMandatoryVersionException(String message) {
         super(message);
     }
 }

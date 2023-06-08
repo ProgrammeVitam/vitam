@@ -100,6 +100,7 @@ import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.model.administration.RuleType;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import fr.gouv.vitam.common.model.rules.InheritedRuleCategoryResponseModel;
 import fr.gouv.vitam.common.model.rules.InheritedRuleResponseModel;
 import fr.gouv.vitam.common.model.rules.UnitInheritedRulesResponseModel;
@@ -211,6 +212,7 @@ import static fr.gouv.vitam.common.VitamTestHelper.verifyProcessState;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
+import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.WORKFLOW_IDENTIFIER;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.common.model.ProcessState.COMPLETED;
@@ -300,6 +302,8 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String SIP_TREE_WITHOUT_INGEST_CONTRACT =
         "integration-ingest-internal/SIP_arbre_without_ingest_contract.zip";
     private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
+
+    private static String SIP_FILE_OK_MULTI_USAGE = "integration-ingest-internal/OK_SIP_plusieurs_usages_dans_GOT.zip";
     private static String SIP_FILE_KO_FORMAT = "integration-ingest-internal/SIP_mauvais_format.pdf";
     private static String SIP_CONTENT_KO_FORMAT = "integration-ingest-internal/SIP-ingest-internal-Content-KO.zip";
     private static String SIP_WITH_LOGBOOK = "integration-ingest-internal/sip_with_logbook.zip";
@@ -1618,7 +1622,7 @@ public class IngestInternalIT extends VitamRuleRunner {
 
         // Save units in Elasticsearch
         VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
-            metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
             .save(unitList);
 
 
@@ -2204,7 +2208,7 @@ public class IngestInternalIT extends VitamRuleRunner {
                 .contains(operationGuid.getId()));
             assertEquals(operationGuid.getId(),
                 logbookOperation.get(RESULTS).get(0).get(
-                    LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.objectIdentifierIncome).getDbname())
+                        LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.objectIdentifierIncome).getDbname())
                     .asText());
             assertEquals(1, logbookOperation.get(RESULTS).get(0).get("events").size());
             logbookOperation.get(RESULTS).get(0).get("events").forEach(event -> {
@@ -2534,6 +2538,14 @@ public class IngestInternalIT extends VitamRuleRunner {
     }
 
 
+    private JsonNode getArchiveUnitWithOpi(MetaDataClient metadataClient, String opi)
+        throws Exception {
+        Select selectQuery = new Select();
+        selectQuery.setQuery(QueryHelper.eq("#opi", opi));
+        return metadataClient.selectUnits(selectQuery.getFinalSelect());
+    }
+
+
     @RunWithCustomExecutor
     @Test
     public void testOgValidSchemaIngestInternal() throws Exception {
@@ -2573,4 +2585,105 @@ public class IngestInternalIT extends VitamRuleRunner {
             throw e;
         }
     }
+
+
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithMultiUsageVersion() throws Exception {
+        GUID operationGuid = null;
+        try {
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
+
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_FILE_OK_MULTI_USAGE);
+            operationGuid = GUIDReader.getGUID(operationId);
+            verifyOperation(operationId, OK);
+            // Try to check AU
+
+            final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            final JsonNode node = getArchiveUnitWithOpi(metadataClient, operationId);
+            SelectMultiQuery select;
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            final JsonNode result = node.get(RESULTS);
+            assertNotNull(result);
+            assertEquals(2, node.get("$hits").get("total").asInt());
+            final JsonNode unit = result.get(1);
+            assertNotNull(unit);
+            final String og = unit.get("#object").asText();
+            // Try to check OG
+            select = new SelectMultiQuery();
+            select.addRoots(og);
+            final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
+            LOGGER.warn("Result: " + jsonResponse);
+            final JsonNode ogResults = jsonResponse.get(RESULTS);
+            assertNotNull(ogResults);
+            final JsonNode objectGroup = ogResults.get(0);
+            assertNotNull(objectGroup);
+            assertEquals(33, objectGroup.get("#nbobjects").asInt());
+
+            List<VersionsModel> physicalMasterQualifers =
+                getFromJsonNode((objectGroup.get("#qualifiers").get(0).get("versions")), new TypeReference<>() {
+                });
+
+            assertEquals(11, physicalMasterQualifers.size());
+            assertTrue(physicalMasterQualifers.stream()
+                .anyMatch(elmt -> elmt.getDataObjectVersion().equals("PhysicalMaster_1")));
+            assertTrue(physicalMasterQualifers.stream()
+                .anyMatch(elmt -> elmt.getDataObjectVersion().equals("PhysicalMaster_5")));
+
+
+            List<VersionsModel> binaryMasterQualifers =
+                getFromJsonNode((objectGroup.get("#qualifiers").get(1).get("versions")), new TypeReference<>() {
+                });
+
+            assertEquals(11, binaryMasterQualifers.size());
+            assertTrue(
+                binaryMasterQualifers.stream().anyMatch(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_1")));
+            assertTrue(
+                binaryMasterQualifers.stream().anyMatch(elmt -> elmt.getDataObjectVersion().equals("BinaryMaster_5")));
+
+            final AccessInternalClient accessClient = AccessInternalClientFactory.getInstance().getClient();
+
+            JsonNode logbookOperation =
+                accessClient.selectOperationById(operationGuid.getId())
+                    .toJsonNode();
+            assertThat(logbookOperation.get(RESULTS).get(0).get("evParentId")).isExactlyInstanceOf(NullNode.class);
+            Set<String> eventIds = new HashSet<>();
+            eventIds.add(logbookOperation.get(RESULTS).get(0).get("evId").asText());
+            logbookOperation.get(RESULTS).get(0).get("events").forEach(event -> {
+                if (event.get("evType").asText().contains("STP_UPLOAD_SIP")) {
+                    assertThat(event.get("outDetail").asText()).contains("STP_UPLOAD_SIP");
+                }
+                eventIds.add(event.get("evId").asText());
+            });
+
+            // check evIds
+            assertThat(eventIds.size()).isEqualTo(logbookOperation.get(RESULTS).get(0).get("events").size() + 1);
+
+            QueryBuilder query = QueryBuilders.matchQuery("_id", operationGuid.getId());
+            SearchResponse elasticSearchResponse =
+                esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 25);
+            assertEquals(1, elasticSearchResponse.getHits().getTotalHits().value);
+            assertNotNull(elasticSearchResponse.getHits().getAt(0));
+            SearchHit hit = elasticSearchResponse.getHits().iterator().next();
+            assertNotNull(hit);
+
+        } catch (final Exception e) {
+            LOGGER.error(e);
+            SearchResponse elasticSearchResponse =
+                esClient.search(LogbookCollections.OPERATION, tenantId, null, null, null, 0, 25);
+            LOGGER.error("Total:" + (elasticSearchResponse.getHits().getTotalHits()));
+            try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+                fr.gouv.vitam.common.database.builder.request.single.Select selectQuery =
+                    new fr.gouv.vitam.common.database.builder.request.single.Select();
+                assertNotNull(operationGuid);
+                selectQuery.setQuery(QueryHelper.eq("evIdProc", operationGuid.getId()));
+                JsonNode logbookResult = logbookClient.selectOperation(selectQuery.getFinalSelect());
+                LOGGER.error(JsonHandler.prettyPrint(logbookResult));
+            }
+
+            throw e;
+        }
+    }
+
 }

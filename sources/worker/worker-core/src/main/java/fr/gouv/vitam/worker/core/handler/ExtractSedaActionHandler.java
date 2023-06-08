@@ -130,7 +130,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupLinkingExc
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupMasterMandatoryException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingTooManyUnitsFoundException;
-import fr.gouv.vitam.processing.common.exception.ProcessingTooManyVersionsByUsageException;
+import fr.gouv.vitam.processing.common.exception.MissingMandatoryVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -255,7 +255,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public static final String SUBTASK_EMPTY_KEY_ATTACHMENT = "EMPTY_KEY_ATTACHMENT";
     public static final String SUBTASK_NULL_LINK_PARENT_ID_ATTACHMENT = "NULL_LINK_PARENT_ID_ATTACHMENT";
     public static final String SUBTASK_TOO_MANY_FOUND_ATTACHMENT = "TOO_MANY_FOUND_ATTACHMENT";
-    public static final String SUBTASK_TOO_MANY_VERSION_BY_USAGE = "TOO_MANY_VERSION_BY_USAGE";
+    public static final String EXPECTED_MANDATORY_VERSION_1 = "EXPECTED_MANDATORY_VERSION_1";
     public static final String SUBTASK_NOT_FOUND_ATTACHMENT = "NOT_FOUND_ATTACHMENT";
     public static final String SUBTASK_ATTACHMENT_REQUIRED = "ATTACHMENT_REQUIRED";
     public static final String SUBTASK_UNAUTHORIZED_ATTACHMENT = "UNAUTHORIZED_ATTACHMENT";
@@ -469,11 +469,11 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 getMessageItemStatusAUNotFound(e.getUnitId(), e.getUnitGuid(), e.isValidGuid()),
                 SUBTASK_TOO_MANY_FOUND_ATTACHMENT);
             globalCompositeItemStatus.increment(StatusCode.KO);
-        } catch (final ProcessingTooManyVersionsByUsageException e) {
+        } catch (final MissingMandatoryVersionException e) {
             LOGGER.debug("ProcessingException :", e);
             updateDetailItemStatus(globalCompositeItemStatus,
                 JsonHandler.unprettyPrint(JsonHandler.createObjectNode().put("MsgError", e.getMessage())),
-                SUBTASK_TOO_MANY_VERSION_BY_USAGE);
+                EXPECTED_MANDATORY_VERSION_1);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingMalformedDataException e) {
             LOGGER.debug("ProcessingException : Missing or malformed data in the manifest", e);
@@ -2236,7 +2236,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.put(SedaConstants.PREFIX_TENANT_ID, ParameterHelper.getTenantParameter());
 
                 final List<String> versionList = new ArrayList<>();
-                final Set<String> dataObjectVersions = new HashSet<>();
                 for (int index = 0; index < entry.getValue().size(); index++) {
                     final String id = entry.getValue().get(index);
                     JsonNode dataObjectNode = objectsDatabase.read(ingestSession.getDataObjectIdToGuid().get(id));
@@ -2260,30 +2259,22 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         }
                     }
 
-                    if (versionList.contains(nodeCategory)) {
+                    List<JsonNode> nodeCategoryArray = categoryMap.get(nodeCategory);
+                    String[] array = nodeCategory.split("_");
+
+                    String nodeCategoryNumbered = nodeCategory;
+                    if (array.length == 1) {
+                        nodeCategoryNumbered = nodeCategory + "_1";
+                        ((ObjectNode) dataObjectNode).put(SedaConstants.TAG_DO_VERSION, nodeCategoryNumbered);
+                    }
+
+                    if (versionList.contains(nodeCategoryNumbered)) {
                         LOGGER.error(DATA_OBJECT_VERSION_MUST_BE_UNIQUE);
                         throw new ProcessingDuplicatedVersionException(DATA_OBJECT_VERSION_MUST_BE_UNIQUE);
                     }
-                    versionList.add(nodeCategory);
+                    versionList.add(nodeCategoryNumbered);
 
-                    List<JsonNode> nodeCategoryArray = categoryMap.get(nodeCategory);
-                    String[] array = nodeCategory.split("_");
-                    String realCategory = array[0];
 
-                    // FIXME ugly fix of the BUG 5178. Do not allow multiple dataObjectVersion by usage if not adding objects to existing GOT
-                    // TODO To be deleted when the bug 5178 is properly fixed
-                    if (!existingGot && dataObjectVersions.contains(realCategory)) {
-                        // When ingest multiple dataObjectVersion by usage is not allowed
-                        throw new ProcessingTooManyVersionsByUsageException(
-                            "[Not allowed for first ingest] Too many versions found for the usage (" + realCategory +
-                                ") of the object group (" + entry.getKey() + ")");
-                    }
-                    dataObjectVersions.add(realCategory);
-
-                    if (array.length == 1) {
-                        final String nodeCategoryNumbered = nodeCategory + "_1";
-                        ((ObjectNode) dataObjectNode).put(SedaConstants.TAG_DO_VERSION, nodeCategoryNumbered);
-                    }
                     if (nodeCategoryArray == null) {
                         nodeCategoryArray = new ArrayList<>();
                         nodeCategoryArray.add(dataObjectNode);
@@ -2291,15 +2282,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         final int dataObjectNodePosition = Integer.parseInt(nodeCategory.split("_")[1]) - 1;
                         nodeCategoryArray.add(dataObjectNodePosition, dataObjectNode);
                     }
-                    categoryMap.put(nodeCategory, nodeCategoryArray);
-                    if (BINARY_MASTER.equals(nodeCategory)) {
-
-                        fileInfo = (ObjectNode) dataObjectNode.get(FILE_INFO);
-                        if (dataObjectNode.get(METADATA) != null && !dataObjectNode.get(METADATA).isNull() &&
-                            !dataObjectNode.get(METADATA).isEmpty()) {
-                            objectGroupType = dataObjectNode.get(METADATA).fieldNames().next();
-                        }
-                    }
+                    categoryMap.put(nodeCategoryNumbered, nodeCategoryArray);
                 }
 
                 File newLocalFile =
@@ -2316,6 +2299,12 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
                 objectGroup.put(SedaConstants.PREFIX_TYPE, objectGroupType);
                 objectGroup.set(SedaConstants.TAG_FILE_INFO, fileInfo);
+
+                if(!checkBinaryMasterVersion(categoryMap)) {
+                    throw new MissingMandatoryVersionException(
+                        "The object group (" + entry.getKey() + ") requires Mandatory version 1 to be present");
+                }
+
                 final ArrayNode qualifiersNode =
                     getObjectGroupQualifiers(ingestSession, categoryMap, ingestContext.getOperationId());
                 objectGroup.set(SedaConstants.PREFIX_QUALIFIERS, qualifiersNode);
@@ -2412,6 +2401,19 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 throw new ProcessingException(e);
             }
         }
+    }
+    private boolean checkBinaryMasterVersion(Map<String, List<JsonNode>> categoryMap) {
+        boolean existBinaryMaster = categoryMap.keySet().stream().anyMatch(key -> key.startsWith("BinaryMaster"));
+        boolean existPhysicalMaster = categoryMap.keySet().stream().anyMatch(key -> key.startsWith("PhysicalMaster"));
+
+        if (existBinaryMaster && existPhysicalMaster) {
+            return categoryMap.containsKey("BinaryMaster_1") && categoryMap.containsKey("PhysicalMaster_1");
+        } else if (existBinaryMaster) {
+            return categoryMap.containsKey("BinaryMaster_1");
+        } else if (existPhysicalMaster) {
+            return categoryMap.containsKey("PhysicalMaster_1");
+        }
+        return true;
     }
 
     private void checkOriginatingAgencyAttachementConformity(String originatingAgency,
@@ -2530,29 +2532,45 @@ public class ExtractSedaActionHandler extends ActionHandler {
         String containerId) {
         final ArrayNode qualifiersArray = JsonHandler.createArrayNode();
         for (final Entry<String, List<JsonNode>> entry : categoryMap.entrySet()) {
-            final ObjectNode objectNode = JsonHandler.createObjectNode();
-            // fix qualifier_version in qualifier field
-            String qualifier;
+            final String qualifier;
             if (entry.getKey().contains("_")) {
                 qualifier = entry.getKey().split("_")[0];
-                objectNode.put(SedaConstants.PREFIX_QUALIFIER, qualifier);
             } else {
                 qualifier = entry.getKey();
-                objectNode.put(SedaConstants.PREFIX_QUALIFIER, qualifier);
             }
-            objectNode.put(SedaConstants.TAG_NB, entry.getValue().size());
-            final ArrayNode arrayNode = JsonHandler.createArrayNode();
+
+            ObjectNode objectNode = findQualifierObjectNode(qualifiersArray, qualifier);
+            if (objectNode == null) {
+                objectNode = JsonHandler.createObjectNode();
+                objectNode.put(SedaConstants.PREFIX_QUALIFIER, qualifier);
+                objectNode.put(SedaConstants.TAG_NB, 0);
+
+                final ArrayNode arrayNode = JsonHandler.createArrayNode();
+                objectNode.set(SedaConstants.TAG_VERSIONS, arrayNode);
+
+                qualifiersArray.add(objectNode);
+            }
+
+            ArrayNode arrayNode = (ArrayNode) objectNode.get(SedaConstants.TAG_VERSIONS);
             for (final JsonNode node : entry.getValue()) {
                 final String id = node.findValue(SedaConstants.PREFIX_ID).textValue();
                 final String guid = ingestSession.getDataObjectIdToGuid().get(id);
                 updateObjectNode(ingestSession, (ObjectNode) node, guid, PHYSICAL_MASTER.equals(qualifier),
                     containerId);
                 arrayNode.add(node);
+                objectNode.put(SedaConstants.TAG_NB, objectNode.get(SedaConstants.TAG_NB).asInt()+1);
             }
-            objectNode.set(SedaConstants.TAG_VERSIONS, arrayNode);
-            qualifiersArray.add(objectNode);
         }
         return qualifiersArray;
+    }
+
+    private ObjectNode findQualifierObjectNode(ArrayNode qualifiersArray, String qualifier) {
+        for (JsonNode node : qualifiersArray) {
+            if (node.has(SedaConstants.PREFIX_QUALIFIER) && node.get(SedaConstants.PREFIX_QUALIFIER).textValue().equals(qualifier)) {
+                return (ObjectNode) node;
+            }
+        }
+        return null;
     }
 
     private ObjectNode getObjectGroupWork(IngestSession ingestSession, Map<String, List<JsonNode>> categoryMap,

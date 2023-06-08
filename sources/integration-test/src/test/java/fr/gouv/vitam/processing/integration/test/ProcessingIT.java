@@ -213,9 +213,7 @@ import static io.restassured.RestAssured.get;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -3215,48 +3213,14 @@ public class ProcessingIT extends VitamRuleRunner {
     public void test_add_objects_to_existing_object_group_OK() throws Exception {
         prepareVitamSession();
 
-        String sip_ko = "integration-processing/add_objects_to_gots/KO_SIP_MULTIPLE_USAGES_MULTIPLE_VERSIONS.zip";
         String sip_ok_1 = "integration-processing/add_objects_to_gots/OK_SIP_MULTIPLE_USAGES.zip";
         String sip_ok_2 = "integration-processing/add_objects_to_gots/OK_ADD_OBJECTS.zip";
-
-        // 1. Test Usage with multiple versions KO
-
-        String containerName0 = createOperationContainer();
-
-        VitamThreadUtils.getVitamSession().setRequestId(containerName0);
-        // workspace client unzip SIP in workspace
-        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(sip_ko);
-        workspaceClient = WorkspaceClientFactory.getInstance().getClient();
-        workspaceClient.createContainer(containerName0);
-        workspaceClient.uncompressObject(containerName0, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
-        // Insert sanityCheck file & StpUpload
-        insertWaitForStepEssentialFiles(containerName0);
-
-        // call processing
-        processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        processingClient.initVitamProcess(containerName0, DEFAULT_WORKFLOW.name());
-        RequestResponse<ItemStatus> ret =
-            processingClient.executeOperationProcess(containerName0, DEFAULT_WORKFLOW.name(),
-                RESUME.getValue());
-
-        assertNotNull(ret);
-        assertThat(ret.isOk()).isTrue();
-        assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
-
-        waitOperation(containerName0);
-        ProcessWorkflow processWorkflow =
-            processMonitoring.findOneProcessWorkflow(containerName0, tenantId);
-        assertNotNull(processWorkflow);
-        assertEquals(COMPLETED, processWorkflow.getState());
-        assertEquals(StatusCode.KO, processWorkflow.getStatus());
-
-
         // 2. Test multiple usages with only one version for each one
         String containerName = createOperationContainer();
 
         VitamThreadUtils.getVitamSession().setRequestId(containerName);
         // workspace client unzip SIP in workspace
-        zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(sip_ok_1);
+        InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(sip_ok_1);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
         workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
@@ -3266,14 +3230,14 @@ public class ProcessingIT extends VitamRuleRunner {
         // call processing
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
         processingClient.initVitamProcess(containerName, DEFAULT_WORKFLOW.name());
-        ret =
+        RequestResponse<ItemStatus> ret =
             processingClient.executeOperationProcess(containerName, DEFAULT_WORKFLOW.name(),
                 RESUME.getValue());
         assertNotNull(ret);
         assertEquals(Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
         waitOperation(containerName);
-        processWorkflow =
+        ProcessWorkflow processWorkflow =
             processMonitoring.findOneProcessWorkflow(containerName, tenantId);
         assertNotNull(processWorkflow);
         assertEquals(COMPLETED, processWorkflow.getState());
