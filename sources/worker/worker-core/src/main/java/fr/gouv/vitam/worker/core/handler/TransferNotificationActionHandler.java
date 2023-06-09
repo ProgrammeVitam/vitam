@@ -155,6 +155,7 @@ public class TransferNotificationActionHandler extends ActionHandler {
     private static final String TEST_STATUS_PREFIX = "Test ";
     private static final String ATR_SEDA_2_2_TRANSFORMER = "transform-atr-seda-2.2.xsl";
     private static final String ATR_SEDA_2_1_TRANSFORMER = "transform-atr-seda-2.1.xsl";
+    private static final String ATR_SEDA_2_3_TRANSFORMER = "transform-atr-seda-2.3.xsl";
 
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final StorageClientFactory storageClientFactory;
@@ -392,9 +393,15 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
     private void transformAtrFile(String sedaVersion, File atrFile, File atrWithUnifiedSedaVersion)
         throws FileNotFoundException, TransformerException {
-        Source xsl = sedaVersion.equals(SupportedSedaVersions.SEDA_2_1.getVersion()) ?
-            new StreamSource(PropertiesUtils.getResourceAsStream(ATR_SEDA_2_1_TRANSFORMER)) :
-            new StreamSource(PropertiesUtils.getResourceAsStream(ATR_SEDA_2_2_TRANSFORMER));
+        Source xsl;
+        if (sedaVersion.equals(SupportedSedaVersions.SEDA_2_1.getVersion())) {
+            xsl = new StreamSource(PropertiesUtils.getResourceAsStream(ATR_SEDA_2_1_TRANSFORMER));
+        } else if (sedaVersion.equals(SupportedSedaVersions.SEDA_2_3.getVersion())) {
+            xsl = new StreamSource(PropertiesUtils.getResourceAsStream(ATR_SEDA_2_3_TRANSFORMER));
+        } else {
+            // Default to SEDA 2.2 version
+            xsl = new StreamSource(PropertiesUtils.getResourceAsStream(ATR_SEDA_2_2_TRANSFORMER));
+        }
         Transformer transformer = transformerFactory.newTransformer(xsl);
         transformer.setErrorListener(new ErrorListener() {
             @Override
