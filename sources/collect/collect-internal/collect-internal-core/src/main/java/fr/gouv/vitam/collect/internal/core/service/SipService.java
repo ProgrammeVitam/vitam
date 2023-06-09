@@ -178,6 +178,7 @@ public class SipService {
             });
             manifestBuilder.endDescriptiveMetadata();
 
+            String archivalProfile = transactionModel.getManifestContext().getArchivalProfile();
             String submissionAgencyIdentifier = transactionModel.getManifestContext().getSubmissionAgencyIdentifier();
             String legalStatus = transactionModel.getManifestContext().getLegalStatus();
             String acquisitionInformation = transactionModel.getManifestContext().getAcquisitionInformation();
@@ -187,7 +188,7 @@ public class SipService {
 
 
             manifestBuilder.writeManagementMetadata(acquisitionInformation, legalStatus,
-                transactionModel.getManifestContext().getOriginatingAgencyIdentifier(), submissionAgencyIdentifier);
+                transactionModel.getManifestContext().getOriginatingAgencyIdentifier(), submissionAgencyIdentifier, archivalProfile);
             manifestBuilder.endDataObjectPackage();
 
             manifestBuilder.writeFooter(ExportType.ArchiveTransfer, exportRequest.getExportRequestParameters());
