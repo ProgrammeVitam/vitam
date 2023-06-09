@@ -323,7 +323,7 @@ pipeline {
                 parallel(
                     "Build vitam-product rpm": {
                         dir('rpm/vitam-product') {
-                            sh './build-all.sh'
+                            sh './build-all-docker.sh'
                         }
                     },
                     "Build vitam-product deb": {
