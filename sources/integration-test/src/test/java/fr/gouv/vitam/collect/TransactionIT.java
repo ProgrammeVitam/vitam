@@ -327,8 +327,10 @@ public class TransactionIT extends VitamRuleRunner {
         // WHEN
         assertThatThrownBy(() -> {
             getMetadataWithTrackTotalHits(true, vitamContext);
-        }).isInstanceOf(VitamClientException.class)
-            .hasMessageContaining("Error with the response, get status: '401' and reason 'Unauthorized'.");
+        })
+                .isInstanceOf(VitamClientException.class)
+                .hasMessageContaining("\"httpCode\":400")
+                .hasMessageContaining("\"message\":\"DSL parameter is unauthorized.\"");
     }
 
     private RequestResponse<JsonNode> getMetadataWithTrackTotalHits(boolean shouldTrackTotalHits,

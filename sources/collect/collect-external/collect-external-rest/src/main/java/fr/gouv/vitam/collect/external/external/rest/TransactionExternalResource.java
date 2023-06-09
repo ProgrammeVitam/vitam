@@ -68,7 +68,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
-import static fr.gouv.vitam.common.ParametersChecker.checkParameter;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ABORT;
@@ -85,7 +84,7 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ZIP_CREATE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.*;
 
 
 @Path("/collect-external/v1/transactions")
@@ -126,13 +125,13 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             SanityChecker.checkParameter(transactionId);
             ParametersChecker.checkParameter("You must supply a transaction id !", transactionId);
             RequestResponse<JsonNode> response = client.getTransactionById(transactionId);
-            return Response.status(Response.Status.OK).entity(response).build();
+            return Response.status(OK).entity(response).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when getting transaction  ", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         }
     }
 
@@ -144,7 +143,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             ParametersChecker.checkParameter(YOU_MUST_SUPPLY_TRANSACTION_DATA, transactionDto);
             RequestResponse<JsonNode> response = client.updateTransaction(transactionDto);
-            return Response.status(Response.Status.OK).entity(response).build();
+            return Response.status(OK).entity(response).build();
         } catch (final VitamClientException e) {
             LOGGER.error(ERROR_WHEN_UPDATE_TRANSACTION__, e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
@@ -160,13 +159,13 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
             client.deleteTransactionById(transactionId);
-            return Response.status(Response.Status.OK).build();
+            return Response.status(OK).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when delete transaction   ", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         }
     }
 
@@ -181,13 +180,13 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             SanityChecker.checkParameter(transactionId);
             SanityChecker.checkJsonAll(unitJsonNode);
             RequestResponse<JsonNode> response = client.uploadArchiveUnit(unitJsonNode, transactionId);
-            return Response.status(Response.Status.OK).entity(response).build();
+            return Response.status(OK).entity(response).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when uploading unit   ", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         }
     }
 
@@ -234,13 +233,13 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
             client.closeTransaction(transactionId);
-            return Response.status(Response.Status.OK).build();
+            return Response.status(OK).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when closing transaction   ", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         }
     }
 
@@ -253,13 +252,13 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
             client.abortTransaction(transactionId);
-            return Response.status(Response.Status.OK).build();
+            return Response.status(OK).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when abort transaction   ", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         }
     }
 
@@ -272,13 +271,13 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
             client.reopenTransaction(transactionId);
-            return Response.status(Response.Status.OK).build();
+            return Response.status(OK).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when reopen transaction   ", e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         }
     }
 
@@ -300,10 +299,10 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             return Response.ok().build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         } catch (Exception ex) {
             LOGGER.error("Error when ingesting  transaction   ", ex);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
 
@@ -316,15 +315,15 @@ public class TransactionExternalResource extends ApplicationStatusResource {
     public Response updateUnits(@PathParam("transactionId") String transactionId, InputStream inputStream) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
-            checkParameter("You must supply a file!", inputStream);
-            RequestResponse<JsonNode> response = client.updateUnits(transactionId, inputStream);
-            return Response.status(Response.Status.OK).entity(response).build();
+            ParametersChecker.checkParameter("You must supply a file!", inputStream);
+            final RequestResponse<JsonNode> response = client.updateUnits(transactionId, inputStream);
+            return Response.status(OK).entity(response).build();
+        } catch (InvalidParseOperationException | IllegalArgumentException e) {
+            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (final VitamClientException e) {
             LOGGER.error("Error when updating units   ", e);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
-        } catch (InvalidParseOperationException e) {
-            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
     }
 
@@ -337,15 +336,15 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         InputStream inputStreamObject) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
-            checkParameter("You must supply a file!", inputStreamObject);
+            ParametersChecker.checkParameter("You must supply a file!", inputStreamObject);
             client.uploadTransactionZip(transactionId, inputStreamObject);
             return Response.ok().build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when uploading transaction Zip   ", e);
-            return CollectRequestResponse.toVitamError(Response.Status.BAD_REQUEST, e.getLocalizedMessage());
+            return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         }
     }
 
@@ -359,11 +358,11 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
             RequestResponse<JsonNode> result = client.selectUnitsWithInheritedRules(transactionId, queryJson);
-            int st = result.isOk() ? Response.Status.OK.getStatusCode() : result.getHttpCode();
+            int st = result.isOk() ? OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
-            return Response.status(Response.Status.PRECONDITION_FAILED).build();
+            return Response.status(PRECONDITION_FAILED).build();
         } catch (VitamClientException e) {
             LOGGER.error("Error when selecting Units With Inherited Rules ", e);
             return Response.status(BAD_REQUEST).build();

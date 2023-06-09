@@ -34,10 +34,15 @@ import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
+import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.model.RequestResponse;
+import org.apache.commons.lang3.StringUtils;
 
+import javax.ws.rs.core.Cookie;
+import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
 
@@ -419,14 +424,55 @@ public class CollectExternalClientRest extends DefaultClient implements CollectE
     }
 
     private void check(Response response) throws VitamClientException {
-        Response.Status status = response.getStatusInfo().toEnum();
-        if (SUCCESSFUL.equals(status.getFamily())) {
+        if (SUCCESSFUL.equals(response.getStatusInfo().toEnum().getFamily())) {
             return;
         }
 
-        throw new VitamClientException(String
-            .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                fromStatusCode(response.getStatus()).getReasonPhrase()));
+        final String template = "Error with the response, get status: '%d' and reason '%s'.";
+        final String defaultReasonPhrase = fromStatusCode(response.getStatus()).getReasonPhrase();
+        final Response.ResponseBuilder responseBuilder = responseBuilderFrom(response);
+        String message = String.format(template, response.getStatus(), defaultReasonPhrase);
+
+        try (final Response clonedResponse = responseBuilder.build()) {
+            if (clonedResponse.hasEntity()) {
+                message = clonedResponse.readEntity(String.class);
+            }
+        }
+
+        try (final Response clonedResponse = responseBuilder.build()) {
+            final VitamError<JsonNode> vitamError = RequestResponse.parseVitamError(clonedResponse);
+
+            if (StringUtils.isNotBlank(vitamError.getDescription())) {
+                message = vitamError.getDescription();
+            } else if (StringUtils.isNotBlank(vitamError.getMessage())) {
+                message = vitamError.getMessage();
+            }
+
+            throw new VitamClientException(message);
+        } catch (InvalidParseOperationException e) {
+            throw new VitamClientException(message);
+        }
+    }
+
+    private Response.ResponseBuilder responseBuilderFrom(final Response response) {
+        Response.ResponseBuilder responseBuilder = Response.status(response.getStatus());
+
+        // Copy headers
+        for (String headerName : response.getHeaders().keySet()) {
+            responseBuilder.header(headerName, response.getHeaderString(headerName));
+        }
+
+        // Copy cookies
+        for (NewCookie cookie : response.getCookies().values()) {
+            responseBuilder.cookie(cookie);
+        }
+
+        // Copy entity (if exists)
+        if (response.hasEntity()) {
+            responseBuilder.entity(response.readEntity(String.class));
+        }
+
+        return responseBuilder;
     }
 
     @Override

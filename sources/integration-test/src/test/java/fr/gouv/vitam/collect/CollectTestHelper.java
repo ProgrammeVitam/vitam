@@ -26,46 +26,149 @@
  */
 package fr.gouv.vitam.collect;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.culture.archivesdefrance.seda.v2.LegalStatusType;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.external.client.CollectExternalClient;
+import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
+import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CollectTestHelper {
+    public static Optional<ProjectDto> createProject(VitamContext vitamContext) {
+        try (final CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
+            final ProjectDto createProjectDto = initProjectData();
+            final RequestResponse<JsonNode> response = client.initProject(vitamContext, createProjectDto);
 
-    private static final String SUBMISSION_AGENCY_IDENTIFIER = "Service_versant";
-    private static final String MESSAGE_IDENTIFIER = "20220302-000005";
+            if (response.isOk()) {
+                final JsonNode payload = ((RequestResponseOK<JsonNode>) response).getFirstResult();
+
+                return Optional.of(JsonHandler.getFromJsonNode(payload, ProjectDto.class));
+            }
+
+            return Optional.empty();
+        } catch (VitamClientException | InvalidParseOperationException e) {
+            return Optional.empty();
+        }
+    }
 
     static ProjectDto initProjectData() {
-        ProjectDto projectDto = new ProjectDto();
+        final ProjectDto projectDto = new ProjectDto();
+
         projectDto.setTransferringAgencyIdentifier("Identifier5");
         projectDto.setOriginatingAgencyIdentifier("Service_producteur");
-        projectDto.setSubmissionAgencyIdentifier(SUBMISSION_AGENCY_IDENTIFIER);
-        projectDto.setMessageIdentifier(MESSAGE_IDENTIFIER);
+        projectDto.setSubmissionAgencyIdentifier("Service_versant");
+        projectDto.setMessageIdentifier("20220302-000005");
         projectDto.setArchivalAgencyIdentifier("Identifier4");
         projectDto.setArchivalProfile("ArchiveProfile");
-        projectDto.setLegalStatus(TransactionStatus.OPEN.name());
+        projectDto.setLegalStatus(LegalStatusType.PRIVATE_ARCHIVE.value());
         projectDto.setComment("Versement du service producteur : Cabinet de Michel Mercier");
         projectDto.setName("Projet de versement");
         projectDto.setArchivalAgreement("ArchivalAgreement0");
+
         return projectDto;
     }
 
+    public static Optional<TransactionDto> createTransaction(final VitamContext vitamContext, final String projectId) {
+        try (final CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
+            final TransactionDto createTransactionDto = initTransaction();
+            final RequestResponse<JsonNode> response = client.initTransaction(vitamContext, createTransactionDto, projectId);
 
+            if (response.isOk()) {
+                final JsonNode payload = ((RequestResponseOK<JsonNode>) response).getFirstResult();
+
+                return Optional.of(JsonHandler.getFromJsonNode(payload, TransactionDto.class));
+            }
+
+            return Optional.empty();
+        } catch (VitamClientException | InvalidParseOperationException e) {
+            return Optional.empty();
+        }
+    }
+
+    public static void uploadZipTransaction(final VitamContext vitamContext, final String transactionId, final String zipPath) {
+        try (
+                final CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient();
+                final InputStream is = PropertiesUtils.getResourceAsStream(zipPath)
+        ) {
+            client.uploadProjectZip(vitamContext, transactionId, is);
+        } catch (IOException | VitamClientException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void closeTransaction(final VitamContext vitamContext, final String transactionId) {
+        try (final CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
+            RequestResponse response = client.closeTransaction(vitamContext, transactionId);
+
+            if (response.getStatus() != 200) {
+                throw new RuntimeException("Transaction close action is not OK, but hasn't raised any exception");
+            }
+        } catch (VitamClientException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     static TransactionDto initTransaction() {
-        TransactionDto transaction = new TransactionDto();
-        transaction.setName("My Transaction");
-        transaction.setArchivalAgreement("ArchivalAgreement0");
-        transaction.setAcquisitionInformation("AcquisitionInformation");
-        transaction.setArchivalAgencyIdentifier("Identifier4");
-        transaction.setTransferringAgencyIdentifier("Identifier5");
-        transaction.setOriginatingAgencyIdentifier("Service_producteur");
-        transaction.setSubmissionAgencyIdentifier(SUBMISSION_AGENCY_IDENTIFIER);
-        transaction.setMessageIdentifier(MESSAGE_IDENTIFIER);
-        transaction.setArchivalProfile("ArchiveProfile");
-        transaction.setLegalStatus(LegalStatusType.PRIVATE_ARCHIVE.value());
-        transaction.setComment("Versement du service producteur : Cabinet de Michel Mercier");
-        return transaction;
+        final TransactionDto transactionDto = new TransactionDto();
+
+        transactionDto.setName("My Transaction");
+        transactionDto.setArchivalAgreement("ArchivalAgreement0");
+        transactionDto.setAcquisitionInformation("AcquisitionInformation");
+        transactionDto.setArchivalAgencyIdentifier("Identifier4");
+        transactionDto.setTransferringAgencyIdentifier("Identifier5");
+        transactionDto.setOriginatingAgencyIdentifier("Service_producteur");
+        transactionDto.setSubmissionAgencyIdentifier("Service_versant");
+        transactionDto.setMessageIdentifier("20220302-000005");
+        transactionDto.setArchivalProfile("ArchiveProfile");
+        transactionDto.setLegalStatus(LegalStatusType.PRIVATE_ARCHIVE.value());
+        transactionDto.setComment("Versement du service producteur : Cabinet de Michel Mercier");
+
+        return transactionDto;
+    }
+
+    public static void uploadUnit(VitamContext vitamContext, final String transactionId, final String resourcePath) {
+        try (
+                final CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient();
+                final InputStream is = PropertiesUtils.getResourceAsStream(resourcePath)
+        ) {
+            final JsonNode jsonNode = JsonHandler.getFromInputStream(is);
+            final RequestResponse<JsonNode> response = client.uploadArchiveUnit(vitamContext, jsonNode, transactionId);
+
+            if (!response.isOk()) {
+                throw new RuntimeException("Something wrong with archive upload");
+            }
+        } catch (InvalidParseOperationException | VitamClientException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void updateUnit(VitamContext vitamContext, final String transactionId, final String resourcePath) throws IOException, VitamClientException {
+        try (
+                final CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient();
+                final InputStream is = PropertiesUtils.getResourceAsStream(resourcePath)
+        ) {
+            final String data = PropertiesUtils.getResourceAsString(resourcePath);
+            assertThat(data.length()).isGreaterThan(0);
+
+            final RequestResponse<JsonNode> response = client.updateUnits(vitamContext, transactionId, is);
+
+            if (!response.isOk()) {
+                throw new RuntimeException("Something wrong with archive upload");
+            }
+        }
     }
 }

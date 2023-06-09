@@ -1,0 +1,28 @@
+[
+  {
+    "#id": "aeaqaaaaaeekagw6aahg6amhbdmd2cyaaaaq",
+    "DescriptionLevel": "Series",
+    "Title": "versement",
+    "#managment": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaagekagw6aahg6amhbdmdvkqaaaaq",
+    "#unitups": [],
+    "#allunitups": [],
+    "StartDate": "2022-10-10",
+    "Description": "Description versement",
+    "EndDate": "2022-10-10"
+  },
+  {
+    "#id": "aeaqaaaaaeekagw6aahg6amhbdmd2daaaaaq",
+    "DescriptionLevel": "Item",
+    "Title": "versement/pastis.json",
+    "#managment": {},
+    "#unitType": "INGEST",
+    "#opi": "aeeaaaaaagekagw6aahg6amhbdmdvkqaaaaq",
+    "#unitups": ["aeaqaaaaaeekagw6aahg6amhbdmd2cyaaaaq"],
+    "#allunitups": ["aeaqaaaaaeekagw6aahg6amhbdmd2cyaaaaq"],
+    "StartDate": "2022-10-10",
+    "Description": "Description pastis",
+    "EndDate": "2022-10-10"
+  }
+]
