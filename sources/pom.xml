@@ -669,8 +669,8 @@
                     <artifactId>dependency-check-maven</artifactId>
                     <version>${maven.dependencycheck.version}</version>
                     <configuration>
-                        <cveUrlModified>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-1.0-modified.json.gz</cveUrlModified>
-                        <cveUrlBase>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-1.0-%d.json.gz</cveUrlBase>
+                        <cveUrlModified>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-1.1-modified.json.gz</cveUrlModified>
+                        <cveUrlBase>${env.SERVICE_REPOSITORY_URL}/nist/nvdcve-1.1-%d.json.gz</cveUrlBase>
                         <assemblyAnalyzerEnabled>false</assemblyAnalyzerEnabled>
                         <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
                         <failOnError>false</failOnError>
