@@ -23,9 +23,6 @@ pipeline {
         SERVICE_NEXUS_URL = credentials("service-nexus-url")
         SERVICE_REPO_SSHURL = credentials("repository-connection-string")
         SERVICE_GIT_URL = credentials("service-gitlab-url")
-        SERVICE_PROXY_HOST = credentials("http-proxy-host")
-        SERVICE_PROXY_PORT = credentials("http-proxy-port")
-        SERVICE_NOPROXY = credentials("http_nonProxyHosts")
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
         GITHUB_ACCOUNT_TOKEN = credentials("vitam-prg-token")
@@ -118,7 +115,7 @@ pipeline {
                         // elasticsearch
                         sh 'docker run -d -m 1g --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "cluster.name=elasticsearch-data" ${SERVICE_DOCKER_PULL_URL}/elasticsearch:${ES_VERSION}'
                         // mongodb
-                        sh 'docker run -d -m 1g --name mongodb -p 27017:27017 -v ${WORKSPACE}/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd "test $$(echo "rs.status().ok" | mongo --quiet) -eq 1" --health-start-period 30s --health-interval 10s ${SERVICE_DOCKER_PULL_URL}/mongo:${MONGO_VERSION} mongod --bind_ip_all --replSet rs0'
+                        sh "docker run -d -m 1g --name mongodb -p 27017:27017 -v $WORKSPACE/vitam-conf-dev/tests/initdb.d/:/docker-entrypoint-initdb.d/ --health-cmd 'test \$(echo \"rs.status().ok\" | mongo --quiet) -eq 1' --health-start-period 30s --health-interval 10s $SERVICE_DOCKER_PULL_URL/mongo:$MONGO_VERSION mongod --bind_ip_all --replSet rs0"
                         // minIO without SSL
                         sh "docker run -d -m 512m --name minionossl -p 127.0.0.1:9999:9000 -e \"MINIO_ACCESS_KEY=MKU4HW1K9HSST78MDY3T\" -e \"MINIO_SECRET_KEY=aSyBSStwp4JDZzpNKeJCc0Rdn12hOTa0EFejFfkd\" ${SERVICE_DOCKER_PULL_URL}/minio/minio:${MINIO_VERSION} server /data"
                         // openio
@@ -256,7 +253,7 @@ pipeline {
                     },
                     "Checkout publishing scripts" : {
                         checkout([$class: 'GitSCM',
-                            branches: [[name: 'oshimae']],
+                            branches: [[name: 'scaleway_j11']],
                             doGenerateSubmoduleConfigurations: false,
                             extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: 'vitam-build.git']],
                             submoduleCfg: [],
@@ -314,10 +311,6 @@ pipeline {
                     branch "master"
                     tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
                 }
-            }
-            environment {
-                http_proxy = credentials("http-proxy-url")
-                https_proxy = credentials("http-proxy-url")
             }
             steps {
                 parallel(
