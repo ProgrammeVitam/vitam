@@ -73,7 +73,6 @@ public class CollectTestHelper {
         projectDto.setSubmissionAgencyIdentifier("Service_versant");
         projectDto.setMessageIdentifier("20220302-000005");
         projectDto.setArchivalAgencyIdentifier("Identifier4");
-        projectDto.setArchivalProfile("ArchiveProfile");
         projectDto.setLegalStatus(LegalStatusType.PRIVATE_ARCHIVE.value());
         projectDto.setComment("Versement du service producteur : Cabinet de Michel Mercier");
         projectDto.setName("Projet de versement");
@@ -133,7 +132,6 @@ public class CollectTestHelper {
         transactionDto.setOriginatingAgencyIdentifier("Service_producteur");
         transactionDto.setSubmissionAgencyIdentifier("Service_versant");
         transactionDto.setMessageIdentifier("20220302-000005");
-        transactionDto.setArchivalProfile("ArchiveProfile");
         transactionDto.setLegalStatus(LegalStatusType.PRIVATE_ARCHIVE.value());
         transactionDto.setComment("Versement du service producteur : Cabinet de Michel Mercier");
 
