@@ -50,6 +50,11 @@ browser:
 docker_opts:
     registry_httponly: yes
     vitam_docker_tag: latest
+    ## Custom CIDR address for docker bridge networks
+    # docker_bip: 192.168.191.1/24
+    ## Custom CIDR address settings for docker internal networks
+    # docker_address_pools_cidr: 192.168.192.1/18
+    # docker_address_pools_size: 24
 
 gatling_install: false
 docker_install: true # whether or not install docker & docker images
