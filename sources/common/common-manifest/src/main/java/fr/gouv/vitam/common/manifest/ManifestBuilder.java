@@ -469,7 +469,7 @@ public class ManifestBuilder implements AutoCloseable {
 
 
     public void writeManagementMetadata(String acquisitionInformation, String legalStatus, String originatingAgency,
-        String submissionAgencyIdentifier)
+        String submissionAgencyIdentifier, String archivalProfile)
         throws JAXBException, ExportException {
 
         if (Strings.isNullOrEmpty(originatingAgency)) {
@@ -479,6 +479,11 @@ public class ManifestBuilder implements AutoCloseable {
         ManagementMetadataType managementMetadataType =
             buildManagementMetadata(originatingAgency, submissionAgencyIdentifier);
 
+        if (!Strings.isNullOrEmpty(archivalProfile)) {
+            IdentifierType identifierType = new IdentifierType();
+            identifierType.setValue(archivalProfile);
+            managementMetadataType.setArchivalProfile(identifierType);
+        }
 
         if (!Strings.isNullOrEmpty(legalStatus)) {
             managementMetadataType.setLegalStatus(LegalStatusType.fromValue(legalStatus));
