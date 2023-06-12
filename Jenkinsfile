@@ -21,16 +21,10 @@ pipeline {
         CI = credentials("app-jenkins")
         SERVICE_SONAR_URL = credentials("service-sonar-java11-url")
         SERVICE_NEXUS_URL = credentials("service-nexus-url")
-        SERVICE_CHECKMARX_URL = credentials("service-checkmarx-url")
         SERVICE_REPO_SSHURL = credentials("repository-connection-string")
         SERVICE_GIT_URL = credentials("service-gitlab-url")
         SERVICE_PROXY_HOST = credentials("http-proxy-host")
         SERVICE_PROXY_PORT = credentials("http-proxy-port")
-        SERVICE_CX_SCA_USER = credentials("service-cx-sca-user")
-        SERVICE_CX_SCA_PASSWORD = credentials("service-cx-sca-password")
-        SERVICE_CX_SCA_ACCOUNT = credentials("service-cx-sca-account")
-        SERVICE_CX_SCA_SERVER = credentials("service-cx-sca-server")
-        SERVICE_CX_SCA_AUTH_SERVER = credentials("service-cx-sca-auth-server")
         SERVICE_NOPROXY = credentials("http_nonProxyHosts")
         SERVICE_DOCKER_PULL_URL=credentials("SERVICE_DOCKER_PULL_URL")
         SERVICE_REPOSITORY_URL=credentials("service-repository-url")
@@ -426,78 +420,6 @@ pipeline {
             steps {
                 sshagent (credentials: ['jenkins_sftp_to_repository']) {
                     sh 'vitam-build.git/push_symlink_repo.sh commit $SERVICE_REPO_SSHURL'
-                }
-            }
-        }
-//        stage("Checkmarx analysis") {
-//            when {
-//                anyOf {
-//                    branch "develop*"
-//                    branch "master_*"
-//                    branch "master"
-//                    tag pattern: "^[1-9]+(\\.rc)?(\\.[0-9]+)?\\.[0-9]+(-.*)?", comparator: "REGEXP"
-//                }
-//            }
-//            steps {
-//                sh 'mkdir -p ${PWD}/target'
-//                sh 'mkdir -p ${PWD}/logs'
-//                sh 'touch ${PWD}/logs/cx_console.log'
-//                // KWA : Visibly, backslash escape hell. \\ => \ in groovy string.
-//                sh '/opt/CxConsole/runCxConsole.sh scan --verbose -Log "${PWD}/logs/cx_console.log" -CxServer "$SERVICE_CHECKMARX_URL" -CxUser "VITAM openLDAP\\\\$CI_USR" -CxPassword \\"$CI_PSW\\" -ProjectName "CxServer\\SP\\Vitam\\Users\\vitam-parent $GIT_BRANCH" -LocationType folder -locationPath "${PWD}/sources"  -Preset "Default 2014" -LocationPathExclude test target bower_components node_modules dist -forcescan -ReportPDF "${PWD}/target/checkmarx-report.pdf"'
-//                sh '[ ! -f ${PWD}/target/checkmarx-report.pdf ] && touch ${PWD}/target/checkmarx-report.pdf'
-//            }
-//            post {
-//                success {
-//                    archiveArtifacts (
-//                        artifacts: '${PWD}/target/checkmarx-report.pdf',
-//                        fingerprint: true
-//                    )
-//                    slackSend (color: '#00aa5b', message: "Build OK de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
-//                }
-//                unstable {
-//                    slackSend (color: '#ffaa00', message: "Build Unstable de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
-//                }
-//                failure {
-//                    archiveArtifacts (
-//                        artifacts: '${PWD}/logs/cx_console.log',
-//                        fingerprint: true
-//                    )
-//                    slackSend (color: '#a30000', message: "Build KO de la branche ${env.GIT_BRANCH}, commit: ${env.GIT_COMMIT}", channel: "#pic-ci")
-//                }
-//            }
-//        }
-
-
-        stage('Checkmarx SCA step') {
-           when {
-               anyOf {
-                    branch "develop"
-                    branch "master_*"
-                }
-           }
-           environment {
-                http_proxy="http://${env.SERVICE_PROXY_HOST}:${env.SERVICE_PROXY_PORT}"
-                https_proxy="http://${env.SERVICE_PROXY_HOST}:${env.SERVICE_PROXY_PORT}"
-                CX_NAME="vitam.${env.GIT_BRANCH}"
-           }
-           steps {
-                sh 'curl -O https://sca-downloads.s3.amazonaws.com/cli/latest/ScaResolver-linux64.tar.gz'
-                sh 'tar -xzvf  ScaResolver-linux64.tar.gz'
-                sh 'sudo ln -sf /usr/local/maven/bin/mvn /usr/local/bin/mvn'
-                sh './ScaResolver -n $CX_NAME -u $SERVICE_CX_SCA_USER -a $SERVICE_CX_SCA_ACCOUNT --server-url $SERVICE_CX_SCA_SERVER --authentication-server-url $SERVICE_CX_SCA_AUTH_SERVER -s sources -p "$SERVICE_CX_SCA_PASSWORD" --report-type Risk --report-extension Pdf '
-           }
-           post {
-                success {
-                    archiveArtifacts (
-                        artifacts: "reports/$CX_NAME/*.pdf",
-                        fingerprint: true
-                    )
-                }
-                failure {
-                    archiveArtifacts (
-                        artifacts: "logs/$CX_NAME/*.log",
-                        fingerprint: true
-                    )
                 }
             }
         }
