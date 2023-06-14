@@ -65,11 +65,10 @@ public class ArchiveUnitMapper {
         archiveUnitType.setContent(
             descriptiveMetadataMapper.map(model.getDescriptiveMetadataModel(), model.getHistory()));
 
-        archiveUnitType.setManagement(managementMapper.map(model.getManagement()));
+        if (!model.getManagement().isEmpty()) {
+            archiveUnitType.setManagement(managementMapper.map(model.getManagement()));
+        }
 
         return archiveUnitType;
     }
-
-
-
 }

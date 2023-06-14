@@ -248,4 +248,10 @@ public class ManagementModel {
                 throw new IllegalArgumentException("Type cannot be " + type);
         }
     }
+    @JsonIgnore
+    public boolean isEmpty() {
+        return getStorage() == null && getAccess() == null && getAppraisal() == null && getHold() == null &&
+            getDissemination() == null && getReuse() == null && getClassification() == null &&
+            getUpdateOperationType() == null;
+    }
 }
