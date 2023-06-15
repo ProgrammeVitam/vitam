@@ -96,9 +96,11 @@ public class DescriptiveMetadataMapper {
             dmc.getDescription().addAll(metadataModel.getDescription_().getTextTypes());
         }
 
-        TextType description = new TextType();
-        description.setValue(metadataModel.getDescription());
-        dmc.getDescription().add(description);
+        if(metadataModel.getDescription() != null){
+            TextType description = new TextType();
+            description.setValue(metadataModel.getDescription());
+            dmc.getDescription().add(description);
+        }
 
         dmc.setDescriptionLanguage(metadataModel.getDescriptionLanguage());
         dmc.setDescriptionLevel(metadataModel.getDescriptionLevel());
