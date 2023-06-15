@@ -46,6 +46,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.LegalStatusType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LogBookOgType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LogBookType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementMetadataType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MinimalDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ObjectFactory;
 import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationWithIdType;
@@ -268,10 +269,11 @@ public class ManifestBuilder implements AutoCloseable {
             .map(LogbookMapper::getEventOGTypeFromDocument)
             .collect(Collectors.toList());
 
-        LogBookOgType logbookType = new LogBookOgType();
-        logbookType.getEvent().addAll(events);
-
-        dataObjectGroup.setLogBook(logbookType);
+        if (!events.isEmpty()) {
+            LogBookOgType logbookType = new LogBookOgType();
+            logbookType.getEvent().addAll(events);
+            dataObjectGroup.setLogBook(logbookType);
+        }
 
         List<MinimalDataObjectType> binaryDataObjectOrPhysicalDataObject =
             dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject();
@@ -329,12 +331,12 @@ public class ManifestBuilder implements AutoCloseable {
                 dataObjectGroup), writer);
     }
 
+
     public ArchiveUnitModel writeArchiveUnit(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap,
         Map<String, String> ogs)
         throws JAXBException, DatatypeConfigurationException {
         ArchiveUnitType archiveUnitType = mapUnitModelToXML(archiveUnitModel, multimap, ogs);
         marshaller.marshal(archiveUnitType, writer);
-
         return archiveUnitModel;
     }
 
@@ -343,6 +345,9 @@ public class ManifestBuilder implements AutoCloseable {
         throws DatatypeConfigurationException, JAXBException {
         ArchiveUnitType archiveUnitType = mapUnitModelToXML(archiveUnitModel, multimap, ogs);
         LogBookType logBookType = addArchiveUnitLogbookType(logbookLFC);
+        if(archiveUnitType.getManagement() == null){
+            archiveUnitType.setManagement(new ManagementType());
+        }
         archiveUnitType.getManagement().setLogBook(logBookType);
         marshaller.marshal(archiveUnitType, writer);
         return archiveUnitModel;
