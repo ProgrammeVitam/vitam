@@ -68,32 +68,23 @@ public class EliminationActionReportServiceTest {
 
 
     private static final String PROC_ID = "procId";
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
+    @Rule public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock
-    private BatchReportClientFactory batchReportClientFactory;
+    @Mock private BatchReportClientFactory batchReportClientFactory;
 
-    @Mock
-    private BatchReportClient batchReportClient;
+    @Mock private BatchReportClient batchReportClient;
 
-    @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
+    @Mock private WorkspaceClientFactory workspaceClientFactory;
 
-    @Mock
-    private WorkspaceClient workspaceClient;
+    @Mock private WorkspaceClient workspaceClient;
 
-    @Mock
-    private StorageClientFactory storageClientFactory;
-    @Mock
-    private StorageClient storageClient;
+    @Mock private StorageClientFactory storageClientFactory;
+    @Mock private StorageClient storageClient;
 
-    @InjectMocks
-    private EliminationActionReportService instance;
+    @InjectMocks private EliminationActionReportService instance;
 
     @Before
     public void setUp() throws Exception {
@@ -115,8 +106,7 @@ public class EliminationActionReportServiceTest {
             new EliminationActionUnitReportEntry("unit1", "sp1", "opi1", "got1",
                 EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name()),
             new EliminationActionUnitReportEntry("unit2", "sp2", "opi2", "got2",
-                EliminationActionUnitStatus.GLOBAL_STATUS_KEEP.name())
-        );
+                EliminationActionUnitStatus.GLOBAL_STATUS_KEEP.name()));
 
         // When
         instance.appendEntries(PROC_ID, entries);
@@ -169,9 +159,8 @@ public class EliminationActionReportServiceTest {
 
         // Then
         ArgumentCaptor<ObjectDescription> descriptionArgumentCaptor = ArgumentCaptor.forClass(ObjectDescription.class);
-        verify(storageClient)
-            .storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.REPORT),
-                eq(PROC_ID + JSONL_EXTENSION), descriptionArgumentCaptor.capture());
+        verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.REPORT), eq(PROC_ID + JSONL_EXTENSION), descriptionArgumentCaptor.capture());
         assertThat(descriptionArgumentCaptor.getValue().getWorkspaceContainerGUID()).isEqualTo(PROC_ID);
         assertThat(descriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(WORKSPACE_REPORT_URI);
     }

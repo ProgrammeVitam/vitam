@@ -1642,7 +1642,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 UnitReportEntry unit = JsonHandler.getFromJsonNode(reportIterator.next(), UnitReportEntry.class);
                 assertEquals(expectedStatus, unit.params.status);
             }
-        } catch (StorageServerClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (StorageServerClientException | StorageNotFoundException |
+                 StorageUnavailableDataFromAsyncOfferClientException e) {
             fail("Cannot read report");
         }
     }
@@ -2175,7 +2176,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 return new VitamAsyncInputStream(reportResponse);
 
 
-            } catch (RuntimeException | StorageServerClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
+            } catch (RuntimeException | StorageServerClientException | StorageNotFoundException |
+                     StorageUnavailableDataFromAsyncOfferClientException e) {
                 StreamUtils.consumeAnyEntityAndClose(reportResponse);
                 throw e;
             }
@@ -2290,6 +2292,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
             assertThat(unitReportByTitle.get(SAINT_DENIS_UNIVERSITE_LIGNE_13).params.status).isEqualTo(
                 PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
+            assertThat(unitReportByTitle.get(SAINT_DENIS_UNIVERSITE_LIGNE_13).params.extraInfo).containsOnlyKeys(
+                "OriginatingAgencyArchiveUnitIdentifier", "FilePlanPosition", "TransferringAgencyArchiveUnitIdentifier",
+                "ArchivalAgencyArchiveUnitIdentifier", "OriginatingSystemId");
             assertThat(unitReportByTitle.get(SAINT_LAZARE).params.status).isEqualTo(
                 PurgeUnitStatus.DELETED.name());
             assertThat(unitReportByTitle.get(MARX_DORMOY).params.status).isEqualTo(
@@ -2601,6 +2606,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         String originatingAgency;
         @JsonProperty("objectGroupId")
         String objectGroupId;
+        @JsonProperty("extraInfo")
+        Map<String, Object> extraInfo;
         @JsonProperty("type")
         String type;
     }

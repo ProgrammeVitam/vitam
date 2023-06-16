@@ -101,7 +101,7 @@ public class PurgeUnitRepositoryTest {
         Object metadata = first.get("_metadata");
         JsonNode metadataNode = JsonHandler.toJsonNode(metadata);
         JsonNode expected = JsonHandler.getFromString(
-            "{\"id\":\"unitId1\",\"originatingAgency\":\"sp1\",\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"status\":\"DELETED\",\"type\":\"INGEST\"}");
+            "{\"id\":\"unitId1\",\"originatingAgency\":\"sp1\",\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"status\":\"DELETED\",\"extraInfo\":{\"key1\":\"unit1_value1\",\"key2\":[\"unit1_value2\"]},\"type\":\"INGEST\"}");
         assertThat(metadataNode).isNotNull().isEqualTo(expected);
         repository.bulkAppendReport(purgeUnitModels);
         assertThat(purgeUnitCollection.countDocuments()).isEqualTo(4);

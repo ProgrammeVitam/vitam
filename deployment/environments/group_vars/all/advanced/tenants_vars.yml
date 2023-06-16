@@ -123,3 +123,10 @@ vitam_elasticsearch_tenant_indexation:
   #      number_of_shards: 7
   #      number_of_replicas: 0
   #  ...
+
+extendedConfiguration:
+  default:
+    eliminationReportExtraFields: [ ]
+  custom:
+    0:
+      eliminationReportExtraFields: [ "#id", "FilePlanPosition", "SystemId", "OriginatingSystemId", "ArchivalAgencyArchiveUnitIdentifier", "OriginatingAgencyArchiveUnitIdentifier", "TransferringAgencyArchiveUnitIdentifier" ]

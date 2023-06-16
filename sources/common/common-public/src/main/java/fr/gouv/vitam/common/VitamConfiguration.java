@@ -29,6 +29,7 @@ package fr.gouv.vitam.common;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
+import fr.gouv.vitam.common.configuration.EliminiationReportConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.dip.BinarySizePlatformThreshold;
@@ -40,6 +41,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This class contains default values shared among all services in Vitam
@@ -423,7 +425,7 @@ public class VitamConfiguration {
     /**
      * default offset for lifecycleSpliterator
      */
-    private static int defaultOffset = 0;
+    private static final int defaultOffset = 0;
 
     /**
      * Max Thread for ES and MongoDB
@@ -569,6 +571,9 @@ public class VitamConfiguration {
      * Timeout for waitForStep in processingEngine in SECONDS
      */
     private static int processEngineWaitForStepTimeout = 172800;
+
+    private static Map<Integer, List<String>> eliminationReportExtraFields = new HashMap<>();
+
 
     static {
         getConfiguration().setDefault();
@@ -1183,6 +1188,12 @@ public class VitamConfiguration {
         if (null != parameters.getWorkspaceFreespaceThreshold()) {
             setWorkspaceFreespaceThreshold(parameters.getWorkspaceFreespaceThreshold());
         }
+        if (null != parameters.getEliminationReportExtraFields()) {
+            setEliminationReportExtraFields(parameters.getEliminationReportExtraFields().stream()
+                .collect(Collectors.toMap(EliminiationReportConfiguration::getTenant,
+                    EliminiationReportConfiguration::getMetadataFields)));
+        }
+
     }
 
     /**
@@ -2645,6 +2656,16 @@ public class VitamConfiguration {
 
     public static void setElasticSearchScrollLimit(Integer elasticSearchScrollLimit) {
         VitamConfiguration.elasticSearchScrollLimit = elasticSearchScrollLimit;
+    }
+
+
+    public static Map<Integer, List<String>> getEliminationReportExtraFields() {
+        return eliminationReportExtraFields;
+    }
+
+    public static void setEliminationReportExtraFields(
+        Map<Integer, List<String>> eliminationReportExtraFields) {
+        VitamConfiguration.eliminationReportExtraFields = eliminationReportExtraFields;
     }
 
     public static short getDiffVersion() {

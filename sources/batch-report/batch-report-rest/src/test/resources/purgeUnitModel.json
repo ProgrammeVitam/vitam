@@ -10,6 +10,12 @@
       "unitId": "unitId1",
       "detailType": "Unit",
       "id": "unitId1",
+      "extraInfo": {
+        "key1": "unit1_value1",
+        "key2": [
+          "unit1_value2"
+        ]
+      },
       "type": "INGEST"
     },
     {
@@ -20,6 +26,12 @@
       "unitId": "unitId2",
       "detailType": "Unit",
       "id": "unitId2",
+      "extraInfo": {
+        "key1": "unit2_value1",
+        "key2": [
+          "unit2_value2"
+        ]
+      },
       "type": "INGEST"
     },
     {
@@ -30,6 +42,12 @@
       "unitId": "unitId3",
       "detailType": "Unit",
       "id": "unitId3",
+      "extraInfo": {
+        "key1": "unit3_value1",
+        "key2": [
+          "unit3_value2"
+        ]
+      },
       "type": "INGEST"
     },
     {
@@ -40,6 +58,12 @@
       "unitId": "unitId4",
       "detailType": "Unit",
       "id": "unitId4",
+      "extraInfo": {
+        "key1": "unit4_value1",
+        "key2": [
+          "unit4_value2"
+        ]
+      },
       "type": "INGEST"
     }
   ]
