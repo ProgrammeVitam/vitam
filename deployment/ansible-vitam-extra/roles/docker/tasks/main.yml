@@ -1,5 +1,7 @@
 ---
 
+- include_tasks: daemon_update_conf.yml
+
 - include_tasks: RedHat.yml
   when: ansible_os_family == 'RedHat'
 
