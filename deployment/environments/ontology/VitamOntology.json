@@ -3264,6 +3264,78 @@
     ]
   },
   {
+    "Identifier": "DataObjectUse",
+    "ApiField": "DataObjectUse",
+    "SedaField": "DataObjectUse",
+    "Description": "Data Object Use",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "DataObjectUse",
+    "Collections": [
+      "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "DataObjectNumber",
+    "ApiField": "DataObjectNumber",
+    "SedaField": "DataObjectNumber",
+    "Description": "Data Object Number",
+    "Type": "LONG",
+    "Origin": "INTERNAL",
+    "ShortName": "DataObjectNumber",
+    "Collections": [
+      "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "PersistentIdentifierType",
+    "SedaField": "PersistentIdentifierType",
+    "Description": "Persistent Identifier Type",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "PersistentIdentifierType",
+    "Collections": [
+      "Unit",
+      "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "PersistentIdentifierOrigin",
+    "SedaField": "PersistentIdentifierOrigin",
+    "Description": "Persistent Identifier Origin",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "PersistentIdentifierOrigin",
+    "Collections": [
+      "Unit",
+      "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "PersistentIdentifierReference",
+    "SedaField": "PersistentIdentifierReference",
+    "Description": "Persistent Identifier Reference",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "PersistentIdentifierReference",
+    "Collections": [
+      "Unit",
+      "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "PersistentIdentifierContent",
+    "SedaField": "PersistentIdentifierContent",
+    "Description": "Persistent Identifier Content",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "PersistentIdentifierContent",
+    "Collections": [
+      "Unit",
+      "ObjectGroup"
+    ]
+  },
+  {
     "Identifier": "UnitStrategy",
     "ApiField": "UnitStrategy",
     "Description": "Mapping : managementcontract-es-mapping.json. Stratégie de stockage pour les métadonnées de type unité archivistique",

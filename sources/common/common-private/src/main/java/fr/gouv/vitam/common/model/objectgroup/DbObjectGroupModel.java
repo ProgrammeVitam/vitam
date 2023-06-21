@@ -201,6 +201,4 @@ public class DbObjectGroupModel {
     public void setQualifiers(List<DbQualifiersModel> qualifiers) {
         this.qualifiers = qualifiers;
     }
-
-
 }

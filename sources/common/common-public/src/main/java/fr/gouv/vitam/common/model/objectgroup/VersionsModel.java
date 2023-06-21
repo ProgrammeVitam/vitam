@@ -96,6 +96,15 @@ public class VersionsModel {
     @JsonProperty("DataObjectProfile")
     private String dataObjectProfile;
 
+    @JsonProperty("DataObjectUse")
+    private String dataObjectUse;
+
+    @JsonProperty("DataObjectNumber")
+    private Integer dataObjectNumber;
+
+    @JsonProperty("PersistentIdentifier")
+    private List<PersistentIdentifierModel> persistentIdentifier;
+
     @JsonAnyGetter
     public Map<String, Object> getAny() {
         return any;
@@ -235,6 +244,31 @@ public class VersionsModel {
         this.opi = opi;
     }
 
+    public String getDataObjectUse() {
+        return dataObjectUse;
+    }
+
+    public void setDataObjectUse(String dataObjectUse) {
+        this.dataObjectUse = dataObjectUse;
+    }
+
+    public Integer getDataObjectNumber() {
+        return dataObjectNumber;
+    }
+
+    public void setDataObjectNumber(Integer dataObjectNumber) {
+        this.dataObjectNumber = dataObjectNumber;
+    }
+
+    public List<PersistentIdentifierModel> getPersistentIdentifier() {
+        return persistentIdentifier;
+    }
+
+    public void setPersistentIdentifier(
+        List<PersistentIdentifierModel> persistentIdentifier) {
+        this.persistentIdentifier = persistentIdentifier;
+    }
+
     @JsonIgnore
     public int getDataVersion() {
         List<String> split = asList(dataObjectVersion.split("_"));
@@ -260,6 +294,9 @@ public class VersionsModel {
             ", physicalId='" + physicalId + '\'' +
             ", otherMetadata=" + otherMetadata +
             ", opi='" + opi + '\'' +
+            ", dataObjectNumber='" + dataObjectNumber + '\'' +
+            ", dataObjectUse='" + dataObjectUse + '\'' +
+            ", persistentIdentifiers='" + persistentIdentifier != null ? "" : persistentIdentifier.toString() + '\'' +
             ", any=" + any +
             '}';
     }

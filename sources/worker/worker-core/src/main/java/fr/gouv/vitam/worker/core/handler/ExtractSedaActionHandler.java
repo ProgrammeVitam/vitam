@@ -115,8 +115,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainDataObjectException;
-import fr.gouv.vitam.processing.common.exception.MetaDataContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.ExceptionType;
+import fr.gouv.vitam.processing.common.exception.MetaDataContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.MissingFieldException;
 import fr.gouv.vitam.processing.common.exception.ProcessingAttachmentRequiredException;
 import fr.gouv.vitam.processing.common.exception.ProcessingAttachmentUnauthorizedException;
@@ -1030,7 +1030,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         LOGGER.debug("Find legalStatus : " + legalStatus);
                         evDetData.put(SedaConstants.TAG_LEGALSTATUS, legalStatus.asText());
                     }
-
 
                 } else {
                     LOGGER.debug("Put a null ServiceLevel (No Data Object Package)");

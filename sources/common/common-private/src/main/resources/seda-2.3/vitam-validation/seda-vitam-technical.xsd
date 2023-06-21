@@ -160,6 +160,17 @@
                     <xsd:documentation>Version d’un objet-données (par exemple : original papier, conservation, diffusion, vignette, txt, …).</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:group ref="PersistentIdentifierGroup" minOccurs="0"/>
+            <xsd:element name="DataObjectUse" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Usage d’un objet donné (par exemple : original papier, conservation, diffusion, vignette, txt, …).</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="DataObjectNumber" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Version d'un objet donné pour un usage donné</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="DataObjectIdType" use="required">
             <xsd:annotation>

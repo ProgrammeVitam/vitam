@@ -46,6 +46,7 @@
             <xsd:group ref="GpsGroup"/>
             <xsd:group ref="OriginatingSystemIdReplyToGroup"/>
             <xsd:group ref="TextContentGroup"/>
+            <xsd:group ref="PersistentIdentifierGroup"/>
         </xsd:sequence>
     </xsd:group>
 
@@ -833,6 +834,46 @@
         </xsd:sequence>
     </xsd:complexType>
     
+    <!-- Les identifiants pérennes -->
+    <xsd:group name="PersistentIdentifierGroup">
+        <xsd:sequence>
+            <xsd:element name="PersistentIdentifier" type="PersistentIdType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Identifiants pérennes.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+
+    <!-- Persistent identifier Type-->
+    <xsd:complexType name="PersistentIdType">
+        <xsd:annotation>
+            <xsd:documentation>Informations décrivant un identifiant pérenne.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="PersistentIdentifierType" type="NonEmptyTokenType">
+                <xsd:annotation>
+                    <xsd:documentation>Type d'identifiant pérenne.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PersistentIdentifierOrigin" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>origine d'identifiant pérenne.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PersistentIdentifierReference" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Référence d'identifiant pérenne.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PersistentIdentifierContent" type="NonEmptyTokenType">
+                <xsd:annotation>
+                    <xsd:documentation>valeur de l'identifiant pérenne.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <!-- Person or Entity description -->
     <xsd:group name="PersonOrEntityGroup">
         <xsd:sequence>

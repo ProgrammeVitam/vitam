@@ -43,7 +43,6 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ReuseRuleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.StorageRuleType;
-import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitHistoryModel;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitInternalModel;

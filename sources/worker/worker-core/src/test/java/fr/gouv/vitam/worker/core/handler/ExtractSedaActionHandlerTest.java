@@ -239,9 +239,10 @@ public class ExtractSedaActionHandlerTest {
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
-        handler = new ExtractSedaActionHandler(metadataClientFactory, adminManagementClientFactory, logbookLifeCyclesClientFactory);
+        handler = new ExtractSedaActionHandler(metadataClientFactory, adminManagementClientFactory,
+            logbookLifeCyclesClientFactory);
 
-        Map<String,Long> filesWithParamsFromWorkspace =  (Map<String,Long>) mock(Map.class);
+        Map<String, Long> filesWithParamsFromWorkspace = (Map<String, Long>) mock(Map.class);
         when(filesWithParamsFromWorkspace.get(anyString())).thenReturn(0L);
         when(ingestSession.getFileWithParmsFromFolder()).thenReturn(filesWithParamsFromWorkspace);
 
@@ -293,7 +294,7 @@ public class ExtractSedaActionHandlerTest {
             .thenReturn(Response.status(Status.OK).entity(storageInfo).build());
         final InputStream ingestContract = PropertiesUtils.getResourceAsStream(CONTRACTS_JSON);
         when(workspaceClient.getObject(any(), eq("referential/contracts.json")))
-                .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
+            .thenReturn(Response.status(Status.OK).entity(ingestContract).build());
         final InputStream sedaParams = PropertiesUtils.getResourceAsStream(SEDA_PARAMS);
         when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_FIELD))).thenReturn(true);
         when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_FIELD)))
@@ -621,7 +622,8 @@ public class ExtractSedaActionHandlerTest {
         assertNotNull(ingestSession);
         assertThat(ingestSession.getArchiveUnitTree().get("ID027")).isEqualTo(JsonHandler.createObjectNode());
         assertThat(ingestSession.getArchiveUnitTree().get("ID028")).isEqualTo(createObjectNodeWithUpValue("ID027"));
-        assertThat(ingestSession.getArchiveUnitTree().get("ID029")).isEqualTo(createObjectNodeWithUpValue("ID028", "ID030"));
+        assertThat(ingestSession.getArchiveUnitTree().get("ID029")).isEqualTo(
+            createObjectNodeWithUpValue("ID028", "ID030"));
         assertThat(ingestSession.getArchiveUnitTree().get("ID030")).isEqualTo(createObjectNodeWithUpValue("ID027"));
         assertThat(ingestSession.getArchiveUnitTree().get("ID031")).isEqualTo(createObjectNodeWithUpValue("ID027"));
     }

@@ -3520,5 +3520,35 @@
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
+  },
+  {
+    "path": "PersistentIdentifier",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "PersistentIdentifier.PersistentIdentifierType",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "PersistentIdentifier.PersistentIdentifierOrigin",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "PersistentIdentifier.PersistentIdentifierReference",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "PersistentIdentifier.PersistentIdentifierContent",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
   }
 ]
