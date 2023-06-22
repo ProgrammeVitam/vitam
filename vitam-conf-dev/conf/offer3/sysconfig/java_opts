@@ -24,6 +24,6 @@
 # The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
 # accept its terms.
 #*******************************************************************************
-JAVA_OPTS="-Xloggc:/vitam/log/offer3/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime -Xms32m -Xmx256m  -Dorg.owasp.esapi.resources=/vitam/conf/offer3 -Dlogback.configurationFile=/vitam/conf/offer3/logback.xml -Dvitam.config.folder=/vitam/conf/offer3 -Dvitam.data.folder=/vitam/data/offer3 -Dvitam.tmp.folder=/vitam/tmp/offer3 -Dvitam.log.folder=/vitam/log/offer3 -Djava.security.properties=/vitam/conf/offer3/java.security"
+JAVA_OPTS="-Xloggc:/vitam/log/offer3/gc.log -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=10M -XX:+PrintGCDetails -XX:+PrintGCApplicationStoppedTime -Xms32m -Xmx256m  -Dorg.owasp.esapi.resources=/vitam/conf/offer3 -Dlogback.configurationFile=/vitam/conf/offer3/logback.xml -Dvitam.config.folder=/vitam/conf/offer3 -Dvitam.data.folder=/vitam/data/offer3 -Dvitam.tmp.folder=/vitam/tmp/offer3 -Dvitam.log.folder=/vitam/log/offer3 -Djava.security.properties=/vitam/conf/offer3/java.security -XX:+ExitOnOutOfMemoryError"
 JAVA_ARGS="/vitam/conf/offer3/offer.conf"
 
