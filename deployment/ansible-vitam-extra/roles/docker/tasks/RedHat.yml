@@ -1,13 +1,26 @@
 ---
 
-- name: installer le package docker
+- name: Add Docker Repository
+  become: yes
+  yum_repository:
+    name: docker-ce-stable
+    description: Docker CE Stable - $basearch
+    baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+    gpgkey: https://download.docker.com/linux/centos/gpg
+    state: present
+    gpgcheck: yes
+    enabled: yes
+
+
+- name: Install docker packages
   package:
-    name: ['docker','docker-python']
+    name: ['docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-buildx-plugin', 'docker-compose-plugin', 'docker-python']
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
+
 
   # KWA : check if still useful with newer docker versions
 - name: Make sure net.ipv4.ip_forward is enabled (allow port-forwarding into docker containers)
@@ -15,3 +28,4 @@
     name: net.ipv4.ip_forward
     sysctl_set: yes
     value: '1'
+

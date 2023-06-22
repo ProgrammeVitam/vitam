@@ -1,0 +1,25 @@
+---
+
+- block:
+
+    - name: Create docker config folder
+      file:
+        path: "/etc/docker/"
+        state: directory
+        owner: root
+        group: root
+        mode: 0644
+
+    - name: Setup docker daemon configuration
+      template:
+        src: "daemon.json"
+        dest: "/etc/docker/daemon.json"
+        owner: root
+        group: root
+        mode: 0644
+        backup: true
+
+  when:
+  - docker_opts.docker_bip is defined
+  - docker_opts.docker_address_pools_cidr is defined
+  - docker_opts.docker_address_pools_size is defined
