@@ -39,6 +39,10 @@
     state: present
   loop:
     - "deb [arch=amd64] https://download.docker.com/linux/debian  {{ ansible_distribution_release }} stable"
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
 
 - name: run apt-update
   apt:
@@ -72,11 +76,3 @@
     state: latest
   when: http_proxy_environnement is not defined or http_proxy_environnement == ""
 
-- name: install python-backports.ssl-match-hostname
-  apt:
-    name: "python-backports.ssl-match-hostname"
-    state: latest
-  register: result
-  retries: "{{ packages_install_retries_number }}"
-  until: result is succeeded
-  delay: "{{ packages_install_retries_delay }}"

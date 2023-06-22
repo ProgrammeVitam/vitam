@@ -40,7 +40,7 @@ pushd ${WORKING_FOLDER}/sources/
 echo "Repertoire courant: $(pwd)"
 echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
 if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
-	curl -L -k --max-time 1200 ${PACKAGE_URL} --out ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
+	curl -L -k --max-time 1200 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
 	if [ ${?} != 0 ]; then
 		echo "Erreur sur le telechargement du fichier tar gz de ${PACKAGE_NAME}: ${PACKAGE_URL}"
 		exit 1
@@ -90,7 +90,7 @@ pushd ${WORKING_FOLDER}/sources/
 echo "Repertoire courant: $(pwd)"
 echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
 if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
-	curl -L -k --max-time 1200 ${PACKAGE_URL} --out ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
+	curl -L -k --max-time 1200 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
 	if [ ${?} != 0 ]; then
 		echo "Erreur sur le telechargement du fichier tar gz de ${PACKAGE_NAME}: ${PACKAGE_URL}"
 		exit 1
@@ -137,7 +137,7 @@ pushd ${WORKING_FOLDER}/sources/
 echo "Repertoire courant: $(pwd)"
 echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
 if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
-	curl -L -k --max-time 120 ${PACKAGE_URL} --out ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
+	curl -L -k --max-time 120 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
 	if [ ${?} != 0 ]; then
 		echo "Erreur sur le telechargement du fichier tar gz de ${PACKAGE_NAME}: ${PACKAGE_URL}"
 		exit 1
@@ -182,7 +182,7 @@ pushd ${WORKING_FOLDER}/sources/
 echo "Repertoire courant: $(pwd)"
 echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
 if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
-	curl -L -k --max-time 1200 ${PACKAGE_URL} --out ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
+	curl -L -k --max-time 1200 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
 	if [ ${?} != 0 ]; then
 		echo "Erreur sur le telechargement du fichier tar gz de ${PACKAGE_NAME}: ${PACKAGE_URL}"
 		exit 1
