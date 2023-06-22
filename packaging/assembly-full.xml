@@ -1,36 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
-    <id>PROD-signed</id>
+    <id>FULL</id>
     <formats>
         <format>tar.gz</format>
     </formats>
     <includeBaseDirectory>false</includeBaseDirectory>
     <fileSets>
-        <!-- TODO : add the public key ONLY for signed rpm -->
+        <!-- Add the public GPG key -->
         <fileSet>
             <directory>.</directory>
-            <outputDirectory>rpm_signed/</outputDirectory>
+            <outputDirectory>rpm/</outputDirectory>
             <includes>
-                <include>RPM-GPG-KEY-vitam</include>
+                <include>GPG-KEY-vitam</include>
             </includes>
         </fileSet>
         <!-- Add all vitam-external rpm -->
         <fileSet>
-            <directory>rpm_signed/vitam-product/</directory>
-            <outputDirectory>rpm_signed/vitam-product</outputDirectory>
-            <excludes>
-                <exclude>**/*ihm-recette-*.rpm</exclude>
-                <exclude>**/*elastic-kibana-interceptor*.rpm</exclude>
-            </excludes>
+            <directory>../rpm/vitam-external/target</directory>
+            <outputDirectory>rpm/vitam-external</outputDirectory>
         </fileSet>
+        <!-- Add "native" vitam-product rpm -->
         <fileSet>
-            <directory>rpm_signed/vitam-external/</directory>
-            <outputDirectory>rpm_signed/vitam-external</outputDirectory>
-            <excludes>
-                <exclude>**/vitam-gatling-*.rpm</exclude>
-                <exclude>**/metricbeat-*.rpm</exclude>
-                <exclude>**/packetbeat-*.rpm</exclude>
-            </excludes>
+            <directory>../rpm/vitam-product/target</directory>
+            <outputDirectory>rpm/vitam-product</outputDirectory>
+        </fileSet>
+        <!-- Add the public GPG key -->
+        <fileSet>
+            <directory>.</directory>
+            <outputDirectory>deb/</outputDirectory>
+            <includes>
+                <include>GPG-KEY-vitam</include>
+            </includes>
+        </fileSet>
+        <!-- Add all vitam-external deb -->
+        <fileSet>
+            <directory>../deb/vitam-external/target</directory>
+            <outputDirectory>deb/vitam-external</outputDirectory>
+        </fileSet>
+        <!-- Add "native" vitam-product deb -->
+        <fileSet>
+            <directory>../deb/vitam-product/target</directory>
+            <outputDirectory>deb/vitam-product</outputDirectory>
         </fileSet>
         <!-- Add sources -->
         <fileSet>
@@ -71,24 +81,8 @@
             <outputDirectory>deployment</outputDirectory>
             <excludes>
                 <exclude>**/*.retry</exclude>
-                <exclude>demo_backup_vitam.sh</exclude>
-                <exclude>environments/antivirus/scan-dev.sh</exclude>
-                <exclude>ansible-vitam-extra</exclude>
-                <exclude>vault_pass.txt</exclude>
-                <exclude>environments/hosts.local</exclude>
-                <exclude>environments/hosts.fulllocal</exclude>
-                <exclude>environments/hosts.cots</exclude>
-                <exclude>environments/group_vars/all/vault-extra.example</exclude>
-                <exclude>environments/group_vars/all/vault-keystores.yml</exclude>
-                <exclude>environments/group_vars/all/vault-vitam.yml</exclude>
-                <exclude>environments/group_vars/all/offers_opts.yml</exclude>
-                <exclude>environments/group_vars/all/tenants_vars.yml</exclude>
-                <exclude>environments/certs/vault-certs.yml</exclude>
-                <exclude>environments/certs/vault-ca.yml</exclude>
-                <exclude>vitam-conf-dev</exclude>
                 <exclude>deployment/pki/ca/*</exclude>
                 <exclude>deployment/pki/config/*</exclude>
-                <exclude>deployment/pki/scripts/*.sh</exclude>
                 <exclude>**/*.crt</exclude>
                 <exclude>**/*.key</exclude>
                 <exclude>**/*.p12</exclude>
