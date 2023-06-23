@@ -8,14 +8,6 @@
 - include_tasks: Debian.yml
   when: ansible_os_family == 'Debian'
 
-# OMA : add for unity
-# KWA : check if really useful (potential security problem)
-- name: create docker group
-  group:
-    name: docker
-    gid: 1005
-    state: present
-
 # Cf. https://docs.docker.com/engine/admin/systemd/
 - name: Ensure systemd docker service drop-in folder is there
   file:
