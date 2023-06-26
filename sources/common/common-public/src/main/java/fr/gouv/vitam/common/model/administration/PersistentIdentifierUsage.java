@@ -26,58 +26,41 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
+public class PersistentIdentifierUsage {
 
-/**
- * Data Transfer Object Model of management contract (DTO).
- */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ManagementContractModel extends AbstractContractModel {
+    @JsonProperty("UsageName")
+    private DataObjectVersionType usageName;
 
-    /**
-     * number of objects containing all archives for a specific originating agency
-     */
-    @JsonProperty("Storage")
-    private StorageDetailModel storage;
+    @JsonProperty("InitialVersion")
+    private boolean initialVersion;
 
+    @JsonProperty("IntermediaryVersion")
+    private VersionUsageModel.IntermediaryVersionEnum intermediaryVersion;
 
-    @JsonProperty("VersionRetentionPolicy")
-    private VersionRetentionPolicyModel versionRetentionPolicy;
-
-    @JsonProperty("PersistentIdentifierPolicy")
-    private List<PersistentIdentifierPolicy> persistentIdentifierPolicyList;
-
-    public ManagementContractModel() {
-        super();
+    public DataObjectVersionType getUsageName() {
+        return usageName;
     }
 
-    public StorageDetailModel getStorage() {
-        return storage;
+    public void setUsageName(DataObjectVersionType usageName) {
+        this.usageName = usageName;
     }
 
-    public ManagementContractModel setStorage(StorageDetailModel storage) {
-        this.storage = storage;
-        return this;
+    public boolean isInitialVersion() {
+        return initialVersion;
     }
 
-    public VersionRetentionPolicyModel getVersionRetentionPolicy() {
-        return versionRetentionPolicy;
+    public void setInitialVersion(boolean initialVersion) {
+        this.initialVersion = initialVersion;
     }
 
-    public ManagementContractModel setVersionRetentionPolicy(VersionRetentionPolicyModel versionRetentionPolicy) {
-        this.versionRetentionPolicy = versionRetentionPolicy;
-        return this;
+    public VersionUsageModel.IntermediaryVersionEnum getIntermediaryVersion() {
+        return intermediaryVersion;
     }
 
-    public List<PersistentIdentifierPolicy> getPersistentIdentifierPolicyList() {
-        return persistentIdentifierPolicyList;
-    }
-
-    public void setPersistentIdentifierPolicyList(
-        List<PersistentIdentifierPolicy> persistentIdentifierPolicyList) {
-        this.persistentIdentifierPolicyList = persistentIdentifierPolicyList;
+    public void setIntermediaryVersion(
+        VersionUsageModel.IntermediaryVersionEnum intermediaryVersion) {
+        this.intermediaryVersion = intermediaryVersion;
     }
 }

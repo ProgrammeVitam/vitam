@@ -1,0 +1,34 @@
+[
+  {
+    "Name": "Contrat de gestion avec PersistentIdentifierPolicy",
+    "Identifier": "MCDefaultPersistentIdentifierPolicy",
+    "Description": "Contrat de gestion valide déclarant PersistentIdentifierPolicy",
+    "Status": "ACTIVE",
+    "LastUpdate": "10/12/2016",
+    "CreationDate": "10/12/2016",
+    "ActivationDate": "10/12/2016",
+    "DeactivationDate": "10/12/2016",
+    "Storage": {
+      "ObjectStrategy": "default"
+    },
+    "PersistentIdentifierPolicy": [
+      {
+        "PersistentIdentifierPolicyType": "ARK",
+        "PersistentIdentifierUnit": true,
+        "PersistentIdentifierAuthority": 12354,
+        "PersistentIdentifierUsages": [
+          {
+            "UsageName": "BinaryMaster",
+            "InitialVersion": true,
+            "IntermediaryVersion": "LAST"
+          },
+          {
+            "UsageName": "Dissemination",
+            "InitialVersion": false,
+            "IntermediaryVersion": "ALL"
+          }
+        ]
+      }
+    ]
+  }
+]

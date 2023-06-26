@@ -130,5 +130,53 @@
     "type": "keyword",
     "cardinality": "one",
     "indexed": true
+  },
+  {
+    "path": "PersistentIdentifierPolicy",
+    "type": "object",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "PersistentIdentifierPolicy.PersistentIdentifierPolicyType",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "PersistentIdentifierPolicy.PersistentIdentifierAuthority",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "PersistentIdentifierPolicy.PersistentIdentifierUnit",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "PersistentIdentifierPolicy.PersistentIdentifierUsages",
+    "type": "object",
+    "cardinality": "many",
+    "indexed": true
+  },
+  {
+    "path": "PersistentIdentifierPolicy.PersistentIdentifierUsages.IntermediaryVersion",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "PersistentIdentifierPolicy.PersistentIdentifierUsages.InitialVersion",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "PersistentIdentifierPolicy.PersistentIdentifierUsages.UsageName",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
   }
 ]

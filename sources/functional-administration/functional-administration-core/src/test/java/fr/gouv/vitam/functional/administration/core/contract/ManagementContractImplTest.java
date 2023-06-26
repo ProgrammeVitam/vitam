@@ -49,6 +49,8 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.ManagementContractModel;
+import fr.gouv.vitam.common.model.administration.PersistentIdentifierPolicyTypeEnum;
+import fr.gouv.vitam.common.model.administration.PersistentIdentifierUsage;
 import fr.gouv.vitam.common.model.administration.VersionUsageModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -1883,6 +1885,55 @@ public class ManagementContractImplTest {
         assertThat(allLogbookOperationParameters.get(1).getStatus()).isEqualTo(StatusCode.OK);
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.eventType))
             .isEqualTo("STP_UPDATE_MANAGEMENT_CONTRACT");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void when_create_contracts_should_insert_correct_persistent_identifier_policy()
+        throws VitamException, FileNotFoundException {
+        // Given
+        final File fileContracts = PropertiesUtils.getResourceFile("contracts_management_ark_ok.json");
+        final List<ManagementContractModel> contractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
+            new TypeReference<>() {
+            });
+
+        when(vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT), eq(TENANT_ID))).thenReturn(true);
+        when(mongoAccess.insertDocuments(any(ArrayNode.class), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
+            .thenReturn(new DbRequestResult());
+        when(mongoAccess.findDocuments(any(), eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT)))
+            .thenReturn(new DbRequestResult());
+        when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategies());
+
+        // When
+        RequestResponse<ManagementContractModel> response = managementContractService
+            .createContracts(contractModelList);
+
+        // Then
+        assertThat(response.isOk()).isTrue();
+        verify(mongoAccess, times(1)).insertDocuments(contractsToPersistCaptor.capture(),
+            eq(FunctionalAdminCollections.MANAGEMENT_CONTRACT));
+        ArrayNode contratsToPersistCalled = contractsToPersistCaptor.getValue();
+        assertThat(contratsToPersistCalled).isNotNull();
+        assertThat(contratsToPersistCalled.size()).isEqualTo(1);
+        assertThat(contratsToPersistCalled.get(0)).isNotNull();
+        assertThat(contratsToPersistCalled.get(0).get("Identifier").asText()).isEqualTo(
+            "MCDefaultPersistentIdentifierPolicy");
+        assertThat(contratsToPersistCalled.get(0).get("PersistentIdentifierPolicy")).isNotNull();
+        assertTrue(
+            contratsToPersistCalled.get(0).get("PersistentIdentifierPolicy").get(0).get("PersistentIdentifierUnit")
+                .asBoolean());
+        assertThat(contratsToPersistCalled.get(0).get("PersistentIdentifierPolicy").get(0)
+            .get("PersistentIdentifierPolicyType").asText())
+            .isEqualTo(PersistentIdentifierPolicyTypeEnum.ARK.toString());
+        assertNotNull(
+            contratsToPersistCalled.get(0).get("PersistentIdentifierPolicy").get(0).get("PersistentIdentifierUsages"));
+
+        List<PersistentIdentifierUsage> usages = JsonHandler.getFromJsonNode(
+            contratsToPersistCalled.get(0).get("PersistentIdentifierPolicy").get(0).get("PersistentIdentifierUsages"),
+            new TypeReference<>() {
+            });
+        assertThat(usages.size()).isEqualTo(2);
     }
 
     private RequestResponseOK<StorageStrategy> loadStorageStrategies()

@@ -1,79 +1,105 @@
 {
-    "properties": {
-      "Identifier": {
-        "type": "keyword"
-      },
-      "Name": {
-        "type": "text",
-        "fielddata": true
-      },
-      "Description": {
-        "type": "text"
-      },
-      "Status": {
-        "type": "keyword"
-      },
-      "CreationDate": {
-        "type": "date",
-        "format": "strict_date_optional_time"
-      },
-      "LastUpdate": {
-        "type": "date",
-        "format": "strict_date_optional_time"
-      },
-      "ActivationDate": {
-        "type": "date",
-        "format": "strict_date_optional_time"
-      },
-      "DeactivationDate": {
-        "type": "date",
-        "format": "strict_date_optional_time"
-      },
-      "Storage": {
-        "type": "object",
-        "properties": {
-          "UnitStrategy": {
-            "type": "keyword"
-          },
-          "ObjectGroupStrategy": {
-            "type": "keyword"
-          },
-          "ObjectStrategy": {
-            "type": "keyword"
-          }
+  "properties": {
+    "Identifier": {
+      "type": "keyword"
+    },
+    "Name": {
+      "type": "text",
+      "fielddata": true
+    },
+    "Description": {
+      "type": "text"
+    },
+    "Status": {
+      "type": "keyword"
+    },
+    "CreationDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "LastUpdate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "ActivationDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "DeactivationDate": {
+      "type": "date",
+      "format": "strict_date_optional_time"
+    },
+    "Storage": {
+      "type": "object",
+      "properties": {
+        "UnitStrategy": {
+          "type": "keyword"
+        },
+        "ObjectGroupStrategy": {
+          "type": "keyword"
+        },
+        "ObjectStrategy": {
+          "type": "keyword"
         }
-      },
-      "VersionRetentionPolicy": {
-        "type": "object",
-        "properties": {
-          "InitialVersion": {
-            "type": "boolean"
-          },
-          "IntermediaryVersion": {
-            "type": "keyword"
-          },
-          "Usages": {
-            "type": "object",
-            "properties": {
-              "UsageName": {
-                "type" : "keyword"
-              },
-              "InitialVersion": {
-                "type": "boolean"
-              },
-              "IntermediaryVersion": {
-                "type": "keyword"
-              }
+      }
+    },
+    "PersistentIdentifierPolicy": {
+      "properties": {
+        "PersistentIdentifierAuthority": {
+          "type": "keyword"
+        },
+        "PersistentIdentifierPolicyType": {
+          "type": "keyword"
+        },
+        "PersistentIdentifierUnit": {
+          "type": "boolean"
+        },
+        "PersistentIdentifierUsages": {
+          "properties": {
+            "InitialVersion": {
+              "type": "boolean"
+            },
+            "IntermediaryVersion": {
+              "type": "keyword"
+            },
+            "UsageName": {
+              "type": "keyword"
             }
           }
         }
-      },
-      "_tenant": {
-        "type": "long"
-      },
-      "_v": {
-        "type": "long"
       }
+    },
+    "VersionRetentionPolicy": {
+      "type": "object",
+      "properties": {
+        "InitialVersion": {
+          "type": "boolean"
+        },
+        "IntermediaryVersion": {
+          "type": "keyword"
+        },
+        "Usages": {
+          "type": "object",
+          "properties": {
+            "UsageName": {
+              "type": "keyword"
+            },
+            "InitialVersion": {
+              "type": "boolean"
+            },
+            "IntermediaryVersion": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+    },
+    "_tenant": {
+      "type": "long"
+    },
+    "_v": {
+      "type": "long"
     }
   }
+}
   

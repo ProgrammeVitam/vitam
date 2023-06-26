@@ -124,6 +124,68 @@
           }
         }
       }
+    },
+    "PersistentIdentifierPolicy": {
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "properties": {
+          "PersistentIdentifierPolicyType": {
+            "type": "string",
+            "enum": [
+              "ARK"
+            ]
+          },
+          "PersistentIdentifierUnit": {
+            "type": "boolean"
+          },
+          "PersistentIdentifierAuthority": {
+            "type": "integer"
+          },
+          "PersistentIdentifierUsages": {
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "properties": {
+                "UsageName": {
+                  "type": "string",
+                  "enum": [
+                    "BinaryMaster",
+                    "Dissemination",
+                    "Thumbnail",
+                    "TextContent",
+                    "PhysicalMaster"
+                  ]
+                },
+                "InitialVersion": {
+                  "type": "boolean"
+                },
+                "IntermediaryVersion": {
+                  "type": "string",
+                  "enum": [
+                    "ALL",
+                    "LAST",
+                    "NONE"
+                  ]
+                }
+              },
+              "required": [
+                "UsageName",
+                "InitialVersion",
+                "IntermediaryVersion"
+              ]
+            }
+          }
+        },
+        "required": [
+          "PersistentIdentifierPolicyType",
+          "PersistentIdentifierUnit",
+          "PersistentIdentifierAuthority",
+          "PersistentIdentifierUsages"
+        ]
+      }
     }
   },
   "required": [

@@ -26,58 +26,6 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.List;
-
-/**
- * Data Transfer Object Model of management contract (DTO).
- */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ManagementContractModel extends AbstractContractModel {
-
-    /**
-     * number of objects containing all archives for a specific originating agency
-     */
-    @JsonProperty("Storage")
-    private StorageDetailModel storage;
-
-
-    @JsonProperty("VersionRetentionPolicy")
-    private VersionRetentionPolicyModel versionRetentionPolicy;
-
-    @JsonProperty("PersistentIdentifierPolicy")
-    private List<PersistentIdentifierPolicy> persistentIdentifierPolicyList;
-
-    public ManagementContractModel() {
-        super();
-    }
-
-    public StorageDetailModel getStorage() {
-        return storage;
-    }
-
-    public ManagementContractModel setStorage(StorageDetailModel storage) {
-        this.storage = storage;
-        return this;
-    }
-
-    public VersionRetentionPolicyModel getVersionRetentionPolicy() {
-        return versionRetentionPolicy;
-    }
-
-    public ManagementContractModel setVersionRetentionPolicy(VersionRetentionPolicyModel versionRetentionPolicy) {
-        this.versionRetentionPolicy = versionRetentionPolicy;
-        return this;
-    }
-
-    public List<PersistentIdentifierPolicy> getPersistentIdentifierPolicyList() {
-        return persistentIdentifierPolicyList;
-    }
-
-    public void setPersistentIdentifierPolicyList(
-        List<PersistentIdentifierPolicy> persistentIdentifierPolicyList) {
-        this.persistentIdentifierPolicyList = persistentIdentifierPolicyList;
-    }
+public enum PersistentIdentifierPolicyTypeEnum {
+    ARK
 }

@@ -26,58 +26,54 @@
  */
 package fr.gouv.vitam.common.model.administration;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-/**
- * Data Transfer Object Model of management contract (DTO).
- */
-@JsonInclude(JsonInclude.Include.NON_EMPTY)
-public class ManagementContractModel extends AbstractContractModel {
+public class PersistentIdentifierPolicy {
+    @JsonProperty("PersistentIdentifierPolicyType")
+    private PersistentIdentifierPolicyTypeEnum persistentIdentifierPolicyType;
 
-    /**
-     * number of objects containing all archives for a specific originating agency
-     */
-    @JsonProperty("Storage")
-    private StorageDetailModel storage;
+    @JsonProperty("PersistentIdentifierUnit")
+    private boolean persistentIdentifierUnit;
 
+    @JsonProperty("PersistentIdentifierAuthority")
+    private int persistentIdentifierAuthority;
 
-    @JsonProperty("VersionRetentionPolicy")
-    private VersionRetentionPolicyModel versionRetentionPolicy;
+    @JsonProperty("PersistentIdentifierUsages")
+    private List<PersistentIdentifierUsage> persistentIdentifierUsages;
 
-    @JsonProperty("PersistentIdentifierPolicy")
-    private List<PersistentIdentifierPolicy> persistentIdentifierPolicyList;
-
-    public ManagementContractModel() {
-        super();
+    public PersistentIdentifierPolicyTypeEnum getPersistentIdentifierPolicyType() {
+        return persistentIdentifierPolicyType;
     }
 
-    public StorageDetailModel getStorage() {
-        return storage;
+    public void setPersistentIdentifierPolicyType(
+        PersistentIdentifierPolicyTypeEnum persistentIdentifierPolicyType) {
+        this.persistentIdentifierPolicyType = persistentIdentifierPolicyType;
     }
 
-    public ManagementContractModel setStorage(StorageDetailModel storage) {
-        this.storage = storage;
-        return this;
+    public boolean isPersistentIdentifierUnit() {
+        return persistentIdentifierUnit;
     }
 
-    public VersionRetentionPolicyModel getVersionRetentionPolicy() {
-        return versionRetentionPolicy;
+    public void setPersistentIdentifierUnit(boolean persistentIdentifierUnit) {
+        this.persistentIdentifierUnit = persistentIdentifierUnit;
     }
 
-    public ManagementContractModel setVersionRetentionPolicy(VersionRetentionPolicyModel versionRetentionPolicy) {
-        this.versionRetentionPolicy = versionRetentionPolicy;
-        return this;
+    public int getPersistentIdentifierAuthority() {
+        return persistentIdentifierAuthority;
     }
 
-    public List<PersistentIdentifierPolicy> getPersistentIdentifierPolicyList() {
-        return persistentIdentifierPolicyList;
+    public void setPersistentIdentifierAuthority(int persistentIdentifierAuthority) {
+        this.persistentIdentifierAuthority = persistentIdentifierAuthority;
     }
 
-    public void setPersistentIdentifierPolicyList(
-        List<PersistentIdentifierPolicy> persistentIdentifierPolicyList) {
-        this.persistentIdentifierPolicyList = persistentIdentifierPolicyList;
+    public List<PersistentIdentifierUsage> getPersistentIdentifierUsages() {
+        return persistentIdentifierUsages;
+    }
+
+    public void setPersistentIdentifierUsages(
+        List<PersistentIdentifierUsage> persistentIdentifierUsages) {
+        this.persistentIdentifierUsages = persistentIdentifierUsages;
     }
 }
