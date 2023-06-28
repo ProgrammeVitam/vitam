@@ -22,7 +22,7 @@ var unitsToScan = db.Unit.find(
 
 unitsToScan.forEach(function (document) {
     // StorageRule
-    if (document._computedInheritedRules.StorageRule.EndDates) {
+    if (document._computedInheritedRules.StorageRule && document._computedInheritedRules.StorageRule.EndDates) {
         var enDatesKeys = Object.keys(document._computedInheritedRules.StorageRule.EndDates);
         document._computedInheritedRules.StorageRule.Rules = [];
         for (var i = 0; i < enDatesKeys.length; i++) {
@@ -33,7 +33,7 @@ unitsToScan.forEach(function (document) {
         }
     }
     // ApraisalRule
-    if (document._computedInheritedRules.AppraisalRule.EndDates) {
+    if (document._computedInheritedRules.AppraisalRule && document._computedInheritedRules.AppraisalRule.EndDates) {
         var enDatesKeys = Object.keys(document._computedInheritedRules.AppraisalRule.EndDates);
         document._computedInheritedRules.AppraisalRule.Rules = [];
         for (var i = 0; i < enDatesKeys.length; i++) {
@@ -44,7 +44,7 @@ unitsToScan.forEach(function (document) {
         }
     }
     // DisseminationRule
-    if (document._computedInheritedRules.DisseminationRule.EndDates) {
+    if (document._computedInheritedRules.DisseminationRule && document._computedInheritedRules.DisseminationRule.EndDates) {
         var enDatesKeys = Object.keys(document._computedInheritedRules.DisseminationRule.EndDates);
         document._computedInheritedRules.DisseminationRule.Rules = [];
         for (var i = 0; i < enDatesKeys.length; i++) {
@@ -55,7 +55,7 @@ unitsToScan.forEach(function (document) {
         }
     }
     // AccessRule
-    if (document._computedInheritedRules.AccessRule.EndDates) {
+    if (document._computedInheritedRules.AccessRule && document._computedInheritedRules.AccessRule.EndDates) {
         var enDatesKeys = Object.keys(document._computedInheritedRules.AccessRule.EndDates);
         document._computedInheritedRules.AccessRule.Rules = [];
         for (var i = 0; i < enDatesKeys.length; i++) {
@@ -66,7 +66,7 @@ unitsToScan.forEach(function (document) {
         }
     }
     // ReuseRule
-    if (document._computedInheritedRules.ReuseRule.EndDates) {
+    if (document._computedInheritedRules.ReuseRule && document._computedInheritedRules.ReuseRule.EndDates) {
         var enDatesKeys = Object.keys(document._computedInheritedRules.ReuseRule.EndDates);
         document._computedInheritedRules.ReuseRule.Rules = [];
         for (var i = 0; i < enDatesKeys.length; i++) {
@@ -77,7 +77,7 @@ unitsToScan.forEach(function (document) {
         }
     }
     // ClassificationRule
-    if (document._computedInheritedRules.ClassificationRule.EndDates) {
+    if (document._computedInheritedRules.ClassificationRule && document._computedInheritedRules.ClassificationRule.EndDates) {
         var enDatesKeys = Object.keys(document._computedInheritedRules.ClassificationRule.EndDates);
         document._computedInheritedRules.ClassificationRule.Rules = [];
         for (var i = 0; i < enDatesKeys.length; i++) {
@@ -88,7 +88,7 @@ unitsToScan.forEach(function (document) {
         }
     }
     // HoldRule
-    if (document._computedInheritedRules.HoldRule.EndDates) {
+    if (document._computedInheritedRules.HoldRule && document._computedInheritedRules.HoldRule.EndDates) {
         var enDatesKeys = Object.keys(document._computedInheritedRules.HoldRule.EndDates);
         document._computedInheritedRules.HoldRule.Rules = [];
         for (var i = 0; i < enDatesKeys.length; i++) {
