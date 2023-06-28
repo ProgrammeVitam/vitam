@@ -1,3 +1,26 @@
 db = db.getSiblingDB('metadata')
 
-db.Unit.updateMany({"_us_sp": { "$exists": true } }, {"$unset": { "_us_sp": ""} });
+var ops = [];
+var counter = 0
+db.Unit.find({"_us_sp": { "$exists": true } }).forEach(function(doc) {
+    ops.push({
+        "updateOne": {
+            "filter": { "_id": doc._id },
+            "update": {
+                "$unset": { "_us_sp": "" }
+            }
+        }
+    });
+    if (ops.length === 5000 ) {
+        db.Unit.bulkWrite(ops, { ordered : false });
+        ops = [];
+        counter+=ops.length
+        print("Documents -> " + counter)
+    }
+})
+
+if (ops.length > 0){
+    db.Unit.bulkWrite(ops, { ordered : false });
+    counter+=ops.length
+    print("Documents -> " + counter)
+}
