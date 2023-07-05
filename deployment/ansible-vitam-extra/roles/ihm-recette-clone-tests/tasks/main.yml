@@ -139,7 +139,7 @@
     chdir: /vitam/data/ihm-recette/test-data/system/
 
 - name: Checkout
-  shell: "git checkout {{ vitam_tests_branch }}"
+  shell: "git checkout -f {{ vitam_tests_branch }}"
   become_user: "{{ vitam_defaults.users.vitam }}"
   args:
     chdir: /vitam/data/ihm-recette/test-data/system/
