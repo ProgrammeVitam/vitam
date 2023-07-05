@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.security.rest;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * REST endpoint information
@@ -112,4 +113,21 @@ public class EndpointInfo {
             ", description='" + description + '\'' +
             '}';
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EndpointInfo)) return false;
+        EndpointInfo that = (EndpointInfo) o;
+        return Objects.equals(permission, that.permission) && Objects.equals(verb, that.verb) && Objects.equals(endpoint, that.endpoint) && Arrays.equals(consumedMediaTypes, that.consumedMediaTypes) && Arrays.equals(producedMediaTypes, that.producedMediaTypes) && Objects.equals(description, that.description);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(permission, verb, endpoint, description);
+        result = 31 * result + Arrays.hashCode(consumedMediaTypes);
+        result = 31 * result + Arrays.hashCode(producedMediaTypes);
+        return result;
+    }
+
 }
