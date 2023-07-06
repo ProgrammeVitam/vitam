@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.configuration.EliminationReportConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -53,20 +54,12 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 public final class EliminationUtils {
 
     private static final String REQUEST_JSON = "request.json";
     private static final String INVALID_REQUEST = "Invalid request";
     private static final String COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE = "Could not load request from workspace";
-
-    public static final Set<String> WHITELISTED_FIELDS =
-        Set.of(VitamFieldsHelper.id(), VitamFieldsHelper.version(), VitamFieldsHelper.unitups(),
-            VitamFieldsHelper.originatingAgency(), VitamFieldsHelper.approximateCreationDate(),
-            VitamFieldsHelper.approximateUpdateDate(), "FilePlanPosition", "SystemId", "OriginatingSystemId",
-            "ArchivalAgencyArchiveUnitIdentifier", "OriginatingAgencyArchiveUnitIdentifier",
-            "TransferringAgencyArchiveUnitIdentifier");
 
     private EliminationUtils() {
         // Private constructor
@@ -132,9 +125,7 @@ public final class EliminationUtils {
     }
 
     public static List<String> getReportExtraFields() {
-        List<String> strings = Objects.requireNonNullElse(VitamConfiguration.getEliminationReportExtraFields()
+        return Objects.requireNonNullElse(VitamConfiguration.getEliminationReportExtraFields()
             .get(VitamThreadUtils.getVitamSession().getTenantId()), Collections.emptyList());
-        strings.retainAll(WHITELISTED_FIELDS);
-        return strings;
     }
 }

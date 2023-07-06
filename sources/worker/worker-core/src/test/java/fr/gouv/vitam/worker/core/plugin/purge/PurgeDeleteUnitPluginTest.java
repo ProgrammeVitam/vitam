@@ -58,6 +58,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -147,16 +149,26 @@ public class PurgeDeleteUnitPluginTest {
         assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.WARNING)).hasSize(2);
 
         assertThat(reportEntries).hasSize(5);
-        assertThat(reportEntries.stream().filter(e -> e.getId().equals("id_unit_1")).findFirst().get()
-            .getStatus()).isEqualTo(PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
-        assertThat(reportEntries.stream().filter(e -> e.getId().equals("id_unit_2")).findFirst().get()
-            .getStatus()).isEqualTo(PurgeUnitStatus.DELETED.name());
-        assertThat(reportEntries.stream().filter(e -> e.getId().equals("id_unit_3")).findFirst().get()
-            .getStatus()).isEqualTo(PurgeUnitStatus.DELETED.name());
-        assertThat(reportEntries.stream().filter(e -> e.getId().equals("id_unit_4")).findFirst().get()
-            .getStatus()).isEqualTo(PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
-        assertThat(reportEntries.stream().filter(e -> e.getId().equals("id_unit_5")).findFirst().get()
-            .getStatus()).isEqualTo(PurgeUnitStatus.DELETED.name());
+        Map<String, PurgeUnitReportEntry> reports =
+            reportEntries.stream().collect(Collectors.toMap(PurgeUnitReportEntry::getId, Function.identity()));
+
+        assertThat(reports.get("id_unit_1").getStatus()).isEqualTo(
+            PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
+        assertThat(reports.get("id_unit_1").getExtraInfo()).isNull();
+
+        assertThat(reports.get("id_unit_2").getStatus()).isEqualTo(PurgeUnitStatus.DELETED.name());
+        assertThat(reports.get("id_unit_2").getExtraInfo()).isNotNull();
+
+        assertThat(reports.get("id_unit_3").getStatus()).isEqualTo(PurgeUnitStatus.DELETED.name());
+        assertThat(reports.get("id_unit_3").getExtraInfo()).isNotNull();
+
+        assertThat(reports.get("id_unit_4").getStatus()).isEqualTo(
+            PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
+        assertThat(reports.get("id_unit_4").getExtraInfo()).isNull();
+
+        assertThat(reports.get("id_unit_5").getStatus()).isEqualTo(PurgeUnitStatus.DELETED.name());
+        assertThat(reports.get("id_unit_5").getExtraInfo()).isNotNull();
+
 
         verify(purgeDeleteService).deleteUnits(eq(unitIdsWithStrategies));
     }

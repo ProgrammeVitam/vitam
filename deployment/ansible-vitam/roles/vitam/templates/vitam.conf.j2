@@ -42,9 +42,8 @@ binarySizeTenantThreshold: # exemple for tenant 0 max dip/transfer size is 20 Mo
 #    sizeUnit: MEGABYTE
 #    authorize: true
 
-
-{% for tenant_id in vitam_tenant_ids %}
 eliminationReportExtraFields:
+{% for tenant_id in vitam_tenant_ids %}
 {% if extendedConfiguration.custom[tenant_id] is defined %}
  - tenant: {{ tenant_id }}
    metadataFields: {{ extendedConfiguration.custom[tenant_id].eliminationReportExtraFields | default(extendedConfiguration.default.eliminationReportExtraFields) | to_json }}

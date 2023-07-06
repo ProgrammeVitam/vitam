@@ -29,8 +29,9 @@ package fr.gouv.vitam.common;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
-import fr.gouv.vitam.common.configuration.EliminiationReportConfiguration;
+import fr.gouv.vitam.common.configuration.EliminationReportConfiguration;
 import fr.gouv.vitam.common.digest.DigestType;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.SysErrLogger;
 import fr.gouv.vitam.common.model.dip.BinarySizePlatformThreshold;
 import fr.gouv.vitam.common.model.dip.BinarySizeTenantThreshold;
@@ -1189,9 +1190,24 @@ public class VitamConfiguration {
             setWorkspaceFreespaceThreshold(parameters.getWorkspaceFreespaceThreshold());
         }
         if (null != parameters.getEliminationReportExtraFields()) {
+            checkEliminationReportExtraFieldsValues(parameters.getEliminationReportExtraFields());
             setEliminationReportExtraFields(parameters.getEliminationReportExtraFields().stream()
-                .collect(Collectors.toMap(EliminiationReportConfiguration::getTenant,
-                    EliminiationReportConfiguration::getMetadataFields)));
+                .collect(Collectors.toMap(EliminationReportConfiguration::getTenant,
+                    EliminationReportConfiguration::getMetadataFields)));
+        }
+
+    }
+
+    private static void checkEliminationReportExtraFieldsValues(
+        List<EliminationReportConfiguration> eliminationReportExtraFields) {
+        for (EliminationReportConfiguration eliminationReportExtraField : eliminationReportExtraFields) {
+            List<String> metadataFields = new ArrayList<>(eliminationReportExtraField.getMetadataFields());
+            metadataFields.removeAll(EliminationReportConfiguration.WHITELISTED_FIELDS);
+            if (!metadataFields.isEmpty()) {
+                throw new VitamRuntimeException(
+                    String.format("Unexpected value(s) : %s for tenant %d", String.join(",", metadataFields),
+                        eliminationReportExtraField.getTenant()));
+            }
         }
 
     }

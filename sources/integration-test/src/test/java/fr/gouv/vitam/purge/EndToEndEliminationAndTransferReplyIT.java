@@ -2292,11 +2292,11 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
                 PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
             assertThat(unitReportByTitle.get(SAINT_DENIS_UNIVERSITE_LIGNE_13).params.status).isEqualTo(
                 PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name());
-            assertThat(unitReportByTitle.get(SAINT_DENIS_UNIVERSITE_LIGNE_13).params.extraInfo).containsOnlyKeys(
-                "OriginatingAgencyArchiveUnitIdentifier", "FilePlanPosition", "TransferringAgencyArchiveUnitIdentifier",
-                "ArchivalAgencyArchiveUnitIdentifier", "OriginatingSystemId");
             assertThat(unitReportByTitle.get(SAINT_LAZARE).params.status).isEqualTo(
                 PurgeUnitStatus.DELETED.name());
+            assertThat(unitReportByTitle.get(SAINT_LAZARE).params.extraInfo).containsOnlyKeys(
+                "OriginatingAgencyArchiveUnitIdentifier", "FilePlanPosition", "TransferringAgencyArchiveUnitIdentifier",
+                "ArchivalAgencyArchiveUnitIdentifier", "OriginatingSystemId");
             assertThat(unitReportByTitle.get(MARX_DORMOY).params.status).isEqualTo(
                 PurgeUnitStatus.DELETED.name());
             assertThat(unitReportByTitle.get(MONTPARNASSE).params.status).isEqualTo(
