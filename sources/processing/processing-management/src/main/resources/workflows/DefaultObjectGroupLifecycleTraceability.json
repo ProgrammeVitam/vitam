@@ -21,7 +21,7 @@
             "in": [
               {
                 "name": "workflowIds",
-                "uri": "VALUE:OBJECTGROUP_LFC_TRACEABILITY"
+                "uri": "VALUE:LOGBOOK_OBJECTGROUP_LFC_TRACEABILITY"
               }
             ]
           }
