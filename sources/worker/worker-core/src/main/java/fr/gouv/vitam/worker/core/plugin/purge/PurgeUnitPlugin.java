@@ -182,22 +182,8 @@ public class PurgeUnitPlugin extends ActionHandler {
                 }
             }
 
-            JsonNode unit = unitsById.get(unitId);
-            String initialOperation = unit.get(VitamFieldsHelper.initialOperation()).asText();
-            String objectGroupId =
-                unit.has(VitamFieldsHelper.object()) ? unit.get(VitamFieldsHelper.object()).asText() : null;
-            String originatingAgency = unit.has(VitamFieldsHelper.originatingAgency()) ?
-                unit.get(VitamFieldsHelper.originatingAgency()).asText() :
-                null;
-            String unitType =
-                unit.has(VitamFieldsHelper.unitType()) ? unit.get(VitamFieldsHelper.unitType()).asText() : null;
-
-            JsonNode extraInfo = extractExtraInfoFromUnit(unit);
-
-
-            purgeUnitReportEntries.add(
-                new PurgeUnitReportEntry(unitId, originatingAgency, initialOperation, objectGroupId,
-                    purgeUnitStatus.name(), extraInfo, unitType));
+            PurgeUnitReportEntry reportEntry = createReportEntry(unitsById, unitId, purgeUnitStatus);
+            purgeUnitReportEntries.add(reportEntry);
 
         }
 
@@ -212,6 +198,28 @@ public class PurgeUnitPlugin extends ActionHandler {
         }
 
         return itemStatuses;
+    }
+
+    private static PurgeUnitReportEntry createReportEntry(Map<String, JsonNode> unitsById, String unitId,
+        PurgeUnitStatus purgeUnitStatus) {
+        JsonNode unit = unitsById.get(unitId);
+        String initialOperation = unit.get(VitamFieldsHelper.initialOperation()).asText();
+        String objectGroupId =
+            unit.has(VitamFieldsHelper.object()) ? unit.get(VitamFieldsHelper.object()).asText() : null;
+        String originatingAgency = unit.has(VitamFieldsHelper.originatingAgency()) ?
+            unit.get(VitamFieldsHelper.originatingAgency()).asText() :
+            null;
+        String unitType =
+            unit.has(VitamFieldsHelper.unitType()) ? unit.get(VitamFieldsHelper.unitType()).asText() : null;
+
+        if (purgeUnitStatus.equals(PurgeUnitStatus.DELETED)) {
+            JsonNode extraInfo = extractExtraInfoFromUnit(unit);
+            return new PurgeUnitReportEntry(unitId, originatingAgency, initialOperation, objectGroupId,
+                purgeUnitStatus.name(), extraInfo, unitType);
+        } else {
+            return new PurgeUnitReportEntry(unitId, originatingAgency, initialOperation, objectGroupId,
+                purgeUnitStatus.name(), null, unitType);
+        }
     }
 
     private static JsonNode extractExtraInfoFromUnit(JsonNode unit) {

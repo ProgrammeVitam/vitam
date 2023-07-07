@@ -128,5 +128,13 @@ extendedConfiguration:
   default:
     eliminationReportExtraFields: [ ]
   custom:
-    0:
-      eliminationReportExtraFields: [ "#id", "FilePlanPosition", "SystemId", "OriginatingSystemId", "ArchivalAgencyArchiveUnitIdentifier", "OriginatingAgencyArchiveUnitIdentifier", "TransferringAgencyArchiveUnitIdentifier" ]
+  # The `eliminationReportExtraFields` configuration option specifies the metadata keys that should be included in the report when performing an elimination.
+  # It determines which additional metadata fields should be retained and displayed in the elimination report.
+  # You can include any of the following extra fields:
+  # "#id", "#version", "#unitups", "#originating_agency", "#approximate_creation_date", "approximate_update_date", "FilePlanPosition", "SystemId", "OriginatingSystemId",
+  #            "ArchivalAgencyArchiveUnitIdentifier", "OriginatingAgencyArchiveUnitIdentifier",
+  #            "TransferringAgencyArchiveUnitIdentifier"
+  #
+  # Example for tenant 0 :
+  # 0:
+  # eliminationReportExtraFields: ["#id", "FilePlanPosition", "SystemId"]

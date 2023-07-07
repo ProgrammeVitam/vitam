@@ -28,7 +28,7 @@ package fr.gouv.vitam.common;
 
 import com.google.common.base.Strings;
 import fr.gouv.vitam.common.configuration.ClassificationLevel;
-import fr.gouv.vitam.common.configuration.EliminiationReportConfiguration;
+import fr.gouv.vitam.common.configuration.EliminationReportConfiguration;
 import fr.gouv.vitam.common.model.dip.BinarySizePlatformThreshold;
 import fr.gouv.vitam.common.model.dip.BinarySizeTenantThreshold;
 
@@ -401,7 +401,7 @@ public class VitamConfigurationParameters {
 
     private Integer elasticSearchScrollLimit;
 
-    private List<EliminiationReportConfiguration> eliminationReportExtraFields;
+    private List<EliminationReportConfiguration> eliminationReportExtraFields;
 
 
     /**
@@ -1622,12 +1622,12 @@ public class VitamConfigurationParameters {
         this.binarySizeTenantThreshold = binarySizeTenantThreshold;
     }
 
-    public List<EliminiationReportConfiguration> getEliminationReportExtraFields() {
+    public List<EliminationReportConfiguration> getEliminationReportExtraFields() {
         return eliminationReportExtraFields;
     }
 
     public void setEliminationReportExtraFields(
-        List<EliminiationReportConfiguration> eliminationReportExtraFields) {
+        List<EliminationReportConfiguration> eliminationReportExtraFields) {
         this.eliminationReportExtraFields = eliminationReportExtraFields;
     }
 }
