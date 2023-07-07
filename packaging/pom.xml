@@ -296,11 +296,10 @@
 						<configuration>
 							<appendAssemblyId>true</appendAssemblyId>
 							<descriptors>
-								<descriptor>${basedir}/assembly-full.xml</descriptor>
-								<descriptor>${basedir}/assembly-deb.xml</descriptor>
-								<descriptor>${basedir}/assembly-rpm.xml</descriptor>
+								<descriptor>${basedir}/assembly-prod.xml</descriptor>
+								<descriptor>${basedir}/assembly-horsprod.xml</descriptor>
 								<descriptor>${basedir}/assembly-deployment.xml</descriptor>
-								<descriptor>${basedir}/assembly-doc.xml</descriptor>
+								<descriptor>${basedir}/assembly-prod-signed.xml</descriptor>
 							</descriptors>
 						</configuration>
 						<goals>
