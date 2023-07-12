@@ -18,3 +18,4 @@ Le schéma ci-dessous décrit le principe général pour effectuer plusieurs mon
    v5rc_update.rst
    v5_update.rst
    v6rc_update.rst
+   v6_update.rst
