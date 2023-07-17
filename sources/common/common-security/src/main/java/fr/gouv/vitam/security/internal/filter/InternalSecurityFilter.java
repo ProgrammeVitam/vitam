@@ -109,6 +109,7 @@ public class InternalSecurityFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
+        // FIXME #11036: Make certificate extration from header optional
         X509Certificate[] clientCertChain = CertUtils.extractCert(httpServletRequest, true);
         if (clientCertChain == null || clientCertChain.length < 1) {
             throw new VitamSecurityException("Request do not contain any X509Certificate ");

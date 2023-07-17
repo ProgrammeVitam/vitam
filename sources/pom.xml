@@ -111,7 +111,7 @@
         <maven.clean.version>3.1.0</maven.clean.version>
         <maven.compiler.version>3.8.1</maven.compiler.version>
         <maven.deploy.version>2.8.2</maven.deploy.version>
-        <maven.resources.version>3.1.0</maven.resources.version>
+        <maven.resources.version>3.3.0</maven.resources.version>
         <maven.source.version>3.2.1</maven.source.version>
         <maven.dependency.version>3.1.1</maven.dependency.version>
         <maven-dependency-analyzer.version>1.11.1</maven-dependency-analyzer.version>
@@ -137,11 +137,14 @@
         <maven-scm-plugin.version>1.11.2</maven-scm-plugin.version>
 
         <!-- tests -->
-        <maven.surefire.version>2.22.2</maven.surefire.version>
+        <maven.surefire.version>3.0.0</maven.surefire.version>
         <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
         <mockito.version>2.28.2</mockito.version>
         <junit.version>4.13</junit.version>
         <json-unit-version>2.13.0</json-unit-version>
+        <testcontainers.version>1.17.6</testcontainers.version>
+        <nginx.container.version>nginx:1.23</nginx.container.version>
+        <httpd.container.version>httpd:2.4.56</httpd.container.version>
 
         <!-- database libraries -->
         <elasticsearch.version>7.16.3</elasticsearch.version>
@@ -375,6 +378,7 @@
                             <exclude>**/*.xml</exclude>
                             <exclude>**/README</exclude>
                             <exclude>src/test/resources/**</exclude>
+                            <exclude>src/test/resources-filtered/**</exclude>
                             <exclude>src/main/resources/**</exclude>
                         </excludes>
                         <mapping>
@@ -490,6 +494,8 @@
                             <log4j.configurationFile>
                                 ${project.basedir}/common/common-private/src/test/resources/log4j2-test.xml
                             </log4j.configurationFile>
+                            <nginxContainerVersion>${nginx.container.version}</nginxContainerVersion>
+                            <httpdContainerVersion>${httpd.container.version}</httpdContainerVersion>
                         </systemPropertyVariables>
                         <classpathDependencyExcludes>
                             <classpathDependencyExclude>org.apache.logging.log4j:log4j-to-slf4j
@@ -1675,6 +1681,12 @@
                 <groupId>com.squareup.retrofit2</groupId>
                 <artifactId>converter-jackson</artifactId>
                 <version>${retrofit2.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.testcontainers</groupId>
+                <artifactId>testcontainers</artifactId>
+                <version>${testcontainers.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
