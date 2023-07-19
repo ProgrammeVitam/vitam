@@ -53,7 +53,6 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * Storage Id
      */
     public static final String STORAGE = "_storage";
-
     /**
      * Versions
      */
@@ -79,6 +78,10 @@ public class ObjectGroup extends MetadataDocument<ObjectGroup> {
      * Object UUID
      */
     public static final String OBJECTID = VERSIONS + "." + "_id";
+    /**
+     * Management Contract Id Version
+     */
+    public static final String MANAGEMENT_CONTRACT_ID_VERSION = VERSIONS + "." + "_managementContractId";
     /**
      * Object size
      */

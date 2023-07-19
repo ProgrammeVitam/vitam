@@ -58,6 +58,9 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
+import fr.gouv.vitam.common.model.administration.PersistentIdentifierPolicy;
+import fr.gouv.vitam.common.model.administration.PersistentIdentifierPolicyTypeEnum;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitRoot;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
@@ -99,6 +102,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -230,6 +234,17 @@ public class ArchiveUnitListener {
 
             archiveUnitRoot = archiveUnitMapper.map(archiveUnitType, elementGUID, groupId, operationId,
                 ingestContext.getWorkflowUnitType().name(), ingestContext.getSedaVersion());
+
+            ManagementContractModel managementContractModel = ingestContext.getManagementContractModel();
+            if (managementContractModel != null) {
+                List<PersistentIdentifierPolicy> persistentIdentifierPolicies = managementContractModel.getPersistentIdentifierPolicyList();
+                if (persistentIdentifierPolicies != null && !persistentIdentifierPolicies.isEmpty()) {
+                    Optional<PersistentIdentifierPolicy> arkPolicy = persistentIdentifierPolicies.stream()
+                        .filter(policy -> policy.isPersistentIdentifierUnit() && policy.getPersistentIdentifierPolicyType().equals(PersistentIdentifierPolicyTypeEnum.ARK))
+                        .findFirst();
+                    arkPolicy.ifPresent(policy -> archiveUnitRoot.getArchiveUnit().setManagementContractId(managementContractModel.getIdentifier()));
+                }
+            }
         } catch (ProcessingMalformedDataException | ProcessingObjectReferenceException e) {
             throw new VitamRuntimeException(e);
         }

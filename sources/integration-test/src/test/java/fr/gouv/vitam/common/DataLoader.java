@@ -34,9 +34,11 @@ import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
+import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
 import fr.gouv.vitam.common.ontology.OntologyTestHelper;
@@ -55,6 +57,7 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -149,15 +152,18 @@ public class DataLoader {
             client.importProfileFile(response.getResults().get(0).getIdentifier(),
                 PropertiesUtils.getResourceAsStream(dataFodler + "/profil_ok.rng"));
 
-
+            String managementContractId = importManagementContract(client);
             // import contract
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
             File fileContracts =
                 PropertiesUtils.getResourceFile(dataFodler + "/referential_contracts_ok.json");
-            List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
+            List<IngestContractModel> ingestContractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
                 new TypeReference<>() {
                 });
-            client.importIngestContracts(IngestContractModelList);
+            if (null != ingestContractModelList && !ingestContractModelList.isEmpty() && null != managementContractId) {
+                ingestContractModelList.get(0).setManagementContractId(managementContractId);
+            }
+            client.importIngestContracts(ingestContractModelList);
 
             // import access contract
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
@@ -216,6 +222,36 @@ public class DataLoader {
         } catch (FileNotFoundException e) {
             LOGGER.info("no need to load tenant 1 contracts");
         }
+    }
+
+    private String importManagementContract(AdminManagementClient client) {
+        try {
+            VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(tenantId));
+            File fileContracts = PropertiesUtils.getResourceFile(dataFodler + "/contracts_management_ark_ok.json");
+            List<ManagementContractModel> managementContractList =
+                JsonHandler.getFromFileAsTypeReference(fileContracts, new TypeReference<>() {
+                });
+            client.importManagementContracts(managementContractList);
+            RequestResponse<ManagementContractModel> entity =
+                client.findManagementContracts(new Select().getFinalSelect());
+
+            JsonNode jsonNode = toJsonNode(entity);
+            if (null != jsonNode) {
+                JsonNode resultsNode = jsonNode.get("$results");
+                if (resultsNode != null && resultsNode.isArray() && resultsNode.size() > 0) {
+                    JsonNode lastResultNode = resultsNode.get(resultsNode.size() - 1);
+                    if (lastResultNode != null) {
+                        JsonNode identifierNode = lastResultNode.get("Identifier");
+                        if (identifierNode != null) {
+                            return identifierNode.textValue();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Import Management Contract Error", e);
+        }
+        return null;
     }
 
     private void importContract(AdminManagementClient client, String filename)

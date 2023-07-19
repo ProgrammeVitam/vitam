@@ -64,6 +64,11 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     public static final String NBCHILD = "_nbc";
 
     /**
+     * Management contract Id
+     */
+    public static final String MANAGEMENT_CONTRACT_ID = "_managementContractId";
+
+    /**
      * Object Type (text, audio, video, document, image, ...) Unit Type (facture, paye, ...)
      */
     public static final String TYPE = "_profil";
