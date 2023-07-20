@@ -291,6 +291,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private static final String PHYSICAL_DATA_OBJECT = "PhysicalDataObject";
     private static final String ARCHIVE_UNIT = "ArchiveUnit";
     private static final String BINARY_MASTER = "BinaryMaster";
+
+    private static final String BINARY_MASTER_1 = "BinaryMaster_1";
     private static final String PHYSICAL_MASTER = "PhysicalMaster";
     private static final String DATAOBJECT_PACKAGE = "DataObjectPackage";
     private static final String FILE_INFO = "FileInfo";
@@ -2144,7 +2146,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     usages.asMap().entrySet().stream().filter(entry -> dataObjectVersion.contains(entry.getKey()))
                         .map(entry -> {
                             Set<String> values = new HashSet<>(entry.getValue());
-                            List<String> updatedObjectGroupGuids = updatedObjectGroupIds.stream().map(e -> ingestSession.getObjectGroupIdToGuid().get(e)).collect(Collectors.toList());
+                            List<String> updatedObjectGroupGuids =
+                                updatedObjectGroupIds.stream().map(e -> ingestSession.getObjectGroupIdToGuid().get(e))
+                                    .collect(Collectors.toList());
                             values.retainAll(updatedObjectGroupGuids);
                             return new AbstractMap.SimpleEntry<>(entry.getKey(), values);
                         }).filter(entry -> !entry.getValue().isEmpty()).map(Entry::getKey).collect(Collectors.toSet());
@@ -2274,6 +2278,14 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     }
                     versionList.add(nodeCategoryNumbered);
 
+                    if (BINARY_MASTER_1.equals(nodeCategoryNumbered)) {
+
+                        fileInfo = (ObjectNode) dataObjectNode.get(FILE_INFO);
+                        if (dataObjectNode.get(METADATA) != null && !dataObjectNode.get(METADATA).isNull() &&
+                            !dataObjectNode.get(METADATA).isEmpty()) {
+                            objectGroupType = dataObjectNode.get(METADATA).fieldNames().next();
+                        }
+                    }
 
                     if (nodeCategoryArray == null) {
                         nodeCategoryArray = new ArrayList<>();
@@ -2300,7 +2312,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.put(SedaConstants.PREFIX_TYPE, objectGroupType);
                 objectGroup.set(SedaConstants.TAG_FILE_INFO, fileInfo);
 
-                if(!checkBinaryMasterVersion(categoryMap)) {
+                if (!checkBinaryMasterVersion(categoryMap)) {
                     throw new MissingMandatoryVersionException(
                         "The object group (" + entry.getKey() + ") requires Mandatory version 1 to be present");
                 }
@@ -2402,6 +2414,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             }
         }
     }
+
     private boolean checkBinaryMasterVersion(Map<String, List<JsonNode>> categoryMap) {
         boolean existBinaryMaster = categoryMap.keySet().stream().anyMatch(key -> key.startsWith("BinaryMaster"));
         boolean existPhysicalMaster = categoryMap.keySet().stream().anyMatch(key -> key.startsWith("PhysicalMaster"));
@@ -2558,7 +2571,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 updateObjectNode(ingestSession, (ObjectNode) node, guid, PHYSICAL_MASTER.equals(qualifier),
                     containerId);
                 arrayNode.add(node);
-                objectNode.put(SedaConstants.TAG_NB, objectNode.get(SedaConstants.TAG_NB).asInt()+1);
+                objectNode.put(SedaConstants.TAG_NB, objectNode.get(SedaConstants.TAG_NB).asInt() + 1);
             }
         }
         return qualifiersArray;
@@ -2566,7 +2579,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
     private ObjectNode findQualifierObjectNode(ArrayNode qualifiersArray, String qualifier) {
         for (JsonNode node : qualifiersArray) {
-            if (node.has(SedaConstants.PREFIX_QUALIFIER) && node.get(SedaConstants.PREFIX_QUALIFIER).textValue().equals(qualifier)) {
+            if (node.has(SedaConstants.PREFIX_QUALIFIER) &&
+                node.get(SedaConstants.PREFIX_QUALIFIER).textValue().equals(qualifier)) {
                 return (ObjectNode) node;
             }
         }
