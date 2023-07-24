@@ -70,6 +70,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.MetadataType;
 import fr.gouv.vitam.common.model.QueryProjection;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -2488,6 +2489,18 @@ public class ExtractSedaActionHandler extends ActionHandler {
             ingestSession.getExistingGOTs().entrySet().stream().filter(e -> e.getValue() != null)
                 .map(entry -> entry.getKey() + JSON_EXTENSION).collect(Collectors.toSet());
 
+        for (String key : collect) {
+            String got = key.substring(0, key.indexOf(JSON_EXTENSION));
+            try {
+                if (LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS.name()
+                    .equals(handlerIO.getLifecyclesClient().getObjectGroupLifeCycleStatus(got))) {
+                    throw new ProcessingObjectGroupLinkingException("GOT (" + got + ") is already in process", "", got);
+                }
+            } catch (LogbookClientNotFoundException | LogbookClientServerException e) {
+                LOGGER.error(e.getMessage(), e);
+                throw new RuntimeException(e);
+            }
+        }
         File existingGotsFile = handlerIO.getNewLocalFile(handlerIO.getOutput(EXISTING_GOT_RANK).getPath());
 
         try {
