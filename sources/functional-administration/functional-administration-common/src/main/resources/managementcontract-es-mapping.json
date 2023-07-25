@@ -46,7 +46,7 @@
     "PersistentIdentifierPolicy": {
       "properties": {
         "PersistentIdentifierAuthority": {
-          "type": "long"
+          "type": "keyword"
         },
         "PersistentIdentifierPolicyType": {
           "type": "keyword"

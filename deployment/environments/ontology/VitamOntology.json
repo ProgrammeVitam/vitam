@@ -3353,11 +3353,11 @@
   },
   {
     "Identifier": "PersistentIdentifierAuthority",
-    "ApiField": "PersistentIdentifierAUTHORITY",
+    "ApiField": "PersistentIdentifierAuthority",
     "Description": "Mapping : managementcontract-es-mapping.json. Gestion d'une autorité nommante ARK",
-    "Type": "LONG",
+    "Type": "KEYWORD",
     "Origin": "INTERNAL",
-    "ShortName": "PersistentIdentifierAUTHORITY",
+    "ShortName": "PersistentIdentifierAuthority",
     "Collections": [
       "ManagementContract"
     ]
