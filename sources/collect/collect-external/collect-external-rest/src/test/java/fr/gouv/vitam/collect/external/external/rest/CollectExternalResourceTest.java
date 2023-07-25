@@ -26,53 +26,54 @@
  */
 package fr.gouv.vitam.collect.external.external.rest;
 
-
+import fr.gouv.vitam.common.GlobalDataRest;
+import fr.gouv.vitam.common.exception.VitamApplicationServerException;
+import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.security.rest.EndpointInfo;
-import fr.gouv.vitam.common.security.rest.SecureEndpointRegistry;
-import fr.gouv.vitam.common.security.rest.Unsecured;
-import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-@Path("/collect-external/v1")
-@Tag(name = "Collect")
-public class CollectExternalResource extends ApplicationStatusResource {
+import static io.restassured.RestAssured.given;
+import static org.junit.Assert.*;
 
-    private final SecureEndpointRegistry secureEndpointRegistry;
+public class CollectExternalResourceTest {
+    private static CollectExternalMain application;
+    private static JunitHelper junitHelper;
+    private static int portAvailable;
 
-    CollectExternalResource(SecureEndpointRegistry secureEndpointRegistry) {
-        this.secureEndpointRegistry = secureEndpointRegistry;
+    @BeforeClass
+    public static void setUpBeforeMethod() throws VitamApplicationServerException {
+        junitHelper = JunitHelper.getInstance();
+        portAvailable = junitHelper.findAvailablePort();
+        RestAssured.port = portAvailable;
+        RestAssured.basePath = "collect-external/v1";
+        application = new CollectExternalMain("collect-external-test.conf",
+                BusinessApplicationTest.class, null);
+        application.start();
     }
 
+    @Test
+    public void shouldNotHaveDuplicatesInApiListResponse() {
+        final EndpointInfo[] endpointInfoArray = given()
+                .accept(ContentType.JSON)
+                .contentType(ContentType.JSON)
+                .header(GlobalDataRest.X_TENANT_ID, "0")
+                .when()
+                .options()
+                .then()
+                .statusCode(Response.Status.OK.getStatusCode())
+                .extract()
+                .body()
+                .as(EndpointInfo[].class);
+        final List<EndpointInfo> endpointInfoList = Arrays.asList(endpointInfoArray);
+        final Set<EndpointInfo> endpointInfoSet = new HashSet<>(endpointInfoList);
 
-    /**
-     * Get all Endpoints
-     *
-     * @return Response of EndpointInfo
-     */
-    @Path("/")
-    @OPTIONS
-    @Produces(MediaType.APPLICATION_JSON)
-    @Unsecured()
-    public Response listResourceEndpoints() {
-        final Set<EndpointInfo> securedEndpointSet = Arrays.asList(
-                ProjectExternalResource.class.getAnnotation(Path.class).value(),
-                TransactionExternalResource.class.getAnnotation(Path.class).value(),
-                CollectMetadataExternalResource.class.getAnnotation(Path.class).value()
-        )
-                .stream()
-                .map(this.secureEndpointRegistry::getEndPointsByResourcePath)
-                .flatMap(List::stream)
-                .collect(Collectors.toSet());
-
-        return Response.status(Response.Status.OK).entity(new ArrayList<>(securedEndpointSet)).build();
+        assertEquals(endpointInfoArray.length, endpointInfoSet.size());
     }
 }
