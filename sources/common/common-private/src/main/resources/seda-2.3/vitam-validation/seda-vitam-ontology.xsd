@@ -665,7 +665,7 @@
                     <xsd:documentation>Permet de renseigner des agents répertoriés dans des évènements.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded" />
+            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:complexType name="LinkingAgentIdentifierType">
@@ -680,7 +680,7 @@
                     <xsd:documentation>Mention d'un agent répertorié dans des évènements.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="LinkingAgentRole" type="NonEmptyTokenType" minOccurs="0">
+            <xsd:element name="LinkingAgentRole"  type="NonEmptyTokenType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Fonction d'un agent répertorié dans des évènements.</xsd:documentation>
                 </xsd:annotation>
@@ -811,9 +811,9 @@
         </xsd:sequence>
     </xsd:group>
    
-    <!-- Pour ajouter des extensions d'agents -->
+    <!-- Pour ajouter des agents génériques -->
     <xsd:group name="AgentGroup">
-      <!--Redefined by vitam-->
+        <!--Redefined by vitam-->
         <xsd:sequence>
             <xsd:element name="Agent" type="AgentType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -1085,7 +1085,7 @@
         <xsd:sequence>
             <xsd:element name="OriginatingSystemIdReplyTo" type="NonEmptyTokenType" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>Réponse au système émetteur d'un message électronique.</xsd:documentation>
+                    <xsd:documentation>Référence du message auquel on répond.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>

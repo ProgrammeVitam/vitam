@@ -148,37 +148,36 @@
                     <xsd:documentation>Indique si une autorisation humaine est nécessaire pour vérifier ou valider les opérations de gestion des ArchiveUnit.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!-- Extension VITAM pour la gestion des rattachements d'AUs via le Manifest  -->
-            <xsd:element name="UpdateOperation" type="UpdateOperationType" minOccurs="0">
-                 <xsd:annotation>
-                    <xsd:documentation>Gestion des opérations sur un ArchiveUnit.
-                    </xsd:documentation>
-                 </xsd:annotation>
-            </xsd:element>
-
             <!-- Extension VITAM pour la gestion des règles de gel des ArchiveUnits -->
             <xsd:element name="HoldRule" type="HoldRuleType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Gestion de la durée de gel des ArchiveUnits.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <!-- Extension VITAM pour la gestion des rattachements d'AUs via le Manifest  -->
+            <xsd:element name="UpdateOperation" type="UpdateOperationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Gestion des opérations sur un ArchiveUnit.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
 
             <!-- Redefined by VITAM -->
-                <!--xsd:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded">
-                    <xsd:annotation>
-                        <xsd:documentation>Autres métadonnées de gestion.</xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element-->
-                <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
-            </xsd:sequence>
-        </xsd:group>
-        <xsd:complexType name="LogBookType">
-            <xsd:sequence>
-                <xsd:element name="Event" type="EventType" maxOccurs="unbounded"/>
-            </xsd:sequence>
-        </xsd:complexType>
-
-        <!-- Global inheritance control -->
+            <!--xsd:element ref="OtherManagementAbstract" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Autres métadonnées de gestion.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element-->
+            <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:group>
+    <xsd:complexType name="LogBookType">
+        <xsd:sequence>
+            <xsd:element name="Event" type="EventType" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+        
+    <!-- Global inheritance control -->
     <xsd:group name="PreventInheritanceGroup">
         <xsd:choice>
             <xsd:element name="PreventInheritance" type="xsd:boolean" default="false" minOccurs="0">
@@ -442,7 +441,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-
+    
     <!-- Extension VITAM pour la gestion des rattachement d'AUs via le Manifest -->
     <xsd:complexType name="UpdateOperationType">
         <xsd:sequence>
@@ -492,7 +491,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <!-- Extension VITAM pour la gestion des règles de gel des ArchiveUnits -->
+    <!-- Gestion des règles de gel des ArchiveUnit -->
     <xsd:complexType name="HoldRuleType">
         <xsd:annotation>
             <xsd:documentation>Gestion de la durée de gel des ArchiveUnits.</xsd:documentation>
@@ -517,7 +516,7 @@
             </xsd:choice>
         </xsd:sequence>
     </xsd:complexType>
-
+    
     <xsd:group name="HoldRuleDefGroup">
         <xsd:sequence>
             <xsd:element name="Rule" type="RuleIdType">
@@ -549,7 +548,7 @@
             </xsd:element>
             <xsd:element name="HoldReassessingDate" type="xsd:date" nillable="true" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>Date de réévaluation du gel</xsd:documentation>
+                    <xsd:documentation>Date de réévaluation du gel.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="HoldReason" type="NonEmptyTokenType" minOccurs="0">

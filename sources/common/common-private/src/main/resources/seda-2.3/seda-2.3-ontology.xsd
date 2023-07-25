@@ -665,7 +665,7 @@
             </xsd:element>
             <xsd:element ref="EventAbstract" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
-                    <xsd:documentation>Permet d'étendre de nouveaux types d'évènements.</xsd:documentation>
+                    <xsd:documentation>Permet d'étendre de nouveaux types d'évenéments.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -813,7 +813,7 @@
         </xsd:sequence>
     </xsd:group>
    
-    <!-- Pour ajouter des extensions d'agents -->
+    <!-- Pour ajouter des agents génériques -->
     <xsd:group name="AgentGroup">
         <xsd:sequence>
             <xsd:element name="Agent" type="AgentType" minOccurs="0" maxOccurs="unbounded">
@@ -1086,7 +1086,7 @@
         <xsd:sequence>
             <xsd:element name="OriginatingSystemIdReplyTo" type="NonEmptyTokenType" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>Réponse au système émetteur d'un message électronique.</xsd:documentation>
+                    <xsd:documentation>Référence du message auquel on répond.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1100,5 +1100,4 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
-
 </xsd:schema>

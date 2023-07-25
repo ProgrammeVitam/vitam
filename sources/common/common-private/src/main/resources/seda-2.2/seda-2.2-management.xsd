@@ -184,6 +184,7 @@
                 Si aucune règle n'est spécifiée et que la date actuelle est dans la StarDate, la réponse de restriction est "Aucune restriction".
                 Si la date est vide, la réponse de restriction est "Restreint" car il n'y a aucun moyen de calculer la date de fin.
                 Si une règle et une date sont précisées, alors la date de fin d'application de la règle peut être calculée et comparée avec la date courante..</xsd:documentation>
+            <xsd:documentation>La liste d'identifiants de règles à appliquer et à ignorer qui doit être appliquée à partir de cet ArchiveUnit.</xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:sequence minOccurs="0" maxOccurs="unbounded">
@@ -430,7 +431,7 @@
         </xsd:sequence>
     </xsd:complexType>
     
-    <!-- Extension VITAM pour la gestion des règles de gel des ArchiveUnits -->
+    <!-- Gestion des règles de gel des ArchiveUnit -->
     <xsd:complexType name="HoldRuleType">
         <xsd:annotation>
             <xsd:documentation>Gestion de la durée de gel des ArchiveUnits.</xsd:documentation>
@@ -487,7 +488,7 @@
             </xsd:element>
             <xsd:element name="HoldReassessingDate" type="xsd:date" nillable="true" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>Date de réévaluation du gel</xsd:documentation>
+                    <xsd:documentation>Date de réévaluation du gel.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="HoldReason" type="NonEmptyTokenType" minOccurs="0">

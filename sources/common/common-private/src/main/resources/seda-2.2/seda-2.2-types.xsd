@@ -193,22 +193,6 @@
  
         -->
     
-    <!-- Contenu de données binaire -->
-    <xsd:complexType name="BinaryObjectType"> 
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:base64Binary">
-                <xsd:attribute name="filename" type="xsd:string" use="optional"/>
-                <xsd:attribute name="uri" type="xsd:anyURI" use="optional"/>
-            </xsd:extension>
-        </xsd:simpleContent>
-    </xsd:complexType> 
-    
-    <!-- Données liées -->
-    <xsd:complexType name="RelationshipType">
-        <xsd:attribute name="target" type="xsd:IDREF" use="required"/>
-        <xsd:attribute name="type" type="NonEmptyTokenType" use="required"/>
-    </xsd:complexType>
-    
     <!-- Organisation -->
     <xsd:complexType name="OrganizationType">
         <xsd:sequence>

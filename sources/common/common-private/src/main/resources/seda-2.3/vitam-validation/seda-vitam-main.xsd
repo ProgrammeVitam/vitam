@@ -112,7 +112,7 @@
  
         -->
 
-    <!-- Groupe d'objets-données SEDA 2.2 -->
+    <!-- Groupe d'objets-données SEDA 2.3 -->
     <xsd:complexType name="DataObjectGroupType">
         <xsd:sequence>
             <xsd:choice minOccurs="0" maxOccurs="unbounded">
