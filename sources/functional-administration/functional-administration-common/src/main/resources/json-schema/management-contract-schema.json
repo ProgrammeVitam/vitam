@@ -141,7 +141,8 @@
             "type": "boolean"
           },
           "PersistentIdentifierAuthority": {
-            "type": "integer"
+            "type": "string",
+            "pattern": "^[0-9]{5,9}$"
           },
           "PersistentIdentifierUsages": {
             "type": "array",

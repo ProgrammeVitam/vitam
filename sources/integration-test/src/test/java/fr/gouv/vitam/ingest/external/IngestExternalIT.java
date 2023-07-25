@@ -488,49 +488,6 @@ public class IngestExternalIT extends VitamRuleRunner {
                     .contains(event.getOutDetail())).count()).isEqualTo(2L);
         }
     }
-
-
-    @RunWithCustomExecutor
-    @Test
-    public void test_ingest_with_no_binary_master() throws Exception {
-        // When
-        try (InputStream inputStream =
-            PropertiesUtils.getResourceAsStream(SIP_INCORRECT_OBJECT_SIZE)) {
-            RequestResponse<Void> response = ingestExternalClient
-                .ingest(
-                    new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
-                        .setAccessContract(ACCESS_CONTRACT),
-                    inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
-
-            // Then
-            assertThat(response.isOk()).as(JsonHandler.unprettyPrint(response)).isTrue();
-            final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
-            assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
-            final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(adminExternalClient);
-            boolean process_timeout = vitamPoolingClient
-                .wait(tenantId, operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
-            if (!process_timeout) {
-                Assertions.fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
-            }
-
-            RequestResponse<ItemStatus> itemStatusRequestResponse =
-                adminExternalClient.getOperationProcessExecutionDetails(new VitamContext(tenantId), operationId);
-            assertThat(itemStatusRequestResponse.isOk()).isTrue();
-
-            RequestResponse<LogbookOperation> logbookOperationRequestResponse = accessExternalClient
-                .selectOperationbyId(new VitamContext(tenantId).setApplicationSessionId(APPLICATION_SESSION_ID)
-                    .setAccessContract(ACCESS_CONTRACT), operationId, new Select().getFinalSelectById());
-            LogbookOperation logbookOperation =
-                ((RequestResponseOK<LogbookOperation>) logbookOperationRequestResponse).getFirstResult();
-
-            assertNotNull(logbookOperation);
-            assertThat(logbookOperation.getEvents().stream()
-                .filter(event -> Arrays.asList("CHECK_OBJECT_SIZE.WARNING", "STP_OG_CHECK_AND_TRANSFORME.WARNING")
-                    .contains(event.getOutDetail())).count()).isEqualTo(2L);
-        }
-    }
-
-
     @RunWithCustomExecutor
     @Test
     public void test_ingest_with_missed_object_size() throws Exception {

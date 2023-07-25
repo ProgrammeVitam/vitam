@@ -38,7 +38,7 @@ public class PersistentIdentifierPolicy {
     private boolean persistentIdentifierUnit;
 
     @JsonProperty("PersistentIdentifierAuthority")
-    private int persistentIdentifierAuthority;
+    private String persistentIdentifierAuthority;
 
     @JsonProperty("PersistentIdentifierUsages")
     private List<PersistentIdentifierUsage> persistentIdentifierUsages;
@@ -60,11 +60,11 @@ public class PersistentIdentifierPolicy {
         this.persistentIdentifierUnit = persistentIdentifierUnit;
     }
 
-    public int getPersistentIdentifierAuthority() {
+    public String getPersistentIdentifierAuthority() {
         return persistentIdentifierAuthority;
     }
 
-    public void setPersistentIdentifierAuthority(int persistentIdentifierAuthority) {
+    public void setPersistentIdentifierAuthority(String persistentIdentifierAuthority) {
         this.persistentIdentifierAuthority = persistentIdentifierAuthority;
     }
 

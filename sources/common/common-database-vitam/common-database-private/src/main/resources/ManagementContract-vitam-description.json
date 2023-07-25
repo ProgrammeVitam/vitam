@@ -145,7 +145,7 @@
   },
   {
     "path": "PersistentIdentifierPolicy.PersistentIdentifierAuthority",
-    "type": "signed_long",
+    "type": "keyword",
     "cardinality": "one",
     "indexed": true
   },
