@@ -30,7 +30,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.preservation.OtherMetadata;
+import fr.gouv.vitam.common.model.unit.PersistentIdentifierModel;
 
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -86,6 +88,16 @@ public class DbVersionsModel {
 
     @JsonProperty("DataObjectProfile")
     private String dataObjectProfile;
+
+    @JsonProperty("DataObjectUse")
+    private String dataObjectUse;
+
+    @JsonProperty("DataObjectNumber")
+    private Integer dataObjectNumber;
+
+    @JsonProperty("PersistentIdentifier")
+    private List<PersistentIdentifierModel> persistentIdentifier;
+
 
     public DbVersionsModel() {
         // empty constructor for deserialization
@@ -297,6 +309,31 @@ public class DbVersionsModel {
 
     public void setDataObjectProfile(String dataObjectProfile) {
         this.dataObjectProfile = dataObjectProfile;
+    }
+
+    public List<PersistentIdentifierModel> getPersistentIdentifier() {
+        return persistentIdentifier;
+    }
+
+    public void setPersistentIdentifier(
+        List<PersistentIdentifierModel> persistentIdentifier) {
+        this.persistentIdentifier = persistentIdentifier;
+    }
+
+    public String getDataObjectUse() {
+        return dataObjectUse;
+    }
+
+    public void setDataObjectUse(String dataObjectUse) {
+        this.dataObjectUse = dataObjectUse;
+    }
+
+    public Integer getDataObjectNumber() {
+        return dataObjectNumber;
+    }
+
+    public void setDataObjectNumber(Integer dataObjectNumber) {
+        this.dataObjectNumber = dataObjectNumber;
     }
 
     @Override

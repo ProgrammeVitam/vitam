@@ -45,9 +45,14 @@ public class ValidationXsdUtilsTest {
 
     private static final String SEDA_2_1_VALIDATION_FILE = SupportedSedaVersions.SEDA_2_1.getVitamValidatorXSD();
     private static final String SEDA_2_2_VALIDATION_FILE = SupportedSedaVersions.SEDA_2_2.getVitamValidatorXSD();
+    private static final String SEDA_2_3_VALIDATION_FILE = SupportedSedaVersions.SEDA_2_3.getVitamValidatorXSD();
     private static final String SEDA_FILE = "sip1.xml";
     private static final String SEDA_FILE2 = "manifestOK.xml";
     private static final String SEDA_FILE_WITH_AGENT = "manifestContainsAgentOK.xml";
+    private static final String SEDA_FILE_WITH_PERSISTENT_IDENTIFIERS =
+        "manifestContainsPersistentIdentifierOK-2.3.xml";
+    private static final String SEDA_FILE_WITH_PERSISTENT_IDENTIFIERS_2_2 =
+        "manifestContainsPersistentIdentifierOK-2.2.xml";
     private static final String SEDA_FILE_DATA_OBJ_REF = "manifestWithDataObjectGroupExistingReferenceId.xml";
     private static final String SEDA_WRONG_FILE = "wrong_sip1.xml";
     private static final String SEDA_ARCHIVE_TRANSFER_REPLY = "ATR_example.xml";
@@ -69,6 +74,15 @@ public class ValidationXsdUtilsTest {
         assertTrue(
             ValidationXsdUtils.getInstance()
                 .checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_FILE_WITH_AGENT), SEDA_2_1_VALIDATION_FILE));
+        assertTrue(
+            ValidationXsdUtils.getInstance()
+                .checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_FILE_WITH_PERSISTENT_IDENTIFIERS_2_2),
+                    SEDA_2_2_VALIDATION_FILE));
+        assertTrue(
+            ValidationXsdUtils.getInstance()
+                .checkWithXSD(PropertiesUtils.getResourceAsStream(SEDA_FILE_WITH_PERSISTENT_IDENTIFIERS),
+                    SEDA_2_3_VALIDATION_FILE));
+
     }
 
     @Test(expected = SAXException.class)

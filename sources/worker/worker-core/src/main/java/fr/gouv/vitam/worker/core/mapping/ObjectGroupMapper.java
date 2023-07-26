@@ -59,7 +59,11 @@ public class ObjectGroupMapper {
 
         if (dataObject.getDataObjectProfile() != null)
             dbVersionsModel.setDataObjectProfile(dataObject.getDataObjectProfile().getValue());
-
+        if (dataObject.getPersistentIdentifier() != null) {
+            dbVersionsModel.setPersistentIdentifier(dataObject.getPersistentIdentifier());
+        }
+        dbVersionsModel.setDataObjectUse(dataObject.getDataObjectUse());
+        dbVersionsModel.setDataObjectNumber(dataObject.getDataObjectNumber());
         if (dataObject instanceof BinaryDataObjectType) {
             BinaryDataObjectType dataBinaryObject = (BinaryDataObjectType) dataObject;
             dbVersionsModel.setUri(dataBinaryObject.getUri());

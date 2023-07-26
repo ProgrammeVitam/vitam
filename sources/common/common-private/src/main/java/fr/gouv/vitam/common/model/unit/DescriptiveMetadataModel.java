@@ -38,7 +38,6 @@ import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -189,6 +188,10 @@ public class DescriptiveMetadataModel {
 
     @JsonIgnore
     private Map<String, Object> any = new HashMap<>();
+
+
+    @JsonProperty("PersistentIdentifier")
+    private List<PersistentIdentifierModel> persistentIdentifier;
 
     /**
      * @return
@@ -826,6 +829,15 @@ public class DescriptiveMetadataModel {
 
     public void setDateLitteral(String dateLitteral) {
         this.dateLitteral = dateLitteral;
+    }
+
+    public List<PersistentIdentifierModel> getPersistentIdentifier() {
+        return persistentIdentifier;
+    }
+
+    public void setPersistentIdentifier(
+        List<PersistentIdentifierModel> persistentIdentifier) {
+        this.persistentIdentifier = persistentIdentifier;
     }
 
     /**

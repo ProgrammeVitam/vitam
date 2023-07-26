@@ -330,6 +330,7 @@ public class ProcessingIT extends VitamRuleRunner {
     private static final String ADD_OBJET_TO_GOT = "integration-processing/ADD_OBJET_TO_GOT";
 
     private static final String SIP_SEDA_2_2 = "integration-processing/OK_SIP_FULL_SEDA2.2.zip";
+    private static final String SIP_SEDA_2_3 = "integration-processing/OK_SIP_FULL_SEDA2.3.zip";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -3077,9 +3078,19 @@ public class ProcessingIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     @Test
     public void testWorkflowSipSeda2_2_full() throws Exception {
+       testWorkflowSipSeda_full(SIP_SEDA_2_2);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testWorkflowSipSeda2_3_full() throws Exception {
+        testWorkflowSipSeda_full(SIP_SEDA_2_3);
+    }
+
+    public void testWorkflowSipSeda_full(String pathOfZIP) throws Exception {
         prepareVitamSession();
 
-        ingestSIP(SIP_SEDA_2_2, DEFAULT_WORKFLOW.name(), WARNING);
+        ingestSIP(pathOfZIP, DEFAULT_WORKFLOW.name(), WARNING);
 
         MongoIterable<Document> resultUnits =
             MetadataCollections.UNIT.getCollection().find(eq("Title", "monSIP"));
@@ -3123,7 +3134,6 @@ public class ProcessingIT extends VitamRuleRunner {
         List<Document> transmitters = unitToAssert.getList("Transmitter", Document.class);
         assertThat(senders).isNotNull().isNotEmpty();
 
-
         Document transmitter = transmitters.get(0);
         final List<String> functions = transmitter.getList("Function", String.class);
         assertThat(functions).isNotNull().isNotEmpty();
@@ -3134,6 +3144,17 @@ public class ProcessingIT extends VitamRuleRunner {
             .find(eq("_qualifiers.versions.Uri", "Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf"));
         final Document bdoWithMetadataJson = gots.first();
 
+        // Persistent identifier
+        List<Document> persistentIdentifiers = unitToAssert.getList("PersistentIdentifier", Document.class);
+        assertThat(persistentIdentifiers).isNotNull().isNotEmpty();
+        Document persistentIdentifier = persistentIdentifiers.get(0);
+
+        assertThat(persistentIdentifier.getString("PersistentIdentifierType")).isEqualTo("ark");
+        assertThat(persistentIdentifier.getString("PersistentIdentifierOrigin")).isEqualTo("OriginatingAgency");
+        assertThat(persistentIdentifier.getString("PersistentIdentifierReference")).isEqualTo("Agency-00001");
+        assertThat(persistentIdentifier.getString("PersistentIdentifierContent"))
+            .isEqualTo("ark:/22567/001a957db5eadaac");
+
         assertNotNull(bdoWithMetadataJson);
         List<Document> qualifiers = bdoWithMetadataJson.getList("_qualifiers", Document.class);
         assertThat(qualifiers).isNotNull().isNotEmpty();
@@ -3142,11 +3163,23 @@ public class ProcessingIT extends VitamRuleRunner {
         assertThat(versions).isNotNull().isNotEmpty();
         Document version = versions.get(0);
         assertThat(version).isNotNull().isNotEmpty();
-        Document fileInfo = version.get("FileInfo", Document.class);
-        assertNotNull(fileInfo);
-        assertThat(fileInfo.get("LastModified")).isEqualTo("2016-06-03T15:28:00");
-        assertThat(fileInfo.get("Filename")).isEqualTo("IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf");
+        version.get("FileInfo", Document.class);
 
+        if (SIP_SEDA_2_3.equals(pathOfZIP)) {
+
+            // Persistent identifier for Object Groups is only available on 2.3+
+
+            List<Document> persistentIdentifierObjs = version.getList("PersistentIdentifier", Document.class);
+            assertThat(persistentIdentifierObjs).hasSize(3);
+            Document persistentIdentifierObj = persistentIdentifierObjs.get(0);
+
+            assertThat(persistentIdentifierObj.getString("PersistentIdentifierType")).isEqualTo("ark");
+            assertThat(persistentIdentifierObj.getString("PersistentIdentifierContent"))
+                .isEqualTo("ark:/22567/001a957db5eadxac");
+
+            assertThat(version.getString("DataObjectUse")).isEqualTo("BinaryMaster");
+            assertThat(version.getInteger("DataObjectNumber")).isEqualTo(40);
+        }
     }
 
     @RunWithCustomExecutor

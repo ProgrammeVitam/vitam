@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.mapping;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import fr.gouv.vitam.common.model.unit.PersistentIdentifierModel;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -117,5 +118,26 @@ public class DescriptiveMetadataMapperTest {
             .hasSize(1)
             .extracting("lang", "value")
             .contains(tuple("fr", "description"));
+    }
+
+    @Test
+    public void should_fill_persitents_identifiers_when_persitents_identifier_present() {
+        // Given
+        DescriptiveMetadataContentType metadataContentType = new DescriptiveMetadataContentType();
+        PersistentIdentifierModel persistentIdentifierModel = new PersistentIdentifierModel();
+        persistentIdentifierModel.setPersistentIdentifierType("ark");
+        persistentIdentifierModel.setPersistentIdentifierOrigin("OriginatingAgency");
+        persistentIdentifierModel.setPersistentIdentifierReference("originatingAgency1");
+        persistentIdentifierModel.setPersistentIdentifierContent("ark://ark-id");
+        metadataContentType.getPersistentIdentifier().add(persistentIdentifierModel);
+
+        // When
+        DescriptiveMetadataModel descriptiveMetadataModel = descriptiveMetadataMapper.map(metadataContentType);
+
+        // Then
+        assertThat(descriptiveMetadataModel.getPersistentIdentifier()).isNotNull();
+        assertThat(descriptiveMetadataModel.getPersistentIdentifier()).hasSize(1);
+        assertThat(
+            descriptiveMetadataModel.getPersistentIdentifier().get(0)).isEqualToComparingFieldByField(persistentIdentifierModel);
     }
 }

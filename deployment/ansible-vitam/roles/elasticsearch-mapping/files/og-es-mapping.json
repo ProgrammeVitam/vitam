@@ -260,6 +260,28 @@
                   "type": "keyword"
                 }
               }
+            },
+            "PersistentIdentifier": {
+              "properties": {
+                "PersistentIdentifierType": {
+                  "type": "keyword"
+                },
+                "PersistentIdentifierOrigin": {
+                  "type": "keyword"
+                },
+                "PersistentIdentifierReference": {
+                  "type": "keyword"
+                },
+                "PersistentIdentifierContent": {
+                  "type": "keyword"
+                }
+              }
+            },
+            "DataObjectUse": {
+              "type": "keyword"
+            },
+            "DataObjectNumber": {
+              "type": "long"
             }
           }
         }

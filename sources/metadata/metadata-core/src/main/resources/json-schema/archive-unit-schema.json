@@ -68,6 +68,28 @@
         ]
       }
     },
+    "persistent-id-type": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "PersistentIdentifierType": {
+          "$ref": "#/definitions/non-empty-token"
+        },
+        "PersistentIdentifierOrigin": {
+          "$ref": "#/definitions/non-empty-token"
+        },
+        "PersistentIdentifierReference": {
+          "$ref": "#/definitions/non-empty-token"
+        },
+        "PersistentIdentifierContent": {
+          "$ref": "#/definitions/non-empty-token"
+        }
+      },
+      "required": [
+        "PersistentIdentifierType",
+        "PersistentIdentifierContent"
+      ]
+    },
     "linking-agent-identifier-type": {
       "additionalProperties": false,
       "type": "object",
@@ -1060,6 +1082,12 @@
     },
     "OriginatingSystemIdReplyTo": {
       "type": "string"
+    },
+    "PersistentIdentifier": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/persistent-id-type"
+      }
     }
   },
   "required": [

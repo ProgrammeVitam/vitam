@@ -81,6 +81,22 @@
       "type": "date",
       "format": "strict_date_optional_time"
     },
+    "PersistentIdentifier": {
+      "properties": {
+        "PersistentIdentifierType": {
+          "type": "keyword"
+        },
+        "PersistentIdentifierOrigin": {
+          "type": "keyword"
+        },
+        "PersistentIdentifierReference": {
+          "type": "keyword"
+        },
+        "PersistentIdentifierContent": {
+          "type": "keyword"
+        }
+      }
+    },
     "Event": {
       "properties": {
         "evId": {

@@ -105,12 +105,6 @@
         </xsd:annotation>
         <xsd:restriction base="NonEmptyTokenType"/>
     </xsd:simpleType>
-    <!--<xsd:simpleType name="UseIdType">
-        <xsd:annotation>
-            <xsd:documentation>Identifiant utilisé pour référencer les usages.</xsd:documentation>
-        </xsd:annotation>
-        <xsd:restriction base="NonEmptyTokenType"/>
-    </xsd:simpleType>-->
 
     <!-- Paquet d'Objets-données 
     <xsd:group name="DataObjectVersionGroup">
@@ -166,17 +160,29 @@
                     <xsd:documentation>Version d’un objet-données (par exemple : original papier, conservation, diffusion, vignette, txt, …).</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <!--<xsd:element name="DataObjectUse" type="UseIdType" minOccurs="0">
+            <xsd:group ref="PersistentIdentifierGroup" minOccurs="0"/>
+            <xsd:element name="DataObjectUse" type="NonEmptyTokenType" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>Version d’un objet-données (par exemple : original papier, conservation, diffusion, vignette, txt, …).</xsd:documentation>
+                    <xsd:documentation>Usage d’un objet donné (par exemple : original papier, conservation, diffusion, vignette, txt, …).</xsd:documentation>
                 </xsd:annotation>
-            </xsd:element>-->
+            </xsd:element>
+            <xsd:element name="DataObjectNumber" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Version d'un objet donné pour un usage donné</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="DataObjectIdType" use="required">
             <xsd:annotation>
                 <xsd:documentation>Identifiant de l'objet-données associé.</xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+    </xsd:complexType>
+    
+    <!-- Données liées -->
+    <xsd:complexType name="RelationshipType">
+        <xsd:attribute name="target" type="xsd:IDREF" use="required"/>
+        <xsd:attribute name="type" type="NonEmptyTokenType" use="required"/>
     </xsd:complexType>
     
     <xsd:group name="MinimalBinaryDataObjectGroup">
@@ -200,6 +206,16 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
+    
+    <!-- Contenu de données binaire -->
+    <xsd:complexType name="BinaryObjectType"> 
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:base64Binary">
+                <xsd:attribute name="filename" type="xsd:string" use="optional"/>
+                <xsd:attribute name="uri" type="xsd:anyURI" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType> 
 
     <!-- Objet de donnees numérique -->
     <xsd:complexType name="BinaryDataObjectType">
@@ -232,6 +248,9 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
+    
+    
+    
     <xsd:complexType name="CompressedType">
         <xsd:simpleContent>
             <xsd:extension base="xsd:string">

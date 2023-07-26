@@ -46,6 +46,7 @@
             <xsd:group ref="GpsGroup"/>
             <xsd:group ref="OriginatingSystemIdReplyToGroup"/>
             <xsd:group ref="TextContentGroup"/>
+            <xsd:group ref="PersistentIdentifierGroup"/>
         </xsd:sequence>
     </xsd:group>
 
@@ -664,7 +665,7 @@
             </xsd:element>
             <xsd:element ref="EventAbstract" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
-                    <xsd:documentation>Permet d'étendre de nouveaux types d'évènements.</xsd:documentation>
+                    <xsd:documentation>Permet d'étendre de nouveaux types d'évenéments.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -812,7 +813,7 @@
         </xsd:sequence>
     </xsd:group>
    
-    <!-- Pour ajouter des extensions d'agents -->
+    <!-- Pour ajouter des agents génériques -->
     <xsd:group name="AgentGroup">
         <xsd:sequence>
             <xsd:element name="Agent" type="AgentType" minOccurs="0" maxOccurs="unbounded">
@@ -833,6 +834,46 @@
         </xsd:sequence>
     </xsd:complexType>
     
+    <!-- Les identifiants pérennes -->
+    <xsd:group name="PersistentIdentifierGroup">
+        <xsd:sequence>
+            <xsd:element name="PersistentIdentifier" type="PersistentIdType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Identifiants pérennes.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+
+    <!-- Persistent identifier Type-->
+    <xsd:complexType name="PersistentIdType">
+        <xsd:annotation>
+            <xsd:documentation>Informations décrivant un identifiant pérenne.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="PersistentIdentifierType" type="NonEmptyTokenType">
+                <xsd:annotation>
+                    <xsd:documentation>Type d'identifiant pérenne.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PersistentIdentifierOrigin" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>origine d'identifiant pérenne.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PersistentIdentifierReference" type="NonEmptyTokenType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Référence d'identifiant pérenne.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="PersistentIdentifierContent" type="NonEmptyTokenType">
+                <xsd:annotation>
+                    <xsd:documentation>valeur de l'identifiant pérenne.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <!-- Person or Entity description -->
     <xsd:group name="PersonOrEntityGroup">
         <xsd:sequence>
@@ -1045,7 +1086,7 @@
         <xsd:sequence>
             <xsd:element name="OriginatingSystemIdReplyTo" type="NonEmptyTokenType" minOccurs="0">
                 <xsd:annotation>
-                    <xsd:documentation>Réponse au système émetteur d'un message électronique.</xsd:documentation>
+                    <xsd:documentation>Référence du message auquel on répond.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -1059,5 +1100,4 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
-
 </xsd:schema>

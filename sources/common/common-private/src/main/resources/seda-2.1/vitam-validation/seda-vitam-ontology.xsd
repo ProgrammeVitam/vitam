@@ -779,9 +779,9 @@
         </xsd:sequence>
     </xsd:group>
    
-    <!-- Pour ajouter des extensions d'agents -->
+    <!-- Pour ajouter des agents génériques -->
     <xsd:group name="AgentGroup">
-      <!--Redefined by vitam-->
+        <!--Redefined by vitam-->
         <xsd:sequence>
             <xsd:element name="Agent" type="AgentType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>

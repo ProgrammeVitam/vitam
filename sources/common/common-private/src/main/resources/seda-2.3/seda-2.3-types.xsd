@@ -193,22 +193,6 @@
  
         -->
     
-    <!-- Contenu de données binaire -->
-    <xsd:complexType name="BinaryObjectType"> 
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:base64Binary">
-                <xsd:attribute name="filename" type="xsd:string" use="optional"/>
-                <xsd:attribute name="uri" type="xsd:anyURI" use="optional"/>
-            </xsd:extension>
-        </xsd:simpleContent>
-    </xsd:complexType> 
-    
-    <!-- Données liées -->
-    <xsd:complexType name="RelationshipType">
-        <xsd:attribute name="target" type="xsd:IDREF" use="required"/>
-        <xsd:attribute name="type" type="NonEmptyTokenType" use="required"/>
-    </xsd:complexType>
-    
     <!-- Organisation -->
     <xsd:complexType name="OrganizationType">
         <xsd:sequence>
@@ -252,7 +236,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <!-- In CoreMetadataType from seda-2.2-technical.xsd: Technical Metadata Content -->
+    <!-- In CoreMetadataType from seda-2.3-technical.xsd: Technical Metadata Content -->
     <xsd:complexType name="TextTechnicalMetadataType">
         <xsd:annotation>
             <xsd:documentation>Contient toutes les métadonnées techniques de base pour les objets-données de type texte(XML, JSON, CSV, ...).</xsd:documentation>
@@ -315,14 +299,14 @@
         </xsd:annotation>
     </xsd:element>
     
-    <!-- In PhysicalTechnicalDescriptionGroup from seda-2.2-technical.xsd: extra dimension techncal description for PhysicalDataObject -->
+    <!-- In PhysicalTechnicalDescriptionGroup from seda-2.3-technical.xsd: extra dimension techncal description for PhysicalDataObject -->
     <xsd:element name="OtherDimensionsAbstract" abstract="true">
         <xsd:annotation>
             <xsd:documentation>Permet d'étendre &lt;OtherDimensions&gt; avec d'autres métadonnées de description des objets-données physiques.</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     
-    <!-- In CoreMetadataType from seda-2.2-technical.xsd: extra Core TechnicalMetadata (Database, 3D, plan, ...) -->
+    <!-- In CoreMetadataType from seda-2.3-technical.xsd: extra Core TechnicalMetadata (Database, 3D, plan, ...) -->
     <xsd:element name="OtherCoreTechnicalMetadataAbstract" abstract="true" type="OpenType">
         <xsd:annotation>
             <xsd:documentation>Contient toutes les métadonnées techniques de base pour d'autres types.</xsd:documentation>
@@ -337,21 +321,21 @@
         </xsd:annotation>
     </xsd:element>
     
-    <!-- In ManagementGroup from seda-2.2-management.xsd: for Management extension -->
+    <!-- In ManagementGroup from seda-2.3-management.xsd: for Management extension -->
     <xsd:element name="OtherManagementAbstract" abstract="true">
         <xsd:annotation>
             <xsd:documentation>Utilisé par exemple pour manipuler un ArchiveUnit déjà existant dans le système d'archivage électronique.</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     
-    <!-- In CodeListVersionsType from seda-2.2-main.xsd: If needed, extra CodeList could be added -->
+    <!-- In CodeListVersionsType from seda-2.3-main.xsd: If needed, extra CodeList could be added -->
     <xsd:element name="OtherCodeListAbstract" abstract="true" type="CodeType">
         <xsd:annotation>
             <xsd:documentation>Permet d'ajouter de nouvelles listes de codes si l'ajout d'autres métadonnées l'impose.</xsd:documentation>
         </xsd:annotation>
     </xsd:element>
     
-    <!-- In EventGroup from seda-2.2-ontology.xsd: If needed, extra event could be added -->
+    <!-- In EventGroup from seda-2.3-ontology.xsd: If needed, extra event could be added -->
     <xsd:element name="EventAbstract" abstract="true">
         <xsd:annotation>
             <xsd:documentation>Permet d'ajouter de nouveau types d'événements dans l'ontologie.</xsd:documentation>

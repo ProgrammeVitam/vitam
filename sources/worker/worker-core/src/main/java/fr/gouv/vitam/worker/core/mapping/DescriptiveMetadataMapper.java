@@ -82,7 +82,9 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel.setAcquiredDate(
             LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getAcquiredDate()));
         descriptiveMetadataModel.setAddressee(metadataContentType.getAddressee());
-
+        if (metadataContentType.getPersistentIdentifier() != null) {
+            descriptiveMetadataModel.setPersistentIdentifier(metadataContentType.getPersistentIdentifier());
+        }
         descriptiveMetadataModel.setAny(ElementMapper.toMap(metadataContentType.getAny()));
         descriptiveMetadataModel
             .setArchivalAgencyArchiveUnitIdentifier(metadataContentType.getArchivalAgencyArchiveUnitIdentifier());

@@ -88,7 +88,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <!-- In ArchiveUnitType fseda-vitam-descriptive.xsd.xsd: Descriptive Metadata Content -->
+    <!-- In ArchiveUnitType from seda-vitam-descriptive.xsd: Descriptive Metadata Content -->
     <xsd:complexType name="DescriptiveMetadataContentType">
         <xsd:annotation>
             <xsd:documentation>Permet de définir les métadonnées de description. Peut être étendu.</xsd:documentation>

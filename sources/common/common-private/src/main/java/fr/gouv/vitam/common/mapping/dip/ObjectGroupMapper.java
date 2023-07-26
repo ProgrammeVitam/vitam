@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.model.objectgroup.FileInfoModel;
 import fr.gouv.vitam.common.model.objectgroup.FormatIdentificationModel;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
+import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +49,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import java.math.BigInteger;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Mapper that map ObjectGroupResponse(POJO Dslquery response) to a DataObjectPackage (JAXB elements)
@@ -88,10 +90,16 @@ public class ObjectGroupMapper {
                 } else {
                     minimalDataObjectType = mapBinaryDataObject(version);
                 }
-
+                minimalDataObjectType.setDataObjectUse(version.getDataObjectUse());
+                minimalDataObjectType.setDataObjectNumber(version.getDataObjectNumber());
+                if (version.getPersistentIdentifier() != null) {
+                    minimalDataObjectType.getPersistentIdentifier()
+                        .addAll(version.getPersistentIdentifier().stream().map(
+                            persistentIdentifierModel -> mapPersistentIdentifiers(persistentIdentifierModel)
+                        ).collect(Collectors.toList()));
+                }
                 dataObjectGroup.getBinaryDataObjectOrPhysicalDataObject()
                     .add(minimalDataObjectType);
-
             }
 
             dataObjectPackageType.getDataObjectGroupOrBinaryDataObjectOrPhysicalDataObject()
@@ -206,5 +214,20 @@ public class ObjectGroupMapper {
             identifierType.setValue(version.getDataObjectProfile());
             minimalDataObjectType.setDataObjectProfile(identifierType);
         }
+    }
+
+    private fr.gouv.vitam.common.model.unit.PersistentIdentifierModel mapPersistentIdentifiers(
+        PersistentIdentifierModel identifierModel) {
+        if (identifierModel == null)
+            return null;
+        final fr.gouv.vitam.common.model.unit.PersistentIdentifierModel persistentIdentifierModelUnit =
+            new fr.gouv.vitam.common.model.unit.PersistentIdentifierModel();
+        persistentIdentifierModelUnit.setPersistentIdentifierOrigin(identifierModel.getPersistentIdentifierOrigin());
+        persistentIdentifierModelUnit.setPersistentIdentifierReference(
+            identifierModel.getPersistentIdentifierReference());
+        persistentIdentifierModelUnit.setPersistentIdentifierContent(identifierModel.getPersistentIdentifierContent());
+        persistentIdentifierModelUnit.setPersistentIdentifierType(identifierModel.getPersistentIdentifierType());
+
+        return persistentIdentifierModelUnit;
     }
 }

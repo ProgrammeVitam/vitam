@@ -480,6 +480,48 @@
     "cardinality": "one"
   },
   {
+    "path": "_qualifiers.versions.PersistentIdentifier",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "_qualifiers.versions.PersistentIdentifier.PersistentIdentifierType",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PersistentIdentifier.PersistentIdentifierOrigin",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PersistentIdentifier.PersistentIdentifierReference",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.PersistentIdentifier.PersistentIdentifierContent",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.DataObjectUse",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "_qualifiers.versions.DataObjectNumber",
+    "type": "signed_long",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_sp",
     "type": "keyword",
     "indexed": true,
