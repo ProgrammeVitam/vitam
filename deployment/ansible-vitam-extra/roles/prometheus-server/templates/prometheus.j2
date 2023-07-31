@@ -1,4 +1,4 @@
-PROMETHEUS_OPTS='--web.listen-address={{ ip_admin }}:{{ prometheus.server.port | default(9090) }} --web.external-url=http://{{ ip_admin }}:{{ prometheus.server.port | default(9090) }}/prometheus --config.file=/vitam/conf/prometheus/prometheus.yml --storage.tsdb.path=/vitam/data/prometheus --storage.tsdb.retention.time={{ prometheus.server.tsdb_retention_time | default("7d") }} --storage.tsdb.retention.size={{ prometheus.server.tsdb_retention_size | default("5GB") }}'
+PROMETHEUS_OPTS='--web.listen-address={{ prometheus.server.listen_address |default(ip_admin) }}:{{ prometheus.server.port | default(9090) }} --web.external-url=http://{{ prometheus.server.external_url |default(ip_admin) }}:{{ prometheus.server.port | default(9090) }}/prometheus --config.file=/vitam/conf/prometheus/prometheus.yml --storage.tsdb.path=/vitam/data/prometheus --storage.tsdb.retention.time={{ prometheus.server.tsdb_retention_time | default("7d") }} --storage.tsdb.retention.size={{ prometheus.server.tsdb_retention_size | default("5GB") }}'
 # Following params can be added
 # --web.enable-admin-api
 # --web.page-title
