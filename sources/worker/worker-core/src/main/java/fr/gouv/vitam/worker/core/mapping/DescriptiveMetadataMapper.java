@@ -28,22 +28,26 @@ package fr.gouv.vitam.worker.core.mapping;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ExtendedType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LinkingAgentIdentifierType;
-import fr.gouv.culture.archivesdefrance.seda.v2.MessageDigestBinaryObjectType;
-import fr.gouv.culture.archivesdefrance.seda.v2.ReferencedObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.SignatureType;
+import fr.gouv.culture.archivesdefrance.seda.v2.SigningInformationType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.culture.archivesdefrance.seda.v2.TimestampingInformationType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.mapping.mapper.ElementMapper;
+import fr.gouv.vitam.common.model.unit.AdditionalProofType;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.EventTypeModel;
 import fr.gouv.vitam.common.model.unit.LinkingAgentIdentifierTypeModel;
-import fr.gouv.vitam.common.model.unit.ReferencedObjectTypeModel;
+import fr.gouv.vitam.common.model.unit.SignatureInformationExtendedModel;
 import fr.gouv.vitam.common.model.unit.SignatureTypeModel;
-import fr.gouv.vitam.common.model.unit.SignedObjectDigestModel;
+import fr.gouv.vitam.common.model.unit.SigningInformationTypeModel;
+import fr.gouv.vitam.common.model.unit.SigningRoleType;
 import fr.gouv.vitam.common.model.unit.TextByLang;
+import fr.gouv.vitam.common.model.unit.TimestampingInformationTypeModel;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -135,7 +139,8 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel
             .setSentDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getSentDate()));
 
-        descriptiveMetadataModel.setSignature(mapSignatures(metadataContentType.getSignature()));
+        descriptiveMetadataModel.setSigningInformation(
+            mapSigningInformation(metadataContentType.getSigningInformation()));
 
         descriptiveMetadataModel.setSource(metadataContentType.getSource());
         descriptiveMetadataModel
@@ -177,11 +182,47 @@ public class DescriptiveMetadataMapper {
         return descriptiveMetadataModel;
     }
 
-    private List<SignatureTypeModel> mapSignatures(List<SignatureType> signatures) {
-        if (signatures == null) {
+    private SigningInformationTypeModel mapSigningInformation(SigningInformationType signingInformation) {
+        if (signingInformation == null) {
             return null;
         }
-        return signatures.stream()
+        return new SigningInformationTypeModel()
+            .setSigningRole(mapSignatureRole(signingInformation.getSigningRole()))
+            .setDetachedSigningRole(mapSignatureRole(signingInformation.getDetachedSigningRole()))
+            .setSignature(mapSignatures(signingInformation.getSignature()))
+            .setTimestampingInformation(mapTimestampingInformation(signingInformation.getTimestampingInformation()))
+            .setAdditionalProof(mapAdditionalProof(signingInformation.getAdditionalProof()))
+            .setExtended(mapExtendedParams(signingInformation.getExtended()));
+    }
+
+    private List<SigningRoleType> mapSignatureRole(
+        List<fr.gouv.culture.archivesdefrance.seda.v2.SigningRoleType> signingRole) {
+        if (signingRole == null) {
+            return null;
+        }
+        return signingRole.stream()
+            .map(role -> {
+                switch (role) {
+                    case SIGNED_DOCUMENT:
+                        return SigningRoleType.SIGNED_DOCUMENT;
+                    case TIMESTAMP:
+                        return SigningRoleType.TIMESTAMP;
+                    case SIGNATURE:
+                        return SigningRoleType.SIGNATURE;
+                    case ADDITIONAL_PROOF:
+                        return SigningRoleType.ADDITIONAL_PROOF;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + role);
+                }
+            })
+            .collect(Collectors.toList());
+    }
+
+    private List<SignatureTypeModel> mapSignatures(List<SignatureType> signature) {
+        if (signature == null) {
+            return null;
+        }
+        return signature.stream()
             .map(this::mapSignature)
             .collect(Collectors.toList());
     }
@@ -190,27 +231,43 @@ public class DescriptiveMetadataMapper {
         return new SignatureTypeModel()
             .setSigner(signatureType.getSigner())
             .setValidator(signatureType.getValidator())
-            .setReferencedObject(mapReferencedObject(signatureType.getReferencedObject()))
-            // Not supported in R11
-            .setMasterdata(signatureType.getMasterdata());
+            .setSigningType(signatureType.getSigningType());
     }
 
-    private ReferencedObjectTypeModel mapReferencedObject(ReferencedObjectType referencedObject) {
-        if (referencedObject == null) {
+    private List<TimestampingInformationTypeModel> mapTimestampingInformation(
+        List<TimestampingInformationType> timestampingInformation) {
+        if (timestampingInformation == null) {
             return null;
         }
-        return new ReferencedObjectTypeModel()
-            .setSignedObjectId(referencedObject.getSignedObjectId())
-            .setSignedObjectDigest(mapSignedObjectDigest(referencedObject.getSignedObjectDigest()));
+        return timestampingInformation.stream()
+            .map(timestampingInfo -> new TimestampingInformationTypeModel()
+                .setTimeStamp(
+                    timestampingInfo.getTimeStamp() == null ? null : timestampingInfo.getTimeStamp().toString())
+                .setAdditionalTimestampingInformation(timestampingInfo.getAdditionalTimestampingInformation())
+            ).collect(Collectors.toList());
     }
 
-    private SignedObjectDigestModel mapSignedObjectDigest(MessageDigestBinaryObjectType signedMessageDigest) {
-        if (signedMessageDigest == null) {
+    private List<AdditionalProofType> mapAdditionalProof(
+        List<fr.gouv.culture.archivesdefrance.seda.v2.AdditionalProofType> additionalProofs) {
+        if (additionalProofs == null) {
             return null;
         }
-        return new SignedObjectDigestModel()
-            .setAlgorithm(signedMessageDigest.getAlgorithm())
-            .setValue(signedMessageDigest.getValue());
+        return additionalProofs.stream()
+            .map(additionalProof ->
+                new AdditionalProofType()
+                    .setAdditionalProofInformation(additionalProof.getAdditionalProofInformation()))
+            .collect(Collectors.toList());
+    }
+
+    private SignatureInformationExtendedModel mapExtendedParams(ExtendedType extended) {
+        if (extended == null || extended.getAny().isEmpty()) {
+            return null;
+        }
+        SignatureInformationExtendedModel extendedModel = new SignatureInformationExtendedModel();
+        ElementMapper
+            .toMap(extended.getAny())
+            .forEach(extendedModel::setAny);
+        return extendedModel;
     }
 
     private List<EventTypeModel> mapEvents(List<EventType> eventTypes) {
@@ -232,7 +289,6 @@ public class DescriptiveMetadataMapper {
             .setOutcomeDetailMessage(event.getOutcomeDetailMessage())
             .setLinkingAgentIdentifier(event.getLinkingAgentIdentifier().stream().map(this::mapLinkingAgentIdentifier)
                 .collect(Collectors.toList()));
-
     }
 
     private LinkingAgentIdentifierTypeModel mapLinkingAgentIdentifier(

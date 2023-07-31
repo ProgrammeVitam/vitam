@@ -24,31 +24,21 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.model.validation;
+package fr.gouv.vitam.common.model.unit;
 
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import org.junit.Ignore;
-import org.junit.Test;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class LogbookModelValidationTest {
+public enum SigningRoleType {
 
-    @Test
-    @Ignore
-    public void testLogbookOperationElasticsearchMapping() throws Exception {
-        ModelValidatorUtils.validateDataModel(
-            LogbookOperation.class.getResourceAsStream(LogbookElasticsearchAccess.MAPPING_LOGBOOK_OPERATION_FILE),
-            LogbookCollections.OPERATION.getVitamCollection());
-    }
+    @JsonProperty("SignedDocument")
+    SIGNED_DOCUMENT,
 
-    @Test
-    public void testLogbookLifecycleObjectGroupElasticsearchMapping() throws Exception {
-        ModelValidatorUtils.validateDataModel(LogbookCollections.LIFECYCLE_OBJECTGROUP.getVitamCollection());
-    }
+    @JsonProperty("Timestamp")
+    TIMESTAMP,
 
-    @Test
-    public void testLogbookLifecycleUnitElasticsearchMapping() throws Exception {
-        ModelValidatorUtils.validateDataModel(LogbookCollections.LIFECYCLE_UNIT.getVitamCollection());
-    }
+    @JsonProperty("Signature")
+    SIGNATURE,
+
+    @JsonProperty("AdditionalProof")
+    ADDITIONAL_PROOF
 }

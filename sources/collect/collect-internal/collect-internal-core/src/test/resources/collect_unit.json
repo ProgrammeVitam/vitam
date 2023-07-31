@@ -81,27 +81,136 @@
     "evId": "ID01",
     "evDateTime": "1915-06-12T09:31:00"
   }],
-  "Signature": [{
-    "Signer": [{
-      "Corpname": "Service d'archives 2",
-      "SigningTime": "2017-11-13T19:28:40"
-    }, {
-      "FirstName": "FirstName just test for AFE SEDA 2.1",
-      "SigningTime": "2017-11-13T19:28:40"
-    }],
-    "Validator": {
-      "FirstName": "Laurent",
-      "BirthName": "Dupois",
-      "ValidationTime": "2016-10-12T16:28:40"
-    },
-    "ReferencedObject": {
-      "SignedObjectDigest": {
-        "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
-        "Algorithm": "SHA-512"
-      },
-      "SignedObjectId": "ID123"
+  "SigningInformation": {
+    "SigningRole": [
+      "SignedDocument",
+      "Signature"
+    ],
+    "DetachedSigningRole": [
+      "Timestamp"
+    ],
+    "Signature": [
+      {
+        "Signer": {
+          "BirthPlace": {
+            "Geogname": "xhy",
+            "Address": "dbs",
+            "PostalCode": "bwlsq",
+            "Region": "ainuokn",
+            "Country": "apifkaf",
+            "City": "aoy"
+          },
+          "Position": [
+            "dqnh",
+            "phhn"
+          ],
+          "FirstName": "lro",
+          "GivenName": "odlqley",
+          "Activity": [
+            " oigtxc"
+          ],
+          "Mandate": [
+            "flr",
+            "yqfl"
+          ],
+          "Gender": "mqntkl",
+          "DeathPlace": {
+            "Geogname": "vmbagrx",
+            "Address": "vjl",
+            "PostalCode": "sjrmtv",
+            "Region": "pnncol",
+            "Country": "ssa ",
+            "City": "dumrb"
+          },
+          "DeathDate": "2016-05-05T20:45:20",
+          "Nationality": [
+            "epkcnl"
+          ],
+          "Role": [
+            "smob"
+          ],
+          "Function": [
+            "adlvj",
+            "yfdyjuw"
+          ],
+          "Identifier": [
+            "xym",
+            "bkkxwps"
+          ],
+          "FullName": "eprutjd",
+          "SigningTime": "2016-05-05T20:45:20",
+          "BirthName": "llw uu",
+          "Corpname": "gobyv j",
+          "BirthDate": "2016-05-05T20:45:20"
+        },
+        "Validator": {
+          "BirthPlace": {
+            "Geogname": "oulxy",
+            "Address": "ywt rj",
+            "PostalCode": "vsykz",
+            "Region": "gopqbev",
+            "Country": "oucd",
+            "City": "mgmopy"
+          },
+          "Position": [
+            "dhtzfl"
+          ],
+          "FirstName": "jpuqe",
+          "GivenName": "ioe",
+          "Activity": [
+            "hxegvyc"
+          ],
+          "Mandate": [
+            "phk",
+            "ru mn"
+          ],
+          "Gender": "gqo",
+          "DeathPlace": {
+            "Geogname": "z bk",
+            "Address": "tmubjm",
+            "PostalCode": "hxyy",
+            "Region": "jcbxd",
+            "Country": "yuabo",
+            "City": "tywf"
+          },
+          "DeathDate": "2016-05-05T20:45:20",
+          "Nationality": [
+            "ohcvck",
+            "cytwr"
+          ],
+          "Role": [
+            " ttgnc",
+            "exn"
+          ],
+          "Function": [
+            "zfyjfs"
+          ],
+          "Identifier": [
+            "agl",
+            "vplvu"
+          ],
+          "FullName": "uxlis",
+          "ValidationTime": "2016-05-05T20:45:20",
+          "BirthName": "yrijiwn",
+          "Corpname": "vnvl",
+          "BirthDate": "2016-05-05T20:45:20"
+        }
+      }
+    ],
+    "Extended": {
+      "ExtraField1": [
+        "Val1",
+        "Val2"
+      ],
+      "ExtraField2": [
+        {
+          "SubField2": [
+            "Val3"
+          ]
+        }
+      ]
     }
-  }],
+  },
   "Gps": {
     "GpsLatitude": "49.4769199",
     "GpsLongitude": "3.4417368"

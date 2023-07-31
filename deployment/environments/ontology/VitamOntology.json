@@ -745,19 +745,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Algorithme",
     "Collections": [
-      "Unit",
       "ObjectGroup"
-    ]
-  },
-  {
-    "Identifier": "SignedObjectId",
-    "SedaField": "SignedObjectId",
-    "Description": "Mapping : unit-es-mapping.json. Identifiant de l'objet-données signé.",
-    "Type": "KEYWORD",
-    "Origin": "INTERNAL",
-    "ShortName": "Identifiant",
-    "Collections": [
-      "Unit"
     ]
   },
   {
@@ -1544,7 +1532,6 @@
     "Origin": "INTERNAL",
     "ShortName": "Empreinte",
     "Collections": [
-      "Unit",
       "ObjectGroup"
     ]
   },
@@ -3432,6 +3419,78 @@
     "ShortName": "PersistentIdentifierAuthority",
     "Collections": [
       "ManagementContract"
+    ]
+  },
+  {
+    "Identifier": "SigningRole",
+    "ApiField": "SigningRole",
+    "SedaField": "SigningRole",
+    "Description": "Mapping : unit-es-mapping.json. Rôle de l'unité d'archives dans un contexte de signature. Quatre rôles (étiquettes) ont été identifiés : document signé, signature, horodatage et preuves complémentaires.",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "SigningRole",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "DetachedSigningRole",
+    "ApiField": "DetachedSigningRole",
+    "SedaField": "DetachedSigningRole",
+    "Description": "Mapping : unit-es-mapping.json. Référence aux rôles des unités d'archives encapsulées sous la racine contenant le document signé.",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "DetachedSigningRole",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "SigningType",
+    "ApiField": "SigningType",
+    "SedaField": "SigningType",
+    "Description": "Mapping : unit-es-mapping.json. Type de signature, au sens juridique du terme. Par exemple, simple, avancée, qualifiée.",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "SigningType",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "TimeStamp",
+    "ApiField": "TimeStamp",
+    "SedaField": "TimeStamp",
+    "Description": "Mapping : unit-es-mapping.json. Horodatage de la signature",
+    "Type": "DATE",
+    "Origin": "INTERNAL",
+    "ShortName": "TimeStamp",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "AdditionalTimestampingInformation",
+    "ApiField": "AdditionalTimestampingInformation",
+    "SedaField": "AdditionalTimestampingInformation",
+    "Description": "Mapping : unit-es-mapping.json. Informations complémentaires sur l'horodatage d'une signature",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "AdditionalTimestampingInformation",
+    "Collections": [
+      "Unit"
+    ]
+  },
+  {
+    "Identifier": "AdditionalProofInformation",
+    "ApiField": "AdditionalProofInformation",
+    "SedaField": "AdditionalProofInformation",
+    "Description": "Mapping : unit-es-mapping.json. Informations relatives aux preuves complémentaires archivées dans un contexte de signature.",
+    "Type": "TEXT",
+    "Origin": "INTERNAL",
+    "ShortName": "AdditionalProofInformation",
+    "Collections": [
+      "Unit"
     ]
   }
 ]

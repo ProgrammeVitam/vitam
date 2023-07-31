@@ -240,27 +240,96 @@
                         <OutcomeDetailMessage>OutcomeDetailMessage_content0</OutcomeDetailMessage>
                         <EventDetailData>EventDetailData_content0</EventDetailData>
                     </Event>
-                    <Signature>
-                        <Signer>
-                            <BirthName>Henry</BirthName>
-                            <SigningTime>2016-06-03T15:28:00</SigningTime>
-                        </Signer>
-                        <Signer>
-                            <Nationality>Monaco</Nationality>
-                            <SigningTime>2016-06-03T15:28:00</SigningTime>
-                        </Signer>
-                        <Validator>
-                            <FirstName>ValidatorFirstName</FirstName>
-                            <FullName>ValidatorFullName</FullName>
-                            <ValidationTime>2016-06-03T15:28:00</ValidationTime>
-                        </Validator>
-                        <ReferencedObject>
-                            <SignedObjectId>ID17</SignedObjectId>
-                            <SignedObjectDigest algorithm="SHA-512">
-                                942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7
-                            </SignedObjectDigest>
-                        </ReferencedObject>
-                    </Signature>
+                    <SigningInformation>
+                        <SigningRole>SignedDocument</SigningRole>
+                        <SigningRole>Signature</SigningRole>
+                        <SigningRole>Timestamp</SigningRole>
+                        <DetachedSigningRole>AdditionalProof</DetachedSigningRole>
+                        <Signature>
+                            <Signer>
+                                <FirstName>Fulgence Marie Auguste</FirstName>
+                                <BirthName>Bienvenüe</BirthName>
+                                <FullName>Fulgence Marie Auguste Bienvenüe</FullName>
+                                <GivenName>Le père du métro</GivenName>
+                                <Gender>M</Gender>
+                                <BirthDate>1852-01-27</BirthDate>
+                                <BirthPlace>
+                                    <Geogname>Uzel</Geogname>
+                                    <Address>Place de la Mairie</Address>
+                                    <PostalCode>22460</PostalCode>
+                                    <City>Uzel</City>
+                                    <Region>Bretagne</Region>
+                                    <Country>France</Country>
+                                </BirthPlace>
+                                <DeathDate>1936-08-03</DeathDate>
+                                <DeathPlace>
+                                    <Geogname>Paris</Geogname>
+                                    <Address>Hôpital Boucicaut</Address>
+                                    <PostalCode>75015</PostalCode>
+                                    <City>Paris</City>
+                                    <Region>Ile de France</Region>
+                                    <Country>France</Country>
+                                </DeathPlace>
+                                <Nationality>Française</Nationality>
+                                <Identifier>0000 0000 5488 9547</Identifier>
+                                <SigningTime>1998-04-04T08:07:06</SigningTime>
+                                <Function>Ingénierie</Function>
+                                <Activity>Conception de lignes de métro</Activity>
+                                <Position>Chef de l'inspection des Ponts et Chaussées</Position>
+                                <Role>Directeur des travaux</Role>
+                                <Mandate>Loi du 30 mars 1898</Mandate>
+                            </Signer>
+                            <Validator>
+                                <FirstName>Fulgence Marie Auguste</FirstName>
+                                <BirthName>Bienvenüe</BirthName>
+                                <FullName>Fulgence Marie Auguste Bienvenüe</FullName>
+                                <GivenName>Le père du métro</GivenName>
+                                <Gender>M</Gender>
+                                <BirthDate>1852-01-27</BirthDate>
+                                <BirthPlace>
+                                    <Geogname>Uzel</Geogname>
+                                    <Address>Place de la Mairie</Address>
+                                    <PostalCode>22460</PostalCode>
+                                    <City>Uzel</City>
+                                    <Region>Bretagne</Region>
+                                    <Country>France</Country>
+                                </BirthPlace>
+                                <DeathDate>1936-08-03</DeathDate>
+                                <DeathPlace>
+                                    <Geogname>Paris</Geogname>
+                                    <Address>Hôpital Boucicaut</Address>
+                                    <PostalCode>75015</PostalCode>
+                                    <City>Paris</City>
+                                    <Region>Ile de France</Region>
+                                    <Country>France</Country>
+                                </DeathPlace>
+                                <Nationality>Française</Nationality>
+                                <Identifier>0000 0000 5488 9547</Identifier>
+                                <ValidationTime>1998-04-04T08:07:06</ValidationTime>
+                                <Function>Ingénierie</Function>
+                                <Activity>Conception de lignes de métro</Activity>
+                                <Position>Chef de l'inspection des Ponts et Chaussées</Position>
+                                <Role>Directeur des travaux</Role>
+                                <Mandate>Loi du 30 mars 1898</Mandate>
+                            </Validator>
+                            <SigningType>QualifiedSignature</SigningType>
+                        </Signature>
+                        <TimestampingInformation>
+                            <TimeStamp>2017-04-04T08:07:06</TimeStamp>
+                            <AdditionalTimestampingInformation>ExtraInfo</AdditionalTimestampingInformation>
+                        </TimestampingInformation>
+                        <AdditionalProof>
+                            <AdditionalProofInformation>ExtraInfo1</AdditionalProofInformation>
+                            <AdditionalProofInformation>ExtraInfo2</AdditionalProofInformation>
+                        </AdditionalProof>
+                        <Extended>
+                            <ExtraField1>Val1</ExtraField1>
+                            <ExtraField1>Val2</ExtraField1>
+                            <ExtraField2>
+                                <SubField2>Val3</SubField2>
+                            </ExtraField2>
+                        </Extended>
+                    </SigningInformation>
                     <PersistentIdentifier>
                         <PersistentIdentifierType>ark</PersistentIdentifierType>
                         <PersistentIdentifierOrigin>OriginatingAgency</PersistentIdentifierOrigin>

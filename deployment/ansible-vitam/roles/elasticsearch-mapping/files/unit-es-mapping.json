@@ -886,225 +886,239 @@
         }
       }
     },
-    "Signature": {
+    "SigningInformation": {
       "properties": {
-        "Signer": {
+        "SigningRole": {
+          "type": "keyword"
+        },
+        "DetachedSigningRole": {
+          "type": "keyword"
+        },
+        "Signature": {
           "properties": {
-            "BirthPlace": {
+            "Signer": {
               "properties": {
-                "Geogname": {
+                "BirthPlace": {
+                  "properties": {
+                    "Geogname": {
+                      "type": "text"
+                    },
+                    "Address": {
+                      "type": "text"
+                    },
+                    "PostalCode": {
+                      "type": "keyword"
+                    },
+                    "City": {
+                      "type": "text"
+                    },
+                    "Region": {
+                      "type": "text"
+                    },
+                    "Country": {
+                      "type": "text"
+                    }
+                  }
+                },
+                "BirthDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "DeathPlace": {
+                  "properties": {
+                    "Geogname": {
+                      "type": "text"
+                    },
+                    "Address": {
+                      "type": "text"
+                    },
+                    "PostalCode": {
+                      "type": "keyword"
+                    },
+                    "City": {
+                      "type": "text"
+                    },
+                    "Region": {
+                      "type": "text"
+                    },
+                    "Country": {
+                      "type": "text"
+                    }
+                  }
+                },
+                "GivenName": {
                   "type": "text"
                 },
-                "Address": {
+                "BirthName": {
                   "type": "text"
                 },
-                "PostalCode": {
+                "FirstName": {
+                  "type": "text"
+                },
+                "FullName": {
+                  "type": "text"
+                },
+                "Gender": {
+                  "type": "text"
+                },
+                "Corpname": {
+                  "type": "text"
+                },
+                "Nationality": {
+                  "type": "text"
+                },
+                "DeathDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "Identifier": {
                   "type": "keyword"
                 },
-                "City": {
+                "SigningTime": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "Function": {
                   "type": "text"
                 },
-                "Region": {
+                "Activity": {
                   "type": "text"
                 },
-                "Country": {
+                "Position": {
+                  "type": "text"
+                },
+                "Role": {
+                  "type": "text"
+                },
+                "Mandate": {
                   "type": "text"
                 }
               }
             },
-            "BirthDate": {
-              "type": "date",
-              "format": "strict_date_optional_time"
-            },
-            "DeathPlace": {
+            "Validator": {
               "properties": {
-                "Geogname": {
+                "BirthPlace": {
+                  "properties": {
+                    "Geogname": {
+                      "type": "text"
+                    },
+                    "Address": {
+                      "type": "text"
+                    },
+                    "PostalCode": {
+                      "type": "keyword"
+                    },
+                    "City": {
+                      "type": "text"
+                    },
+                    "Region": {
+                      "type": "text"
+                    },
+                    "Country": {
+                      "type": "text"
+                    }
+                  }
+                },
+                "BirthDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "DeathPlace": {
+                  "properties": {
+                    "Geogname": {
+                      "type": "text"
+                    },
+                    "Address": {
+                      "type": "text"
+                    },
+                    "PostalCode": {
+                      "type": "keyword"
+                    },
+                    "City": {
+                      "type": "text"
+                    },
+                    "Region": {
+                      "type": "text"
+                    },
+                    "Country": {
+                      "type": "text"
+                    }
+                  }
+                },
+                "GivenName": {
                   "type": "text"
                 },
-                "Address": {
+                "BirthName": {
                   "type": "text"
                 },
-                "PostalCode": {
+                "FirstName": {
+                  "type": "text"
+                },
+                "FullName": {
+                  "type": "text"
+                },
+                "Gender": {
+                  "type": "text"
+                },
+                "Corpname": {
+                  "type": "text"
+                },
+                "Nationality": {
+                  "type": "text"
+                },
+                "DeathDate": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "Identifier": {
                   "type": "keyword"
                 },
-                "City": {
+                "ValidationTime": {
+                  "type": "date",
+                  "format": "strict_date_optional_time"
+                },
+                "Function": {
                   "type": "text"
                 },
-                "Region": {
+                "Activity": {
                   "type": "text"
                 },
-                "Country": {
+                "Position": {
+                  "type": "text"
+                },
+                "Role": {
+                  "type": "text"
+                },
+                "Mandate": {
                   "type": "text"
                 }
               }
             },
-            "GivenName": {
-              "type": "text"
-            },
-            "BirthName": {
-              "type": "text"
-            },
-            "FirstName": {
-              "type": "text"
-            },
-            "FullName": {
-              "type": "text"
-            },
-            "Gender": {
-              "type": "text"
-            },
-            "Corpname": {
-              "type": "text"
-            },
-            "Nationality": {
-              "type": "text"
-            },
-            "DeathDate": {
-              "type": "date",
-              "format": "strict_date_optional_time"
-            },
-            "Identifier": {
+            "SigningType": {
               "type": "keyword"
-            },
-            "SigningTime": {
+            }
+          }
+        },
+        "TimestampingInformation": {
+          "properties": {
+            "TimeStamp": {
               "type": "date",
               "format": "strict_date_optional_time"
             },
-            "Function": {
-              "type": "text"
-            },
-            "Activity": {
-              "type": "text"
-            },
-            "Position": {
-              "type": "text"
-            },
-            "Role": {
-              "type": "text"
-            },
-            "Mandate": {
+            "AdditionalTimestampingInformation": {
               "type": "text"
             }
           }
         },
-        "Validator": {
+        "AdditionalProof": {
           "properties": {
-            "BirthPlace": {
-              "properties": {
-                "Geogname": {
-                  "type": "text"
-                },
-                "Address": {
-                  "type": "text"
-                },
-                "PostalCode": {
-                  "type": "keyword"
-                },
-                "City": {
-                  "type": "text"
-                },
-                "Region": {
-                  "type": "text"
-                },
-                "Country": {
-                  "type": "text"
-                }
-              }
-            },
-            "BirthDate": {
-              "type": "date",
-              "format": "strict_date_optional_time"
-            },
-            "DeathPlace": {
-              "properties": {
-                "Geogname": {
-                  "type": "text"
-                },
-                "Address": {
-                  "type": "text"
-                },
-                "PostalCode": {
-                  "type": "keyword"
-                },
-                "City": {
-                  "type": "text"
-                },
-                "Region": {
-                  "type": "text"
-                },
-                "Country": {
-                  "type": "text"
-                }
-              }
-            },
-            "GivenName": {
-              "type": "text"
-            },
-            "BirthName": {
-              "type": "text"
-            },
-            "FirstName": {
-              "type": "text"
-            },
-            "FullName": {
-              "type": "text"
-            },
-            "Gender": {
-              "type": "text"
-            },
-            "Corpname": {
-              "type": "text"
-            },
-            "Nationality": {
-              "type": "text"
-            },
-            "DeathDate": {
-              "type": "date",
-              "format": "strict_date_optional_time"
-            },
-            "Identifier": {
-              "type": "keyword"
-            },
-            "ValidationTime": {
-              "type": "date",
-              "format": "strict_date_optional_time"
-            },
-            "Function": {
-              "type": "text"
-            },
-            "Activity": {
-              "type": "text"
-            },
-            "Position": {
-              "type": "text"
-            },
-            "Role": {
-              "type": "text"
-            },
-            "Mandate": {
+            "AdditionalProofInformation": {
               "type": "text"
             }
           }
         },
-        "Masterdata": {
+        "Extended" : {
           "type": "object"
-        },
-        "ReferencedObject": {
-          "properties": {
-            "SignedObjectId": {
-              "type": "keyword"
-            },
-            "SignedObjectDigest": {
-              "properties": {
-                "Algorithm": {
-                  "type": "keyword"
-                },
-                "MessageDigest": {
-                  "type": "keyword"
-                }
-              }
-            }
-          }
         }
       }
     },

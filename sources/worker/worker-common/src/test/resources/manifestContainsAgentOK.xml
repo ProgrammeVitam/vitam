@@ -207,7 +207,8 @@
                         <OutcomeDetailMessage>OutcomeDetailMessage_content0</OutcomeDetailMessage>
                         <EventDetailData>EventDetailData_content0</EventDetailData>
                     </Event>
-                    <Signature>
+                    <!-- Signature group has been deprecated -->
+                    <!-- <Signature>
                         <Signer>
                             <BirthName>Henry</BirthName>
                             <SigningTime>2016-06-03T15:28:00</SigningTime>
@@ -225,7 +226,12 @@
                             <SignedObjectId>ID17</SignedObjectId>
                             <SignedObjectDigest algorithm="SHA-512">942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7</SignedObjectDigest>
                         </ReferencedObject>
-                    </Signature>
+                    </Signature> -->
+                    <Gps>
+                        <GpsLatitude>1235</GpsLatitude>
+                        <GpsLongitude>879878</GpsLongitude>
+                        <GpsDateStamp>2015-12-04T09:02:25</GpsDateStamp>
+                    </Gps>
                 </Content>
                 <DataObjectReference>
                     <DataObjectGroupReferenceId>ID6</DataObjectGroupReferenceId>

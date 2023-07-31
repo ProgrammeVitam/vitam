@@ -237,9 +237,6 @@ public class ArchiveUnitListener {
         DescriptiveMetadataModel descriptiveMetadataModel =
             archiveUnitRoot.getArchiveUnit().getDescriptiveMetadataModel();
 
-
-        enhanceSignatures(descriptiveMetadataModel);
-
         replaceInternalReferenceForRelatedObjectReference(sedaAchiveUnitId, descriptiveMetadataModel);
 
         // fill list rules to map
@@ -369,27 +366,6 @@ public class ArchiveUnitListener {
         } finally {
             attachByIngestContractChecked = true;
         }
-    }
-
-    /**
-     * fill binaryId instead of internal seda id.
-     *
-     * @param descriptiveMetadataModel
-     */
-    private void enhanceSignatures(DescriptiveMetadataModel descriptiveMetadataModel) {
-
-        if (descriptiveMetadataModel.getSignature() != null && !descriptiveMetadataModel.getSignature().isEmpty()) {
-            for (SignatureTypeModel signature : descriptiveMetadataModel.getSignature()) {
-
-                String signedObjectId = signature.getReferencedObject().getSignedObjectId();
-
-                if (ingestSession.getDataObjectIdToGuid().containsKey(signedObjectId)) {
-                    signature.getReferencedObject()
-                        .setSignedObjectId(ingestSession.getDataObjectIdToGuid().get(signedObjectId));
-                }
-            }
-        }
-
     }
 
     /**

@@ -26,28 +26,33 @@
  */
 package fr.gouv.vitam.common.mapping.dip;
 
+import fr.gouv.culture.archivesdefrance.seda.v2.AdditionalProofType;
 import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ExtendedType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LinkingAgentIdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryDataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryType;
-import fr.gouv.culture.archivesdefrance.seda.v2.MessageDigestBinaryObjectType;
-import fr.gouv.culture.archivesdefrance.seda.v2.ReferencedObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.SignatureType;
+import fr.gouv.culture.archivesdefrance.seda.v2.SigningInformationType;
+import fr.gouv.culture.archivesdefrance.seda.v2.SigningRoleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
+import fr.gouv.culture.archivesdefrance.seda.v2.TimestampingInformationType;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.EventTypeModel;
 import fr.gouv.vitam.common.model.unit.LinkingAgentIdentifierTypeModel;
-import fr.gouv.vitam.common.model.unit.ReferencedObjectTypeModel;
+import fr.gouv.vitam.common.model.unit.SignatureInformationExtendedModel;
 import fr.gouv.vitam.common.model.unit.SignatureTypeModel;
-import fr.gouv.vitam.common.model.unit.SignedObjectDigestModel;
+import fr.gouv.vitam.common.model.unit.SigningInformationTypeModel;
+import fr.gouv.vitam.common.model.unit.TimestampingInformationTypeModel;
 import org.apache.commons.collections.CollectionUtils;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -96,7 +101,7 @@ public class DescriptiveMetadataMapper {
             dmc.getDescription().addAll(metadataModel.getDescription_().getTextTypes());
         }
 
-        if(metadataModel.getDescription() != null){
+        if (metadataModel.getDescription() != null) {
             TextType description = new TextType();
             description.setValue(metadataModel.getDescription());
             dmc.getDescription().add(description);
@@ -164,11 +169,7 @@ public class DescriptiveMetadataMapper {
         dmc.setOriginatingSystemIdReplyTo(metadataModel.getOriginatingSystemIdReplyTo());
         dmc.setDateLitteral(metadataModel.getDateLitteral());
 
-
-        if (metadataModel.getSignature() != null && !metadataModel.getSignature().isEmpty()) {
-            dmc.getSignature().addAll(mapSignatures(metadataModel.getSignature()));
-        }
-
+        dmc.setSigningInformation(mapSigningInformation(metadataModel.getSigningInformation()));
 
         if (metadataModel.getRecipient() != null && !metadataModel.getRecipient().isEmpty()) {
             dmc.getRecipient().addAll(metadataModel.getRecipient());
@@ -218,45 +219,112 @@ public class DescriptiveMetadataMapper {
         return dmc;
     }
 
-    private List<SignatureType> mapSignatures(List<SignatureTypeModel> signatures) {
-        if (signatures == null) {
+    private SigningInformationType mapSigningInformation(SigningInformationTypeModel signingInformation)
+        throws DatatypeConfigurationException {
+        if (signingInformation == null) {
             return null;
         }
-        return signatures.stream()
+        SigningInformationType signingInformationType = new SigningInformationType();
+        if (signingInformation.getSigningRole() != null) {
+            signingInformationType.getSigningRole()
+                .addAll(mapSignatureRole(signingInformation.getSigningRole()));
+        }
+        if (signingInformation.getDetachedSigningRole() != null) {
+            signingInformationType.getDetachedSigningRole()
+                .addAll(mapSignatureRole(signingInformation.getDetachedSigningRole()));
+        }
+        if (signingInformation.getSignature() != null) {
+            signingInformationType.getSignature().addAll(
+                mapSignatures(signingInformation.getSignature()));
+        }
+        if (signingInformation.getTimestampingInformation() != null) {
+            signingInformationType.getTimestampingInformation().addAll(
+                mapTimestampingInformation(signingInformation.getTimestampingInformation()));
+        }
+        if (signingInformation.getAdditionalProof() != null) {
+            signingInformationType.getAdditionalProof().addAll(
+                mapAdditionalProofs(signingInformation.getAdditionalProof()));
+        }
+        signingInformationType.setExtended(mapExtendedParams(signingInformation.getExtended()));
+        return signingInformationType;
+    }
+
+    private List<SigningRoleType> mapSignatureRole(
+        List<fr.gouv.vitam.common.model.unit.SigningRoleType> signingRole) {
+        return signingRole.stream()
+            .map(role -> {
+                switch (role) {
+                    case SIGNED_DOCUMENT:
+                        return SigningRoleType.SIGNED_DOCUMENT;
+                    case TIMESTAMP:
+                        return SigningRoleType.TIMESTAMP;
+                    case SIGNATURE:
+                        return SigningRoleType.SIGNATURE;
+                    case ADDITIONAL_PROOF:
+                        return SigningRoleType.ADDITIONAL_PROOF;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + role);
+                }
+            })
+            .collect(Collectors.toList());
+    }
+
+    private List<SignatureType> mapSignatures(List<SignatureTypeModel> signature) {
+        return signature.stream()
             .map(this::mapSignature)
             .collect(Collectors.toList());
     }
 
-    private SignatureType mapSignature(SignatureTypeModel signatureType) {
-        SignatureType result = new SignatureType();
-        if (signatureType.getSigner() != null) {
-            result.getSigner().addAll(signatureType.getSigner());
-        }
-        result.setValidator(signatureType.getValidator());
-        result.setReferencedObject(mapReferencedObject(signatureType.getReferencedObject()));
-        // Not supported in R11
-        result.setMasterdata(signatureType.getMasterdata());
-        return result;
+    private SignatureType mapSignature(SignatureTypeModel signatureTypeModel) {
+        SignatureType signatureType = new SignatureType();
+        signatureType.setSigner(signatureTypeModel.getSigner());
+        signatureType.setValidator(signatureTypeModel.getValidator());
+        signatureType.setSigningType(signatureTypeModel.getSigningType());
+        return signatureType;
     }
 
-    private ReferencedObjectType mapReferencedObject(ReferencedObjectTypeModel referencedObject) {
-        if (referencedObject == null) {
-            return null;
+    private List<TimestampingInformationType> mapTimestampingInformation(
+        List<TimestampingInformationTypeModel> timestampingInformation) throws DatatypeConfigurationException {
+        List<TimestampingInformationType> timestampingInformationTypes = new ArrayList<>();
+        for (TimestampingInformationTypeModel timestampingInfo : timestampingInformation) {
+            timestampingInformationTypes.add(mapTimestampingInformation(timestampingInfo));
         }
-        ReferencedObjectType result = new ReferencedObjectType();
-        result.setSignedObjectId(referencedObject.getSignedObjectId());
-        result.setSignedObjectDigest(mapSignedObjectDigest(referencedObject.getSignedObjectDigest()));
-        return result;
+        return timestampingInformationTypes;
     }
 
-    private MessageDigestBinaryObjectType mapSignedObjectDigest(SignedObjectDigestModel signedMessageDigest) {
-        if (signedMessageDigest == null) {
+    private TimestampingInformationType mapTimestampingInformation(
+        TimestampingInformationTypeModel timestampingInfo) throws DatatypeConfigurationException {
+        TimestampingInformationType timestampingInformationType = new TimestampingInformationType();
+
+        Optional<XMLGregorianCalendar> timeStamp =
+            stringToXMLGregorianCalendar(timestampingInfo.getTimeStamp());
+        timeStamp.ifPresent(timestampingInformationType::setTimeStamp);
+
+        timestampingInformationType.setAdditionalTimestampingInformation(
+            timestampingInfo.getAdditionalTimestampingInformation());
+        return timestampingInformationType;
+    }
+
+    private List<AdditionalProofType> mapAdditionalProofs(
+        List<fr.gouv.vitam.common.model.unit.AdditionalProofType> additionalProofs) {
+        return additionalProofs.stream()
+            .map(additionalProof -> {
+                AdditionalProofType additionalProofType = new AdditionalProofType();
+                additionalProofType.getAdditionalProofInformation()
+                    .addAll(additionalProof.getAdditionalProofInformation());
+                return additionalProofType;
+            })
+            .collect(Collectors.toList());
+    }
+
+    private ExtendedType mapExtendedParams(SignatureInformationExtendedModel extended) {
+        if (extended == null || extended.getAny() == null || extended.getAny().isEmpty()) {
             return null;
         }
-        MessageDigestBinaryObjectType result = new MessageDigestBinaryObjectType();
-        result.setAlgorithm(signedMessageDigest.getAlgorithm());
-        result.setValue(signedMessageDigest.getValue());
-        return result;
+        ExtendedType extendedType = new ExtendedType();
+        extendedType.getAny()
+            .addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(extended.getAny()));
+        return extendedType;
     }
 
     private List<EventType> mapEvents(List<EventTypeModel> eventTypes) {

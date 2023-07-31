@@ -104,34 +104,43 @@
       "evDateTime" : "1915-06-12T09:31:00",
       "evTypeDetail" : "Envoi d'une carte postale depuis le front."
     } ],
-    "Signature" :
-    [
-      {
-        "Signer" :
-        [
-          {
-            "Corpname" : "Service d'archives 2",
-            "SigningTime" : "2017-11-13T19:28:40"
+    "SigningInformation": {
+      "SigningRole": [
+        "SignedDocument",
+        "Signature"
+      ],
+      "DetachedSigningRole": [
+        "Timestamp"
+      ],
+      "Signature": [
+        {
+          "Signer": {
+            "FirstName": "John",
+            "BirthName": "Doe",
+            "SigningTime": "2017-08-24T14:56:31"
           },
-          {
-            "FirstName"  : "FirstName just test for AFE SEDA 2.1",
-            "SigningTime" : "2017-11-13T19:28:40"
-          }
-        ],
-        "Validator" : {
-          "FirstName" : "Laurent",
-          "BirthName" : "Dupois",
-          "ValidationTime" : "2016-10-12T16:28:40"
-        },
-        "ReferencedObject" : {
-          "SignedObjectDigest" : {
-            "MessageDigest" : "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
-            "Algorithm" : "SHA-512"
+          "Validator": {
+            "FirstName": "Jane",
+            "BirthName": "Doe",
+            "ValidationTime": "2017-08-24T14:56:31"
           },
-          "SignedObjectId": "ID123"
+          "SigningType": "QualifiedSignature"
         }
+      ],
+      "Extended": {
+        "ExtraField1": [
+          "Val1",
+          "Val2"
+        ],
+        "ExtraField2": [
+          {
+            "SubField2": [
+              "Val3"
+            ]
+          }
+        ]
       }
-    ],
+    },
     "Gps" : {
       "GpsLatitude" : "49.4769199",
       "GpsLongitude" : "3.4417368"
