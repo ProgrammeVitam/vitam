@@ -24,7 +24,7 @@ node.name: {{ inventory_hostname }}
 # TODO: Better handling of this as we have to modify wich nodes are requested by logstash / kibana
 node.master: {{ is_master|default('true') }}
 node.data: {{ is_data|default('true') }}
-node.ingest: false
+node.ingest: {{ is_ingest|default('false') }}
 node.ml: false
 xpack.ml.enabled: false
 #
@@ -41,6 +41,14 @@ path.data: {{ elasticsearch_data_dir }}
 # Path to log files:
 #
 path.logs: {{ elasticsearch_log_dir }}
+
+#
+# Path for backup/snapshots:
+#
+{% if (composant.repo is defined) and (composant.repo|length > 0) and ("" not in composant.repo) %}
+path.repo: ["{{ composant.repo | list | join ('\',\'') }}"]
+{% endif %}
+
 #
 # ----------------------------------- Memory -----------------------------------
 #
@@ -59,7 +67,7 @@ bootstrap.memory_lock: true
 #
 # Note : if installing to localhost, notably a docker container, we need to bind larger than localhost
 {% if inventory_hostname in single_vm_hostnames %}
-network.host: 0.0.0.0
+network.host: {{ composant.network_host | default('0.0.0.0') }}
 http.cors.enabled: true
 http.cors.allow-origin: "*"
 {% else %}
