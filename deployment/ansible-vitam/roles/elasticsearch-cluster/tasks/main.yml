@@ -17,6 +17,13 @@
     java_package: "{{ java_prerequisites.debian }}"
   when: ansible_os_family == "Debian"
 
+- name: Set Elasticsearch memory if the value is defined at composant level.
+  set_fact:
+    elasticsearch_memory: "{{ composant.jvm_memory }}"
+  when:
+    - composant.jvm_memory is defined
+    - composant.jvm_memory != ""
+
 - name: Update elasticsearch memory value if empty and total memory < 64 Go
   set_fact:
     elasticsearch_memory: "{{ (ansible_memory_mb.real.total / 2) | int }}m"
@@ -33,8 +40,8 @@
 
 - name: Define temporary memory size & unit vars
   set_fact:
-    elasticsearch_memory_value: "{{ elasticsearch_memory| regex_replace('[kKmMgG]','') }}"
-    elasticsearch_memory_unit: "{{ elasticsearch_memory| regex_replace('[0123456789]*','') }}"
+    elasticsearch_memory_value: "{{ elasticsearch_memory | regex_replace('[kKmMgG]','') }}"
+    elasticsearch_memory_unit: "{{ elasticsearch_memory | regex_replace('[0123456789]*','') }}"
 
 #### Elasticsearch installation ####
 
@@ -119,7 +126,7 @@
   lineinfile:
     path: "/etc/{{ sysconfig_dir }}/elasticsearch"
     regexp: '^ES_PATH_CONF='
-    line: "ES_PATH_CONF={{ elasticsearch_conf_dir }}"
+    line: "#ES_PATH_CONF="
 
 - name: Ensure elasticsearch directories exist
   file:
