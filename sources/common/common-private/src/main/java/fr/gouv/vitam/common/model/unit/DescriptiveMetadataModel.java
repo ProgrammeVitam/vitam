@@ -170,8 +170,8 @@ public class DescriptiveMetadataModel {
     @JsonProperty("Event")
     private List<EventTypeModel> event;
 
-    @JsonProperty("Signature")
-    private List<SignatureTypeModel> signature;
+    @JsonProperty("SigningInformation")
+    private SigningInformationTypeModel signingInformation;
 
     @JsonProperty("Gps")
     private GpsType gps;
@@ -774,15 +774,15 @@ public class DescriptiveMetadataModel {
     /**
      * @return
      */
-    public List<SignatureTypeModel> getSignature() {
-        return signature;
+    public SigningInformationTypeModel getSigningInformation() {
+        return signingInformation;
     }
 
     /**
-     * @param signature
+     * @param signingInformation
      */
-    public void setSignature(List<SignatureTypeModel> signature) {
-        this.signature = signature;
+    public void setSigningInformation(SigningInformationTypeModel signingInformation) {
+        this.signingInformation = signingInformation;
     }
 
     /**

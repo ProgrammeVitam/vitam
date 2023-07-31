@@ -37,6 +37,8 @@ import fr.gouv.vitam.common.json.InvalidJsonSchemaException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.json.JsonSchemaValidationException;
 import fr.gouv.vitam.common.json.JsonSchemaValidator;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileModel;
 import fr.gouv.vitam.common.model.administration.ArchiveUnitProfileStatus;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
@@ -48,6 +50,8 @@ import java.util.Map;
 import java.util.Optional;
 
 public class UnitValidator {
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UnitValidator.class);
 
     private static final String JSON_SCHEMA_ARCHIVE_UNIT_SCHEMA_JSON = "/json-schema/archive-unit-schema.json";
 
@@ -81,6 +85,10 @@ public class UnitValidator {
             this.builtInSchemaValidator.validateJson(archiveUnit);
 
         } catch (JsonSchemaValidationException e) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Unit validation failed: " + e.getMessage()
+                    + "\n" + JsonHandler.unprettyPrint(archiveUnit));
+            }
             throw new MetadataValidationException(MetadataValidationErrorCode.SCHEMA_VALIDATION_FAILURE,
                 "Invalid unit format : " + e.getMessage(), e);
         }

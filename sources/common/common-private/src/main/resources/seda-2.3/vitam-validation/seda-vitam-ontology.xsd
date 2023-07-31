@@ -44,7 +44,7 @@
             <xsd:group ref="RelationGroup"/>
             <xsd:group ref="DateGroup"/>
             <xsd:group ref="EventGroup"/>
-            <xsd:group ref="SignatureGroup"/>
+            <xsd:group ref="SigningInformationGroup"/>
             <xsd:group ref="GpsGroup"/>
             <xsd:group ref="OriginatingSystemIdReplyToGroup"/>
             <xsd:group ref="TextContentGroup"/>
@@ -688,36 +688,90 @@
         </xsd:sequence>
     </xsd:complexType>
     <!-- Signature description -->
-    <xsd:group name="SignatureGroup">
+    <xsd:group name="SigningInformationGroup">
         <xsd:sequence>
-            <xsd:element name="Signature" type="SignatureType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="SigningInformation" type="SigningInformationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Contient toutes les informations relatives à la signature.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:group>
+    <xsd:complexType name="SigningInformationType">
+        <xsd:sequence>
+            <xsd:element name="SigningRole" type="SigningRoleType" minOccurs="1" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Rôle de l'unité d'archives dans un contexte de signature. Quatre rôles (étiquettes) ont été identifiés : document signé, signature, horodatage et preuves complémentaires.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="DetachedSigningRole" type="SigningRoleType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Référence aux rôles des unités d'archives encapsulées sous la racine contenant le document signé.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SignedDocumentReferenceId" type="xsd:IDREF" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Relation technique à l'unité d'archives racine décrivant le document signé à partir des unités d'archives encapsulées contenant les autres rôles d'un contexte de signature.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Signature" type="SignatureType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <xsd:documentation>Bloc permettant de décrire la signature dans un contexte de signature.</xsd:documentation>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="TimestampingInformation" type="TimestampingInformationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Bloc permettant de conserver les informations d'horodatage dans un contexte de signature.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="AdditionalProof" type="AdditionalProofType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Bloc permettant de conserver les preuves complémentaires dans un contexte de signature.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- Redefined by VITAM -->
+            <!-- <xsd:element name="Extended" type="OpenType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>Champ de métadonnées libre permettant d'indexer des informations non catégorisées dans le bloc SigningInformation.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element> -->
+            <xsd:element name="Extended" type="ExtendedType" minOccurs="0" />
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="ExtendedType">
+        <xsd:annotation>
+            <xsd:documentation>Contient toutes les métadonnées libres de signature.</xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="OpenType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:simpleType name="SigningRoleType">
+        <xsd:restriction base="xsd:token">
+            <xsd:enumeration value="SignedDocument"/>
+            <xsd:enumeration value="Timestamp"/>
+            <xsd:enumeration value="Signature"/>
+            <xsd:enumeration value="AdditionalProof"/>
+        </xsd:restriction>
+    </xsd:simpleType>
     <xsd:complexType name="SignatureType">
         <xsd:sequence>
-            <xsd:element name="Signer" type="SignerType" maxOccurs="unbounded">
+            <xsd:element name="Signer" type="SignerType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>Signataire(s) de la transaction ou de l'objet.</xsd:documentation>
                     <xsd:documentation>Références : premis.signer</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Validator" type="ValidatorType">
+            <xsd:element name="Validator" type="ValidatorType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>Validateur de la signature.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Masterdata" type="CodeType" minOccurs="0">
+            <xsd:element name="SigningType" type="NonEmptyTokenType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
-                    <xsd:documentation>Référentiel des personnes et des organisations au moment de la vérification de la signature et de sa validation.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="ReferencedObject" type="ReferencedObjectType">
-                <xsd:annotation>
-                    <xsd:documentation>Référence à l'objet signé.</xsd:documentation>
+                    <xsd:documentation>Type de signature, au sens juridique du terme. Par exemple, simple, avancée, qualifiée.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
@@ -727,23 +781,6 @@
     </xsd:complexType>
     <xsd:complexType name="ValidatorType">
         <xsd:group ref="ValidatorGroup"/>
-    </xsd:complexType>
-    <xsd:complexType name="ReferencedObjectType">
-        <xsd:annotation>
-            <xsd:documentation>Contient la référence à l'objet signé (et son empreinte jusqu'à la fin de la phase de versement dans le SAE).</xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="SignedObjectId" type="DataObjectRefIdType">
-                <xsd:annotation>
-                    <xsd:documentation>Identifiant de l'objet-données signé.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="SignedObjectDigest" type="MessageDigestBinaryObjectType">
-                <xsd:annotation>
-                    <xsd:documentation>Empreinte obligatoire jusqu'au processus de versement pour assurer la portabilité de la valeur probante. Le SAE peut ne pas la conserver si l'on considère que l'identifiant de l'objet correspondant suffit. Ce procédé permet de résister au temps lorsque les informations binaires du paquet seront converties au gré des opérations de préservation de la lisibilité des formats. Au cours de ces opérations, l'identifiant ne changera pas, contrairement au format dufichier et donc à son empreinte.</xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
     </xsd:complexType>
     <xsd:group name="SignerGroup">
         <xsd:sequence>
@@ -767,6 +804,29 @@
             <xsd:group ref="BusinessGroup"/>
         </xsd:sequence>
     </xsd:group>
+    <xsd:complexType name="TimestampingInformationType">
+        <xsd:sequence>
+            <xsd:element name="TimeStamp" type="xsd:dateTime" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Horodatage de la signature</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="AdditionalTimestampingInformation" type="NonEmptyTokenType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>Informations complémentaires sur l'horodatage d'une signature</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="AdditionalProofType">
+        <xsd:sequence>
+            <xsd:element name="AdditionalProofInformation" type="NonEmptyTokenType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Informations relatives aux preuves complémentaires archivées dans un contexte de signature.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <!-- Addressee description -->
     <xsd:group name="AddresseeGroup">

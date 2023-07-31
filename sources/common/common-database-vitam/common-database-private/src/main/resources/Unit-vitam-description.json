@@ -1848,416 +1848,440 @@
     "cardinality": "one"
   },
   {
-    "path": "Signature",
+    "path": "SigningInformation",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "SigningInformation.SigningRole",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "SigningInformation.DetachedSigningRole",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "SigningInformation.Signature",
     "type": "object",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Masterdata",
-    "type": "object",
-    "indexed": true,
-    "cardinality": "one"
-  },
-  {
-    "path": "Signature.ReferencedObject",
-    "type": "object",
-    "indexed": true,
-    "cardinality": "one"
-  },
-  {
-    "path": "Signature.ReferencedObject.SignedObjectDigest",
-    "type": "object",
-    "indexed": true,
-    "cardinality": "one"
-  },
-  {
-    "path": "Signature.ReferencedObject.SignedObjectDigest.Algorithm",
-    "type": "keyword",
-    "indexed": true,
-    "cardinality": "one"
-  },
-  {
-    "path": "Signature.ReferencedObject.SignedObjectDigest.MessageDigest",
-    "type": "keyword",
-    "indexed": true,
-    "cardinality": "one"
-  },
-  {
-    "path": "Signature.ReferencedObject.SignedObjectId",
-    "type": "keyword",
-    "indexed": true,
-    "cardinality": "one"
-  },
-  {
-    "path": "Signature.Signer",
+    "path": "SigningInformation.Signature.Signer",
     "type": "object",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Signer.Activity",
+    "path": "SigningInformation.Signature.Signer.Activity",
     "type": "text",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Signer.BirthDate",
+    "path": "SigningInformation.Signature.Signer.BirthDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.BirthName",
+    "path": "SigningInformation.Signature.Signer.BirthName",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.BirthPlace",
+    "path": "SigningInformation.Signature.Signer.BirthPlace",
     "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.BirthPlace.Address",
+    "path": "SigningInformation.Signature.Signer.BirthPlace.Address",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.BirthPlace.City",
+    "path": "SigningInformation.Signature.Signer.BirthPlace.City",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.BirthPlace.Country",
+    "path": "SigningInformation.Signature.Signer.BirthPlace.Country",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.BirthPlace.Geogname",
+    "path": "SigningInformation.Signature.Signer.BirthPlace.Geogname",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.BirthPlace.PostalCode",
+    "path": "SigningInformation.Signature.Signer.BirthPlace.PostalCode",
     "type": "keyword",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.BirthPlace.Region",
+    "path": "SigningInformation.Signature.Signer.BirthPlace.Region",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.Corpname",
+    "path": "SigningInformation.Signature.Signer.Corpname",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.DeathDate",
+    "path": "SigningInformation.Signature.Signer.DeathDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.DeathPlace",
+    "path": "SigningInformation.Signature.Signer.DeathPlace",
     "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.DeathPlace.Address",
+    "path": "SigningInformation.Signature.Signer.DeathPlace.Address",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.DeathPlace.City",
+    "path": "SigningInformation.Signature.Signer.DeathPlace.City",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.DeathPlace.Country",
+    "path": "SigningInformation.Signature.Signer.DeathPlace.Country",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.DeathPlace.Geogname",
+    "path": "SigningInformation.Signature.Signer.DeathPlace.Geogname",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.DeathPlace.PostalCode",
+    "path": "SigningInformation.Signature.Signer.DeathPlace.PostalCode",
     "type": "keyword",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.DeathPlace.Region",
+    "path": "SigningInformation.Signature.Signer.DeathPlace.Region",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.FirstName",
+    "path": "SigningInformation.Signature.Signer.FirstName",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.FullName",
+    "path": "SigningInformation.Signature.Signer.FullName",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.Function",
+    "path": "SigningInformation.Signature.Signer.Function",
     "type": "text",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Signer.Gender",
+    "path": "SigningInformation.Signature.Signer.Gender",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.GivenName",
+    "path": "SigningInformation.Signature.Signer.GivenName",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Signer.Identifier",
+    "path": "SigningInformation.Signature.Signer.Identifier",
     "type": "keyword",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Signer.Mandate",
+    "path": "SigningInformation.Signature.Signer.Mandate",
     "type": "text",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Signer.Nationality",
+    "path": "SigningInformation.Signature.Signer.Nationality",
     "type": "text",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Signer.Position",
+    "path": "SigningInformation.Signature.Signer.Position",
     "type": "text",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Signer.Role",
+    "path": "SigningInformation.Signature.Signer.Role",
     "type": "text",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Signer.SigningTime",
+    "path": "SigningInformation.Signature.Signer.SigningTime",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator",
+    "path": "SigningInformation.Signature.Validator",
     "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.Activity",
+    "path": "SigningInformation.Signature.Validator.Activity",
     "type": "text",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Validator.BirthDate",
+    "path": "SigningInformation.Signature.Validator.BirthDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.BirthName",
+    "path": "SigningInformation.Signature.Validator.BirthName",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.BirthPlace",
+    "path": "SigningInformation.Signature.Validator.BirthPlace",
     "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.BirthPlace.Address",
+    "path": "SigningInformation.Signature.Validator.BirthPlace.Address",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.BirthPlace.City",
+    "path": "SigningInformation.Signature.Validator.BirthPlace.City",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.BirthPlace.Country",
+    "path": "SigningInformation.Signature.Validator.BirthPlace.Country",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.BirthPlace.Geogname",
+    "path": "SigningInformation.Signature.Validator.BirthPlace.Geogname",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.BirthPlace.PostalCode",
+    "path": "SigningInformation.Signature.Validator.BirthPlace.PostalCode",
     "type": "keyword",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.BirthPlace.Region",
+    "path": "SigningInformation.Signature.Validator.BirthPlace.Region",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.Corpname",
+    "path": "SigningInformation.Signature.Validator.Corpname",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.DeathDate",
+    "path": "SigningInformation.Signature.Validator.DeathDate",
     "type": "datetime",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.DeathPlace",
+    "path": "SigningInformation.Signature.Validator.DeathPlace",
     "type": "object",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.DeathPlace.Address",
+    "path": "SigningInformation.Signature.Validator.DeathPlace.Address",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.DeathPlace.City",
+    "path": "SigningInformation.Signature.Validator.DeathPlace.City",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.DeathPlace.Country",
+    "path": "SigningInformation.Signature.Validator.DeathPlace.Country",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.DeathPlace.Geogname",
+    "path": "SigningInformation.Signature.Validator.DeathPlace.Geogname",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.DeathPlace.PostalCode",
+    "path": "SigningInformation.Signature.Validator.DeathPlace.PostalCode",
     "type": "keyword",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.DeathPlace.Region",
+    "path": "SigningInformation.Signature.Validator.DeathPlace.Region",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.FirstName",
+    "path": "SigningInformation.Signature.Validator.FirstName",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.FullName",
+    "path": "SigningInformation.Signature.Validator.FullName",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.Function",
+    "path": "SigningInformation.Signature.Validator.Function",
     "type": "text",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Validator.Gender",
+    "path": "SigningInformation.Signature.Validator.Gender",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.GivenName",
+    "path": "SigningInformation.Signature.Validator.GivenName",
     "type": "text",
     "indexed": true,
     "cardinality": "one"
   },
   {
-    "path": "Signature.Validator.Identifier",
+    "path": "SigningInformation.Signature.Validator.Identifier",
     "type": "keyword",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Validator.Mandate",
+    "path": "SigningInformation.Signature.Validator.Mandate",
     "type": "text",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Validator.Nationality",
+    "path": "SigningInformation.Signature.Validator.Nationality",
     "type": "text",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Validator.Position",
+    "path": "SigningInformation.Signature.Validator.Position",
     "type": "text",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Validator.Role",
+    "path": "SigningInformation.Signature.Validator.Role",
     "type": "text",
     "indexed": true,
     "cardinality": "many"
   },
   {
-    "path": "Signature.Validator.ValidationTime",
+    "path": "SigningInformation.Signature.Validator.ValidationTime",
     "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "SigningInformation.Signature.SigningType",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "SigningInformation.TimestampingInformation",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "SigningInformation.TimestampingInformation.TimeStamp",
+    "type": "datetime",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "SigningInformation.TimestampingInformation.AdditionalTimestampingInformation",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
+    "path": "SigningInformation.AdditionalProof",
+    "type": "object",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "SigningInformation.AdditionalProof.AdditionalProofInformation",
+    "type": "text",
+    "indexed": true,
+    "cardinality": "many"
+  },
+  {
+    "path": "SigningInformation.Extended",
+    "type": "object",
     "indexed": true,
     "cardinality": "one"
   },

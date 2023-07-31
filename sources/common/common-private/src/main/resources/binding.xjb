@@ -122,13 +122,6 @@
     </jxb:bindings>
 
     <jxb:bindings schemaLocation="seda-vitam/seda-vitam-ontology.xsd">
-        <jxb:bindings node="//xs:element[@name='SignedObjectId']">
-            <jxb:property>
-                <jxb:baseType>
-                    <jxb:javaType name="java.lang.String"></jxb:javaType>
-                </jxb:baseType>
-            </jxb:property>
-        </jxb:bindings>
         <jxb:bindings node="xs:complexType[@name='DataObjectOrArchiveUnitReferenceType']">
             <jxb:bindings node="//xs:element[@name='ArchiveUnitRefId']">
                 <jxb:property>

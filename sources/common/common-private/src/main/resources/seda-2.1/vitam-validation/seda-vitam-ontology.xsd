@@ -44,7 +44,7 @@
             <xsd:group ref="RelationGroup"/>
             <xsd:group ref="DateGroup"/>
             <xsd:group ref="EventGroup"/>
-            <xsd:group ref="SignatureGroup"/>
+            <!--<xsd:group ref="SignatureGroup"/>-->
             <xsd:group ref="GpsGroup"/>
         </xsd:sequence>
     </xsd:group>
@@ -655,8 +655,8 @@
             <xsd:any processContents="lax" minOccurs="0" maxOccurs="unbounded" />
         </xsd:sequence>
     </xsd:complexType>
-    <!-- Signature description -->
-    <xsd:group name="SignatureGroup">
+    <!-- Deprecated -->
+    <!-- <xsd:group name="SignatureGroup">
         <xsd:sequence>
             <xsd:element name="Signature" type="SignatureType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
@@ -734,7 +734,7 @@
             </xsd:element>
             <xsd:group ref="BusinessGroup"/>
         </xsd:sequence>
-    </xsd:group>
+    </xsd:group>-->
 
     <!-- Addressee description -->
     <xsd:group name="AddresseeGroup">

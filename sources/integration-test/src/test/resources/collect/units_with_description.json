@@ -567,113 +567,35 @@
       "1Otot"
     ],
     "TransactedDate": "2017-01-01T00:00:00",
-    "Signature": [
-      {
-        "Signer": [
-          {
-            "FirstName": "Fulgence Marie Auguste",
-            "BirthName": "Bienven\u00FCe",
-            "FullName": "Fulgence Marie Auguste Bienven\u00FCe",
-            "GivenName": "Le p\u00E8re du m\u00E9tro",
-            "Gender": "M",
-            "BirthDate": "1852-01-27",
-            "BirthPlace": {
-              "Geogname": "Uzel",
-              "Address": "Place de la Mairie",
-              "PostalCode": "22460",
-              "City": "Uzel",
-              "Region": "Bretagne",
-              "Country": "France"
-            },
-            "DeathDate": "1936-08-03",
-            "DeathPlace": {
-              "Geogname": "Paris",
-              "Address": "H\u00F4pital Boucicaut",
-              "PostalCode": "75015",
-              "City": "Paris",
-              "Region": "Ile de France",
-              "Country": "France"
-            },
-            "Nationality": [
-              "Fran\u00E7aise"
-            ],
-            "Identifier": [
-              "0000 0000 5488 9547"
-            ],
-            "SigningTime": "1998-04-04T08:07:00",
-            "Function": [
-              "Ing\u00E9nierie"
-            ],
-            "Activity": [
-              "Conception de lignes de m\u00E9tro"
-            ],
-            "Position": [
-              "Chef de l'inspection des Ponts et Chauss\u00E9es"
-            ],
-            "Role": [
-              "Directeur des travaux"
-            ],
-            "Mandate": [
-              "Loi du 30 mars 1898"
-            ]
-          }
-        ],
-        "Validator": {
-          "FirstName": "Fulgence Marie Auguste",
-          "BirthName": "Bienven\u00FCe",
-          "FullName": "Fulgence Marie Auguste Bienven\u00FCe",
-          "GivenName": "Le p\u00E8re du m\u00E9tro",
-          "Gender": "M",
-          "BirthDate": "1852-01-27",
-          "BirthPlace": {
-            "Geogname": "Uzel",
-            "Address": "Place de la Mairie",
-            "PostalCode": "22460",
-            "City": "Uzel",
-            "Region": "Bretagne",
-            "Country": "France"
+    "SigningInformation": {
+      "AdditionalProof": [
+        {
+          "AdditionalProofInformation": ["ExtraProofInfo", "ExtraProofInfo2"]
+        }
+      ],
+      "Signature": [
+        {
+          "Signer": {
+            "BirthName": "Henry",
+            "Role": ["Directeur des travaux", "Expert"],
+            "SigningTime": "2016-06-03T15:28:00"
           },
-          "DeathDate": "1936-08-03",
-          "DeathPlace": {
-            "Geogname": "Paris",
-            "Address": "H\u00F4pital Boucicaut",
-            "PostalCode": "75015",
-            "City": "Paris",
-            "Region": "Ile de France",
-            "Country": "France"
-          },
-          "Nationality": [
-            "Fran\u00E7aise"
-          ],
-          "Identifier": [
-            "0000 0000 5488 9547"
-          ],
-          "ValidationTime": "1998-04-04T08:07:00",
-          "Function": [
-            "Ing\u00E9nierie"
-          ],
-          "Activity": [
-            "Conception de lignes de m\u00E9tro"
-          ],
-          "Position": [
-            "Chef de l'inspection des Ponts et Chauss\u00E9es"
-          ],
-          "Role": [
-            "Directeur des travaux"
-          ],
-          "Mandate": [
-            "Loi du 30 mars 1898"
-          ]
-        },
-        "ReferencedObject": {
-          "SignedObjectId": "ID13",
-          "SignedObjectDigest": {
-            "MessageDigest": "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1",
-            "Algorithm": "SHA-512"
+          "SigningType": "QualifedSignature",
+          "Validator": {
+            "FirstName": "ValidatorFirstName",
+            "FullName": "ValidatorFullName",
+            "ValidationTime": "2016-06-03T15:28:00"
           }
         }
-      }
-    ],
+      ],
+      "SigningRole": ["SignedDocument", "Signature"],
+      "TimestampingInformation": [
+        {
+          "AdditionalTimestampingInformation": "ExtraInfo",
+          "TimeStamp": "2016-06-03T15:28:01"
+        }
+      ]
+    },
     "CreatedDate": "2017-01-01T00:00:00",
     "OriginatingAgency": {
       "Identifier": "RATP"

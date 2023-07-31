@@ -28,33 +28,30 @@ package fr.gouv.vitam.common.model.unit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ReferencedObjectTypeModel {
+public class TimestampingInformationTypeModel {
 
-    @JsonProperty("SignedObjectId")
-    private String signedObjectId;
+    @JsonProperty("TimeStamp")
+    private String timeStamp;
 
-    @JsonProperty("SignedObjectDigest")
-    private SignedObjectDigestModel signedObjectDigest;
+    @JsonProperty("AdditionalTimestampingInformation")
+    private String additionalTimestampingInformation;
 
-    public ReferencedObjectTypeModel() {
-        // Empty constructor for deserialization
+    public String getTimeStamp() {
+        return timeStamp;
     }
 
-    public String getSignedObjectId() {
-        return signedObjectId;
-    }
-
-    public ReferencedObjectTypeModel setSignedObjectId(String signedObjectId) {
-        this.signedObjectId = signedObjectId;
+    public TimestampingInformationTypeModel setTimeStamp(String timeStamp) {
+        this.timeStamp = timeStamp;
         return this;
     }
 
-    public SignedObjectDigestModel getSignedObjectDigest() {
-        return signedObjectDigest;
+    public String getAdditionalTimestampingInformation() {
+        return additionalTimestampingInformation;
     }
 
-    public ReferencedObjectTypeModel setSignedObjectDigest(SignedObjectDigestModel signedObjectDigest) {
-        this.signedObjectDigest = signedObjectDigest;
+    public TimestampingInformationTypeModel setAdditionalTimestampingInformation(
+        String additionalTimestampingInformation) {
+        this.additionalTimestampingInformation = additionalTimestampingInformation;
         return this;
     }
 }

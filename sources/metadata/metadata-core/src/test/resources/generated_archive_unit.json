@@ -824,10 +824,17 @@
       ]
     }
   },
-  "Signature": [
-    {
-      "Signer": [
-        {
+  "SigningInformation": {
+    "SigningRole": [
+      "SignedDocument",
+      "Signature"
+    ],
+    "DetachedSigningRole": [
+      "Timestamp"
+    ],
+    "Signature": [
+      {
+        "Signer": {
           "BirthPlace": {
             "Geogname": "xhy",
             "Address": "dbs",
@@ -875,75 +882,78 @@
           ],
           "FullName": "eprutjd",
           "SigningTime": "2016-05-05T20:45:20",
-          "ValidationTime": "2016-05-05T20:45:20",
           "BirthName": "llw uu",
           "Corpname": "gobyv j",
           "BirthDate": "2016-05-05T20:45:20"
+        },
+        "Validator": {
+          "BirthPlace": {
+            "Geogname": "oulxy",
+            "Address": "ywt rj",
+            "PostalCode": "vsykz",
+            "Region": "gopqbev",
+            "Country": "oucd",
+            "City": "mgmopy"
+          },
+          "Position": [
+            "dhtzfl"
+          ],
+          "FirstName": "jpuqe",
+          "GivenName": "ioe",
+          "Activity": [
+            "hxegvyc"
+          ],
+          "Mandate": [
+            "phk",
+            "ru mn"
+          ],
+          "Gender": "gqo",
+          "DeathPlace": {
+            "Geogname": "z bk",
+            "Address": "tmubjm",
+            "PostalCode": "hxyy",
+            "Region": "jcbxd",
+            "Country": "yuabo",
+            "City": "tywf"
+          },
+          "DeathDate": "2016-05-05T20:45:20",
+          "Nationality": [
+            "ohcvck",
+            "cytwr"
+          ],
+          "Role": [
+            " ttgnc",
+            "exn"
+          ],
+          "Function": [
+            "zfyjfs"
+          ],
+          "Identifier": [
+            "agl",
+            "vplvu"
+          ],
+          "FullName": "uxlis",
+          "ValidationTime": "2016-05-05T20:45:20",
+          "BirthName": "yrijiwn",
+          "Corpname": "vnvl",
+          "BirthDate": "2016-05-05T20:45:20"
         }
-      ],
-      "Masterdata": {},
-      "ReferencedObject": {
-        "SignedObjectDigest": {
-          "MessageDigest": "KEYWORD",
-          "Algorithm": "KEYWORD"
-        },
-        "SignedObjectId": "jbne"
-      },
-      "Validator": {
-        "BirthPlace": {
-          "Geogname": "oulxy",
-          "Address": "ywt rj",
-          "PostalCode": "vsykz",
-          "Region": "gopqbev",
-          "Country": "oucd",
-          "City": "mgmopy"
-        },
-        "Position": [
-          "dhtzfl"
-        ],
-        "FirstName": "jpuqe",
-        "GivenName": "ioe",
-        "Activity": [
-          "hxegvyc"
-        ],
-        "Mandate": [
-          "phk",
-          "ru mn"
-        ],
-        "Gender": "gqo",
-        "DeathPlace": {
-          "Geogname": "z bk",
-          "Address": "tmubjm",
-          "PostalCode": "hxyy",
-          "Region": "jcbxd",
-          "Country": "yuabo",
-          "City": "tywf"
-        },
-        "DeathDate": "2016-05-05T20:45:20",
-        "Nationality": [
-          "ohcvck",
-          "cytwr"
-        ],
-        "Role": [
-          " ttgnc",
-          "exn"
-        ],
-        "Function": [
-          "zfyjfs"
-        ],
-        "Identifier": [
-          "agl",
-          "vplvu"
-        ],
-        "FullName": "uxlis",
-        "SigningTime": "2016-05-05T20:45:20",
-        "ValidationTime": "2016-05-05T20:45:20",
-        "BirthName": "yrijiwn",
-        "Corpname": "vnvl",
-        "BirthDate": "2016-05-05T20:45:20"
       }
+    ],
+    "Extended": {
+      "ExtraField1": [
+        "Val1",
+        "Val2"
+      ],
+      "ExtraField2": [
+        {
+          "SubField2": [
+            "Val3"
+          ]
+        }
+      ]
     }
-  ],
+  },
   "CreatedDate": "2016-05-05T20:45:20",
   "OriginatingAgency": {
     "Identifier": "dfudiqz",

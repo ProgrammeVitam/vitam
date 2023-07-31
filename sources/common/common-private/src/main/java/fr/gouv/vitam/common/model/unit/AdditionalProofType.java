@@ -28,32 +28,19 @@ package fr.gouv.vitam.common.model.unit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class SignedObjectDigestModel {
+import java.util.List;
 
-    @JsonProperty("MessageDigest")
-    protected String value;
-    @JsonProperty("Algorithm")
-    protected String algorithm;
+public class AdditionalProofType {
+    
+    @JsonProperty("AdditionalProofInformation")
+    public List<String> additionalProofInformation;
 
-    public SignedObjectDigestModel() {
-        // Empty constructor for deserialization
+    public List<String> getAdditionalProofInformation() {
+        return additionalProofInformation;
     }
 
-    public String getValue() {
-        return value;
-    }
-
-    public SignedObjectDigestModel setValue(String value) {
-        this.value = value;
-        return this;
-    }
-
-    public String getAlgorithm() {
-        return algorithm;
-    }
-
-    public SignedObjectDigestModel setAlgorithm(String algorithm) {
-        this.algorithm = algorithm;
+    public AdditionalProofType setAdditionalProofInformation(List<String> additionalProofInformation) {
+        this.additionalProofInformation = additionalProofInformation;
         return this;
     }
 }

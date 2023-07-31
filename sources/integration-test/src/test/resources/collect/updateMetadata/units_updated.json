@@ -21,26 +21,35 @@
     ],
     "StartDate": "2016-06-03T15:28:00",
     "RelatedObjectReference": { "Replaces": [{ "ExternalReference": "ID_Fictif" }] },
-    "Signature": [
-      {
-        "Signer": [
-          { "BirthName": "Henry", "SigningTime": "2016-06-03T15:28:00" },
-          { "Nationality": ["Monaco"], "SigningTime": "2016-06-03T15:28:00" }
-        ],
-        "Validator": {
-          "FirstName": "ValidatorFirstName",
-          "FullName": "ValidatorFullName",
-          "ValidationTime": "2016-06-03T15:28:00"
-        },
-        "ReferencedObject": {
-          "SignedObjectId": "ID17",
-          "SignedObjectDigest": {
-            "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
-            "Algorithm": "SHA-512"
+    "SigningInformation": {
+      "AdditionalProof": [
+        {
+          "AdditionalProofInformation": ["ExtraProofInfo", "ExtraProofInfo2"]
+        }
+      ],
+      "Signature": [
+        {
+          "Signer": {
+            "BirthName": "Henry",
+            "Role": ["Directeur des travaux", "Expert"],
+            "SigningTime": "2016-06-03T15:28:00"
+          },
+          "SigningType": "QualifedSignature",
+          "Validator": {
+            "FirstName": "ValidatorFirstName",
+            "FullName": "ValidatorFullName",
+            "ValidationTime": "2016-06-03T15:28:00"
           }
         }
-      }
-    ],
+      ],
+      "SigningRole": ["SignedDocument", "Signature"],
+      "TimestampingInformation": [
+        {
+          "AdditionalTimestampingInformation": "ExtraInfo",
+          "TimeStamp": "2016-06-03T15:28:01"
+        }
+      ]
+    },
     "Event": [
       { "evDateTime": "2016-06-03T15:28:00" },
       {

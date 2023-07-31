@@ -24,31 +24,34 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.model.validation;
+package fr.gouv.vitam.common.model.unit;
 
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollections;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
-import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
-import org.junit.Ignore;
-import org.junit.Test;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class LogbookModelValidationTest {
+import java.util.HashMap;
+import java.util.Map;
 
-    @Test
-    @Ignore
-    public void testLogbookOperationElasticsearchMapping() throws Exception {
-        ModelValidatorUtils.validateDataModel(
-            LogbookOperation.class.getResourceAsStream(LogbookElasticsearchAccess.MAPPING_LOGBOOK_OPERATION_FILE),
-            LogbookCollections.OPERATION.getVitamCollection());
+public class SignatureInformationExtendedModel {
+
+    @JsonIgnore
+    private final Map<String, Object> any = new HashMap<>();
+
+    /**
+     * @return
+     */
+    @JsonAnyGetter
+    public Map<String, Object> getAny() {
+        return any;
     }
 
-    @Test
-    public void testLogbookLifecycleObjectGroupElasticsearchMapping() throws Exception {
-        ModelValidatorUtils.validateDataModel(LogbookCollections.LIFECYCLE_OBJECTGROUP.getVitamCollection());
-    }
-
-    @Test
-    public void testLogbookLifecycleUnitElasticsearchMapping() throws Exception {
-        ModelValidatorUtils.validateDataModel(LogbookCollections.LIFECYCLE_UNIT.getVitamCollection());
+    /**
+     * @param key
+     * @param value
+     */
+    @JsonAnySetter
+    public void setAny(String key, Object value) {
+        this.any.put(key, value);
     }
 }

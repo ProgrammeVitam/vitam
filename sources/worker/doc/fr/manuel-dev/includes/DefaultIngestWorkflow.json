@@ -85,7 +85,13 @@
         {
           "action": {
             "actionKey": "CHECK_SEDA",
-            "behavior": "BLOCKING"
+            "behavior": "BLOCKING",
+            "out": [
+              {
+                "name": "sedaParams.json",
+                "uri": "WORKSPACE:Maps/sedaParams.json"
+              }
+            ]
           }
         },
         {
@@ -610,6 +616,10 @@
                 "name": "mapsExisitingGotToNewGotForAttachment.file",
                 "uri": "WORKSPACE:Maps/EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_MAP.json",
                 "optional": true
+              },
+              {
+                "name": "sedaParams.json",
+                "uri": "WORKSPACE:Maps/sedaParams.json"
               }
             ],
             "out": [
