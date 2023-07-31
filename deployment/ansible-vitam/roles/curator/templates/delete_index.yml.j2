@@ -12,7 +12,7 @@ actions:
   2:
     action: delete_indices
     description: >-
-      Delete indices older than {{ curator.log.logstash.delete }} days (based on index name), for logstash-
+      Delete indices older than {{ curator.log.logstash.delete }} days (based on index name), for {{ curator.log.logstash.prefix | default('logstash-') }}
       prefixed indices.
     options:
       ignore_empty_list: True
@@ -21,7 +21,7 @@ actions:
     filters:
     - filtertype: pattern
       kind: prefix
-      value: logstash-
+      value: {{ curator.log.logstash.prefix | default('logstash-') }}
       exclude:
     - filtertype: age
       source: name

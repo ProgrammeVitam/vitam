@@ -9,7 +9,7 @@ actions:
   1:
     action: close
     description: >-
-      Close indices older than {{ curator.log.logstash.close }} days (based on index name), for logstash-
+      Close indices older than {{ curator.log.logstash.close }} days (based on index name), for {{ curator.log.logstash.prefix | default('logstash-') }}
       prefixed indices.
     options:
       ignore_empty_list: True
@@ -20,7 +20,7 @@ actions:
     filters:
     - filtertype: pattern
       kind: prefix
-      value: logstash-
+      value: {{ curator.log.logstash.prefix | default('logstash-') }}
       exclude:
     - filtertype: age
       source: name
