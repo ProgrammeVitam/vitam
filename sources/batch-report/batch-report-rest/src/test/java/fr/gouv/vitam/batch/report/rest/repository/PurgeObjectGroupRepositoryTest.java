@@ -26,6 +26,16 @@
  */
 package fr.gouv.vitam.batch.report.rest.repository;
 
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPI;
+import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECTS;
+import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECT_GROUPS;
+import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_SIZE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -42,27 +52,17 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import org.assertj.core.api.Assertions;
-import org.bson.Document;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-
 import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPI;
-import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECTS;
-import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECT_GROUPS;
-import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_SIZE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
+import java.util.stream.Stream;
+import org.assertj.core.api.Assertions;
+import org.bson.Document;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class PurgeObjectGroupRepositoryTest {
     private static final int TENANT_ID = 0;
@@ -226,6 +226,47 @@ public class PurgeObjectGroupRepositoryTest {
             documents.add(next);
         }
         assertThat(documents.size()).isEqualTo(4);
+    }
+
+    @Test
+    public void should_find_purge_objectgroup_with_persistent_id() throws Exception {
+        // Given
+        List<PurgeObjectGroupModel> purgeObjectGroupModels = getDocuments("/purgeObjectGroupModel.json");
+
+        repository.bulkAppendReport(purgeObjectGroupModels);
+        // When
+        MongoCursor<Document> iterator =
+          repository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID);
+        // Then
+        List<Document> documents = new ArrayList<>();
+        while (iterator.hasNext()) {
+            Document next = iterator.next();
+            documents.add(next);
+        }
+
+        List<Document> persistentIdentifiers = documents.stream()
+            .map(doc -> ((Document) doc.get("params")).get("objectVersions"))
+            .flatMap(versions -> versions != null ? ((List<Document>) versions).stream() : Stream.empty())
+            .map(version -> (List<Document>) version.get("persistentIdentifier"))
+            .flatMap(identifiers -> identifiers != null ? identifiers.stream() : Stream.empty())
+            .collect(Collectors.toList());
+
+        assertThat(persistentIdentifiers).hasSize(2);
+
+        assertThat(persistentIdentifiers)
+            .usingElementComparatorIgnoringFields("someFieldThatMightVary")
+            .containsExactlyInAnyOrder(
+                new Document()
+                    .append("PersistentIdentifierType", "ark")
+                    .append("PersistentIdentifierOrigin", "OriginatingAgency")
+                    .append("PersistentIdentifierReference", "Agency-00021")
+                    .append("PersistentIdentifierContent", "ark:/23567/001a9d7db5eadabac_binary_master"),
+                new Document()
+                    .append("PersistentIdentifierType", "ark")
+                    .append("PersistentIdentifierOrigin", "OriginatingAgency")
+                    .append("PersistentIdentifierReference", "Agency-00221")
+                    .append("PersistentIdentifierContent", "ark:/225867/001a9d7db5eghxac_binary_master")
+            );
     }
 
     @Test

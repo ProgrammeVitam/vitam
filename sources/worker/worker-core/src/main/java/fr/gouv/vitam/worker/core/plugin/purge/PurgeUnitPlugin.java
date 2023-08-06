@@ -94,6 +94,7 @@ public class PurgeUnitPlugin extends ActionHandler {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PurgeUnitPlugin.class);
 
     private static final String UNIT_DELETION_ABORT = "UNIT_DELETION_ABORT";
+    private static final String REPORT_PERSISTENT_IDENTIFIER_FIELD = "PersistentIdentifier";
 
     private final String actionId;
     private final PurgeDeleteService purgeDeleteService;
@@ -213,13 +214,23 @@ public class PurgeUnitPlugin extends ActionHandler {
             unit.has(VitamFieldsHelper.unitType()) ? unit.get(VitamFieldsHelper.unitType()).asText() : null;
 
         if (purgeUnitStatus.equals(PurgeUnitStatus.DELETED)) {
+            JsonNode persistentIdentifier = extractPersistentIdentifierFromUnit(unit);
             JsonNode extraInfo = extractExtraInfoFromUnit(unit);
             return new PurgeUnitReportEntry(unitId, originatingAgency, initialOperation, objectGroupId,
-                purgeUnitStatus.name(), extraInfo, unitType);
+                purgeUnitStatus.name(), extraInfo, persistentIdentifier, unitType);
         } else {
             return new PurgeUnitReportEntry(unitId, originatingAgency, initialOperation, objectGroupId,
-                purgeUnitStatus.name(), null, unitType);
+                purgeUnitStatus.name(), null, null, unitType);
         }
+    }
+
+    private static JsonNode extractPersistentIdentifierFromUnit(JsonNode unit) {
+        ObjectNode persistentIdentifier = JsonHandler.createObjectNode();
+        String metadataKey = REPORT_PERSISTENT_IDENTIFIER_FIELD;
+        if (unit.has(metadataKey)) {
+            persistentIdentifier.set(metadataKey, unit.get(metadataKey));
+        }
+        return persistentIdentifier;
     }
 
     private static JsonNode extractExtraInfoFromUnit(JsonNode unit) {

@@ -28,15 +28,29 @@ package fr.gouv.vitam.batch.report.model.entry;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
+import java.util.List;
 
 public class PurgeObjectGroupObjectVersion {
     private final String opi;
     private final Long size;
+    private final String version;
+    private final String usage;
+    List<PersistentIdentifierModel> persistentIdentifier;
 
     @JsonCreator
-    public PurgeObjectGroupObjectVersion(@JsonProperty("opi") String opi, @JsonProperty("size") Long size) {
+    public PurgeObjectGroupObjectVersion(
+      @JsonProperty("opi") String opi,
+      @JsonProperty("size") Long size,
+      @JsonProperty("version") String version,
+      @JsonProperty("usage") String usage,
+      @JsonProperty("persistentIdentifier") List<PersistentIdentifierModel> persistentIdentifier) {
         this.opi = opi;
         this.size = size;
+        this.version = version;
+        this.usage = usage;
+        this.persistentIdentifier = persistentIdentifier;
     }
 
     @JsonProperty("opi")
@@ -47,5 +61,20 @@ public class PurgeObjectGroupObjectVersion {
     @JsonProperty("size")
     public Long getSize() {
         return size;
+    }
+
+    @JsonProperty("version")
+    public String getVersion() {
+        return version;
+    }
+
+    @JsonProperty("usage")
+    public String getUse() {
+        return usage;
+    }
+
+    @JsonProperty("persistentIdentifier")
+    public List<PersistentIdentifierModel> getPersistentIdentifier() {
+        return persistentIdentifier;
     }
 }

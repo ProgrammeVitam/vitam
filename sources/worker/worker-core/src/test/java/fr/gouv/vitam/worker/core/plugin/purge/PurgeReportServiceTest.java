@@ -26,6 +26,7 @@
  */
 package fr.gouv.vitam.worker.core.plugin.purge;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportBody;
@@ -36,12 +37,15 @@ import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import java.util.ArrayList;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -109,11 +113,14 @@ public class PurgeReportServiceTest {
     @RunWithCustomExecutor
     public void appendUnitEntries() throws Exception {
 
+        String myPersistentIdentifier = "[{\"PersistentIdentifierType\":\"ark\",\"PersistentIdentifierContent\":\"ark:/666567/001a957db5eadaac\"},{\"PersistentIdentifierType\":\"ark\",\"PersistentIdentifierContent\":\"ark:/26661/001d957db5eadaac\"}]";
+        final JsonNode persistentIdentifier = JsonHandler.getFromString(myPersistentIdentifier);
+
         // Given
         List<PurgeUnitReportEntry> entries = Arrays.asList(
-            new PurgeUnitReportEntry("unit1", "sp1", "opi1", "got1", PurgeUnitStatus.DELETED.name(), null,"INGEST"),
+            new PurgeUnitReportEntry("unit1", "sp1", "opi1", "got1", PurgeUnitStatus.DELETED.name(), null, null, "INGEST"),
             new PurgeUnitReportEntry("unit2", "sp2", "opi2", "got2",
-                PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name(), null,"INGEST")
+                PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name(), null, persistentIdentifier, "INGEST")
         );
 
         // When
@@ -139,13 +146,21 @@ public class PurgeReportServiceTest {
     @Test
     @RunWithCustomExecutor
     public void appendEntries() throws Exception {
+
+        List<PersistentIdentifierModel> persistentIdentifier= new ArrayList<>();
+        final PersistentIdentifierModel persistentIdentifierModel = new PersistentIdentifierModel();
+        persistentIdentifierModel.setPersistentIdentifierType("ark");
+        persistentIdentifierModel.setPersistentIdentifierContent("ark:/666567/001a957db5eadaac");
+        persistentIdentifierModel.setPersistentIdentifierOrigin("OriginatingAgency");
+        persistentIdentifierModel.setPersistentIdentifierReference("Agency-00221");
+        persistentIdentifier.add(persistentIdentifierModel);
         // Given
         List<PurgeObjectGroupReportEntry> entries = Arrays.asList(
             new PurgeObjectGroupReportEntry("got1", "sp1", "opi1",
                 null, new HashSet<>(Arrays.asList("o1", "o2")), PurgeObjectGroupStatus.DELETED.name(),
                 Arrays.asList(
-                    new PurgeObjectGroupObjectVersion("opi_o_1", 10L),
-                    new PurgeObjectGroupObjectVersion("opi_o_2", 100L))),
+                    new PurgeObjectGroupObjectVersion("opi_o_1", 10L, "BinaryMaster_1", "BinaryMaster", persistentIdentifier),
+                    new PurgeObjectGroupObjectVersion("opi_o_2", 100L, "BinaryMaster_1", "BinaryMaster", persistentIdentifier))),
             new PurgeObjectGroupReportEntry("got2", "sp2", "opi2",
                 new HashSet<>(Collections.singletonList("unit3")), null,
                 PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name(),

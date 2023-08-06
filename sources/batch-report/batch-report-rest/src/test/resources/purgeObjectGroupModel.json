@@ -33,7 +33,23 @@
       "objectVersions": [
         {
           "opi": "opi1",
-          "size": 3
+          "size": 3,
+          "version" : "BinaryMaster_1",
+          "usage" : "BinaryMaster",
+          "persistentIdentifier": [
+            {
+              "PersistentIdentifierType": "ark",
+              "PersistentIdentifierOrigin": "OriginatingAgency",
+              "PersistentIdentifierReference": "Agency-00021",
+              "PersistentIdentifierContent": "ark:/23567/001a9d7db5eadabac_binary_master"
+            },
+            {
+              "PersistentIdentifierType": "ark",
+              "PersistentIdentifierOrigin": "OriginatingAgency",
+              "PersistentIdentifierReference": "Agency-00221",
+              "PersistentIdentifierContent": "ark:/225867/001a9d7db5eghxac_binary_master"
+            }
+          ]
         },
         {
           "opi": "opi1add",

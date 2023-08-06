@@ -36,6 +36,7 @@ public class PurgeUnitReportEntry {
     private final static String OPI = "opi";
     private final static String OBJECT_GROUP = "objectGroupId";
     private final static String EXTRA_INFO = "extraInfo";
+    private final static String PERSISTENT_IDENTIFIER = "persistentIdentifier";
     private final static String STATUS = "status";
     private final static String TYPE = "type";
 
@@ -44,24 +45,27 @@ public class PurgeUnitReportEntry {
     private final String initialOperation;
     private final String objectGroupId;
     private final JsonNode extraInfo;
+    private final JsonNode persistentIdentifier;
     private final String status;
     private final String type;
 
     @JsonCreator
     public PurgeUnitReportEntry(
-        @JsonProperty(ID) String id,
-        @JsonProperty(ORIGINATING_AGENCY) String originatingAgency,
-        @JsonProperty(OPI) String initialOperation,
-        @JsonProperty(OBJECT_GROUP) String objectGroupId,
-        @JsonProperty(STATUS) String status,
-        @JsonProperty(EXTRA_INFO) JsonNode extraInfo,
-        @JsonProperty(TYPE) String type) {
+      @JsonProperty(ID) String id,
+      @JsonProperty(ORIGINATING_AGENCY) String originatingAgency,
+      @JsonProperty(OPI) String initialOperation,
+      @JsonProperty(OBJECT_GROUP) String objectGroupId,
+      @JsonProperty(STATUS) String status,
+      @JsonProperty(EXTRA_INFO) JsonNode extraInfo,
+      @JsonProperty(PERSISTENT_IDENTIFIER) JsonNode persistentIdentifier,
+      @JsonProperty(TYPE) String type) {
         this.id = id;
         this.originatingAgency = originatingAgency;
         this.initialOperation = initialOperation;
         this.objectGroupId = objectGroupId;
         this.status = status;
         this.extraInfo = extraInfo;
+        this.persistentIdentifier = persistentIdentifier;
         this.type = type;
     }
 
@@ -93,6 +97,11 @@ public class PurgeUnitReportEntry {
     @JsonProperty(EXTRA_INFO)
     public JsonNode getExtraInfo() {
         return extraInfo;
+    }
+
+    @JsonProperty(PERSISTENT_IDENTIFIER)
+    public JsonNode getPersistentIdentifier() {
+        return persistentIdentifier;
     }
 
     @JsonProperty(TYPE)
