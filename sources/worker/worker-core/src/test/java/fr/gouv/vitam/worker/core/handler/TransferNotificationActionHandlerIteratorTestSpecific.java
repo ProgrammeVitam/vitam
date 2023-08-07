@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
+import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.database.server.mongodb.BsonHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUID;
@@ -61,6 +62,7 @@ import fr.gouv.vitam.worker.core.impl.HandlerIOImpl;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.assertj.core.util.Lists;
+import org.elasticsearch.common.collect.Iterators;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -177,11 +179,9 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
 
             doReturn(getLogbookOperation()).when(logbookOperationsClient).selectOperationById(any());
             when(logbookLifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
-                .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
-                .thenReturn(new RequestResponseOK<JsonNode>());
+                .thenReturn(CloseableIteratorUtils.toCloseableIterator(Iterators.single(getLogbookLifecycleGOT())));
             when(logbookLifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
-                .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU())))
-                .thenReturn(new RequestResponseOK<JsonNode>());
+                .thenReturn(CloseableIteratorUtils.toCloseableIterator(Iterators.single(getLogbookLifecycleAU())));
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
             action.reset();
@@ -210,11 +210,9 @@ public class TransferNotificationActionHandlerIteratorTestSpecific {
             doReturn(getLogbookOperation()).when(logbookOperationsClient)
                 .selectOperationById(any());
             when(logbookLifeCyclesClient.objectGroupLifeCyclesByOperationIterator(any(), any(), any()))
-                .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleGOT())))
-                .thenReturn(new RequestResponseOK<JsonNode>());
+                .thenReturn(CloseableIteratorUtils.toCloseableIterator(Iterators.single(getLogbookLifecycleGOT())));
             when(logbookLifeCyclesClient.unitLifeCyclesByOperationIterator(any(), any(), any()))
-                .thenReturn((new RequestResponseOK<JsonNode>().addResult(getLogbookLifecycleAU())))
-                .thenReturn(new RequestResponseOK<JsonNode>());
+                .thenReturn(CloseableIteratorUtils.toCloseableIterator(Iterators.single(getLogbookLifecycleAU())));
 
             assertEquals(TransferNotificationActionHandler.getId(), HANDLER_ID);
             action.reset();

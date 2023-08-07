@@ -28,6 +28,7 @@ package fr.gouv.vitam.logbook.lifecycles.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.BasicClient;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
@@ -231,13 +232,13 @@ public interface LogbookLifeCyclesClient extends BasicClient {
     JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl)
         throws LogbookClientException, InvalidParseOperationException;
 
-    RequestResponse objectGroupLifeCyclesByOperationIterator(String operationId,
+    CloseableIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId,
         LifeCycleStatusCode lifeCycleStatus, JsonNode query)
-        throws LogbookClientException, InvalidParseOperationException;
+        throws LogbookClientException;
 
-    RequestResponse unitLifeCyclesByOperationIterator(String operationId,
+    CloseableIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId,
         LifeCycleStatusCode lifeCycleStatus, JsonNode query)
-        throws LogbookClientException, InvalidParseOperationException;
+        throws LogbookClientException;
 
     /**
      * Bulk Create for Unit<br>
