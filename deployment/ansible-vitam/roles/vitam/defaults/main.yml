@@ -41,3 +41,6 @@ logback_total_size_cap:
 
 reconstruction:
   log_level: "{{ vitam_defaults.reconstruction.log_level | default('INFO') }}"
+
+default_eliminationReportExtraFields: "{{ extendedConfiguration.default.eliminationReportExtraFields | default([]) }}"
+default_objectGroupBlackListedFields: "{{ extendedConfiguration.default.objectGroupBlackListedFields | default(['Filename']) }}"
