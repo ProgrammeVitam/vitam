@@ -58,6 +58,7 @@ import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.ProfileModel;
+import fr.gouv.vitam.common.model.administration.SignaturePolicy;
 import fr.gouv.vitam.common.mongo.MongoRule;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.server.application.configuration.DbConfigurationImpl;
@@ -141,6 +142,9 @@ public class IngestContractImplTest {
 
     static ContractService<IngestContractModel> ingestContractService;
     private static MongoDbAccessAdminImpl dbImpl;
+
+    private static IngestContractImpl.IngestContractValidationService validationService;
+
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
         VitamThreadPoolExecutor.getDefaultExecutor());
@@ -179,6 +183,9 @@ public class IngestContractImplTest {
         ingestContractService =
             new IngestContractImpl(dbImpl, vitamCounterService, metaDataClientMock, logbookOperationsClientMock,
                 functionalBackupService, managementContractService);
+
+        validationService =
+            new IngestContractImpl.IngestContractValidationService(metaDataClientMock, managementContractService);
 
     }
 
@@ -1277,5 +1284,33 @@ public class IngestContractImplTest {
             .isEqualTo("STP_IMPORT_INGEST_CONTRACT");
         assertThat(allLogbookOperationParameters.get(1).getParameterValue(LogbookParameterName.outcomeDetail))
             .isEqualTo("STP_IMPORT_INGEST_CONTRACT.MANAGEMENTCONTRACT_NOT_FOUND.KO");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void testIsInvalidSignaturePolicy_PassingCase() {
+        SignaturePolicy validPolicy = new SignaturePolicy();
+        validPolicy.setSignedDocument(SignaturePolicy.SignedDocumentPolicyEnum.FORBIDDEN);
+        validPolicy.setNeedSignature(true);
+        validPolicy.setNeedTimestamp(true);
+        validPolicy.setNeedAdditionalProof(true);
+
+        assertTrue(validationService.isInvalidSignaturePolicy(validPolicy));
+
+        validPolicy.setSignedDocument(null);
+        assertTrue(validationService.isInvalidSignaturePolicy(validPolicy));
+    }
+    @Test
+    @RunWithCustomExecutor
+    public void testIsInvalidSignaturePolicy_FailingCase() {
+        SignaturePolicy validPolicy = new SignaturePolicy();
+        validPolicy.setSignedDocument(SignaturePolicy.SignedDocumentPolicyEnum.FORBIDDEN);
+        assertFalse(validationService.isInvalidSignaturePolicy(validPolicy));
+
+        validPolicy.setSignedDocument(SignaturePolicy.SignedDocumentPolicyEnum.ALLOWED);
+        validPolicy.setNeedSignature(true);
+        validPolicy.setNeedTimestamp(true);
+        validPolicy.setNeedAdditionalProof(true);
+        assertFalse(validationService.isInvalidSignaturePolicy(validPolicy));
     }
 }

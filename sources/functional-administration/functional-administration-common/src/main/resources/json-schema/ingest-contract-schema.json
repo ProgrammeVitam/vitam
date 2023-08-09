@@ -118,6 +118,29 @@
     },
     "ManagementContractId": {
       "type": "string"
+    },
+    "SignaturePolicy": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "SignedDocument": {
+          "type": "string",
+          "enum": [
+            "ALLOWED",
+            "ONLY",
+            "FORBIDDEN"
+          ]
+        },
+        "NeedSignature": {
+          "type": "boolean"
+        },
+        "NeedTimestamp": {
+          "type": "boolean"
+        },
+        "NeedAdditionalProof": {
+          "type": "boolean"
+        }
+      }
     }
   },
   "required": [

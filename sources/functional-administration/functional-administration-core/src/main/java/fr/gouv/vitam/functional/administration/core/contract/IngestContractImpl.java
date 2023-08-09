@@ -28,6 +28,7 @@ package fr.gouv.vitam.functional.administration.core.contract;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
@@ -61,6 +62,7 @@ import fr.gouv.vitam.common.model.administration.ActivationStatus;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ManagementContractModel;
+import fr.gouv.vitam.common.model.administration.SignaturePolicy;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
@@ -255,6 +257,19 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                             .rejectMCNotFoundInDatabase(managementContractId)
                             .getReason()).setMessage(MANAGEMENTCONTRACT_NOT_FOUND));
                     continue;
+                }
+
+                final SignaturePolicy signaturePolicy = acm.getSignaturePolicy();
+                if (signaturePolicy != null) {
+                    if (validationService.isInvalidSignaturePolicy(signaturePolicy)) {
+                        error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            GenericRejectionCause
+                                .rejectInconsistentContract(acm.getName(),
+                                    "The fields needSignature, needTimestamp, or needAdditionalProof are not authorized due to the signature policy")
+                                .getReason()).setMessage(UPDATE_CONTRACT_BAD_REQUEST));
+                        continue;
+                    }
+                    validationService.validSignatureObject(signaturePolicy);
                 }
 
                 final Set<String> checkParentId = acm.getCheckParentId();
@@ -571,6 +586,21 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                     ).setMessage(UPDATE_WRONG_FILEFORMAT)));
             }
 
+            final JsonNode signaturePolicyNode = queryDsl.findValue(IngestContractModel.TAG_SIGNATURE_POLICY);
+            if (signaturePolicyNode != null) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                SignaturePolicy signaturePolicy = JsonHandler.getFromJsonNode(signaturePolicyNode, SignaturePolicy.class);
+                if (validationService.isInvalidSignaturePolicy(signaturePolicy)) {
+                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                        GenericRejectionCause
+                            .rejectInconsistentContract(ingestContractModel.getName(),
+                                "The fields needSignature, needTimestamp, or needAdditionalProof are not authorized due to the signature policy")
+                            .getReason()).setMessage(UPDATE_CONTRACT_BAD_REQUEST));
+                }
+                validationService.validSignatureObject(signaturePolicy);
+            }
+
+
             if (error.getErrors() != null && !error.getErrors().isEmpty()) {
                 final String errorsDetails =
                     error.getErrors().stream().map(VitamError::getDescription).collect(Collectors.joining(","));
@@ -733,6 +763,29 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
 
                 return rejection == null ? Optional.empty() : Optional.of(rejection);
             };
+        }
+
+        /**
+         * Validate that contract have not an invalid object Signature
+         *
+         * @return boolean
+         */
+        protected boolean isInvalidSignaturePolicy(SignaturePolicy signaturePolicy) {
+            return signaturePolicy.getSignedDocument() == null ||
+                (signaturePolicy.getSignedDocument() == SignaturePolicy.SignedDocumentPolicyEnum.FORBIDDEN &&
+                (signaturePolicy.isNeedSignature() != null || signaturePolicy.isNeedTimestamp() != null ||
+                    signaturePolicy.isNeedAdditionalProof() != null));
+        }
+
+        protected void validSignatureObject(SignaturePolicy signaturePolicy) {
+            if (!signaturePolicy.getSignedDocument().equals(SignaturePolicy.SignedDocumentPolicyEnum.FORBIDDEN)) {
+                signaturePolicy.setNeedSignature(
+                    signaturePolicy.isNeedSignature() != null ? signaturePolicy.isNeedSignature() : false);
+                signaturePolicy.setNeedAdditionalProof(
+                    signaturePolicy.isNeedAdditionalProof() != null ? signaturePolicy.isNeedAdditionalProof() : false);
+                signaturePolicy.setNeedTimestamp(
+                    signaturePolicy.isNeedTimestamp() != null ? signaturePolicy.isNeedTimestamp() : false);
+            }
         }
 
         /**

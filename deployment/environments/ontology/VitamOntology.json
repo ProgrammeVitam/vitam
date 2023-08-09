@@ -3492,6 +3492,50 @@
     "Collections": [
       "Unit"
     ]
+  },
+  {
+    "Identifier": "SignedDocument",
+    "ApiField": "SignedDocument",
+    "Description": "Accepte tout type de données signée ou non",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Accepte tout type de données signée ou non",
+    "Collections": [
+      "IngestContract"
+    ]
+  },
+  {
+    "Identifier": "NeedSignature",
+    "ApiField": "NeedSignature",
+    "Description": "Données toujours accompagné d'une signature",
+    "Type": "BOOLEAN",
+    "Origin": "INTERNAL",
+    "ShortName": "Données toujours accompagné d'une signature",
+    "Collections": [
+      "IngestContract"
+    ]
+  },
+  {
+    "Identifier": "NeedTimestamp",
+    "ApiField": "NeedTimestamp",
+    "Description": "Données toujours accompagné d'un timestamp",
+    "Type": "BOOLEAN",
+    "Origin": "INTERNAL",
+    "ShortName": "Données toujours accompagné d'un timestamp",
+    "Collections": [
+      "IngestContract"
+    ]
+  },
+  {
+    "Identifier": "NeedAdditionalProof",
+    "ApiField": "NeedAdditionalProof",
+    "Description": "Données toujours accompagné de preuves complémentaire",
+    "Type": "BOOLEAN",
+    "Origin": "INTERNAL",
+    "ShortName": "Données toujours accompagné de preuves complémentaire",
+    "Collections": [
+      "IngestContract"
+    ]
   }
 ]
 

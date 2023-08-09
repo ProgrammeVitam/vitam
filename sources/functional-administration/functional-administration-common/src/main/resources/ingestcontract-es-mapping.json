@@ -65,6 +65,23 @@
     "ManagementContractId": {
       "type": "keyword"
     },
+    "SignaturePolicy": {
+      "type": "object",
+      "properties": {
+        "SignedDocument": {
+          "type": "keyword"
+        },
+        "NeedSignature": {
+          "type": "boolean"
+        },
+        "NeedTimestamp": {
+          "type": "boolean"
+        },
+        "NeedAdditionalProof": {
+          "type": "boolean"
+        }
+      }
+    },
     "_tenant": {
       "type": "long"
     },
