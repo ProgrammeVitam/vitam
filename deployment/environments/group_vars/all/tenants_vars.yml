@@ -143,3 +143,13 @@ vitam_elasticsearch_tenant_indexation:
   #      number_of_shards: 7
   #      number_of_replicas: 0
   #  ...
+
+extendedConfiguration:
+  default:
+    objectGroupBlackListedFields: ['Filename']
+  custom:
+  # The `objectGroupBlackListedFields` configuration option specifies the fields that should not be reported by access-external.
+  #
+  # Example for tenant 0 :
+  #   0:
+  #     objectGroupBlackListedFields: ['Filename']
