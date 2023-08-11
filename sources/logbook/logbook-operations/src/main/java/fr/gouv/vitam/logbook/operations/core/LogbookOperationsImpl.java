@@ -90,6 +90,7 @@ import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -142,14 +143,16 @@ public class LogbookOperationsImpl implements LogbookOperations {
         throws LogbookAlreadyExistsException,
         LogbookDatabaseException {
         mongoDbAccess.createLogbookOperation(parameters);
-        backupOperation(parameters);
+        String idOperation = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
+        backupOperation(idOperation);
     }
 
     @Override
     public void update(LogbookOperationParameters parameters)
         throws LogbookNotFoundException, LogbookDatabaseException {
         mongoDbAccess.updateLogbookOperation(parameters);
-        backupOperation(parameters);
+        String idOperation = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
+        backupOperation(idOperation);
     }
 
     @Override
@@ -187,9 +190,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
             operations.add(doc);
         }
 
-        return (cursor.getScrollId() == null) ?
-            new RequestResponseOK<>(select, operations, (int) cursor.getTotal()) :
-            new RequestResponseOK<>(select, operations, (int) cursor.getTotal());
+        return new RequestResponseOK<>(select, operations, (int) cursor.getTotal());
 
     }
 
@@ -247,14 +248,20 @@ public class LogbookOperationsImpl implements LogbookOperations {
     public final void createBulkLogbookOperation(final LogbookOperationParameters[] operationArray)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
         mongoDbAccess.createBulkLogbookOperation(operationArray);
-        backupBulkOperation(operationArray);
+        String idOperation =
+            Arrays.stream(operationArray).map(e -> e.getParameterValue(LogbookParameterName.eventIdentifierProcess))
+                .findFirst().orElseThrow();
+        backupOperation(idOperation);
     }
 
     @Override
     public final void updateBulkLogbookOperation(final LogbookOperationParameters[] operationArray)
         throws LogbookDatabaseException, LogbookNotFoundException {
         mongoDbAccess.updateBulkLogbookOperation(operationArray);
-        backupBulkOperation(operationArray);
+        String idOperation =
+            Arrays.stream(operationArray).map(e -> e.getParameterValue(LogbookParameterName.eventIdentifierProcess))
+                .findFirst().orElseThrow();
+        backupOperation(idOperation);
     }
 
     @Override
@@ -510,13 +517,12 @@ public class LogbookOperationsImpl implements LogbookOperations {
         }
     }
 
-    private void backupOperation(LogbookOperationParameters parameters) throws LogbookDatabaseException {
-        String operationGuid = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
+    private void backupOperation(String operationId) throws LogbookDatabaseException {
         LogbookOperation logbookOperation;
         try {
-            logbookOperation = mongoDbAccess.getLogbookOperationById(operationGuid);
+            logbookOperation = mongoDbAccess.getLogbookOperationById(operationId);
         } catch (LogbookNotFoundException e) {
-            throw new LogbookDatabaseException("Cannot find operation with GUID " + operationGuid + ", cannot backup " +
+            throw new LogbookDatabaseException("Cannot find operation with GUID " + operationId + ", cannot backup " +
                 "it", e);
         }
         Integer tenantId = ParameterHelper.getTenantParameter();
@@ -525,34 +531,28 @@ public class LogbookOperationsImpl implements LogbookOperations {
         // Ugly hack to mock workspaceFactoryClient
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             workspaceClient.createContainer(containerName);
-            workspaceClient.putObject(containerName, operationGuid, JsonHandler.writeToInpustream
+            workspaceClient.putObject(containerName, operationId, JsonHandler.writeToInpustream
                 (logbookOperation));
             try (StorageClient storageClient = storageClientFactory.getClient()) {
                 ObjectDescription objectDescription = new ObjectDescription();
                 objectDescription.setWorkspaceContainerGUID(containerName);
-                objectDescription.setObjectName(operationGuid);
+                objectDescription.setObjectName(operationId);
                 objectDescription.setType(DataCategory.BACKUP_OPERATION);
-                objectDescription.setWorkspaceObjectURI(operationGuid);
+                objectDescription.setWorkspaceObjectURI(operationId);
 
                 storageClient
                     .storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.BACKUP_OPERATION,
-                        operationGuid,
+                        operationId,
                         objectDescription);
-            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e) {
-                throw new LogbookDatabaseException("Cannot backup operation with GUID " + operationGuid, e);
+            } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
+                     StorageServerClientException e) {
+                throw new LogbookDatabaseException("Cannot backup operation with GUID " + operationId, e);
             }
-            workspaceClient.deleteObject(containerName, operationGuid);
+            workspaceClient.deleteObject(containerName, operationId);
         } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
-            LOGGER.warn("Cannot delete temporary backup operation file with GUID {}", operationGuid, e);
+            LOGGER.warn("Cannot delete temporary backup operation file with GUID {}", operationId, e);
         } catch (InvalidParseOperationException e) {
-            throw new LogbookDatabaseException("Cannot backup operation with GUID " + operationGuid, e);
-        }
-    }
-
-    private void backupBulkOperation(LogbookOperationParameters[] parametersArray) throws LogbookDatabaseException {
-        for (LogbookOperationParameters parameters : parametersArray) {
-            // TODO: better exception management ?
-            backupOperation(parameters);
+            throw new LogbookDatabaseException("Cannot backup operation with GUID " + operationId, e);
         }
     }
 }
