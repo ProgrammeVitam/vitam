@@ -49,8 +49,7 @@ public class ManageStatusThread implements Runnable {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ManageStatusThread.class);
     private final TransactionService transactionService;
-    private final ExecutorService executorService;
-
+    private final int threadPoolSize;
 
     public ManageStatusThread(CollectInternalConfiguration collectInternalConfiguration,
         TransactionService transactionService) {
@@ -60,9 +59,8 @@ public class ManageStatusThread implements Runnable {
             .scheduleAtFixedRate(this, Math.min(5, collectInternalConfiguration.getStatusTransactionThreadFrequency()),
                 collectInternalConfiguration.getStatusTransactionThreadFrequency(), TimeUnit.MINUTES);
 
-        final int threadPoolSize = Math.min(collectInternalConfiguration.getTransactionStatusThreadPoolSize(),
+        threadPoolSize = Math.min(collectInternalConfiguration.getTransactionStatusThreadPoolSize(),
             VitamConfiguration.getTenants().size());
-        executorService = ExecutorUtils.createScalableBatchExecutorService(threadPoolSize);
     }
 
     @Override
@@ -79,15 +77,17 @@ public class ManageStatusThread implements Runnable {
         VitamThreadUtils.getVitamSession()
             .setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
         List<Integer> tenants = VitamConfiguration.getTenants();
-        try {
-            List<CompletableFuture<Void>> completableFuturesList = new ArrayList<>();
+
+        ExecutorService executorService = ExecutorUtils.createScalableBatchExecutorService(threadPoolSize);
+        List<CompletableFuture<Void>> completableFuturesList = new ArrayList<>();
+        try{
             for (var tenant : tenants) {
                 CompletableFuture<Void> traceabilityCompletableFuture = CompletableFuture.runAsync(() -> {
                     Thread.currentThread().setName(ManageStatusThread.class.getName() + "-" + tenant);
                     VitamThreadUtils.getVitamSession().setTenantId(tenant);
                     try {
                         this.transactionService.manageTransactionsStatus();
-                    } catch (CollectInternalException e) {
+                    } catch (Exception e) {
                         LOGGER.error("Error when managing status transaction: {}", e);
                     }
                 }, executorService);
@@ -97,8 +97,9 @@ public class ManageStatusThread implements Runnable {
             CompletableFuture<Void> combinedFuture =
                 CompletableFuture.allOf(completableFuturesList.toArray(new CompletableFuture[0]));
             combinedFuture.join();
-        } finally {
+        }finally {
             executorService.shutdown();
         }
+
     }
 }
