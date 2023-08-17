@@ -1260,10 +1260,11 @@ public class TransferAndDipIT extends VitamRuleRunner {
         try (dip) {
             IOUtils.copy(dip, new FileOutputStream(dipFile));
         }
-        ZipFile zipFile = new ZipFile(dipFile);
-        ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
-        try (InputStream is = zipFile.getInputStream(manifest)) {
-            return IOUtils.toString(is, StandardCharsets.UTF_8.name());
+        try (ZipFile zipFile = new ZipFile(dipFile)) {
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                return IOUtils.toString(is, StandardCharsets.UTF_8.name());
+            }
         }
     }
 

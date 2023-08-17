@@ -122,6 +122,13 @@
     </jxb:bindings>
 
     <jxb:bindings schemaLocation="seda-vitam/seda-vitam-ontology.xsd">
+        <jxb:bindings node="//xs:element[@name='SignedObjectId']">
+            <jxb:property>
+                <jxb:baseType>
+                    <jxb:javaType name="java.lang.String"></jxb:javaType>
+                </jxb:baseType>
+            </jxb:property>
+        </jxb:bindings>
         <jxb:bindings node="xs:complexType[@name='DataObjectOrArchiveUnitReferenceType']">
             <jxb:bindings node="//xs:element[@name='ArchiveUnitRefId']">
                 <jxb:property>
@@ -134,10 +141,10 @@
         <jxb:bindings node="//xs:complexType[@name='AgentType']">
             <jxb:class ref="fr.gouv.vitam.common.model.unit.AgentTypeModel" />
         </jxb:bindings>
-        <jxb:bindings node="//xs:element[@name='Validator']">
+        <jxb:bindings multiple="true" node="//xs:element[@name='Validator']">
             <jxb:class ref="fr.gouv.vitam.common.model.unit.ValidatorOrSignerModel" />
         </jxb:bindings>
-        <jxb:bindings node="//xs:element[@name='Signer']">
+        <jxb:bindings multiple="true" node="//xs:element[@name='Signer']">
             <jxb:class ref="fr.gouv.vitam.common.model.unit.ValidatorOrSignerModel" />
         </jxb:bindings>
         <jxb:bindings node="//xs:complexType[@name='PersistentIdType']">

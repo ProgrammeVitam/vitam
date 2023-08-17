@@ -27,60 +27,37 @@
 package fr.gouv.vitam.common.model.unit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.culture.archivesdefrance.seda.v2.CodeType;
-
-import java.util.List;
 
 /**
- * @deprecated Old Signature model (Seda 2.1 & 2.2). Superseded by SigningInformation model in Seda 2.3+.
+ * @deprecated Old Signature.ReferencedObject model (Seda 2.1 & 2.2). Superseded by SigningInformation model in Seda 2.3+.
  */
-public class SignatureTypeModel {
+public class ReferencedObjectTypeModel {
 
-    @JsonProperty("Signer")
-    protected List<ValidatorOrSignerModel> signer;
-    @JsonProperty("Validator")
-    protected ValidatorOrSignerModel validator;
-    @JsonProperty("Masterdata")
-    protected CodeType masterdata;
-    @JsonProperty("ReferencedObject")
-    protected ReferencedObjectTypeModel referencedObject;
+    @JsonProperty("SignedObjectId")
+    private String signedObjectId;
 
-    public SignatureTypeModel() {
+    @JsonProperty("SignedObjectDigest")
+    private SignedObjectDigestModel signedObjectDigest;
+
+    public ReferencedObjectTypeModel() {
+        // Empty constructor for deserialization
     }
 
-    public List<ValidatorOrSignerModel> getSigner() {
-        return signer;
+    public String getSignedObjectId() {
+        return signedObjectId;
     }
 
-    public SignatureTypeModel setSigner(List<ValidatorOrSignerModel> signer) {
-        this.signer = signer;
+    public ReferencedObjectTypeModel setSignedObjectId(String signedObjectId) {
+        this.signedObjectId = signedObjectId;
         return this;
     }
 
-    public ValidatorOrSignerModel getValidator() {
-        return validator;
+    public SignedObjectDigestModel getSignedObjectDigest() {
+        return signedObjectDigest;
     }
 
-    public SignatureTypeModel setValidator(ValidatorOrSignerModel validator) {
-        this.validator = validator;
-        return this;
-    }
-
-    public CodeType getMasterdata() {
-        return masterdata;
-    }
-
-    public SignatureTypeModel setMasterdata(CodeType masterdata) {
-        this.masterdata = masterdata;
-        return this;
-    }
-
-    public ReferencedObjectTypeModel getReferencedObject() {
-        return referencedObject;
-    }
-
-    public SignatureTypeModel setReferencedObject(ReferencedObjectTypeModel referencedObject) {
-        this.referencedObject = referencedObject;
+    public ReferencedObjectTypeModel setSignedObjectDigest(SignedObjectDigestModel signedObjectDigest) {
+        this.signedObjectDigest = signedObjectDigest;
         return this;
     }
 }

@@ -27,60 +27,36 @@
 package fr.gouv.vitam.common.model.unit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.culture.archivesdefrance.seda.v2.CodeType;
-
-import java.util.List;
 
 /**
- * @deprecated Old Signature model (Seda 2.1 & 2.2). Superseded by SigningInformation model in Seda 2.3+.
+ * @deprecated Old Signature.SignedObjectDigest model (Seda 2.1 & 2.2).  * Old Signature model (Seda 2.1 & 2.2). Superseded by SigningInformation model in Seda 2.3+.
  */
-public class SignatureTypeModel {
+public class SignedObjectDigestModel {
 
-    @JsonProperty("Signer")
-    protected List<ValidatorOrSignerModel> signer;
-    @JsonProperty("Validator")
-    protected ValidatorOrSignerModel validator;
-    @JsonProperty("Masterdata")
-    protected CodeType masterdata;
-    @JsonProperty("ReferencedObject")
-    protected ReferencedObjectTypeModel referencedObject;
+    @JsonProperty("MessageDigest")
+    protected String value;
+    @JsonProperty("Algorithm")
+    protected String algorithm;
 
-    public SignatureTypeModel() {
+    public SignedObjectDigestModel() {
+        // Empty constructor for deserialization
     }
 
-    public List<ValidatorOrSignerModel> getSigner() {
-        return signer;
+    public String getValue() {
+        return value;
     }
 
-    public SignatureTypeModel setSigner(List<ValidatorOrSignerModel> signer) {
-        this.signer = signer;
+    public SignedObjectDigestModel setValue(String value) {
+        this.value = value;
         return this;
     }
 
-    public ValidatorOrSignerModel getValidator() {
-        return validator;
+    public String getAlgorithm() {
+        return algorithm;
     }
 
-    public SignatureTypeModel setValidator(ValidatorOrSignerModel validator) {
-        this.validator = validator;
-        return this;
-    }
-
-    public CodeType getMasterdata() {
-        return masterdata;
-    }
-
-    public SignatureTypeModel setMasterdata(CodeType masterdata) {
-        this.masterdata = masterdata;
-        return this;
-    }
-
-    public ReferencedObjectTypeModel getReferencedObject() {
-        return referencedObject;
-    }
-
-    public SignatureTypeModel setReferencedObject(ReferencedObjectTypeModel referencedObject) {
-        this.referencedObject = referencedObject;
+    public SignedObjectDigestModel setAlgorithm(String algorithm) {
+        this.algorithm = algorithm;
         return this;
     }
 }

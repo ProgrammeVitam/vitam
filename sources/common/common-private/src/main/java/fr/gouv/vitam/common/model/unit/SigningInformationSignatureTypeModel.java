@@ -27,32 +27,21 @@
 package fr.gouv.vitam.common.model.unit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.culture.archivesdefrance.seda.v2.CodeType;
 
-import java.util.List;
-
-/**
- * @deprecated Old Signature model (Seda 2.1 & 2.2). Superseded by SigningInformation model in Seda 2.3+.
- */
-public class SignatureTypeModel {
+public class SigningInformationSignatureTypeModel {
 
     @JsonProperty("Signer")
-    protected List<ValidatorOrSignerModel> signer;
+    protected ValidatorOrSignerModel signer;
     @JsonProperty("Validator")
     protected ValidatorOrSignerModel validator;
-    @JsonProperty("Masterdata")
-    protected CodeType masterdata;
-    @JsonProperty("ReferencedObject")
-    protected ReferencedObjectTypeModel referencedObject;
+    @JsonProperty("SigningType")
+    protected String signingType;
 
-    public SignatureTypeModel() {
-    }
-
-    public List<ValidatorOrSignerModel> getSigner() {
+    public ValidatorOrSignerModel getSigner() {
         return signer;
     }
 
-    public SignatureTypeModel setSigner(List<ValidatorOrSignerModel> signer) {
+    public SigningInformationSignatureTypeModel setSigner(ValidatorOrSignerModel signer) {
         this.signer = signer;
         return this;
     }
@@ -61,26 +50,17 @@ public class SignatureTypeModel {
         return validator;
     }
 
-    public SignatureTypeModel setValidator(ValidatorOrSignerModel validator) {
+    public SigningInformationSignatureTypeModel setValidator(ValidatorOrSignerModel validator) {
         this.validator = validator;
         return this;
     }
 
-    public CodeType getMasterdata() {
-        return masterdata;
+    public String getSigningType() {
+        return signingType;
     }
 
-    public SignatureTypeModel setMasterdata(CodeType masterdata) {
-        this.masterdata = masterdata;
-        return this;
-    }
-
-    public ReferencedObjectTypeModel getReferencedObject() {
-        return referencedObject;
-    }
-
-    public SignatureTypeModel setReferencedObject(ReferencedObjectTypeModel referencedObject) {
-        this.referencedObject = referencedObject;
+    public SigningInformationSignatureTypeModel setSigningType(String signingType) {
+        this.signingType = signingType;
         return this;
     }
 }

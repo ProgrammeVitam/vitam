@@ -96,6 +96,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
@@ -2224,7 +2225,9 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         ExportRequest dipExportRequest = new ExportRequest(
             new DataObjectVersions(),
             select.getFinalSelect(),
-            true
+            true,
+            10_000_000L,
+            SupportedSedaVersions.SEDA_2_3.getVersion()
         );
 
         ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
