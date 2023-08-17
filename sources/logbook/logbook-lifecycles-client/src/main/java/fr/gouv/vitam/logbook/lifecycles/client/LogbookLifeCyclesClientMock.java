@@ -33,13 +33,12 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
-import fr.gouv.vitam.common.model.RequestResponse;
-import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.logbook.common.client.ErrorMessage;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
@@ -52,6 +51,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookLifeCycleParametersBulk;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
+import org.apache.commons.lang3.NotImplementedException;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -213,20 +213,16 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
         return ClientMockResultHelper.getLogbookOperation();
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public RequestResponse objectGroupLifeCyclesByOperationIterator(String operationId,
-        LifeCycleStatusCode lifeCycleStatus, JsonNode query)
-        throws InvalidParseOperationException {
-        return new RequestResponseOK().addResult(JsonHandler.createObjectNode());
-
+    public CloseableIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId,
+        LifeCycleStatusCode lifeCycleStatus, JsonNode query) {
+        throw new NotImplementedException("Unsupported mock");
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public RequestResponse unitLifeCyclesByOperationIterator(String operationId,
+    public CloseableIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId,
         LifeCycleStatusCode lifeCycleStatus, JsonNode query) {
-        return new RequestResponseOK().addResult(JsonHandler.createObjectNode());
+        throw new NotImplementedException("Unsupported mock");
     }
 
     private void bulkCreate(String eventIdProc, Iterable<LogbookLifeCycleParameters> queue)

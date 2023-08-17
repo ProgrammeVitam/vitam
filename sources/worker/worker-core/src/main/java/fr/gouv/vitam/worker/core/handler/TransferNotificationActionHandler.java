@@ -51,10 +51,11 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.utils.LifecyclesSpliterator;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -64,7 +65,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.IngestWorkflowConstants;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.common.xml.ValidationXsdUtils;
@@ -121,7 +121,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.stream.StreamSupport;
 
 import static javax.xml.datatype.DatatypeFactory.newInstance;
 
@@ -566,26 +565,15 @@ public class TransferNotificationActionHandler extends ActionHandler {
 
 
 
-    private LifecyclesSpliterator<JsonNode> handlerLogbookLifeCycleUnit(String operationId,
+    private CloseableIterator<JsonNode> handlerLogbookLifeCycleUnit(String operationId,
         LogbookLifeCyclesClient client, LifeCycleStatusCode lifeCycleStatusCode) {
-        final Select select = new Select();
-        return new LifecyclesSpliterator<>(select,
-            query -> {
-                RequestResponse response;
-                try {
-                    response = client.unitLifeCyclesByOperationIterator(operationId,
-                        lifeCycleStatusCode, select.getFinalSelect());
-                } catch (LogbookClientException | InvalidParseOperationException e) {
-                    throw new IllegalStateException(e);
-                }
-                if (response.isOk()) {
-                    return response;
-                } else {
-                    throw new IllegalStateException(
-                        String.format("Error while loading logbook lifecycle Unit RequestResponse %d",
-                            response.getHttpCode()));
-                }
-            }, VitamConfiguration.getDefaultOffset(), VitamConfiguration.getBatchSize());
+        try {
+            Select select = new Select();
+            return client.unitLifeCyclesByOperationIterator(operationId,
+                lifeCycleStatusCode, select.getFinalSelect());
+        } catch (LogbookClientException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
@@ -630,17 +618,16 @@ public class TransferNotificationActionHandler extends ActionHandler {
                         if (workflowStatus.isGreaterOrEqualToKo() ||
                             StatusCode.WARNING.name().equals(workflowStatus.name())) {
 
-                            LifecyclesSpliterator<JsonNode> lifecyclesSpliterator =
+                            try (CloseableIterator<JsonNode> lifecyclesSpliterator =
                                 handlerLogbookLifeCycleUnit(containerName, client,
-                                    LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS);
+                                    LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS)) {
 
-                            // Iterate over all response in LifecyclesSpliterator
-                            StreamSupport.stream(lifecyclesSpliterator, false)
-                                .map(LogbookLifeCycleUnitInProcess::new)
-                                .forEach(logbookLifeCycleUnit -> auList.add(
-                                    buildArchiveUnit(statusToBeChecked,
-                                        systemGuidArchiveUnitId, logbookLifeCycleUnit))
-                                );
+                                CloseableIteratorUtils.map(lifecyclesSpliterator, LogbookLifeCycleUnitInProcess::new)
+                                    .forEachRemaining(logbookLifeCycleUnit -> auList.add(
+                                        buildArchiveUnit(statusToBeChecked,
+                                            systemGuidArchiveUnitId, logbookLifeCycleUnit))
+                                    );
+                            }
                         } else {
                             //set only archiveUnit(id,systemId) List
                             auList.addAll(buildListOfSimpleArchiveUnitWithoutEvents(archiveUnitSystemGuid));
@@ -726,17 +713,18 @@ public class TransferNotificationActionHandler extends ActionHandler {
                     if (workflowStatus.isGreaterOrEqualToKo() ||
                         StatusCode.WARNING.name().equals(workflowStatus.name())) {
 
-                        LifecyclesSpliterator<JsonNode> lifecyclesSpliterator =
-                            handleLogbookLifeCyclesObjectGroup(containerName, client);
+                        try (CloseableIterator<JsonNode> lifecyclesSpliterator =
+                            handleLogbookLifeCyclesObjectGroup(containerName, client)) {
 
-                        StreamSupport.stream(lifecyclesSpliterator, false)
-                            .map(LogbookLifeCycleObjectGroupInProcess::new)
-                            .forEach(logbookLifeCycleObjectGroup -> dataObjectGroupList.add(
-                                buildDataObjectGroup(statusToBeChecked, objectGroupGuid, dataObjectsForOG,
-                                    dataObjectSystemGuid,
-                                    dataObjectToDetailDataObject, existingGOTGUIDToNewGotGUIDInAttachment,
-                                    logbookLifeCycleObjectGroup))
-                            );
+                            CloseableIteratorUtils.map(lifecyclesSpliterator, LogbookLifeCycleObjectGroupInProcess::new)
+                                .forEachRemaining(logbookLifeCycleObjectGroup -> dataObjectGroupList.add(
+                                    buildDataObjectGroup(statusToBeChecked, objectGroupGuid, dataObjectsForOG,
+                                        dataObjectSystemGuid,
+                                        dataObjectToDetailDataObject, existingGOTGUIDToNewGotGUIDInAttachment,
+                                        logbookLifeCycleObjectGroup))
+                                );
+                        }
+
                     } else {
 
                         dataObjectGroupList.addAll(
@@ -1012,27 +1000,15 @@ public class TransferNotificationActionHandler extends ActionHandler {
         archiveTransferReply.setOperation(operation);
     }
 
-    private LifecyclesSpliterator<JsonNode> handleLogbookLifeCyclesObjectGroup(String containerName,
+    private CloseableIterator<JsonNode> handleLogbookLifeCyclesObjectGroup(String containerName,
         LogbookLifeCyclesClient client) {
-        Select select = new Select();
-        LifecyclesSpliterator<JsonNode> scrollRequest = new LifecyclesSpliterator<>(select,
-            query -> {
-                RequestResponse response;
-                try {
-                    response = client.objectGroupLifeCyclesByOperationIterator(containerName,
-                        LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS, select.getFinalSelect());
-                } catch (InvalidParseOperationException | LogbookClientException e) {
-                    throw new IllegalStateException(e);
-                }
-                if (response.isOk()) {
-                    return response;
-                } else {
-                    throw new IllegalStateException(String.format(
-                        "Error while loading logbook lifecycle objectGroup Bad Response %d",
-                        response.getHttpCode()));
-                }
-            }, VitamConfiguration.getDefaultOffset(), VitamConfiguration.getBatchSize());
-        return scrollRequest;
+        try {
+            Select select = new Select();
+            return client.objectGroupLifeCyclesByOperationIterator(containerName,
+                LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS, select.getFinalSelect());
+        } catch (LogbookClientException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
