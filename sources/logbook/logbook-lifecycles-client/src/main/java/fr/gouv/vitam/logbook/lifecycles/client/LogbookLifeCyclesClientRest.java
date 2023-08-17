@@ -32,11 +32,13 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamRequestBuilder;
+import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.PreconditionFailedClientException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.json.JsonHandler;
+import fr.gouv.vitam.common.model.JsonLineIterator;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -307,34 +309,32 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
-    public RequestResponse objectGroupLifeCyclesByOperationIterator(String operationId,
+    public CloseableIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId,
         LifeCycleStatusCode lifeCycleStatus, JsonNode query)
-        throws LogbookClientException, InvalidParseOperationException {
-        VitamRequestBuilder request = get()
-            .withJson()
-            .withBody(query)
-            .withPath(OPERATIONS_URL + "/" + operationId + OBJECT_GROUP_LIFECYCLES_URL)
-            .withHeaderIgnoreNull(X_EVENT_STATUS, lifeCycleStatus);
-        try (Response response = make(request)) {
-            check(response);
-            return RequestResponse.parseFromResponse(response, JsonNode.class);
-        } catch (PreconditionFailedClientException | VitamClientInternalException e) {
-            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
-        }
+        throws LogbookClientException {
+        return getLifeCyclesByOperationIterator(operationId, lifeCycleStatus, query, OBJECT_GROUP_LIFECYCLES_URL);
     }
 
     @Override
-    public RequestResponse unitLifeCyclesByOperationIterator(String operationId,
+    public CloseableIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId,
         LifeCycleStatusCode lifeCycleStatus, JsonNode query)
-        throws LogbookClientException, InvalidParseOperationException {
+        throws LogbookClientException {
+        return getLifeCyclesByOperationIterator(operationId, lifeCycleStatus, query, UNIT_LIFECYCLES_URL);
+    }
+
+    private CloseableIterator<JsonNode> getLifeCyclesByOperationIterator(String operationId,
+        LifeCycleStatusCode lifeCycleStatus, JsonNode query, String operationTypeUrlSuffix)
+        throws LogbookClientAlreadyExistsException, LogbookClientServerException, LogbookClientBadRequestException,
+        LogbookClientNotFoundException {
         VitamRequestBuilder request = get()
-            .withPath(OPERATIONS_URL + "/" + operationId + UNIT_LIFECYCLES_URL)
-            .withJson()
+            .withPath(OPERATIONS_URL + "/" + operationId + operationTypeUrlSuffix)
+            .withJsonContentType()
+            .withOctetAccept()
             .withBody(query)
-            .withHeaderIgnoreNull(X_EVENT_STATUS, lifeCycleStatus);
+            .withHeader(X_EVENT_STATUS, lifeCycleStatus);
         try (Response response = make(request)) {
             check(response);
-            return RequestResponse.parseFromResponse(response, JsonNode.class);
+            return JsonLineIterator.parseFromResponse(response, JsonNode.class);
         } catch (PreconditionFailedClientException | VitamClientInternalException e) {
             throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
         }
