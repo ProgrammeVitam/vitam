@@ -69,6 +69,8 @@ public class IngestContractModel extends AbstractContractModel {
 
     public static final String TAG_MANAGEMENT_CONTRACT_ID = "ManagementContractId";
 
+    public static final String TAG_SIGNATURE_POLICY = "SignaturePolicy";
+
 
     @JsonProperty(LINK_PARENT_ID)
     private String linkParentId;
@@ -115,6 +117,10 @@ public class IngestContractModel extends AbstractContractModel {
 
     @JsonProperty(TAG_MANAGEMENT_CONTRACT_ID)
     private String managementContractId;
+
+    @JsonProperty(TAG_SIGNATURE_POLICY)
+    private SignaturePolicy signaturePolicy;
+
 
 
 
@@ -247,5 +253,13 @@ public class IngestContractModel extends AbstractContractModel {
 
     public void setManagementContractId(String managementContractId) {
         this.managementContractId = managementContractId;
+    }
+
+    public SignaturePolicy getSignaturePolicy() {
+        return signaturePolicy;
+    }
+
+    public void setSignaturePolicy(SignaturePolicy signaturePolicy) {
+        this.signaturePolicy = signaturePolicy;
     }
 }

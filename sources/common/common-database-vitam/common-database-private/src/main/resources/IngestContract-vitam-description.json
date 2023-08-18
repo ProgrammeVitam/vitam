@@ -136,5 +136,35 @@
     "type": "keyword",
     "cardinality": "one",
     "indexed": true
+  },
+  {
+    "path": "SignaturePolicy",
+    "type": "object",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "SignaturePolicy.SignedDocument",
+    "type": "keyword",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "SignaturePolicy.NeedSignature",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "SignaturePolicy.NeedTimestamp",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
+  },
+  {
+    "path": "SignaturePolicy.NeedAdditionalProof",
+    "type": "bool",
+    "cardinality": "one",
+    "indexed": true
   }
 ]

@@ -47,6 +47,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
+import fr.gouv.vitam.functional.administration.common.exception.AdminManagementClientServerException;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.ingest.internal.upload.rest.IngestInternalMain;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookElasticsearchAccess;
@@ -83,6 +84,12 @@ public class IngestContractIT extends VitamRuleRunner {
     private static final Integer TENANT_ID = 0;
     private static final String FILE_INGEST_CONTRACT_OK =
         "/functional-admin/ingest-contract/referential_contracts_ok.json";
+
+    private static final String FILE_INGEST_CONTRACT_WITH_SIGNATURE_OK =
+        "/functional-admin/ingest-contract/contracts_with_signature_ok.json";
+
+    private static final String FILE_INGEST_CONTRACT_WITH_SIGNATURE_KO =
+        "/functional-admin/ingest-contract/contracts_with_signature_ko.json";
 
 
     @ClassRule
@@ -157,6 +164,53 @@ public class IngestContractIT extends VitamRuleRunner {
             assertThat(events.isArray());
             assertThat(events.size()).isEqualTo(2);
             assertThat(status.getStatusCode()).isEqualTo(201);
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_import_ingest_contract_with_signature_ok() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        InputStream contract = getClass().getResourceAsStream(FILE_INGEST_CONTRACT_WITH_SIGNATURE_OK);
+        AdminManagementClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_FUNCTIONAL_ADMIN);
+        LogbookOperationsClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_LOGBOOK);
+        // When
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
+                .getClient()) {
+            Response.Status status = client.importIngestContracts(
+                getFromStringAsTypeReference(JsonHandler.getFromInputStream(contract).toString(),
+                    new TypeReference<List<IngestContractModel>>() {
+                    }));
+            Select select = new Select();
+            select.setQuery(QueryHelper.eq("evType", "STP_IMPORT_INGEST_CONTRACT"));
+            final JsonNode result = logbookOperationsClient.selectOperation(select.getFinalSelect());
+            // Then
+            JsonNode events = result.get("$results").get(0).get("events");
+            assertThat(events.isArray());
+            assertThat(events.size()).isEqualTo(2);
+            assertThat(status.getStatusCode()).isEqualTo(201);
+        }
+    }
+
+    @Test(expected = AdminManagementClientServerException.class)
+    @RunWithCustomExecutor
+    public void should_import_ingest_contract_with_signature_ko() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+        InputStream contract = getClass().getResourceAsStream(FILE_INGEST_CONTRACT_WITH_SIGNATURE_KO);
+        AdminManagementClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_FUNCTIONAL_ADMIN);
+        LogbookOperationsClientFactory.getInstance().changeServerPort(runner.PORT_SERVICE_LOGBOOK);
+        // When
+        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
+
+                .getClient()) {
+            client.importIngestContracts(
+                getFromStringAsTypeReference(JsonHandler.getFromInputStream(contract).toString(),
+                    new TypeReference<List<IngestContractModel>>() {
+                    }));
         }
     }
 }
