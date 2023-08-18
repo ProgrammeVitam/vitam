@@ -26,17 +26,8 @@
  */
 package fr.gouv.vitam.access.internal.rest;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
-import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
-import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationDescriptiveMetadataType;
-import fr.gouv.vitam.access.internal.api.AccessInternalModule;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
@@ -50,18 +41,12 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.junit.JunitHelper;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.mapping.deserializer.IdentifierTypeDeserializer;
-import fr.gouv.vitam.common.mapping.deserializer.LevelTypeDeserializer;
-import fr.gouv.vitam.common.mapping.deserializer.OrganizationDescriptiveMetadataTypeDeserializer;
-import fr.gouv.vitam.common.mapping.deserializer.TextByLangDeserializer;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
 import fr.gouv.vitam.common.model.storage.AccessRequestStatus;
 import fr.gouv.vitam.common.model.storage.ObjectEntry;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
-import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
-import fr.gouv.vitam.common.model.unit.TextByLang;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -106,7 +91,6 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -749,49 +733,6 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void should_retrieve_unit_with_xml_format() throws Exception {
-        RequestResponseOK<JsonNode> requestResponse = new RequestResponseOK<>();
-        InputStream resourceAsStream = getClass().getResourceAsStream("/simpleUnit.json");
-        JsonNode jsonNode = JsonHandler.getFromInputStream(resourceAsStream);
-        requestResponse.addResult(jsonNode);
-
-        when(metaDataClient.selectUnitbyId(any(), anyString()))
-            .thenReturn(JsonHandler.toJsonNode(requestResponse));
-
-        ArchiveUnitModel archiveUnitModel = buildObjectMapper().treeToValue(jsonNode, ArchiveUnitModel.class);
-
-        assertThat(archiveUnitModel).isNotNull();
-        assertThat(archiveUnitModel.getManagement()).isNotNull();
-
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_XML)
-            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .headers(getStreamHeaders())
-            .body(BODY_TEST).when().get(ACCESS_UNITS_URI + "/1234").then()
-            .statusCode(Status.OK.getStatusCode());
-    }
-
-    private ObjectMapper buildObjectMapper() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.UPPER_CAMEL_CASE);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-        SimpleModule module = new SimpleModule();
-
-        module.addDeserializer(TextByLang.class, new TextByLangDeserializer());
-        module.addDeserializer(LevelType.class, new LevelTypeDeserializer());
-        module.addDeserializer(IdentifierType.class, new IdentifierTypeDeserializer());
-        module.addDeserializer(OrganizationDescriptiveMetadataType.class,
-            new OrganizationDescriptiveMetadataTypeDeserializer(objectMapper));
-
-        objectMapper.registerModule(module);
-
-        return objectMapper;
     }
 
     /**

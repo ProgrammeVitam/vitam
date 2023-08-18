@@ -32,7 +32,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
@@ -45,7 +44,6 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutio
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalUnavailableDataFromAsyncOfferException;
 import fr.gouv.vitam.access.internal.common.model.AccessInternalConfiguration;
 import fr.gouv.vitam.access.internal.core.AccessInternalModuleImpl;
-import fr.gouv.vitam.access.internal.core.ObjectGroupDipServiceImpl;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.CustomVitamHttpStatusCode;
@@ -72,10 +70,6 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.mapping.deserializer.IdentifierTypeDeserializer;
 import fr.gouv.vitam.common.mapping.deserializer.LevelTypeDeserializer;
 import fr.gouv.vitam.common.mapping.deserializer.TextByLangDeserializer;
-import fr.gouv.vitam.common.mapping.dip.ArchiveUnitMapper;
-import fr.gouv.vitam.common.mapping.dip.DipService;
-import fr.gouv.vitam.common.mapping.dip.ObjectGroupMapper;
-import fr.gouv.vitam.common.mapping.dip.UnitDipServiceImpl;
 import fr.gouv.vitam.common.model.DeleteGotVersionsRequest;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.PreservationRequest;
@@ -193,10 +187,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
     private static final String QUERY_FILE = "query.json";
     private static final String ACCESS_CONTRACT_FILE = "accessContract.json";
 
-    // DIP
-    private DipService unitDipService;
-    private DipService objectDipService;
-
     private static final String END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS = "End of execution of DSL Vitam from Access";
     private static final String EXECUTION_OF_DSL_VITAM_FROM_ACCESS_ONGOING =
         "Execution of DSL Vitam from Access ongoing...";
@@ -251,9 +241,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         ProcessingManagementClientFactory processingManagementClientFactory) {
         this.accessModule = accessModule;
         LOGGER.debug(ACCESS_RESOURCE_INITIALIZED);
-        ObjectMapper objectMapper = buildObjectMapper();
-        this.unitDipService = new UnitDipServiceImpl(new ArchiveUnitMapper(), objectMapper);
-        this.objectDipService = new ObjectGroupDipServiceImpl(new ObjectGroupMapper(), objectMapper);
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
@@ -860,45 +847,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         }
     }
 
-    @GET
-    @Path("/units/{id_unit}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_XML)
-    @Override
-    public Response getUnitByIdWithXMLFormat(JsonNode queryDsl, @PathParam("id_unit") String idUnit) {
-        Status status;
-        try {
-            SanityChecker.checkParameter(idUnit);
-            SanityChecker.checkJsonAll(queryDsl);
-
-            JsonNode result =
-                accessModule
-                    .selectUnitbyId(
-                        applyAccessContractRestrictionForUnitForSelect(queryDsl,
-                            getVitamSession().getContract()), idUnit);
-            ArrayNode results = (ArrayNode) result.get(RESULTS);
-            JsonNode unit = results.get(0);
-            Response responseXmlFormat = unitDipService.jsonToXml(unit, idUnit);
-            resetQuery(result, queryDsl);
-            LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
-            return responseXmlFormat;
-        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
-                .build();
-        } catch (final AccessInternalExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
-                .build();
-        } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        }
-    }
-
     /**
      * update archive units by Id with Json query
      *
@@ -972,80 +920,6 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             LOGGER.error(exc);
             status = INTERNAL_SERVER_ERROR;
             return Response.status(status).entity(getErrorEntity(status, exc.getMessage())).build();
-        } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        }
-    }
-
-    @GET
-    @Path("/objects/{id_object_group}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_XML)
-    @Override
-    public Response getObjectByIdWithXMLFormat(JsonNode dslQuery, @PathParam("id_object_group") String objectId) {
-        Status status;
-        try {
-            SanityChecker.checkParameter(objectId);
-            SanityChecker.checkJsonAll(dslQuery);
-            final JsonNode result = accessModule.selectObjectGroupById(
-                AccessContractRestrictionHelper.applyAccessContractRestrictionForObjectGroupForSelect(dslQuery,
-                    getVitamSession().getContract()),
-                objectId);
-            ArrayNode results = (ArrayNode) result.get(RESULTS);
-            JsonNode objectGroup = results.get(0);
-            return objectDipService.jsonToXml(objectGroup, objectId);
-        } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
-            LOGGER.error(e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
-                .build();
-        } catch (AccessInternalExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
-                .build();
-        } catch (final MetaDataNotFoundException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.NOT_FOUND;
-            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
-        }
-    }
-
-    @GET
-    @Path("/units/{id_unit}/object")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_XML)
-    @Override
-    public Response getObjectByUnitIdWithXMLFormat(JsonNode queryDsl, @PathParam("id_unit") String idUnit) {
-        Status status;
-        try {
-            SanityChecker.checkParameter(idUnit);
-            SanityChecker.checkJsonAll(queryDsl);
-            //
-            JsonNode result =
-                accessModule
-                    .selectUnitbyId(
-                        applyAccessContractRestrictionForUnitForSelect(queryDsl,
-                            getVitamSession().getContract()), idUnit);
-            ArrayNode results = (ArrayNode) result.get(RESULTS);
-            JsonNode objectGroup = results.get(0);
-
-            Response responseXmlFormat = objectDipService.jsonToXml(objectGroup, idUnit);
-            resetQuery(result, queryDsl);
-            LOGGER.debug(END_OF_EXECUTION_OF_DSL_VITAM_FROM_ACCESS);
-            return responseXmlFormat;
-        } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
-            LOGGER.error(BAD_REQUEST_EXCEPTION, e);
-            status = Status.BAD_REQUEST;
-            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
-                .build();
-        } catch (final AccessInternalExecutionException e) {
-            LOGGER.error(e.getMessage(), e);
-            status = Status.METHOD_NOT_ALLOWED;
-            return Response.status(status).entity(JsonHandler.unprettyPrint(getErrorEntity(status, e.getMessage())))
-                .build();
         } catch (final MetaDataNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
             status = Status.NOT_FOUND;

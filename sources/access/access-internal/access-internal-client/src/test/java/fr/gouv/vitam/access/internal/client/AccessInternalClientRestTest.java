@@ -225,33 +225,6 @@ public class AccessInternalClientRestTest extends ResteasyTestApplication {
             return expectedResponse.post();
         }
 
-        @GET
-        @Path("/objects/{id_unit}")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_XML)
-        @Override
-        public Response getObjectByIdWithXMLFormat(JsonNode dslQuery, @PathParam("id_unit") String objectId) {
-            return expectedResponse.get();
-        }
-
-        @Override
-        @GET
-        @Path("/units/{id_unit}")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_XML)
-        public Response getUnitByIdWithXMLFormat(JsonNode dslQuery, @PathParam("id_unit") String unitId) {
-            return expectedResponse.get();
-        }
-
-        @GET
-        @Path("/units/{id_unit}/object")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_XML)
-        @Override
-        public Response getObjectByUnitIdWithXMLFormat(JsonNode dslQuery, @PathParam("id_unit") String unitId) {
-            return expectedResponse.get();
-        }
-
         @Override
         @PUT
         @Path("/units/{id_unit}")
