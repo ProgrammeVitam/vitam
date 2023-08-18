@@ -24,9 +24,7 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.manifest;
-
-import fr.gouv.vitam.common.exception.VitamException;
+package fr.gouv.vitam.common.exception;
 
 public class ExportException extends VitamException {
     public ExportException(String message) {

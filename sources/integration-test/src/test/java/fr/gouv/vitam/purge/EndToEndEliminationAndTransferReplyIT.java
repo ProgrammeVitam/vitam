@@ -88,6 +88,8 @@ import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
 import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.ExportRequestParameters;
 import fr.gouv.vitam.common.model.export.ExportType;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
@@ -220,8 +222,10 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.guid.GUIDFactory.newOperationLogbookGUID;
 import static fr.gouv.vitam.common.model.ProcessAction.NEXT;
 import static fr.gouv.vitam.common.model.ProcessAction.RESUME;
+import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.STARTED;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static fr.gouv.vitam.worker.core.plugin.dip.StoreExports.TRANSFER_CONTAINER;
 import static io.restassured.RestAssured.get;
@@ -271,7 +275,21 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         "http://localhost:" + VitamServerRunner.PORT_SERVICE_FUNCTIONAL_ADMIN_ADMIN;
     private static final String BASIC_AUTHN_USER = "user";
     private static final String BASIC_AUTHN_PWD = "pwd";
-    private static final String TIMESTAMP = "#TIMESTAMP#";
+    private static final String TEST_SIP_OK_SEDA_SIGNATURE_2_1 = "Signature/OK_SEDA_2.1_Signature.zip";
+    private static final String TEST_SIP_OK_SEDA_SIGNATURE_2_2 = "Signature/OK_SEDA_2.2_Signature.zip";
+    private static final String TEST_SIP_KO_SEDA_SIGNATURE_2_3 = "Signature/KO_SEDA_2.3_Signature.zip";
+    private static final String TEST_SIP_OK_SEDA_2_3_SIGNING_INFORMATION =
+        "Signature/OK_SEDA_2.3_SigningInformation.zip";
+    private static final String TEST_SIP_KO_2_3_SEDA_SIGNATURE_AS_EXTENSION =
+        "Signature/KO_SEDA_2.3_Signature_As_Extension.zip";
+    private static final String TEST_SIP_OK_SEDA_21_SIGNING_INFORMATION_AS_EXTENSION =
+        "Signature/OK_SEDA_2.1_SigningInformationAsExtension.zip";
+    private static final String TEST_SIP_OK_SEDA_22_SIGNING_INFORMATION_AS_EXTENSION =
+        "Signature/OK_SEDA_2.2_SigningInformationAsExtension.zip";
+    private static final String TEST_SIP_KO_SEDA_21_SIGNING_INFORMATION_AS_EXTENSION_WITH_GPS =
+        "Signature/KO_SEDA_2.1_SigningInformationAsExtensionWithGps.zip";
+    private static final String TEST_SIP_KO_SEDA_22_SIGNING_INFORMATION_AS_EXTENSION_WITH_GPS =
+        "Signature/KO_SEDA_2.2_SigningInformationAsExtensionWithGps.zip";
 
 
     @ClassRule
@@ -616,7 +634,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         assertThat(ingestedObjectIds).hasSize(3);
 
         // Export transfer archive
-        String transferOperation = transfer(ingestedUnitIds, OK);
+        String transferOperation = transfer(ingestedUnitIds, OK, SupportedSedaVersions.SEDA_2_3);
 
         // Check "opts" field update
         checkTransferOperationsInExportedUnits(accessInternalClient, transferOperation, ingestedUnitIds);
@@ -705,7 +723,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         // Transfer operation 1 : 1 single unit with 1 object group
         String transfer1UnitId = getId(ingestedUnitsByTitle.get(MONTPARNASSE));
         List<String> transfer1UnitIds = Collections.singletonList(transfer1UnitId);
-        String transferOperation1 = transfer(transfer1UnitIds, OK);
+        String transferOperation1 = transfer(transfer1UnitIds, OK, SupportedSedaVersions.SEDA_2_3);
 
         // Check "opts" field update
         checkTransferOperationsInExportedUnits(accessInternalClient, transferOperation1, transfer1UnitIds);
@@ -720,7 +738,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         String transfer2UnitId4 = getId(ingestedUnitsByTitle.get(SAINT_DENIS_BASILIQUE));
         List<String> transfer2UnitIds =
             Arrays.asList(transfer2UnitId1, transfer2UnitId2, transfer2UnitId3, transfer2UnitId4);
-        String transferOperation2 = transfer(transfer2UnitIds, StatusCode.WARNING);
+        String transferOperation2 = transfer(transfer2UnitIds, StatusCode.WARNING, SupportedSedaVersions.SEDA_2_3);
 
         // Check "opts" field update
         checkTransferOperationsInExportedUnits(accessInternalClient, transferOperation2, transfer2UnitIds);
@@ -1629,6 +1647,360 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
     }
 
 
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda21SignatureAndExportAsSeda21OK() throws Exception {
+
+        // Given
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_SIP_OK_SEDA_SIGNATURE_2_1);
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+        JsonNode unitA = ingestedUnitsByTitle.get("Unit A");
+        assertThat(unitA.has("Signature")).isTrue();
+
+        // Transfer SIP as SEDA 2.1 OK
+        transfer(ingestedUnitIds, OK, SupportedSedaVersions.SEDA_2_1);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda21SignatureAndExportAsSeda22OK() throws Exception {
+
+        // Given
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_SIP_OK_SEDA_SIGNATURE_2_1);
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+        JsonNode unitA = ingestedUnitsByTitle.get("Unit A");
+        assertThat(unitA.has("Signature")).isTrue();
+
+        // Transfer SIP as SEDA 2.2 OK
+        transfer(ingestedUnitIds, OK, SupportedSedaVersions.SEDA_2_2);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda21SignatureAndExportAsSeda23KO() throws Exception {
+
+        // Given
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_SIP_OK_SEDA_SIGNATURE_2_1);
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+        JsonNode unitA = ingestedUnitsByTitle.get("Unit A");
+        assertThat(unitA.has("Signature")).isTrue();
+
+        // Transfer SIP as SEDA 2.3 Fails (unsupported <Signature> tag)
+        String transferOperationId = transfer(ingestedUnitIds, KO, SupportedSedaVersions.SEDA_2_3);
+        LogbookOperation logbookOperation = getLogbookOperation(transferOperationId);
+        String evDetData =
+            logbookOperation.getEvents().stream().filter(event -> "CREATE_MANIFEST.KO".equals(event.getOutDetail()))
+                .map(LogbookEvent::getEvDetData).findFirst().orElseThrow();
+        assertThat(evDetData).contains("Cannot export obsolete Signature tag into SEDA 2.3+.");
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda22SignatureAndExportAsSeda22OK() throws Exception {
+
+        // Given
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_SIP_OK_SEDA_SIGNATURE_2_2);
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+        JsonNode unitA = ingestedUnitsByTitle.get("Unit A");
+        assertThat(unitA.has("Signature")).isTrue();
+
+        // Transfer SIP as SEDA 2.2 OK
+        transfer(ingestedUnitIds, OK, SupportedSedaVersions.SEDA_2_2);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda22SignatureAndExportAsSeda23KO() throws Exception {
+
+        // Given
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_SIP_OK_SEDA_SIGNATURE_2_2);
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+        JsonNode unitA = ingestedUnitsByTitle.get("Unit A");
+        assertThat(unitA.has("Signature")).isTrue();
+
+        // Transfer SIP as SEDA 2.3 Fails (unsupported <Signature> tag)
+        String transferOperationId = transfer(ingestedUnitIds, KO, SupportedSedaVersions.SEDA_2_3);
+        LogbookOperation logbookOperation = getLogbookOperation(transferOperationId);
+        String evDetData =
+            logbookOperation.getEvents().stream().filter(event -> "CREATE_MANIFEST.KO".equals(event.getOutDetail()))
+                .map(LogbookEvent::getEvDetData).findFirst().orElseThrow();
+        assertThat(evDetData).contains("Cannot export obsolete Signature tag into SEDA 2.3+.");
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda23SignatureKO() throws Exception {
+
+        prepareVitamSession();
+        final String ingestOperationGuid = VitamTestHelper.doIngest(tenantId, TEST_SIP_KO_SEDA_SIGNATURE_2_3);
+
+        // Signature tag is no more supported in Seda 2.3
+        verifyOperation(ingestOperationGuid, KO);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda23SignatureAsExtensionExportAsSeda23KO() throws Exception {
+
+        // Given
+        prepareVitamSession();
+        final String ingestOperationGuid =
+            VitamTestHelper.doIngest(tenantId, TEST_SIP_KO_2_3_SEDA_SIGNATURE_AS_EXTENSION);
+        // Cannot forbid obsolete Signature tag as "an extension"
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+        JsonNode unitA = ingestedUnitsByTitle.get("Unit A");
+        assertThat(unitA.has("Signature")).isTrue();
+
+        // Transfer SIP as SEDA 2.3 Fails (unsupported <Signature> tag)
+        String transferOperationId = transfer(ingestedUnitIds, KO, SupportedSedaVersions.SEDA_2_3);
+        LogbookOperation logbookOperation = getLogbookOperation(transferOperationId);
+        String evDetData =
+            logbookOperation.getEvents().stream().filter(event -> "CREATE_MANIFEST.KO".equals(event.getOutDetail()))
+                .map(LogbookEvent::getEvDetData).findFirst().orElseThrow();
+        assertThat(evDetData).contains("Cannot export obsolete Signature tag into SEDA 2.3+.");
+
+
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda21SigningInformationAsExtensionExportAsSeda21OK() throws Exception {
+
+        // Given
+        prepareVitamSession();
+        final String ingestOperationGuid =
+            VitamTestHelper.doIngest(tenantId, TEST_SIP_OK_SEDA_21_SIGNING_INFORMATION_AS_EXTENSION);
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+        JsonNode unitA = ingestedUnitsByTitle.get("Unit A");
+        assertThat(unitA.has("SigningInformation")).isTrue();
+
+        // Transfer SIP as SEDA 2.1 OK
+        transfer(ingestedUnitIds, OK, SupportedSedaVersions.SEDA_2_1);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda22SigningInformationAsExtensionExportAsSeda22OK() throws Exception {
+
+        // Given
+        prepareVitamSession();
+        final String ingestOperationGuid =
+            VitamTestHelper.doIngest(tenantId, TEST_SIP_OK_SEDA_22_SIGNING_INFORMATION_AS_EXTENSION);
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+        JsonNode unitA = ingestedUnitsByTitle.get("Unit A");
+        assertThat(unitA.has("SigningInformation")).isTrue();
+
+        // Transfer SIP as SEDA 2.2 OK
+        transfer(ingestedUnitIds, OK, SupportedSedaVersions.SEDA_2_2);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda22SigningInformationAsExtensionExportAsSeda23OK() throws Exception {
+
+        // Given
+        prepareVitamSession();
+        final String ingestOperationGuid =
+            VitamTestHelper.doIngest(tenantId, TEST_SIP_OK_SEDA_22_SIGNING_INFORMATION_AS_EXTENSION);
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+        JsonNode unitA = ingestedUnitsByTitle.get("Unit A");
+        assertThat(unitA.has("SigningInformation")).isTrue();
+
+        // Transfer SIP as SEDA 2.3 OK
+        transfer(ingestedUnitIds, OK, SupportedSedaVersions.SEDA_2_3);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda23SigningInformationExportAsSeda23OK() throws Exception {
+
+        // Given
+        prepareVitamSession();
+        final String ingestOperationGuid =
+            VitamTestHelper.doIngest(tenantId, TEST_SIP_OK_SEDA_2_3_SIGNING_INFORMATION);
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+        JsonNode unitA = ingestedUnitsByTitle.get("Unit A");
+        assertThat(unitA.has("SigningInformation")).isTrue();
+
+        // Transfer SIP as SEDA 2.3 OK
+        transfer(ingestedUnitIds, OK, SupportedSedaVersions.SEDA_2_3);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda21SigningInformationWithGpsKO() throws Exception {
+
+        prepareVitamSession();
+        final String ingestOperationGuid =
+            VitamTestHelper.doIngest(tenantId, TEST_SIP_KO_SEDA_21_SIGNING_INFORMATION_AS_EXTENSION_WITH_GPS);
+
+        // SignatureInformation as an extension in Seda 2.1 with Gps field not supported 
+        verifyOperation(ingestOperationGuid, KO);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda22SigningInformationWithGpsKO() throws Exception {
+
+        prepareVitamSession();
+        final String ingestOperationGuid =
+            VitamTestHelper.doIngest(tenantId, TEST_SIP_KO_SEDA_22_SIGNING_INFORMATION_AS_EXTENSION_WITH_GPS);
+        // SignatureInformation as an extension in Seda 2.1 with Gps field not supported 
+        verifyOperation(ingestOperationGuid, KO);
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda21SigningInformationAsExtensionExportWithGpsAsSeda21KO() throws Exception {
+
+        // Given
+        prepareVitamSession();
+        final String ingestOperationGuid =
+            VitamTestHelper.doIngest(tenantId, TEST_SIP_OK_SEDA_21_SIGNING_INFORMATION_AS_EXTENSION);
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+        JsonNode unitA = ingestedUnitsByTitle.get("Unit A");
+        assertThat(unitA.has("SigningInformation")).isTrue();
+
+        String updateRequestId = GUIDFactory.newRequestIdGUID(tenantId).getId();
+        VitamThreadUtils.getVitamSession().setRequestId(updateRequestId);
+        UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
+        updateMultiQuery.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid));
+        updateMultiQuery.addActions(UpdateActionHelper.set("Gps.GpsLatitude", "49.4769199"));
+
+        RequestResponse<JsonNode> updateResponse =
+            accessInternalClient.updateUnits(updateMultiQuery.getFinalUpdate());
+        assertThat(updateResponse.isOk()).isTrue();
+        awaitForWorkflowTerminationWithStatus(updateRequestId, OK);
+
+        // Transfer SIP as SEDA 2.1 KO since SignatureInformation cannot be exported with Gps in 2.1
+        String transferOperationId = transfer(ingestedUnitIds, KO, SupportedSedaVersions.SEDA_2_1);
+        LogbookOperation logbookOperation = getLogbookOperation(transferOperationId);
+        String evDetData =
+            logbookOperation.getEvents().stream().filter(event -> "CREATE_MANIFEST.KO".equals(event.getOutDetail()))
+                .map(LogbookEvent::getEvDetData).findFirst().orElseThrow();
+        assertThat(evDetData).contains("Cannot export SigningInformation tag in SEDA 2.1 with Signature, Gps, OriginatingSystemIdReplyTo or OriginatingSystemIdReplyTo fields");
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestSeda22SigningInformationAsExtensionExportWithTextContentAsSeda22KO() throws Exception {
+
+        // Given
+        prepareVitamSession();
+        final String ingestOperationGuid =
+            VitamTestHelper.doIngest(tenantId, TEST_SIP_OK_SEDA_22_SIGNING_INFORMATION_AS_EXTENSION);
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        // Check ingested units
+        final AccessInternalClient accessInternalClient = AccessInternalClientFactory.getInstance().getClient();
+        final RequestResponseOK<JsonNode> ingestedUnits = selectUnitsByOpi(ingestOperationGuid, accessInternalClient);
+        Map<String, JsonNode> ingestedUnitsByTitle = mapByField(ingestedUnits, "Title");
+        Set<String> ingestedUnitIds = getIds(ingestedUnits);
+        JsonNode unitA = ingestedUnitsByTitle.get("Unit A");
+        assertThat(unitA.has("SigningInformation")).isTrue();
+
+        String updateRequestId = GUIDFactory.newRequestIdGUID(tenantId).getId();
+        VitamThreadUtils.getVitamSession().setRequestId(updateRequestId);
+        UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
+        updateMultiQuery.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), ingestOperationGuid));
+        updateMultiQuery.addActions(UpdateActionHelper.set("TextContent", "MyTextContent"));
+
+        RequestResponse<JsonNode> updateResponse =
+            accessInternalClient.updateUnits(updateMultiQuery.getFinalUpdate());
+        assertThat(updateResponse.isOk()).isTrue();
+        awaitForWorkflowTerminationWithStatus(updateRequestId, OK);
+
+        // Transfer SIP as SEDA 2.2 KO since SignatureInformation cannot be exported with TextContent in 2.2
+        transfer(ingestedUnitIds, KO, SupportedSedaVersions.SEDA_2_2);
+    }
+
+    private static LogbookOperation getLogbookOperation(String transferOperationId)
+        throws LogbookClientException, InvalidParseOperationException {
+        try (LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
+            JsonNode logbookResponse = logbookClient.selectOperationById(transferOperationId);
+            if (logbookResponse.has(RequestResponseOK.TAG_RESULTS) &&
+                logbookResponse.get(RequestResponseOK.TAG_RESULTS).isArray()) {
+                ArrayNode results = (ArrayNode) logbookResponse.get(RequestResponseOK.TAG_RESULTS);
+                if (results.size() > 0) {
+                    return JsonHandler.getFromJsonNode(results.get(0), LogbookOperation.class);
+                }
+            }
+        }
+        return null;
+    }
+    
     private void checkFirstReportItem(String eliminationActionOperationGuid, String expectedStatus)
         throws IOException, InvalidParseOperationException {
         // Check report
@@ -2217,7 +2589,8 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
         return ingestOperationGuid.getId();
     }
 
-    private String transfer(Collection<String> unitIds, StatusCode expectedStatusCode) throws Exception {
+    private String transfer(Collection<String> unitIds, StatusCode expectedStatusCode,
+        SupportedSedaVersions sedaVersion) throws Exception {
 
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.id(), unitIds.toArray(new String[0])));
@@ -2227,7 +2600,7 @@ public class EndToEndEliminationAndTransferReplyIT extends VitamRuleRunner {
             select.getFinalSelect(),
             true,
             10_000_000L,
-            SupportedSedaVersions.SEDA_2_3.getVersion()
+            sedaVersion.getVersion()
         );
 
         ExportRequestParameters exportRequestParameters = new ExportRequestParameters();

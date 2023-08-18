@@ -52,7 +52,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.manifest.ExportException;
+import fr.gouv.vitam.common.exception.ExportException;
 import fr.gouv.vitam.common.manifest.ManifestBuilder;
 import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -104,7 +104,8 @@ public class SipService {
         this.metadataRepository = metadataRepository;
     }
 
-    public String generateSip(TransactionModel transactionModel) throws CollectInternalException {
+    public String generateSip(TransactionModel transactionModel)
+        throws CollectInternalException {
 
         File localDirectory = PropertiesUtils.fileFromTmpFolder(transactionModel.getId());
         File manifestFile = new File(localDirectory.getAbsolutePath().concat("/").concat(SEDA_FILE));
@@ -116,14 +117,14 @@ public class SipService {
         }
 
         try (OutputStream outputStream = new FileOutputStream(manifestFile);
-            ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream)) {
+            ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream, null)) {
 
             ExportRequestParameters exportRequestParameters = SipHelper.buildExportRequestParameters(transactionModel);
             ExportRequest exportRequest = SipHelper.buildExportRequest(transactionModel, exportRequestParameters);
 
 
             manifestBuilder.startDocument(transactionModel.getManifestContext().getMessageIdentifier(),
-                ExportType.ArchiveTransfer, exportRequestParameters, null);
+                ExportType.ArchiveTransfer, exportRequestParameters);
 
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
@@ -172,7 +173,7 @@ public class SipService {
                     ArchiveUnitModel archiveUnitModel = VitamObjectMapper.buildDeserializationObjectMapper()
                         .treeToValue(result, ArchiveUnitModel.class);
                     manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
-                } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException e) {
+                } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException | ExportException e) {
                     throw new VitamRuntimeException(e);
                 }
             });

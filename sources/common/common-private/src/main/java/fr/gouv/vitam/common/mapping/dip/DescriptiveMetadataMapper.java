@@ -43,6 +43,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.SigningRoleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TimestampingInformationType;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.ExportException;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.EventTypeModel;
@@ -54,7 +55,8 @@ import fr.gouv.vitam.common.model.unit.SignedObjectDigestModel;
 import fr.gouv.vitam.common.model.unit.SigningInformationSignatureTypeModel;
 import fr.gouv.vitam.common.model.unit.SigningInformationTypeModel;
 import fr.gouv.vitam.common.model.unit.TimestampingInformationTypeModel;
-import org.apache.commons.collections.CollectionUtils;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -85,8 +87,10 @@ public class DescriptiveMetadataMapper {
      * @throws DatatypeConfigurationException
      */
     public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel,
-        List<ArchiveUnitHistoryModel> historyListModel)
-        throws DatatypeConfigurationException {
+        List<ArchiveUnitHistoryModel> historyListModel, SupportedSedaVersions supportedSedaVersion)
+        throws DatatypeConfigurationException, ExportException {
+
+        checkSedaCompatibility(metadataModel, supportedSedaVersion);
 
         DescriptiveMetadataContentType dmc = new DescriptiveMetadataContentType();
         dmc.setAcquiredDate(metadataModel.getAcquiredDate());
@@ -176,7 +180,7 @@ public class DescriptiveMetadataMapper {
         dmc.setDateLitteral(metadataModel.getDateLitteral());
 
         // Deprecated Old Signature model (Seda 2.1 & 2.2). Superseded by SigningInformation model in Seda 2.3+.
-        if (metadataModel.getSignature() != null && !metadataModel.getSignature().isEmpty()) {
+        if (CollectionUtils.isNotEmpty(metadataModel.getSignature())) {
             dmc.getSignature().addAll(mapSignatures(metadataModel.getSignature()));
         }
 
@@ -228,6 +232,29 @@ public class DescriptiveMetadataMapper {
         fillHistory(historyListModel, dmc.getHistory());
 
         return dmc;
+    }
+
+    private static void checkSedaCompatibility(DescriptiveMetadataModel metadataModel,
+        SupportedSedaVersions supportedSedaVersion)
+        throws ExportException {
+
+        if (supportedSedaVersion.equals(SupportedSedaVersions.SEDA_2_3)) {
+            if (CollectionUtils.isNotEmpty(metadataModel.getSignature())) {
+                throw new ExportException("Cannot export obsolete Signature tag into SEDA 2.3+.");
+            }
+        }
+
+        if (supportedSedaVersion.equals(SupportedSedaVersions.SEDA_2_1) ||
+            supportedSedaVersion.equals(SupportedSedaVersions.SEDA_2_2)) {
+            if (metadataModel.getSigningInformation() != null &&
+                (metadataModel.getGps() != null || CollectionUtils.isNotEmpty(metadataModel.getTextContent()) ||
+                    CollectionUtils.isNotEmpty(metadataModel.getSignature()) ||
+                    metadataModel.getOriginatingSystemIdReplyTo() != null)) {
+                throw new ExportException(
+                    "Cannot export SigningInformation tag in SEDA " + supportedSedaVersion.getVersion() +
+                        " with Signature, Gps, OriginatingSystemIdReplyTo or OriginatingSystemIdReplyTo fields");
+            }
+        }
     }
 
     private List<SignatureType> mapSignatures(List<SignatureTypeModel> signatures) {
