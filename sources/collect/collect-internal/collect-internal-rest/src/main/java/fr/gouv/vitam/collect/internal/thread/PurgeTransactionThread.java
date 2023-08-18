@@ -59,7 +59,7 @@ public class PurgeTransactionThread implements Runnable {
 
     private final Map<Integer, Integer> purgeTransactionDelayInMinutes;
 
-    private final ExecutorService executorService;
+    private final int threadPoolSize;
 
     public PurgeTransactionThread(CollectInternalConfiguration collectInternalConfiguration,
         TransactionService transactionService) {
@@ -70,8 +70,8 @@ public class PurgeTransactionThread implements Runnable {
             .scheduleAtFixedRate(this, collectInternalConfiguration.getPurgeTransactionThreadFrequency(),
                 collectInternalConfiguration.getPurgeTransactionThreadFrequency(), TimeUnit.MINUTES);
 
-        executorService = ExecutorUtils.createScalableBatchExecutorService(
-            collectInternalConfiguration.getPurgeTransactionThreadPoolSize());
+        threadPoolSize = Math.min(collectInternalConfiguration.getPurgeTransactionThreadPoolSize(),
+            VitamConfiguration.getTenants().size());
     }
 
     @Override
@@ -109,8 +109,10 @@ public class PurgeTransactionThread implements Runnable {
         Thread.currentThread().setName(PurgeTransactionThread.class.getName());
         VitamThreadUtils.getVitamSession()
             .setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
+        ExecutorService executorService = ExecutorUtils.createScalableBatchExecutorService(
+            threadPoolSize);
+        List<CompletableFuture<Void>> completableFuturesList = new ArrayList<>();
         try {
-            List<CompletableFuture<Void>> completableFuturesList = new ArrayList<>();
             for (var entry : purgeTransactionDelayInMinutes.entrySet()) {
                 CompletableFuture<Void> traceabilityCompletableFuture = CompletableFuture.runAsync(() -> {
                     VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
@@ -126,7 +128,7 @@ public class PurgeTransactionThread implements Runnable {
             CompletableFuture<Void> combinedFuture =
                 CompletableFuture.allOf(completableFuturesList.toArray(new CompletableFuture[0]));
             combinedFuture.join();
-        } finally {
+        }finally {
             executorService.shutdown();
         }
     }
