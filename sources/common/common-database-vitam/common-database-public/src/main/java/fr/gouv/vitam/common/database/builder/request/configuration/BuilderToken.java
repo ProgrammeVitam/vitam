@@ -692,6 +692,10 @@ public abstract class BuilderToken {
          */
         STORAGE("storage"),
         /**
+         * Management contract Id
+         */
+        MANAGEMENT_CONTRACT_ID("managementContractId"),
+        /**
          * unit type bloc
          */
         UNITTYPE("unitType"),

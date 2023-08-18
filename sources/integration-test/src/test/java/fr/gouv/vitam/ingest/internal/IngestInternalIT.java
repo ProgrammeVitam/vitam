@@ -304,6 +304,8 @@ public class IngestInternalIT extends VitamRuleRunner {
     private static String SIP_FILE_OK_NAME = "integration-ingest-internal/SIP-ingest-internal-ok.zip";
 
     private static String SIP_FILE_OK_MULTI_USAGE = "integration-ingest-internal/OK_SIP_plusieurs_usages_dans_GOT.zip";
+
+    private static String SIP_FILE_OK_ARK = "integration-ingest-internal/OK_SIP_ARK.zip";
     private static String SIP_FILE_KO_FORMAT = "integration-ingest-internal/SIP_mauvais_format.pdf";
     private static String SIP_CONTENT_KO_FORMAT = "integration-ingest-internal/SIP-ingest-internal-Content-KO.zip";
     private static String SIP_WITH_LOGBOOK = "integration-ingest-internal/sip_with_logbook.zip";
@@ -2684,6 +2686,48 @@ public class IngestInternalIT extends VitamRuleRunner {
 
             throw e;
         }
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testIngestWithArkManagementContract() throws Exception {
+            prepareVitamSession(tenantId, "aName3", "Context_IT");
+
+            String operationId = VitamTestHelper.doIngest(tenantId, SIP_FILE_OK_ARK);
+            verifyOperation(operationId, WARNING);
+            // Try to check AU
+
+            final MetaDataClient metadataClient = MetaDataClientFactory.getInstance().getClient();
+            final JsonNode node = getArchiveUnitWithOpi(metadataClient, operationId);
+            SelectMultiQuery select;
+            LOGGER.debug(JsonHandler.prettyPrint(node));
+            final JsonNode result = node.get(RESULTS);
+            assertNotNull(result);
+            assertEquals(2, node.get("$hits").get("total").asInt());
+            final JsonNode unit = result.get(1);
+            assertNotNull(unit);
+            assertTrue(unit.has("#managementContractId"));
+            assertTrue(unit.get("#managementContractId").asText().startsWith("MC-"));
+            final String og = unit.get("#object").asText();
+            // Try to check OG
+            select = new SelectMultiQuery();
+            select.addRoots(og);
+            final JsonNode jsonResponse = metadataClient.selectObjectGrouptbyId(select.getFinalSelect(), og);
+            LOGGER.warn("Result: " + jsonResponse);
+            final JsonNode ogResults = jsonResponse.get(RESULTS);
+            assertNotNull(ogResults);
+            final JsonNode objectGroup = ogResults.get(0);
+            assertNotNull(objectGroup);
+            assertEquals(2, objectGroup.get("#nbobjects").asInt());
+
+            List<VersionsModel> binaryMasterVersions =
+                getFromJsonNode((objectGroup.get("#qualifiers").get(0).get("versions")), new TypeReference<>() {
+                });
+
+            assertEquals(2, binaryMasterVersions.size());
+
+            assertTrue(binaryMasterVersions.get(0).getManagementContractId().startsWith("MC-"));
+            assertTrue(binaryMasterVersions.get(1).getManagementContractId().startsWith("MC-"));
     }
 
 }

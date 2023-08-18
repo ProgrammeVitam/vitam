@@ -80,8 +80,13 @@ import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
+import fr.gouv.vitam.common.model.administration.ManagementContractModel;
 import fr.gouv.vitam.common.model.administration.OntologyModel;
+import fr.gouv.vitam.common.model.administration.PersistentIdentifierPolicy;
+import fr.gouv.vitam.common.model.administration.PersistentIdentifierPolicyTypeEnum;
+import fr.gouv.vitam.common.model.administration.PersistentIdentifierUsage;
 import fr.gouv.vitam.common.model.administration.RuleType;
+import fr.gouv.vitam.common.model.administration.VersionUsageModel;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.model.unit.ManagementModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
@@ -118,6 +123,7 @@ import fr.gouv.vitam.processing.common.exception.ArchiveUnitContainDataObjectExc
 import fr.gouv.vitam.processing.common.exception.ExceptionType;
 import fr.gouv.vitam.processing.common.exception.MetaDataContainSpecialCharactersException;
 import fr.gouv.vitam.processing.common.exception.MissingFieldException;
+import fr.gouv.vitam.processing.common.exception.MissingMandatoryVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingAttachmentRequiredException;
 import fr.gouv.vitam.processing.common.exception.ProcessingAttachmentUnauthorizedException;
 import fr.gouv.vitam.processing.common.exception.ProcessingDuplicatedVersionException;
@@ -131,7 +137,6 @@ import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupLinkingExc
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupMasterMandatoryException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
 import fr.gouv.vitam.processing.common.exception.ProcessingTooManyUnitsFoundException;
-import fr.gouv.vitam.processing.common.exception.MissingMandatoryVersionException;
 import fr.gouv.vitam.processing.common.exception.ProcessingUnitLinkingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -183,6 +188,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -190,6 +196,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -2277,7 +2284,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
                         throw new ProcessingDuplicatedVersionException(DATA_OBJECT_VERSION_MUST_BE_UNIQUE);
                     }
                     versionList.add(nodeCategoryNumbered);
-
                     if (BINARY_MASTER_1.equals(nodeCategoryNumbered)) {
 
                         fileInfo = (ObjectNode) dataObjectNode.get(FILE_INFO);
@@ -2316,6 +2322,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
                     throw new MissingMandatoryVersionException(
                         "The object group (" + entry.getKey() + ") requires Mandatory version 1 to be present");
                 }
+
+                updateGotwithManagementContract(categoryMap, ingestContext);
 
                 final ArrayNode qualifiersNode =
                     getObjectGroupQualifiers(ingestSession, categoryMap, ingestContext.getOperationId());
@@ -2427,6 +2435,55 @@ public class ExtractSedaActionHandler extends ActionHandler {
             return categoryMap.containsKey("PhysicalMaster_1");
         }
         return true;
+    }
+
+
+    private void updateGotwithManagementContract(Map<String, List<JsonNode>> map, IngestContext ingestContext) {
+        ManagementContractModel managementContractModel = ingestContext.getManagementContractModel();
+        if (null != managementContractModel) {
+            List<PersistentIdentifierPolicy> persistentIdentifierPolicies =
+                managementContractModel.getPersistentIdentifierPolicyList();
+            if (persistentIdentifierPolicies != null && !persistentIdentifierPolicies.isEmpty()) {
+                Optional<PersistentIdentifierPolicy> arkPolicy = persistentIdentifierPolicies.stream()
+                    .filter(policy -> policy.getPersistentIdentifierPolicyType()
+                        .equals(PersistentIdentifierPolicyTypeEnum.ARK))
+                    .findFirst();
+
+                arkPolicy.ifPresent(policy -> {
+                    for (PersistentIdentifierUsage usageNode : policy.getPersistentIdentifierUsages()) {
+                        // Filtrage des clés de la map basé sur la valeur de usageName
+                        List<String> usageVersionList = map.keySet().stream()
+                            .filter(key -> key.startsWith(usageNode.getUsageName().getName()))
+                            .sorted(Comparator.comparingInt(
+                                key -> Integer.parseInt(key.substring(key.lastIndexOf("_") + 1))))
+                            .collect(Collectors.toList());
+                        if (!usageVersionList.isEmpty()) {
+                            if (usageNode.isInitialVersion()) {
+                                ObjectNode qualifierToUpdate = (ObjectNode) map.get(usageVersionList.get(0)).get(0);
+                                qualifierToUpdate.put("_managementContractId", managementContractModel.getIdentifier());
+                            }
+
+                            if (usageNode.getIntermediaryVersion()
+                                .equals(VersionUsageModel.IntermediaryVersionEnum.LAST)) {
+                                ObjectNode qualifierToUpdate =
+                                    (ObjectNode) map.get(usageVersionList.get(usageVersionList.size() -1)).get(0);
+                                qualifierToUpdate.put("_managementContractId", managementContractModel.getIdentifier());
+                            }
+                            if (usageNode.getIntermediaryVersion()
+                                .equals(VersionUsageModel.IntermediaryVersionEnum.ALL)) {
+                                usageVersionList.stream()
+                                    .skip(1) // Ignorer le premier élément
+                                    .map(key -> (ObjectNode) map.get(key).get(0))
+                                    .forEach(qualifierToUpdate -> {
+                                        qualifierToUpdate.put("_managementContractId",
+                                            managementContractModel.getIdentifier());
+                                    });
+                            }
+                        }
+                    }
+                });
+            }
+        }
     }
 
     private void checkOriginatingAgencyAttachementConformity(String originatingAgency,

@@ -14,7 +14,7 @@
       {
         "tenant": 0,
         "AccessContracts": ["aName3","contract"],
-        "IngestContracts": ["ArchivalAgreement0", "ArchivalAgreement0Test", "aName 2", "ContractWithAttachment", "ArchivalAgreementAttachment", "IC_WITH_PROFILE"]
+        "IngestContracts": ["ArchivalAgreement0", "ArchivalAgreement0Test", "aName 2", "ContractWithAttachment", "ArchivalAgreementAttachment", "IC_WITH_PROFILE", "IC-000002"]
       }
     ]
   }

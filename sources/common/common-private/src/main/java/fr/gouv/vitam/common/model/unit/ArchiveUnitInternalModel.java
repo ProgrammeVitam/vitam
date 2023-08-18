@@ -84,6 +84,9 @@ public class ArchiveUnitInternalModel {
     @JsonProperty("_us")
     private List<String> allunitups;
 
+    @JsonProperty("_managementContractId")
+    private String managementContractId;
+
     /**
      * Constructor
      */
@@ -223,5 +226,13 @@ public class ArchiveUnitInternalModel {
 
     public void setAllunitups(List<String> allunitups) {
         this.allunitups = allunitups;
+    }
+
+    public String getManagementContractId() {
+        return managementContractId;
+    }
+
+    public void setManagementContractId(String managementContractId) {
+        this.managementContractId = managementContractId;
     }
 }

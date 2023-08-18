@@ -208,7 +208,11 @@ public class ParserTokens extends BuilderToken {
         /**
          * TRANSFER
          */
-        OPTS("opts");
+        OPTS("opts"),
+        /**
+         * Management Contract Id
+         */
+        MANAGEMENT_CONTRACT_ID("managementContractId");
 
 
         private static final String NOT_FOUND = "Not found";

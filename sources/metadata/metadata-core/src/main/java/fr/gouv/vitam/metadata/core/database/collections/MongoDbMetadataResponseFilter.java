@@ -185,6 +185,10 @@ public class MongoDbMetadataResponseFilter {
                 case APPROXIMATE_UPDATE_DATE:
                     replace(document, MetadataDocument.APPROXIMATE_UPDATE_DATE, VitamFieldsHelper.approximateUpdateDate());
                     break;
+                case MANAGEMENT_CONTRACT_ID:
+                    replace(document, MetadataDocument.MANAGEMENT_CONTRACT_ID, VitamFieldsHelper.managementContractId());
+                    break;
+
                 case DUA:
                 case ALL:
                 default:
@@ -212,7 +216,9 @@ public class MongoDbMetadataResponseFilter {
                         replace((Document) version, MetadataDocument.ID, VitamFieldsHelper.id());
                         replace((Document) version, MetadataDocument.OPI, VitamFieldsHelper.initialOperation());
                         replace((Document) qualifier, MetadataDocument.NBCHILD, VitamFieldsHelper.nbc());
-
+                        if(null != ((Document) version).get(MetadataDocument.MANAGEMENT_CONTRACT_ID)){
+                            replace((Document) version, MetadataDocument.MANAGEMENT_CONTRACT_ID, VitamFieldsHelper.managementContractId());
+                        }
                         Object storage = ((Document) version).get(ObjectGroup.STORAGE);
                         if (storage != null) {
                             replace((Document) storage, MetadataDocument.NBCHILD, VitamFieldsHelper.nbc());

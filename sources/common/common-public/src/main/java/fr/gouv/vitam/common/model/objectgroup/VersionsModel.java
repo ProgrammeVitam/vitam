@@ -96,6 +96,9 @@ public class VersionsModel {
     @JsonProperty("DataObjectProfile")
     private String dataObjectProfile;
 
+    @JsonProperty("#managementContractId")
+    private String managementContractId;
+
     @JsonProperty("DataObjectUse")
     private String dataObjectUse;
 
@@ -273,6 +276,14 @@ public class VersionsModel {
     public int getDataVersion() {
         List<String> split = asList(dataObjectVersion.split("_"));
         return parseInt(split.get(1));
+    }
+
+    public String getManagementContractId() {
+        return managementContractId;
+    }
+
+    public void setManagementContractId(String managementContractId) {
+        this.managementContractId = managementContractId;
     }
 
     @Override
