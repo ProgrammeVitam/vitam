@@ -56,8 +56,6 @@ import static org.junit.Assert.assertTrue;
 
 public class LogbookLifeCyclesClientMockTest {
 
-    private static final String request = "{ $query: {} }, $projection: {}, $filter: {} }";
-
     @Test
     public void createTest() {
         LogbookLifeCyclesClientFactory.changeMode(null);
@@ -203,15 +201,10 @@ public class LogbookLifeCyclesClientMockTest {
         assertNotNull(client);
         assertNotNull(client.selectObjectGroupLifeCycleById("id", JsonHandler.createObjectNode()));
         assertNotNull(client.selectUnitLifeCycleById("id", JsonHandler.createObjectNode()));
-        assertNotNull(client.unitLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED,
-            JsonHandler.createObjectNode()));
-        assertNotNull(client.objectGroupLifeCyclesByOperationIterator("id", LifeCycleStatusCode.LIFE_CYCLE_COMMITTED,
-            JsonHandler.createObjectNode()));
-
     }
 
     @Test
-    public void statusTest() throws LogbookClientException, VitamApplicationServerException {
+    public void statusTest() throws VitamApplicationServerException {
         LogbookLifeCyclesClientFactory.changeMode(null);
 
         final LogbookLifeCyclesClient client =

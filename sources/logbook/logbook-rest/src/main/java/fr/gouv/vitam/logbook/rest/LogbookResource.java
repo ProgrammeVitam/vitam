@@ -30,10 +30,10 @@ package fr.gouv.vitam.logbook.rest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
 import com.mongodb.client.MongoCursor;
+import fr.gouv.vitam.common.FileUtil;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.OntologyLoader;
 import fr.gouv.vitam.common.collection.CloseableIterator;
@@ -61,6 +61,7 @@ import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
+import fr.gouv.vitam.common.model.VitamConstants;
 import fr.gouv.vitam.common.security.IllegalPathException;
 import fr.gouv.vitam.common.security.SafeFileChecker;
 import fr.gouv.vitam.common.server.application.VitamHttpHeader;
@@ -131,7 +132,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import java.io.File;
 import java.io.FileInputStream;
@@ -142,7 +142,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -586,45 +585,35 @@ public class LogbookResource extends ApplicationStatusResource {
     @GET
     @Path("/operations/{id_op}/unitlifecycles")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getUnitLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode query) {
-        Status status;
-        List<JsonNode> objects = new ArrayList<>();
+
+        File file = null;
         try {
+            file = FileUtil.createFileInTempDirectoryWithPathCheck(operationId, VitamConstants.JSONL_EXTENSION);
+
             final Select newQuery = addConditionToQuery(operationId, query);
-            try (MongoCursor<LogbookLifeCycleUnit> iterator = mongoDbAccess
-                .getLogbookLifeCycleUnitsFull(
-                    fromLifeCycleStatusToUnitCollection(getSelectLifeCycleStatusCode(evtStatus)),
-                    newQuery)) {
+            try (MongoCursor<LogbookLifeCycleUnit> iterator =
+                mongoDbAccess.getLogbookLifeCycleUnitsFull(
+                    fromLifeCycleStatusToUnitCollection(getSelectLifeCycleStatusCode(evtStatus)), newQuery);
+                OutputStream out = new FileOutputStream(file);
+                JsonLineWriter writer = new JsonLineWriter(out)) {
                 while (iterator.hasNext()) {
-                    objects.add(JsonHandler.toJsonNode(iterator.next()));
+                    writer.addEntry(JsonHandler.toJsonNode(iterator.next()));
                 }
-                status = Status.OK;
-                final ResponseBuilder builder =
-                    Response.status(status)
-                        .entity(new RequestResponseOK<JsonNode>().addAllResults(objects));
-                return builder.build();
             }
-        } catch (final LogbookDatabaseException | InvalidParseOperationException |
-            InvalidCreateOperationException exc) {
+
+            return Response.ok(new FileInputStream(file)).build();
+
+        } catch (IllegalArgumentException | IllegalPathException exc) {
             LOGGER.error(exc);
-            status = Status.INTERNAL_SERVER_ERROR;
-            final ResponseBuilder builder = Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(ServerIdentity.getInstance().getRole()).setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()));
-            return builder.build();
-        } catch (final IllegalArgumentException exc) {
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (Exception exc) {
             LOGGER.error(exc);
-            status = Status.BAD_REQUEST;
-            final ResponseBuilder builder = Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(ServerIdentity.getInstance().getRole()).setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()));
-            return builder.build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            FileUtils.deleteQuietly(file);
         }
     }
 
@@ -1350,42 +1339,35 @@ public class LogbookResource extends ApplicationStatusResource {
     @GET
     @Path("/operations/{id_op}/objectgrouplifecycles")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response getObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
         @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus, JsonNode query) {
-        Status status;
-        List<JsonNode> objects = new ArrayList<>();
+
+        File file = null;
         try {
+            file = FileUtil.createFileInTempDirectoryWithPathCheck(operationId, VitamConstants.JSONL_EXTENSION);
+
             final Select newQuery = addConditionToQuery(operationId, query);
-            try (MongoCursor<LogbookLifeCycleObjectGroup> ogCursor =
+            try (MongoCursor<LogbookLifeCycleObjectGroup> iterator =
                 mongoDbAccess.getLogbookLifeCycleObjectGroupsFull(
-                    fromLifeCycleStatusToObjectGroupCollection(getSelectLifeCycleStatusCode(evtStatus)),
-                    newQuery)) {
-                while (ogCursor.hasNext()) {
-                    objects.add(JsonHandler.toJsonNode(ogCursor.next()));
+                    fromLifeCycleStatusToObjectGroupCollection(getSelectLifeCycleStatusCode(evtStatus)), newQuery);
+                OutputStream out = new FileOutputStream(file);
+                JsonLineWriter writer = new JsonLineWriter(out)) {
+                while (iterator.hasNext()) {
+                    writer.addEntry(JsonHandler.toJsonNode(iterator.next()));
                 }
-                final ResponseBuilder builder =
-                    Response.status(Status.OK)
-                        .entity(new RequestResponseOK<JsonNode>().addAllResults(objects));
-                return builder.build();
             }
-        } catch (final LogbookDatabaseException | InvalidParseOperationException |
-            InvalidCreateOperationException exc) {
+
+            return Response.ok(new FileInputStream(file)).build();
+
+        } catch (IllegalArgumentException | IllegalPathException exc) {
             LOGGER.error(exc);
-            status = Status.INTERNAL_SERVER_ERROR;
-            final ResponseBuilder builder = Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK).setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()));
-            return builder.build();
-        } catch (final IllegalArgumentException exc) {
+            return Response.status(Status.BAD_REQUEST).build();
+        } catch (Exception exc) {
             LOGGER.error(exc);
-            status = Status.BAD_REQUEST;
-            final ResponseBuilder builder = Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK).setState("code_vitam").setMessage(status.getReasonPhrase())
-                    .setDescription(exc.getMessage()));
-            return builder.build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+        } finally {
+            FileUtils.deleteQuietly(file);
         }
     }
 

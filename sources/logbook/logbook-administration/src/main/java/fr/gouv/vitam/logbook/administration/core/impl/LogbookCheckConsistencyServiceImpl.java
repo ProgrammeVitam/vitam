@@ -31,10 +31,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.collection.CloseableIterator;
+import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
-import fr.gouv.vitam.common.database.utils.LifecyclesSpliterator;
-import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.exception.VitamException;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -87,15 +87,6 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
 
     private static final String LFC_EVENT_TYPE_PREFIX = "LFC.";
     private static final String STEP_STARTED_SUFFIX = ".STARTED";
-
-    /**
-     * Default offset for LifecycleSpliterator
-     */
-    private static final int OFFSET = 0;
-    /**
-     * Default limit for LifecycleSpliterator
-     */
-    private static final int LIMIT = 1000;
 
     /**
      * SAVED_LOGBOOK_MSG
@@ -316,43 +307,24 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
      */
     private void checkUnitLfcByOperation(LogbookLifeCyclesClient client, LifeCycleStatusCode cycleStatusCode,
         String operationId, Set<String> allowedEvTypes, Map<String, EventModel> mapLfcEvents) {
-        try {
-            final Select select = new Select();
-            LifecyclesSpliterator<JsonNode> scrollSplitator = new LifecyclesSpliterator<>(select,
-                query -> {
-                    RequestResponse response;
-                    try {
-                        response = client.unitLifeCyclesByOperationIterator(operationId,
-                            cycleStatusCode, ((Select) query).getFinalSelect());
-                    } catch (LogbookClientException | InvalidParseOperationException e) {
-                        throw new IllegalStateException(e);
-                    }
-                    if (response.isOk()) {
-                        return (RequestResponseOK) response;
-                    } else {
-                        throw new IllegalStateException(
-                            String.format("Error while loading logbook lifecycle Unit RequestResponse %d",
-                                response.getHttpCode()));
-                    }
-                }, OFFSET, LIMIT);
-            StreamSupport.stream(scrollSplitator, false).map(LogbookLifeCycleUnit::new)
-                .forEach(unitLFC -> {
-                    try {
-                        // check unit lifecycle root event details.
-                        logbookDetailsCheckService.checkEvent(getEventModel(unitLFC, operationId, unitLFC.getId(),
-                            LogbookEventType.UNIT_LFC));
-                        // Check unitlifecycle's events
-                        List<Document> unitLFCEvents =
-                            (List<Document>) unitLFC.get(LogbookDocument.EVENTS.toString());
-                        if (unitLFCEvents != null && !unitLFCEvents.isEmpty()) {
-                            checkCoherenceEvents(LogbookEventType.UNIT_LFC, operationId, unitLFC.getId(),
-                                unitLFCEvents, allowedEvTypes, mapLfcEvents);
-                        }
-                    } catch (IllegalStateException e) {
-                        throw e;
+        Select select = new Select();
+        try (CloseableIterator<JsonNode> iterator =
+            client.unitLifeCyclesByOperationIterator(operationId, cycleStatusCode, select.getFinalSelect())) {
+            
+            CloseableIteratorUtils.map(iterator, LogbookLifeCycleUnit::new)
+                .forEachRemaining(unitLFC -> {
+                    // check unit lifecycle root event details.
+                    logbookDetailsCheckService.checkEvent(getEventModel(unitLFC, operationId, unitLFC.getId(),
+                        LogbookEventType.UNIT_LFC));
+                    // Check unitlifecycle's events
+                    List<Document> unitLFCEvents =
+                        (List<Document>) unitLFC.get(LogbookDocument.EVENTS);
+                    if (unitLFCEvents != null && !unitLFCEvents.isEmpty()) {
+                        checkCoherenceEvents(LogbookEventType.UNIT_LFC, operationId, unitLFC.getId(),
+                            unitLFCEvents, allowedEvTypes, mapLfcEvents);
                     }
                 });
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | LogbookClientException e) {
             LOGGER.error("ERROR: Exception has been thrown when loading unit's lifeCycles : ", e);
         }
     }
@@ -368,45 +340,25 @@ public class LogbookCheckConsistencyServiceImpl implements LogbookCheckConsisten
      */
     private void checkObjectGroupLfcByOperation(LogbookLifeCyclesClient client, LifeCycleStatusCode cycleStatusCode,
         String operationId, Set<String> allowedEvTypes, Map<String, EventModel> mapLfcEvents) {
-        try {
-            Select select = new Select();
-            LifecyclesSpliterator<JsonNode> scrollSplitator = new LifecyclesSpliterator<>(select,
-                query -> {
-                    RequestResponse response;
-                    try {
-                        response = client.objectGroupLifeCyclesByOperationIterator(operationId, cycleStatusCode,
-                            ((Select) query).getFinalSelect());
-                    } catch (LogbookClientException | InvalidParseOperationException e) {
-                        throw new IllegalStateException(e);
-                    }
-                    if (response.isOk()) {
-                        return (RequestResponseOK) response;
-                    } else {
-                        throw new IllegalStateException(
-                            String.format("Error while loading logbook lifecycle Unit RequestResponse %d",
-                                response.getHttpCode()));
-                    }
-                }, OFFSET, LIMIT);
+        Select select = new Select();
+        try (CloseableIterator<JsonNode> iterator =
+            client.objectGroupLifeCyclesByOperationIterator(operationId, cycleStatusCode, select.getFinalSelect())) {
 
-            StreamSupport.stream(scrollSplitator, false).map(LogbookLifeCycleObjectGroup::new)
-                .forEach(objectGroupLFC -> {
-                    try {
-                        // Get all objectGroup LifeCycles's events and Check their coherence.
-                        logbookDetailsCheckService
-                            .checkEvent(getEventModel(objectGroupLFC, operationId, objectGroupLFC.getId(),
-                                LogbookEventType.OBJECTGROUP_LFC));
-                        // Check objectGrouplifecycle's events
-                        List<Document> objectGroupLFCEvents =
-                            (List<Document>) objectGroupLFC.get(LogbookDocument.EVENTS.toString());
-                        if (objectGroupLFCEvents != null && !objectGroupLFCEvents.isEmpty()) {
-                            checkCoherenceEvents(LogbookEventType.OBJECTGROUP_LFC, operationId, objectGroupLFC.getId(),
-                                objectGroupLFCEvents, allowedEvTypes, mapLfcEvents);
-                        }
-                    } catch (IllegalStateException e) {
-                        throw e;
+            CloseableIteratorUtils.map(iterator, LogbookLifeCycleObjectGroup::new)
+                .forEachRemaining(objectGroupLFC -> {
+                    // Get all objectGroup LifeCycles's events and Check their coherence.
+                    logbookDetailsCheckService
+                        .checkEvent(getEventModel(objectGroupLFC, operationId, objectGroupLFC.getId(),
+                            LogbookEventType.OBJECTGROUP_LFC));
+                    // Check objectGrouplifecycle's events
+                    List<Document> objectGroupLFCEvents =
+                        (List<Document>) objectGroupLFC.get(LogbookDocument.EVENTS);
+                    if (objectGroupLFCEvents != null && !objectGroupLFCEvents.isEmpty()) {
+                        checkCoherenceEvents(LogbookEventType.OBJECTGROUP_LFC, operationId, objectGroupLFC.getId(),
+                            objectGroupLFCEvents, allowedEvTypes, mapLfcEvents);
                     }
                 });
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | LogbookClientException e) {
             LOGGER.error("ERROR: Exception has been thrown when loading objectGroup's lifeCycles : ", e);
         }
 
