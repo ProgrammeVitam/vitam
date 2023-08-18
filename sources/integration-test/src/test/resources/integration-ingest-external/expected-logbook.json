@@ -240,14 +240,14 @@
       "evIdReq": "OPERATION_ID_REPLACE"
     },
     {
-      "evType":"CHECK_OBJECT_SIZE",
-      "evDetData":"{}",
-      "evIdProc":"OPERATION_ID_REPLACE",
-      "evTypeProc":"INGEST",
-      "outcome":"OK",
-      "outDetail":"CHECK_OBJECT_SIZE.OK",
-      "outMessg":"Succès de la vérification de la taille des fichiers Detail=  OK:2",
-      "evIdReq":"OPERATION_ID_REPLACE"
+      "evType": "CHECK_OBJECT_SIZE",
+      "evDetData": "{}",
+      "evIdProc": "OPERATION_ID_REPLACE",
+      "evTypeProc": "INGEST",
+      "outcome": "OK",
+      "outDetail": "CHECK_OBJECT_SIZE.OK",
+      "outMessg": "Succès de la vérification de la taille des fichiers Detail=  OK:2",
+      "evIdReq": "OPERATION_ID_REPLACE"
     },
     {
       "evType": "OG_OBJECTS_FORMAT_CHECK",
@@ -326,7 +326,7 @@
       "evTypeProc": "INGEST",
       "outcome": "OK",
       "outDetail": "STP_STORAGE_AVAILABILITY_CHECK.STARTED.OK",
-      "outMessg": "D\u00E9but du processus de v\u00E9rification pr\u00E9alable \u00E0 la prise en charge",
+      "outMessg": "Succès du début du processus de vérification préalable à la prise en charge",
       "evIdReq": "OPERATION_ID_REPLACE",
       "obId": "OPERATION_ID_REPLACE"
     },
