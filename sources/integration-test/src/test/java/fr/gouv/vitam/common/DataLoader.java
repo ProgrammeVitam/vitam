@@ -248,10 +248,14 @@ public class DataLoader {
                     }
                 }
             }
+            throw new RuntimeException("Cannot import management contract");
+
+        } catch (FileNotFoundException e) {
+            // No management contract in data set
+            return null;
         } catch (Exception e) {
             throw new RuntimeException("Import Management Contract Error", e);
         }
-        return null;
     }
 
     private void importContract(AdminManagementClient client, String filename)
