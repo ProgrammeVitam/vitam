@@ -34,7 +34,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class JsonLineWriter implements AutoCloseable {
 
@@ -70,12 +69,9 @@ public class JsonLineWriter implements AutoCloseable {
     }
 
     public void addEntries(List<?> lines) throws IOException {
-        if (!isEmpty) {
-            writer.append("\n");
+        for (Object line : lines) {
+            addEntry(line);
         }
-        isEmpty = false;
-        final String objects = lines.stream().map(JsonHandler::unprettyPrint).collect(Collectors.joining("\n"));
-        writer.append(objects);
     }
 
     @Override
