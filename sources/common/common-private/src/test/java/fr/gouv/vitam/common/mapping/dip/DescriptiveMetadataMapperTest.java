@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DataObjectReference;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.TextByLang;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -57,7 +58,7 @@ public class DescriptiveMetadataMapperTest {
     private DescriptiveMetadataMapper descriptiveMetadataMapper;
 
     @Test
-    public void should_fill_title_field() throws DatatypeConfigurationException {
+    public void should_fill_title_field() throws Exception {
         // Given
         DescriptiveMetadataModel descriptiveMetadataModel = new DescriptiveMetadataModel();
         descriptiveMetadataModel.setTitle("titre_default");
@@ -70,7 +71,7 @@ public class DescriptiveMetadataMapperTest {
 
         // When
         DescriptiveMetadataContentType contentType =
-            descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>());
+            descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>(), SupportedSedaVersions.SEDA_2_3);
 
         // Then
         assertThat(contentType.getTitle())
@@ -81,7 +82,7 @@ public class DescriptiveMetadataMapperTest {
     }
 
     @Test
-    public void should_fill_description_field() throws DatatypeConfigurationException {
+    public void should_fill_description_field() throws Exception {
         // Given
         DescriptiveMetadataModel descriptiveMetadataModel = new DescriptiveMetadataModel();
         descriptiveMetadataModel.setDescription("description_default");
@@ -94,7 +95,7 @@ public class DescriptiveMetadataMapperTest {
 
         // When
         DescriptiveMetadataContentType contentType =
-            descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>());
+            descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>(), SupportedSedaVersions.SEDA_2_3);
 
         // Then
         assertThat(contentType.getDescription())
@@ -105,7 +106,7 @@ public class DescriptiveMetadataMapperTest {
     }
 
     @Test
-    public void should_fill_custodialHistoryFile_field() throws DatatypeConfigurationException {
+    public void should_fill_custodialHistoryFile_field() throws Exception {
         // Given
         DescriptiveMetadataModel descriptiveMetadataModel = new DescriptiveMetadataModel();
 
@@ -132,7 +133,7 @@ public class DescriptiveMetadataMapperTest {
 
         // When
         DescriptiveMetadataContentType contentType =
-            descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>());
+            descriptiveMetadataMapper.map(descriptiveMetadataModel, new ArrayList<>(), SupportedSedaVersions.SEDA_2_3);
 
         // Then
         assertThat(contentType.getCustodialHistory().getCustodialHistoryFile().getDataObjectReferenceId())

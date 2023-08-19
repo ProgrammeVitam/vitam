@@ -34,21 +34,29 @@ import fr.gouv.culture.archivesdefrance.seda.v2.ExtendedType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LinkingAgentIdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryDataType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ManagementHistoryType;
+import fr.gouv.culture.archivesdefrance.seda.v2.MessageDigestBinaryObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ReferencedObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.SignatureType;
+import fr.gouv.culture.archivesdefrance.seda.v2.SigningInformationSignatureType;
 import fr.gouv.culture.archivesdefrance.seda.v2.SigningInformationType;
 import fr.gouv.culture.archivesdefrance.seda.v2.SigningRoleType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TimestampingInformationType;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.exception.ExportException;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.EventTypeModel;
 import fr.gouv.vitam.common.model.unit.LinkingAgentIdentifierTypeModel;
+import fr.gouv.vitam.common.model.unit.ReferencedObjectTypeModel;
 import fr.gouv.vitam.common.model.unit.SignatureInformationExtendedModel;
 import fr.gouv.vitam.common.model.unit.SignatureTypeModel;
+import fr.gouv.vitam.common.model.unit.SignedObjectDigestModel;
+import fr.gouv.vitam.common.model.unit.SigningInformationSignatureTypeModel;
 import fr.gouv.vitam.common.model.unit.SigningInformationTypeModel;
 import fr.gouv.vitam.common.model.unit.TimestampingInformationTypeModel;
-import org.apache.commons.collections.CollectionUtils;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
+import org.apache.commons.collections4.CollectionUtils;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -79,8 +87,10 @@ public class DescriptiveMetadataMapper {
      * @throws DatatypeConfigurationException
      */
     public DescriptiveMetadataContentType map(DescriptiveMetadataModel metadataModel,
-        List<ArchiveUnitHistoryModel> historyListModel)
-        throws DatatypeConfigurationException {
+        List<ArchiveUnitHistoryModel> historyListModel, SupportedSedaVersions supportedSedaVersion)
+        throws DatatypeConfigurationException, ExportException {
+
+        checkSedaCompatibility(metadataModel, supportedSedaVersion);
 
         DescriptiveMetadataContentType dmc = new DescriptiveMetadataContentType();
         dmc.setAcquiredDate(metadataModel.getAcquiredDate());
@@ -169,6 +179,11 @@ public class DescriptiveMetadataMapper {
         dmc.setOriginatingSystemIdReplyTo(metadataModel.getOriginatingSystemIdReplyTo());
         dmc.setDateLitteral(metadataModel.getDateLitteral());
 
+        // Deprecated Old Signature model (Seda 2.1 & 2.2). Superseded by SigningInformation model in Seda 2.3+.
+        if (CollectionUtils.isNotEmpty(metadataModel.getSignature())) {
+            dmc.getSignature().addAll(mapSignatures(metadataModel.getSignature()));
+        }
+
         dmc.setSigningInformation(mapSigningInformation(metadataModel.getSigningInformation()));
 
         if (metadataModel.getRecipient() != null && !metadataModel.getRecipient().isEmpty()) {
@@ -219,6 +234,70 @@ public class DescriptiveMetadataMapper {
         return dmc;
     }
 
+    private static void checkSedaCompatibility(DescriptiveMetadataModel metadataModel,
+        SupportedSedaVersions supportedSedaVersion)
+        throws ExportException {
+
+        if (supportedSedaVersion.equals(SupportedSedaVersions.SEDA_2_3)) {
+            if (CollectionUtils.isNotEmpty(metadataModel.getSignature())) {
+                throw new ExportException("Cannot export obsolete Signature tag into SEDA 2.3+.");
+            }
+        }
+
+        if (supportedSedaVersion.equals(SupportedSedaVersions.SEDA_2_1) ||
+            supportedSedaVersion.equals(SupportedSedaVersions.SEDA_2_2)) {
+            if (metadataModel.getSigningInformation() != null &&
+                (metadataModel.getGps() != null || CollectionUtils.isNotEmpty(metadataModel.getTextContent()) ||
+                    CollectionUtils.isNotEmpty(metadataModel.getSignature()) ||
+                    metadataModel.getOriginatingSystemIdReplyTo() != null)) {
+                throw new ExportException(
+                    "Cannot export SigningInformation tag in SEDA " + supportedSedaVersion.getVersion() +
+                        " with Signature, Gps, OriginatingSystemIdReplyTo or OriginatingSystemIdReplyTo fields");
+            }
+        }
+    }
+
+    private List<SignatureType> mapSignatures(List<SignatureTypeModel> signatures) {
+        if (signatures == null) {
+            return null;
+        }
+        return signatures.stream()
+            .map(this::mapSignature)
+            .collect(Collectors.toList());
+    }
+
+    private SignatureType mapSignature(SignatureTypeModel signatureType) {
+        SignatureType result = new SignatureType();
+        if (signatureType.getSigner() != null) {
+            result.getSigner().addAll(signatureType.getSigner());
+        }
+        result.setValidator(signatureType.getValidator());
+        result.setReferencedObject(mapReferencedObject(signatureType.getReferencedObject()));
+        // Not supported in R11
+        result.setMasterdata(signatureType.getMasterdata());
+        return result;
+    }
+
+    private ReferencedObjectType mapReferencedObject(ReferencedObjectTypeModel referencedObject) {
+        if (referencedObject == null) {
+            return null;
+        }
+        ReferencedObjectType result = new ReferencedObjectType();
+        result.setSignedObjectId(referencedObject.getSignedObjectId());
+        result.setSignedObjectDigest(mapSignedObjectDigest(referencedObject.getSignedObjectDigest()));
+        return result;
+    }
+
+    private MessageDigestBinaryObjectType mapSignedObjectDigest(SignedObjectDigestModel signedMessageDigest) {
+        if (signedMessageDigest == null) {
+            return null;
+        }
+        MessageDigestBinaryObjectType result = new MessageDigestBinaryObjectType();
+        result.setAlgorithm(signedMessageDigest.getAlgorithm());
+        result.setValue(signedMessageDigest.getValue());
+        return result;
+    }
+
     private SigningInformationType mapSigningInformation(SigningInformationTypeModel signingInformation)
         throws DatatypeConfigurationException {
         if (signingInformation == null) {
@@ -235,7 +314,7 @@ public class DescriptiveMetadataMapper {
         }
         if (signingInformation.getSignature() != null) {
             signingInformationType.getSignature().addAll(
-                mapSignatures(signingInformation.getSignature()));
+                mapSigningInformationSignatures(signingInformation.getSignature()));
         }
         if (signingInformation.getTimestampingInformation() != null) {
             signingInformationType.getTimestampingInformation().addAll(
@@ -269,14 +348,15 @@ public class DescriptiveMetadataMapper {
             .collect(Collectors.toList());
     }
 
-    private List<SignatureType> mapSignatures(List<SignatureTypeModel> signature) {
+    private List<SigningInformationSignatureType> mapSigningInformationSignatures(
+        List<SigningInformationSignatureTypeModel> signature) {
         return signature.stream()
             .map(this::mapSignature)
             .collect(Collectors.toList());
     }
 
-    private SignatureType mapSignature(SignatureTypeModel signatureTypeModel) {
-        SignatureType signatureType = new SignatureType();
+    private SigningInformationSignatureType mapSignature(SigningInformationSignatureTypeModel signatureTypeModel) {
+        SigningInformationSignatureType signatureType = new SigningInformationSignatureType();
         signatureType.setSigner(signatureTypeModel.getSigner());
         signatureType.setValidator(signatureTypeModel.getValidator());
         signatureType.setSigningType(signatureTypeModel.getSigningType());

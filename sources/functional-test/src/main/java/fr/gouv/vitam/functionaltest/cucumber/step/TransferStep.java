@@ -128,46 +128,49 @@ public class TransferStep extends CommonStep {
     @Then("^le transfert contient (\\d+) unités archivistiques$")
     public void checkSipTransferUnitCount(int nbUnits) throws Exception {
 
-        ZipFile zipFile = new ZipFile(world.getTransferFile().toFile());
-        // Check manifest
-        ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
-        try (InputStream is = zipFile.getInputStream(manifest)) {
-            int cpt =
-                countElements(is, "ArchiveTransfer/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
-            assertThat(cpt).isEqualTo(nbUnits);
+        try (ZipFile zipFile = new ZipFile(world.getTransferFile().toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                int cpt =
+                    countElements(is, "ArchiveTransfer/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
+                assertThat(cpt).isEqualTo(nbUnits);
+            }
         }
     }
 
     @Then("^le transfert contient (\\d+) groupes d'objets$")
     public void checkSipTransferObjectGroupCount(int nbObjectGroups) throws Exception {
 
-        ZipFile zipFile = new ZipFile(world.getTransferFile().toFile());
-        // Check manifest
-        ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
-        try (InputStream is = zipFile.getInputStream(manifest)) {
-            int cpt = countElements(is, "ArchiveTransfer/DataObjectPackage/DataObjectGroup");
-            assertThat(cpt).isEqualTo(nbObjectGroups);
+        try (ZipFile zipFile = new ZipFile(world.getTransferFile().toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                int cpt = countElements(is, "ArchiveTransfer/DataObjectPackage/DataObjectGroup");
+                assertThat(cpt).isEqualTo(nbObjectGroups);
+            }
         }
     }
 
     @Then("^le transfert contient (\\d+) objets dont (\\d+) sont binaires$")
     public void checkSipTransferObjectCount(int nbObjects, int nbBinaryObjects) throws Exception {
 
-        ZipFile zipFile = new ZipFile(world.getTransferFile().toFile());
-        // Check manifest
-        ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
-        try (InputStream is = zipFile.getInputStream(manifest)) {
-            int cpt =
-                countElements(is, "ArchiveTransfer/DataObjectPackage/DataObjectGroup/BinaryDataObject");
-            assertThat(cpt).isEqualTo(nbObjects);
+        try (ZipFile zipFile = new ZipFile(world.getTransferFile().toFile())) {
+            // Check manifest
+            ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
+            try (InputStream is = zipFile.getInputStream(manifest)) {
+                int cpt =
+                    countElements(is, "ArchiveTransfer/DataObjectPackage/DataObjectGroup/BinaryDataObject");
+                assertThat(cpt).isEqualTo(nbObjects);
+            }
+
+            List<ZipArchiveEntry> entries = EnumerationUtils.toList(zipFile.getEntries());
+            long binaryFiles = entries.stream()
+                .filter((ZipArchiveEntry entry) -> entry.getName().startsWith("Content/"))
+                .count();
+
+            assertThat(binaryFiles).isEqualTo(nbBinaryObjects);
         }
-
-        List<ZipArchiveEntry> entries = EnumerationUtils.toList(zipFile.getEntries());
-        long binaryFiles = entries.stream()
-            .filter((ZipArchiveEntry entry) -> entry.getName().startsWith("Content/"))
-            .count();
-
-        assertThat(binaryFiles).isEqualTo(nbBinaryObjects);
     }
 
     @When("^j'upload le sip du transfert")

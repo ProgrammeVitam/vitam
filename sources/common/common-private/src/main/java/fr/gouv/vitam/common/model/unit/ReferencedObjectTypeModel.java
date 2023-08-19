@@ -24,12 +24,40 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.manifest;
+package fr.gouv.vitam.common.model.unit;
 
-import fr.gouv.vitam.common.exception.VitamException;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class ExportException extends VitamException {
-    public ExportException(String message) {
-        super(message);
+/**
+ * @deprecated Old Signature.ReferencedObject model (Seda 2.1 & 2.2). Superseded by SigningInformation model in Seda 2.3+.
+ */
+public class ReferencedObjectTypeModel {
+
+    @JsonProperty("SignedObjectId")
+    private String signedObjectId;
+
+    @JsonProperty("SignedObjectDigest")
+    private SignedObjectDigestModel signedObjectDigest;
+
+    public ReferencedObjectTypeModel() {
+        // Empty constructor for deserialization
+    }
+
+    public String getSignedObjectId() {
+        return signedObjectId;
+    }
+
+    public ReferencedObjectTypeModel setSignedObjectId(String signedObjectId) {
+        this.signedObjectId = signedObjectId;
+        return this;
+    }
+
+    public SignedObjectDigestModel getSignedObjectDigest() {
+        return signedObjectDigest;
+    }
+
+    public ReferencedObjectTypeModel setSignedObjectDigest(SignedObjectDigestModel signedObjectDigest) {
+        this.signedObjectDigest = signedObjectDigest;
+        return this;
     }
 }

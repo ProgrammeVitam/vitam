@@ -47,10 +47,11 @@ import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
+import fr.gouv.vitam.common.exception.ExportException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
+import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.manifest.ExportException;
 import fr.gouv.vitam.common.manifest.ManifestBuilder;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -105,6 +106,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -146,7 +148,7 @@ public class CreateManifest extends ActionHandler {
     private static final String JSONL_EXTENSION = ".jsonl";
 
     private final MetaDataClientFactory metaDataClientFactory;
-    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
+    private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
         LogbookLifeCyclesClientFactory.getInstance();
 
     private final ObjectNode projection;
@@ -188,11 +190,27 @@ public class CreateManifest extends ActionHandler {
             FileInputStream reportFile = new FileInputStream(report);
             BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream);
             LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient();
-            ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream);
             AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
 
             ExportRequest exportRequest = JsonHandler
                 .getFromJsonNode(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME), ExportRequest.class);
+
+            // Get Wanted Seda Version
+            Optional<SupportedSedaVersions> sedaVersionForExport =
+                SupportedSedaVersions.getSupportedSedaVersionByVersion(exportRequest.getSedaVersion());
+            if (sedaVersionForExport.isEmpty()) {
+                itemStatus.increment(StatusCode.KO);
+                ObjectNode infoNode = JsonHandler.createObjectNode();
+                infoNode.put(REASON_FIELD, "The wanted seda version is not valid !");
+                String evdev = JsonHandler.unprettyPrint(infoNode);
+                itemStatus.setEvDetailData(evdev);
+                return itemStatus;
+            }
+
+            final String sedaVersionToExport = sedaVersionForExport.get().getVersion();
+
+            ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream, sedaVersionForExport.get());
+
             TransferReportHeader reportHeader = new TransferReportHeader(exportRequest.getDslRequest());
 
             switch (exportRequest.getExportType()) {
@@ -210,23 +228,9 @@ public class CreateManifest extends ActionHandler {
                     break;
             }
 
-            // Get Wanted Seda Version
-            Optional<SupportedSedaVersions> sedaVersionForExport =
-                SupportedSedaVersions.getSupportedSedaVersionByVersion(exportRequest.getSedaVersion());
-            if (sedaVersionForExport.isEmpty()) {
-                itemStatus.increment(StatusCode.KO);
-                ObjectNode infoNode = JsonHandler.createObjectNode();
-                infoNode.put(REASON_FIELD, "The wanted seda version is not valid !");
-                String evdev = JsonHandler.unprettyPrint(infoNode);
-                itemStatus.setEvDetailData(evdev);
-                return itemStatus;
-            }
-            final String sedaVersionToExport = sedaVersionForExport.get().getVersion();
-
             // Write manifest first line information
             manifestBuilder.startDocument(param.getContainerName(), exportRequest.getExportType(),
-                exportRequest.getExportRequestParameters(), sedaVersionForExport.get());
-
+                exportRequest.getExportRequestParameters());
 
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
@@ -343,55 +347,50 @@ public class CreateManifest extends ActionHandler {
                 VitamConfiguration.getElasticSearchScrollLimit());
 
             manifestBuilder.startDescriptiveMetadata();
-            StreamSupport.stream(scrollRequest, false)
-                .forEach(result -> {
-                    try {
-                        ArchiveUnitModel unit;
-                        ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(result, ArchiveUnitModel.class);
-                        if (exportWithLogBookLFC) {
-                            JsonNode response =
-                                logbookLifeCyclesClient.selectUnitLifeCycleById(archiveUnitModel.getId(),
-                                    select.getFinalSelect());
-                            if (response != null && response.has(TAG_RESULTS) && response.get(TAG_RESULTS).size() > 0) {
-                                JsonNode rootEvent = response.get(TAG_RESULTS).get(0);
-                                LogbookLifeCycleUnit logbookLFC = new LogbookLifeCycleUnit(rootEvent);
 
-                                unit = manifestBuilder
-                                    .writeArchiveUnitWithLFC(multimap, ogs, logbookLFC, archiveUnitModel);
-                            } else {
-                                unit = manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
-                            }
-                        } else {
-                            unit = manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
-                        }
-                        if (ArchiveTransfer.equals(exportRequest.getExportType())) {
-                            List<String> opts = ListUtils.defaultIfNull(unit.getOpts(), new ArrayList<>());
-                            TransferStatus status = opts.isEmpty() ?
-                                TransferStatus.OK :
-                                TransferStatus.ALREADY_IN_TRANSFER;
-                            opts.add(param.getContainerName());
-                            ObjectNode updateMultiQuery = getUpdateQuery(opts);
+            Iterator<JsonNode> unitIterator = new SpliteratorIterator<>(scrollRequest);
+            while (unitIterator.hasNext()) {
+                ArchiveUnitModel unit;
+                ArchiveUnitModel archiveUnitModel =
+                    objectMapper.treeToValue(unitIterator.next(), ArchiveUnitModel.class);
+                if (exportWithLogBookLFC) {
+                    JsonNode response =
+                        logbookLifeCyclesClient.selectUnitLifeCycleById(archiveUnitModel.getId(),
+                            select.getFinalSelect());
+                    if (response != null && response.has(TAG_RESULTS) && response.get(TAG_RESULTS).size() > 0) {
+                        JsonNode rootEvent = response.get(TAG_RESULTS).get(0);
+                        LogbookLifeCycleUnit logbookLFC = new LogbookLifeCycleUnit(rootEvent);
 
-                            if (TransferStatus.ALREADY_IN_TRANSFER.equals(status)) {
-                                itemStatus.increment(StatusCode.WARNING);
-                                ObjectNode infoNode = JsonHandler.createObjectNode();
-                                infoNode.put(REASON_FIELD, String.format("unit %s already in transfer", unit.getId()));
-                                String evDetData = JsonHandler.unprettyPrint(infoNode);
-                                itemStatus.setEvDetailData(evDetData);
-                            }
-
-                            client.updateUnitById(updateMultiQuery, unit.getId());
-                            TransferReportLine reportLine = new TransferReportLine(unit.getId(), status);
-                            buffOut.write(unprettyPrint(reportLine).getBytes(StandardCharsets.UTF_8));
-                            buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
-                        }
-                    } catch (JAXBException | DatatypeConfigurationException | IOException |
-                             InvalidParseOperationException | InvalidCreateOperationException |
-                             MetaDataNotFoundException | MetaDataExecutionException | MetaDataDocumentSizeException |
-                             MetaDataClientServerException | LogbookClientException e) {
-                        throw new IllegalArgumentException(e);
+                        unit = manifestBuilder.writeArchiveUnitWithLFC(multimap, ogs, logbookLFC, archiveUnitModel);
+                    } else {
+                        unit = manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
                     }
-                });
+                } else {
+                    unit = manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
+                }
+                if (ArchiveTransfer.equals(exportRequest.getExportType())) {
+                    List<String> opts = ListUtils.defaultIfNull(unit.getOpts(), new ArrayList<>());
+                    TransferStatus status = opts.isEmpty() ?
+                        TransferStatus.OK :
+                        TransferStatus.ALREADY_IN_TRANSFER;
+                    opts.add(param.getContainerName());
+                    ObjectNode updateMultiQuery = getUpdateQuery(opts);
+
+                    if (TransferStatus.ALREADY_IN_TRANSFER.equals(status)) {
+                        itemStatus.increment(StatusCode.WARNING);
+                        ObjectNode infoNode = JsonHandler.createObjectNode();
+                        infoNode.put(REASON_FIELD, String.format("unit %s already in transfer", unit.getId()));
+                        String evDetData = JsonHandler.unprettyPrint(infoNode);
+                        itemStatus.setEvDetailData(evDetData);
+                    }
+
+                    client.updateUnitById(updateMultiQuery, unit.getId());
+                    TransferReportLine reportLine = new TransferReportLine(unit.getId(), status);
+                    buffOut.write(unprettyPrint(reportLine).getBytes(StandardCharsets.UTF_8));
+                    buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
+                }
+            }
+
             buffOut.flush();
             manifestBuilder.endDescriptiveMetadata();
 
@@ -457,7 +456,8 @@ public class CreateManifest extends ActionHandler {
             itemStatus.setEvDetailData(evDetData);
         } catch (IOException | MetaDataExecutionException | InvalidCreateOperationException |
                  MetaDataClientServerException | XMLStreamException | JAXBException | LogbookClientException |
-                 MetaDataDocumentSizeException | InvalidParseOperationException | InternalServerException e) {
+                 MetaDataDocumentSizeException | InvalidParseOperationException | InternalServerException |
+                 MetaDataNotFoundException | DatatypeConfigurationException e) {
             throw new ProcessingException(e);
         }
         return new ItemStatus(PLUGIN_NAME).setItemsStatus(PLUGIN_NAME, itemStatus);

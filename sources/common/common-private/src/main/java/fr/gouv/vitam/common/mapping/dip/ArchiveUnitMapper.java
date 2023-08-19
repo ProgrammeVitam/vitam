@@ -28,7 +28,9 @@ package fr.gouv.vitam.common.mapping.dip;
 
 import fr.gouv.culture.archivesdefrance.seda.v2.ArchiveUnitType;
 import fr.gouv.culture.archivesdefrance.seda.v2.IdentifierType;
+import fr.gouv.vitam.common.exception.ExportException;
 import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 
@@ -51,7 +53,8 @@ public class ArchiveUnitMapper {
         this.managementMapper = new ManagementMapper(ruleMapper);
     }
 
-    public ArchiveUnitType map(ArchiveUnitModel model) throws DatatypeConfigurationException {
+    public ArchiveUnitType map(ArchiveUnitModel model, SupportedSedaVersions supportedSedaVersion)
+        throws DatatypeConfigurationException, ExportException {
 
         ArchiveUnitType archiveUnitType = new ArchiveUnitType();
         archiveUnitType.setId(model.getId());
@@ -63,7 +66,8 @@ public class ArchiveUnitMapper {
         }
 
         archiveUnitType.setContent(
-            descriptiveMetadataMapper.map(model.getDescriptiveMetadataModel(), model.getHistory()));
+            descriptiveMetadataMapper.map(model.getDescriptiveMetadataModel(), model.getHistory(),
+                supportedSedaVersion));
 
         if (!model.getManagement().isEmpty()) {
             archiveUnitType.setManagement(managementMapper.map(model.getManagement()));

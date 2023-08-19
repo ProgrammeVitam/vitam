@@ -24,21 +24,10 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.common.mapping.dip;
+package fr.gouv.vitam.common.exception;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
-import javax.ws.rs.core.Response;
-
-public interface DipService {
-
-    /**
-     * Transform the representation of an object (unit or objectGroup) to an xml format (DIP)
-     *
-     * @param object the given representation of the object as Json (can be unit or objectGroup)
-     * @param id The given id of the object to transform can be archiveUnit or objectGroup
-     * @return xml representation of the object (Unit or Object Group)
-     */
-    Response jsonToXml(JsonNode object, String id);
-
+public class ExportException extends VitamException {
+    public ExportException(String message) {
+        super(message);
+    }
 }

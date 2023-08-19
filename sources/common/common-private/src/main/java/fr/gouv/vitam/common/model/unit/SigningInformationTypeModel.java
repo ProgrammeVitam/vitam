@@ -27,8 +27,6 @@
 package fr.gouv.vitam.common.model.unit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.culture.archivesdefrance.seda.v2.OpenType;
-import org.apache.commons.lang.NotImplementedException;
 
 import java.util.List;
 
@@ -41,7 +39,7 @@ public class SigningInformationTypeModel {
     protected List<SigningRoleType> detachedSigningRole;
 
     @JsonProperty("Signature")
-    protected List<SignatureTypeModel> signature;
+    protected List<SigningInformationSignatureTypeModel> signature;
 
     @JsonProperty("TimestampingInformation")
     protected List<TimestampingInformationTypeModel> timestampingInformation;
@@ -72,12 +70,12 @@ public class SigningInformationTypeModel {
         return this;
     }
 
-    public List<SignatureTypeModel> getSignature() {
+    public List<SigningInformationSignatureTypeModel> getSignature() {
         return signature;
     }
 
     public SigningInformationTypeModel setSignature(
-        List<SignatureTypeModel> signature) {
+        List<SigningInformationSignatureTypeModel> signature) {
         this.signature = signature;
         return this;
     }

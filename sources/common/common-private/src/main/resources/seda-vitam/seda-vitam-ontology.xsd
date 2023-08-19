@@ -44,6 +44,9 @@
             <xsd:group ref="RelationGroup"/>
             <xsd:group ref="DateGroup"/>
             <xsd:group ref="EventGroup"/>
+            <!-- The <Signature> tag has been deprecated as of Seda 2.3 / superseded by the <SigningInformation> tag -->
+            <!-- However, for jaxb vitam seda schema, we need to serialize/deserialize both 2.1, 2.2 and 2.3 tags -->
+            <xsd:group ref="SignatureGroup"/>
             <xsd:group ref="SigningInformationGroup"/>
             <xsd:group ref="GpsGroup"/>
             <xsd:group ref="OriginatingSystemIdReplyToGroup"/>
@@ -688,6 +691,87 @@
         </xsd:sequence>
     </xsd:complexType>
     <!-- Signature description -->
+    <xsd:group name="SignatureGroup">
+        <xsd:sequence>
+            <xsd:element name="Signature" type="SignatureType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Contient toutes les informations relatives à la signature.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:group>
+    <xsd:complexType name="SignatureType">
+        <xsd:sequence>
+            <xsd:element name="Signer" type="SignerType" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>Signataire(s) de la transaction ou de l'objet.</xsd:documentation>
+                    <xsd:documentation>Références : premis.signer</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Validator" type="ValidatorType">
+                <xsd:annotation>
+                    <xsd:documentation>Validateur de la signature.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="Masterdata" type="CodeType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>Référentiel des personnes et des organisations au moment de la vérification de la signature et de sa validation.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="ReferencedObject" type="ReferencedObjectType">
+                <xsd:annotation>
+                    <xsd:documentation>Référence à l'objet signé.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:complexType name="SignerType">
+        <xsd:group ref="SignerGroup"/>
+    </xsd:complexType>
+    <xsd:complexType name="ValidatorType">
+        <xsd:group ref="ValidatorGroup"/>
+    </xsd:complexType>
+    <xsd:complexType name="ReferencedObjectType">
+        <xsd:annotation>
+            <xsd:documentation>Contient la référence à l'objet signé (et son empreinte jusqu'à la fin de la phase de versement dans le SAE).</xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="SignedObjectId" type="DataObjectRefIdType">
+                <xsd:annotation>
+                    <xsd:documentation>Identifiant de l'objet-données signé.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="SignedObjectDigest" type="MessageDigestBinaryObjectType">
+                <xsd:annotation>
+                    <xsd:documentation>Empreinte obligatoire jusqu'au processus de versement pour assurer la portabilité de la valeur probante. Le SAE peut ne pas la conserver si l'on considère que l'identifiant de l'objet correspondant suffit. Ce procédé permet de résister au temps lorsque les informations binaires du paquet seront converties au gré des opérations de préservation de la lisibilité des formats. Au cours de ces opérations, l'identifiant ne changera pas, contrairement au format dufichier et donc à son empreinte.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:group name="SignerGroup">
+        <xsd:sequence>
+            <xsd:group ref="PersonOrEntityGroup"/>
+            <xsd:element name="SigningTime" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>Date de signature.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:group ref="BusinessGroup"/>
+        </xsd:sequence>
+    </xsd:group>
+    <xsd:group name="ValidatorGroup">
+        <xsd:sequence>
+            <xsd:group ref="PersonOrEntityGroup"/>
+            <xsd:element name="ValidationTime" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>Date de la validation de la signature.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:group ref="BusinessGroup"/>
+        </xsd:sequence>
+    </xsd:group>
+
+    <!-- Signature description -->
     <xsd:group name="SigningInformationGroup">
         <xsd:sequence>
             <xsd:element name="SigningInformation" type="SigningInformationType" minOccurs="0">
@@ -714,7 +798,7 @@
                     <xsd:documentation>Relation technique à l'unité d'archives racine décrivant le document signé à partir des unités d'archives encapsulées contenant les autres rôles d'un contexte de signature.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Signature" type="SignatureType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="Signature" type="SigningInformationSignatureType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <xsd:documentation>Bloc permettant de décrire la signature dans un contexte de signature.</xsd:documentation>
@@ -748,7 +832,6 @@
             <xsd:extension base="OpenType"/>
         </xsd:complexContent>
     </xsd:complexType>
-    
     <xsd:simpleType name="SigningRoleType">
         <xsd:restriction base="xsd:token">
             <xsd:enumeration value="SignedDocument"/>
@@ -757,7 +840,7 @@
             <xsd:enumeration value="AdditionalProof"/>
         </xsd:restriction>
     </xsd:simpleType>
-    <xsd:complexType name="SignatureType">
+    <xsd:complexType name="SigningInformationSignatureType">
         <xsd:sequence>
             <xsd:element name="Signer" type="SignerType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
@@ -777,6 +860,8 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <!-- Duplicate types - Already defined by <Signature> tag -->
+    <!--
     <xsd:complexType name="SignerType">
         <xsd:group ref="SignerGroup"/>
     </xsd:complexType>
@@ -805,6 +890,7 @@
             <xsd:group ref="BusinessGroup"/>
         </xsd:sequence>
     </xsd:group>
+    -->
     <xsd:complexType name="TimestampingInformationType">
         <xsd:sequence>
             <xsd:element name="TimeStamp" type="xsd:dateTime" minOccurs="0">

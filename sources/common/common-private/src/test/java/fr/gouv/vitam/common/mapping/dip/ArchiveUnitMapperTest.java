@@ -43,6 +43,7 @@ import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import org.junit.Assert;
 import org.junit.Test;
 import org.w3c.dom.Element;
@@ -106,7 +107,7 @@ public class ArchiveUnitMapperTest {
         archiveUnitModel.getDescriptiveMetadataModel().setOriginatingAgency(organizationType);
 
         // When
-        ArchiveUnitType archiveUnitType = archiveUnitMapper.map(archiveUnitModel);
+        ArchiveUnitType archiveUnitType = archiveUnitMapper.map(archiveUnitModel, SupportedSedaVersions.SEDA_2_3);
 
         // Then
         assertThat(archiveUnitType.getId()).isEqualTo("1234564");

@@ -120,33 +120,6 @@ public interface AccessInternalResource {
     Response getUnitById(JsonNode dslQuery, String unitId);
 
     /**
-     * gets archive units by Id with Json query
-     *
-     * @param dslQuery DSL, null not allowed
-     * @param unitId units identifier
-     * @return a archive unit result list on xml format
-     */
-    Response getUnitByIdWithXMLFormat(JsonNode dslQuery, String unitId);
-
-    /**
-     * gets object group by Id with Json query
-     *
-     * @param dslQuery DSL, null not allowed
-     * @param objectId units identifier
-     * @return an object group result list on xml format
-     */
-    Response getObjectByIdWithXMLFormat(JsonNode dslQuery, String objectId);
-
-    /**
-     * gets object group by Id with Json query
-     *
-     * @param dslQuery DSL, null not allowed
-     * @param unitId units identifier
-     * @return an object group result list on xml format
-     */
-    Response getObjectByUnitIdWithXMLFormat(JsonNode dslQuery, String unitId);
-
-    /**
      * update archive units by Id with Json query
      *
      * @param dslQuery DSL, null not allowed

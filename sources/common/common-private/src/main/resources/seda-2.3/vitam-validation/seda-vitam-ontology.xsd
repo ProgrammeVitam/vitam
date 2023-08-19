@@ -44,6 +44,7 @@
             <xsd:group ref="RelationGroup"/>
             <xsd:group ref="DateGroup"/>
             <xsd:group ref="EventGroup"/>
+            <!-- The <Signature> tag has been deprecated as of Seda 2.3 / superseded by the <SigningInformation> tag -->
             <xsd:group ref="SigningInformationGroup"/>
             <xsd:group ref="GpsGroup"/>
             <xsd:group ref="OriginatingSystemIdReplyToGroup"/>
@@ -714,7 +715,7 @@
                     <xsd:documentation>Relation technique à l'unité d'archives racine décrivant le document signé à partir des unités d'archives encapsulées contenant les autres rôles d'un contexte de signature.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Signature" type="SignatureType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="Signature" type="SigningInformationSignatureType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <xsd:documentation>Bloc permettant de décrire la signature dans un contexte de signature.</xsd:documentation>
@@ -756,7 +757,7 @@
             <xsd:enumeration value="AdditionalProof"/>
         </xsd:restriction>
     </xsd:simpleType>
-    <xsd:complexType name="SignatureType">
+    <xsd:complexType name="SigningInformationSignatureType">
         <xsd:sequence>
             <xsd:element name="Signer" type="SignerType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>

@@ -261,6 +261,11 @@ public class CsvMetadataMapper {
                         obj.set(matcher.group(2), node.get(parseHeader(fieldName)));
                         node.set(parseHeader(field), obj);
                         node.remove(parseHeader(fieldName));
+                    } else if (fieldName.equals(CONTENT + "Signature.ReferencedObject.SignedObjectDigest")) {
+                        final ObjectNode obj = JsonHandler.createObjectNode();
+                        obj.set(MESSAGE_DIGEST, node.get(parseHeader(fieldName)));
+                        obj.put(ALGORITHM, matcher.group(2));
+                        node.set(parseHeader(fieldName), obj);
                     }
                 }
             } else if (e.startsWith(CONTENT + "Event")) {

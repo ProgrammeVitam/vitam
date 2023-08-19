@@ -78,18 +78,18 @@ public class TraceabilityFileTest {
         traceabilityFile.close();
 
         //Then
-        ZipFile zipFile = new ZipFile(destination.getAbsolutePath());
-        assertThat(zipFile.size()).isEqualTo(5);
-        ZipEntry entry = zipFile.getEntry("additional_information.txt");
-        InputStream stream = zipFile.getInputStream(entry);
+        try (ZipFile zipFile = new ZipFile(destination.getAbsolutePath())) {
+            assertThat(zipFile.size()).isEqualTo(5);
+            ZipEntry entry = zipFile.getEntry("additional_information.txt");
+            InputStream stream = zipFile.getInputStream(entry);
 
-        Properties prop = new Properties();
-        prop.load(stream);
-        assertThat(prop.getProperty("startDate")).isEqualTo("2016-11-21T16:19:13.469");
-        assertThat(prop.getProperty("numberOfElements")).isEqualTo("1");
-        assertThat(prop.getProperty("endDate")).isEqualTo("2016-11-21T16:19:14.469");
-        assertThat(prop.getProperty(SECURISATION_VERSION_LABEL)).isEqualTo("V1");
-
+            Properties prop = new Properties();
+            prop.load(stream);
+            assertThat(prop.getProperty("startDate")).isEqualTo("2016-11-21T16:19:13.469");
+            assertThat(prop.getProperty("numberOfElements")).isEqualTo("1");
+            assertThat(prop.getProperty("endDate")).isEqualTo("2016-11-21T16:19:14.469");
+            assertThat(prop.getProperty(SECURISATION_VERSION_LABEL)).isEqualTo("V1");
+        }
     }
 
 }

@@ -745,7 +745,19 @@
     "Origin": "INTERNAL",
     "ShortName": "Algorithme",
     "Collections": [
+      "Unit",
       "ObjectGroup"
+    ]
+  },
+  {
+    "Identifier": "SignedObjectId",
+    "SedaField": "SignedObjectId",
+    "Description": "Mapping : unit-es-mapping.json. Identifiant de l'objet-données signé.",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Identifiant",
+    "Collections": [
+      "Unit"
     ]
   },
   {
@@ -1532,6 +1544,7 @@
     "Origin": "INTERNAL",
     "ShortName": "Empreinte",
     "Collections": [
+      "Unit",
       "ObjectGroup"
     ]
   },

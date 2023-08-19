@@ -30,8 +30,11 @@ import fr.gouv.culture.archivesdefrance.seda.v2.DescriptiveMetadataContentType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ExtendedType;
 import fr.gouv.culture.archivesdefrance.seda.v2.LinkingAgentIdentifierType;
+import fr.gouv.culture.archivesdefrance.seda.v2.MessageDigestBinaryObjectType;
+import fr.gouv.culture.archivesdefrance.seda.v2.ReferencedObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.SignatureType;
+import fr.gouv.culture.archivesdefrance.seda.v2.SigningInformationSignatureType;
 import fr.gouv.culture.archivesdefrance.seda.v2.SigningInformationType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TimestampingInformationType;
@@ -42,8 +45,11 @@ import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.EventTypeModel;
 import fr.gouv.vitam.common.model.unit.LinkingAgentIdentifierTypeModel;
+import fr.gouv.vitam.common.model.unit.ReferencedObjectTypeModel;
 import fr.gouv.vitam.common.model.unit.SignatureInformationExtendedModel;
 import fr.gouv.vitam.common.model.unit.SignatureTypeModel;
+import fr.gouv.vitam.common.model.unit.SignedObjectDigestModel;
+import fr.gouv.vitam.common.model.unit.SigningInformationSignatureTypeModel;
 import fr.gouv.vitam.common.model.unit.SigningInformationTypeModel;
 import fr.gouv.vitam.common.model.unit.SigningRoleType;
 import fr.gouv.vitam.common.model.unit.TextByLang;
@@ -57,10 +63,6 @@ import java.util.stream.Collectors;
  * To a local java object DescriptiveMetadataModel that should match Unit data base model
  */
 public class DescriptiveMetadataMapper {
-
-    /**
-     * element Mapper.
-     */
 
     /**
      * CustodialHistory mapper
@@ -139,6 +141,9 @@ public class DescriptiveMetadataMapper {
         descriptiveMetadataModel
             .setSentDate(LocalDateUtil.transformIsoOffsetDateToIsoOffsetDateTime(metadataContentType.getSentDate()));
 
+        // Deprecated Old Signature model (Seda 2.1 & 2.2). Superseded by SigningInformation model in Seda 2.3+.
+        descriptiveMetadataModel.setSignature(mapSignatures(metadataContentType.getSignature()));
+
         descriptiveMetadataModel.setSigningInformation(
             mapSigningInformation(metadataContentType.getSigningInformation()));
 
@@ -182,6 +187,42 @@ public class DescriptiveMetadataMapper {
         return descriptiveMetadataModel;
     }
 
+    private List<SignatureTypeModel> mapSignatures(List<SignatureType> signatures) {
+        if (signatures == null) {
+            return null;
+        }
+        return signatures.stream()
+            .map(this::mapSignature)
+            .collect(Collectors.toList());
+    }
+
+    private SignatureTypeModel mapSignature(SignatureType signatureType) {
+        return new SignatureTypeModel()
+            .setSigner(signatureType.getSigner())
+            .setValidator(signatureType.getValidator())
+            .setReferencedObject(mapReferencedObject(signatureType.getReferencedObject()))
+            // Not supported in R11
+            .setMasterdata(signatureType.getMasterdata());
+    }
+
+    private ReferencedObjectTypeModel mapReferencedObject(ReferencedObjectType referencedObject) {
+        if (referencedObject == null) {
+            return null;
+        }
+        return new ReferencedObjectTypeModel()
+            .setSignedObjectId(referencedObject.getSignedObjectId())
+            .setSignedObjectDigest(mapSignedObjectDigest(referencedObject.getSignedObjectDigest()));
+    }
+
+    private SignedObjectDigestModel mapSignedObjectDigest(MessageDigestBinaryObjectType signedMessageDigest) {
+        if (signedMessageDigest == null) {
+            return null;
+        }
+        return new SignedObjectDigestModel()
+            .setAlgorithm(signedMessageDigest.getAlgorithm())
+            .setValue(signedMessageDigest.getValue());
+    }
+
     private SigningInformationTypeModel mapSigningInformation(SigningInformationType signingInformation) {
         if (signingInformation == null) {
             return null;
@@ -189,7 +230,7 @@ public class DescriptiveMetadataMapper {
         return new SigningInformationTypeModel()
             .setSigningRole(mapSignatureRole(signingInformation.getSigningRole()))
             .setDetachedSigningRole(mapSignatureRole(signingInformation.getDetachedSigningRole()))
-            .setSignature(mapSignatures(signingInformation.getSignature()))
+            .setSignature(mapSigningInformationSignatures(signingInformation.getSignature()))
             .setTimestampingInformation(mapTimestampingInformation(signingInformation.getTimestampingInformation()))
             .setAdditionalProof(mapAdditionalProof(signingInformation.getAdditionalProof()))
             .setExtended(mapExtendedParams(signingInformation.getExtended()));
@@ -218,17 +259,19 @@ public class DescriptiveMetadataMapper {
             .collect(Collectors.toList());
     }
 
-    private List<SignatureTypeModel> mapSignatures(List<SignatureType> signature) {
+    private List<SigningInformationSignatureTypeModel> mapSigningInformationSignatures(
+        List<SigningInformationSignatureType> signature) {
         if (signature == null) {
             return null;
         }
         return signature.stream()
-            .map(this::mapSignature)
+            .map(this::mapSigningInformationSignature)
             .collect(Collectors.toList());
     }
 
-    private SignatureTypeModel mapSignature(SignatureType signatureType) {
-        return new SignatureTypeModel()
+    private SigningInformationSignatureTypeModel mapSigningInformationSignature(
+        SigningInformationSignatureType signatureType) {
+        return new SigningInformationSignatureTypeModel()
             .setSigner(signatureType.getSigner())
             .setValidator(signatureType.getValidator())
             .setSigningType(signatureType.getSigningType());

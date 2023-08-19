@@ -53,6 +53,7 @@ import fr.gouv.culture.archivesdefrance.seda.v2.OrganizationWithIdType;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.accesslog.AccessLogUtils;
+import fr.gouv.vitam.common.exception.ExportException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.logging.VitamLogger;
@@ -160,14 +161,17 @@ public class ManifestBuilder implements AutoCloseable {
     private final ObjectMapper objectMapper;
     private final ObjectFactory objectFactory;
     private final ObjectGroupMapper objectGroupMapper;
+    private final SupportedSedaVersions supportedSedaVersion;
 
 
     /**
      * @param outputStream
+     * @param supportedSedaVersion
      * @throws XMLStreamException
      * @throws JAXBException
      */
-    public ManifestBuilder(OutputStream outputStream) throws XMLStreamException, JAXBException {
+    public ManifestBuilder(OutputStream outputStream, SupportedSedaVersions supportedSedaVersion)
+        throws XMLStreamException, JAXBException {
         archiveUnitMapper = new ArchiveUnitMapper();
         this.objectFactory = new ObjectFactory();
         this.objectMapper = buildDeserializationObjectMapper();
@@ -177,18 +181,17 @@ public class ManifestBuilder implements AutoCloseable {
         writer = xmlOutputFactory.createXMLStreamWriter(outputStream);
         marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
+
+        // Default to 2.2 till official SEDA 2.3 is available
+        this.supportedSedaVersion =
+            supportedSedaVersion != null? supportedSedaVersion :SupportedSedaVersions.SEDA_2_2;
     }
 
     public void startDocument(String operationId, ExportType exportType,
-        ExportRequestParameters exportRequestParameters, SupportedSedaVersions supportedSedaVersion)
+        ExportRequestParameters exportRequestParameters)
         throws XMLStreamException, JAXBException {
 
-        if (supportedSedaVersion == null) {
-            LOGGER.debug("Seda version was not filled, defualt one will be setted !");
-            supportedSedaVersion = SupportedSedaVersions.SEDA_2_2;
-        }
-
-        initWriter(exportType, supportedSedaVersion);
+        initWriter(exportType);
 
         switch (exportType) {
             case ArchiveTransfer:
@@ -204,7 +207,7 @@ public class ManifestBuilder implements AutoCloseable {
         }
     }
 
-    private void initWriter(ExportType exportType, SupportedSedaVersions supportedSedaVersion)
+    private void initWriter(ExportType exportType)
         throws XMLStreamException {
         final String namespaceForExport = supportedSedaVersion.getNamespaceURI();
         writer.writeStartDocument();
@@ -334,7 +337,7 @@ public class ManifestBuilder implements AutoCloseable {
 
     public ArchiveUnitModel writeArchiveUnit(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap,
         Map<String, String> ogs)
-        throws JAXBException, DatatypeConfigurationException {
+        throws JAXBException, DatatypeConfigurationException, ExportException {
         ArchiveUnitType archiveUnitType = mapUnitModelToXML(archiveUnitModel, multimap, ogs);
         marshaller.marshal(archiveUnitType, writer);
         return archiveUnitModel;
@@ -342,7 +345,7 @@ public class ManifestBuilder implements AutoCloseable {
 
     public ArchiveUnitModel writeArchiveUnitWithLFC(ListMultimap<String, String> multimap, Map<String, String> ogs,
         LogbookLifeCycleUnit logbookLFC, ArchiveUnitModel archiveUnitModel)
-        throws DatatypeConfigurationException, JAXBException {
+        throws DatatypeConfigurationException, JAXBException, ExportException {
         ArchiveUnitType archiveUnitType = mapUnitModelToXML(archiveUnitModel, multimap, ogs);
         LogBookType logBookType = addArchiveUnitLogbookType(logbookLFC);
         if(archiveUnitType.getManagement() == null){
@@ -355,9 +358,9 @@ public class ManifestBuilder implements AutoCloseable {
 
     private ArchiveUnitType mapUnitModelToXML(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap,
         Map<String, String> ogs)
-        throws DatatypeConfigurationException {
+        throws DatatypeConfigurationException, ExportException {
 
-        final ArchiveUnitType xmlUnit = archiveUnitMapper.map(archiveUnitModel);
+        final ArchiveUnitType xmlUnit = archiveUnitMapper.map(archiveUnitModel, supportedSedaVersion);
 
         List<ArchiveUnitType> unitChildren = new ArrayList<>();
         if (multimap.containsKey(xmlUnit.getId())) {

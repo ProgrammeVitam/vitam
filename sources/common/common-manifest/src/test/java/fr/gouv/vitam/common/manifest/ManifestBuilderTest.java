@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
 import fr.gouv.vitam.common.model.unit.RuleCategoryModel;
 import fr.gouv.vitam.common.model.unit.RuleModel;
+import fr.gouv.vitam.common.utils.SupportedSedaVersions;
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookLifeCycleObjectGroup;
 import org.junit.Assert;
 import org.junit.Test;
@@ -65,10 +66,10 @@ public class ManifestBuilderTest {
 
     @Test
     public void should_write_archive_unit_without_empty_tags()
-        throws JAXBException, DatatypeConfigurationException, XMLStreamException, IllegalAccessException {
+        throws Exception {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream);
+        ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream, SupportedSedaVersions.SEDA_2_3);
         ArchiveUnitModel archiveUnitModel = createArchiveUnitModel();
         ListMultimap<String, String> multimap = mock(ListMultimap.class);
         Map<String, String> ogs = mock(Map.class);
@@ -89,7 +90,7 @@ public class ManifestBuilderTest {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream);
+        ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream, SupportedSedaVersions.SEDA_2_3);
         manifestBuilder.writeGOT(og, "", logbookLifeCycleObjectGroupStream);
         String xmlContent = outputStream.toString();
         // Vérifier que le contenu XML ne contient aucune balise vide
@@ -146,14 +147,14 @@ public class ManifestBuilderTest {
 
     @Test
     public void should_write_archive_unit_with_empty_management_without_empty_tags()
-        throws JAXBException, DatatypeConfigurationException, XMLStreamException, IllegalAccessException {
+        throws Exception {
         ArchiveUnitModel archiveUnitModel = new ArchiveUnitModel();
         archiveUnitModel.setId("1234564");
         archiveUnitModel.setDescriptiveMetadataModel(new DescriptiveMetadataModel());
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream);
+        ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream, SupportedSedaVersions.SEDA_2_3);
         ListMultimap<String, String> multimap = mock(ListMultimap.class);
         Map<String, String> ogs = mock(Map.class);
         manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
