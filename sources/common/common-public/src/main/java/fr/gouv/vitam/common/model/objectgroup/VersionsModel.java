@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -88,7 +89,7 @@ public class VersionsModel {
     private String physicalId;
 
     @JsonProperty("OtherMetadata")
-    private Map<String, Object> otherMetadata = new HashMap<>();
+    private Map<String, Object> otherMetadata = new LinkedHashMap<>();
 
     @JsonProperty("#opi")
     private String opi;
