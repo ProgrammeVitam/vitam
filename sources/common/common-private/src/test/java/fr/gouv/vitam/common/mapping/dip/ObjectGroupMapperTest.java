@@ -165,9 +165,8 @@ public class ObjectGroupMapperTest {
             DescriptiveTechnicalMetadataType otherMetadadata =
                 ((BinaryDataObjectType) minimalDataObjectType).getOtherMetadata();
             assertNotNull(otherMetadadata);
-            assertEquals(((List) otherMetadadata.getAny()).size(), otherMetadataFromVersionModel.size());
-            assertEquals(((List) otherMetadadata.getAny()).size(), 1);
-            assertTrue(otherMetadadata.getAny() instanceof List);
+            assertEquals(otherMetadadata.getAny().size(), otherMetadataFromVersionModel.size());
+            assertEquals(otherMetadadata.getAny().size(), 9);
 
             Element eleNsImplObject = ((Element) otherMetadadata.getAny().get(0));
             String optionalMDkey = otherMetadataFromVersionModel.keySet().iterator().next();

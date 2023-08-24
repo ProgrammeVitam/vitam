@@ -26,14 +26,14 @@
  */
 package fr.gouv.vitam.common.model.preservation;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * OtherMetadata
  */
-public class OtherMetadata extends HashMap<String, List<Object>> {
+public class OtherMetadata extends LinkedHashMap<String, List<Object>> {
 
     public OtherMetadata() {
         // Empty constructor for deserialization
