@@ -1,0 +1,19 @@
+groups:
+  - name: IngestPauseFatal
+    rules:
+      - alert: IngestPauseFatal
+        expr: vitam_processing_workflow_operation_total{status="FATAL",state="PAUSE",workflow="INGEST"} == 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "One ingest is in PAUSE FATAL state"
+          description: "One ingest is in PAUSE FATAL state for more than 10 minutes"
+      - alert: IngestPauseFatal
+        expr: vitam_processing_workflow_operation_total{status="FATAL",state="PAUSE",workflow="INGEST"} > 1
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "More than one ingest is in PAUSE FATAL"
+          description: "More than one ingest is in PAUSE FATAL state for more than 10 minutes"
