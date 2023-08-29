@@ -1,0 +1,52 @@
+# Configuration
+@access-contract = ContratTNR
+@tenant = 0
+@unit-persistent-identifier = ark:/27447/1234567xyz
+@object-persistent-identifier = ark:/27447/1234567xyz_binary_master1
+
+### Recherche d'une unitée archivistique dont un identifiant pérenne correspond à '{{unit-persistent-identifier}}'
+GET {{url-access}}/access-external/v1/units/byunitspersistentidentifier/{{unit-persistent-identifier}}
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$projection": {
+    "$fields": {}
+  }
+}
+
+### télécharger un objet dont l'identifiant pérenne est ark:/23567/001a9d7db5eadxac_binary_master
+GET {{url-access}}/access-external/v1/objects/byobjectspersistentidentifier/ark:/23567/001a9d7db5eadxac_binary_master
+Accept: application/octet-stream
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+
+### télécharger un objet dont l'identifiant pérenne de l'unit est ark:/23567/001a9d7db5eadxac et le qualifier est binary_master
+GET {{url-access}}/access-external/v1/objects/byunitspersistentidentifier/ark:/23567/001a9d7db5eadxac?qualifier=binary_master
+Accept: application/octet-stream
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+
+
+### télécharger un objet dont l'identifiant pérenne de l'unit est ark:/23567/001a9d7db5eadxac et le qualifier est binary_master et la version est 1
+GET {{url-access}}/access-external/v1/objects/byunitspersistentidentifier/ark:/23567/001a9d7db5eadxac?qualifier=binary_master&version=1
+Accept: application/octet-stream
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+### retourner les objets dont l'identifiant pérenne est ark:/23567/001a9d7db5eadxac_binary_master
+GET {{url-access}}/access-external/v1/objects/byobjectspersistentidentifier/ark:/23567/001a9d7db5eadxac_binary_master
+Accept: application/json
+Content-Type: application/json
+X-Access-Contract-Id: {{access-contract}}
+X-Tenant-Id: {{tenant}}
+
+{
+  "$projection": {
+    "$fields": {}
+  }
+}

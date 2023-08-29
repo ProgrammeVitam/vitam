@@ -1,0 +1,149 @@
+{
+  "httpCode": 200,
+  "$hits": { "total": 1, "offset": 0, "limit": 10000, "size": 1 },
+  "$results": [
+    {
+      "DescriptionLevel": "RecordGrp",
+      "Title": "monSIP",
+      "Description": "Sed placerat sapien a arcu venenatis ultrices. Sed a eleifend odio, ac tincidunt sem. Fusce luctus in augue nec volutpat. Integer libero elit, aliquet nec dapibus at, dictum feugiat sapien. Quisque feugiat purus id sapien facilisis, nec sodales diam semper. Mauris pretium luctus malesuada",
+      "Agent": [{ "Function": ["Ajout SEDA 2.2"], "Role": ["Ajout SEDA 2.2"] }],
+      "Writer": [{ "Nationality": ["Sealand"] }],
+      "Addressee": [
+        {
+          "FirstName": "Jules",
+          "FullName": "Iulius Caesar Divus",
+          "Nationality": ["Italien"]
+        },
+        {
+          "GivenName": "Alexandre",
+          "BirthPlace": { "City": "Pella", "Country": "Mac\u00E9doine" }
+        }
+      ],
+      "Transmitter": [{ "Function": ["Service de transmission"] }],
+      "Sender": [
+        {
+          "GivenName": "Alexander",
+          "BirthDate": "1970-06-03",
+          "Position": ["CEO"],
+          "Mandate": ["Mandataire_1", "Mandataire_2"]
+        }
+      ],
+      "RelatedObjectReference": {
+        "Replaces": [{ "ExternalReference": "ID_Fictif" }]
+      },
+      "StartDate": "2016-06-03T15:28:00",
+      "EndDate": "2016-06-03T15:28:00",
+      "Event": [
+        { "evDateTime": "2016-06-03T15:28:00" },
+        {
+          "evId": "EventIdentifier_content0",
+          "evTypeProc": "EventTypeCode_content0",
+          "evType": "EventType_content0",
+          "evDateTime": "2016-06-03T15:28:00",
+          "evTypeDetail": "EventDetail_content0",
+          "outcome": "Outcome0",
+          "outDetail": "OutcomeDetail_content0",
+          "outMessg": "OutcomeDetailMessage_content0",
+          "evDetData": "EventDetailData_content0",
+          "linkingAgentIdentifier": [
+            {
+              "LinkingAgentIdentifierType": "Preservation system",
+              "LinkingAgentIdentifierValue": "SAE",
+              "LinkingAgentRole": "Role"
+            }
+          ]
+        }
+      ],
+      "Signature": [
+        {
+          "Signer": [
+            { "BirthName": "Henry", "SigningTime": "2016-06-03T15:28:00" },
+            { "Nationality": ["Monaco"], "SigningTime": "2016-06-03T15:28:00" }
+          ],
+          "Validator": {
+            "FirstName": "ValidatorFirstName",
+            "FullName": "ValidatorFullName",
+            "ValidationTime": "2016-06-03T15:28:00"
+          },
+          "ReferencedObject": {
+            "SignedObjectId": "aebqaaaaaceaaaabdwll2amjrpo2kmaaaaba",
+            "SignedObjectDigest": {
+              "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+              "Algorithm": "SHA-512"
+            }
+          }
+        }
+      ],
+      "TextContent": ["Contenu du message"],
+      "OriginatingSystemIdReplyTo": "Syst\u00E8me source",
+      "DateLitteral": "XX\u00E8me si\u00E8cle",
+      "PersistentIdentifier": [
+        {
+          "PersistentIdentifierType": "ark",
+          "PersistentIdentifierOrigin": "OriginatingAgency",
+          "PersistentIdentifierReference": "Agency-00001",
+          "PersistentIdentifierContent": "ark:/22567/001a957db5eadaac"
+        }
+      ],
+      "#id": "aeaqaaaaaaeaaaabdwll2amjrpo2kniaaabq",
+      "#tenant": 0,
+      "#object": "aebaaaaaaaeaaaabdwll2amjrpo2j7yaaaaq",
+      "#unitups": [],
+      "#min": 1,
+      "#max": 1,
+      "#allunitups": [],
+      "#management": {
+        "StorageRule": { "FinalAction": "Transfer" },
+        "AppraisalRule": { "FinalAction": "Keep" },
+        "ClassificationRule": {
+          "ClassificationAudience": "ClassificationAudience0",
+          "ClassificationLevel": "Secret D\u00E9fense",
+          "ClassificationOwner": "ClassificationOwner0"
+        },
+        "HoldRule": {
+          "Rules": [
+            {
+              "Rule": "HOL-00002",
+              "StartDate": "2000-01-01",
+              "HoldEndDate": "2010-01-01",
+              "HoldOwner": "Owner",
+              "HoldReason": "Reason",
+              "HoldReassessingDate": "2005-01-01",
+              "PreventRearrangement": false,
+              "EndDate": "2010-01-01"
+            }
+          ]
+        }
+      },
+      "#unitType": "INGEST",
+      "#operations": ["aeeaaaaaaceaaaabdwll2amjrpozrhyaaaaq"],
+      "#opi": "aeeaaaaaaceaaaabdwll2amjrpozrhyaaaaq",
+      "#originating_agency": "FRAN_NP_009913",
+      "#originating_agencies": ["FRAN_NP_009913"],
+      "#storage": { "strategyId": "default" },
+      "#version": 0,
+      "#sedaVersion": "2.3",
+      "#approximate_creation_date": "2023-07-25T07:05:07.817",
+      "#approximate_update_date": "2023-07-25T07:05:07.817"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$roots": [],
+    "$query": [
+      {
+        "$and": [
+          {
+            "$eq": {
+              "PersistentIdentifier.PersistentIdentifierContent": "ark:/22567/001a957db5eadaac"
+            }
+          },
+          { "$eq": { "PersistentIdentifier.PersistentIdentifierType": "ark" } }
+        ]
+      }
+    ],
+    "$filter": {},
+    "$projection": {},
+    "$facets": []
+  }
+}

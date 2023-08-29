@@ -72,7 +72,9 @@ public class SanityChecker {
     private static final long DEFAULT_LIMIT_FILE_SIZE = 8000000000L;
 
     public static final String HTTP_PARAMETER_VALUE = "HTTPParameterValue";
+    public static final String HTTP_PERSISTENT_ID_PARAMETER_VALUE = "HTTPPersistentIdentifierParameterValue";
     private static final String HTTP_PARAMETER_NAME = "HTTPParameterName";
+    private static final String HTTP_PERSISTENT_ID_PARAMETER_NAME = "persistentIdentifier";
     private static final String HTTP_HEADER_NAME = "HTTPHeaderName";
     private static final String HTTP_HEADER_VALUE = "HTTPHeaderValue";
     private static final String HTTP_HEADER_SSL_CLIENT_CERT_VALUE = "HTTPHeaderSslClientCertValue";
@@ -287,11 +289,13 @@ public class SanityChecker {
                 if (isStringInfected(parameter, HTTP_PARAMETER_NAME)) {
                     throw new InvalidParseOperationException(String.format("%s parameter has wrong name", parameter));
                 }
-
+                boolean isPersistentIdentifierParam = HTTP_PERSISTENT_ID_PARAMETER_NAME.equals(parameter);
                 // Validate Parameter's values
                 final List<String> values = uriParameters.get(parameter);
                 if (values != null && values.stream()
-                    .anyMatch(value -> isStringInfected(value, HTTP_PARAMETER_VALUE) | isIssueOnParam(value))) {
+                    .anyMatch(value -> isStringInfected(value,
+                        isPersistentIdentifierParam ? HTTP_PERSISTENT_ID_PARAMETER_VALUE : HTTP_PARAMETER_VALUE) |
+                        isIssueOnParam(value))) {
                     throw new InvalidParseOperationException(String.format("%s parameter has wrong value", parameter));
                 }
             }

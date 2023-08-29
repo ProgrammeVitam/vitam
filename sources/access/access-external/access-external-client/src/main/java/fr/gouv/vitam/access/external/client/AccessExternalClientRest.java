@@ -104,6 +104,7 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         }
     }
 
+
     @Override
     public JsonLineIterator<JsonNode> streamUnits(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException {
@@ -498,6 +499,119 @@ class AccessExternalClientRest extends DefaultClient implements AccessExternalCl
         try (Response response = make(request)) {
             check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> selectUnitsByUnitPersistentIdentifier(VitamContext vitamContext,
+        JsonNode selectQuery, String persistentIdentifier)
+        throws VitamClientException {
+        VitamRequestBuilder request =
+            get().withPath("/units/byunitspersistentidentifier/" + persistentIdentifier)
+                .withHeaders(vitamContext.getHeaders())
+                .withBody(selectQuery, BLANK_QUERY)
+                .withJson();
+        try (Response response = make(request)) {
+
+            Response.Status status = response.getStatusInfo().toEnum();
+            if (!SUCCESSFUL.equals(status.getFamily())) {
+                LOGGER.error(String
+                    .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
+                        fromStatusCode(response.getStatus()).getReasonPhrase()));
+                LOGGER.warn(
+                    "We should have throw an exception in this case but we cannot, because it will break this API.");
+            }
+            check(response);
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
+        }
+    }
+
+    @Override
+    public Response getObjectByUnitPersistentIdentifier(VitamContext vitamContext,
+        String persistentIdentifier, String qualifier, String version) throws VitamClientException {
+        ParametersChecker.checkParameter("Persistent identifier should not be empty", persistentIdentifier);
+        VitamRequestBuilder request = get()
+            .withPath(
+                "/objects/byunitspersistentidentifier/" + persistentIdentifier)
+            .withHeaders(vitamContext.getHeaders())
+            .withOctetAccept();
+
+        if (version != null && qualifier == null) {
+            throw new IllegalArgumentException("Illegal call with only version parameter, please provide qualifier");
+        }
+        if (qualifier != null && !qualifier.isEmpty()) {
+            request.withQueryParam("qualifier", qualifier);
+        }
+        if (version != null && !version.isEmpty()) {
+            request.withQueryParam("version", version);
+        }
+        Response response = null;
+        try {
+            response = make(request);
+
+            if (response.getStatus() == AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE) {
+                throw new VitamClientAccessUnavailableDataFromAsyncOfferException(
+                    "Object unavailable for immediate access. Access Request required");
+            }
+            check(response);
+            return response;
+        } finally {
+            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+                response.close();
+            }
+        }
+    }
+
+    @Override
+    public Response getObjectByObjectPersistentIdentifier(VitamContext vitamContext, JsonNode selectQuery,
+        String persistentIdentifier) throws VitamClientException {
+        ParametersChecker.checkParameter("Persistent identifier should not be empty", persistentIdentifier);
+
+        VitamRequestBuilder request = get()
+            .withPath("/objects/byobjectspersistentidentifier/" + persistentIdentifier)
+            .withHeaders(vitamContext.getHeaders())
+            .withBody(selectQuery, BLANK_QUERY)
+            .withJson();
+        Response response = null;
+        try {
+            response = make(request);
+
+            if (response.getStatus() == AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE) {
+                throw new VitamClientAccessUnavailableDataFromAsyncOfferException(
+                    "Object unavailable for immediate access. Access Request required");
+            }
+            check(response);
+            return response;
+        } finally {
+            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+                response.close();
+            }
+        }
+    }
+
+    @Override
+    public Response downloadObjectByObjectPersistentIdentifier(VitamContext vitamContext,
+        String persistentIdentifier) throws VitamClientException {
+        ParametersChecker.checkParameter("Persistent identifier should not be empty", persistentIdentifier);
+
+        VitamRequestBuilder request = get()
+            .withPath("/objects/byobjectspersistentidentifier/" + persistentIdentifier)
+            .withHeaders(vitamContext.getHeaders())
+            .withOctetAccept();
+        Response response = null;
+        try {
+            response = make(request);
+
+            if (response.getStatus() == AccessExtAPI.UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE) {
+                throw new VitamClientAccessUnavailableDataFromAsyncOfferException(
+                    "Object unavailable for immediate access. Access Request required");
+            }
+            check(response);
+            return response;
+        } finally {
+            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()) {
+                response.close();
+            }
         }
     }
 
