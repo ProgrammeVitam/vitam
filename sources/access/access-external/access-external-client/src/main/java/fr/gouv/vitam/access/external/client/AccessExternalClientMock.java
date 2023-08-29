@@ -60,15 +60,23 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     }
 
     @Override
+    public RequestResponse<JsonNode> selectUnitsByUnitPersistentIdentifier(VitamContext vitamContext,
+        JsonNode selectQuery, String persistentIdentifier) throws VitamClientException {
+        throw new IllegalStateException("Not implemented");
+    }
+
+
+
+    @Override
     public JsonLineIterator<JsonNode> streamUnits(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException {
-        return null;
+        throw new IllegalStateException("Not implemented");
     }
 
     @Override
     public JsonLineIterator<JsonNode> streamObjects(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException {
-        return null;
+        throw new IllegalStateException("Not implemented");
     }
 
     @Override
@@ -198,6 +206,25 @@ class AccessExternalClientMock extends AbstractMockClient implements AccessExter
     public RequestResponse<JsonNode> selectObjects(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException {
         return ClientMockResultHelper.getGotSimpleResult(selectQuery);
+    }
+
+    @Override
+    public Response getObjectByUnitPersistentIdentifier(VitamContext vitamContext, String persistentIdentifier,
+        String qualifier, String version) throws VitamClientException {
+        throw new IllegalStateException("Will not be implemented");
+    }
+
+    @Override
+    public Response getObjectByObjectPersistentIdentifier(VitamContext vitamContext, JsonNode selectQuery,
+        String persistentIdentifier)
+        throws VitamClientException {
+        throw new IllegalStateException("Will not be implemented");
+    }
+
+    @Override
+    public Response downloadObjectByObjectPersistentIdentifier(VitamContext vitamContext, String persistentIdentifier)
+        throws VitamClientException {
+        throw new IllegalStateException("Will not be implemented");
     }
 
     @Override

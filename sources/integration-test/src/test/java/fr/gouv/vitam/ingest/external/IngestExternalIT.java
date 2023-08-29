@@ -572,7 +572,7 @@ public class IngestExternalIT extends VitamRuleRunner {
         assertTrue(result.isOk());
         List<JsonNode> resultUnit = ((RequestResponseOK<JsonNode>) result).getResults();
         assertNotNull(resultUnit);
-        assertThat(resultUnit.size()).isGreaterThan(0);
+        assertThat(resultUnit).isNotEmpty();
 
         // in the wrong tenant, we should not find the unit
         VitamContext vitamContextAccessTenant = new VitamContext(accessTenant)
@@ -589,14 +589,13 @@ public class IngestExternalIT extends VitamRuleRunner {
         assertTrue(result.isOk());
         List<JsonNode> resultGots = ((RequestResponseOK<JsonNode>) result).getResults();
         assertNotNull(resultGots);
-        assertThat(resultGots.size()).isGreaterThan(0);
+        assertThat(resultGots).isNotEmpty();
 
         assertThatCode(() -> accessExternalClient.selectObjectMetadatasByUnitId(vitamContextAccessTenant,
             JsonHandler.getFromString(queryDsql), unitId))
             .isInstanceOf(VitamClientException.class)
             .hasMessageContaining("Not Found");
     }
-
     private RequestResponse<JsonNode> getUnitsFromTitle(String title, int tenant, String accessContract)
         throws VitamClientException, InvalidParseOperationException {
         VitamContext vitamContext = new VitamContext(tenant)

@@ -1,0 +1,103 @@
+{
+  "httpCode": 200,
+  "$hits": { "total": 1, "offset": 0, "limit": 10000, "size": 1 },
+  "$results": [
+    {
+      "FileInfo": {
+        "Filename": "IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf",
+        "LastModified": "2016-06-03T15:28:00"
+      },
+      "#id": "aebaaaaaaaeaaaabebepgamjrtiwxiyaaaaq",
+      "#nbobjects": 1,
+      "#qualifiers": [
+        {
+          "qualifier": "BinaryMaster",
+          "#nbc": 1,
+          "versions": [
+            {
+              "DataObjectVersion": "BinaryMaster_1",
+              "DataObjectGroupId": "aebaaaaaaaeaaaabebepgamjrtiwxiyaaaaq",
+              "FormatIdentification": {
+                "FormatLitteral": "Plain Text File",
+                "MimeType": "text/plain",
+                "FormatId": "x-fmt/111"
+              },
+              "FileInfo": {
+                "Filename": "IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf",
+                "LastModified": "2016-06-03T15:28:00"
+              },
+              "Size": 29403,
+              "Uri": "Content/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf",
+              "MessageDigest": "942bb63cc16bf5ca3ba7fabf40ce9be19c3185a36cd87ad17c63d6fad1aa29d4312d73f2d6a1ba1266c3a71fc4119dd476d2d776cf2ad2acd7a9a3dfa1f80dc7",
+              "Algorithm": "SHA-512",
+              "DataObjectProfile": "ID-Profile",
+              "DataObjectUse": "BinaryMaster",
+              "DataObjectNumber": 40,
+              "PersistentIdentifier": [
+                {
+                  "PersistentIdentifierType": "ark",
+                  "PersistentIdentifierOrigin": "OriginatingAgency",
+                  "PersistentIdentifierReference": "Agency-00021",
+                  "PersistentIdentifierContent": "ark:/22567/001a957db5eadxac"
+                },
+                {
+                  "PersistentIdentifierType": "ark",
+                  "PersistentIdentifierOrigin": "OriginatingAgency",
+                  "PersistentIdentifierReference": "Agency-00052",
+                  "PersistentIdentifierContent": "ark:/22561/001d957db5eadsac"
+                },
+                {
+                  "PersistentIdentifierType": "ark",
+                  "PersistentIdentifierOrigin": "OriginatingAgency",
+                  "PersistentIdentifierReference": "Agency-00252",
+                  "PersistentIdentifierContent": "ark:/22561/021d957db5eadsac"
+                }
+              ],
+              "#id": "aebqaaaaaceaaaabebepgamjrtiwxiyaaaba",
+              "#opi": "aeeaaaaaaceaaaabebepgamjrtiv4dqaaaaq",
+              "#storage": { "strategyId": "default" }
+            }
+          ]
+        }
+      ],
+      "#type": "",
+      "#tenant": 0,
+      "#unitups": ["aeaqaaaaaaeaaaabebepgamjrtiwxwaaaaaq"],
+      "#allunitups": [
+        "aeaqaaaaaaeaaaabebepgamjrtiwxwaaaaaq",
+        "aeaqaaaaaaeaaaabebepgamjrtiwxkiaaabq"
+      ],
+      "#operations": ["aeeaaaaaaceaaaabebepgamjrtiv4dqaaaaq"],
+      "#opi": "aeeaaaaaaceaaaabebepgamjrtiv4dqaaaaq",
+      "#originating_agency": "FRAN_NP_009913",
+      "#originating_agencies": ["FRAN_NP_009913"],
+      "#storage": { "strategyId": "default" },
+      "#version": 1,
+      "#approximate_creation_date": "2023-07-25T11:31:23.673",
+      "#approximate_update_date": "2023-07-25T11:31:23.673"
+    }
+  ],
+  "$facetResults": [],
+  "$context": {
+    "$query": {
+      "$subobject": {
+        "#qualifiers.versions": {
+          "$and": [
+            {
+              "$search": {
+                "#qualifiers.versions.PersistentIdentifier.PersistentIdentifierContent": "ark:/22567/001a957db5eadxac"
+              }
+            },
+            {
+              "$eq": {
+                "#qualifiers.versions.PersistentIdentifier.PersistentIdentifierType": "ark"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "$filter": {},
+    "$projection": {}
+  }
+}

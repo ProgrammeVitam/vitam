@@ -64,6 +64,22 @@ public interface AccessExternalClient extends BasicClient {
     RequestResponse<JsonNode> selectUnits(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException;
 
+
+
+    /**
+     * selectUnits from persistent identifier defined on the unit
+     *
+     * @param vitamContext the vitam context
+     * @param selectQuery Object Body DSL request for search
+     * @param persistentIdentifier persistent identifier
+     * @return Json representation
+     * @throws VitamClientException
+     */
+    RequestResponse<JsonNode> selectUnitsByUnitPersistentIdentifier(VitamContext vitamContext,
+        JsonNode selectQuery, String persistentIdentifier)
+        throws VitamClientException;
+
+
     /**
      * streamUnits /units
      *
@@ -323,7 +339,7 @@ public interface AccessExternalClient extends BasicClient {
      * Bulk atomic update of archive units by atomic query.
      *
      * @param vitamContext the vitam context
-     * @param updateQuery the bulk atomic update request
+     * @param updateRequest the bulk atomic update request
      * @return Json representation
      * @throws VitamClientException
      */
@@ -340,6 +356,42 @@ public interface AccessExternalClient extends BasicClient {
      */
     RequestResponse<JsonNode> selectObjects(VitamContext vitamContext, JsonNode selectQuery)
         throws VitamClientException;
+
+    /**
+     * download object from unit persistent identifier ,qualifier and version
+     *
+     * @param vitamContext
+     * @param persistentIdentifier
+     * @param qualifier
+     * @param version
+     * @return
+     * @throws VitamClientException
+     */
+    Response getObjectByUnitPersistentIdentifier(VitamContext vitamContext,
+        String persistentIdentifier, String qualifier, String version) throws VitamClientException;
+
+    /**
+     * retrives objects from its persistent identifier filtred by dsl query
+     *
+     * @param vitamContext
+     * @param persistentIdentifier
+     * @param selectQuery
+     * @return
+     * @throws VitamClientException
+     */
+    Response getObjectByObjectPersistentIdentifier(VitamContext vitamContext, JsonNode selectQuery,
+        String persistentIdentifier) throws VitamClientException;
+
+    /**
+     * download object from its persistent identifier
+     *
+     * @param vitamContext
+     * @param persistentIdentifier
+     * @return
+     * @throws VitamClientException
+     */
+    Response downloadObjectByObjectPersistentIdentifier(VitamContext vitamContext,
+        String persistentIdentifier) throws VitamClientException;
 
     /**
      * Select units with inherited rules by select query (DSL)
