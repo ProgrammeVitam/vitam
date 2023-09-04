@@ -61,22 +61,28 @@ public class AccessionRegisterDetailModel {
     private static final String OB_ID_IN = "obIdIn";
     private static final String COMMENT = "Comment";
 
+    public static final String ID = ModelConstants.HASH + ModelConstants.TAG_ID;
+
+    public static final String TENANT = ModelConstants.HASH + ModelConstants.TAG_TENANT;
+
+    public static final String VERSION = ModelConstants.HASH + ModelConstants.TAG_VERSION;
+
     /**
      * unique id
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_ID)
+    @JsonProperty(ID)
     private String id;
 
     /**
      * tenant id
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_TENANT)
+    @JsonProperty(TENANT)
     private Integer tenant;
 
     /**
      * document version
      */
-    @JsonProperty(ModelConstants.HASH + ModelConstants.TAG_VERSION)
+    @JsonProperty(VERSION)
     private Integer version;
 
     /**

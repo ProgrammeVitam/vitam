@@ -657,7 +657,7 @@ public class ReferentialAccessionRegisterImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void addEventToAccessionRegisterDetail_error_when_missing_fields_part_1() throws Exception {
+    public void addEventToAccessionRegisterDetail_error_when_missing_fields() {
         Exception ex;
         ex = assertThrows(IllegalArgumentException.class,
             () -> accessionRegisterImpl.addEventToAccessionRegisterDetail(null));
@@ -696,50 +696,7 @@ public class ReferentialAccessionRegisterImplTest {
 
     @Test
     @RunWithCustomExecutor
-    public void addEventToAccessionRegisterDetail_error_when_missing_fields_part_2() throws Exception {
-        Exception ex;
-        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        AccessionRegisterDetailModel accessionRegisterDetailModel01 = resourceAccessionRegisterDetails(
-            "accession-registers/accession-register-03-01.json");
-        accessionRegisterImpl.createOrUpdateAccessionRegister(accessionRegisterDetailModel01);
-
-        accessionRegisterDetailModel = new AccessionRegisterDetailModel()
-            .setId("aehaaaaaaqhad455abryqalenegul3aaaaaq")
-            .setTenant(TENANT_ID)
-            .setOpi("Opi_1")
-            .setOpc("Opc_2")
-            .setOriginatingAgency("OG_1");
-
-        ex = assertThrows(ReferentialException.class,
-            () -> accessionRegisterImpl.addEventToAccessionRegisterDetail(accessionRegisterDetailModel));
-        assertThat(ex).hasMessage("Create register detail error due to missing field");
-
-        accessionRegisterDetailModel.setStatus(AccessionRegisterStatus.STORED_AND_UPDATED);
-        ex = assertThrows(ReferentialException.class,
-            () -> accessionRegisterImpl.addEventToAccessionRegisterDetail(accessionRegisterDetailModel));
-        assertThat(ex).hasMessage("Create register detail error due to missing field");
-
-        accessionRegisterDetailModel.setTotalObjectsGroups(new RegisterValueDetailModel());
-        ex = assertThrows(ReferentialException.class,
-            () -> accessionRegisterImpl.addEventToAccessionRegisterDetail(accessionRegisterDetailModel));
-        assertThat(ex).hasMessage("Create register detail error due to missing field");
-
-        accessionRegisterDetailModel.setTotalObjects(new RegisterValueDetailModel());
-        ex = assertThrows(ReferentialException.class,
-            () -> accessionRegisterImpl.addEventToAccessionRegisterDetail(accessionRegisterDetailModel));
-        assertThat(ex).hasMessage("Create register detail error due to missing field");
-
-        accessionRegisterDetailModel.setTotalUnits(new RegisterValueDetailModel());
-        ex = assertThrows(ReferentialException.class,
-            () -> accessionRegisterImpl.addEventToAccessionRegisterDetail(accessionRegisterDetailModel));
-        assertThat(ex).hasMessage("Create register detail error due to missing field");
-
-        accessionRegisterDetailModel.setObjectSize(new RegisterValueDetailModel());
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void addEventToAccessionRegisterDetail_fail_if_event_exists() throws Exception {
+    public void addEventToAccessionRegisterDetail_ignore_duplicate_if_already_updated() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         AccessionRegisterDetailModel accessionRegisterDetailModel01 =
             resourceAccessionRegisterDetails("accession-registers/accession-register-03-01.json");

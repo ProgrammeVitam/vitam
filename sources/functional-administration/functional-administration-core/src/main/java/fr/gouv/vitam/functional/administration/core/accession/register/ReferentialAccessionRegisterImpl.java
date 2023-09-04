@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
+import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
@@ -59,6 +60,8 @@ import fr.gouv.vitam.common.model.administration.AccessionRegisterSymbolicModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueDetailModel;
 import fr.gouv.vitam.common.model.administration.RegisterValueEventModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
+import fr.gouv.vitam.common.retryable.RetryableOnResult;
+import fr.gouv.vitam.common.retryable.RetryableParameters;
 import fr.gouv.vitam.common.thread.ExecutorUtils;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail;
@@ -81,16 +84,20 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel.ID;
+import static fr.gouv.vitam.common.model.administration.AccessionRegisterDetailModel.VERSION;
 import static fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail.EVENTS;
 import static fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail.LAST_UPDATE;
 import static fr.gouv.vitam.functional.administration.common.AccessionRegisterDetail.OBJECT_SIZE;
@@ -309,7 +316,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
 
             storeAccessionRegisterDetail(registerDetail);
 
-        } catch (final InvalidParseOperationException | InvalidCreateOperationException | SchemaValidationException e) {
+        } catch (final InvalidParseOperationException | SchemaValidationException e) {
             throw new BadRequestException("Create register detail error", e);
         }
     }
@@ -326,9 +333,9 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         }
     }
 
-    protected void addEventToAccessionRegisterDetail(AccessionRegisterDetailModel newRegisterDetail)
-        throws ReferentialException, SchemaValidationException, InvalidCreateOperationException,
-        InvalidParseOperationException, BadRequestException, DocumentAlreadyExistsException {
+    void addEventToAccessionRegisterDetail(AccessionRegisterDetailModel newRegisterDetail)
+        throws ReferentialException, DocumentAlreadyExistsException {
+
         // checks ------------------------------------------------------------
         ParametersChecker.checkParameter("Register detail mustn't be null", newRegisterDetail);
         ParametersChecker.checkParameter("Register opi mustn't be null", newRegisterDetail.getOpi());
@@ -336,17 +343,50 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
         ParametersChecker.checkParameter("Register tenant mustn't be null", newRegisterDetail.getTenant());
         ParametersChecker.checkParameter("Register originatingAgency mustn't be null",
             newRegisterDetail.getOriginatingAgency());
+
+        RetryableOnResult<Boolean, ReferentialException> retryable = new RetryableOnResult<>(
+            new RetryableParameters(VitamConfiguration.getOptimisticLockRetryNumber(),
+                VitamConfiguration.getOptimisticLockSleepTime(), VitamConfiguration.getOptimisticLockSleepTime(),
+                VitamConfiguration.getOptimisticLockSleepTime(), TimeUnit.MILLISECONDS, VitamLogLevel.WARN),
+            success -> !success
+        );
+
+        try {
+            retryable.exec(() -> {
+                try {
+                    return tryAddEventToAccessionRegisterDetailWithOptimisticLock(newRegisterDetail);
+                } catch (ReferentialException | InvalidParseOperationException | InvalidCreateOperationException |
+                         DocumentAlreadyExistsException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof ReferentialException) {
+                throw (ReferentialException) e.getCause();
+            }
+            if (e.getCause() instanceof DocumentAlreadyExistsException) {
+                throw (DocumentAlreadyExistsException) e.getCause();
+            }
+            throw e;
+        }
+    }
+
+    private boolean tryAddEventToAccessionRegisterDetailWithOptimisticLock(
+        AccessionRegisterDetailModel newRegisterDetail)
+        throws ReferentialException, InvalidParseOperationException, ConcurrentModificationException,
+        InvalidCreateOperationException, DocumentAlreadyExistsException {
+
         LOGGER.debug("Update register ID / Originating Agency: {} / {}", newRegisterDetail.getId(),
             newRegisterDetail.getOriginatingAgency());
         Select select = (Select) new Select().setQuery(QueryHelper.and().add(
             QueryHelper.eq(ORIGINATING_AGENCY, newRegisterDetail.getOriginatingAgency()),
             QueryHelper.eq(OPI, newRegisterDetail.getOpi())));
-        List<AccessionRegisterDetail> documents = mongoAccess.findDocuments(select.getFinalSelect(),
-            ACCESSION_REGISTER_DETAIL).getDocuments(AccessionRegisterDetail.class);
+        List<AccessionRegisterDetailModel> documents = mongoAccess.findDocuments(select.getFinalSelect(),
+            ACCESSION_REGISTER_DETAIL).getDocuments(AccessionRegisterDetail.class, AccessionRegisterDetailModel.class);
         if (CollectionUtils.isEmpty(documents)) {
             throw new ReferentialException("Document not found");
         }
-        AccessionRegisterDetail accessionRegisterDetailStored = documents.get(0);
+        AccessionRegisterDetailModel accessionRegisterDetailStored = documents.get(0);
         if (accessionRegisterDetailStored.getEvents().stream()
             .anyMatch(e -> Objects.equals(e.getOperation(), newRegisterDetail.getOpc()))) {
             throw new DocumentAlreadyExistsException(String.format(
@@ -366,11 +406,11 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                 convertRegisterDetailToRegisterEvent(newRegisterDetail))));
 
             actions.add(new SetAction(TOTAL_OBJECTGROUPS + "." + INGESTED,
-                accessionRegisterDetailStored.getTotalObjectGroups().getIngested()));
+                accessionRegisterDetailStored.getTotalObjectsGroups().getIngested()));
             actions.add(new SetAction(TOTAL_OBJECTGROUPS + "." + DELETED,
-                accessionRegisterDetailStored.getTotalObjectGroups().getDeleted()));
+                accessionRegisterDetailStored.getTotalObjectsGroups().getDeleted()));
             actions.add(new SetAction(TOTAL_OBJECTGROUPS + "." + REMAINED,
-                accessionRegisterDetailStored.getTotalObjectGroups().getRemained()));
+                accessionRegisterDetailStored.getTotalObjectsGroups().getRemained()));
 
             actions.add(new SetAction(TOTAL_OBJECTS + "." + INGESTED,
                 accessionRegisterDetailStored.getTotalObjects().getIngested()));
@@ -387,11 +427,11 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                 accessionRegisterDetailStored.getTotalUnits().getRemained()));
 
             actions.add(new SetAction(OBJECT_SIZE + "." + INGESTED,
-                accessionRegisterDetailStored.getTotalObjectSize().getIngested()));
+                accessionRegisterDetailStored.getObjectSize().getIngested()));
             actions.add(new SetAction(OBJECT_SIZE + "." + DELETED,
-                accessionRegisterDetailStored.getTotalObjectSize().getDeleted()));
+                accessionRegisterDetailStored.getObjectSize().getDeleted()));
             actions.add(new SetAction(OBJECT_SIZE + "." + REMAINED,
-                accessionRegisterDetailStored.getTotalObjectSize().getRemained()));
+                accessionRegisterDetailStored.getObjectSize().getRemained()));
 
             if (statusShouldBeUnstored(accessionRegisterDetailStored)) {
                 actions.add(new SetAction(AccessionRegisterDetail.STATUS,
@@ -401,38 +441,40 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
                     accessionRegisterDetailStored.getStatus().name()));
             }
             // request -----------------------------------------------------------
-            // TODO : add version in request
             Update update = ((Update) new Update().setQuery(QueryHelper.and().add(
-                QueryHelper.eq(ORIGINATING_AGENCY, accessionRegisterDetailStored.getOriginatingAgency()),
-                QueryHelper.eq(OPI, accessionRegisterDetailStored.getOpi()))));
+                QueryHelper.eq(ID, accessionRegisterDetailStored.getId()),
+                QueryHelper.eq(VERSION, accessionRegisterDetailStored.getVersion()))
+            ));
+
             update.addActions(actions.toArray(Action[]::new));
-            mongoAccess.updateData(update.getFinalUpdate(), ACCESSION_REGISTER_DETAIL);
-        } catch (final NullPointerException ex) {
-            throw new ReferentialException("Create register detail error due to missing field", ex);
-        } catch (final ReferentialException ex) {
-            throw ex;
+            DbRequestResult dbRequestResult =
+                mongoAccess.updateData(update.getFinalUpdate(), ACCESSION_REGISTER_DETAIL);
+
+            // Update failed if no document updated
+            return (dbRequestResult.getCount() > 0L);
+
         } catch (final Exception ex) {
             throw new ReferentialException("Create register detail error", ex);
         }
     }
 
-    private boolean statusShouldBeUnstored(AccessionRegisterDetail accessionRegisterDetail) {
+    private boolean statusShouldBeUnstored(AccessionRegisterDetailModel accessionRegisterDetail) {
         return (accessionRegisterDetail.getStatus() != AccessionRegisterStatus.UNSTORED
-            && accessionRegisterDetail.getTotalObjectGroups().getRemained() == 0
+            && accessionRegisterDetail.getTotalObjectsGroups().getRemained() == 0
             && accessionRegisterDetail.getTotalUnits().getRemained() == 0
             && accessionRegisterDetail.getTotalObjects().getRemained() == 0
-            && accessionRegisterDetail.getTotalObjectSize().getRemained() == 0);
+            && accessionRegisterDetail.getObjectSize().getRemained() == 0);
     }
 
-    private void mergeNewRegisterDetailIntoOld(AccessionRegisterDetail oldOne,
+    private void mergeNewRegisterDetailIntoOld(AccessionRegisterDetailModel oldOne,
         AccessionRegisterDetailModel newOne) {
         oldOne.setOpc(newOne.getOpc());
         oldOne.setStatus(newOne.getStatus());
-        oldOne.setTotalObjectGroups(mergeNewValueDetailIntoOld(oldOne.getTotalObjectGroups(),
+        oldOne.setTotalObjectsGroups(mergeNewValueDetailIntoOld(oldOne.getTotalObjectsGroups(),
             newOne.getTotalObjectsGroups()));
         oldOne.setTotalObjects(mergeNewValueDetailIntoOld(oldOne.getTotalObjects(), newOne.getTotalObjects()));
         oldOne.setTotalUnits(mergeNewValueDetailIntoOld(oldOne.getTotalUnits(), newOne.getTotalUnits()));
-        oldOne.setObjectSize(mergeNewValueDetailIntoOld(oldOne.getTotalObjectSize(), newOne.getObjectSize()));
+        oldOne.setObjectSize(mergeNewValueDetailIntoOld(oldOne.getObjectSize(), newOne.getObjectSize()));
     }
 
     private RegisterValueDetailModel mergeNewValueDetailIntoOld(RegisterValueDetailModel oldOne,
