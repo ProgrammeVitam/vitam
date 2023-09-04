@@ -58,7 +58,7 @@ VOLUME_INGEST="/vitam/data/ingest-external"
 VOLUME_WORKER="/vitam/data/worker"
 VOLUME_WORKER_TMP="/vitam/tmp/worker"
 VOLUME_DATA_TMP="/vitam/data/tmp"
-VOLUME_COLLECT_TMP="/vitam/tmp/collect"
+VOLUME_COLLECT_TMP="/vitam/tmp/collect-internal"
 
 echo "Using vitam target : ${VITAM_TARGET}"
 

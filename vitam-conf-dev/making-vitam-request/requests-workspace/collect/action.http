@@ -17,7 +17,7 @@ X-Tenant-Id: {{tenant}}
   "SubmissionAgencyIdentifier": "FRAN_NP_005061",
   "MessageIdentifier": "20220302-000005",
   "Name": "This is my Name",
-  "LegalStatus": "Archives privées",
+  "LegalStatus": "Private Archive",
   "AcquisitionInformation": "Versement",
   "ArchivalAgreement": "IC-000001",
   "Comment": "Versement du service producteur : Cabinet de Michel Mercier",

@@ -101,10 +101,13 @@ hosts_workspace_collect
 [hosts_worker]
 
 [hosts_collect_internal]
+localhost
 
 [hosts_metadata_collect]
+localhost
 
 [hosts_workspace_collect]
+localhost
 
 ##### Zone storage
 
