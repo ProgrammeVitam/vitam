@@ -267,6 +267,11 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
+     * Harmonization needed :
+     * AccessionRegisterDetailModel  getTotalObjectsGroups
+     * AccessionRegisterDetail       getTotalObjectGroups
+     * AccessionRegisterDetailModel  TOTAL_OBJECT_GROUPS    = "TotalObjectGroups";
+     * AccessionRegisterDetail       TOTAL_OBJECTGROUPS     = "TotalObjectGroups"
      * @return RegisterValueDetail
      */
     public RegisterValueDetailModel getTotalObjectGroups() {
@@ -318,6 +323,12 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     }
 
     /**
+     * Harmonization needed :
+     * AccessionRegisterDetail       getTotalObjectSize
+     * AccessionRegisterDetailModel  getObjectSize
+     * AccessionRegisterDetailModel  OBJECT_SIZE = "ObjectSize"
+     * AccessionRegisterDetail       OBJECT_SIZE = "ObjectSize";
+     *
      * @return RegisterValueDetail
      */
     public RegisterValueDetailModel getTotalObjectSize() {
