@@ -139,6 +139,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -848,16 +849,19 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response launchAudit(AuditOptions options) {
+    public Response launchAudit(AuditOptions options, @HeaderParam(GlobalDataRest.CHECK_ACCESS_CONTRACT) boolean checkAccessContract) {
         ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PARAMETER, options);
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             final String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
-            AccessContractModel contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
-            if (contract == null) {
-                throw new AccessUnauthorizedException("Contract Not Found");
+            AccessContractModel contract = null;
+            if (checkAccessContract) {
+                contract = getContractDetails(VitamThreadUtils.getVitamSession().getContractId());
+                if (contract == null) {
+                    throw new AccessUnauthorizedException("Contract Not Found");
+                }
             }
 
             validateAuditOptions(options, tenantId);
@@ -885,10 +889,17 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 selectQuery = parser.getRequest();
             }
 
-            JsonNode restrictedQuery = AccessContractRestrictionHelper
-                .applyAccessContractRestrictionForObjectGroupForSelect(selectQuery.getFinalSelect(), contract);
-            // for CheckThresholdHandler
-            workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(restrictedQuery));
+            if(checkAccessContract){
+                JsonNode restrictedQuery = AccessContractRestrictionHelper
+                    .applyAccessContractRestrictionForObjectGroupForSelect(selectQuery.getFinalSelect(), contract);
+                // for CheckThresholdHandler
+                workspaceClient.putObject(operationId, "query.json", JsonHandler.writeToInpustream(restrictedQuery));
+            } else {
+                workspaceClient.putObject(operationId, "scheduler_audit",
+                    JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
+                workspaceClient.putObject(operationId, "query.json",
+                    JsonHandler.writeToInpustream(selectQuery.getFinalSelect()));
+            }
 
             // store original query in workspace
             workspaceClient
@@ -1113,10 +1124,12 @@ public class AdminManagementResource extends ApplicationStatusResource {
                 VitamLogbookMessages.getCodeOp(Contexts.AUDIT_WORKFLOW.getEventType(), StatusCode.STARTED),
                 objectId);
 
-            ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
-            rightsStatementIdentifier.put(ACCESS_CONTRACT, contract.getIdentifier());
-            initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
-                rightsStatementIdentifier.toString());
+            if (contract != null) {
+                ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+                rightsStatementIdentifier.put(ACCESS_CONTRACT, contract.getIdentifier());
+                initParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
+                    rightsStatementIdentifier.toString());
+            }
 
             logbookClient.create(initParameters);
         }

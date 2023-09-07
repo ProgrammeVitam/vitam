@@ -127,6 +127,7 @@ vitam_timers:
     frequency_accession_register_reconstruction: "0 0/5 * * * ?"
     frequency_rule_management_audit: "0 40 * * * ?"
     frequency_reconstruction: "0 0/5 * * * ?"
+    frequency_integrity_audit: "* 30 0/4 * * ?"
   metadata:
     frequency_store_graph: "0 10/30 * * * ?"
     frequency_reconstruction: "0 0/5 * * * ?"
@@ -137,6 +138,11 @@ vitam_timers:
   offer:
     # Compaction offer logs
     frequency_offerlog_compaction: "0 40 * * * ?"
+
+scheduler:
+  job_parameters:
+    integrity_audit:
+      operations_delay_in_minutes: 1440
 
 ### consul ###
 # WARNING: consul_domain should be a supported domain name for your organization

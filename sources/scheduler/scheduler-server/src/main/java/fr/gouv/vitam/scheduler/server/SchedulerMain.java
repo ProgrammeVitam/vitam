@@ -43,12 +43,14 @@ import java.util.List;
 public class SchedulerMain {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SchedulerMain.class);
+    public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.scheduler.port";
+
     private static final String CONF_FILE_NAME = "scheduler.conf";
     private static final String MODULE_NAME = ServerIdentity.getInstance().getRole();
 
     private final VitamStarter vitamStarter;
 
-    SchedulerMain(String configurationFile) throws SchedulerException {
+    public SchedulerMain(String configurationFile) throws SchedulerException {
         ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
             configurationFile);
         final SchedulerListener schedulerListener = SchedulerListener.getInstance();

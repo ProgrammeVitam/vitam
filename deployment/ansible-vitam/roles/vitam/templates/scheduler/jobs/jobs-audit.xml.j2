@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<job-scheduling-data
+        xmlns="http://www.quartz-scheduler.org/xml/JobSchedulingData"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.quartz-scheduler.org/xml/JobSchedulingData https://www.quartz-scheduler.org/xml/job_scheduling_data_1_8.xsd"
+        version="1.8">
+
+    <processing-directives>
+        <!-- if there are any jobs/trigger in scheduler of same name (as in this
+            file), overwrite them -->
+        <overwrite-existing-data>true</overwrite-existing-data>
+        <!-- if there are any jobs/trigger in scheduler of same name (as in this
+            file), and over-write is false, ignore them rather then generating an error -->
+        <ignore-duplicates>true</ignore-duplicates>
+    </processing-directives>
+
+{% if primary_site | lower == "true" %}
+        <schedule>
+            <job>
+                <name>IntegrityAuditJob</name>
+                <group>audit</group>
+                <description>Job for launching Integrity Audit</description>
+                <job-class>fr.gouv.vitam.scheduler.server.job.IntegrityAuditJob</job-class>
+                <job-data-map>
+                    <entry>
+                        <key>operationsDelayInMinutes</key>
+                        <value>{{ scheduler.job_parameters.integrity_audit.operations_delay_in_minutes | default(1440)}}</value>
+                    </entry>
+                </job-data-map>
+            </job>
+            <trigger>
+                <cron>
+                    <name>IntegrityAuditObjectTrigger</name>
+                    <group>audit</group>
+                    <job-name>IntegrityAuditJob</job-name>
+                    <job-group>audit</job-group>
+                    <cron-expression>{{ vitam_timers.functional_administration.frequency_integrity_audit | default('* 30 0/4 * * ?')}}</cron-expression>
+                </cron>
+            </trigger>
+
+        </schedule>
+{% endif %}
+</job-scheduling-data>

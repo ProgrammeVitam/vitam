@@ -47,7 +47,7 @@ public class ProcessingManagementClientFactory extends VitamClientFactory<Proces
         new ProcessingManagementClientFactory();
 
     private ProcessingManagementClientFactory() {
-        super(null, RESOURCE_PATH, false);
+        super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH, false);
     }
 
     /**

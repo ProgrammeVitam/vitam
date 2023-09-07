@@ -36,14 +36,18 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.scheduler.server.model.VitamJobDetail;
+import org.apache.commons.lang.SerializationUtils;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.quartz.impl.matchers.GroupMatcher;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -52,7 +56,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 @Path("/scheduler/v1")
@@ -66,9 +72,8 @@ public class SchedulerResource extends ApplicationStatusResource {
         final List<JobExecutionContext> jobs =
             SchedulerListener.getInstance().getScheduler().getCurrentlyExecutingJobs();
 
-        final List<VitamJobDetail> vitamJobs = jobs.stream().map(
-            job -> new VitamJobDetail(job.getJobDetail())
-        ).collect(Collectors.toList());
+        final List<VitamJobDetail> vitamJobs =
+            jobs.stream().map(job -> new VitamJobDetail(job.getJobDetail())).collect(Collectors.toList());
         try {
             final List<JsonNode> jsonNodes = JsonHandler.toArrayList((ArrayNode) JsonHandler.toJsonNode(vitamJobs));
             return Response.ok(new RequestResponseOK<JsonNode>().addAllResults(jsonNodes)).build();
@@ -123,6 +128,78 @@ public class SchedulerResource extends ApplicationStatusResource {
             scheduler.resumeJobs(GroupMatcher.groupEquals(group));
             scheduler.resumeTriggers(GroupMatcher.groupEquals(group));
         }
+        return Response.accepted().build();
+    }
+
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/job-state/{job-name}")
+    public Response jobState(@PathParam("job-name") String jobName) throws SchedulerException {
+        final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
+        String[] jobKeyPath = jobName.split("\\.");
+        JobKey jobKey =
+            (jobKeyPath.length > 1) ? JobKey.jobKey(jobKeyPath[1], jobKeyPath[0]) : JobKey.jobKey(jobKeyPath[0]);
+        List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
+        Optional<Trigger.TriggerState> reduce = triggers.stream().map(Trigger::getKey).map(e -> {
+            try {
+                return scheduler.getTriggerState(e);
+            } catch (SchedulerException ex) {
+                throw new RuntimeException(ex);
+            }
+        }).reduce(BinaryOperator.maxBy(Enum::compareTo));
+
+        if (reduce.isPresent()) {
+            return Response.ok(new RequestResponseOK<>().addResult(reduce.get())).build();
+        } else {
+            return Response.ok(new RequestResponseOK<>()).build();
+        }
+    }
+
+    /*
+     * for test only
+     */
+    @POST
+    @Path("/schedule-job")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response scheduleJob(byte[] jobByte) throws SchedulerException {
+        final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
+        JobDetail job = (JobDetail) SerializationUtils.deserialize(jobByte);
+        if (job.isDurable()) {
+            scheduler.addJob(job, true);
+        } else {
+            scheduler.addJob(job, true, true);
+        }
+        return Response.accepted().build();
+    }
+
+    /*
+     * for test only
+     */
+    @POST
+    @Path("/trigger-job")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response triggerJob(byte[] triggerByte) throws SchedulerException {
+        final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
+        Trigger trigger = (Trigger) SerializationUtils.deserialize(triggerByte);
+        scheduler.scheduleJob(trigger);
+        return Response.accepted().build();
+    }
+
+    /*
+     * for test only
+     */
+    @POST
+    @Path("/trigger-job/{job-name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response triggerJob(@PathParam("job-name") String jobName) throws SchedulerException {
+        final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
+        String[] jobKeyPath = jobName.split("\\.");
+        JobKey jobKey =
+            (jobKeyPath.length > 1) ? JobKey.jobKey(jobKeyPath[1], jobKeyPath[0]) : JobKey.jobKey(jobKeyPath[0]);
+        scheduler.triggerJob(jobKey);
         return Response.accepted().build();
     }
 }

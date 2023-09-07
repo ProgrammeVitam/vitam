@@ -254,6 +254,10 @@ public class GlobalDataRest {
      */
     public static final String FORCE_UPDATE = "Force-Update";
 
+    /**
+     * Force update Header
+     */
+    public static final String CHECK_ACCESS_CONTRACT = "Check-Access-Contract";
 
     /**
      * The X_DATA_CATEGORY header, used in requests to give data category

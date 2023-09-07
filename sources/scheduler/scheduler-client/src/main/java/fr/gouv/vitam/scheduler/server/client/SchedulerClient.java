@@ -30,7 +30,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.client.MockOrRestClient;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 
 public interface SchedulerClient extends MockOrRestClient {
+    RequestResponse<JsonNode> findCurrentJobs() throws VitamClientException;
+
     RequestResponse<JsonNode> findJobs() throws VitamClientException;
+
+    RequestResponseOK<JsonNode> jobState(String jobName) throws VitamClientException;
+
+    RequestResponse<JsonNode> scheduleJob(byte[] job) throws VitamClientException;
+
+    RequestResponse<JsonNode> triggerJob(String jobName) throws VitamClientException;
+
+    RequestResponse<JsonNode> triggerJob(byte[] trigger) throws VitamClientException;
 }

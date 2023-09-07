@@ -50,6 +50,8 @@ import fr.gouv.vitam.common.model.AuditOptions;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.logbook.LogbookEvent;
+import fr.gouv.vitam.common.model.logbook.LogbookOperation;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -90,6 +92,7 @@ import java.util.Optional;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Audit existence/integrity integration test
@@ -163,6 +166,14 @@ public class AuditIT extends VitamRuleRunner {
             // Then
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
+
+            // Check logbook
+            JsonNode logbook = VitamTestHelper.findLogbook(operationId);
+            assertNotNull(logbook);
+            LogbookOperation logbookOperation =
+                JsonHandler.getFromJsonNode(logbook.get(RequestResponseOK.TAG_RESULTS), LogbookOperation.class);
+            assertThat(logbookOperation.getEvents()).filteredOn(e -> e.getEvType().equals("LIST_OBJECTGROUP_ID"))
+                .extracting(LogbookEvent::getEvDetData).element(0).matches(e -> !e.contains("Last_Update_Date"));
 
             // Check report
             List<JsonNode> reportLines = VitamTestHelper.getReports(operationId);
@@ -252,6 +263,14 @@ public class AuditIT extends VitamRuleRunner {
             assertThat(jsonNode.iterator()).extracting(j -> j.get("outcome").asText())
                 .allMatch(outcome -> outcome.equals(StatusCode.OK.name()));
 
+            // Check logbook
+            JsonNode logbook = VitamTestHelper.findLogbook(operationId);
+            assertNotNull(logbook);
+            LogbookOperation logbookOperation =
+                JsonHandler.getFromJsonNode(logbook.get(RequestResponseOK.TAG_RESULTS), LogbookOperation.class);
+            assertThat(logbookOperation.getEvents()).filteredOn(e -> e.getEvType().equals("LIST_OBJECTGROUP_ID"))
+                .extracting(LogbookEvent::getEvDetData).element(0).matches(e -> !e.contains("Last_Update_Date"));
+
             // Check report
             List<JsonNode> reportLines = VitamTestHelper.getReports(operationId);
             assertThat(reportLines.size()).isEqualTo(3);
@@ -331,7 +350,7 @@ public class AuditIT extends VitamRuleRunner {
             options.setAuditType("tenant");
             options.setObjectId("" + TENANT_ID);
 
-            RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options);
+            RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options, true);
             assertThat(response.isOk()).isTrue();
             waitOperation(operationGuid.toString());
 
@@ -377,7 +396,7 @@ public class AuditIT extends VitamRuleRunner {
         GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
         try (AdminManagementClient adminClient = AdminManagementClientFactory.getInstance().getClient()) {
-            RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options);
+            RequestResponse<JsonNode> response = adminClient.launchAuditWorkflow(options, true);
             assertThat(response.isOk()).isTrue();
             waitOperation(operationGuid.toString());
         }
