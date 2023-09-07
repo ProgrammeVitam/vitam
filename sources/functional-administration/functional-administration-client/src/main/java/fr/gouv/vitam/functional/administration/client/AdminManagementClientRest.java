@@ -85,6 +85,7 @@ import fr.gouv.vitam.functional.administration.common.server.AccessionRegisterSy
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import java.io.InputStream;
@@ -1021,11 +1022,12 @@ class AdminManagementClientRest extends DefaultClient implements AdminManagement
     }
 
     @Override
-    public RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options)
+    public RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options, boolean checkAccessContract)
         throws AdminManagementClientServerException {
         ParametersChecker.checkParameter("The options are mandatory", options);
         VitamRequestBuilder request = post()
             .withPath(AUDIT_URI)
+            .withHeader(GlobalDataRest.CHECK_ACCESS_CONTRACT, checkAccessContract)
             .withBody(options)
             .withJson();
 

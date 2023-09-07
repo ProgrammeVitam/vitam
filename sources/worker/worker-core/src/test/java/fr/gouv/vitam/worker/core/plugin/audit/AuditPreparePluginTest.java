@@ -38,7 +38,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.plugin.audit.model.AuditObjectGroup;
-import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -95,7 +94,7 @@ public class AuditPreparePluginTest {
     }
 
     @Test
-    public void shouldCreateValidJsonLFileOutput() throws ContentAddressableStorageServerException, ProcessingException,
+    public void shouldCreateValidJsonLFileOutput() throws ProcessingException,
         IOException, InvalidParseOperationException {
 
         // Given
@@ -105,6 +104,7 @@ public class AuditPreparePluginTest {
         JsonNode auditQuery = JsonHandler
             .getFromInputStream(getClass().getResourceAsStream("/AuditObjectWorkflow/unitsQuery.json"));
         when(handler.getJsonFromWorkspace("query.json")).thenReturn(toJsonNode(auditQuery));
+        when(handler.isExistingFileInWorkspace("scheduler_audit")).thenReturn(true);
 
         Map<String, File> files = new HashMap<>();
         doAnswer((args) -> {
@@ -119,7 +119,7 @@ public class AuditPreparePluginTest {
         // Then
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
-
+        assertThat(itemStatus.getEvDetailData()).isEqualTo("{\"Last_Update_Date\":\"2023-07-27T08:21:50.262\"}");
 
         List<String> lines =
             IOUtils.readLines(new FileInputStream(files.get(AuditPreparePlugin.OBJECT_GROUPS_TO_AUDIT_JSONL)),

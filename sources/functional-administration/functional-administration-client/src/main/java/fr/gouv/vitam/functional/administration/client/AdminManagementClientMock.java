@@ -478,7 +478,7 @@ public class AdminManagementClientMock extends AbstractMockClient implements Adm
     }
 
     @Override
-    public RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options)
+    public RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options, boolean checkAccessContract)
         throws AdminManagementClientServerException {
         return new RequestResponseOK();
     }

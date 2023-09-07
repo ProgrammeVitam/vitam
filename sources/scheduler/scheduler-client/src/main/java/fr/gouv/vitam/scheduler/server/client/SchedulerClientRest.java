@@ -52,8 +52,62 @@ class SchedulerClientRest extends DefaultClient implements SchedulerClient {
     }
 
     @Override
-    public RequestResponse<JsonNode> findJobs() throws VitamClientException {
+    public RequestResponse<JsonNode> findCurrentJobs() throws VitamClientException {
         try (Response response = make(VitamRequestBuilder.get().withPath("/current-jobs").withJsonAccept())) {
+            check(response);
+            return RequestResponseOK.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> findJobs() throws VitamClientException {
+        try (Response response = make(VitamRequestBuilder.get().withPath("/jobs").withJsonAccept())) {
+            check(response);
+            return RequestResponseOK.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
+        }
+    }
+
+    @Override
+    public RequestResponseOK<JsonNode> jobState(String jobName) throws VitamClientException {
+        try (Response response = make(
+            VitamRequestBuilder.get().withPath("/job-state/" + jobName).withJsonContentType())) {
+            check(response);
+            return (RequestResponseOK<JsonNode>) RequestResponseOK.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> scheduleJob(byte[] job) throws VitamClientException {
+        try (Response response = make(
+            VitamRequestBuilder.post().withPath("/schedule-job").withBody(job).withJson())) {
+            check(response);
+            return RequestResponseOK.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> triggerJob(String jobName) throws VitamClientException {
+        try (Response response = make(
+            VitamRequestBuilder.post().withPath("/trigger-job/" + jobName).withJson())) {
+            check(response);
+            return RequestResponseOK.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
+        }
+    }
+
+    @Override
+    public RequestResponse<JsonNode> triggerJob(byte[] trigger) throws VitamClientException {
+        try (Response response = make(
+            VitamRequestBuilder.post().withPath("/trigger-job").withBody(trigger).withJson())) {
             check(response);
             return RequestResponseOK.parseFromResponse(response);
         } catch (VitamClientInternalException e) {

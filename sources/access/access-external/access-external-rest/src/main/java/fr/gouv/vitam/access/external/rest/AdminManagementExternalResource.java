@@ -2212,7 +2212,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 BatchProcessingQuerySchemaValidator validator = new BatchProcessingQuerySchemaValidator();
                 validator.validate(options.getQuery());
             }
-            RequestResponse<JsonNode> result = client.launchAuditWorkflow(options);
+            RequestResponse<JsonNode> result = client.launchAuditWorkflow(options, true);
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException | InvalidParseOperationException | ValidationException e) {

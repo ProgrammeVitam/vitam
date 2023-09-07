@@ -34,6 +34,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Iterators;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -41,15 +42,20 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
+import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.iterables.SpliteratorIterator;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.objectgroup.QualifiersModel;
 import fr.gouv.vitam.common.model.objectgroup.VersionsModel;
+import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
+import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -66,7 +72,6 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -112,10 +117,12 @@ public class AuditPreparePlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-
-            SelectMultiQuery query = generateAuditQuery(handler);
+            boolean isInternalAudit = handler.isExistingFileInWorkspace("scheduler_audit");
+            JsonNode initialQuery = handler.getJsonFromWorkspace("query.json");
+            SelectMultiQuery query = generateAuditQuery(initialQuery);
             computePreparation(query, handler, metaDataClient);
-            return buildItemStatus(AUDIT_PREPARATION, StatusCode.OK, createObjectNode());
+            JsonNode evDetData = (isInternalAudit) ? computeEventData(initialQuery) : JsonHandler.createObjectNode();
+            return buildItemStatus(AUDIT_PREPARATION, StatusCode.OK, evDetData);
 
         } catch (InvalidParseOperationException | IOException | ProcessingException e) {
             LOGGER.error(String.format("Audit action failed with status [%s]", FATAL), e);
@@ -124,59 +131,76 @@ public class AuditPreparePlugin extends ActionHandler {
         }
     }
 
+    private JsonNode computeEventData(JsonNode initialQuery) {
+        try (MetaDataClient client = metaDataClientFactory.getClient()) {
+            SelectParserMultiple parser = new SelectParserMultiple();
+            parser.parse(initialQuery);
+            SelectMultiQuery request = parser.getRequest();
+            request.addOrderByDescFilter(VitamFieldsHelper.approximateUpdateDate());
+            request.setLimitFilter(0, 1);
+            request.addUsedProjection(VitamFieldsHelper.approximateUpdateDate());
+            JsonNode jsonNode = client.selectUnits(request.getFinalSelect());
+            RequestResponseOK<JsonNode> fromJsonNode = RequestResponseOK.getFromJsonNode(jsonNode);
+            JsonNode lastUnit = fromJsonNode.getFirstResult();
+            if (lastUnit == null) {
+                throw new VitamRuntimeException("Could not find unit");
+            } else {
+                String date = lastUnit.get(VitamFieldsHelper.approximateUpdateDate()).asText();
+                return JsonHandler.createObjectNode().put("Last_Update_Date", date);
+            }
+        } catch (MetaDataExecutionException | MetaDataClientServerException | InvalidParseOperationException |
+                 MetaDataDocumentSizeException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void computePreparation(SelectMultiQuery selectMultiQuery, HandlerIO handler, MetaDataClient metaDataClient)
-        throws FileNotFoundException, IOException, InvalidParseOperationException, ProcessingException {
+        throws IOException, InvalidParseOperationException, ProcessingException {
 
         ScrollSpliterator<JsonNode> scrollRequest = createUnitScrollSplitIterator(metaDataClient, selectMultiQuery);
         Iterator<JsonNode> iterator = new SpliteratorIterator<>(scrollRequest);
 
         Iterator<Pair<String, String>> gotIdUnitIdIterator = getGotIdUnitIdIterator(iterator);
 
-        Iterator<Pair<String, List<String>>> unitsByObjectGroupIterator = new GroupByObjectIterator(
-            gotIdUnitIdIterator);
+        Iterator<Pair<String, List<String>>> unitsByObjectGroupIterator =
+            new GroupByObjectIterator(gotIdUnitIdIterator);
 
-        Iterator<List<Pair<String, List<String>>>> unitsByObjectGroupBulkIterator = Iterators.partition(
-            unitsByObjectGroupIterator, VitamConfiguration.getBatchSize());
+        Iterator<List<Pair<String, List<String>>>> unitsByObjectGroupBulkIterator =
+            Iterators.partition(unitsByObjectGroupIterator, VitamConfiguration.getBatchSize());
 
         File objectGroupsToAudit = handler.getNewLocalFile(OBJECT_GROUPS_TO_AUDIT_JSONL);
         try (final FileOutputStream outputStream = new FileOutputStream(objectGroupsToAudit);
             JsonLineWriter writer = new JsonLineWriter(outputStream)) {
             while (unitsByObjectGroupBulkIterator.hasNext()) {
                 List<Pair<String, List<String>>> bulkToProcess = unitsByObjectGroupBulkIterator.next();
-                processBulk(bulkToProcess, handler, writer);
+                processBulk(bulkToProcess, writer);
             }
         }
         handler.transferFileToWorkspace(OBJECT_GROUPS_TO_AUDIT_JSONL, objectGroupsToAudit, true, false);
 
     }
 
-    private void processBulk(List<Pair<String, List<String>>> unitsByObjectGroupBulkIterator, HandlerIO handler,
-        JsonLineWriter writer) throws InvalidParseOperationException, IOException {
+    private void processBulk(List<Pair<String, List<String>>> unitsByObjectGroupBulkIterator, JsonLineWriter writer)
+        throws InvalidParseOperationException, IOException {
 
         Map<String, List<String>> tempUnitsByObjectGroupMap = new HashMap<>();
         unitsByObjectGroupBulkIterator.forEach(item -> tempUnitsByObjectGroupMap.put(item.getKey(), item.getValue()));
 
-        List<ObjectGroupResponse> objectModelsForUnitResults = getObjectModelsForUnitResults(
-            tempUnitsByObjectGroupMap.keySet());
+        List<ObjectGroupResponse> objectModelsForUnitResults =
+            getObjectModelsForUnitResults(tempUnitsByObjectGroupMap.keySet());
 
         for (ObjectGroupResponse objectGroup : objectModelsForUnitResults) {
 
             List<String> unitIds = tempUnitsByObjectGroupMap.get(objectGroup.getId());
             AuditObjectGroup auditDistributionLine = createAuditDistributionLine(unitIds, objectGroup);
-            writer.addEntry(new JsonLineModel(auditDistributionLine.getId(), null,
-                JsonHandler.toJsonNode(auditDistributionLine)));
+            writer.addEntry(
+                new JsonLineModel(auditDistributionLine.getId(), null, JsonHandler.toJsonNode(auditDistributionLine)));
 
         }
 
     }
 
-    private SelectMultiQuery generateAuditQuery(HandlerIO handler) throws ProcessingException {
-
-        JsonNode initialQuery = handler.getJsonFromWorkspace("query.json");
-        return prepareUnitsWithObjectGroupsQuery(initialQuery);
-    }
-
-    private SelectMultiQuery prepareUnitsWithObjectGroupsQuery(JsonNode initialQuery) {
+    private SelectMultiQuery generateAuditQuery(JsonNode initialQuery) {
 
         try {
             SelectParserMultiple parser = new SelectParserMultiple();
@@ -215,8 +239,7 @@ public class AuditPreparePlugin extends ActionHandler {
 
     private Iterator<Pair<String, String>> getGotIdUnitIdIterator(Iterator<JsonNode> iterator) {
         return IteratorUtils.transformedIterator(iterator,
-            item -> new ImmutablePair<>(item.get(OBJECT.exactToken()).asText(),
-                item.get(ID.exactToken()).asText()));
+            item -> new ImmutablePair<>(item.get(OBJECT.exactToken()).asText(), item.get(ID.exactToken()).asText()));
     }
 
     private ObjectNode getQueryProjectionToApply() {

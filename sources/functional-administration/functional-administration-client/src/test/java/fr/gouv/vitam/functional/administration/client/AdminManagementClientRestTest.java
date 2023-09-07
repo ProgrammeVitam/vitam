@@ -799,7 +799,7 @@ public class AdminManagementClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.ACCEPTED)
             .build());
         try (AdminManagementClientRest client = (AdminManagementClientRest) vitamServerTestRunner.getClient()) {
-            RequestResponse<JsonNode> resp = client.launchAuditWorkflow(new AuditOptions());
+            RequestResponse<JsonNode> resp = client.launchAuditWorkflow(new AuditOptions(), true);
             assertEquals(resp.getStatus(), Status.ACCEPTED.getStatusCode());
         }
     }

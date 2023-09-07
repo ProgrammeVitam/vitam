@@ -565,7 +565,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options)
+    RequestResponse<JsonNode> launchAuditWorkflow(AuditOptions options, boolean checkAccessContract)
         throws AdminManagementClientServerException;
 
     RequestResponse<JsonNode> launchReferentialAudit(AuditReferentialOptions auditReferentialOptions)

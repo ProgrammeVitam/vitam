@@ -79,6 +79,8 @@ import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
+import fr.gouv.vitam.scheduler.server.SchedulerMain;
+import fr.gouv.vitam.scheduler.server.client.SchedulerClientFactory;
 import fr.gouv.vitam.security.internal.client.InternalSecurityClientFactory;
 import fr.gouv.vitam.security.internal.rest.IdentityMain;
 import fr.gouv.vitam.security.internal.rest.server.InternalSecurityConfiguration;
@@ -96,6 +98,7 @@ import fr.gouv.vitam.workspace.client.WorkspaceType;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.ExternalResource;
+import org.quartz.SchedulerException;
 
 import javax.ws.rs.core.MultivaluedHashMap;
 import java.io.File;
@@ -151,6 +154,7 @@ public class VitamServerRunner extends ExternalResource {
 
     public static final int PORT_SERVICE_COLLECT_INTERNAL = 8088;
     public static final int PORT_SERVICE_COLLECT_EXTERNAL = 8488;
+    public static final int PORT_SERVICE_SCHEDULER = 8799;
 
     public static final String WORKSPACE_COLLECT_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE_COLLECT;
     public static final String WORKSPACE_URL = "http://localhost:" + PORT_SERVICE_WORKSPACE;
@@ -181,6 +185,7 @@ public class VitamServerRunner extends ExternalResource {
     public static final String BATCH_REPORT_CLIENT_PATH = "common/batch-report-client.conf";
     public static final String PROCESSING_CONF = "common/processing.conf";
     public static final String CONFIG_WORKER_PATH = "common/worker.conf";
+    public static final String SCHEDULER_CONF = "common/scheduler.conf";
     public static final String FORMAT_IDENTIFIERS_CONF = "common/format-identifiers.conf";
     public static final String DEPLOYMENT_ENVIRONMENTS_ANTIVIRUS_SCAN_DEV_SH =
         "/deployment/environments/antivirus/scan-dev.sh";
@@ -216,6 +221,7 @@ public class VitamServerRunner extends ExternalResource {
     private static CollectExternalMain collectExternalMain;
     private static BatchReportMain batchReportMain;
     private static WorkerMain workerMain;
+    private static SchedulerMain schedulerMain;
 
     public final static TempFolderRule tempFolderRule = new TempFolderRule();
 
@@ -419,11 +425,45 @@ public class VitamServerRunner extends ExternalResource {
                     .setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
             }
 
+            if (servers.contains(SchedulerMain.class)) {
+                startSchedulerServer();
+            } else {
+                stopSchedulerServer();
+            }
+
             waitServerStart();
         } catch (IOException | VitamApplicationServerException e) {
             SysErrLogger.FAKE_LOGGER.syserr("", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private void startSchedulerServer() throws VitamApplicationServerException {
+        try {
+            if (null != schedulerMain) {
+                SchedulerClientFactory.getInstance().changeServerPort(PORT_SERVICE_SCHEDULER);
+                return;
+            }
+
+            SystemPropertyUtil.set(SchedulerMain.PARAMETER_JETTY_SERVER_PORT,
+                Integer.toString(PORT_SERVICE_SCHEDULER));
+            LOGGER.warn("=== VitamServerRunner start  SchedulerMain");
+            schedulerMain = new SchedulerMain(SCHEDULER_CONF);
+            schedulerMain.start();
+            SchedulerClientFactory.getInstance().changeServerPort(PORT_SERVICE_SCHEDULER);
+            SystemPropertyUtil.clear(SchedulerMain.PARAMETER_JETTY_SERVER_PORT);
+        } catch (SchedulerException e) {
+            throw new VitamApplicationServerException(e);
+        }
+    }
+
+    private void stopSchedulerServer() throws VitamApplicationServerException {
+        if (null == schedulerMain) {
+            return;
+        }
+        LOGGER.warn("=== VitamServerRunner stop  SchedulerMain");
+        schedulerMain.stop();
+        schedulerMain = null;
     }
 
     private void startIngestInternalServer() throws VitamApplicationServerException {

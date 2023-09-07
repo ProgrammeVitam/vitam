@@ -90,6 +90,11 @@
             <artifactId>storage-engine-client</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
+            <artifactId>processing-management-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>fr.gouv.vitam</groupId>

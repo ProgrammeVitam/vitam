@@ -385,7 +385,7 @@ public class AdminManagementClientMockTest {
 
     @Test
     public void givenMockExistsWhenLaunchAUditThenReturnOK() throws Exception {
-        RequestResponse<JsonNode> resp = client.launchAuditWorkflow(new AuditOptions());
+        RequestResponse<JsonNode> resp = client.launchAuditWorkflow(new AuditOptions(), true);
         assertTrue(resp.isOk());
     }
 
