@@ -79,6 +79,7 @@
 								<argument>latexpdf</argument> 
 								<argument>raml</argument>
 								<argument>autres</argument>
+								<argument>cookbooks</argument>
 							</arguments>
 						</configuration>
 					</execution>			

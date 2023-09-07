@@ -19,6 +19,8 @@ HTMLBUILDDIR  = $(BUILDDIR)/vitam
 PDFBUILDDIR   = $(BUILDDIR)/pdf
 AUTRECONTENT    = $(SRCDIR)/autres
 AUTREBUILD      = $(BUILDDIR)/autres
+COOKBOOKSCONTENT = $(SRCDIR)/cookbooks
+COOKBOOKBUILD    = $(BUILDDIR)/cookbooks
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -54,7 +56,8 @@ clean:
 	rm -rf $(RAMLBUILDDIR); \
 	rm -rf $(HTMLBUILDDIR); \
 	rm -rf ${PDFBUILDDIR}; \
-	rm -rf ${AUTREBUILD};
+	rm -rf ${AUTREBUILD}; \
+	rm -rf ${COOKBOOKBUILD};
 
 
 
@@ -94,6 +97,11 @@ autres:
 	mkdir -p ${AUTREBUILD}; \
 	cp -r ${AUTRECONTENT}/* ${AUTREBUILD}/
 
+.PHONY: cookbooks
+autres:
+	@echo "Création du répertoire de sortie"
+	mkdir -p ${COOKBOOKBUILD}; \
+	cp -r ${COOKBOOKSCONTENT}/* ${COOKBOOKBUILD}/
 
 .PHONY: raml
 raml:

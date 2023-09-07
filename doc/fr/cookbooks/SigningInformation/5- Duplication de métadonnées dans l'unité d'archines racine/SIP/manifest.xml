@@ -1,0 +1,239 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.3 seda-2.3-main.xsd"
+                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.3"
+                 xml:id="ID1">
+    <Date>2023-06-20T16:52:49.596</Date>
+    <MessageIdentifier>SIP SEDA de test</MessageIdentifier>
+    <ArchivalAgreement>changeIt</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage>
+
+        <!-- Signed document -->
+        <DataObjectGroup id="ID10">
+            <BinaryDataObject id="ID11">
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+                <Uri>content/ID11.pdf</Uri>
+                <MessageDigest algorithm="SHA-512">2e1208919d3bf98e3228c0527d8dff8e8f51b3e4c89693f4e916ebb9e1878c1e8df464157fbaf33e02acd8db6beba824690cf97efccdb1f22bad6997030eba22</MessageDigest>
+                <Size>370989</Size>
+                <FormatIdentification>
+                    <FormatLitteral>Acrobat PDF 1.5 - Portable Document Format</FormatLitteral>
+                    <MimeType>application/pdf</MimeType>
+                    <FormatId>fmt/19</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>mainDocument_Signature_dossier_niveau_3.pdf</Filename>
+                    <LastModified>2023-06-20T14:44:30.721</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+        </DataObjectGroup>
+
+
+        <!-- Additional proofs (detached) -->
+        <DataObjectGroup id="ID17">
+            <BinaryDataObject id="ID23">
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+                <Uri>content/ID23.xml</Uri>
+                <MessageDigest algorithm="SHA-512">7be785a2774aaa327a625c51b9a4757560915a65dd70cf7ae87fc0bd52cd0e39c690736f93aee188fac39fc4e63dd5afdaf2932b0bee465e203a0b45bc84637f</MessageDigest>
+                <Size>3403</Size>
+                <FormatIdentification>
+                    <FormatLitteral>Extensible Markup Language</FormatLitteral>
+                    <MimeType>application/xml, text/xml</MimeType>
+                    <FormatId>fmt/101</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>maarchProof.xml</Filename>
+                    <LastModified>2023-06-20T14:47:35.849</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID18">
+            <BinaryDataObject id="ID21">
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+                <Uri>content/ID21.pdf</Uri>
+                <MessageDigest algorithm="SHA-512">64a4797a8b840e8245d8b69dfc2dbc493cb65313b9336581a932d628b5ccd5b7d1ad3385e9f47d401ba9f1aa6e9153a1405864dee8e98f4d981d7069e55efea3</MessageDigest>
+                <Size>238122</Size>
+                <FormatIdentification>
+                    <FormatLitteral>Acrobat PDF 1.4 - Portable Document Format</FormatLitteral>
+                    <MimeType>application/pdf</MimeType>
+                    <FormatId>fmt/18</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>docaposteProof.pdf</Filename>
+                    <LastModified>2023-06-20T14:44:30.649</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID19">
+            <BinaryDataObject id="ID22">
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+                <Uri>content/ID22.pdf</Uri>
+                <MessageDigest algorithm="SHA-512">e6cc8b7704acadaf77152e5c6e6fdbf6d7d28c0af1f979bfe181a8e2fc017a6c9780fd727fe390e2a9d06def030ba4ac8683e1ffda79e5d81c87ceef234c021b</MessageDigest>
+                <Size>183330</Size>
+                <FormatIdentification>
+                    <FormatLitteral>Acrobat PDF 1.5 - Portable Document Format</FormatLitteral>
+                    <MimeType>application/pdf</MimeType>
+                    <FormatId>fmt/19</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>attachment_0_Annexe_2.pdf</Filename>
+                    <LastModified>2023-06-20T14:44:30.566</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DataObjectGroup id="ID20">
+            <BinaryDataObject id="ID24">
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+                <Uri>content/ID24.pdf</Uri>
+                <MessageDigest algorithm="SHA-512">ed11531a18534d42be83d6f633abb965e5f7508ce2dfcbf10244e5a40ae026aa3c898798df12efcb142748ce93552da527762e06a1bea370b39dec3d56a95961</MessageDigest>
+                <Size>184087</Size>
+                <FormatIdentification>
+                    <FormatLitteral>Acrobat PDF 1.5 - Portable Document Format</FormatLitteral>
+                    <MimeType>application/pdf</MimeType>
+                    <FormatId>fmt/19</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>attachment_1_Annexe_1.pdf</Filename>
+                    <LastModified>2023-06-20T14:44:30.611</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+        </DataObjectGroup>
+
+        <DescriptiveMetadata>
+            <!-- Root archive unit referencing the signed document -->
+            <ArchiveUnit id="ID12">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Document</Title>
+                    <Description>Signed Document with embedded Signature and TimeStamp</Description>
+                    <!-- Other descriptive fields... -->
+
+                    <!-- Signing information -->
+                    <SigningInformation>
+
+                        <SigningRole>SignedDocument</SigningRole>
+                        <SigningRole>Signature</SigningRole>
+                        <SigningRole>Timestamp</SigningRole>
+
+                        <!-- Additional proof binaries are "detached" -->
+                        <DetachedSigningRole>AdditionalProof</DetachedSigningRole>
+                        <Signature>
+                            <Signer>
+                                <FullName>Caroline DISTRIQUIN</FullName>
+                                <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
+                            </Signer>
+                        </Signature>
+                        <TimestampingInformation>
+                            <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
+                        </TimestampingInformation>
+
+                        <!-- Duplication of detached addition proof binaries in root archive unit -->
+                        <AdditionalProof>
+                            <AdditionalProofInformation>Additional proof: Appendix 1</AdditionalProofInformation>
+                            <AdditionalProofInformation>Additional proof: Appendix 2</AdditionalProofInformation>
+                            <AdditionalProofInformation>Additional proof: XML</AdditionalProofInformation>
+                            <AdditionalProofInformation>Additional proof: PDF</AdditionalProofInformation>
+                        </AdditionalProof>
+
+                    </SigningInformation>
+                </Content>
+
+                <!-- Child archive units referencing detached binaries -->
+                <ArchiveUnit id="ID16">
+                    <Content>
+                        <DescriptionLevel>Item</DescriptionLevel>
+                        <Title>Additional proof: Appendix 2</Title>
+                        <SigningInformation>
+                            <SigningRole>AdditionalProof</SigningRole>
+                            <AdditionalProof>
+                                <AdditionalProofInformation>Additional proof: Appendix 2</AdditionalProofInformation>
+                            </AdditionalProof>
+                        </SigningInformation>
+                    </Content>
+                    <DataObjectReference>
+                        <DataObjectGroupReferenceId>ID19</DataObjectGroupReferenceId>
+                    </DataObjectReference>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID15">
+                    <Content>
+                        <DescriptionLevel>Item</DescriptionLevel>
+                        <Title>Additional proof: Appendix 1</Title>
+                        <SigningInformation>
+                            <SigningRole>AdditionalProof</SigningRole>
+                            <AdditionalProof>
+                                <AdditionalProofInformation>Additional proof: Appendix 1</AdditionalProofInformation>
+                            </AdditionalProof>
+                        </SigningInformation>
+                    </Content>
+                    <DataObjectReference>
+                        <DataObjectGroupReferenceId>ID20</DataObjectGroupReferenceId>
+                    </DataObjectReference>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID13">
+                    <Content>
+                        <DescriptionLevel>Item</DescriptionLevel>
+                        <Title>Additional proof: PDF</Title>
+                        <SigningInformation>
+                            <SigningRole>AdditionalProof</SigningRole>
+                            <AdditionalProof>
+                                <AdditionalProofInformation>Additional proof: PDF</AdditionalProofInformation>
+                            </AdditionalProof>
+                        </SigningInformation>
+                    </Content>
+                    <DataObjectReference>
+                        <DataObjectGroupReferenceId>ID18</DataObjectGroupReferenceId>
+                    </DataObjectReference>
+                </ArchiveUnit>
+                <ArchiveUnit id="ID14">
+                    <Content>
+                        <DescriptionLevel>Item</DescriptionLevel>
+                        <Title>Additional proof: XML</Title>
+                        <SigningInformation>
+                            <SigningRole>AdditionalProof</SigningRole>
+                            <AdditionalProof>
+                                <AdditionalProofInformation>Additional proof: XML</AdditionalProofInformation>
+                            </AdditionalProof>
+                        </SigningInformation>
+                    </Content>
+                    <DataObjectReference>
+                        <DataObjectGroupReferenceId>ID17</DataObjectGroupReferenceId>
+                    </DataObjectReference>
+                </ArchiveUnit>
+                
+                <!-- The root Archive Unit references the Object Group Id of the signed document (BinaryMaster_1) -->
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID10</DataObjectGroupReferenceId>
+                </DataObjectReference>
+
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <AcquisitionInformation>Acquisition Information</AcquisitionInformation>
+            <LegalStatus>Public Archive</LegalStatus>
+            <OriginatingAgencyIdentifier>changeIt</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>changeIt</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>changeIt</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>changeIt</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

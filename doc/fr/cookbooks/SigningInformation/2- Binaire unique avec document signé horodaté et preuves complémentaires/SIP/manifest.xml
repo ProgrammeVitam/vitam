@@ -1,0 +1,102 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.3 seda-2.3-main.xsd"
+                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.3"
+                 xml:id="ID1">
+    <Date>2023-06-20T16:52:49.596</Date>
+    <MessageIdentifier>SIP SEDA de test</MessageIdentifier>
+    <ArchivalAgreement>changeIt</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage>
+
+        <!-- An Object Group defined the binary archive (BinaryMaster_1) -->
+        <DataObjectGroup id="ID10">
+            <BinaryDataObject id="ID11">
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+                <Uri>content/ID11.zip</Uri>
+                <MessageDigest algorithm="SHA-512">a2cc66131ca32202bb97121396a2fe2d1bf7d9dbea51592fa301bf091e3d18ed3dd87c0c525cc7f7aa6667d3615d531f9612dba600bd705a6c6b10e3b4b03488</MessageDigest>
+                <Size>841314</Size>
+                <FormatIdentification>
+                    <FormatLitteral>ZIP Format</FormatLitteral>
+                    <MimeType>application/zip</MimeType>
+                    <FormatId>x-fmt/263</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>SignedDocumentWithProof.zip</Filename>
+                    <LastModified>2023-01-31T09:59:22.155</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+        </DataObjectGroup>
+
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID12">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Document</Title>
+                    <Description>Archive containing the signed and timestamped document and additional proofs</Description>
+                    <!-- Other descriptive fields... -->
+
+                    <!-- Signing information -->
+                    <SigningInformation>
+
+                        <SigningRole>SignedDocument</SigningRole>
+                        <SigningRole>Signature</SigningRole>
+                        <SigningRole>Timestamp</SigningRole>
+                        <SigningRole>AdditionalProof</SigningRole>
+                        <Signature>
+                            <Signer>
+                                <FullName>Caroline DISTRIQUIN</FullName>
+                                <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
+                            </Signer>
+                        </Signature>
+                        <TimestampingInformation>
+                            <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
+                        </TimestampingInformation>
+
+                        <!-- Proof details -->
+                        <AdditionalProof>
+                            <AdditionalProofInformation>Additional proof: Appendix 1</AdditionalProofInformation>
+                            <AdditionalProofInformation>Additional proof: Appendix 2</AdditionalProofInformation>
+                            <AdditionalProofInformation>Additional proof: XML</AdditionalProofInformation>
+                            <AdditionalProofInformation>Additional proof: PDF</AdditionalProofInformation>
+                        </AdditionalProof>
+                    </SigningInformation>
+                </Content>
+
+                <!-- The Archive Unit references the Object Group Id of the binary object (BinaryMaster_1) -->
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID10</DataObjectGroupReferenceId>
+                </DataObjectReference>
+
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <AcquisitionInformation>Acquisition Information</AcquisitionInformation>
+            <LegalStatus>Public Archive</LegalStatus>
+            <OriginatingAgencyIdentifier>changeIt</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>changeIt</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>changeIt</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>changeIt</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>

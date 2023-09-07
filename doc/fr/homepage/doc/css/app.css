@@ -1068,3 +1068,8 @@ label{
     float: right;
     width: 49.5%;
 }
+
+#cookbooks {
+  float: left;
+  width: 49.5%;
+}

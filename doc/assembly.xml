@@ -30,6 +30,10 @@
      <outputDirectory>autres</outputDirectory>
    </fileSet>
    <fileSet>
+     <directory>target/cookbooks</directory>
+     <outputDirectory>cookbooks</outputDirectory>
+   </fileSet>
+   <fileSet>
      <directory>target/javadoc</directory>
      <outputDirectory>javadoc</outputDirectory>
    </fileSet>
