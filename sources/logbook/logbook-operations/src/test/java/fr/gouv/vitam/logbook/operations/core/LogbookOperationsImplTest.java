@@ -80,6 +80,8 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class LogbookOperationsImplTest {
@@ -87,6 +89,8 @@ public class LogbookOperationsImplTest {
     @Rule
     public RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+
+    private static final String OPERATION_ID = "operationId";
 
     private LogbookOperationsImpl logbookOperationsImpl;
     private LogbookDbAccess mongoDbAccess;
@@ -181,8 +185,11 @@ public class LogbookOperationsImplTest {
         when(mongoDbAccess.getLogbookOperationById(any())).thenReturn(new LogbookOperation(logbookParameters));
         LogbookOperationParameters[] param = new LogbookOperationParameters[2];
         param[0] = LogbookParameterHelper.newLogbookOperationParameters();
+        param[0].putParameterValue(LogbookParameterName.eventIdentifierProcess, OPERATION_ID);
         param[1] = LogbookParameterHelper.newLogbookOperationParameters();
+        param[1].putParameterValue(LogbookParameterName.eventIdentifierProcess, OPERATION_ID);
         logbookOperationsImpl.createBulkLogbookOperation(param);
+        verify(storageClient, times(1)).storeFileFromWorkspace(anyString(), any(), anyString(), any());
     }
 
     @RunWithCustomExecutor
@@ -193,8 +200,11 @@ public class LogbookOperationsImplTest {
         when(mongoDbAccess.getLogbookOperationById(any())).thenReturn(new LogbookOperation(logbookParameters));
         LogbookOperationParameters[] param = new LogbookOperationParameters[2];
         param[0] = LogbookParameterHelper.newLogbookOperationParameters();
+        param[0].putParameterValue(LogbookParameterName.eventIdentifierProcess, OPERATION_ID);
         param[1] = LogbookParameterHelper.newLogbookOperationParameters();
+        param[1].putParameterValue(LogbookParameterName.eventIdentifierProcess, OPERATION_ID);
         logbookOperationsImpl.updateBulkLogbookOperation(param);
+        verify(storageClient, times(1)).storeFileFromWorkspace(anyString(), any(), anyString(), any());
     }
 
     @Test
