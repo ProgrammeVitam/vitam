@@ -43,5 +43,7 @@ public interface SchedulerClient extends MockOrRestClient {
 
     RequestResponse<JsonNode> triggerJob(String jobName) throws VitamClientException;
 
+    RequestResponse<JsonNode> triggerJob(String jobName, JsonNode jobDataMap) throws VitamClientException;
+
     RequestResponse<JsonNode> triggerJob(byte[] trigger) throws VitamClientException;
 }
