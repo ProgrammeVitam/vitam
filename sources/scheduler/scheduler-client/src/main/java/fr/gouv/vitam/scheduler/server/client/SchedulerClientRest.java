@@ -105,6 +105,17 @@ class SchedulerClientRest extends DefaultClient implements SchedulerClient {
     }
 
     @Override
+    public RequestResponse<JsonNode> triggerJob(String jobName, JsonNode jobDataMap) throws VitamClientException {
+        try (Response response = make(
+            VitamRequestBuilder.post().withPath("/trigger-job/" + jobName).withBody(jobDataMap).withJson())) {
+            check(response);
+            return RequestResponseOK.parseFromResponse(response);
+        } catch (VitamClientInternalException e) {
+            throw new VitamClientException(e);
+        }
+    }
+
+    @Override
     public RequestResponse<JsonNode> triggerJob(byte[] trigger) throws VitamClientException {
         try (Response response = make(
             VitamRequestBuilder.post().withPath("/trigger-job").withBody(trigger).withJson())) {

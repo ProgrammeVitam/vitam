@@ -13,29 +13,51 @@
             file), and over-write is false, ignore them rather then generating an error -->
         <ignore-duplicates>true</ignore-duplicates>
     </processing-directives>
-            <schedule>
-            <job>
-                <name>IntegrityAuditJob</name>
+    <schedule>
+
+        <job>
+            <name>AuditObjectJob</name>
+            <group>audit</group>
+            <description>Job for launching Audit</description>
+            <job-class>fr.gouv.vitam.scheduler.server.job.AuditObjectJob</job-class>
+            <job-data-map>
+                <entry>
+                    <key>operationsDelayInMinutes</key>
+                    <value>1440</value>
+                </entry>
+            </job-data-map>
+        </job>
+        <trigger>
+            <cron>
+                <name>IntegrityAuditObjectTrigger</name>
                 <group>audit</group>
-                <description>Job for launching Integrity Audit</description>
-                <job-class>fr.gouv.vitam.scheduler.server.job.IntegrityAuditJob</job-class>
+                <job-name>AuditObjectJob</job-name>
+                <job-group>audit</job-group>
                 <job-data-map>
                     <entry>
-                        <key>operationsDelayInMinutes</key>
-                        <value>1440</value>
+                        <key>auditType</key>
+                        <value>Integrity</value>
                     </entry>
                 </job-data-map>
-            </job>
-            <trigger>
-                <cron>
-                    <name>IntegrityAuditObjectTrigger</name>
-                    <group>audit</group>
-                    <job-name>IntegrityAuditJob</job-name>
-                    <job-group>audit</job-group>
-                    <cron-expression>* 30 0/4 * * ?</cron-expression>
-                </cron>
-            </trigger>
+                <cron-expression>* 30 0/4 * * ?</cron-expression>
+            </cron>
+        </trigger>
+        <trigger>
+            <cron>
+                <name>ExistenceAuditObjectTrigger</name>
+                <group>audit</group>
+                <job-name>AuditObjectJob</job-name>
+                <job-group>audit</job-group>
+                <job-data-map>
+                    <entry>
+                        <key>auditType</key>
+                        <value>Existence</value>
+                    </entry>
+                </job-data-map>
+                <cron-expression>* 50 0/4 * * ?</cron-expression>
+            </cron>
+        </trigger>
 
-        </schedule>
+    </schedule>
 
 </job-scheduling-data>

@@ -58,7 +58,6 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 
 import java.util.Arrays;
@@ -68,13 +67,12 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class IntegrityAuditJobTest {
+public class AuditObjectJobTest {
 
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -99,7 +97,7 @@ public class IntegrityAuditJobTest {
 
     @Mock private JobExecutionContext context;
 
-    @InjectMocks private IntegrityAuditJob integrityAuditJob;
+    @InjectMocks private AuditObjectJob auditObjectJob;
 
     @Before
     public void setup() {
@@ -108,13 +106,12 @@ public class IntegrityAuditJobTest {
         Mockito.reset(adminManagementClient);
         doReturn(metaDataClient).when(metaDataClientFactory).getClient();
         doReturn(adminManagementClient).when(adminManagementClientFactory).getClient();
-        integrityAuditJob = new IntegrityAuditJob(metaDataClientFactory, logbookOperationsClientFactory,
+        auditObjectJob = new AuditObjectJob(metaDataClientFactory, logbookOperationsClientFactory,
             processingManagementClientFactory, adminManagementClientFactory);
         VitamConfiguration.setAdminTenant(1);
         VitamConfiguration.setTenants(Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9));
-        JobDetail jobDetail = mock(JobDetail.class);
-        when(context.getJobDetail()).thenReturn(jobDetail);
-        when(jobDetail.getJobDataMap()).thenReturn(new JobDataMap(Map.of("operationsDelayInMinutes", 5)));
+        when(context.getMergedJobDataMap()).thenReturn(new JobDataMap(Map.of("operationsDelayInMinutes", 5,
+            "auditType", "Integrity")));
     }
 
     @Before
@@ -142,11 +139,11 @@ public class IntegrityAuditJobTest {
             new ItemStatus().setGlobalState(ProcessState.COMPLETED));
 
         // Call the execute method of IntegrityAuditJob
-        integrityAuditJob.execute(context);
+        auditObjectJob.execute(context);
 
         // Assert that the expected methods were called with the correct arguments
         verify(adminManagementClient, times(1)).launchAuditWorkflow(
-            ArgumentMatchers.argThat(IntegrityAuditJobTest::notUsingLastAuditDate), eq(false));
+            ArgumentMatchers.argThat(AuditObjectJobTest::notUsingLastAuditDate), eq(false));
         verify(adminManagementClient, never()).launchAuditWorkflow(any(), eq(true));
     }
 
@@ -176,11 +173,11 @@ public class IntegrityAuditJobTest {
             new ItemStatus().setGlobalState(ProcessState.COMPLETED));
 
         // Call the execute method of IntegrityAuditJob
-        integrityAuditJob.execute(context);
+        auditObjectJob.execute(context);
 
         // Assert that the expected methods were called with the correct arguments
         verify(adminManagementClient, times(1)).launchAuditWorkflow(
-            ArgumentMatchers.argThat(IntegrityAuditJobTest::usingLastAuditDate), eq(false));
+            ArgumentMatchers.argThat(AuditObjectJobTest::usingLastAuditDate), eq(false));
         verify(adminManagementClient, never()).launchAuditWorkflow(any(), eq(true));
     }
 

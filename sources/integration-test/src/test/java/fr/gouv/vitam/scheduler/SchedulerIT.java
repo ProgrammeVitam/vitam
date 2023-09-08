@@ -64,7 +64,7 @@ import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.scheduler.server.SchedulerMain;
 import fr.gouv.vitam.scheduler.server.client.SchedulerClient;
 import fr.gouv.vitam.scheduler.server.client.SchedulerClientFactory;
-import fr.gouv.vitam.scheduler.server.job.IntegrityAuditJob;
+import fr.gouv.vitam.scheduler.server.job.AuditObjectJob;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
@@ -76,6 +76,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.quartz.JobBuilder;
+import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 
 import java.time.temporal.ChronoUnit;
@@ -148,14 +149,16 @@ public class SchedulerIT extends VitamRuleRunner {
             }
         }, VitamThreadPoolExecutor.getDefaultExecutor()).join();
 
-        JobDetail job = JobBuilder.newJob(IntegrityAuditJob.class)
+        JobDetail job = JobBuilder.newJob(AuditObjectJob.class)
             .usingJobData("operationsDelayInMinutes", DELAY)
             .withIdentity("myJob", "group1")
             .build();
 
         try (SchedulerClient schedulerClient = SchedulerClientFactory.getInstance().getClient()) {
             schedulerClient.scheduleJob(SerializationUtils.serialize(job));
-            schedulerClient.triggerJob("group1.myJob");
+            final JobDataMap jobDataMap = new JobDataMap();
+            jobDataMap.put("auditType", "Integrity");
+            schedulerClient.triggerJob("group1.myJob", JsonHandler.toJsonNode(jobDataMap));
         }
 
         waitJob("group1.myJob");
@@ -177,6 +180,54 @@ public class SchedulerIT extends VitamRuleRunner {
         }, VitamThreadPoolExecutor.getDefaultExecutor()).join();
     }
 
+
+    @Test
+    public void test_existance_audit_job() throws Exception {
+        VitamConfiguration.setTenants(List.of(0, 1));
+
+        // Ingest data to audit
+        CompletableFuture.runAsync(() -> {
+            try {
+                VitamTestHelper.prepareVitamSession(TENANT_ID_0, CONTRACT_ID, CONTEXT_ID);
+                VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+                final String ingestOpId = VitamTestHelper.doIngest(TENANT_ID_0, "elimination/TEST_ELIMINATION_V2.zip");
+                verifyOperation(ingestOpId, OK);
+                logicalClock.logicalSleep(DELAY, ChronoUnit.MINUTES);
+            } catch (VitamException e) {
+                throw new VitamRuntimeException(e);
+            }
+        }, VitamThreadPoolExecutor.getDefaultExecutor()).join();
+
+        JobDetail job = JobBuilder.newJob(AuditObjectJob.class)
+            .usingJobData("operationsDelayInMinutes", DELAY)
+            .withIdentity("myJob", "group1")
+            .build();
+
+        try (SchedulerClient schedulerClient = SchedulerClientFactory.getInstance().getClient()) {
+            schedulerClient.scheduleJob(SerializationUtils.serialize(job));
+            final JobDataMap jobDataMap = new JobDataMap();
+            jobDataMap.put("auditType", "Existence");
+            schedulerClient.triggerJob("group1.myJob", JsonHandler.toJsonNode(jobDataMap));
+        }
+
+        waitJob("group1.myJob");
+
+        // Check
+        CompletableFuture.runAsync(() -> {
+            try {
+                VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID_0);
+                LogbookOperationsClient clients = LogbookOperationsClientFactory.getInstance().getClient();
+                RequestResponseOK<JsonNode> processAudit =
+                    (RequestResponseOK<JsonNode>) clients.getLastOperationByType("PROCESS_AUDIT");
+                LogbookOperation logbookOperation =
+                    JsonHandler.getFromJsonNode(processAudit.getFirstResult(), LogbookOperation.class);
+                assertThat(logbookOperation.getEvents()).filteredOn(e -> e.getEvType().equals("LIST_OBJECTGROUP_ID"))
+                    .extracting(LogbookEvent::getEvDetData).element(0).matches(e -> e.contains("Last_Update_Date"));
+            } catch (InvalidParseOperationException | LogbookClientServerException e) {
+                throw new RuntimeException(e);
+            }
+        }, VitamThreadPoolExecutor.getDefaultExecutor()).join();
+    }
 
     public static void waitJob(String jobKey) {
         try (SchedulerClient schedulerClient = SchedulerClientFactory.getInstance().getClient()) {

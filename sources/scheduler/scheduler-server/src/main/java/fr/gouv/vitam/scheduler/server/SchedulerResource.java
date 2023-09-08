@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.scheduler.server.model.VitamJobDetail;
 import org.apache.commons.lang.SerializationUtils;
+import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
@@ -64,6 +65,8 @@ import java.util.stream.Collectors;
 @Path("/scheduler/v1")
 public class SchedulerResource extends ApplicationStatusResource {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SchedulerResource.class);
+
+    private static final String REG_EXP_SEPARATOR = "\\.";
 
     @GET
     @Path("/current-jobs")
@@ -137,7 +140,7 @@ public class SchedulerResource extends ApplicationStatusResource {
     @Path("/job-state/{job-name}")
     public Response jobState(@PathParam("job-name") String jobName) throws SchedulerException {
         final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
-        String[] jobKeyPath = jobName.split("\\.");
+        String[] jobKeyPath = jobName.split(REG_EXP_SEPARATOR);
         JobKey jobKey =
             (jobKeyPath.length > 1) ? JobKey.jobKey(jobKeyPath[1], jobKeyPath[0]) : JobKey.jobKey(jobKeyPath[0]);
         List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
@@ -194,12 +197,22 @@ public class SchedulerResource extends ApplicationStatusResource {
     @POST
     @Path("/trigger-job/{job-name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response triggerJob(@PathParam("job-name") String jobName) throws SchedulerException {
-        final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
-        String[] jobKeyPath = jobName.split("\\.");
-        JobKey jobKey =
-            (jobKeyPath.length > 1) ? JobKey.jobKey(jobKeyPath[1], jobKeyPath[0]) : JobKey.jobKey(jobKeyPath[0]);
-        scheduler.triggerJob(jobKey);
-        return Response.accepted().build();
+    public Response triggerJob(@PathParam("job-name") String jobName, JsonNode jobDataJson) throws SchedulerException {
+        try {
+            final Scheduler scheduler = SchedulerListener.getInstance().getScheduler();
+            String[] jobKeyPath = jobName.split(REG_EXP_SEPARATOR);
+            JobKey jobKey =
+                (jobKeyPath.length > 1) ? JobKey.jobKey(jobKeyPath[1], jobKeyPath[0]) : JobKey.jobKey(jobKeyPath[0]);
+            if (jobDataJson != null) {
+                JobDataMap jobDataMap = JsonHandler.getFromJsonNode(jobDataJson, JobDataMap.class);
+                scheduler.triggerJob(jobKey, jobDataMap);
+            } else {
+                scheduler.triggerJob(jobKey);
+            }
+            return Response.accepted().build();
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error(e);
+            return Response.serverError().build();
+        }
     }
 }

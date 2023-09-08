@@ -89,11 +89,13 @@ import static fr.gouv.vitam.common.model.ProcessState.PAUSE;
 import static fr.gouv.vitam.common.model.ProcessState.RUNNING;
 
 @DisallowConcurrentExecution
-public class IntegrityAuditJob implements Job {
+public class AuditObjectJob implements Job {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IntegrityAuditJob.class);
-    private static final String operationsDelayInMinutesKey = "operationsDelayInMinutes";
-    private static final String AUDIT_ACTION = "AUDIT_FILE_INTEGRITY";
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AuditObjectJob.class);
+    private static final String AUDIT_TYPE_KEY = "auditType";
+    private static final String OPERATIONS_DELAY_IN_MINUTES_KEY = "operationsDelayInMinutes";
+    private static final String CHECK_INTEGRITY_ID = "AUDIT_FILE_INTEGRITY";
+    private static final String CHECK_EXISTENCE_ID = "AUDIT_FILE_EXISTING";
     private static final String DSL = "dsl";
     private static final long THRESHOLD = VitamConfiguration.getDistributionThreshold();
     private final MetaDataClientFactory metaDataClientFactory;
@@ -101,13 +103,13 @@ public class IntegrityAuditJob implements Job {
     private final ProcessingManagementClientFactory processingManagementClientFactory;
     private final AdminManagementClientFactory adminManagementClientFactory;
 
-    public IntegrityAuditJob() {
+    public AuditObjectJob() {
         this(MetaDataClientFactory.getInstance(), LogbookOperationsClientFactory.getInstance(),
             ProcessingManagementClientFactory.getInstance(), AdminManagementClientFactory.getInstance());
     }
 
     @VisibleForTesting
-    public IntegrityAuditJob(MetaDataClientFactory metaDataClientFactory,
+    public AuditObjectJob(MetaDataClientFactory metaDataClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory,
         AdminManagementClientFactory adminManagementClientFactory) {
@@ -120,20 +122,21 @@ public class IntegrityAuditJob implements Job {
 
     public void execute(JobExecutionContext context) throws JobExecutionException {
         LOGGER.info("Integrity audit job in progress...");
-        JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
-        int operationsDelayInMinutes = jobDataMap.getIntValue(operationsDelayInMinutesKey);
+        JobDataMap jobDataMap = context.getMergedJobDataMap();
+        final int operationsDelayInMinutes = jobDataMap.getIntValue(OPERATIONS_DELAY_IN_MINUTES_KEY);
+        final String auditAction = AuditObjectJob.getAuditAction(jobDataMap.getString(AUDIT_TYPE_KEY));
         boolean atLeastOneTenantFailed = false;
         for (Integer tenantId : VitamConfiguration.getTenants()) {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
-            String operationId = GUIDFactory.newRequestIdGUID(tenantId).getId();
+            final String operationId = GUIDFactory.newRequestIdGUID(tenantId).getId();
             VitamThreadUtils.getVitamSession().setRequestId(operationId);
 
-            String lastAuditDate = findLastSuccessfulAuditData();
-            String lastUpdateDate = getLastUpdateDateFromLastUnitToAudit(operationsDelayInMinutes, lastAuditDate);
+            final String lastAuditDate = findLastSuccessfulAuditData(auditAction);
+            final String lastUpdateDate = getLastUpdateDateFromLastUnitToAudit(operationsDelayInMinutes, lastAuditDate);
             if (lastUpdateDate == null) {
                 LOGGER.info("Skip audit for tenant {} : no new data to audit", tenantId);
             } else {
-                atLeastOneTenantFailed = runAudit(operationId, tenantId, lastUpdateDate, lastAuditDate);
+                atLeastOneTenantFailed = runAudit(operationId, tenantId, auditAction, lastUpdateDate, lastAuditDate);
             }
         }
         if (atLeastOneTenantFailed) {
@@ -142,18 +145,18 @@ public class IntegrityAuditJob implements Job {
         LOGGER.info("Integrity audit job is finished");
     }
 
-    private boolean runAudit(String operationId, Integer tenantId, String lastUpdateDate, String lastAuditDate) {
+    private boolean runAudit(String operationId, Integer tenantId, String auditAction, String lastUpdateDate,
+        String lastAuditDate) {
         try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
             ProcessingManagementClient processingManagementClient = processingManagementClientFactory.getClient()) {
             SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
             if (lastAuditDate != null) {
-                selectMultiQuery.addQueries(
-                    QueryHelper.gte(VitamFieldsHelper.approximateUpdateDate(), lastAuditDate));
+                selectMultiQuery.addQueries(QueryHelper.gte(VitamFieldsHelper.approximateUpdateDate(), lastAuditDate));
             }
             selectMultiQuery.addQueries(QueryHelper.lte(VitamFieldsHelper.approximateUpdateDate(), lastUpdateDate));
 
             AuditOptions options = new AuditOptions();
-            options.setAuditActions(AUDIT_ACTION);
+            options.setAuditActions(auditAction);
             options.setQuery(selectMultiQuery.getFinalSelect());
             options.setAuditType(DSL);
             adminManagementClient.launchAuditWorkflow(options, false);
@@ -192,11 +195,11 @@ public class IntegrityAuditJob implements Job {
         }
     }
 
-    private String findLastSuccessfulAuditData() {
+    private String findLastSuccessfulAuditData(String auditAction) {
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
             Select select = new Select();
             select.setQuery(QueryHelper.and()
-                .add(QueryHelper.eq("events." + LogbookEvent.EV_TYPE, "AUDIT_CHECK_OBJECT." + AUDIT_ACTION),
+                .add(QueryHelper.eq("events." + LogbookEvent.EV_TYPE, "AUDIT_CHECK_OBJECT." + auditAction),
                     QueryHelper.isNull(LogbookEvent.RIGHTS_STATEMENT_IDENTIFIER),
                     QueryHelper.in("events." + LogbookEvent.OUT_DETAIL, Stream.of(StatusCode.OK, StatusCode.WARNING)
                         .map(e -> String.format("%s.%s", Contexts.AUDIT_WORKFLOW.getEventType(), e))
@@ -245,8 +248,7 @@ public class IntegrityAuditJob implements Job {
             DatabaseCursor hits;
             JsonNode result;
             String scrollId = "START";
-            selectMultiQuery.setScrollFilter(scrollId,
-                GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT,
+            selectMultiQuery.setScrollFilter(scrollId, GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT,
                 VitamConfiguration.getElasticSearchScrollLimit());
             String lastUpdateDate = null;
             int size = 0;
@@ -255,8 +257,7 @@ public class IntegrityAuditJob implements Job {
                 RequestResponseOK<JsonNode> requestResponse = RequestResponseOK.getFromJsonNode(result, JsonNode.class);
                 hits = requestResponse.getHits();
                 scrollId = hits.getScrollId();
-                selectMultiQuery.setScrollFilter(scrollId,
-                    GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT,
+                selectMultiQuery.setScrollFilter(scrollId, GlobalDatasParser.DEFAULT_SCROLL_TIMEOUT,
                     VitamConfiguration.getElasticSearchScrollLimit());
                 size += hits.getSize();
                 JsonNode last = Iterables.getLast(requestResponse.getResults(), null);
@@ -272,5 +273,17 @@ public class IntegrityAuditJob implements Job {
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static String getAuditAction(String auditType) {
+        if (auditType == null) {
+            throw new IllegalStateException("Audit type cannot be null");
+        }
+        if (auditType.equalsIgnoreCase("Integrity")) {
+            return CHECK_INTEGRITY_ID;
+        } else if (auditType.equalsIgnoreCase("Existence")) {
+            return CHECK_EXISTENCE_ID;
+        }
+        throw new IllegalStateException("Cannot find audit type = " + auditType);
     }
 }
