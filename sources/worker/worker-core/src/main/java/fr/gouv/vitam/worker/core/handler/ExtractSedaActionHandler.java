@@ -49,6 +49,7 @@ import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SedaConstants;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -92,6 +93,7 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClient;
 import fr.gouv.vitam.functional.administration.client.AdminManagementClientFactory;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
+import fr.gouv.vitam.logbook.common.exception.LogbookClientException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
 import fr.gouv.vitam.logbook.common.model.LogbookLifeCycleObjectGroupModel;
@@ -126,6 +128,7 @@ import fr.gouv.vitam.processing.common.exception.ProcessingManifestReferenceExce
 import fr.gouv.vitam.processing.common.exception.ProcessingNotFoundException;
 import fr.gouv.vitam.processing.common.exception.ProcessingNotValidLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupEveryDataObjectVersionException;
+import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupLifeCycleException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupLinkingException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectGroupMasterMandatoryException;
 import fr.gouv.vitam.processing.common.exception.ProcessingObjectReferenceException;
@@ -192,6 +195,7 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_TRANSFER;
@@ -200,6 +204,7 @@ import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.LOGBOOK_OG_FILE_SUFFIX;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FILE;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.SEDA_FOLDER;
+import static fr.gouv.vitam.common.model.LifeCycleStatusCode.LIFE_CYCLE_IN_PROCESS;
 import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.agentIdentifier;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.eventDateTime;
@@ -531,6 +536,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingAttachmentRequiredException e) {
             updateDetailItemStatus(globalCompositeItemStatus, e.getMessage(), SUBTASK_ATTACHMENT_REQUIRED);
+            globalCompositeItemStatus.increment(StatusCode.KO);
+        } catch (final ProcessingObjectGroupLifeCycleException e) {
+            updateDetailItemStatus(globalCompositeItemStatus,
+                e.getMessage(), null);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingObjectGroupLinkingException e) {
             updateDetailItemStatus(globalCompositeItemStatus,
@@ -2469,9 +2478,38 @@ public class ExtractSedaActionHandler extends ActionHandler {
      */
     private void manageExistingObjectGroups(HandlerIO handlerIO, IngestContext ingestContext,
         IngestSession ingestSession, List<String> uuids) throws ProcessingException {
+        Set<String> toIgnore = new HashSet<>();
+        if (!ingestSession.getExistingGOTs().isEmpty()) {
+            try (LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient()) {
+                for (List<String> partition : Lists.partition(new ArrayList<>(ingestSession.getExistingGOTs().keySet()),
+                    VitamConfiguration.getBatchSize())) {
+                    Select select = new Select();
+                    InQuery evId = QueryHelper.in(VitamFieldsHelper.id(), partition.toArray(String[]::new));
+                    select.setQuery(evId);
+                    select.addUsedProjection(VitamFieldsHelper.id(), LogbookEvent.OB_ID, LogbookEvent.EV_ID_PROC);
+                    JsonNode request = logbookLifeCyclesClient.selectObjectGroupLifeCycle(select.getFinalSelect(),
+                        LIFE_CYCLE_IN_PROCESS);
+                    RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(request);
+                    for (JsonNode json : requestResponseOK.getResults()) {
+                        if (!json.get(LogbookEvent.EV_ID_PROC).asText().equals(handlerIO.getContainerName())) {
+                            throw new ProcessingObjectGroupLifeCycleException(LOGBOOK_LF_OBJECT_EXISTS_EXCEPTION_MSG,
+                                json.get(LogbookEvent.OB_ID).asText());
+                        } else {
+                            toIgnore.add(json.get(VitamFieldsHelper.id()).asText());
+                        }
+                    }
+                }
+            } catch (LogbookClientNotFoundException e) {
+                LOGGER.debug("No logbook currently in process");
+            } catch (LogbookClientException | InvalidCreateOperationException | InvalidParseOperationException e) {
+                LOGGER.error(e.getMessage(), e);
+                throw new ProcessingException(e);
+            }
+        }
+
         final Set<String> collect =
-            ingestSession.getExistingGOTs().entrySet().stream().filter(e -> e.getValue() != null)
-                .map(entry -> entry.getKey() + JSON_EXTENSION).collect(Collectors.toSet());
+            ingestSession.getExistingGOTs().entrySet().stream().filter(e -> e.getValue() != null).map(Entry::getKey)
+                .filter(Predicate.not(toIgnore::contains)).map(e -> e + JSON_EXTENSION).collect(Collectors.toSet());
 
         File existingGotsFile = handlerIO.getNewLocalFile(handlerIO.getOutput(EXISTING_GOT_RANK).getPath());
 

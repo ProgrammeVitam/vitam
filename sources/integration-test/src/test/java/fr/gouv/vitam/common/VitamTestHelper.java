@@ -132,8 +132,8 @@ public class VitamTestHelper {
     public static void runStepByStepUntilStepReached(String operationGuid, String targetStepName)
         throws VitamClientException, InternalServerException, InterruptedException, ProcessingException {
 
-        try (ProcessingManagementClient processingClient =
-            ProcessingManagementClientFactory.getInstance().getClient()) {
+        try (ProcessingManagementClient processingClient = ProcessingManagementClientFactory.getInstance()
+            .getClient()) {
 
             while (true) {
                 ProcessQuery processQuery = new ProcessQuery();
@@ -149,9 +149,8 @@ public class VitamTestHelper {
                                 LOGGER.info(operationGuid + " finished step " + targetStepName);
                                 return;
                             }
-                            processingClient
-                                .executeOperationProcess(operationGuid, DEFAULT_WORKFLOW.name(),
-                                    ProcessAction.NEXT.getValue());
+                            processingClient.executeOperationProcess(operationGuid, DEFAULT_WORKFLOW.name(),
+                                ProcessAction.NEXT.getValue());
                             break;
 
                         case RUNNING:
@@ -172,8 +171,7 @@ public class VitamTestHelper {
     }
 
     public static void verifyLogbook(String operationId, String actionKey, String statusCode) {
-        Document operation =
-            LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
+        Document operation = LogbookCollections.OPERATION.getCollection().find(eq("_id", operationId)).first();
         assertThat(operation).isNotNull();
         assertTrue(operation.toString().contains(String.format("%s.%s", actionKey, statusCode)));
     }
@@ -182,21 +180,18 @@ public class VitamTestHelper {
         try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             return client.selectOperationById(opId);
         } catch (LogbookClientException | InvalidParseOperationException e) {
-            fail("cannot find logbook with id = " + opId, e);
+            return fail("cannot find logbook with id = " + opId, e);
         }
-        return null;
     }
 
-    public static void printLogbook(String opId) {
+    public static String printLogbook(String opId) {
         try {
             JsonNode logbook = findLogbook(opId);
-            assertNotNull(logbook);
             RequestResponseOK<JsonNode> result = RequestResponseOK.getFromJsonNode(logbook);
             assertThat(result.getResults()).isNotEmpty();
-            System.out.println(JsonHandler.prettyPrint(result.getResults().get(0)));
+            return JsonHandler.prettyPrint(result.getFirstResult());
         } catch (InvalidParseOperationException e) {
-            e.printStackTrace();
-            fail("Error", e);
+            return fail("Error", e);
         }
     }
 
@@ -223,20 +218,20 @@ public class VitamTestHelper {
     public static List<JsonNode> getReports(String operationGuid) {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
             Response reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                operationGuid + ".jsonl", DataCategory.REPORT,
-                AccessLogUtils.getNoLogAccessLog())) {
+                operationGuid + ".jsonl", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog())) {
             assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
             return getReport(reportResponse);
         } catch (InvalidParseOperationException | IOException e) {
             fail("error while retrieving report for operation ", operationGuid, e);
-        } catch (StorageServerClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (StorageServerClientException | StorageNotFoundException |
+                 StorageUnavailableDataFromAsyncOfferClientException e) {
             fail("error while retrieving container from storage ", e);
         }
         return null;
     }
 
-    public static String doIngest(int tenantId, String zip, Contexts context,
-        ProcessAction processAction, StatusCode logbookStatus) throws VitamException {
+    public static String doIngest(int tenantId, String zip, Contexts context, ProcessAction processAction,
+        StatusCode logbookStatus) throws VitamException {
         final InputStream zipStream;
         try {
             zipStream = PropertiesUtils.getResourceAsStream(zip);
@@ -247,21 +242,20 @@ public class VitamTestHelper {
         }
     }
 
-    public static String doIngest(int tenantId, InputStream zipStream, Contexts context,
-        ProcessAction processAction, StatusCode logbookStatus)
-        throws VitamException {
+    public static String doIngest(int tenantId, InputStream zipStream, Contexts context, ProcessAction processAction,
+        StatusCode logbookStatus) throws VitamException {
         final WorkFlow workflow =
-            WorkFlow.of(context.name(), context.getEventType(),
-                context.getLogbookTypeProcess().name());
+            WorkFlow.of(context.name(), context.getEventType(), context.getLogbookTypeProcess().name());
         final GUID ingestOperationGuid = GUIDFactory.newOperationLogbookGUID(tenantId);
 
         VitamThreadUtils.getVitamSession().setRequestId(ingestOperationGuid);
 
         // init default logbook operation
         final List<LogbookOperationParameters> params = new ArrayList<>();
-        final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            ingestOperationGuid, context.getEventType(), ingestOperationGuid, LogbookTypeProcess.INGEST,
-            logbookStatus, ingestOperationGuid.toString(), ingestOperationGuid);
+        final LogbookOperationParameters initParameters =
+            LogbookParameterHelper.newLogbookOperationParameters(ingestOperationGuid, context.getEventType(),
+                ingestOperationGuid, LogbookTypeProcess.INGEST, logbookStatus, ingestOperationGuid.toString(),
+                ingestOperationGuid);
         params.add(initParameters);
 
         // call ingest
@@ -303,13 +297,33 @@ public class VitamTestHelper {
         return doIngest(tenantId, zip, DEFAULT_WORKFLOW, ProcessAction.NEXT, StatusCode.STARTED);
     }
 
+    public static String doIngestNext(int tenantId, InputStream is) throws VitamException {
+        return doIngest(tenantId, is, DEFAULT_WORKFLOW, ProcessAction.NEXT, StatusCode.STARTED);
+    }
+
     public static void verifyOperation(String opId, StatusCode statusCode) {
         try (ProcessingManagementClient client = ProcessingManagementClientFactory.getInstance().getClient()) {
-            ItemStatus itemStatus =
-                client.getOperationProcessStatus(opId);
-            if (!statusCode.equals(itemStatus.getGlobalStatus()))
-                VitamTestHelper.printLogbook(opId);
-            assertEquals(statusCode, itemStatus.getGlobalStatus());
+            ItemStatus itemStatus = client.getOperationProcessStatus(opId);
+            try {
+                assertThat(itemStatus.getGlobalStatus()).isEqualTo(statusCode);
+            } catch (AssertionError e) {
+                System.err.println(VitamTestHelper.printLogbook(opId));
+                throw e;
+            }
+        } catch (VitamClientException | InternalServerException | BadRequestException e) {
+            fail("cannot find process with id = ", opId, e);
+        }
+    }
+
+    public static void verifyOperation(String opId, StatusCode... statusCodes) {
+        try (ProcessingManagementClient client = ProcessingManagementClientFactory.getInstance().getClient()) {
+            ItemStatus itemStatus = client.getOperationProcessStatus(opId);
+            try {
+                assertThat(itemStatus.getGlobalStatus()).isIn(statusCodes);
+            } catch (AssertionError e) {
+                System.err.println(VitamTestHelper.printLogbook(opId));
+                throw e;
+            }
         } catch (VitamClientException | InternalServerException | BadRequestException e) {
             fail("cannot find process with id = ", opId, e);
         }
@@ -380,9 +394,8 @@ public class VitamTestHelper {
 
         waitOperation(operationGuid.toString());
 
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance()
-                .findOneProcessWorkflow(operationGuid.toString(), VitamThreadUtils.getVitamSession().getTenantId());
+        ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
+            .findOneProcessWorkflow(operationGuid.toString(), VitamThreadUtils.getVitamSession().getTenantId());
 
         assertNotNull(processWorkflow);
         assertEquals(processState, processWorkflow.getState());
@@ -391,11 +404,11 @@ public class VitamTestHelper {
 
 
     public static JsonNode getObjectfromOffer(String obId, DataCategory dataCategory)
-        throws StorageServerClientException, StorageNotFoundException,
-        InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-            Response object = storageClient
-                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), obId + JSON_EXTENSION,
+            Response object =
+                storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(), obId + JSON_EXTENSION,
                     dataCategory, AccessLogUtils.getNoLogAccessLog());
             InputStream inputStream = object.readEntity(InputStream.class);
             JsonNode resultOffer = JsonHandler.getFromInputStream(inputStream);
@@ -405,32 +418,32 @@ public class VitamTestHelper {
     }
 
     public static JsonNode getUnitLFCfromOffer(String obId)
-        throws StorageServerClientException, StorageNotFoundException,
-        InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         final JsonNode resultOffer = getObjectfromOffer(obId, DataCategory.UNIT);
         assertTrue(resultOffer.has(LFC_KEY));
         return resultOffer.get(LFC_KEY);
     }
 
     public static JsonNode getObjectGroupLFCfromOffer(String obId)
-        throws StorageServerClientException, StorageNotFoundException,
-        InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         final JsonNode resultOffer = getObjectfromOffer(obId, DataCategory.OBJECTGROUP);
         assertTrue(resultOffer.has(LFC_KEY));
         return resultOffer.get(LFC_KEY);
     }
 
     public static JsonNode getUnitfromOffer(String obId)
-        throws StorageServerClientException, StorageNotFoundException,
-        InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         final JsonNode resultOffer = getObjectfromOffer(obId, DataCategory.UNIT);
         assertTrue(resultOffer.has(UNIT_KEY));
         return resultOffer.get(UNIT_KEY);
     }
 
     public static JsonNode getObjectGroupfromOffer(String obId)
-        throws StorageServerClientException, StorageNotFoundException,
-        InvalidParseOperationException, StorageUnavailableDataFromAsyncOfferClientException {
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
+        StorageUnavailableDataFromAsyncOfferClientException {
         final JsonNode resultOffer = getObjectfromOffer(obId, DataCategory.OBJECTGROUP);
         assertTrue(resultOffer.has(GOT_KEY));
         return resultOffer.get(GOT_KEY);
