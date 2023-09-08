@@ -60,7 +60,6 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.logbook.LogbookEvent;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
-import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
@@ -138,18 +137,24 @@ public class LogbookOperationsImpl implements LogbookOperations {
     }
 
     @Override
-    public void create(LogbookOperationParameters parameters)
+    public void create(String operationId, LogbookOperationParameters... parameters)
         throws LogbookAlreadyExistsException,
         LogbookDatabaseException {
-        mongoDbAccess.createLogbookOperation(parameters);
-        backupOperation(parameters);
+        if (parameters == null || parameters.length == 0) {
+            throw new IllegalArgumentException("No Logbook");
+        }
+        mongoDbAccess.createLogbookOperation(operationId, parameters);
+        backupOperation(operationId);
     }
 
     @Override
-    public void update(LogbookOperationParameters parameters)
+    public void update(String operationId, LogbookOperationParameters... parameters)
         throws LogbookNotFoundException, LogbookDatabaseException {
-        mongoDbAccess.updateLogbookOperation(parameters);
-        backupOperation(parameters);
+        if (parameters == null || parameters.length == 0) {
+            throw new IllegalArgumentException("No Logbook");
+        }
+        mongoDbAccess.updateLogbookOperation(operationId, parameters);
+        backupOperation(operationId);
     }
 
     @Override
@@ -187,9 +192,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
             operations.add(doc);
         }
 
-        return (cursor.getScrollId() == null) ?
-            new RequestResponseOK<>(select, operations, (int) cursor.getTotal()) :
-            new RequestResponseOK<>(select, operations, (int) cursor.getTotal());
+        return new RequestResponseOK<>(select, operations, (int) cursor.getTotal());
 
     }
 
@@ -241,20 +244,6 @@ public class LogbookOperationsImpl implements LogbookOperations {
     public LogbookOperation getById(String idProcess, JsonNode query, boolean sliced, boolean crossTenant)
         throws LogbookDatabaseException, LogbookNotFoundException {
         return mongoDbAccess.getLogbookOperationById(idProcess, query, sliced, crossTenant);
-    }
-
-    @Override
-    public final void createBulkLogbookOperation(final LogbookOperationParameters[] operationArray)
-        throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        mongoDbAccess.createBulkLogbookOperation(operationArray);
-        backupBulkOperation(operationArray);
-    }
-
-    @Override
-    public final void updateBulkLogbookOperation(final LogbookOperationParameters[] operationArray)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        mongoDbAccess.updateBulkLogbookOperation(operationArray);
-        backupBulkOperation(operationArray);
     }
 
     @Override
@@ -510,8 +499,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
         }
     }
 
-    private void backupOperation(LogbookOperationParameters parameters) throws LogbookDatabaseException {
-        String operationGuid = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
+    private void backupOperation(String operationGuid) throws LogbookDatabaseException {
         LogbookOperation logbookOperation;
         try {
             logbookOperation = mongoDbAccess.getLogbookOperationById(operationGuid);
@@ -546,13 +534,6 @@ public class LogbookOperationsImpl implements LogbookOperations {
             LOGGER.warn("Cannot delete temporary backup operation file with GUID {}", operationGuid, e);
         } catch (InvalidParseOperationException e) {
             throw new LogbookDatabaseException("Cannot backup operation with GUID " + operationGuid, e);
-        }
-    }
-
-    private void backupBulkOperation(LogbookOperationParameters[] parametersArray) throws LogbookDatabaseException {
-        for (LogbookOperationParameters parameters : parametersArray) {
-            // TODO: better exception management ?
-            backupOperation(parameters);
         }
     }
 }

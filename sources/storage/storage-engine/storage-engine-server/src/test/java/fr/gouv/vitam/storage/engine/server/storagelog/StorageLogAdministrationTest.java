@@ -53,6 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyIterable;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -114,7 +115,7 @@ public class StorageLogAdministrationTest {
         verify(distribution).storeDataInAllOffers(eq(STRATEGY_ID), anyString(), any(ObjectDescription.class),
             eq(DataCategory.STORAGELOG), eq(null));
         verify(workspaceClient).deleteContainer(anyString(), anyBoolean());
-        verify(logbookOperationsClient).bulkCreate(anyString(), any());
+        verify(logbookOperationsClient).create(anyString(), anyIterable());
     }
 
     @Test
@@ -132,7 +133,7 @@ public class StorageLogAdministrationTest {
         verify(distribution).storeDataInAllOffers(eq(STRATEGY_ID), anyString(), any(ObjectDescription.class),
             eq(DataCategory.STORAGEACCESSLOG), eq(null));
         verify(workspaceClient).deleteContainer(anyString(), anyBoolean());
-        verify(logbookOperationsClient).bulkCreate(anyString(), any());
+        verify(logbookOperationsClient).create(anyString(), any());
     }
 
     @Test
@@ -152,6 +153,6 @@ public class StorageLogAdministrationTest {
         // ensure workspace clean
         verify(workspaceClient).deleteContainer(anyString(), anyBoolean());
         // ensure logbook creation
-        verify(logbookOperationsClient).bulkCreate(anyString(), any());
+        verify(logbookOperationsClient).create(anyString(), any());
     }
 }

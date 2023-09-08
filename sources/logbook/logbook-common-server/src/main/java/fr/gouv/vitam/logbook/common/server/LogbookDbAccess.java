@@ -143,55 +143,6 @@ public interface LogbookDbAccess {
     LogbookOperation getLogbookOperationById(String eventIdentifierProcess, JsonNode query, boolean slice,
         boolean crossTenant) throws LogbookDatabaseException, LogbookNotFoundException;
 
-    /**
-     * Create one Logbook Operation
-     *
-     * @param operationItem
-     * @throws LogbookDatabaseException
-     * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
-     */
-    void createLogbookOperation(final LogbookOperationParameters operationItem)
-        throws LogbookDatabaseException, LogbookAlreadyExistsException;
-
-    /**
-     * Create one Logbook LifeCycle unit
-     *
-     * @param idOperation
-     * @param lifecycleItem
-     * @throws LogbookDatabaseException
-     * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
-     */
-    void createLogbookLifeCycleUnit(final String idOperation, final LogbookLifeCycleUnitParameters lifecycleItem)
-        throws LogbookDatabaseException, LogbookAlreadyExistsException;
-
-    /**
-     * Create one Logbook LifeCycle object group
-     *
-     * @param idOperation
-     * @param lifecycleItem
-     * @throws LogbookDatabaseException
-     * @throws LogbookAlreadyExistsException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
-     */
-    void createLogbookLifeCycleObjectGroup(final String idOperation,
-        final LogbookLifeCycleObjectGroupParameters lifecycleItem)
-        throws LogbookDatabaseException, LogbookAlreadyExistsException;
-
-
-    /**
-     * Update one Logbook Operation <br>
-     * <br>
-     * It adds this new entry within the very same Logbook Operaton entry in "events" array.
-     *
-     * @param operationItem
-     * @throws LogbookDatabaseException
-     * @throws LogbookNotFoundException
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
-     */
-    void updateLogbookOperation(LogbookOperationParameters operationItem)
-        throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Update one Logbook LifeCycle <br>
@@ -301,7 +252,7 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
-    void createBulkLogbookOperation(LogbookOperationParameters... operationItems)
+    void createLogbookOperation(String operationId, LogbookOperationParameters... operationItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
 
     /**
@@ -312,7 +263,7 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
-    void createBulkLogbookLifeCycleUnit(LogbookLifeCycleUnitParameters... lifecycleItems)
+    void createLogbookLifeCycleUnit(String operationId, LogbookLifeCycleUnitParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
 
     /**
@@ -323,7 +274,8 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
-    void createBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
+    void createLogbookLifeCycleObjectGroup(String operationId,
+        LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
 
     /**
@@ -331,12 +283,13 @@ public interface LogbookDbAccess {
      * <br>
      * It adds this new entry within the very same Logbook Operaton entry in "events" array.
      *
+     * @param operationId
      * @param operationItems
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    void updateBulkLogbookOperation(LogbookOperationParameters... operationItems)
+    void updateLogbookOperation(String operationId, LogbookOperationParameters... operationItems)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
@@ -350,7 +303,7 @@ public interface LogbookDbAccess {
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
      */
-    void updateBulkLogbookLifeCycleUnit(LogbookLifeCycleUnitParameters... lifecycleItems)
+    void updateLogbookLifeCycleUnit(LogbookLifeCycleUnitParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
 
     /**
@@ -364,7 +317,7 @@ public interface LogbookDbAccess {
      * @throws LogbookNotFoundException
      * @throws LogbookAlreadyExistsException
      */
-    void updateBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
+    void updateLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
 
     VitamMongoCursor<LogbookOperation> getLogbookOperations(JsonNode select, boolean sliced)
@@ -577,9 +530,10 @@ public interface LogbookDbAccess {
      */
     String getInfo();
 
-    void bulkInsert(LogbookCollections lifecycleUnit, List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
+    void bulkInsert(String idOp, LogbookCollections lifecycleUnit,
+        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
         throws DatabaseException;
 
-    void updateLogbookLifeCycle(LogbookCollections collection,
+    void updateLogbookLifeCycleBulk(LogbookCollections collection,
         List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk);
 }

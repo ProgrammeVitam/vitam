@@ -65,7 +65,7 @@ public class LogbookOperationsClientHelper {
      * @param parameters to check
      * @return the primary key
      */
-    public static final String checkLogbookParameters(LogbookOperationParameters parameters) {
+    public static String checkLogbookParameters(LogbookOperationParameters parameters) {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier,
             SERVER_IDENTITY.getJsonIdentity());
         if (!LogbookTypeProcess.EXTERNAL_LOGBOOK.equals(parameters.getTypeProcess())

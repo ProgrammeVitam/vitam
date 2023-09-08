@@ -285,7 +285,7 @@ public class StorageTraceabilityAdministrationTest {
 
     private TraceabilityEvent getTraceabilityEvent(LogbookOperationParameters logbookOperationParameters)
         throws InvalidParseOperationException {
-        String evDetData = logbookOperationParameters.getMapParameters().get(LogbookParameterName.masterData);
+        String evDetData = logbookOperationParameters.getMapParameters().get(LogbookParameterName.eventDetailData);
         if (evDetData == null) {
             return null;
         }

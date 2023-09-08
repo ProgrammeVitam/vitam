@@ -108,7 +108,7 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         // mongo
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
         // es
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
@@ -121,6 +121,7 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
         mongoDbAccess = LogbookMongoDbAccessFactory.create(config, Collections::emptyList, indexManager);
         assertNotNull(mongoDbAccess);
         final LogbookOperationParameters parameters = LogbookParameterHelper.newLogbookOperationParameters();
+        String eip = parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             if (LogbookParameterName.eventDateTime.equals(name)) {
                 parameters.putParameterValue(name, LocalDateUtil.now().toString());
@@ -129,7 +130,7 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
                     GUIDFactory.newEventGUID(0).getId());
             }
         }
-        mongoDbAccess.createLogbookOperation(parameters);
+        mongoDbAccess.createLogbookOperation(eip, parameters);
         mongoDbAccess.close();
     }
 

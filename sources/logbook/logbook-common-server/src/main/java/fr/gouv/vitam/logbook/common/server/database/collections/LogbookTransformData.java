@@ -42,12 +42,15 @@ public class LogbookTransformData {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookTransformData.class);
 
+    private LogbookTransformData() {
+    }
+
     /**
      * Replace the "evDetData" value in the document and the sub-events from a string by a json object
      *
      * @param document logbook document
      */
-    public void transformDataForElastic(Document document) {
+    public static void transformDataForElastic(Document document) {
         if (document.get(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
             String evDetDataString = (String) document.get(LogbookMongoDbName.eventDetailData.getDbname());
             LOGGER.debug(evDetDataString);
@@ -83,7 +86,7 @@ public class LogbookTransformData {
                 LOGGER.warn("rightsStatementIdentifier is not a json compatible field", e);
             }
         }
-        List<Document> eventDocuments = (List<Document>) document.get(LogbookDocument.EVENTS);
+        List<Document> eventDocuments = document.getList(LogbookDocument.EVENTS, Document.class);
         if (eventDocuments != null) {
             for (Document eventDocument : eventDocuments) {
                 if (eventDocument.getString(LogbookMongoDbName.eventDetailData.getDbname()) != null) {
@@ -111,6 +114,5 @@ public class LogbookTransformData {
         }
         document.remove(LogbookDocument.EVENTS);
         document.put(LogbookDocument.EVENTS, eventDocuments);
-
     }
 }

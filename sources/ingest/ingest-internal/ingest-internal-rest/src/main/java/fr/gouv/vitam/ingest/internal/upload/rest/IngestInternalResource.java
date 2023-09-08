@@ -173,7 +173,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             VitamThreadUtils.getVitamSession().checkValidRequestId();
             ParametersChecker.checkParameter("list is a Mandatory parameter", queue);
-            client.bulkCreate(VitamThreadUtils.getVitamSession().getRequestId(), queue);
+            client.create(VitamThreadUtils.getVitamSession().getRequestId(), queue);
             return Response.status(Status.CREATED).build();
         } catch (IllegalArgumentException | LogbookClientBadRequestException e) {
             LOGGER.error(e);
@@ -201,7 +201,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             VitamThreadUtils.getVitamSession().checkValidRequestId();
             ParametersChecker.checkParameter("list is a Mandatory parameter", queue);
-            client.bulkUpdate(VitamThreadUtils.getVitamSession().getRequestId(), queue);
+            client.update(VitamThreadUtils.getVitamSession().getRequestId(), queue);
             return Response.status(Status.OK).build();
         } catch (IllegalArgumentException | LogbookClientBadRequestException e) {
             LOGGER.error(e);
@@ -695,7 +695,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
 
     private boolean isCompletedProcess(ProcessState processState) {
-        return processState != null && (ProcessState.COMPLETED.equals(processState));
+        return (ProcessState.COMPLETED.equals(processState));
     }
 
     /**

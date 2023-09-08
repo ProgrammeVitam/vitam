@@ -62,6 +62,7 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
+import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -89,7 +90,6 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
@@ -98,16 +98,14 @@ import static org.mockito.Mockito.when;
 public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
     protected static LogbookOperationsClientRest client;
 
-    @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
+    @ClassRule public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
 
     protected final static ExpectedResults mock = mock(ExpectedResults.class);
 
     static LogbookOperationsClientFactory factory = LogbookOperationsClientFactory.getInstance();
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
+    public static VitamServerTestRunner vitamServerTestRunner =
         new VitamServerTestRunner(LogbookOperationsClientRestTest.class, factory);
 
     @BeforeClass
@@ -160,7 +158,7 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response createOperation(@PathParam("id_op") String operationId,
-            LogbookOperationParameters operation) {
+            LogbookOperationParameters... operation) {
             return mock.post();
         }
 
@@ -168,7 +166,8 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
         @Path("/operations/{id_op}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response updateOperation(@PathParam("id_op") String operationId, LogbookOperationParameters operation) {
+        public Response updateOperation(@PathParam("id_op") String operationId,
+            LogbookOperationParameters... operation) {
             return mock.put();
         }
 
@@ -177,8 +176,7 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
         @Path("/operations/traceability")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response traceability(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-            List<Integer> tenants) {
+        public Response traceability(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId, List<Integer> tenants) {
             return mock.post();
         }
 
@@ -386,8 +384,7 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
         public Response updateObjectGroupLifeCyclesByOperation(@PathParam("id_op") String operationId,
-            @PathParam("id_lc") String objGrpId,
-            @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
+            @PathParam("id_lc") String objGrpId, @HeaderParam(GlobalDataRest.X_EVENT_STATUS) String evtStatus,
             LogbookLifeCycleObjectGroupParameters parameters) {
             return mock.put();
         }
@@ -607,41 +604,34 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
     @Test
     public void traceability() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(1);
-        when(mock.post())
-            .thenReturn(
-                Response.status(Status.OK).entity(
-                        new RequestResponseOK<TenantLogbookOperationTraceabilityResult>()
-                            .setHttpCode(Status.OK.getStatusCode()))
-                    .build());
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(
+                new RequestResponseOK<TenantLogbookOperationTraceabilityResult>().setHttpCode(Status.OK.getStatusCode()))
+            .build());
         client.traceability(Collections.singletonList(0));
     }
 
     @Test
     public void traceabilityLfcUnit() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(mock.post())
-            .thenReturn(Response.status(Status.OK).entity(
-                new RequestResponseOK<String>().addResult("guid1")).build());
+        when(mock.post()).thenReturn(
+            Response.status(Status.OK).entity(new RequestResponseOK<String>().addResult("guid1")).build());
         client.traceabilityLfcObjectGroup();
     }
 
     @Test
     public void traceabilityLfcObjectGroup() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(mock.post())
-            .thenReturn(Response.status(Status.OK).entity(
-                new RequestResponseOK<String>().addResult("guid1")).build());
+        when(mock.post()).thenReturn(
+            Response.status(Status.OK).entity(new RequestResponseOK<String>().addResult("guid1")).build());
         client.traceabilityLfcObjectGroup();
     }
 
     @Test
     public void checkLifecycleTraceabilityWorkflowStatus() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(mock.get())
-            .thenReturn(Response.status(Status.OK).entity(
-                new RequestResponseOK<LifecycleTraceabilityStatus>().addResult(
-                    new LifecycleTraceabilityStatus(true, false, "MY_STATUS", true)
-                )).build());
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(
+            new RequestResponseOK<LifecycleTraceabilityStatus>().addResult(
+                new LifecycleTraceabilityStatus(true, false, "MY_STATUS", true))).build());
         LifecycleTraceabilityStatus lifecycleTraceabilityStatus = client.checkLifecycleTraceabilityWorkflowStatus("id");
         assertTrue(lifecycleTraceabilityStatus.isCompleted());
         assertEquals(lifecycleTraceabilityStatus.getOutcome(), "MY_STATUS");
@@ -698,127 +688,95 @@ public class LogbookOperationsClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void statusExecutionWithBody() throws Exception {
-        when(mock.get()).thenReturn(Response.status(Status.OK).entity("{\"name\":\"logbook\",\"role\":\"myRole\"," +
-                "\"pid\":123}")
-            .build());
+        when(mock.get()).thenReturn(
+            Response.status(Status.OK).entity("{\"name\":\"logbook\",\"role\":\"myRole\"," + "\"pid\":123}").build());
         client.checkStatus();
     }
 
     @Test
     public void selectExecution() throws Exception {
         when(mock.get()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
-        try {
-            client.selectOperationById("id");
-            fail("Should raized an exception");
-        } catch (final LogbookClientNotFoundException e) {
 
-        }
+        Assertions.assertThatCode(() -> client.selectOperationById("id"))
+            .isInstanceOf(LogbookClientNotFoundException.class);
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
-        try {
-            client.selectOperationById("id");
-            fail("Should raized an exception");
-        } catch (final LogbookClientException e) {
 
-        }
+        Assertions.assertThatCode(() -> client.selectOperationById("id")).isInstanceOf(LogbookClientException.class);
         reset(mock);
         when(mock.get()).thenReturn(Response.status(Response.Status.PRECONDITION_FAILED).build());
-        try {
-            client.selectOperation(JsonHandler.createObjectNode());
-            fail("Should raized an exception");
-        } catch (final LogbookClientException e) {
 
-        }
+
+        Assertions.assertThatCode(() -> client.selectOperation(JsonHandler.createObjectNode()))
+            .isInstanceOf(LogbookClientException.class);
         final GUID eip = GUIDFactory.newEventGUID(0);
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
-        client.createDelegate(logbookParameters);
-        client.updateDelegate(logbookParameters);
+        final LogbookOperationParameters logbookParameters =
+            LogbookParameterHelper.newLogbookOperationParameters(eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
+                StatusCode.STARTED, "start ingest", eip);
+        List<LogbookOperationParameters> logbooksToUpdate = new ArrayList<>();
         reset(mock);
         when(mock.post()).thenReturn(Response.status(Response.Status.CREATED).build());
-        client.commitCreateDelegate(eip.getId());
+        client.create(logbookParameters);
 
-        client.updateDelegate(logbookParameters);
-        client.updateDelegate(logbookParameters);
+        logbooksToUpdate.add(logbookParameters);
+        logbooksToUpdate.add(logbookParameters);
+        logbooksToUpdate.add(logbookParameters);
+
         reset(mock);
         when(mock.put()).thenReturn(Response.status(Response.Status.OK).build());
-        client.commitUpdateDelegate(eip.getId());
+        client.update(eip.getId(), logbooksToUpdate);
 
         final List<LogbookOperationParameters> list = new ArrayList<>();
         list.add(logbookParameters);
         list.add(logbookParameters);
         reset(mock);
         when(mock.post()).thenReturn(Response.status(Response.Status.CONFLICT).build());
-        try {
-            client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), list);
-            fail("Should raized an exception");
-        } catch (final LogbookClientAlreadyExistsException e) {
-        }
+
+        Assertions.assertThatCode(() -> client.create(LogbookParameterName.eventIdentifierProcess.name(), list))
+            .isInstanceOf(LogbookClientAlreadyExistsException.class);
         reset(mock);
         when(mock.post()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
-        try {
-            client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), list);
-            fail("Should raized an exception");
-        } catch (final LogbookClientBadRequestException e) {
-        }
-        try {
-            client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), null);
-            fail("Should raized an exception");
-        } catch (final LogbookClientBadRequestException e) {
-        }
+
+
+        Assertions.assertThatCode(() -> client.create(LogbookParameterName.eventIdentifierProcess.name(), list))
+            .isInstanceOf(LogbookClientBadRequestException.class);
+
         reset(mock);
         when(mock.put()).thenReturn(Response.status(Response.Status.NOT_FOUND).build());
-        try {
-            client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), list);
-            fail("Should raized an exception");
-        } catch (final LogbookClientNotFoundException e) {
-        }
+
+        Assertions.assertThatCode(() -> client.update(LogbookParameterName.eventIdentifierProcess.name(), list))
+            .isInstanceOf(LogbookClientNotFoundException.class);
+
         reset(mock);
         when(mock.put()).thenReturn(Response.status(Response.Status.BAD_REQUEST).build());
-        try {
-            client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), list);
-            fail("Should raized an exception");
-        } catch (final LogbookClientBadRequestException e) {
-        }
-        try {
-            client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), null);
-            fail("Should raized an exception");
-        } catch (final LogbookClientBadRequestException e) {
-        }
-
+        Assertions.assertThatCode(() -> client.update(LogbookParameterName.eventIdentifierProcess.name(), list))
+            .isInstanceOf(LogbookClientBadRequestException.class);
     }
 
 
     @Test
     @RunWithCustomExecutor
-    public void launchReindexationTest()
-        throws InvalidParseOperationException, LogbookClientServerException {
-        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(JsonHandler.createObjectNode())
-            .build());
+    public void launchReindexationTest() throws InvalidParseOperationException, LogbookClientServerException {
+        when(mock.post()).thenReturn(Response.status(Status.CREATED).entity(JsonHandler.createObjectNode()).build());
         assertNotNull(client.reindex(new IndexParameters()));
     }
 
     @Test
     @RunWithCustomExecutor
-    public void switchIndexesTest()
-        throws InvalidParseOperationException, LogbookClientServerException {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode())
-            .build());
+    public void switchIndexesTest() throws InvalidParseOperationException, LogbookClientServerException {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode()).build());
         assertNotNull(client.switchIndexes(new SwitchIndexParameters()));
     }
 
     @Test
     @RunWithCustomExecutor
-    public void traceabilityAuditTest()
-        throws InvalidParseOperationException, LogbookClientServerException {
-        when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode())
-            .build());
+    public void traceabilityAuditTest() throws LogbookClientServerException {
+        when(mock.post()).thenReturn(Response.status(Status.OK).entity(JsonHandler.createObjectNode()).build());
         client.traceabilityAudit(0, new AuditLogbookOptions());
     }
 
     @Test
-    public void closeExecution() throws Exception {
+    public void closeExecution() {
         client.close();
     }
 }

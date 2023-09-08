@@ -82,7 +82,6 @@ public class ReconstructionService {
 
     private final RestoreBackupService restoreBackupService;
     private final VitamRepositoryProvider vitamRepositoryProvider;
-    private final LogbookTransformData logbookTransformData;
 
     private final OffsetRepository offsetRepository;
     private final ElasticsearchLogbookIndexManager indexManager;
@@ -98,8 +97,8 @@ public class ReconstructionService {
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
         OffsetRepository offsetRepository,
         ElasticsearchLogbookIndexManager indexManager, LogbookReconstructionMetricsCache reconstructionMetricsCache) {
-        this(vitamRepositoryProvider, new RestoreBackupService(),
-            new LogbookTransformData(), offsetRepository, indexManager, reconstructionMetricsCache);
+        this(vitamRepositoryProvider, new RestoreBackupService(), offsetRepository, indexManager,
+            reconstructionMetricsCache);
     }
 
     /**
@@ -107,20 +106,17 @@ public class ReconstructionService {
      *
      * @param vitamRepositoryProvider vitamRepositoryProvider
      * @param recoverBackupService recoverBackupService
-     * @param logbookTransformData logbookTransformData
      * @param offsetRepository
      * @param indexManager
      */
     @VisibleForTesting
     public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
         RestoreBackupService recoverBackupService,
-        LogbookTransformData logbookTransformData,
         OffsetRepository offsetRepository,
         ElasticsearchLogbookIndexManager indexManager,
         LogbookReconstructionMetricsCache reconstructionMetricsCache) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = recoverBackupService;
-        this.logbookTransformData = logbookTransformData;
         this.offsetRepository = offsetRepository;
         this.indexManager = indexManager;
         this.reconstructionMetricsCache = reconstructionMetricsCache;
@@ -272,7 +268,7 @@ public class ReconstructionService {
         List<Document> logbooks =
             bulk.stream().map(LogbookBackupModel::getLogbookOperation).collect(Collectors.toList());
         mongoRepository.saveOrUpdate(logbooks);
-        logbooks.forEach(this.logbookTransformData::transformDataForElastic);
+        logbooks.forEach(LogbookTransformData::transformDataForElastic);
         esRepository.save(logbooks);
     }
 }

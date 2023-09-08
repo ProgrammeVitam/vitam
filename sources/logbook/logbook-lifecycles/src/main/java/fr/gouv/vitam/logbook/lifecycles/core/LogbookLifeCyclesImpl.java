@@ -220,40 +220,55 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public void createBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
+    public void createBulkLogbookLifecycle(String operationId, LogbookLifeCycleParameters[] lifecycleArray)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        ParametersChecker.checkParameter("idOperation should not be null or empty", idOp);
+        ParametersChecker.checkParameter("operationId should not be null or empty", operationId);
         if (lifecycleArray == null || lifecycleArray.length == 0) {
             throw new IllegalArgumentException("No LifeCycle Logbook");
         }
-        if (!lifecycleArray[0].getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOp)) {
-            LOGGER.error("incoherence entry for idOperation");
-            throw new IllegalArgumentException("incoherence entry for idOperation");
+        for (LogbookLifeCycleParameters logbookLifeCycleParameters : lifecycleArray) {
+            if (!logbookLifeCycleParameters.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+                .equals(operationId)) {
+                LOGGER.error("incoherence entry for operationId");
+                throw new IllegalArgumentException("incoherence entry for operationId");
+            }
         }
+        String objectIdentifier = lifecycleArray[0].getParameterValue(LogbookParameterName.objectIdentifier);
+        for (LogbookLifeCycleParameters logbookLifeCycleParameters : lifecycleArray) {
+            if (!logbookLifeCycleParameters.getParameterValue(LogbookParameterName.objectIdentifier)
+                .equals(objectIdentifier)) {
+                LOGGER.error("incoherence entry for objectIdentifier");
+                throw new IllegalArgumentException("incoherence entry for objectIdentifier");
+            }
+        }
+
         if (lifecycleArray instanceof LogbookLifeCycleUnitParameters[]) {
-            mongoDbAccess.createBulkLogbookLifeCycleUnit((LogbookLifeCycleUnitParameters[]) lifecycleArray);
+            mongoDbAccess.createLogbookLifeCycleUnit(operationId, (LogbookLifeCycleUnitParameters[]) lifecycleArray);
         } else {
             mongoDbAccess
-                .createBulkLogbookLifeCycleObjectGroup((LogbookLifeCycleObjectGroupParameters[]) lifecycleArray);
+                .createLogbookLifeCycleObjectGroup(operationId,
+                    (LogbookLifeCycleObjectGroupParameters[]) lifecycleArray);
         }
     }
 
     @Override
-    public void updateBulkLogbookLifecycle(String idOp, LogbookLifeCycleParameters[] lifecycleArray)
+    public void updateBulkLogbookLifecycle(String operationId, LogbookLifeCycleParameters[] lifecycleArray)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
-        ParametersChecker.checkParameter("idOperation should not be null or empty", idOp);
+        ParametersChecker.checkParameter("idOperation should not be null or empty", operationId);
         if (lifecycleArray == null || lifecycleArray.length == 0) {
             throw new IllegalArgumentException("No LifeCycle Logbook");
         }
-        if (!lifecycleArray[0].getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOp)) {
-            LOGGER.error("incoherence entry for idOperation");
-            throw new IllegalArgumentException("incoherence entry for idOperation");
+        for (LogbookLifeCycleParameters logbookLifeCycleParameters : lifecycleArray) {
+            if (!logbookLifeCycleParameters.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+                .equals(operationId)) {
+                LOGGER.error("incoherence entry for operationId");
+                throw new IllegalArgumentException("incoherence entry for operationId");
+            }
         }
         if (lifecycleArray instanceof LogbookLifeCycleUnitParameters[]) {
-            mongoDbAccess.updateBulkLogbookLifeCycleUnit((LogbookLifeCycleUnitParameters[]) lifecycleArray);
+            mongoDbAccess.updateLogbookLifeCycleUnit((LogbookLifeCycleUnitParameters[]) lifecycleArray);
         } else {
-            mongoDbAccess
-                .updateBulkLogbookLifeCycleObjectGroup((LogbookLifeCycleObjectGroupParameters[]) lifecycleArray);
+            mongoDbAccess.updateLogbookLifeCycleObjectGroup((LogbookLifeCycleObjectGroupParameters[]) lifecycleArray);
         }
     }
 
@@ -368,7 +383,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public void bulk(LogbookCollections collections, String idOp,
         List<? extends LogbookLifeCycleModel> logbookLifeCycleModels) throws DatabaseException {
-        mongoDbAccess.bulkInsert(collections, logbookLifeCycleModels);
+        mongoDbAccess.bulkInsert(idOp, collections, logbookLifeCycleModels);
     }
 
     @Override
@@ -480,7 +495,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     @Override
     public void updateLogbookLifeCycleBulk(LogbookCollections logbookCollections,
         List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
-        mongoDbAccess.updateLogbookLifeCycle(logbookCollections, logbookLifeCycleParametersBulk);
+        mongoDbAccess.updateLogbookLifeCycleBulk(logbookCollections, logbookLifeCycleParametersBulk);
     }
 
     @Override

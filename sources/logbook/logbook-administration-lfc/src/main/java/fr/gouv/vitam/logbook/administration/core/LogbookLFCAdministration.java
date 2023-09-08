@@ -347,7 +347,7 @@ public class LogbookLFCAdministration {
                     VitamLogbookMessages.getCodeOp(workflowContext.getEventType(), StatusCode.STARTED),
                     traceabilityOperationGUID);
             LogbookOperationsClientHelper.checkLogbookParameters(logbookUpdateParametersStart);
-            logbookOperations.create(logbookUpdateParametersStart);
+            logbookOperations.create(traceabilityOperationGUID.getId(), logbookUpdateParametersStart);
             try {
 
                 ProcessingEntry processingEntry =
@@ -385,7 +385,7 @@ public class LogbookLFCAdministration {
                                 StatusCode.KO),
                             traceabilityOperationGUID);
                 LogbookOperationsClientHelper.checkLogbookParameters(logbookUpdateParametersEnd);
-                logbookOperations.update(logbookUpdateParametersEnd);
+                logbookOperations.update(traceabilityOperationGUID.getId(), logbookUpdateParametersEnd);
                 throw e;
             }
         }

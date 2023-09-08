@@ -89,6 +89,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Stream;
 
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
@@ -146,7 +147,7 @@ public class LogbookResourceTest {
 
     private static final String BODY_QUERY_1 =
         "{$query: {$eq: {\"evType\" : \"eventTypeValueSelectId\"}}, $projection: {}, $filter: {}}";
-    private static JunitHelper junitHelper = JunitHelper.getInstance();
+    private static final JunitHelper junitHelper = JunitHelper.getInstance();
     private static final String FILE_QUERY_OFFSET_LIMIT = "logbook_request_offset_limit.json";
 
 
@@ -158,8 +159,8 @@ public class LogbookResourceTest {
     private final static ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils
         .createTestIndexManager(tenantList, Collections.emptyMap());
 
-    private static int workspacePort = junitHelper.findAvailablePort();
-    private static int processingPort = junitHelper.findAvailablePort();
+    private static final int workspacePort = junitHelper.findAvailablePort();
+    private static final int processingPort = junitHelper.findAvailablePort();
 
     @ClassRule
     public static WireMockClassRule workspaceWireMockRule = new WireMockClassRule(workspacePort);
@@ -176,7 +177,7 @@ public class LogbookResourceTest {
     public static void setUpBeforeClass() throws Exception {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
         List<ElasticsearchNode> esNodes =
             Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
 
@@ -325,7 +326,7 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(logbookParametersStart.toString())
+            .body(Stream.of(logbookParametersStart).toArray(LogbookOperationParameters[]::new))
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI,
                 logbookParametersStart.getParameterValue(
@@ -340,7 +341,7 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(logbookParametersAppend.toString())
+            .body(Stream.of(logbookParametersAppend).toArray(LogbookOperationParameters[]::new))
             .when()
             .put(OPERATIONS_URI + OPERATION_ID_URI,
                 logbookParametersAppend.getParameterValue(
@@ -355,7 +356,7 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(logbookParametersWrongStart.toString())
+            .body(Stream.of(logbookParametersWrongStart).toArray(LogbookOperationParameters[]::new))
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI,
                 logbookParametersWrongStart.getParameterValue(
@@ -370,7 +371,7 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(logbookParametersWrongAppend.toString())
+            .body(Stream.of(logbookParametersWrongAppend).toArray(LogbookOperationParameters[]::new))
             .when()
             .put(OPERATIONS_URI + OPERATION_ID_URI,
                 logbookParametersWrongAppend.getParameterValue(
@@ -401,9 +402,9 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.unprettyPrint(queue))
-            .when()
-            .post(OPERATIONS_URI)
+            .body(queue.toArray(LogbookOperationParameters[]::new))
+            .when().post(OPERATIONS_URI + OPERATION_ID_URI,
+                start.getParameterValue(LogbookParameterName.eventIdentifierProcess))
             .then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -427,9 +428,10 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.unprettyPrint(queue))
+            .body(queue.toArray(LogbookOperationParameters[]::new))
             .when()
-            .put(OPERATIONS_URI)
+            .put(OPERATIONS_URI + OPERATION_ID_URI,
+                start.getParameterValue(LogbookParameterName.eventIdentifierProcess))
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
@@ -504,9 +506,10 @@ public class LogbookResourceTest {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.unprettyPrint(queue))
+            .body(queue.toArray(LogbookOperationParameters[]::new))
             .when()
-            .post(OPERATIONS_URI)
+            .post(OPERATIONS_URI + OPERATION_ID_URI,
+                start.getParameterValue(LogbookParameterName.eventIdentifierProcess))
             .then()
             .statusCode(Status.CREATED.getStatusCode());
         // When
@@ -534,7 +537,7 @@ public class LogbookResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(logbookParametersSelect.toString())
+            .body(Stream.of(logbookParametersSelect).toArray(LogbookOperationParameters[]::new))
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI,
                 logbookParametersSelect.getParameterValue(
@@ -562,7 +565,7 @@ public class LogbookResourceTest {
         with()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .contentType(ContentType.JSON)
-            .body(logbookParametersSelectId.toString())
+            .body(Stream.of(logbookParametersSelectId).toArray(LogbookOperationParameters[]::new))
             .pathParam("id_op",
                 logbookParametersSelectId.getParameterValue(LogbookParameterName.eventIdentifierProcess))
             .when()

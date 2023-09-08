@@ -283,7 +283,8 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
         LogbookOperationsClientHelper.checkLogbookParameters(logbookParameters);
         try {
             logbookOperationsClient.create(logbookParameters);
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientServerException e) {
+        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException |
+                 LogbookClientServerException e) {
             throw new TraceabilityException("unable to create traceability logbook", e);
         }
 
@@ -304,7 +305,11 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
             String eventData = unprettyPrint(event);
             logbookOperationParameters
                 .putParameterValue(LogbookParameterName.eventDetailData, eventData);
-            logbookOperationParameters.putParameterValue(LogbookParameterName.masterData, eventData);
+
+            ObjectNode masterData = JsonHandler.createObjectNode();
+            masterData.put("eventDetailData", eventData);
+            logbookOperationParameters.putParameterValue(LogbookParameterName.masterData,
+                JsonHandler.unprettyPrint(masterData));
         }
         try {
             logbookOperationsClient.update(logbookOperationParameters);

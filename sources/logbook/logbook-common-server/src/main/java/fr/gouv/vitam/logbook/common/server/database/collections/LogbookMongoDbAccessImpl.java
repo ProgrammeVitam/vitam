@@ -44,6 +44,7 @@ import com.mongodb.client.model.BulkWriteOptions;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.InsertOneModel;
+import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.UpdateOneModel;
 import com.mongodb.client.model.Updates;
@@ -166,7 +167,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     private final LogbookElasticsearchAccess esClient;
-    private final LogbookTransformData logbookTransformData;
     private final OntologyLoader ontologyLoader;
 
     /**
@@ -180,11 +180,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws IllegalArgumentException if mongoClient or dbname is null
      */
     public LogbookMongoDbAccessImpl(MongoClient mongoClient, final String dbname, final boolean recreate,
-        LogbookElasticsearchAccess esClient, LogbookTransformData logbookTransformData,
-        OntologyLoader ontologyLoader) {
+        LogbookElasticsearchAccess esClient, OntologyLoader ontologyLoader) {
         super(mongoClient, dbname);
         this.esClient = esClient;
-        this.logbookTransformData = logbookTransformData;
         this.ontologyLoader = ontologyLoader;
 
         // FIXME : externalize initialization of collections to avoid being dependant of current class instanciation
@@ -259,17 +257,17 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public final long getLogbookOperationSize() {
+    public long getLogbookOperationSize() {
         return LogbookCollections.OPERATION.getCollection().countDocuments();
     }
 
     @Override
-    public final long getLogbookLifeCyleUnitSize() {
+    public long getLogbookLifeCyleUnitSize() {
         return LogbookCollections.LIFECYCLE_UNIT.getCollection().countDocuments();
     }
 
     @Override
-    public final long getLogbookLifeCyleObjectGroupSize() {
+    public long getLogbookLifeCyleObjectGroupSize() {
         return LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().countDocuments();
     }
 
@@ -286,9 +284,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     /**
      * Force flush on disk (MongoDB): should not be used
      */
-    final void flushOnDisk() {
-        getMongoAdmin().runCommand(new BasicDBObject("fsync", 1).append("async", true)
-            .append("lock", false));
+    void flushOnDisk() {
+        getMongoAdmin().runCommand(new BasicDBObject("fsync", 1).append("async", true).append("lock", false));
     }
 
     /**
@@ -345,8 +342,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @Override
     public MongoCursor<LogbookLifeCycle<?>> getLogbookLifeCycles(JsonNode select, boolean sliced,
-        LogbookCollections collection)
-        throws LogbookDatabaseException, VitamDBException {
+        LogbookCollections collection) throws LogbookDatabaseException, VitamDBException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         if (sliced) {
             final ObjectNode operationSlice = JsonHandler.createObjectNode();
@@ -359,8 +355,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @Override
     public VitamMongoCursor<LogbookLifeCycleUnit> getLogbookLifeCycleUnitsFull(LogbookCollections collection,
-        Select select)
-        throws LogbookDatabaseException {
+        Select select) throws LogbookDatabaseException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         try {
             return findLifecyleLogbooksFromMongo(collection, select);
@@ -371,9 +366,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @Override
     public VitamMongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroupsFull(
-        LogbookCollections collection,
-        Select select)
-        throws LogbookDatabaseException {
+        LogbookCollections collection, Select select) throws LogbookDatabaseException {
         ParametersChecker.checkParameter(SELECT_PARAMETER_IS_NULL, select);
         try {
             return findLifecyleLogbooksFromMongo(collection, select);
@@ -390,11 +383,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @return True if one LogbookDocument<?> object exists with this id
      * @throws LogbookDatabaseException
      */
-    final boolean exists(final LogbookCollections collection, final String id)
-        throws LogbookDatabaseException {
+    boolean exists(final LogbookCollections collection, final String id) throws LogbookDatabaseException {
         try {
-            return collection.getCollection().find(eq(LogbookDocument.ID,
-                id)).projection(ID_PROJECTION).first() != null;
+            return collection.getCollection().find(eq(LogbookDocument.ID, id)).projection(ID_PROJECTION).first() !=
+                null;
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case EXECUTION_TIMEOUT:
@@ -402,30 +394,26 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 case UNCATEGORIZED:
                 default:
                     throw new LogbookDatabaseException(
-                        EXISTS_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
+                        EXISTS_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",
                         e);
             }
         }
     }
 
     @Override
-    public final boolean existsLogbookOperation(final String operationItem)
-        throws LogbookDatabaseException {
+    public boolean existsLogbookOperation(final String operationItem) throws LogbookDatabaseException {
         ParametersChecker.checkParameter(OPERATION_ITEM, operationItem);
         return exists(LogbookCollections.OPERATION, operationItem);
     }
 
     @Override
-    public boolean existsLogbookLifeCycleUnit(String unitId)
-        throws LogbookDatabaseException {
+    public boolean existsLogbookLifeCycleUnit(String unitId) throws LogbookDatabaseException {
         ParametersChecker.checkParameter(LIFECYCLE_ITEM, unitId);
         return exists(LogbookCollections.LIFECYCLE_UNIT, unitId);
     }
 
     @Override
-    public boolean existsLogbookLifeCycleObjectGroup(String objectGroupId)
-        throws LogbookDatabaseException {
+    public boolean existsLogbookLifeCycleObjectGroup(String objectGroupId) throws LogbookDatabaseException {
         ParametersChecker.checkParameter(LIFECYCLE_ITEM, objectGroupId);
         return exists(LogbookCollections.LIFECYCLE_OBJECTGROUP, objectGroupId);
     }
@@ -448,8 +436,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 case UNCATEGORIZED:
                 default:
                     throw new LogbookDatabaseException(
-                        SELECT_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
+                        SELECT_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",
                         e);
             }
         }
@@ -463,9 +450,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @Override
     public LogbookOperation getLogbookOperationById(@Nonnull String eventIdentifierProcess, @Nonnull JsonNode query,
-        boolean sliced,
-        boolean crossTenant)
-        throws LogbookDatabaseException, LogbookNotFoundException {
+        boolean sliced, boolean crossTenant) throws LogbookDatabaseException, LogbookNotFoundException {
         try {
             SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
             parser.parse(query);
@@ -478,11 +463,10 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
             final SelectToMongodb selectToMongoDb = new SelectToMongodb(parser);
             final Bson finalQuery = QueryToMongodb.getCommand(selectToMongoDb.getSingleSelect().getQuery());
-            Bson condition = and(finalQuery,
-                eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter()));
+            Bson condition = and(finalQuery, eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter()));
             if (crossTenant) {
-                condition =
-                    or(condition, and(finalQuery, in(LogbookEvent.EV_TYPE, LogbookCollections.MULTI_TENANT_EV_TYPES),
+                condition = or(condition,
+                    and(finalQuery, in(LogbookEvent.EV_TYPE, LogbookCollections.MULTI_TENANT_EV_TYPES),
                         eq(VitamDocument.TENANT_ID, VitamConfiguration.getAdminTenant())));
             }
             final Bson projection = selectToMongoDb.getFinalProjection();
@@ -523,16 +507,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     private <T extends VitamDocument<?>> VitamMongoCursor<T> select(final LogbookCollections collection,
-        final JsonNode select,
-        final ObjectNode slice)
-        throws LogbookDatabaseException, VitamDBException {
+        final JsonNode select, final ObjectNode slice) throws LogbookDatabaseException, VitamDBException {
         return select(collection, select, slice, false);
     }
 
     private <T extends VitamDocument<?>> VitamMongoCursor<T> findLifecyleLogbooksFromMongo(
-        final MongoCollection<T> collection,
-        SelectParserSingle parser)
-        throws InvalidParseOperationException {
+        final MongoCollection<T> collection, SelectParserSingle parser) throws InvalidParseOperationException {
         final SelectToMongodb selectToMongoDb = new SelectToMongodb(parser);
         final Bson condition = and(QueryToMongodb.getCommand(selectToMongoDb.getSingleSelect().getQuery()),
             eq(VitamDocument.TENANT_ID, ParameterHelper.getTenantParameter()));
@@ -559,8 +539,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws InvalidParseOperationException
      */
     private <T extends VitamDocument<?>> VitamMongoCursor<T> findLifecyleLogbooksFromMongo(
-        final LogbookCollections collection, Select select)
-        throws InvalidParseOperationException {
+        final LogbookCollections collection, Select select) throws InvalidParseOperationException {
         final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
         parser.parse(select.getFinalSelect());
         return findLifecyleLogbooksFromMongo(collection.getCollection(), parser);
@@ -573,171 +552,6 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             return new LogbookLifeCycleUnitInProcess((LogbookLifeCycleUnitParameters) item);
         } else {
             return new LogbookLifeCycleObjectGroupInProcess((LogbookLifeCycleObjectGroupParameters) item);
-        }
-    }
-
-    private VitamDocument<?> getDocumentForUpdate(LogbookParameters item) {
-        if (item instanceof LogbookOperationParameters) {
-            return new LogbookOperation((LogbookOperationParameters) item, true);
-        } else if (item instanceof LogbookLifeCycleUnitParameters) {
-            return new LogbookLifeCycleUnitInProcess((LogbookLifeCycleUnitParameters) item);
-        } else {
-            return new LogbookLifeCycleObjectGroupInProcess((LogbookLifeCycleObjectGroupParameters) item);
-        }
-    }
-
-    final void createLogbook(LogbookCollections collection, LogbookParameters item)
-        throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
-        try {
-            VitamDocument<?> vitamDocument = getDocument(item);
-
-            vitamDocument.append(TENANT_ID, ParameterHelper.getTenantParameter());
-            vitamDocument.append(VERSION, 0);
-            vitamDocument.append(LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(now()));
-
-            collection.getCollection().insertOne(vitamDocument);
-
-            if (LogbookCollections.OPERATION.equals(collection)) {
-                insertIntoElasticsearch(collection, vitamDocument);
-            }
-        } catch (final MongoException e) {
-            switch (getErrorCategory(e)) {
-                case DUPLICATE_KEY:
-                    throw new LogbookAlreadyExistsException(CREATION_ISSUE + ELEMENT_ALREADY_EXISTS, e);
-                case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException(CREATION_ISSUE + TIMEOUT_OPERATION, e);
-                case UNCATEGORIZED:
-                default:
-                    throw new LogbookDatabaseException(
-                        CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
-            }
-        } catch (final LogbookExecutionException e) {
-            throw new LogbookDatabaseException(e);
-        }
-    }
-
-    @Override
-    public void createLogbookOperation(LogbookOperationParameters operationItem)
-        throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        createLogbook(LogbookCollections.OPERATION, operationItem);
-    }
-
-    @Override
-    public void createLogbookLifeCycleUnit(String idOperation, LogbookLifeCycleUnitParameters lifecycleItem)
-        throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        if (!lifecycleItem.getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOperation)) {
-            throw new IllegalArgumentException("Wrong IdOperation set to create the LifeCycle");
-        }
-        createLogbook(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, lifecycleItem);
-    }
-
-    @Override
-    public void createLogbookLifeCycleObjectGroup(String idOperation,
-        LogbookLifeCycleObjectGroupParameters lifecycleItem)
-        throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        if (!lifecycleItem.getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOperation)) {
-            throw new IllegalArgumentException("Wrong IdOperation set to create the LifeCycle");
-        }
-        createLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, lifecycleItem);
-    }
-
-    private String createUnitaryUpdateForMaster(String mainLogbookDocumentId,
-        String masterData)
-        throws LogbookNotFoundException {
-        try {
-            LogbookOperation oldValue =
-                LogbookCollections.OPERATION.<LogbookOperation>getCollection()
-                    .find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
-            // the test shouldn't be necessary, but...
-            if (oldValue != null) {
-                Object evdevObj = oldValue.get(LogbookMongoDbName.eventDetailData.getDbname());
-                ObjectNode oldEvDetData = (ObjectNode) JsonHandler.getFromString("{}");
-                String old;
-                if (evdevObj != null) {
-                    if (evdevObj instanceof String) {
-                        old = (String) evdevObj;
-                    } else {
-                        old = JsonHandler.unprettyPrint(evdevObj);
-                    }
-                    JsonNode node = JsonHandler.getFromString(old);
-                    if (node instanceof ObjectNode) {
-                        oldEvDetData = (ObjectNode) node;
-                    } else {
-                        LOGGER.warn("Bad evDevData : {}", old);
-                    }
-                }
-                if (ParametersChecker.isNotEmpty(masterData)) {
-                    ObjectNode master = (ObjectNode) JsonHandler.getFromString(masterData);
-                    oldEvDetData.setAll(master);
-                    return JsonHandler.unprettyPrint(oldEvDetData);
-                }
-            } else {
-                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
-            }
-        } catch (InvalidParseOperationException e) {
-            LOGGER.warn("masterData is not parsable as a json. Analyse cancelled: " + masterData, e);
-        }
-        return null;
-    }
-
-    // FIXME bug 6542: 06/04/2020 Not idempotent ?!
-    @Override
-    public void updateLogbookOperation(LogbookOperationParameters item)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, item);
-        final VitamDocument<?> event = getDocumentForUpdate(item);
-        try {
-            // Save the _id content before removing it
-            final String mainLogbookDocumentId = event.getId();
-
-            List<Bson> listUpdates = new ArrayList<>();
-            Bson mainUpdate = Updates.push(LogbookDocument.EVENTS, event);
-            listUpdates.add(mainUpdate);
-            // add 1 to version
-            listUpdates.add(Updates.inc(LogbookDocument.VERSION, 1));
-            String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
-            // Update last persisted date
-            listUpdates
-                .add(Updates.set(LAST_PERSISTED_DATE, lastPersistedDate));
-
-            if (item.getParameterValue(LogbookParameterName.masterData) != null &&
-                !item.getParameterValue(LogbookParameterName.masterData).isEmpty()) {
-                String evDetDataFinalValue = createUnitaryUpdateForMaster(mainLogbookDocumentId,
-                    item.getParameterValue(LogbookParameterName.masterData));
-                if (evDetDataFinalValue != null && !evDetDataFinalValue.isEmpty()) {
-                    Bson masterUpdate =
-                        Updates.set(LogbookMongoDbName.eventDetailData.getDbname(), evDetDataFinalValue);
-                    listUpdates.add(masterUpdate);
-                }
-            }
-            // Remove _id and events fields
-            removeDuplicatedInformation(event);
-
-            final LogbookOperation result =
-                LogbookCollections.OPERATION.<LogbookOperation>getCollection().findOneAndUpdate(
-                    eq(LogbookDocument.ID, mainLogbookDocumentId),
-                    combine(listUpdates),
-                    new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
-            if (result == null) {
-                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
-            }
-            updateIntoElasticsearch(LogbookCollections.OPERATION, result);
-
-        } catch (final MongoException e) {
-            switch (getErrorCategory(e)) {
-                case EXECUTION_TIMEOUT:
-                    throw new LogbookDatabaseException(UPDATE_ISSUE + TIMEOUT_OPERATION, e);
-                case UNCATEGORIZED:
-                default:
-                    throw new LogbookDatabaseException(
-                        UPDATE_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() + ")",
-                        e);
-            }
-        } catch (LogbookExecutionException e) {
-            throw new LogbookDatabaseException(e);
         }
     }
 
@@ -796,11 +610,11 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
 
         // Update the temporary lifeCycle
-        updateBulkLogbook(inProcessCollection, documentId, parameters);
+        updateLogbook(inProcessCollection, documentId, parameters);
     }
 
     @Override
-    public void updateLogbookLifeCycle(LogbookCollections collection,
+    public void updateLogbookLifeCycleBulk(LogbookCollections collection,
         List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, collection);
         if (logbookLifeCycleParametersBulk == null || logbookLifeCycleParametersBulk.isEmpty()) {
@@ -816,16 +630,15 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             String id = lifeCycleParametersBulk.getId();
             List<LogbookLifeCycleParameters> lifeCycleParameters = lifeCycleParametersBulk.getLifeCycleParameters();
 
-            List<LogbookLifeCycle<?>> events = lifeCycleParameters.stream()
-                .map(event -> {
-                    if (event.getParameterValue(LogbookParameterName.eventDateTime) == null) {
-                        event.putParameterValue(LogbookParameterName.eventDateTime, now().toString());
-                    }
-                    LogbookLifeCycle<?> logbookLifeCycle = new LogbookLifeCycle<>(event);
-                    removeDuplicatedInformation(logbookLifeCycle);
-                    logbookLifeCycle.append(LAST_PERSISTED_DATE, lastPersistedDate);
-                    return logbookLifeCycle;
-                }).collect(Collectors.toList());
+            List<LogbookLifeCycle<?>> events = lifeCycleParameters.stream().map(event -> {
+                if (event.getParameterValue(LogbookParameterName.eventDateTime) == null) {
+                    event.putParameterValue(LogbookParameterName.eventDateTime, now().toString());
+                }
+                LogbookLifeCycle<?> logbookLifeCycle = new LogbookLifeCycle<>(event);
+                removeDuplicatedInformation(logbookLifeCycle);
+                logbookLifeCycle.append(LAST_PERSISTED_DATE, lastPersistedDate);
+                return logbookLifeCycle;
+            }).collect(Collectors.toList());
 
             List<Bson> listMaster = new ArrayList<>();
 
@@ -836,16 +649,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             listMaster.add(Updates.set(LAST_PERSISTED_DATE, lastPersistedDate));
 
             updates.add(new UpdateOneModel<>(eq("_id", id), combine(listMaster)));
-            // modifie le master pour rajouter de nouvelles info au master.
-            // checkCopyToMaster(collection, items[i]);
         }
         BulkWriteResult bulkWriteResult =
             collection.getCollection().bulkWrite(updates, new BulkWriteOptions().ordered(false));
 
         if (bulkWriteResult.getModifiedCount() != logbookLifeCycleParametersBulk.size()) {
-            throw new VitamRuntimeException(
-                String.format("Error while bulk update document count : %s != size : %s :",
-                    bulkWriteResult.getModifiedCount(), logbookLifeCycleParametersBulk.size()));
+            throw new VitamRuntimeException(String.format("Error while bulk update document count : %s != size : %s :",
+                bulkWriteResult.getModifiedCount(), logbookLifeCycleParametersBulk.size()));
         }
     }
 
@@ -881,8 +691,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
 
     @Override
     public void updateLogbookLifeCycleObjectGroup(String idOperation, String idLfc,
-        LogbookLifeCycleObjectGroupParameters lifecycleItem,
-        boolean commit)
+        LogbookLifeCycleObjectGroupParameters lifecycleItem, boolean commit)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
         if (!lifecycleItem.getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOperation)) {
             throw new IllegalArgumentException("Wrong IdOperation set to update the LifeCycle");
@@ -895,15 +704,14 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
     }
 
-    final void rollbackLogbookLifeCycle(LogbookCollections collection, String idOperation, String lifecycleItem)
+    void rollbackLogbookLifeCycle(LogbookCollections collection, String idOperation, String lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(LIFECYCLE_ITEM, lifecycleItem);
         try {
-            final DeleteResult result = collection.getCollection().deleteOne(
-                and(eq(LogbookDocument.ID, lifecycleItem),
-                    or(eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), idOperation),
-                        eq(LogbookDocument.EVENTS + '.' + LogbookMongoDbName.eventIdentifierProcess.getDbname(),
-                            idOperation))));
+            final DeleteResult result = collection.getCollection().deleteOne(and(eq(LogbookDocument.ID, lifecycleItem),
+                or(eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), idOperation),
+                    eq(LogbookDocument.EVENTS + '.' + LogbookMongoDbName.eventIdentifierProcess.getDbname(),
+                        idOperation))));
             if (result.getDeletedCount() != 1) {
                 throw new LogbookNotFoundException(ROLLBACK_ISSUE + " not found: " + lifecycleItem);
             }
@@ -915,8 +723,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 default:
                     throw new LogbookDatabaseException(
                         ROLLBACK_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
+                            ")", e);
             }
         }
     }
@@ -933,13 +740,13 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         rollbackLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, idOperation, lifecycleItem);
     }
 
-    final void createBulkLogbook(LogbookCollections collection, final LogbookParameters... items)
+    private void createLogbook(String operationId, LogbookCollections collection, final LogbookParameters... items)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
         if (items == null || items.length == 0) {
             throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
         }
 
-        final VitamDocument<?> document = initializeVitamDocument(Lists.newArrayList(items));
+        final VitamDocument<?> document = initializeVitamDocument(operationId, Lists.newArrayList(items));
 
         try {
             collection.getCollection().insertOne(document);
@@ -956,8 +763,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 default:
                     throw new LogbookDatabaseException(
                         CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
+                            ")", e);
             }
         } catch (final LogbookExecutionException e) {
             throw new LogbookDatabaseException(e);
@@ -965,45 +771,39 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public final void createBulkLogbookOperation(final LogbookOperationParameters... operationItems)
+    public void createLogbookOperation(String operationId, final LogbookOperationParameters... operationItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        createBulkLogbook(LogbookCollections.OPERATION, operationItems);
+        createLogbook(operationId, LogbookCollections.OPERATION, operationItems);
     }
 
     @Override
-    public final void createBulkLogbookLifeCycleUnit(final LogbookLifeCycleUnitParameters... lifecycleItems)
+    public void createLogbookLifeCycleUnit(String operationId, final LogbookLifeCycleUnitParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        createBulkLogbook(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, lifecycleItems);
+        createLogbook(operationId, LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, lifecycleItems);
     }
 
     @Override
-    public final void createBulkLogbookLifeCycleObjectGroup(
+    public void createLogbookLifeCycleObjectGroup(String operationId,
         final LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        createBulkLogbook(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, lifecycleItems);
+        createLogbook(operationId, LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, lifecycleItems);
     }
 
-    final void updateBulkLogbook(final LogbookCollections collection, final String documentId,
-        final LogbookParameters... items)
-        throws LogbookDatabaseException, LogbookNotFoundException {
+    private void updateLogbook(final LogbookCollections collection, final String documentId,
+        final LogbookParameters... items) throws LogbookDatabaseException, LogbookNotFoundException {
         if (items == null || items.length == 0) {
             throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
         }
         final List<VitamDocument<?>> events = new ArrayList<>(items.length);
-        // Get the first event to preserve the _id field value
-        final VitamDocument<?> firstEvent = getDocumentForUpdate(items[0]);
-        final String mainLogbookDocumentId = documentId != null ? documentId : firstEvent.getId();
-
         String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
-        removeDuplicatedInformation(firstEvent);
-        events.add(firstEvent);
+
 
         List<Bson> listMaster = new ArrayList<>();
-        for (int i = 1; i < items.length; i++) {
+        for (LogbookParameters item : items) {
             // Remove _id and events fields
-            final VitamDocument<?> currentEvent = getDocument(items[i]);
+            final VitamDocument<?> currentEvent = getDocument(item);
             removeDuplicatedInformation(currentEvent);
-            listMaster.addAll(checkCopyToMaster(collection, items[i]));
+            listMaster.addAll(checkCopyToMaster(collection, item));
 
             events.add(currentEvent);
         }
@@ -1019,12 +819,11 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         // Update last persisted date
         listMaster.add(Updates.set(LAST_PERSISTED_DATE, lastPersistedDate));
         try {
-            final VitamDocument<?> result = (VitamDocument<?>) collection.getCollection().findOneAndUpdate(
-                eq(LogbookDocument.ID, mainLogbookDocumentId),
-                combine(listMaster),
-                new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+            final VitamDocument<?> result = (VitamDocument<?>) collection.getCollection()
+                .findOneAndUpdate(eq(LogbookDocument.ID, documentId), combine(listMaster),
+                    new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
             if (result == null) {
-                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + mainLogbookDocumentId);
+                throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + documentId);
             }
             // FIXME : to be refactor when other collection are indexed in ES
             if (LogbookCollections.OPERATION.equals(collection)) {
@@ -1046,19 +845,19 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public final void updateBulkLogbookOperation(final LogbookOperationParameters... operationItems)
+    public void updateLogbookOperation(String operationId, final LogbookOperationParameters... operationItems)
         throws LogbookDatabaseException, LogbookNotFoundException {
-        updateBulkLogbook(LogbookCollections.OPERATION, null, operationItems);
+        updateLogbook(LogbookCollections.OPERATION, operationId, operationItems);
     }
 
     @Override
-    public void updateBulkLogbookLifeCycleUnit(LogbookLifeCycleUnitParameters... lifecycleItems)
+    public void updateLogbookLifeCycleUnit(LogbookLifeCycleUnitParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
         updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, null, lifecycleItems);
     }
 
     @Override
-    public void updateBulkLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
+    public void updateLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
         updateLogbookLifeCycle(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, null, lifecycleItems);
     }
@@ -1083,8 +882,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 esClient.purgeIndexForTesting(collection, tenantId);
             }
             if (result.getDeletedCount() != count) {
-                throw new DatabaseException(String.format("%s: Delete %s from %s elements", collection.getName(), result
-                    .getDeletedCount(), count));
+                throw new DatabaseException(
+                    String.format("%s: Delete %s from %s elements", collection.getName(), result.getDeletedCount(),
+                        count));
             }
         }
     }
@@ -1098,14 +898,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     @Override
     public LogbookLifeCycleObjectGroupInProcess getLogbookLifeCycleObjectGroupInProcess(String objectGroupId)
         throws LogbookDatabaseException, LogbookNotFoundException {
-        return getLogbookLFC(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.getCollection(),
-            objectGroupId);
+        return getLogbookLFC(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.getCollection(), objectGroupId);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public void createLogbookLifeCycleUnit(
-        LogbookLifeCycleUnitInProcess logbookLifeCycleUnitInProcess)
+    public void createLogbookLifeCycleUnit(LogbookLifeCycleUnitInProcess logbookLifeCycleUnitInProcess)
         throws LogbookDatabaseException, LogbookAlreadyExistsException {
 
         // Create Unit lifeCycle from LogbookLifeCycleUnitInProcess instance
@@ -1117,14 +915,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
             // Update last persisted date
             logbookLifeCycleUnit.append(LAST_PERSISTED_DATE, lastPersistedDate);
-            List<Document> events =
-                (List<Document>) logbookLifeCycleUnit.get(LogbookDocument.EVENTS);
+            List<Document> events = (List<Document>) logbookLifeCycleUnit.get(LogbookDocument.EVENTS);
             for (Document event : events) {
                 event.append(LAST_PERSISTED_DATE, lastPersistedDate);
             }
 
-            LogbookCollections.LIFECYCLE_UNIT.getCollection()
-                .insertOne(logbookLifeCycleUnit);
+            LogbookCollections.LIFECYCLE_UNIT.getCollection().insertOne(logbookLifeCycleUnit);
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case DUPLICATE_KEY:
@@ -1135,8 +931,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 default:
                     throw new LogbookDatabaseException(
                         CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
+                            ")", e);
             }
         }
     }
@@ -1156,14 +951,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
             // Update last persisted date
             logbookLifeCycleObjectGroup.append(LAST_PERSISTED_DATE, lastPersistedDate);
-            List<Document> events =
-                (List<Document>) logbookLifeCycleObjectGroup.get(LogbookDocument.EVENTS);
+            List<Document> events = (List<Document>) logbookLifeCycleObjectGroup.get(LogbookDocument.EVENTS);
             for (Document event : events) {
                 event.append(LAST_PERSISTED_DATE, lastPersistedDate);
             }
 
-            LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection()
-                .insertOne(logbookLifeCycleObjectGroup);
+            LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().insertOne(logbookLifeCycleObjectGroup);
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case DUPLICATE_KEY:
@@ -1174,8 +967,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 default:
                     throw new LogbookDatabaseException(
                         CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
+                            ")", e);
             }
         }
     }
@@ -1186,8 +978,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         try {
 
             // 1- Delete temporary lifeCycles
-            DeleteResult result = isProcessCollection.getCollection()
-                .deleteMany(or(eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId),
+            DeleteResult result = isProcessCollection.getCollection().deleteMany(
+                or(eq(LogbookMongoDbName.eventIdentifierProcess.getDbname(), operationId),
                     eq(LogbookDocument.EVENTS + '.' + LogbookMongoDbName.eventIdentifierProcess.getDbname(),
                         operationId)));
 
@@ -1202,8 +994,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 default:
                     throw new LogbookDatabaseException(
                         ROLLBACK_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
+                            ")", e);
             }
         }
     }
@@ -1214,9 +1005,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
      * @throws LogbookDatabaseException if mongo execution error
      * @throws LogbookAlreadyExistsException if duplicated key in mongo
      */
-    public void createLogbookLifeCycleForUpdate(LogbookCollections inProccessCollection,
-        LogbookLifeCycle<?> logbookLifeCycleInProd)
-        throws LogbookDatabaseException, LogbookAlreadyExistsException {
+    private void createLogbookLifeCycleForUpdate(LogbookCollections inProccessCollection,
+        LogbookLifeCycle<?> logbookLifeCycleInProd) throws LogbookDatabaseException, LogbookAlreadyExistsException {
 
         // Create Unit lifeCycle from LogbookLifeCycleUnitInProcess instance
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, logbookLifeCycleInProd);
@@ -1241,11 +1031,9 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 LogbookTypeProcess.UPDATE.toString());
             logbookLifeCycleInProcess.append(LogbookDocument.EVENTS, Collections.emptyList());
             // Update last persisted date
-            logbookLifeCycleInProcess.append(LAST_PERSISTED_DATE,
-                LocalDateUtil.getFormattedDateForMongo(now()));
+            logbookLifeCycleInProcess.append(LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(now()));
 
-            inProccessCollection.getCollection()
-                .insertOne(logbookLifeCycleInProcess);
+            inProccessCollection.getCollection().insertOne(logbookLifeCycleInProcess);
         } catch (final MongoException e) {
             switch (getErrorCategory(e)) {
                 case DUPLICATE_KEY:
@@ -1256,8 +1044,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 default:
                     throw new LogbookDatabaseException(
                         CREATION_ISSUE + " (" + e.getClass().getName() + " " + e.getMessage() + ": " + e.getCode() +
-                            ")",
-                        e);
+                            ")", e);
             }
         }
     }
@@ -1273,8 +1060,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         try {
             List<Bson> listUpdates = new ArrayList<>();
 
-            List<Document> events =
-                (List<Document>) logbookLifeCycleUnitInProcess.get(LogbookDocument.EVENTS);
+            List<Document> events = (List<Document>) logbookLifeCycleUnitInProcess.get(LogbookDocument.EVENTS);
             for (Document event : events) {
                 event.append(LAST_PERSISTED_DATE, lastPersistedDate);
             }
@@ -1286,22 +1072,18 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             final Bson update = combine(listUpdates);
 
             // Make Update
-            final UpdateResult result = LogbookCollections.LIFECYCLE_UNIT.getCollection().updateOne(
-                eq(LogbookDocument.ID, logbookLifeCycleId), update);
+            final UpdateResult result = LogbookCollections.LIFECYCLE_UNIT.getCollection()
+                .updateOne(eq(LogbookDocument.ID, logbookLifeCycleId), update);
 
             if (result.getMatchedCount() != 1) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + logbookLifeCycleId);
             }
 
             // Do not delete the temporary lifeCycle when it is on an INGEST process
-            List<Document> newEvents =
-                (List<Document>) logbookLifeCycleUnitInProcess.get(LogbookDocument.EVENTS);
+            List<Document> newEvents = (List<Document>) logbookLifeCycleUnitInProcess.get(LogbookDocument.EVENTS);
             if (newEvents != null && !newEvents.isEmpty()) {
-                LogbookTypeProcess typeProcess = LogbookTypeProcess
-                    .valueOf(
-                        newEvents.get(0)
-                            .get(LogbookLifeCycleMongoDbName.eventTypeProcess.getDbname())
-                            .toString());
+                LogbookTypeProcess typeProcess = LogbookTypeProcess.valueOf(
+                    newEvents.get(0).get(LogbookLifeCycleMongoDbName.eventTypeProcess.getDbname()).toString());
                 if (!LogbookTypeProcess.INGEST.equals(typeProcess)) {
                     // Delete the temporary lifeCycle
                     LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getCollection()
@@ -1345,8 +1127,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             listUpdates.add(Updates.set(LAST_PERSISTED_DATE, lastPersistedDate));
             final Bson update = combine(listUpdates);
 
-            final UpdateResult result = LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection().updateOne(
-                eq(LogbookDocument.ID, logbookLifeCycleId), update);
+            final UpdateResult result = LogbookCollections.LIFECYCLE_OBJECTGROUP.getCollection()
+                .updateOne(eq(LogbookDocument.ID, logbookLifeCycleId), update);
 
             if (result.getMatchedCount() != 1) {
                 throw new LogbookNotFoundException(UPDATE_NOT_FOUND_ITEM + logbookLifeCycleId);
@@ -1356,11 +1138,8 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             List<Document> newEvents =
                 logbookLifeCycleObjectGrouptInProcess.getList(LogbookDocument.EVENTS, Document.class);
             if (newEvents != null && !newEvents.isEmpty()) {
-                LogbookTypeProcess typeProcess = LogbookTypeProcess
-                    .valueOf(
-                        newEvents.get(0)
-                            .get(LogbookLifeCycleMongoDbName.eventTypeProcess.getDbname())
-                            .toString());
+                LogbookTypeProcess typeProcess = LogbookTypeProcess.valueOf(
+                    newEvents.get(0).get(LogbookLifeCycleMongoDbName.eventTypeProcess.getDbname()).toString());
                 if (!LogbookTypeProcess.INGEST.equals(typeProcess)) {
                     // Delete the temporary lifeCycle
                     LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS.getCollection()
@@ -1393,22 +1172,19 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public boolean existsLogbookLifeCycleUnitInProcess(String unitId)
-        throws LogbookDatabaseException {
+    public boolean existsLogbookLifeCycleUnitInProcess(String unitId) throws LogbookDatabaseException {
         ParametersChecker.checkParameter(LIFECYCLE_ITEM, unitId);
         return exists(LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS, unitId);
     }
 
     @Override
-    public boolean existsLogbookLifeCycleObjectGroupInProcess(String objectGroupId)
-        throws LogbookDatabaseException {
+    public boolean existsLogbookLifeCycleObjectGroupInProcess(String objectGroupId) throws LogbookDatabaseException {
         ParametersChecker.checkParameter(LIFECYCLE_ITEM, objectGroupId);
         return exists(LogbookCollections.LIFECYCLE_OBJECTGROUP_IN_PROCESS, objectGroupId);
     }
 
     private <T extends VitamDocument<?>> VitamMongoCursor<T> findOperationsFromElasticsearch(
-        LogbookCollections collection,
-        SelectParserSingle parser, boolean isCrossTenant)
+        LogbookCollections collection, SelectParserSingle parser, boolean isCrossTenant)
         throws InvalidParseOperationException, InvalidCreateOperationException, LogbookException, VitamDBException {
         final SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
         DynamicParserTokens parserTokens =
@@ -1419,17 +1195,12 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         if (isCrossTenant) {
             elasticSearchResponse = collection.getEsClient()
                 .searchCrossIndices(collection, ParameterHelper.getTenantParameter(),
-                    requestToEs.getNthQueries(0, new LogbookVarNameAdapter(), parserTokens),
-                    null,
-                    sorts, requestToEs.getFinalOffset(),
-                    requestToEs.getFinalLimit());
+                    requestToEs.getNthQueries(0, new LogbookVarNameAdapter(), parserTokens), null, sorts,
+                    requestToEs.getFinalOffset(), requestToEs.getFinalLimit());
         } else {
-            elasticSearchResponse = collection.getEsClient()
-                .search(collection, ParameterHelper.getTenantParameter(),
-                    requestToEs.getNthQueries(0, new LogbookVarNameAdapter(), parserTokens),
-                    null,
-                    sorts, requestToEs.getFinalOffset(),
-                    requestToEs.getFinalLimit());
+            elasticSearchResponse = collection.getEsClient().search(collection, ParameterHelper.getTenantParameter(),
+                requestToEs.getNthQueries(0, new LogbookVarNameAdapter(), parserTokens), null, sorts,
+                requestToEs.getFinalOffset(), requestToEs.getFinalLimit());
         }
 
         final SearchHits hits = elasticSearchResponse.getHits();
@@ -1459,7 +1230,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         String id = vitamDocument.getId();
         vitamDocument.remove(VitamDocument.ID);
         vitamDocument.remove(VitamDocument.SCORE);
-        logbookTransformData.transformDataForElastic(vitamDocument);
+        LogbookTransformData.transformDataForElastic(vitamDocument);
         collection.getEsClient().indexEntry(collection, tenantId, id, vitamDocument);
     }
 
@@ -1469,67 +1240,77 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         LOGGER.debug("updateIntoElasticsearch");
         String id = (String) existingDocument.remove(VitamDocument.ID);
         existingDocument.remove(VitamDocument.SCORE);
-        logbookTransformData.transformDataForElastic(existingDocument);
+        LogbookTransformData.transformDataForElastic(existingDocument);
 
         collection.getEsClient().updateFullDocument(collection, tenantId, id, existingDocument);
     }
 
-    private List<Bson> checkCopyToMaster(LogbookCollections collection, LogbookParameters item) {
-        final String mainLogbookDocumentId = getDocumentForUpdate(item).getId();
-        Document oldValue =
-            collection.getCollection().find(eq(LogbookDocument.ID, mainLogbookDocumentId)).first();
+    private List<Bson> checkCopyToMaster(LogbookCollections collection, LogbookParameters item)
+        throws LogbookNotFoundException, LogbookDatabaseException {
         String masterData = item.getParameterValue(LogbookParameterName.masterData);
+        if (!ParametersChecker.isNotEmpty(masterData)) {
+            return Collections.emptyList();
+        }
+
+        final String mainLogbookDocumentId = getDocument(item).getId();
+        Document oldValue = collection.getCollection().find(eq(LogbookDocument.ID, mainLogbookDocumentId))
+            .projection(Projections.include(LogbookDocument.ID, LogbookDocument.EVENT_DETAILS)).first();
+        if (oldValue == null) {
+            throw new LogbookNotFoundException("Cannot find logbook with id " + mainLogbookDocumentId);
+        }
         List<Bson> updates = new ArrayList<>();
-        if (ParametersChecker.isNotEmpty(masterData)) {
-            try {
-                JsonNode master = JsonHandler.getFromString(masterData);
-                ObjectNode oldEvDetData = (ObjectNode) JsonHandler.getFromString("{}");
-                Object evdevObj =
-                    oldValue == null ? null : oldValue.get(LogbookMongoDbName.eventDetailData.getDbname());
-                if (evdevObj != null) {
-                    String old;
-                    if (evdevObj instanceof String) {
-                        old = (String) evdevObj;
-                    } else {
-                        old = JsonHandler.unprettyPrint(evdevObj);
-                    }
-                    try {
-                        JsonNode node = JsonHandler.getFromString(old);
-                        if (node instanceof ObjectNode) {
-                            oldEvDetData = (ObjectNode) node;
-                        } else {
-                            LOGGER.warn("Bad evDevData : {}", old);
-                        }
-                    } catch (InvalidParseOperationException e) {
-                        LOGGER.warn("Bad evDevData : {}", old, e);
-                    }
+        try {
+            JsonNode master = JsonHandler.getFromString(masterData);
+            ObjectNode oldEvDetData = JsonHandler.createObjectNode();
+            Object evdevObj = oldValue.get(LogbookMongoDbName.eventDetailData.getDbname());
+            if (evdevObj != null) {
+                String old;
+                if (evdevObj instanceof String) {
+                    old = (String) evdevObj;
+                } else {
+                    old = JsonHandler.unprettyPrint(evdevObj);
                 }
-                boolean updateEvDevData = false;
-                Iterator<String> fieldNames = master.fieldNames();
-                while (fieldNames.hasNext()) {
-                    String fieldName = fieldNames.next();
-                    String fieldValue = master.get(fieldName).asText();
-                    String mongoDbName =
-                        LogbookMongoDbName.getLogbookMongoDbName(LogbookParameterName.valueOf(fieldName)).getDbname();
-                    if (mongoDbName.equals(LogbookMongoDbName.eventDetailData.getDbname())) {
-                        JsonNode masterNode = master.get(fieldName);
-                        if (masterNode != null) {
-                            String masterField = masterNode.asText();
-                            oldEvDetData.setAll((ObjectNode) JsonHandler.getFromString(masterField));
-                            updateEvDevData = true;
-                        }
+                try {
+                    JsonNode node = JsonHandler.getFromString(old);
+                    if (node instanceof ObjectNode) {
+                        oldEvDetData = (ObjectNode) node;
                     } else {
+                        LOGGER.warn("Bad evDevData : {}", old);
+                    }
+                } catch (InvalidParseOperationException e) {
+                    LOGGER.warn("Bad evDevData : {}", old, e);
+                }
+            }
+
+            Iterator<String> fieldNames = master.fieldNames();
+            while (fieldNames.hasNext()) {
+                String fieldName = fieldNames.next();
+                String fieldValue = master.get(fieldName).asText();
+                try {
+                    LogbookParameterName name = LogbookParameterName.valueOf(fieldName);
+                    String mongoDbName = LogbookMongoDbName.getLogbookMongoDbName(name).getDbname();
+                    if (!mongoDbName.equals(LogbookMongoDbName.eventDetailData.getDbname())) {
                         updates.add(Updates.set(mongoDbName, fieldValue));
                     }
+                } catch (IllegalArgumentException e) {
+                    LOGGER.warn("Could not find logbook parameter name with value {}", fieldName);
                 }
-                if (updateEvDevData) {
+            }
+
+            if (master.has(LogbookMongoDbName.eventDetailData.name())) {
+                JsonNode evDetData =
+                    JsonHandler.getFromString(master.get(LogbookMongoDbName.eventDetailData.name()).asText());
+                if (evDetData != null && !evDetData.equals(JsonHandler.createObjectNode())) {
+                    oldEvDetData.setAll((ObjectNode) evDetData);
                     String fieldValue = JsonHandler.writeAsString(oldEvDetData);
                     updates.add(Updates.set(LogbookMongoDbName.eventDetailData.getDbname(), fieldValue));
                 }
-            } catch (InvalidParseOperationException e) {
-                LOGGER.warn("masterData is not parsable as a json. Analyse cancelled: " + masterData, e);
             }
+        } catch (InvalidParseOperationException e) {
+            LOGGER.error("masterData is not parsable as a json. Analyse cancelled: " + masterData, e);
+            throw new LogbookDatabaseException("Could not parse event masterdata", e);
         }
+
         return updates;
     }
 
@@ -1572,18 +1353,14 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     }
 
     @Override
-    public void bulkInsert(LogbookCollections lifecycleUnit,
-        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
-        throws DatabaseException {
-        List<InsertOneModel<? extends VitamDocument<?>>> vitamDocuments = logbookLifeCycleModels
-            .stream()
-            .map(item -> {
-                List<? extends LogbookLifeCycleParameters> items =
-                    new ArrayList<>(item.getLogbookLifeCycleParameters());
-                final VitamDocument<?> document = initializeVitamDocument(items);
+    public void bulkInsert(String operationId, LogbookCollections lifecycleUnit,
+        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels) throws DatabaseException {
+        List<InsertOneModel<? extends VitamDocument<?>>> vitamDocuments = logbookLifeCycleModels.stream().map(item -> {
+            List<? extends LogbookLifeCycleParameters> items = new ArrayList<>(item.getLogbookLifeCycleParameters());
+            final VitamDocument<?> document = initializeVitamDocument(operationId, items);
 
-                return new InsertOneModel<>(document);
-            }).collect(Collectors.toList());
+            return new InsertOneModel<>(document);
+        }).collect(Collectors.toList());
 
         if (!vitamDocuments.isEmpty()) {
             BulkWriteOptions options = new BulkWriteOptions().ordered(false);
@@ -1595,16 +1372,18 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         }
     }
 
-    private VitamDocument<?> initializeVitamDocument(List<? extends LogbookParameters> items) {
-        int i = 0;
-        final VitamDocument<?> document = getDocument(items.get(i));
-        final List<VitamDocument<?>> events1 = new ArrayList<>(items.size() - 1);
-        for (i = 1; i < items.size(); i++) {
-            final VitamDocument<?> currentEvent = getDocumentForUpdate(items.get(i));
+    private VitamDocument<?> initializeVitamDocument(String operationId, List<? extends LogbookParameters> items) {
+        final VitamDocument<?> document = getDocument(items.get(0));
+
+        final List<VitamDocument<?>> events = new ArrayList<>(items.size() - 1);
+        for (int i = 1; i < items.size(); i++) {
+            final VitamDocument<?> currentEvent = getDocument(items.get(i));
             removeDuplicatedInformation(currentEvent);
-            events1.add(currentEvent);
+            events.add(currentEvent);
         }
-        document.append(LogbookDocument.EVENTS, events1);
+
+        document.append(LogbookEvent.EV_ID_PROC, operationId);
+        document.append(LogbookDocument.EVENTS, events);
         document.append(TENANT_ID, ParameterHelper.getTenantParameter());
         document.append(VERSION, 0);
         document.append(LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(now()));

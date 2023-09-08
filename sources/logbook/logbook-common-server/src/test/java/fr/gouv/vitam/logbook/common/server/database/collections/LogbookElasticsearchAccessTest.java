@@ -150,7 +150,7 @@ public class LogbookElasticsearchAccessTest {
 
         }
 
-        LogbookOperation operationForCreation = new LogbookOperation(parametersForCreation, false);
+        LogbookOperation operationForCreation = new LogbookOperation(parametersForCreation);
         String id = operationForCreation.getId();
         operationForCreation.remove(VitamDocument.ID);
         operationForCreation.put(VitamDocument.TENANT_ID, tenantId);
@@ -181,7 +181,8 @@ public class LogbookElasticsearchAccessTest {
             if (events == null) {
                 events = new ArrayList<>();
             }
-            events.add(new LogbookOperation(parametersForUpdate, true));
+            LogbookOperation e = new LogbookOperation(parametersForUpdate);
+            events.add(e);
             created.put(LogbookDocument.EVENTS, events);
             String idUpdate = id;
             String esJsonUpdate = JsonHandler.unprettyPrint(created);
