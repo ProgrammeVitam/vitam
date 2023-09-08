@@ -309,6 +309,23 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     }
 
     @Override
+    public JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus)
+        throws LogbookClientException, InvalidParseOperationException {
+        try (Response response = make(get()
+            .withPath(OBJECT_GROUP_LIFECYCLES_URL)
+            .withBody(queryDsl)
+            .withHeaderIgnoreNull(X_EVENT_STATUS, lifeCycleStatus)
+            .withJson())) {
+            check(response);
+            return JsonHandler.getFromInputStream(response.readEntity(InputStream.class));
+        } catch (PreconditionFailedClientException e) {
+            throw new LogbookClientException(REQUEST_PRECONDITION_FAILED, e);
+        } catch (VitamClientInternalException e) {
+            throw new LogbookClientServerException(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
+        }
+    }
+
+    @Override
     public CloseableIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId,
         LifeCycleStatusCode lifeCycleStatus, JsonNode query)
         throws LogbookClientException {
