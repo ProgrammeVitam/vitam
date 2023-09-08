@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.operations.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.client.AbstractMockClient;
 import fr.gouv.vitam.common.client.ClientMockResultHelper;
 import fr.gouv.vitam.common.database.index.model.ReindexationOK;
@@ -59,7 +60,6 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookParameters;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Queue;
 
 /**
  * Mock client implementation for logbook operation
@@ -70,20 +70,21 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
     private static final String UPDATE = "UPDATE";
     private static final String CREATE = "CREATE";
     private static final String GUID_EXAMPLE = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq";
-    private final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
 
     @Override
-    public void create(LogbookOperationParameters parameters)
+    public void create(LogbookOperationParameters... parameters)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-        LogbookOperationsClientHelper.checkLogbookParameters(parameters);
-        logInformation(CREATE, parameters);
+        ParametersChecker.checkNullOrEmptyParameters(parameters);
+        LogbookOperationsClientHelper.checkLogbookParameters(parameters[0]);
+        logInformation(CREATE, parameters[0]);
     }
 
     @Override
-    public void update(LogbookOperationParameters parameters)
+    public void update(LogbookOperationParameters... parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
-        LogbookOperationsClientHelper.checkLogbookParameters(parameters);
-        logInformation(UPDATE, parameters);
+        ParametersChecker.checkNullOrEmptyParameters(parameters);
+        LogbookOperationsClientHelper.checkLogbookParameters(parameters[0]);
+        logInformation(UPDATE, parameters[0]);
     }
 
     private void logInformation(String operation, LogbookParameters parameters) {
@@ -129,17 +130,7 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
     }
 
     @Override
-    public void createDelegate(LogbookOperationParameters parameters) throws LogbookClientAlreadyExistsException {
-        helper.createDelegate(parameters);
-    }
-
-    @Override
-    public void updateDelegate(LogbookOperationParameters parameters) throws LogbookClientNotFoundException {
-        helper.updateDelegate(parameters);
-    }
-
-    @Override
-    public void bulkCreate(String eventIdProc, Iterable<LogbookOperationParameters> queue)
+    public void create(String eventIdProc, Iterable<LogbookOperationParameters> queue)
         throws LogbookClientBadRequestException {
         if (queue != null) {
             final Iterator<LogbookOperationParameters> iterator = queue.iterator();
@@ -157,7 +148,7 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
     }
 
     @Override
-    public void bulkUpdate(String eventIdProc, Iterable<LogbookOperationParameters> queue)
+    public void update(String eventIdProc, Iterable<LogbookOperationParameters> queue)
         throws LogbookClientBadRequestException {
         if (queue != null) {
             for (LogbookOperationParameters logbookOperationParameters : queue) {
@@ -168,24 +159,6 @@ public class LogbookOperationsClientMock extends AbstractMockClient implements L
             throw new LogbookClientBadRequestException(
                 ErrorMessage.LOGBOOK_MISSING_MANDATORY_PARAMETER.getMessage());
         }
-    }
-
-    @Override
-    public void commitCreateDelegate(String eventIdProc) throws LogbookClientBadRequestException {
-        final Queue<LogbookOperationParameters> queue = helper.removeCreateDelegate(eventIdProc);
-        bulkCreate(eventIdProc, queue);
-    }
-
-    @Override
-    public void commitUpdateDelegate(String eventIdProc) throws LogbookClientBadRequestException {
-        final Queue<LogbookOperationParameters> queue = helper.removeUpdateDelegate(eventIdProc);
-        bulkUpdate(eventIdProc, queue);
-    }
-
-    @Override
-    public void close() {
-        super.close();
-        helper.clear();
     }
 
     @Override

@@ -520,7 +520,7 @@ public class ProcessEngineImpl implements ProcessEngine {
         }
 
         try (final LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
-            logbookClient.bulkUpdate(workParams.getContainerName(),
+            logbookClient.update(workParams.getContainerName(),
                 helper.removeUpdateDelegate(workParams.getContainerName()));
         }
 

@@ -60,36 +60,22 @@ public abstract class LogbookOperationsDecorator implements LogbookOperations {
     }
 
     @Override
-    public void create(LogbookOperationParameters parameters)
+    public void create(String operationId, LogbookOperationParameters... parameters)
         throws LogbookAlreadyExistsException, LogbookDatabaseException {
-        logbookOperations.create(parameters);
+        logbookOperations.create(operationId, parameters);
 
     }
 
     @Override
-    public void update(LogbookOperationParameters parameters)
+    public void update(String operationId, LogbookOperationParameters... parameters)
         throws LogbookNotFoundException, LogbookDatabaseException {
-        logbookOperations.update(parameters);
+        logbookOperations.update(operationId, parameters);
 
     }
 
     @Override
     public LogbookOperation getById(String IdProcess) throws LogbookDatabaseException, LogbookNotFoundException {
         return logbookOperations.getById(IdProcess);
-    }
-
-    @Override
-    public void createBulkLogbookOperation(LogbookOperationParameters[] operationArray)
-        throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        logbookOperations.createBulkLogbookOperation(operationArray);
-
-    }
-
-    @Override
-    public void updateBulkLogbookOperation(LogbookOperationParameters[] operationArray)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        logbookOperations.updateBulkLogbookOperation(operationArray);
-
     }
 
     @Override

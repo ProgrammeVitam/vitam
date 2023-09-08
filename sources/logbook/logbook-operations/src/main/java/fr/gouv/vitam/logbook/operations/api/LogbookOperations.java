@@ -61,7 +61,8 @@ public interface LogbookOperations {
      * @throws fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException if errors occur while connecting
      * or writing to the database
      */
-    void create(LogbookOperationParameters parameters) throws LogbookAlreadyExistsException, LogbookDatabaseException;
+    void create(String operationId, LogbookOperationParameters... parameters)
+        throws LogbookAlreadyExistsException, LogbookDatabaseException;
 
     /**
      * Update and insert logbook operation entries
@@ -72,7 +73,8 @@ public interface LogbookOperations {
      * @throws fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException if errors occur while connecting
      * or writing to the database
      */
-    void update(LogbookOperationParameters parameters) throws LogbookNotFoundException, LogbookDatabaseException;
+    void update(String operationId, LogbookOperationParameters... parameters)
+        throws LogbookNotFoundException, LogbookDatabaseException;
 
     /**
      * Select logbook operation entries
@@ -108,30 +110,6 @@ public interface LogbookOperations {
      * @throws VitamDBException in case a desynchro is recorded between Mongo and ES
      */
     LogbookOperation getById(String idProcess, JsonNode query, boolean sliced, boolean crossTenant)
-        throws LogbookDatabaseException, LogbookNotFoundException;
-
-    /**
-     * Create one Logbook Operation with already multiple sub-events
-     *
-     * @param operationArray with first and next events to add/update
-     * @throws IllegalArgumentException if first argument is null or null mandatory parameters for all
-     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
-     * @throws LogbookAlreadyExistsException if logbook already exists
-     */
-    void createBulkLogbookOperation(LogbookOperationParameters[] operationArray)
-        throws LogbookDatabaseException, LogbookAlreadyExistsException;
-
-    /**
-     * Update one Logbook Operation with multiple sub-events <br>
-     * <br>
-     * It adds this new entry within the very same Logbook Operaton entry in "events" array.
-     *
-     * @param operationArray containing all operations Logbook in order
-     * @throws IllegalArgumentException if parameter has null or empty mandatory values
-     * @throws LogbookDatabaseException if errors occur while connecting or writing to the database
-     * @throws LogbookNotFoundException if no operation selected cannot be found
-     */
-    void updateBulkLogbookOperation(LogbookOperationParameters[] operationArray)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**

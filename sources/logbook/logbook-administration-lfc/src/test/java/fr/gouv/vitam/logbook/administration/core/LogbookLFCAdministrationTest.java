@@ -51,6 +51,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.time.LogicalClockRule;
 import fr.gouv.vitam.logbook.administration.audit.core.LogbookAuditAdministration;
 import fr.gouv.vitam.logbook.common.parameters.Contexts;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.server.LogbookDbAccess;
 import fr.gouv.vitam.logbook.common.server.config.ElasticsearchLogbookIndexManager;
 import fr.gouv.vitam.logbook.common.server.config.LogbookConfiguration;
@@ -238,7 +239,7 @@ public class LogbookLFCAdministrationTest {
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
             false);
 
-        verify(logbookOperations).create(any());
+        verify(logbookOperations).create(anyString(), any(LogbookOperationParameters.class));
         verifyNoMoreInteractions(logbookOperations);
         verifyNoMoreInteractions(logbookLifeCycles);
 
@@ -286,7 +287,7 @@ public class LogbookLFCAdministrationTest {
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(), false);
 
-        verify(logbookOperations).create(any());
+        verify(logbookOperations).create(anyString(), any(LogbookOperationParameters.class));
         verifyNoMoreInteractions(logbookOperations);
         verifyNoMoreInteractions(logbookLifeCycles);
 
@@ -342,7 +343,7 @@ public class LogbookLFCAdministrationTest {
         verify(processingManagementClient).listOperationsDetails(any());
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
             false);
-        verify(logbookOperations).create(any());
+        verify(logbookOperations).create(anyString(), any(LogbookOperationParameters.class));
         verifyNoMoreInteractions(logbookOperations);
         verifyNoMoreInteractions(logbookLifeCycles);
 
@@ -400,7 +401,7 @@ public class LogbookLFCAdministrationTest {
         verify(logbookOperations).findLastLifecycleTraceabilityOperation(
             Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
             false);
-        verify(logbookOperations).create(any());
+        verify(logbookOperations).create(anyString(), any(LogbookOperationParameters.class));
         verifyNoMoreInteractions(logbookOperations);
         verifyNoMoreInteractions(logbookLifeCycles);
 
@@ -816,7 +817,7 @@ public class LogbookLFCAdministrationTest {
         verify(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
             eq("2020-06-26T04:42:32.308"), anyString());
 
-        verify(logbookOperations).create(any());
+        verify(logbookOperations).create(anyString(), any(LogbookOperationParameters.class));
         verifyNoMoreInteractions(logbookOperations);
         verifyNoMoreInteractions(logbookLifeCycles);
 
@@ -880,7 +881,7 @@ public class LogbookLFCAdministrationTest {
         verify(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
             eq("2020-06-26T03:55:19.525"), anyString());
 
-        verify(logbookOperations).create(any());
+        verify(logbookOperations).create(anyString(), any(LogbookOperationParameters.class));
         verifyNoMoreInteractions(logbookOperations);
         verifyNoMoreInteractions(logbookLifeCycles);
 
@@ -951,7 +952,7 @@ public class LogbookLFCAdministrationTest {
         verify(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
             eq("2020-06-26T04:42:32.308"), anyString());
 
-        verify(logbookOperations).create(any());
+        verify(logbookOperations).create(anyString(), any(LogbookOperationParameters.class));
         verifyNoMoreInteractions(logbookOperations);
         verifyNoMoreInteractions(logbookLifeCycles);
 
@@ -1021,7 +1022,7 @@ public class LogbookLFCAdministrationTest {
         verify(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
             eq("2020-06-26T03:55:19.525"), anyString());
 
-        verify(logbookOperations).create(any());
+        verify(logbookOperations).create(anyString(), any(LogbookOperationParameters.class));
         verifyNoMoreInteractions(logbookOperations);
         verifyNoMoreInteractions(logbookLifeCycles);
 
@@ -1090,7 +1091,7 @@ public class LogbookLFCAdministrationTest {
         verify(logbookLifeCycles).checkUnitLifecycleEntriesExistenceByLastPersistedDate(
             eq("1970-01-01T00:00:00.000"), anyString());
 
-        verify(logbookOperations).create(any());
+        verify(logbookOperations).create(anyString(), any(LogbookOperationParameters.class));
         verifyNoMoreInteractions(logbookOperations);
         verifyNoMoreInteractions(logbookLifeCycles);
 
@@ -1159,7 +1160,7 @@ public class LogbookLFCAdministrationTest {
         verify(logbookLifeCycles).checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
             eq("1970-01-01T00:00:00.000"), anyString());
 
-        verify(logbookOperations).create(any());
+        verify(logbookOperations).create(anyString(), any(LogbookOperationParameters.class));
         verifyNoMoreInteractions(logbookOperations);
         verifyNoMoreInteractions(logbookLifeCycles);
 

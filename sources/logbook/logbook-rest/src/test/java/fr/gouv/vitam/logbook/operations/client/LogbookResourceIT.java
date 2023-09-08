@@ -541,10 +541,11 @@ public class LogbookResourceIT {
             final long start2 = System.nanoTime();
             i = 0;
             try {
+                List<LogbookOperationParameters> list = new ArrayList<>();
                 for (i = 0; i < NB_TEST; i++) {
-                    client.updateDelegate(logbookParametersAppend);
+                    list.add(logbookParametersAppend);
                 }
-                client.commitUpdateDelegate(eip.getId());
+                client.update(list.toArray(LogbookOperationParameters[]::new));
             } catch (final LogbookClientServerException e) {
                 LOGGER.error("Issue after " + i);
                 fail(e.getMessage());

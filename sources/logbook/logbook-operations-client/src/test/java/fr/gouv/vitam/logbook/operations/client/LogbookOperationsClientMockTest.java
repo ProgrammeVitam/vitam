@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -129,7 +128,7 @@ public class LogbookOperationsClientMockTest {
     }
 
     @Test
-    public void statusTest() throws LogbookClientException, VitamApplicationServerException {
+    public void statusTest() throws VitamApplicationServerException {
         LogbookOperationsClientFactory.changeMode(null);
 
         final LogbookOperationsClient client =
@@ -189,23 +188,15 @@ public class LogbookOperationsClientMockTest {
         LogbookClientNotFoundException {
         LogbookOperationsClientFactory.changeMode(null);
 
-        final LogbookOperationsClient client =
-            LogbookOperationsClientFactory.getInstance().getClient();
+        final LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient();
         final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters();
         fillLogbookParamaters(logbookParameters);
-        client.createDelegate(logbookParameters);
-        client.updateDelegate(logbookParameters);
-        client.commitCreateDelegate(LogbookParameterName.eventIdentifierProcess.name());
-
-        client.updateDelegate(logbookParameters);
-        client.updateDelegate(logbookParameters);
-        client.commitUpdateDelegate(LogbookParameterName.eventIdentifierProcess.name());
 
         final List<LogbookOperationParameters> list = new ArrayList<>();
         list.add(logbookParameters);
         list.add(logbookParameters);
-        client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), list);
-        client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), list);
+        client.create(list.toArray(LogbookOperationParameters[]::new));
+        client.update(list.toArray(LogbookOperationParameters[]::new));
     }
 
     @Test(expected = LogbookClientBadRequestException.class)
@@ -214,7 +205,7 @@ public class LogbookOperationsClientMockTest {
 
         final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient();
-        client.bulkCreate(LogbookParameterName.eventIdentifierProcess.name(), null);
+        client.create("opId", null);
     }
 
     @Test(expected = LogbookClientBadRequestException.class)
@@ -223,7 +214,7 @@ public class LogbookOperationsClientMockTest {
 
         final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient();
-        client.bulkUpdate(LogbookParameterName.eventIdentifierProcess.name(), null);
+        client.update("opId", null);
     }
 
     @Test
@@ -239,18 +230,16 @@ public class LogbookOperationsClientMockTest {
     public void traceabilityTestObjectGroupLFC() throws Exception {
         final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient();
-        RequestResponse response = client.traceabilityLfcObjectGroup();
+        RequestResponseOK<String> response = client.traceabilityLfcObjectGroup();
         assertNotNull(response);
-        assertTrue(response instanceof RequestResponseOK);
     }
 
     @Test
     public void traceabilityTestUnitLFC() throws Exception {
         final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient();
-        RequestResponse response = client.traceabilityLfcUnit();
+        RequestResponseOK<String> response = client.traceabilityLfcUnit();
         assertNotNull(response);
-        assertTrue(response instanceof RequestResponseOK);
     }
 
 
@@ -272,7 +261,7 @@ public class LogbookOperationsClientMockTest {
 
     @Test
     public void traceabilityAuditTest()
-        throws LogbookClientServerException, InvalidParseOperationException {
+        throws LogbookClientServerException {
         final LogbookOperationsClient client =
             LogbookOperationsClientFactory.getInstance().getClient();
         client.traceabilityAudit(0, new AuditLogbookOptions());

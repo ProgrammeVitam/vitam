@@ -70,12 +70,8 @@ public class LogbookOperationsDecoratorTest {
 
     private LogbookOperationsImpl logbookOperationsImpl;
     private LogbookOperationParameters logbookParameters;
-    LogbookOperationParameters[] operationArray;
-    private String eventType = "STP_IMPORT_ACCESS_CONTRACT";
-    private String outcome = "OK";
     private LogbookDbAccess mongoDbAccess;
-    private WorkspaceClient workspaceClient;
-    private ElasticsearchLogbookIndexManager indexManager;
+    private StorageClient storageClient;
 
 
     private static class TestClass extends LogbookOperationsDecorator {
@@ -126,20 +122,22 @@ public class LogbookOperationsDecoratorTest {
 
         mongoDbAccess = mock(LogbookDbAccess.class);
         StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-        when(storageClientFactory.getClient()).thenReturn(mock(StorageClient.class));
-        indexManager = mock(ElasticsearchLogbookIndexManager.class);
+        storageClient = mock(StorageClient.class);
+        when(storageClientFactory.getClient()).thenReturn(storageClient);
+        ElasticsearchLogbookIndexManager indexManager = mock(ElasticsearchLogbookIndexManager.class);
         logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory,
             mock(IndexationHelper.class),
             indexManager);
         logbookOperationsImpl = Mockito.spy(logbookOperationsImpl);
         logbookParameters = LogbookParameterHelper.newLogbookOperationParameters();
+        String eventType = "STP_IMPORT_ACCESS_CONTRACT";
         logbookParameters.putParameterValue(LogbookParameterName.eventType, eventType);
+        String outcome = "OK";
         logbookParameters.putParameterValue(LogbookParameterName.outcome, outcome);
         logbookParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, GUIDFactory
             .newOperationLogbookGUID(0).getId());
-        operationArray = new LogbookOperationParameters[] {logbookParameters};
 
-        workspaceClient = mock(WorkspaceClient.class);
+        WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         doNothing().when(workspaceClient).createContainer(anyString());
         doNothing().when(workspaceClient).putObject(anyString(), anyString(), any());
@@ -151,37 +149,23 @@ public class LogbookOperationsDecoratorTest {
     @Test
     public final void testCreate() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
+        String operationId = GUIDFactory.newOperationLogbookGUID(0).getId();
         final TestClass tc = new TestClass(logbookOperationsImpl);
-        tc.create(logbookParameters);
-        verify(logbookOperationsImpl).create(logbookParameters);
-        verify(mongoDbAccess).createLogbookOperation(logbookParameters);
+        tc.create(operationId, logbookParameters);
+        verify(logbookOperationsImpl).create(operationId, logbookParameters);
+        verify(mongoDbAccess).createLogbookOperation(operationId, logbookParameters);
+        verify(storageClient).storeFileFromWorkspace(anyString(), any(), anyString(), any());
     }
 
     @RunWithCustomExecutor
     @Test
     public final void testUpdate() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
+        String operationId = GUIDFactory.newOperationLogbookGUID(0).getId();
         final TestClass tc = new TestClass(logbookOperationsImpl);
-        tc.update(logbookParameters);
-        verify(logbookOperationsImpl).update(logbookParameters);
-        verify(mongoDbAccess).updateLogbookOperation(logbookParameters);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public final void testUpdateBulkLogbookOperation() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        final TestClass tc = new TestClass(logbookOperationsImpl);
-        tc.updateBulkLogbookOperation(operationArray);
-        verify(mongoDbAccess).updateBulkLogbookOperation(operationArray);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public final void testCreateBulkLogbookOperation() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        final TestClass tc = new TestClass(logbookOperationsImpl);
-        tc.createBulkLogbookOperation(operationArray);
-        verify(mongoDbAccess).createBulkLogbookOperation(operationArray);
+        tc.update(operationId, logbookParameters);
+        verify(logbookOperationsImpl).update(operationId, logbookParameters);
+        verify(mongoDbAccess).updateLogbookOperation(operationId, logbookParameters);
+        verify(storageClient).storeFileFromWorkspace(anyString(), any(), anyString(), any());
     }
 }

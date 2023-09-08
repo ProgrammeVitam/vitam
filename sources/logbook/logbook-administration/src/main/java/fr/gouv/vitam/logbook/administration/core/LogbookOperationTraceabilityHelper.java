@@ -27,6 +27,7 @@
 package fr.gouv.vitam.logbook.administration.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.client.MongoCursor;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -277,7 +278,7 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
 
         LogbookOperationsClientHelper.checkLogbookParameters(logbookParameters);
         try {
-            logbookOperations.create(logbookParameters);
+            logbookOperations.create(operationID.getId(), logbookParameters);
         } catch (LogbookDatabaseException | LogbookAlreadyExistsException e) {
             throw new TraceabilityException("unable to create traceability logbook", e);
         }
@@ -295,12 +296,15 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
 
         if (event != null) {
             String eventData = unprettyPrint(event);
-            logbookOperationParameters
-                .putParameterValue(LogbookParameterName.eventDetailData, eventData);
-            logbookOperationParameters.putParameterValue(LogbookParameterName.masterData, eventData);
+            logbookOperationParameters.putParameterValue(LogbookParameterName.eventDetailData, eventData);
+
+            ObjectNode masterData = JsonHandler.createObjectNode();
+            masterData.put("eventDetailData", eventData);
+            logbookOperationParameters.putParameterValue(LogbookParameterName.masterData,
+                JsonHandler.unprettyPrint(masterData));
         }
         try {
-            logbookOperations.update(logbookOperationParameters);
+            logbookOperations.update(operationID.getId(), logbookOperationParameters);
         } catch (LogbookNotFoundException | LogbookDatabaseException e) {
             throw new TraceabilityException("unable to update traceability logbook", e);
         }

@@ -63,9 +63,9 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
     /**
      * the configured alertEvents
      */
-    private List<LogbookEvent> alertEvents;
+    private final List<LogbookEvent> alertEvents;
 
-    private AlertService alertService;
+    private final AlertService alertService;
 
     public AlertLogbookOperationsDecorator(LogbookOperations logbookOperations, List<LogbookEvent> alertEvents) {
         super(logbookOperations);
@@ -83,16 +83,16 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
     }
 
     @Override
-    public void create(LogbookOperationParameters parameters)
+    public void create(String operationId, LogbookOperationParameters... parameters)
         throws LogbookAlreadyExistsException, LogbookDatabaseException {
-        logbookOperations.create(parameters);
+        logbookOperations.create(operationId, parameters);
         createAlertIfNecessary(parameters);
     }
 
     @Override
-    public void update(LogbookOperationParameters parameters)
+    public void update(String operationId, LogbookOperationParameters... parameters)
         throws LogbookNotFoundException, LogbookDatabaseException {
-        logbookOperations.update(parameters);
+        logbookOperations.update(operationId, parameters);
         createAlertIfNecessary(parameters);
     }
 
@@ -118,20 +118,6 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
     public LogbookOperation getById(String idProcess, JsonNode query, boolean sliced, boolean crossTenant)
         throws LogbookDatabaseException, LogbookNotFoundException {
         return logbookOperations.getById(idProcess, query, sliced, crossTenant);
-    }
-
-    @Override
-    public void createBulkLogbookOperation(LogbookOperationParameters[] operationArray)
-        throws LogbookDatabaseException, LogbookAlreadyExistsException {
-        logbookOperations.createBulkLogbookOperation(operationArray);
-        createAlertIfNecessary(operationArray);
-    }
-
-    @Override
-    public void updateBulkLogbookOperation(LogbookOperationParameters[] operationArray)
-        throws LogbookDatabaseException, LogbookNotFoundException {
-        logbookOperations.updateBulkLogbookOperation(operationArray);
-        createAlertIfNecessary(operationArray);
     }
 
     @Override

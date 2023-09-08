@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.database.builder.query.CompareQuery;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.QUERY;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchNode;
@@ -83,6 +84,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.exists;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -90,7 +92,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWithCustomExecutor
@@ -98,12 +103,9 @@ public class LogbookOperationsImplWithDatabasesTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
-    @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    @ClassRule public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
-    @ClassRule
-    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+    @ClassRule public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     private static final int tenantId = 0;
     private static final List<Integer> tenantList = Collections.singletonList(tenantId);
@@ -114,8 +116,7 @@ public class LogbookOperationsImplWithDatabasesTest {
     private final static GUID eip4 = GUIDFactory.newEventGUID(tenantId);
     private final static GUID eip5 = GUIDFactory.newEventGUID(tenantId);
     private final static GUID eip6 = GUIDFactory.newEventGUID(1);
-    @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
+    @ClassRule public static RunWithCustomExecutorRule runInThread =
         new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
 
     private static LogbookDbAccess mongoDbAccess;
@@ -131,23 +132,17 @@ public class LogbookOperationsImplWithDatabasesTest {
     private static LogbookOperationParameters event;
     private static LogbookOperationParameters event2;
     private static LogbookOperationParameters securityEvent;
-    private static ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils.createTestIndexManager(
-        tenantList, Collections.emptyMap());
+    private static final ElasticsearchLogbookIndexManager indexManager =
+        LogbookCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap());
 
-    @Rule
-    public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
     private LogbookOperationsImpl logbookOperationsImpl;
-    @Mock
-    private WorkspaceClientFactory workspaceClientFactory;
-    @Mock
-    private WorkspaceClient workspaceClient;
+    @Mock private WorkspaceClientFactory workspaceClientFactory;
+    @Mock private WorkspaceClient workspaceClient;
 
-    @Mock
-    private StorageClientFactory storageClientFactory;
-    @Mock
-    private StorageClient storageClient;
-    @Mock
-    private IndexationHelper indexationHelper;
+    @Mock private StorageClientFactory storageClientFactory;
+    @Mock private StorageClient storageClient;
+    @Mock private IndexationHelper indexationHelper;
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -158,7 +153,7 @@ public class LogbookOperationsImplWithDatabasesTest {
             new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
 
         final List<MongoDbNode> nodes = new ArrayList<>();
-        nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
+        nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
 
         LogbookConfiguration logbookConfiguration =
             new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER,
@@ -177,51 +172,44 @@ public class LogbookOperationsImplWithDatabasesTest {
 
         final String dateStringSecurity = "2017-10-04";
 
-        logbookParametersStart = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, "eventType", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
-        logbookParametersAppend = LogbookParameterHelper.newLogbookOperationParameters(
-            GUIDFactory.newEventGUID(0),
-            "eventType", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
-        logbookParametersWrongStart = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, "eventType", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
+        logbookParametersStart =
+            LogbookParameterHelper.newLogbookOperationParameters(eip, "eventType", eip, LogbookTypeProcess.INGEST,
+                StatusCode.STARTED, "start ingest", eip);
+        logbookParametersAppend =
+            LogbookParameterHelper.newLogbookOperationParameters(GUIDFactory.newEventGUID(0), "eventType", eip,
+                LogbookTypeProcess.INGEST, StatusCode.OK, "end ingest", eip);
+        logbookParametersWrongStart =
+            LogbookParameterHelper.newLogbookOperationParameters(eip, "eventType", eip, LogbookTypeProcess.INGEST,
+                StatusCode.STARTED, "start ingest", eip);
         logbookParametersWrongAppend = LogbookParameterHelper.newLogbookOperationParameters(
 
-            GUIDFactory.newEventGUID(0),
-            "eventType", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
+            GUIDFactory.newEventGUID(0), "eventType", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
             StatusCode.OK, "end ingest", eip);
 
-        logbookParameters1 = LogbookParameterHelper.newLogbookOperationParameters(
-            eip1, "eventType", eip1, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
+        logbookParameters1 =
+            LogbookParameterHelper.newLogbookOperationParameters(eip1, "eventType", eip1, LogbookTypeProcess.INGEST,
+                StatusCode.STARTED, "start ingest", eip);
         logbookParameters1.putParameterValue(LogbookParameterName.eventDateTime, datestring1);
-        logbookParameters2 = LogbookParameterHelper.newLogbookOperationParameters(
-            eip2, "eventType", eip2, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
+        logbookParameters2 =
+            LogbookParameterHelper.newLogbookOperationParameters(eip2, "eventType", eip2, LogbookTypeProcess.INGEST,
+                StatusCode.STARTED, "start ingest", eip);
         logbookParameters2.putParameterValue(LogbookParameterName.eventDateTime, datestring2);
-        logbookParameters3 = LogbookParameterHelper.newLogbookOperationParameters(
-            eip3, "eventType", eip3, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
+        logbookParameters3 =
+            LogbookParameterHelper.newLogbookOperationParameters(eip3, "eventType", eip3, LogbookTypeProcess.INGEST,
+                StatusCode.STARTED, "start ingest", eip);
         logbookParameters3.putParameterValue(LogbookParameterName.eventDateTime, datestring3);
 
-        logbookParameters4 = LogbookParameterHelper.newLogbookOperationParameters(
-            eip4,
-            "STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
-            StatusCode.STARTED, null, null, eip4);
+        logbookParameters4 = LogbookParameterHelper.newLogbookOperationParameters(eip4, "STP_OP_SECURISATION", eip4,
+            LogbookTypeProcess.TRACEABILITY, StatusCode.STARTED, null, null, eip4);
 
         logbookParameters4.putParameterValue(LogbookParameterName.eventDateTime, datestring4);
 
-        logbookParameters5 = LogbookParameterHelper.newLogbookOperationParameters(
-            eip6,
-            "STP_OP_SECURISATION", eip6, LogbookTypeProcess.TRACEABILITY,
-            StatusCode.STARTED, null, null, eip6);
+        logbookParameters5 = LogbookParameterHelper.newLogbookOperationParameters(eip6, "STP_OP_SECURISATION", eip6,
+            LogbookTypeProcess.TRACEABILITY, StatusCode.STARTED, null, null, eip6);
 
         logbookParameters5.putParameterValue(LogbookParameterName.eventDateTime, datestring6);
-        event =
-            LogbookParameterHelper.newLogbookOperationParameters(eip4, "eventType", eip4, LogbookTypeProcess.INGEST,
-                StatusCode.STARTED, "start ingest", eip4);
+        event = LogbookParameterHelper.newLogbookOperationParameters(eip4, "eventType", eip4, LogbookTypeProcess.INGEST,
+            StatusCode.STARTED, "start ingest", eip4);
         event2 =
             LogbookParameterHelper.newLogbookOperationParameters(eip6, "eventType", eip6, LogbookTypeProcess.INGEST,
                 StatusCode.STARTED, "start ingest", eip6);
@@ -229,9 +217,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         event2.putParameterValue(LogbookParameterName.eventDateTime, datestring6);
 
 
-        securityEvent = LogbookParameterHelper.newLogbookOperationParameters(
-            eip5, "STP_OP_SECURISATION", eip4, LogbookTypeProcess.TRACEABILITY,
-            StatusCode.OK, null, null, eip4);
+        securityEvent = LogbookParameterHelper.newLogbookOperationParameters(eip5, "STP_OP_SECURISATION", eip4,
+            LogbookTypeProcess.TRACEABILITY, StatusCode.OK, null, null, eip4);
         securityEvent.putParameterValue(LogbookParameterName.eventDateTime, dateStringSecurity);
     }
 
@@ -259,20 +246,23 @@ public class LogbookOperationsImplWithDatabasesTest {
         logbookOperationsImpl =
             new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper,
                 indexManager);
-        logbookOperationsImpl.create(logbookParametersStart);
-        logbookOperationsImpl.update(logbookParametersAppend);
+        logbookOperationsImpl.create(eip.getId(), logbookParametersStart);
+        logbookOperationsImpl.update(eip.getId(), logbookParametersAppend);
+        verify(storageClient, times(2)).storeFileFromWorkspace(anyString(), any(), anyString(), any());
         try {
-            logbookOperationsImpl.create(logbookParametersWrongStart);
+            logbookOperationsImpl.create(eip.getId(), logbookParametersWrongStart);
             fail("Should failed");
         } catch (final LogbookAlreadyExistsException ignored) {
         }
         try {
-            logbookOperationsImpl.update(logbookParametersWrongAppend);
+            logbookOperationsImpl.update(
+                logbookParametersWrongAppend.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+                logbookParametersWrongAppend);
             fail("Should failed");
         } catch (final LogbookNotFoundException ignored) {
         }
         try {
-            logbookOperationsImpl.create(LogbookParameterHelper.newLogbookOperationParameters());
+            logbookOperationsImpl.create(null, LogbookParameterHelper.newLogbookOperationParameters());
             fail("Should failed");
         } catch (final IllegalArgumentException ignored) {
         }
@@ -284,6 +274,25 @@ public class LogbookOperationsImplWithDatabasesTest {
         assertTrue(result.isEmpty());
     }
 
+
+    @Test
+    public void givenCreateAndUpdateMany() throws Exception {
+        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        mockWorkspaceClient();
+        logbookOperationsImpl =
+            new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper,
+                indexManager);
+        logbookOperationsImpl.create(eip.getId(), logbookParametersStart);
+        logbookOperationsImpl.update(eip.getId(), logbookParametersAppend, logbookParametersAppend,
+            logbookParametersAppend);
+        final Select select = new Select();
+        select.setQuery(eq(VitamFieldsHelper.id(), eip.getId()));
+        List<LogbookOperation> result =
+            logbookOperationsImpl.selectOperations(JsonHandler.getFromString(select.getFinalSelect().toString()));
+        assertFalse(result.isEmpty());
+        verify(storageClient, times(2)).storeFileFromWorkspace(anyString(), any(), anyString(), any());
+    }
+
     @Test
     public void givenCreateAndSelect() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
@@ -291,9 +300,10 @@ public class LogbookOperationsImplWithDatabasesTest {
         logbookOperationsImpl =
             new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper,
                 indexManager);
-        logbookOperationsImpl.create(logbookParameters1);
-        logbookOperationsImpl.create(logbookParameters2);
-        logbookOperationsImpl.create(logbookParameters3);
+        logbookOperationsImpl.create(eip1.getId(), logbookParameters1);
+        logbookOperationsImpl.create(eip2.getId(), logbookParameters2);
+        logbookOperationsImpl.create(eip3.getId(), logbookParameters3);
+        verify(storageClient, times(3)).storeFileFromWorkspace(anyString(), any(), anyString(), any());
 
         final Select select = new Select();
         select.setQuery(new CompareQuery(QUERY.EQ, "evId", eip1.toString()));
@@ -314,8 +324,8 @@ public class LogbookOperationsImplWithDatabasesTest {
         Thread.sleep(100);
 
         LocalDateTime snapshotDate1 = LocalDateUtil.now();
-        logbookOperationsImpl.create(logbookParameters4);
-        logbookOperationsImpl.update(event);
+        logbookOperationsImpl.create(eip4.getId(), logbookParameters4);
+        logbookOperationsImpl.update(eip4.getId(), event);
         LocalDateTime snapshotDate2 = LocalDateUtil.now();
 
         MongoCursor<LogbookOperation> cursor;
@@ -323,17 +333,15 @@ public class LogbookOperationsImplWithDatabasesTest {
         assertTrue(cursor.hasNext());
         final LogbookOperation op = cursor.next();
 
-        assertDateBetween(
-            LocalDateUtil.parseMongoFormattedDate(op.getString(LogbookDocument.LAST_PERSISTED_DATE)),
-            snapshotDate1,
-            snapshotDate2);
+        assertDateBetween(LocalDateUtil.parseMongoFormattedDate(op.getString(LogbookDocument.LAST_PERSISTED_DATE)),
+            snapshotDate1, snapshotDate2);
 
         assertEquals(op.get("evDateTime"), "2017-09-01");
         final List<Document> list = (List<Document>) op.get(LogbookDocument.EVENTS);
         assertEquals(list.get(0).get("evDateTime"), "2017-09-02");
         assertFalse(cursor.hasNext());
 
-        logbookOperationsImpl.update(securityEvent);
+        logbookOperationsImpl.update(eip4.getId(), securityEvent);
         final LogbookOperation secureOperation =
             logbookOperationsImpl.findFirstTraceabilityOperationOKAfterDate(LocalDateTime.parse("2017-08-02T12:01:00"));
 
@@ -344,24 +352,26 @@ public class LogbookOperationsImplWithDatabasesTest {
     public void selectOperationsByLastPersistenceDateIntervalTest() throws Exception {
 
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+        String operationId = GUIDFactory.newOperationLogbookGUID(tenantId).getId();
+
         mockWorkspaceClient();
         logbookOperationsImpl =
             new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory, indexationHelper,
                 indexManager);
 
-        logbookOperationsImpl.create(logbookParameters1);
-        logbookOperationsImpl.create(logbookParameters2);
+        logbookOperationsImpl.create(eip1.getId(), logbookParameters1);
+        logbookOperationsImpl.create(eip2.getId(), logbookParameters2);
 
         Thread.sleep(10);
 
         LocalDateTime snapshot1 = LocalDateUtil.now();
         Thread.sleep(10);
-        logbookOperationsImpl.create(logbookParameters3);
+        logbookOperationsImpl.create(eip3.getId(), logbookParameters3);
 
         LocalDateTime snapshot2 = LocalDateUtil.now();
         Thread.sleep(10);
 
-        logbookOperationsImpl.create(logbookParameters4);
+        logbookOperationsImpl.create(eip4.getId(), logbookParameters4);
 
         MongoCursor<LogbookOperation> cursor;
         cursor = logbookOperationsImpl.selectOperationsByLastPersistenceDateInterval(snapshot1, snapshot2);
@@ -373,8 +383,7 @@ public class LogbookOperationsImplWithDatabasesTest {
     private void mockWorkspaceClient() throws Exception {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         doNothing().when(workspaceClient).createContainer(any());
-        doNothing().when(workspaceClient)
-            .putObject(any(), any(), any());
+        doNothing().when(workspaceClient).putObject(any(), any(), any());
     }
 
     private static void assertDateBetween(LocalDateTime localDateTime, LocalDateTime gte, LocalDateTime lte) {

@@ -223,7 +223,7 @@ public class StorageLogAdministration {
             throw new StorageLogException(e);
         } finally {
             logbookOperationsClientFactory.getClient()
-                .bulkCreate(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+                .create(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
     }
 

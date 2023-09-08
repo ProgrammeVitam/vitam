@@ -217,12 +217,26 @@ public final class ParametersChecker {
     /**
      * Check parameters emptiness or nullity
      *
+     * @param parameter the template of vitam parameter
+     * @throws IllegalArgumentException if an argument is null or empty against mandatory
+     */
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static <T extends VitamParameter> void checkNullOrEmptyParameters(T parameter) {
+        ParametersChecker.checkParameter("Check Or null parameter", parameter);
+        checkNullOrEmptyParameters(parameter.getMapParameters(), parameter.getMandatoriesParameters());
+    }
+
+    /**
+     * Check parameters emptiness or nullity
+     *
      * @param parameters the template of vitam parameter
      * @throws IllegalArgumentException if an argument is null or empty against mandatory
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public static <T extends VitamParameter> void checkNullOrEmptyParameters(T parameters) {
+    public static <T extends VitamParameter> void checkNullOrEmptyParameters(T... parameters) {
         ParametersChecker.checkParameter("Check Or null parameter", parameters);
-        checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        for (T parameter : parameters) {
+            checkNullOrEmptyParameters(parameter.getMapParameters(), parameter.getMandatoriesParameters());
+        }
     }
 }

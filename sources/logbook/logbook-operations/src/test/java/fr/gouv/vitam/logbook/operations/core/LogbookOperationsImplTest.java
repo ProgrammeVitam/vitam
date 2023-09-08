@@ -41,10 +41,8 @@ import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.FakeMongoCursor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
-import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterHelper;
 import fr.gouv.vitam.logbook.common.parameters.LogbookParameterName;
@@ -55,7 +53,6 @@ import fr.gouv.vitam.logbook.common.server.database.collections.LogbookCollectio
 import fr.gouv.vitam.logbook.common.server.database.collections.LogbookOperation;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.server.exception.LogbookDatabaseException;
-import fr.gouv.vitam.logbook.common.server.exception.LogbookNotFoundException;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
@@ -125,17 +122,10 @@ public class LogbookOperationsImplTest {
     @Test(expected = LogbookDatabaseException.class)
     public void givenCreateOperationWhenErrorInMongoThenThrowLogbookException() throws Exception {
         reset(mongoDbAccess);
-        doThrow(LogbookDatabaseException.class).when(mongoDbAccess).createLogbookOperation(any());
+        doThrow(LogbookDatabaseException.class).when(mongoDbAccess).createLogbookOperation(anyString(), any());
 
-        logbookOperationsImpl.create(logbookParameters);
-    }
-
-    @Test(expected = LogbookDatabaseException.class)
-    public void givenUpdateOperationWhenErrorInMongoThenThrowLogbookException() throws Exception {
-        reset(mongoDbAccess);
-        doThrow(LogbookDatabaseException.class).when(mongoDbAccess).updateLogbookOperation(any());
-
-        logbookOperationsImpl.update(logbookParameters);
+        logbookOperationsImpl.create(logbookParameters.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+            logbookParameters);
     }
 
     @Test(expected = LogbookDatabaseException.class)
@@ -150,17 +140,10 @@ public class LogbookOperationsImplTest {
     @Test(expected = LogbookAlreadyExistsException.class)
     public void givenCreateOperationWhenOperationAlreadyExistsThenThrowLogbookException() throws Exception {
         reset(mongoDbAccess);
-        doThrow(LogbookAlreadyExistsException.class).when(mongoDbAccess).createLogbookOperation(any());
+        doThrow(LogbookAlreadyExistsException.class).when(mongoDbAccess).createLogbookOperation(anyString(), any());
 
-        logbookOperationsImpl.create(logbookParameters);
-    }
-
-    @Test(expected = LogbookNotFoundException.class)
-    public void givenUpdateOperationWhenOperationNotExistsThenThrowLogbookException() throws Exception {
-        reset(mongoDbAccess);
-        doThrow(LogbookNotFoundException.class).when(mongoDbAccess).updateLogbookOperation(any());
-
-        logbookOperationsImpl.update(logbookParameters);
+        logbookOperationsImpl.create(logbookParameters.getParameterValue(LogbookParameterName.eventIdentifierProcess),
+            logbookParameters);
     }
 
     @Test
@@ -171,30 +154,6 @@ public class LogbookOperationsImplTest {
         doReturn(new LogbookOperation(data)).when(mongoDbAccess).getLogbookOperationById(guid.getId());
         LogbookOperation lo = logbookOperationsImpl.getById(guid.getId());
         assertNotNull(lo);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void createBulkLogbookOperationTest() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        reset(mongoDbAccess);
-        when(mongoDbAccess.getLogbookOperationById(any())).thenReturn(new LogbookOperation(logbookParameters));
-        LogbookOperationParameters[] param = new LogbookOperationParameters[2];
-        param[0] = LogbookParameterHelper.newLogbookOperationParameters();
-        param[1] = LogbookParameterHelper.newLogbookOperationParameters();
-        logbookOperationsImpl.createBulkLogbookOperation(param);
-    }
-
-    @RunWithCustomExecutor
-    @Test
-    public void updateBulkLogbookOperationTest() throws Exception {
-        VitamThreadUtils.getVitamSession().setTenantId(0);
-        reset(mongoDbAccess);
-        when(mongoDbAccess.getLogbookOperationById(any())).thenReturn(new LogbookOperation(logbookParameters));
-        LogbookOperationParameters[] param = new LogbookOperationParameters[2];
-        param[0] = LogbookParameterHelper.newLogbookOperationParameters();
-        param[1] = LogbookParameterHelper.newLogbookOperationParameters();
-        logbookOperationsImpl.updateBulkLogbookOperation(param);
     }
 
     @Test

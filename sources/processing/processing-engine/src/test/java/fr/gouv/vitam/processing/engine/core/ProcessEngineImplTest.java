@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientServerException;
+import fr.gouv.vitam.logbook.common.parameters.LogbookOperationParameters;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClient;
 import fr.gouv.vitam.logbook.operations.client.LogbookOperationsClientFactory;
@@ -68,6 +69,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyIterable;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
@@ -234,7 +236,7 @@ public class ProcessEngineImplTest {
         start.join();
 
         verify(logbookOperationsClient).update(any());
-        verify(logbookOperationsClient).bulkUpdate(anyString(), any());
+        verify(logbookOperationsClient).update(anyString(), any());
 
         verify(stateMachineCallback, times(2)).onUpdate(any());
         verify(stateMachineCallback).onProcessEngineCompleteStep(any(), any());
@@ -329,8 +331,8 @@ public class ProcessEngineImplTest {
         start.join();
 
 
-        verify(logbookOperationsClient).update(any());
-        verify(logbookOperationsClient).bulkUpdate(anyString(), any());
+        verify(logbookOperationsClient).update(any(LogbookOperationParameters.class));
+        verify(logbookOperationsClient).update(anyString(), anyIterable());
 
         verify(stateMachineCallback, times(2)).onUpdate(any());
         verify(stateMachineCallback).onProcessEngineCompleteStep(any(), any());
@@ -351,7 +353,7 @@ public class ProcessEngineImplTest {
         when(processDistributor
             .distribute(any(), any(), anyString())).thenReturn(itemStatus);
         doNothing().when(logbookOperationsClient).update(any());
-        doThrow(new LogbookClientServerException("")).when(logbookOperationsClient).bulkUpdate(any(), any());
+        doThrow(new LogbookClientServerException("")).when(logbookOperationsClient).update(any(), any());
 
         CompletableFuture<ItemStatus> start = processEngine.start(processWorkflow.getSteps().get(0), workParams);
         start.exceptionally(t -> null).join();

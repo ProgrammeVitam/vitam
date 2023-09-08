@@ -255,7 +255,7 @@ public class WebApplicationResourceDelete {
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_FORMAT, StatusCode.OK));
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createBulkLogbookOperation(
+            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
                 helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
@@ -302,7 +302,7 @@ public class WebApplicationResourceDelete {
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_RULES, StatusCode.OK));
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createBulkLogbookOperation(
+            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
                 helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
@@ -362,7 +362,7 @@ public class WebApplicationResourceDelete {
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_SUMMARY, StatusCode.OK));
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createBulkLogbookOperation(
+            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
                 helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
         } catch (final Exception exc) {
             parameters.putParameterValue(LogbookParameterName.eventType, STP_DELETE_ACCESSION_REGISTER_SUMMARY)
@@ -394,7 +394,7 @@ public class WebApplicationResourceDelete {
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_ACCESSION_REGISTER_DETAIL, StatusCode.OK));
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createBulkLogbookOperation(
+            mongoDbAccessLogbook.createLogbookOperation(eipDetail.getId(),
                 helper.removeCreateDelegate(eipDetail.getId()).toArray(new LogbookOperationParameters[2]));
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
@@ -447,7 +447,7 @@ public class WebApplicationResourceDelete {
                     VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.OK))
                 .setStatus(StatusCode.OK);
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createBulkLogbookOperation(
+            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
                 helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
@@ -458,7 +458,7 @@ public class WebApplicationResourceDelete {
                     VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_OPERATION, StatusCode.KO));
             try {
                 helper.updateDelegate(parameters);
-                mongoDbAccessLogbook.createBulkLogbookOperation(
+                mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
                     helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
             } catch (LogbookAlreadyExistsException | LogbookDatabaseException e) {
                 LOGGER.error(e);
@@ -500,7 +500,7 @@ public class WebApplicationResourceDelete {
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_OG, StatusCode.OK));
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createBulkLogbookOperation(
+            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
                 helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
@@ -547,7 +547,7 @@ public class WebApplicationResourceDelete {
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_LOGBOOK_LIFECYCLE_UNIT, StatusCode.OK));
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createBulkLogbookOperation(
+            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
                 helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
@@ -594,7 +594,7 @@ public class WebApplicationResourceDelete {
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_OG, StatusCode.OK));
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createBulkLogbookOperation(
+            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
                 helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
@@ -641,7 +641,7 @@ public class WebApplicationResourceDelete {
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_METADATA_UNIT, StatusCode.OK));
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createBulkLogbookOperation(
+            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
                 helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
@@ -872,7 +872,7 @@ public class WebApplicationResourceDelete {
                 .putParameterValue(LogbookParameterName.outcomeDetailMessage,
                     VitamLogbookMessages.getCodeOp(STP_DELETE_MASTERDATA + "_" + collection.name(), StatusCode.OK));
             helper.updateDelegate(parameters);
-            mongoDbAccessLogbook.createBulkLogbookOperation(
+            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
                 helper.removeCreateDelegate(eip.getId()).toArray(new LogbookOperationParameters[2]));
             return Response.status(Status.OK).build();
         } catch (final Exception exc) {
@@ -1007,7 +1007,8 @@ public class WebApplicationResourceDelete {
         try {
             final Queue<LogbookOperationParameters> createQueue = helper.removeCreateDelegate(eip.getId());
             mongoDbAccessLogbook
-                .createBulkLogbookOperation(createQueue.toArray(new LogbookOperationParameters[createQueue.size()]));
+                .createLogbookOperation(eip.getId(),
+                    createQueue.toArray(new LogbookOperationParameters[createQueue.size()]));
         } catch (LogbookDatabaseException | LogbookAlreadyExistsException e) {
             LOGGER.error("Error when logging", e);
         }
@@ -1449,8 +1450,8 @@ public class WebApplicationResourceDelete {
     private Response updateLogbookAndGetErrorResponse(LogbookOperationsClientHelper helper, GUID eip, Exception exc) {
         try {
             final Queue<LogbookOperationParameters> parameters = helper.removeCreateDelegate(eip.getId());
-            mongoDbAccessLogbook
-                .createBulkLogbookOperation(parameters.toArray(new LogbookOperationParameters[parameters.size()]));
+            mongoDbAccessLogbook.createLogbookOperation(eip.getId(),
+                parameters.toArray(LogbookOperationParameters[]::new));
         } catch (LogbookAlreadyExistsException | LogbookDatabaseException e) {
             LOGGER.error(e);
         }

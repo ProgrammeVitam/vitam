@@ -67,36 +67,8 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
             append(name.getDbname(), map.get(name.getLogbookParameterName()));
         }
-        append(LogbookDocument.EVENTS, Arrays.asList(new String[0]));
+        append(LogbookDocument.EVENTS, List.of());
         checkId();
-    }
-
-    /**
-     * Constructor from LogbookOperationParameters for update purpose
-     *
-     * @param parameters the logbook parameters
-     * @param forUpdate specifies if the parameters should not contain fields for update
-     * @throws IllegalArgumentException if argument is null
-     */
-    public LogbookOperation(LogbookOperationParameters parameters, boolean forUpdate) {
-        ParametersChecker.checkParameter("parameters", parameters);
-        // Fill information using LogbookMongoDbName
-        final Map<LogbookParameterName, String> map = parameters.getMapParameters();
-        for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
-            if (forUpdate) {
-                switch (name) {
-                    case agentIdentifierApplication:
-                    case agentIdentifierApplicationSession:
-
-                        break;
-                    default:
-                        append(name.getDbname(), map.get(name.getLogbookParameterName()));
-                }
-            } else {
-                append(name.getDbname(), map.get(name.getLogbookParameterName()));
-            }
-        }
-
     }
 
     /**

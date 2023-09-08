@@ -588,7 +588,7 @@ public class ProcessingIT extends VitamRuleRunner {
         String id = vitamDocument.getId();
         vitamDocument.remove(VitamDocument.ID);
         vitamDocument.remove(VitamDocument.SCORE);
-        new LogbookTransformData().transformDataForElastic(vitamDocument);
+        LogbookTransformData.transformDataForElastic(vitamDocument);
         LogbookCollections.OPERATION.getEsClient()
             .indexEntry(LogbookCollections.OPERATION, tenantId, id, vitamDocument);
     }

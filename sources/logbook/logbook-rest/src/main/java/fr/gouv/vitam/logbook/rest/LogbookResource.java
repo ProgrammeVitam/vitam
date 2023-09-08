@@ -201,7 +201,7 @@ public class LogbookResource extends ApplicationStatusResource {
             timeStampSignature =
                 new TimeStampSignatureWithKeystore(file, configuration.getP12LogbookPassword().toCharArray());
         } catch (KeyStoreException | CertificateException | IOException | UnrecoverableKeyException |
-            NoSuchAlgorithmException e) {
+                 NoSuchAlgorithmException e) {
             LOGGER.error("unable to instantiate TimeStampGenerator", e);
             throw new RuntimeException(e);
         }
@@ -284,7 +284,7 @@ public class LogbookResource extends ApplicationStatusResource {
      * Create or Select a new operation
      *
      * @param operationId path param, the operation id
-     * @param operation the json serialized as a LogbookOperationParameters.
+     * @param operations the json serialized as a LogbookOperationParameters.
      * @return the response with a specific HTTP status
      */
     @POST
@@ -292,25 +292,19 @@ public class LogbookResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createOperation(@PathParam("id_op") String operationId,
-        LogbookOperationParameters operation) {
+        LogbookOperationParameters[] operations) {
         Response finalResponse;
         finalResponse = Response.status(Response.Status.CREATED).build();
         try {
-            LOGGER.debug(
-                operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId) + " " +
-                    operation.getParameterValue(LogbookOperation.getIdParameterName()) + " =? " + operationId);
+            LOGGER.debug(operationId);
             try {
-                ParametersChecker.checkNullOrEmptyParameters(operation);
+                ParametersChecker.checkNullOrEmptyParameters(operations);
             } catch (final IllegalArgumentException e) {
                 LOGGER.error("Operations is incorrect", e);
                 return Response.status(Response.Status.BAD_REQUEST).build();
             }
-            if (!operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId)) {
-                LOGGER.error("OperationId is not the same as in the operation parameter");
-                return Response.status(Response.Status.BAD_REQUEST).build();
-            }
 
-            logbookOperation.create(operation);
+            logbookOperation.create(operationId, operations);
         } catch (final LogbookAlreadyExistsException exc) {
             LOGGER.error(exc);
             finalResponse = Response.status(Response.Status.CONFLICT).build();
@@ -329,27 +323,23 @@ public class LogbookResource extends ApplicationStatusResource {
      * Append a new item on the given operation
      *
      * @param operationId the operation id
-     * @param operation the json serialized as a LogbookOperationParameters.
+     * @param operations the json serialized as a LogbookOperationParameters.
      * @return the response with a specific HTTP status
      */
     @PUT
     @Path("/operations/{id_op}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateOperation(@PathParam("id_op") String operationId, LogbookOperationParameters operation) {
+    public Response updateOperation(@PathParam("id_op") String operationId, LogbookOperationParameters... operations) {
         Response finalResponse = Response.status(Response.Status.OK).build();
         try {
-            ParametersChecker.checkNullOrEmptyParameters(operation);
+            ParametersChecker.checkNullOrEmptyParameters(operations);
         } catch (final IllegalArgumentException e) {
             LOGGER.error("Operations is incorrect", e);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
-        if (!operation.getParameterValue(LogbookOperation.getIdParameterName()).equals(operationId)) {
-            LOGGER.error("OperationId is not the same as in the operation parameter");
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
         try {
-            logbookOperation.update(operation);
+            logbookOperation.update(operationId, operations);
         } catch (final LogbookNotFoundException exc) {
             LOGGER.debug(exc);
             finalResponse = Response.status(Response.Status.NOT_FOUND).build();
@@ -429,49 +419,6 @@ public class LogbookResource extends ApplicationStatusResource {
     }
 
     /**
-     * Bulk Create Operation
-     *
-     * @param query as JsonNode or Operations Logbooks as ArrayNode
-     * @return Response of SELECT query with POST method or CREATED
-     */
-    @POST
-    @Path("/operations")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response bulkCreateOperation(JsonNode query) {
-        // query is in fact a bulk LogbookOperationsParameter
-        try {
-            ParametersChecker.checkParameter("Logbook parameters", query);
-        } catch (final IllegalArgumentException e) {
-            LOGGER.error("Operations is incorrect", e);
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        try {
-            final LogbookOperationParameters[] arrayOperations =
-                JsonHandler.getFromJsonNode(query, LogbookOperationParameters[].class);
-            logbookOperation.createBulkLogbookOperation(arrayOperations);
-        } catch (final LogbookDatabaseException e) {
-            LOGGER.error(e);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final LogbookAlreadyExistsException e) {
-            LOGGER.error(e);
-            return Response.status(Response.Status.CONFLICT).build();
-        } catch (InvalidParseOperationException | IllegalArgumentException e) {
-            LOGGER.error(e);
-            final Status status = Status.PRECONDITION_FAILED;
-            return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
-                    .setContext(LOGBOOK)
-                    .setState("code_vitam")
-                    .setMessage(status.getReasonPhrase())
-                    .setDescription(e.getMessage()))
-                .build();
-        }
-        return Response.status(Response.Status.CREATED).build();
-
-    }
-
-    /**
      * Select a list of operations
      *
      * @param query DSL as JsonNode
@@ -516,35 +463,6 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setDescription(exc.getMessage()))
                 .build();
         }
-    }
-
-    /**
-     * Update Operation With Bulk Mode
-     *
-     * @param arrayNodeOperations as ArrayNode of operations to add to existing Operation Logbook entry
-     * @return Response with a status of OK if updated
-     */
-    @PUT
-    @Path("/operations")
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    // Note: here let String since we need JsonHandler to parser the object
-    public Response updateOperationBulk(String arrayNodeOperations) {
-        try {
-            final LogbookOperationParameters[] arrayOperations =
-                JsonHandler.getFromString(arrayNodeOperations, LogbookOperationParameters[].class);
-            logbookOperation.updateBulkLogbookOperation(arrayOperations);
-        } catch (final LogbookNotFoundException exc) {
-            LOGGER.debug(exc);
-            return Response.status(Response.Status.NOT_FOUND).build();
-        } catch (final LogbookDatabaseException exc) {
-            LOGGER.error(exc);
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
-        } catch (final IllegalArgumentException | InvalidParseOperationException exc) {
-            LOGGER.error(exc);
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-        return Response.status(Response.Status.OK).build();
     }
 
     @GET
@@ -1701,7 +1619,7 @@ public class LogbookResource extends ApplicationStatusResource {
                     .setHttpCode(Status.NOT_FOUND.getStatusCode()))
                 .build();
         } catch (final LogbookException | InvalidParseOperationException |
-            InvalidCreateOperationException exc) {
+                       InvalidCreateOperationException exc) {
             LOGGER.error(exc);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)

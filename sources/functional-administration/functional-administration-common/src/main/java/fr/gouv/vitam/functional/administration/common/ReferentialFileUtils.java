@@ -50,7 +50,7 @@ public final class ReferentialFileUtils {
         final LogbookOperationParameters logbookParameters)
         throws InvalidParseOperationException {
         if (StringUtils.isNotBlank(filename)) {
-            ObjectNode evDetData = null;
+            ObjectNode evDetData;
             if (logbookParameters.getParameterValue(LogbookParameterName.eventDetailData) != null &&
                 !logbookParameters.getParameterValue(LogbookParameterName.eventDetailData).isEmpty()) {
                 evDetData = (ObjectNode) JsonHandler
@@ -61,8 +61,9 @@ public final class ReferentialFileUtils {
             evDetData.put("FileName", filename);
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
                 JsonHandler.unprettyPrint(evDetData));
-            logbookParameters.putParameterValue(LogbookParameterName.masterData,
-                JsonHandler.unprettyPrint(evDetData));
+            ObjectNode masterData = JsonHandler.createObjectNode();
+            masterData.put("eventDetailData", JsonHandler.unprettyPrint(evDetData));
+            logbookParameters.putParameterValue(LogbookParameterName.masterData, JsonHandler.unprettyPrint(masterData));
         }
     }
 }
