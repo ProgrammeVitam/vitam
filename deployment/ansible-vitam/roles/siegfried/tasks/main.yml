@@ -1,6 +1,6 @@
 ---
 
-- name: install siegfried package
+- name: Install vitam-siegfried package
   package:
     name: vitam-siegfried
     state: latest
@@ -8,6 +8,43 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
+  notify:
+    - "siegfried - restart service"
+
+- name: Deploy systemd service file for siegfried
+  template:
+    src: vitam-siegfried.service.j2
+    dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/vitam-siegfried.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - "siegfried - restart service"
+
+#### Configuration ####
+
+- name: Check that the directories exist
+  file:
+    path: "{{ vitam_defaults.folder.root_path }}/{{ item }}/siegfried"
+    state: directory
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.folder_permission }}"
+  with_items:
+    - app
+    - bin
+    - conf
+    - log
+  notify:
+    - "siegfried - restart service"
+
+- name: Copy siegfried sysconfig file
+  template:
+    src: sysconfig.j2
+    dest: "{{ vitam_defaults.folder.root_path }}/conf/siegfried/sysconfig"
+    owner: "{{ vitam_defaults.users.vitam }}"
+    group: "{{ vitam_defaults.users.group }}"
+    mode: "{{ vitam_defaults.folder.script_permission }}"
   notify:
     - "siegfried - restart service"
 

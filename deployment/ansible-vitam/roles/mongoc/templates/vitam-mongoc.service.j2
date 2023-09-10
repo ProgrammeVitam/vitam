@@ -1,0 +1,24 @@
+[Unit]
+Description=MongoDB (mongoc) Database Service
+Wants=network.target
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/mongod --config {{ vitam_defaults.folder.root_path }}/conf/mongoc/mongoc.conf
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+User={{ vitam_defaults.users.vitamdb }}
+Group={{ vitam_defaults.users.group }}
+StandardOutput=syslog
+StandardError=syslog
+# ulimits
+LimitFSIZE=infinity
+LimitCPU=infinity
+LimitAS=infinity
+LimitNOFILE=64000
+LimitRSS=infinity
+LimitNPROC=64000
+
+[Install]
+WantedBy=multi-user.target

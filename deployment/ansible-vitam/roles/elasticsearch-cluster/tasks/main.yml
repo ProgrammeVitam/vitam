@@ -7,14 +7,12 @@
   set_fact:
     sysconfig_dir: "sysconfig"
     jvm_security_path: "/usr/lib/jvm/jre/lib/security"
-    java_package: "{{ java_prerequisites.redhat }}"
   when: ansible_os_family == "RedHat"
 
 - name: Set default directory for Debian
   set_fact:
     sysconfig_dir: "default"
     jvm_security_path: "/usr/lib/jvm/java-11-openjdk-amd64/jre/lib/security"
-    java_package: "{{ java_prerequisites.debian }}"
   when: ansible_os_family == "Debian"
 
 - name: Set Elasticsearch memory if the value is defined at composant level.
@@ -45,16 +43,37 @@
 
 #### Elasticsearch installation ####
 
-- name: install vitam-{{ composant.cluster_name }} package
+- name: "Install {{ elasticsearch_package }} packages"
   package:
     name:
-      - "vitam-{{ composant.cluster_name }}"
-      - "{{ java_package }}"
-    state: latest
+      - "{{ elasticsearch_package }}"
+      - vitam-user-vitamdb
+    state: present
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
+  notify:
+    - "elasticsearch-cluster - restart service"
+
+- name: Install ICU analysis plugin for elastic-data
+  package:
+    name: vitam-elasticsearch-analysis-icu
+    state: present
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
+  notify: "elasticsearch-cluster - restart service"
+  when: composant.cluster_name == 'elasticsearch-data'
+
+- name: "Deploy systemd service file for vitam-{{ composant.cluster_name }}"
+  template:
+    src: "vitam-{{ composant.cluster_name }}.service.j2"
+    dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/vitam-{{ composant.cluster_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
   notify:
     - "elasticsearch-cluster - restart service"
 
@@ -110,16 +129,6 @@
   notify:
     - "elasticsearch-cluster - restart service"
 
-- name: Ensure elasticsearch sysconfig directory exist
-  file:
-    path: "{{ elasticsearch_conf_dir }}/sysconfig"
-    owner: "{{ vitam_defaults.users.vitamdb }}"
-    group: "{{ vitam_defaults.users.group }}"
-    state: directory
-    mode: "{{ vitam_defaults.folder.folder_permission }}"
-  notify:
-    - "elasticsearch-cluster - restart service"
-
 - name: If already configured, remove limits max_open_files for Elasticsearch
   lineinfile:
     path: /etc/security/limits.conf
@@ -154,8 +163,8 @@
 
 - name: apply elasticsearch sysconfig default
   template:
-    src: "elasticsearch.j2"
-    dest: "{{ elasticsearch_conf_dir }}/sysconfig/elasticsearch"
+    src: sysconfig.j2
+    dest: "{{ elasticsearch_conf_dir }}/sysconfig"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
@@ -181,7 +190,7 @@
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: 0660
-  ignore_errors: yes
+  ignore_errors: true
 
 #### Consul service declaration ####
 

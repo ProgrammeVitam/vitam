@@ -1,0 +1,4 @@
+---
+
+logstash_version: "{{ logstash.version | default('7.17.8') }}"
+logstash_package: "logstash{{ '=' if ansible_os_family == 'Debian' else '-' }}{{ logstash_version }}"

@@ -2,10 +2,10 @@
 
 #### Grafana installation ####
 
-- name: Install vitam-grafana package
+- name: "Install {{ grafana_package }} package"
   package:
-    name: vitam-grafana
-    state: latest
+    name: "{{ grafana_package }}"
+    state: present
   register: result
   retries: "{{ packages_install_retries_number | default(1) }}"
   until: result is succeeded

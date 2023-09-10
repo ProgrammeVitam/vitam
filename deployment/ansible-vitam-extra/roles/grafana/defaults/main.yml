@@ -6,3 +6,6 @@ grafana_path_provisioning: "/etc/grafana/provisioning"
 grafana_data_dir: "/var/lib/grafana"
 
 service_at_boot: "{{ vitam_defaults.services.at_boot | default(false) }}"
+
+grafana_version: "{{ grafana.version | default('9.3.6') }}"
+grafana_package: "grafana{{ '=' if ansible_os_family == 'Debian' else '-' }}{{ grafana_version }}"

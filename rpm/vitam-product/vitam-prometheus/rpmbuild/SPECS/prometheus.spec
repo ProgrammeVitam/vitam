@@ -1,98 +1,63 @@
-%define debug_package %{nil}
-
-Name:	 vitam-prometheus
+Name:    vitam-prometheus
 Version: 2.42.0
 Release: 1%{?dist}
 Summary: The Prometheus monitoring system and time series database.
 License: ASL 2.0
 URL:     https://prometheus.io
-Conflicts: prometheus
 
 Source0: https://github.com/prometheus/prometheus/releases/download/v%{version}/prometheus-%{version}.linux-amd64.tar.gz
-Source1: %{name}.service
-Source2: prometheus.env
 
-%global vitam_service_name %{name}.service
-%global prometheus_appfolder /vitam/app/prometheus
-%global prometheus_conffolder /vitam/conf/prometheus
-%global prometheus_binfolder /vitam/bin/prometheus
-%global prometheus_datafolder /vitam/data/prometheus
+%global appfolder /vitam/app/prometheus
+%global conffolder /vitam/conf/prometheus
+%global binfolder /vitam/bin/prometheus
 
-
-%{?systemd_requires}
-Requires(pre): shadow-utils
 Requires:      vitam-user-vitam
+Conflicts:     prometheus
 
 %description
-
 Prometheus is a systems and service monitoring system. It collects metrics from
 configured targets at given intervals, evaluates rule expressions, displays the
 results, and can trigger alerts if some condition is observed to be true.
 
 %prep
-%setup -q -n prometheus-%{version}.linux-amd64
-
-%build
-/bin/true
+%setup -n prometheus-%{version}.linux-amd64
 
 %install
-mkdir -p %{buildroot}%{prometheus_binfolder}
-mkdir -p %{buildroot}%{prometheus_appfolder}
-mkdir -p %{buildroot}%{prometheus_conffolder}
-mkdir -p %{buildroot}%{prometheus_conffolder}/sysconfig
-mkdir -p %{buildroot}%{prometheus_datafolder}
+mkdir -p %{buildroot}%{binfolder}
+install prometheus %{buildroot}%{binfolder}/prometheus
+install promtool %{buildroot}%{binfolder}/promtool
 
-install -D -m 755 prometheus %{buildroot}%{prometheus_binfolder}/prometheus
-install -D -m 755 promtool %{buildroot}%{prometheus_binfolder}/promtool
+mkdir -p %{buildroot}%{appfolder}
+install LICENSE %{buildroot}%{appfolder}/LICENSE
+install NOTICE %{buildroot}%{appfolder}/NOTICE
 
-for dir in console_libraries consoles; do
-  for file in ${dir}/*; do
-    install -D -m 644 ${file} %{buildroot}%{prometheus_appfolder}/${file}
-  done
-done
+cp -vrp console_libraries %{buildroot}%{appfolder}
+cp -vrp consoles %{buildroot}%{appfolder}
 
-install -D -m 644 prometheus.yml %{buildroot}%{prometheus_conffolder}/prometheus.yml
-install -D -m 644 %{SOURCE1} %{buildroot}%{_unitdir}/%{vitam_service_name}
-install -D -m 644 %{SOURCE2} %{buildroot}%{prometheus_conffolder}/sysconfig/prometheus
+mkdir -p %{buildroot}%{conffolder}
+install prometheus.yml %{buildroot}%{conffolder}/prometheus.yml
 
 %pre
 
 %post
-%systemd_post %{vitam_service_name}
 
 %preun
-%systemd_preun %{vitam_service_name}
 
 %postun
-%systemd_postun %{vitam_service_name}
-
 
 %clean
 rm -rf %{buildroot}
 
-
 %files
-%defattr(-,root,root,-)
- %{prometheus_binfolder}/prometheus
- %{prometheus_binfolder}/promtool
+%dir %attr(750, vitam, vitam) %{binfolder}
+%attr(750, vitam, vitam)      %{binfolder}/prometheus
+%attr(750, vitam, vitam)      %{binfolder}/promtool
 
-%dir %attr(755, vitam, vitam) %{prometheus_datafolder}
-%dir %attr(750, vitam, vitam) %{prometheus_binfolder}
-%dir %attr(750, vitam, vitam) %{prometheus_appfolder}
-%dir %attr(750, vitam, vitam) %{prometheus_conffolder}
-%dir %attr(750, vitam, vitam) %{prometheus_conffolder}/sysconfig
+%dir %attr(750, vitam, vitam) %{appfolder}
+%attr(644, vitam, vitam)      %{appfolder}
 
-
-%config(noreplace)            %{prometheus_conffolder}/prometheus.yml
-
-%config(noreplace)            %{prometheus_conffolder}/sysconfig/prometheus
-%attr(640, vitam, vitam)      %{prometheus_conffolder}/sysconfig/prometheus
-
-%{prometheus_appfolder}
-%{_unitdir}/%{vitam_service_name}
-
-%attr(755, vitam, vitam) %{prometheus_binfolder}/prometheus
-%attr(755, vitam, vitam) %{prometheus_binfolder}/promtool
+%dir %attr(750, vitam, vitam) %{conffolder}
+%config(noreplace)            %{conffolder}/prometheus.yml
 
 %doc
 

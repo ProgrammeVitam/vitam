@@ -1,9 +1,10 @@
 ---
 
 - name: "elasticsearch-cluster - restart service"
-  service:
+  systemd:
     name: "vitam-{{ composant.cluster_name }}"
     state: restarted
+    daemon_reload: yes
 
 - name: "elasticsearch-cluster - create systemd tmpfiles"
   command: systemd-tmpfiles --create

@@ -31,10 +31,10 @@ rm -rf /vitam/data/offer
 sed -i s/172.17.0.2/10.88.0.2/g /code/deployment/environments/hosts.cots
 vitam-deploy cots
 sed -i s/10.88.0.2/172.17.0.2/g /code/deployment/environments/hosts.cots
-sed -i s/localhost/0.0.0.0/ /vitam/conf/siegfried/sysconfig/siegfried
+sed -i s/localhost/0.0.0.0/ /vitam/conf/siegfried/sysconfig
 apt install -y vitam-siegfried
 systemctl enable vitam-siegfried
-sed -i s/localhost/0.0.0.0/ /vitam/conf/siegfried/sysconfig/siegfried
+sed -i s/localhost/0.0.0.0/ /vitam/conf/siegfried/sysconfig
 systemctl restart vitam-siegfried
 chmod 777 -R /vitam/data
 chmod 777 -R /vitam/tmp

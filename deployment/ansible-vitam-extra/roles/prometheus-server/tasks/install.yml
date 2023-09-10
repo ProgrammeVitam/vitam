@@ -10,6 +10,15 @@
   delay: "{{ packages_install_retries_delay | default(10) }}"
   notify: "prometheus-server - restart service"
 
+- name: Deploy systemd service file for vitam-prometheus
+  template:
+    src: vitam-prometheus.service.j2
+    dest: "{{ '/lib/systemd/system' if ansible_os_family == 'Debian' else '/usr/lib/systemd/system' }}/vitam-prometheus.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: "prometheus-server - restart service"
+
 #### Configuration ####
 - name: Check that the prometheus directories exist
   file:
@@ -33,8 +42,8 @@
 
 - name: Apply prometheus server sysconfig default
   template:
-    src: "prometheus.j2"
-    dest: "{{ prometheus_server_config_path }}/sysconfig/prometheus"
+    src: sysconfig.j2
+    dest: "{{ prometheus_server_config_path }}/sysconfig"
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"

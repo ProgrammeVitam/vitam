@@ -1,0 +1,18 @@
+[Unit]
+Description=Consul is a distributed, highly-available, and multi-datacenter aware tool for service discovery, configuration, and orchestration.
+Documentation=http://www.consul.io
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User={{ vitam_defaults.users.vitam }}
+Group={{ vitam_defaults.users.group }}
+EnvironmentFile=-{{ vitam_defaults.folder.root_path }}/conf/consul/sysconfig
+ExecStart={{ vitam_defaults.folder.root_path }}/bin/consul/consul $CMD_OPTS
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGINT
+#CapabilityBoundingSet=CAP_NET_BIND_SERVICE #KWA: doesn't seem to do anything...
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+
+[Install]
+WantedBy=multi-user.target

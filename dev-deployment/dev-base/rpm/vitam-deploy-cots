@@ -30,7 +30,7 @@ rm -rf /vitam/data/offer
 vitam-deploy cots
 sudo yum install -y vitam-siegfried
 sudo systemctl enable vitam-siegfried
-sudo sed -i s/localhost/172.17.0.2/ /vitam/conf/siegfried/sysconfig/siegfried
+sudo sed -i s/localhost/172.17.0.2/ /vitam/conf/siegfried/sysconfig
 sudo systemctl restart vitam-siegfried
 sudo chmod 777 -R /vitam/data
 sudo chmod 777 -R /vitam/tmp

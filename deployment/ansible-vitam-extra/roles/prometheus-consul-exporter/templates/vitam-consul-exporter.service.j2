@@ -1,0 +1,17 @@
+[Unit]
+Description=Prometheus Consul Exporter
+Documentation=https://github.com/prometheus/consul_exporter
+After=network.target
+
+[Service]
+EnvironmentFile=-{{ vitam_defaults.folder.root_path }}/conf/consul_exporter/sysconfig
+User={{ vitam_defaults.users.vitam }}
+Group={{ vitam_defaults.users.group }}
+ExecStart={{ vitam_defaults.folder.root_path }}/bin/consul_exporter/consul_exporter \
+          $CONSUL_EXPORTER_OPTS
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
