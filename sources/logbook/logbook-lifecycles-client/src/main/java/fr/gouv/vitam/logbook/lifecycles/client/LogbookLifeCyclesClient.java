@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.processing.DistributionType;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientAlreadyExistsException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
@@ -230,6 +229,9 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws InvalidParseOperationException
      */
     JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl)
+        throws LogbookClientException, InvalidParseOperationException;
+
+    JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus)
         throws LogbookClientException, InvalidParseOperationException;
 
     CloseableIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId,

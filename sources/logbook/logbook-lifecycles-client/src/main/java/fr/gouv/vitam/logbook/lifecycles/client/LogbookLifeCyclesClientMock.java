@@ -74,7 +74,7 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
     private static final String CREATE = "CREATE";
     private static final String COMMIT = "COMMIT";
     private static final String ROLLBACK = "ROLLBACK";
-    private static ConcurrentMap<String, List<String>> lifeCyclesByOperation = new ConcurrentHashMap<>();
+    private static final ConcurrentMap<String, List<String>> lifeCyclesByOperation = new ConcurrentHashMap<>();
 
     @Override
     public void create(LogbookLifeCycleParameters parameters)
@@ -343,6 +343,12 @@ class LogbookLifeCyclesClientMock extends AbstractMockClient implements LogbookL
 
     @Override
     public JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl)
+        throws InvalidParseOperationException {
+        return ClientMockResultHelper.getLogbookLifecycle();
+    }
+
+    @Override
+    public JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus)
         throws InvalidParseOperationException {
         return ClientMockResultHelper.getLogbookLifecycle();
     }
