@@ -83,6 +83,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
 
     static final String REQUEST_JSON = "request.json";
     static final String UNITS_TO_DELETE_FILE = "units_to_delete.jsonl";
+    public static final String PERSISTENT_IDENTIFIER = "PersistentIdentifier";
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final EliminationAnalysisService eliminationAnalysisService;
@@ -271,6 +272,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
                 VitamFieldsHelper.storage(),
                 VitamFieldsHelper.unitType()
             );
+            request.addUsedProjection(PERSISTENT_IDENTIFIER);
             request.addUsedProjection(EliminationUtils.getReportExtraFields().toArray(String[]::new));
 
             return request;

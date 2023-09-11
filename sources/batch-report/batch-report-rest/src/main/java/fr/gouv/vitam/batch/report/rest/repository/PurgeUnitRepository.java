@@ -98,6 +98,7 @@ public class PurgeUnitRepository extends ReportCommonRepository {
                             new Document("params.opi", "$_metadata.opi"),
                             new Document("params.originatingAgency", "$_metadata.originatingAgency"),
                             new Document("params.objectGroupId", "$_metadata.objectGroupId"),
+                            new Document("params.persistentIdentifier", "$_metadata.persistentIdentifier"),
                             new Document("params.extraInfo", "$_metadata.extraInfo")
                         )
                     ))

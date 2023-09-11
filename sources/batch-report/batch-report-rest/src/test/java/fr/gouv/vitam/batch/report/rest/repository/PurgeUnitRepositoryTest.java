@@ -40,6 +40,8 @@ import fr.gouv.vitam.common.database.server.mongodb.SimpleMongoDBAccess;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
+import java.util.Collection;
+import java.util.Objects;
 import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.Before;
@@ -101,7 +103,7 @@ public class PurgeUnitRepositoryTest {
         Object metadata = first.get("_metadata");
         JsonNode metadataNode = JsonHandler.toJsonNode(metadata);
         JsonNode expected = JsonHandler.getFromString(
-            "{\"id\":\"unitId1\",\"originatingAgency\":\"sp1\",\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"status\":\"DELETED\",\"extraInfo\":{\"key1\":\"unit1_value1\",\"key2\":[\"unit1_value2\"]},\"type\":\"INGEST\"}");
+            "{\"id\":\"unitId1\",\"originatingAgency\":\"sp1\",\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"status\":\"DELETED\",\"extraInfo\":{\"key1\":\"unit1_value1\",\"key2\":[\"unit1_value2\"]},\"persistentIdentifier\":{\"PersistentIdentifier\":[{\"PersistentIdentifierType\":\"ark\",\"PersistentIdentifierContent\":\"ark:/666567/001a957db5eadaac\"},{\"PersistentIdentifierType\":\"ark\",\"PersistentIdentifierContent\":\"ark:/26661/001d957db5eadaac\"}]},\"type\":\"INGEST\"}");
         assertThat(metadataNode).isNotNull().isEqualTo(expected);
         repository.bulkAppendReport(purgeUnitModels);
         assertThat(purgeUnitCollection.countDocuments()).isEqualTo(4);
@@ -212,6 +214,45 @@ public class PurgeUnitRepositoryTest {
             documents.add(next);
         }
         assertThat(documents.size()).isEqualTo(4);
+    }
+
+
+    @Test
+    public void should_find_purge_unit_with_persistent_identifier() throws Exception {
+        // Given
+        List<PurgeUnitModel> purgeUnitModels = getDocuments("/purgeUnitModel.json");
+        repository.bulkAppendReport(purgeUnitModels);
+        // When
+        MongoCursor<Document> iterator =
+            repository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID);
+        // Then
+        List<Document> documents = new ArrayList<>();
+        while (iterator.hasNext()) {
+            Document next = iterator.next();
+            documents.add(next);
+        }
+
+        List<Document> persistentIdentifiers = documents.stream()
+            .map(doc -> ((Document) doc.get("params")).get("persistentIdentifier"))
+            .filter(Objects::nonNull)
+            .map(persistentIdentifier -> (List<Document>) ((Document) persistentIdentifier).get("PersistentIdentifier"))
+            .filter(Objects::nonNull)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toList());
+
+        assertThat(persistentIdentifiers).hasSize(2);
+
+        // Verify each persistentIdentifier entry
+        assertThat(persistentIdentifiers)
+            .usingElementComparatorIgnoringFields("someFieldThatMightVary")
+            .containsExactlyInAnyOrder(
+                new Document()
+                    .append("PersistentIdentifierType", "ark")
+                    .append("PersistentIdentifierContent", "ark:/666567/001a957db5eadaac"),
+                new Document()
+                    .append("PersistentIdentifierType", "ark")
+                    .append("PersistentIdentifierContent", "ark:/26661/001d957db5eadaac")
+            );
     }
 
     @Test
