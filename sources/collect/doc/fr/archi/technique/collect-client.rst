@@ -1,4 +1,4 @@
-Access-client
+collect-client
 *************
 Ce module est utilisé par les test d'integration(package fr.gouv.vitam.collect).
 
