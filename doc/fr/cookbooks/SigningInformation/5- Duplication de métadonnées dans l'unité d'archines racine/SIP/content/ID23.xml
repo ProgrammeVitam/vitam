@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <History>
+    <code>OK</code>
+    <type>CREATION</type>
+    <user>
+      <id>2</id>
+      <email>caroline.distriquin@cea.fr</email>
+      <firstname>Caroline</firstname>
+      <lastname>DISTRIQUIN</lastname>
+      <ip>132.166.92.135</ip>
+    </user>
+    <date>2023-01-27T10:54:54+01:00</date>
+    <message>Pièce jointe ajoutée : Annexe 2</message>
+    <data>
+      <mainDocumentId>1104</mainDocumentId>
+    </data>
+  </History>
+  <History>
+    <code>OK</code>
+    <type>CREATION</type>
+    <user>
+      <id>2</id>
+      <email>caroline.distriquin@cea.fr</email>
+      <firstname>Caroline</firstname>
+      <lastname>DISTRIQUIN</lastname>
+      <ip>132.166.92.135</ip>
+    </user>
+    <date>2023-01-27T10:54:54+01:00</date>
+    <message>Pièce jointe ajoutée : Annexe 1</message>
+    <data>
+      <mainDocumentId>1104</mainDocumentId>
+    </data>
+  </History>
+  <History>
+    <code>OK</code>
+    <type>CREATION</type>
+    <user>
+      <id>2</id>
+      <email>caroline.distriquin@cea.fr</email>
+      <firstname>Caroline</firstname>
+      <lastname>DISTRIQUIN</lastname>
+      <ip>132.166.92.135</ip>
+    </user>
+    <date>2023-01-27T10:54:54+01:00</date>
+    <message>Document ajouté : Signature dossier niveau 3</message>
+    <data>
+      <reference>2023/01/27/Signature dossier niveau 3</reference>
+    </data>
+  </History>
+  <History>
+    <code>OK</code>
+    <type>VIEW</type>
+    <user>
+      <id>3</id>
+      <email>jean-michel.penalva@cea.fr</email>
+      <firstname>Jean-Michel</firstname>
+      <lastname>PENALVA </lastname>
+      <ip>132.166.92.39</ip>
+    </user>
+    <date>2023-01-27T11:17:22+01:00</date>
+    <message>Document consulté : Signature dossier niveau 3</message>
+    <data/>
+  </History>
+  <History>
+    <code>OK</code>
+    <type>ACTION</type>
+    <user>
+      <id>3</id>
+      <email>jean-michel.penalva@cea.fr</email>
+      <firstname>Jean-Michel</firstname>
+      <lastname>PENALVA </lastname>
+      <ip>132.166.92.39</ip>
+    </user>
+    <date>2023-01-27T11:17:48+01:00</date>
+    <message>Action effectuée : VAL</message>
+    <data>
+      <mode>visa</mode>
+      <actionId>1</actionId>
+      <signatureMode>stamp</signatureMode>
+    </data>
+  </History>
+  <History>
+    <code>OK</code>
+    <type>VIEW</type>
+    <user>
+      <id>2</id>
+      <email>caroline.distriquin@cea.fr</email>
+      <firstname>Caroline</firstname>
+      <lastname>DISTRIQUIN</lastname>
+      <ip>132.166.92.135</ip>
+    </user>
+    <date>2023-01-27T11:18:00+01:00</date>
+    <message>Document consulté : Signature dossier niveau 3</message>
+    <data/>
+  </History>
+  <History>
+    <code>OK</code>
+    <type>ACTION</type>
+    <user>
+      <id>2</id>
+      <email>caroline.distriquin@cea.fr</email>
+      <firstname>Caroline</firstname>
+      <lastname>DISTRIQUIN</lastname>
+      <ip>132.166.92.135</ip>
+    </user>
+    <date>2023-01-27T11:19:45+01:00</date>
+    <message>Action effectuée : VAL</message>
+    <data>
+      <mode>sign</mode>
+      <actionId>1</actionId>
+      <signatureMode>rgs_2stars_timestamped</signatureMode>
+    </data>
+    <document>
+      <filename>0807_1790110107.pdf</filename>
+      <fingerprint>db35800eb374c4853e98da257ecdcdd9dd4a78dfcfd0745e802f5cf387b7c0038b758c64d1aa89f61c819d32db7de651a60c4de6e69ea521acb1aa52c2f366b8</fingerprint>
+      <mimeType>application/pdf</mimeType>
+    </document>
+  </History>
+</root>

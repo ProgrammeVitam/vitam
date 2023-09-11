@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ArchiveTransfer xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.3 seda-2.3-main.xsd"
+                 xmlns="fr:gouv:culture:archivesdefrance:seda:v2.3"
+                 xml:id="ID1">
+    <Date>2023-06-20T16:52:49.596</Date>
+    <MessageIdentifier>SIP SEDA de test</MessageIdentifier>
+    <ArchivalAgreement>changeIt</ArchivalAgreement>
+    <CodeListVersions>
+        <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+        <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+        <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+        <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+        <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+        <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+        <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+        <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+        <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+        <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+        <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+        <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+        <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+        <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+        <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+    </CodeListVersions>
+    <DataObjectPackage>
+        <DataObjectGroup id="ID10">
+            <BinaryDataObject id="ID11">
+                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+                <Uri>content/ID11.pdf</Uri>
+                <MessageDigest algorithm="SHA-512">2e1208919d3bf98e3228c0527d8dff8e8f51b3e4c89693f4e916ebb9e1878c1e8df464157fbaf33e02acd8db6beba824690cf97efccdb1f22bad6997030eba22</MessageDigest>
+                <Size>370989</Size>
+                <FormatIdentification>
+                    <FormatLitteral>Acrobat PDF 1.5 - Portable Document Format</FormatLitteral>
+                    <MimeType>application/pdf</MimeType>
+                    <FormatId>fmt/19</FormatId>
+                </FormatIdentification>
+                <FileInfo>
+                    <Filename>SignedDocumentWithEmbeddedSignatureAndTimestamp.pdf</Filename>
+                    <LastModified>2023-01-31T09:59:22.155</LastModified>
+                </FileInfo>
+            </BinaryDataObject>
+        </DataObjectGroup>
+        <DescriptiveMetadata>
+            <ArchiveUnit id="ID12">
+                <Content>
+                    <DescriptionLevel>Item</DescriptionLevel>
+                    <Title>Document</Title>
+                    <Description>Signed Document with embedded Signature and TimeStamp</Description>
+                    <!-- Other descriptive fields... -->
+
+                    <!-- Signing information -->
+                    <SigningInformation>
+
+                        <SigningRole>SignedDocument</SigningRole>
+                        <SigningRole>Signature</SigningRole>
+                        <SigningRole>Timestamp</SigningRole>
+
+                        <Signature>
+                            <Signer>
+                                <FullName>Caroline DISTRIQUIN</FullName>
+                                <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
+                            </Signer>
+                        </Signature>
+                        <TimestampingInformation>
+                            <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
+                        </TimestampingInformation>
+                        
+                        <!-- Extended fields -->
+                        <Extended>
+                            <ExtraField1>Val1</ExtraField1>
+                            <ExtraField1>Val2</ExtraField1>
+                            <ExtraField2>
+                                <SubField2>Val3</SubField2>
+                            </ExtraField2>
+                        </Extended>
+
+                    </SigningInformation>
+                </Content>
+
+                <!-- The Archive Unit references the Object Group Id of the binary object (BinaryMaster_1) -->
+                <DataObjectReference>
+                    <DataObjectGroupReferenceId>ID10</DataObjectGroupReferenceId>
+                </DataObjectReference>
+            </ArchiveUnit>
+        </DescriptiveMetadata>
+        <ManagementMetadata>
+            <AcquisitionInformation>Acquisition Information</AcquisitionInformation>
+            <LegalStatus>Public Archive</LegalStatus>
+            <OriginatingAgencyIdentifier>changeIt</OriginatingAgencyIdentifier>
+            <SubmissionAgencyIdentifier>changeIt</SubmissionAgencyIdentifier>
+        </ManagementMetadata>
+    </DataObjectPackage>
+    <ArchivalAgency>
+        <Identifier>changeIt</Identifier>
+    </ArchivalAgency>
+    <TransferringAgency>
+        <Identifier>changeIt</Identifier>
+    </TransferringAgency>
+</ArchiveTransfer>
