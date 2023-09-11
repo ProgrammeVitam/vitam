@@ -5,10 +5,10 @@ archivage.
 
 ## Généralités
 
-Dans sa version 2.3, la norme SEDA a été étendue afin de pouvoir décrire les documents signés numériquement, ainsi que
+La version 2.3, la norme SEDA prévoit de pouvoir décrire les différents types de document signé numériquement, ainsi que
 les éventuels documents annexes à la signature électronique.
 
-La norme distingue 4 types de **rôles** (ou **étiquettes**) :
+La norme distingue 4 types de **rôle** (ou **étiquette**) :
 
 - **Le document signé** : Il s'agit de tout contenu numérique, tel un rapport textuel, un contrat au format PDF, ou un
   document xml, qui fait l'objet d'une signature numérique.
@@ -21,7 +21,7 @@ La norme distingue 4 types de **rôles** (ou **étiquettes**) :
   du contenu numérique à une date/heure spécifique. L'horodatage implique l'ajout d'une empreinte cryptographique
   temporelle fiable et vérifiable, typiquement créée par une source de confiance.
 
-- **Preuve complémentaire** : Ensemble des données renforçant la crédibilité de la signature numérique. Elles peuvent
+- **Preuves complémentaires** : Ensemble des données renforçant la crédibilité de la signature numérique. Elles peuvent
   inclure des informations diverses sur le contexte de signature telles que l'adresse IP de l'appareil utilisé pour
   signer, preuves de connexion ou d'authentification, version technique du dispositif de signature ou de l'outil
   validant la signature...etc. Ces données sont typiquement dans un format non standardisé selon l'outil qui les
@@ -36,8 +36,8 @@ alors de *signature détachée*.
 
 ## Prise en charge de la signature électronique dans la norme SEDA
 
-> **Important** : Les versions `2.1` et `2.2` de la norme SEDA prévoyaient une balise `<Signature>` (au sein
-> du `BaseObjectGroup`). Cette balise a été dépréciée et supprimée depuis la version 2.3 de la norme.
+> **Important** : Les versions `2.1` et `2.2` de la norme SEDA prévoient une balise `<Signature>` (au sein
+> du `BaseObjectGroup`). Cette balise est dépréciée et supprimée à partir de la version 2.3 de la norme.
 >
 >  L'utilisation de la balise `<Signature>` est **fortement déconseillée**.
 
@@ -47,8 +47,8 @@ alors de *signature détachée*.
 > contrôle de cohérence structurelle (ex. Hiérarchie des unités d'archives détachées), ou de validité technique
 > (ex. format de signature, validation de la signature, date de signature ou d'horodatage...etc.).
 
-La norme SEDA 2.3 permet de modéliser les informations de signature électronique via une nouvelle balise
-`<SigningInformation>` :
+La norme SEDA 2.3 permet de modéliser les informations de signature électronique via une nouvelle balise englobante
+`<SigningInformation>` qui remplace la balise `<Signature>` des précédentes versions du SEDA :
 
 ```mermaid
 classDiagram
@@ -116,13 +116,14 @@ d'archive déclarante :
     - `AdditionalProof` : Des preuves complémentaires de signature du présent binaire sont présentes dans un binaire
       annexe
 
-- `<SignedDocumentReferenceId>` : Référence technique à l'unité archivistique racine (dont le `SigningRole` prend la
-  valeur `SignedDocument`). Ce champ est **non supporté par Vitam**
+- `<SignedDocumentReferenceId>` : Référence technique (Id XML) de l'unité archivistique « racine » (qui porte le
+  `SigningRole` de `SignedDocument`). Ce champ est **non supporté par Vitam** et est **ignoré** lors du processus de
+  versement.
 
 - `<Signature>` : Balise décrivant une ou plusieurs signatures. Cette balise est typiquement définie lorsque le
   champ `SigningRole` prend la valeur `Signature` pour décrire la ou les signatures définies dans le présent binaire.
   Optionnellement, elle peut également être utilisée lorsque le `DetachedSigningRole` prend la valeur `Signature`
-  (l'unité d'archives déclarante décrit également des informations de signature détachées redondées ici à des fins
+  (l'unité d'archives déclarante décrit également des informations de signature détachée redondées ici à des fins
   d'indexation).
 
     - `<Signer>` : Balise décrivant l’identité du signataire qu’il s’agisse d’une personne physique ou
@@ -836,9 +837,9 @@ duplication des informations de signature dans l'unité racine, la modélisation
 </ArchiveTransfer>
 ```
 
-### Cas 6 - Rattachement binaires à document signé
+### Cas 6 - Rattachement de binaires à un document signé
 
-Il se peut qu'un ou plusieurs binaires complémentaires aient besoin d'être versées ultérieurement. Ceci peut se produire
+Il se peut qu'un ou plusieurs binaires complémentaires aient besoin d'être versés ultérieurement. Ceci peut se produire
 lorsque la signature, l'horodatage et/ou les preuves complémentaires ne sont pas versées au même moment que le document
 signé.
 
@@ -1029,7 +1030,7 @@ Le rattachement de preuves complémentaires au précédent binaire se ferait via
 
 ### Cas 7 - Extensions (champs libres)
 
-La norme SEDA prévoit la possibilité de rajouter des champs libres (extension) pour rajouter des informations
+La norme SEDA prévoit la possibilité de rajouter des champs libres (extensions) pour rajouter des informations
 additionnelles via la balise `<Extended>`
 
 > **Important** : Il est fortement recommandé de décrire les champs libres dans l'Ontologie et d'adapter la
