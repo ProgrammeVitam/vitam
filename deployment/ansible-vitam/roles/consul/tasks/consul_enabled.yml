@@ -49,7 +49,7 @@
 - name: Deploy consul sysconfig file
   template:
     src: sysconfig.j2
-    dest: "{{ consul_folder_conf }}/sysconfig"
+    dest: "{{ consul_folder_conf }}/sysconfig.conf"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"

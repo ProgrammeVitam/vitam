@@ -7,7 +7,7 @@ Wants=network-online.target
 [Service]
 User={{ vitam_defaults.users.vitam }}
 Group={{ vitam_defaults.users.group }}
-EnvironmentFile=-{{ vitam_defaults.folder.root_path }}/conf/consul/sysconfig
+EnvironmentFile=-{{ vitam_defaults.folder.root_path }}/conf/consul/sysconfig.conf
 ExecStart={{ vitam_defaults.folder.root_path }}/bin/consul/consul $CMD_OPTS
 ExecReload=/bin/kill -HUP $MAINPID
 KillSignal=SIGINT
