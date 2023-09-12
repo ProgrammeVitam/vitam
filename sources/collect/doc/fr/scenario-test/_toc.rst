@@ -1,4 +1,4 @@
-Ingest
+Collect
 ######
 
 .. toctree::

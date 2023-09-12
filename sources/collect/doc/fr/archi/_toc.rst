@@ -1,4 +1,4 @@
-Access
+Collect
 ######
 
 .. toctree::
