@@ -1067,6 +1067,10 @@ public class AccessExternalResource extends ApplicationStatusResource {
         @DefaultValue("1") @QueryParam("version") Integer version) {
         try {
             ParametersChecker.checkParameter("Missing persistent identifier", persistentIdentifier);
+            DataObjectVersionType dataObjectVersionType = DataObjectVersionType.fromName(qualifier);
+            if (dataObjectVersionType == null) {
+                throw new IllegalArgumentException("Could not identify DataObjectVersionType with value " + qualifier);
+            }
             return getDataObjectByUnitPersistentIdentifier(persistentIdentifier,
                 DataObjectVersionType.fromName(qualifier).getName(), version);
 
