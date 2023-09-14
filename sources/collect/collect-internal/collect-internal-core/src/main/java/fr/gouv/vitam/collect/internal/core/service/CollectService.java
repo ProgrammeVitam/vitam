@@ -181,9 +181,12 @@ public class CollectService {
         try {
             CollectHelper.checkVersion(version, 1);
             DbObjectGroupModel dbObjectGroupModel =
-                new DbObjectGroupModelBuilder().withId(objectDto.getId()).withOpi(unitModel.getOpi())
+                new DbObjectGroupModelBuilder()
+                    .withId(GUIDFactory.newObjectGroupGUID(VitamThreadUtils.getVitamSession().getTenantId()).getId())
+                    .withOpi(unitModel.getOpi())
                     .withFileInfoModel(objectDto.getFileInfo().getFileName())
-                    .withQualifiers(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage, version).build();
+                    .withQualifiers(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage, version)
+                    .build();
 
             JsonNode jsonNode =
                 metadataRepository.saveObjectGroup((ObjectNode) JsonHandler.toJsonNode(dbObjectGroupModel));
