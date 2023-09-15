@@ -24,16 +24,16 @@ X-Access-Contract-Id: {{access-contract}}
 X-Tenant-Id: {{tenant}}
 
 
-### télécharger un objet dont l'identifiant pérenne de l'unit est ark:/23567/001a9d7db5eadxac et le qualifier est binary_master
-GET {{url-access}}/access-external/v1/objects/byunitspersistentidentifier/ark:/23567/001a9d7db5eadxac?qualifier=binary_master
+### télécharger un objet dont l'identifiant pérenne de l'unit est ark:/23567/001a9d7db5eadxac et le qualifier est BinaryMaster
+GET {{url-access}}/access-external/v1/objects/byunitspersistentidentifier/ark:/23567/001a9d7db5eadxac?qualifier=BinaryMaster
 Accept: application/octet-stream
 X-Access-Contract-Id: {{access-contract}}
 X-Tenant-Id: {{tenant}}
 
 
 
-### télécharger un objet dont l'identifiant pérenne de l'unit est ark:/23567/001a9d7db5eadxac et le qualifier est binary_master et la version est 1
-GET {{url-access}}/access-external/v1/objects/byunitspersistentidentifier/ark:/23567/001a9d7db5eadxac?qualifier=binary_master&version=1
+### télécharger un objet dont l'identifiant pérenne de l'unit est ark:/23567/001a9d7db5eadxac et le qualifier est BinaryMaster et la version est 1
+GET {{url-access}}/access-external/v1/objects/byunitspersistentidentifier/ark:/23567/001a9d7db5eadxac?qualifier=BinaryMaster&version=1
 Accept: application/octet-stream
 X-Access-Contract-Id: {{access-contract}}
 X-Tenant-Id: {{tenant}}

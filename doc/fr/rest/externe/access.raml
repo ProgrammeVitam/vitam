@@ -72,148 +72,6 @@ documentation:
       X-Http-Method-Override:
         required: false
 
-/units/byunitspersistentidentifier/{persistentIdentifier}:
-  get:
-    description: "Requête qui retourne la liste des unités d'archives correspondantes à l'identifiant pérenne fourni en entrée. La requête utilise le langage de requête (DSL) de Vitam en entrée pour filter et retourner que les informations demandées en cas de succès."
-    uriParameters:
-        persistentIdentifier:
-          description: "L'identifiant pérenne des unités d'archive"
-          type: string
-          example: "ark:/22567/001a957db5eadaac"
-          required: true
-    Permissions requises:
-      - units:unitsbypersistentidentifier:id:read
-    responses:
-      200:
-        description: "Renvoie les unités d'archives correspondantes à l'identifiant pérenne fourni."
-        body:
-          application/json:
-          example: !include libraries/examples/unit-persistence-identifier-search.json
-      404:
-        description: "Not found."
-      500:
-        description: "Internal Server Error."
-      401:
-        description: "Un authorized."
-      301:
-        description: "Units moved to another system."
-      410:
-        description: "Units eliminated"
-    headers:
-      X_ACCESS_CONTRAT_ID:
-        description: "The contract name"
-        type: string
-        required: true
-        example: "ACC-0001"
-      X_TENANT_ID:
-        description: "The tenant id"
-        type: string
-        required: true
-        example: "1"
-
-/objects/byunitspersistentidentifier/{persistentIdentifier}:
-  get:
-    description: "Télécharger le premier objet correspondant à l'identifiant pérenne d'une unité selon les critères passés en paramètre."
-    uriParameters:
-        persistentIdentifier:
-          description: "L'identifiant pérenne de l'unité d'archive"
-          type: string
-          example: "ark:/22567/001a957db5eadaac"
-          required: true
-    queryParameters:
-        version:
-          required: false
-          description: La version de l'objet binaire, par défaut la version 1.
-        qualfier:
-          required: false
-          description: Le qualifier de l'objet binaire, par défaut 'BINARY_MASTER''.
-
-    Permissions requises:
-      - objects:unitsbypersistentidentifier:id:objects:read:binary
-    responses:
-        202:
-          description: Retourne l'objet binaire qui correspond aux critères
-          body:
-            application/octet-stream:
-              description: Binary object
-        412:
-          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
-          body:
-            application/json:
-      404:
-        description: "Not found."
-      500:
-        description: "Internal Server Error."
-      401:
-        description: "Un authorized."
-      301:
-        description: "moved to another system."
-      410:
-        description: "eliminated"
-    headers:
-      Accept:
-        required: true
-        enum: [ "application/octet-stream" ]
-      X_ACCESS_CONTRAT_ID:
-        description: "The contract name"
-        type: string
-        required: true
-        example: "ACC-0001"
-      X_TENANT_ID:
-        description: "The tenant id"
-        type: string
-        required: true
-        example: "1"
-
-
-/objects/byobjectspersistentidentifier/{persistentIdentifier}:
-  get:
-    description: "Télécharger le premier objet correspondant à l'identifiant pérenne fourni en entrée."
-    uriParameters:
-        persistentIdentifier:
-          description: "L'identifiant pérenne de l'objet"
-          type: string
-          example: "ark:/22567/001a957db5eadaac"
-          required: true
-
-    Permissions requises:
-      - objects:objectsbypersistentidentifier:id:read:binary
-    responses:
-        202:
-          description: Retourne le premier objet binaire qui correspond aux critères
-          body:
-            application/octet-stream:
-              description: Binary object
-        412:
-          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
-          body:
-            application/json:
-      404:
-        description: "Not found."
-      500:
-        description: "Internal Server Error."
-      401:
-        description: "Un authorized."
-      301:
-        description: "moved to another system."
-      410:
-        description: "eliminated"
-    headers:
-      Accept:
-        required: true
-        enum: [ "application/octet-stream" ]
-      X_ACCESS_CONTRAT_ID:
-        description: "The contract name"
-        type: string
-        required: true
-        example: "ACC-0001"
-      X_TENANT_ID:
-        description: "The tenant id"
-        type: string
-        required: true
-        example: "1"
-
-
   /stream:
     get:
         description: |
@@ -746,3 +604,146 @@ documentation:
     is: [AccessTraits.CheckAccessRequestStatuses]
   delete:
     is: [AccessTraits.DeleteAccessRequest]
+
+
+/units/byunitspersistentidentifier/{persistentIdentifier}:
+  get:
+    description: "Requête qui retourne la liste des unités d'archives correspondantes à l'identifiant pérenne fourni en entrée. La requête utilise le langage de requête (DSL) de Vitam en entrée pour filter et retourner que les informations demandées en cas de succès."
+    uriParameters:
+        persistentIdentifier:
+          description: "L'identifiant pérenne des unités d'archive"
+          type: string
+          example: "ark:/22567/001a957db5eadaac"
+          required: true
+    Permissions requises:
+      - units:unitsbypersistentidentifier:id:read
+    responses:
+      200:
+        description: "Renvoie les unités d'archives correspondantes à l'identifiant pérenne fourni."
+        body:
+          application/json:
+          example: !include libraries/examples/unit-persistence-identifier-search.json
+      404:
+        description: "Not found."
+      500:
+        description: "Internal Server Error."
+      401:
+        description: "Un authorized."
+      301:
+        description: "Units moved to another system."
+      410:
+        description: "Units eliminated"
+    headers:
+      X_ACCESS_CONTRAT_ID:
+        description: "The contract name"
+        type: string
+        required: true
+        example: "ACC-0001"
+      X_TENANT_ID:
+        description: "The tenant id"
+        type: string
+        required: true
+        example: "1"
+
+/objects/byunitspersistentidentifier/{persistentIdentifier}:
+  get:
+    description: "Télécharger le premier objet correspondant à l'identifiant pérenne d'une unité selon les critères passés en paramètre."
+    uriParameters:
+        persistentIdentifier:
+          description: "L'identifiant pérenne de l'unité d'archive"
+          type: string
+          example: "ark:/22567/001a957db5eadaac"
+          required: true
+    queryParameters:
+        version:
+          required: false
+          description: La version de l'objet binaire, par défaut la version 1.
+        qualfier:
+          required: false
+          description: Le qualifier de l'objet binaire, par défaut 'BINARY_MASTER''.
+
+    Permissions requises:
+      - objects:unitsbypersistentidentifier:id:objects:read:binary
+    responses:
+        202:
+          description: Retourne l'objet binaire qui correspond aux critères
+          body:
+            application/octet-stream:
+              description: Binary object
+        412:
+          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+          body:
+            application/json:
+      404:
+        description: "Not found."
+      500:
+        description: "Internal Server Error."
+      401:
+        description: "Un authorized."
+      301:
+        description: "moved to another system."
+      410:
+        description: "eliminated"
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/octet-stream" ]
+      X_ACCESS_CONTRAT_ID:
+        description: "The contract name"
+        type: string
+        required: true
+        example: "ACC-0001"
+      X_TENANT_ID:
+        description: "The tenant id"
+        type: string
+        required: true
+        example: "1"
+
+
+/objects/byobjectspersistentidentifier/{persistentIdentifier}:
+  get:
+    description: "Télécharger le premier objet correspondant à l'identifiant pérenne fourni en entrée."
+    uriParameters:
+        persistentIdentifier:
+          description: "L'identifiant pérenne de l'objet"
+          type: string
+          example: "ark:/22567/001a957db5eadaac"
+          required: true
+
+    Permissions requises:
+      - objects:objectsbypersistentidentifier:id:read:binary
+    responses:
+        202:
+          description: Retourne le premier objet binaire qui correspond aux critères
+          body:
+            application/octet-stream:
+              description: Binary object
+        412:
+          description: Precondition Failed, some predicates are incorrect, therefore the operation is not possible
+          body:
+            application/json:
+      404:
+        description: "Not found."
+      500:
+        description: "Internal Server Error."
+      401:
+        description: "Un authorized."
+      301:
+        description: "moved to another system."
+      410:
+        description: "eliminated"
+    headers:
+      Accept:
+        required: true
+        enum: [ "application/octet-stream" ]
+      X_ACCESS_CONTRAT_ID:
+        description: "The contract name"
+        type: string
+        required: true
+        example: "ACC-0001"
+      X_TENANT_ID:
+        description: "The tenant id"
+        type: string
+        required: true
+        example: "1"
+
