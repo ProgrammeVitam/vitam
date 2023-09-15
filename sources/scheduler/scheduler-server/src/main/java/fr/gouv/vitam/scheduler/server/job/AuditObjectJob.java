@@ -34,6 +34,7 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Iterables;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -150,11 +151,15 @@ public class AuditObjectJob implements Job {
         try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient();
             ProcessingManagementClient processingManagementClient = processingManagementClientFactory.getClient()) {
             SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
-            if (lastAuditDate != null) {
-                selectMultiQuery.addQueries(QueryHelper.gte(VitamFieldsHelper.approximateUpdateDate(), lastAuditDate));
-            }
-            selectMultiQuery.addQueries(QueryHelper.lte(VitamFieldsHelper.approximateUpdateDate(), lastUpdateDate));
 
+            BooleanQuery query = QueryHelper.and();
+            if (lastAuditDate != null) {
+                query.add(QueryHelper.gte(VitamFieldsHelper.approximateUpdateDate(), lastAuditDate));
+            }
+            // Exclude the last unit to avoid exceeding audit threshold due to multiple units with the same _aud.
+            query.add(QueryHelper.lt(VitamFieldsHelper.approximateUpdateDate(), lastUpdateDate));
+
+            selectMultiQuery.addQueries(query);
             AuditOptions options = new AuditOptions();
             options.setAuditActions(auditAction);
             options.setQuery(selectMultiQuery.getFinalSelect());
