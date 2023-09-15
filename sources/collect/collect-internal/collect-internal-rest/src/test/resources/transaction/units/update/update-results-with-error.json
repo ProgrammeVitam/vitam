@@ -1,0 +1,29 @@
+{
+  "httpCode": 200,
+  "$hits": {
+    "total": 0,
+    "offset": 0,
+    "limit": 0,
+    "size": 0
+  },
+  "$results": [
+    {
+      "httpCode": 400,
+      "$hits": {
+        "total": 0,
+        "offset": 0,
+        "limit": 0,
+        "size": 0
+      },
+      "$results": [
+        {
+          "#status": "ERROR - Bad date format"
+        }
+      ],
+      "$facetResults": [],
+      "$context": {}
+    }
+  ],
+  "$facetResults": [],
+  "$context": {}
+}
