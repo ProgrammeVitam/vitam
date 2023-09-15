@@ -398,13 +398,14 @@
 
   - name: Check {{ vitam_struct.vitam_component }} service health in local consul agent
     uri:
-      url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname][consul.network], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ (vitam_struct.vitam_component == vitam.storageofferdefault.vitam_component) | ternary(offer_conf, vitam_struct.vitam_component) }}"
+      url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname]['ip_admin'], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ (vitam_struct.vitam_component == vitam.storageofferdefault.vitam_component) | ternary(offer_conf, vitam_struct.vitam_component) }}"
     register: result
     until:
       - result.status is defined
       - result.status == 200
     retries: "{{ vitam_defaults.services.status_retries_number }}"
     delay: "{{ vitam_defaults.services.status_retries_delay }}"
+    when: consul_disabled is not defined or consul_disabled | lower != 'true'
 
   when: ( primary_site | lower == "true" ) or
         ( vitam_struct.vitam_component in vitam_secondary_site_components )

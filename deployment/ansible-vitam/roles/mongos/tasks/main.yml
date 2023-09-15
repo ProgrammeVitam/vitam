@@ -132,7 +132,7 @@
 
 - name: Check {{ mongo_cluster_name }}-mongos service health in local consul agent
   uri:
-    url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname][consul.network], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ mongo_cluster_name }}-mongos"
+    url: "http://{{ (inventory_hostname in groups['hosts_consul_server']) | ternary(hostvars[inventory_hostname]['ip_admin'], '127.0.0.1') }}:8500/v1/agent/health/service/name/{{ mongo_cluster_name }}-mongos"
   register: result
   until:
     - result.status is defined
