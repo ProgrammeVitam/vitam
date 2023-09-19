@@ -49,18 +49,64 @@
     mode: "{{ vitam_defaults.folder.folder_permission | default('0750') }}"
   notify: "prometheus-server - restart service"
 
-- name: Copy prometheus rules files
+- name: Copy prometheus common rule files
   copy:
-    src: '{{ item.src }}'
-    dest: "{{ prometheus_server_config_path }}/rules/{{ item.path | regex_replace('\\.j2$') }}"
+    src: '{{ role_path }}/rules/{{ item }}'
+    dest: "{{ prometheus_server_config_path }}/rules/{{ item }}"
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
-  with_filetree: "{{ role_path }}/rules/"
-  when: item.state == 'file'
+  with_items:
+    - cpu.yml
+    - disk.yml
+    - memory.yml
+    - state.yml
+    - tape_storage_offer.yml
   notify: "prometheus-server - restart service"
 
-- name: list prometheus rules files
+- name: Copy prometheus primary-site rule files
+  copy:
+    src: '{{ role_path }}/rules/{{ item }}'
+    dest: "{{ prometheus_server_config_path }}/rules/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
+  with_items:
+    - vitam_workflow.yml
+  when: primary_site | lower == "true"
+  notify: "prometheus-server - restart service"
+
+- name: Copy prometheus secondary-site rule files
+  copy:
+    src: '{{ role_path }}/rules/{{ item }}'
+    dest: "{{ prometheus_server_config_path }}/rules/{{ item }}"
+    owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
+    group: "{{ vitam_defaults.users.group | default('vitam') }}"
+    mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"
+  with_items:
+    - reconstruction.yml
+  when: primary_site | lower != "true"
+  notify: "prometheus-server - restart service"
+
+- name: Cleanup prometheus primary-site rule files from secondary sites
+  file:
+    path: "{{ prometheus_server_config_path }}/rules/{{ item }}"
+    state: absent
+  with_items:
+    - vitam_workflow.yml
+  when: primary_site | lower != "true"
+  notify: "prometheus-server - restart service"
+
+- name: Cleanup prometheus secondary-site rule files from primary sites
+  file:
+    path: "{{ prometheus_server_config_path }}/rules/{{ item }}"
+    state: absent
+  with_items:
+    - reconstruction.yml
+  when: primary_site | lower == "true"
+  notify: "prometheus-server - restart service"
+
+- name: list prometheus rule files
   find:
     paths: "{{ prometheus_server_config_path }}/rules"
     patterns: '*.yml'
