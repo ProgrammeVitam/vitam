@@ -410,8 +410,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             ingestContext.setSedaVersion(sedaUtils.getSedaIngestParams().getVersion());
 
-            JsonLineDataBase unitsDatabase = new JsonLineDataBase(handlerIO.getNewLocalFile("units.jsonl"));
-            JsonLineDataBase objectsDatabase = new JsonLineDataBase(handlerIO.getNewLocalFile("objects.jsonl"));
+            JsonLineDataBase unitsDatabase = new JsonLineDataBase(handlerIO);
+            JsonLineDataBase objectsDatabase = new JsonLineDataBase(handlerIO);
 
             ExtractMetadataListener listener =
                 new ExtractMetadataListener(handlerIO, ingestContext, ingestSession, unitsDatabase, objectsDatabase,

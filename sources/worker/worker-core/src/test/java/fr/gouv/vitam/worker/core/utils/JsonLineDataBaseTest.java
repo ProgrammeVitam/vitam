@@ -29,11 +29,18 @@ package fr.gouv.vitam.worker.core.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 
 public class JsonLineDataBaseTest {
 
@@ -43,7 +50,17 @@ public class JsonLineDataBaseTest {
 
     @BeforeClass
     public static void setUpClass() throws Exception {
-        dataBase = new JsonLineDataBase(tempFolderRule.newFile());
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        doAnswer((a) -> {
+            String name = a.getArgument(0);
+            Path path = Path.of(tempFolderRule.newFile().getPath()).getParent().resolve(name);
+            if (Files.exists(path)) {
+                return path.toFile();
+            } else {
+                return tempFolderRule.newFile(name);
+            }
+        }).when(handlerIO).getNewLocalFile(anyString());
+        dataBase = new JsonLineDataBase(handlerIO);
     }
 
     @Test
@@ -56,4 +73,5 @@ public class JsonLineDataBaseTest {
         JsonNode read = dataBase.read("B1");
         assertEquals("B1", read.get("_id").asText());
     }
+
 }

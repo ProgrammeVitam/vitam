@@ -29,54 +29,45 @@ package fr.gouv.vitam.worker.core.utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.worker.common.HandlerIO;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class JsonLineDataBase {
 
-    final Map<String, Integer> indexes= new HashMap<>();
+    private final HandlerIO handlerIO;
 
-    final File file;
-
-    final AtomicInteger line = new AtomicInteger(0);
-
-    public JsonLineDataBase(File file) {
-        this.file = file;
+    public JsonLineDataBase(HandlerIO handlerIO) {
+        this.handlerIO = handlerIO;
     }
 
-    public synchronized void write(String id, JsonNode object) {
-        try (FileOutputStream outputStream = new FileOutputStream(file, true);
-            JsonLineWriter jsonLineWriter = new JsonLineWriter(outputStream, line.get() == 0)) {
-            jsonLineWriter.addEntry(object);
-            indexes.put(id, line.incrementAndGet());
-        } catch (IOException e) {
+    /**
+     * Writes a JSON object to the database.
+     *
+     * @param id The ID of the object
+     * @param object The JSON object
+     */
+    public void write(String id, JsonNode object) {
+        File file = handlerIO.getNewLocalFile(id + VitamConstants.JSON_EXTENSION);
+        try {
+            JsonHandler.writeAsFile(object, file);
+        } catch (InvalidParseOperationException e) {
             throw new RuntimeException(e);
         }
     }
 
-    public synchronized JsonNode read(String id) {
-        Integer line = indexes.get(id);
-        if(line == null) {
-            throw  new RuntimeException("No such element " + id);
-        }
-        try (Reader reader = new FileReader(file);
-            BufferedReader bufferedReader = new BufferedReader(reader)) {
-            int j = 1;
-            while(j < line) {
-                bufferedReader.readLine();
-                j++;
-            }
-            return JsonHandler.getFromString(bufferedReader.readLine());
-        } catch (IOException | InvalidParseOperationException e) {
+    /**
+     * Reads a JSON object from the database.
+     *
+     * @param id The ID of the object
+     * @return The JSON object, or `null` if the object does not exist
+     */
+    public JsonNode read(String id) {
+        try {
+            File file = handlerIO.getNewLocalFile(id + VitamConstants.JSON_EXTENSION);
+            return JsonHandler.getFromFile(file);
+        } catch (InvalidParseOperationException e) {
             throw new RuntimeException(e);
         }
     }
