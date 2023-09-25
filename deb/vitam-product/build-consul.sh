@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 WORKING_FOLDER=$(dirname $0)
 CONSUL_VERSION="1.12.9"
 

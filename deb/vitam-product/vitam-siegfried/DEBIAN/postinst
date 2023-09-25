@@ -1,0 +1,12 @@
+#!/bin/bash
+set -e
+
+# Binaries
+chown -R vitam:vitam /vitam/bin/siegfried
+chmod 750 /vitam/bin/siegfried
+chmod 750 /vitam/bin/siegfried/sf
+chmod 750 /vitam/bin/siegfried/roy
+
+# Signature files are stored in /vitam/app/siegfried
+chown -R vitam:vitam /vitam/app/siegfried
+chmod -R 640 /vitam/app/siegfried/*

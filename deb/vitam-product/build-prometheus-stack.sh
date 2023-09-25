@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 WORKING_FOLDER=$(dirname $0)
 PROMETHEUS_VERSION="2.42.0"
 PROMETHEUS_NODE_EXPORTER_VERSION="1.5.0"
@@ -29,24 +30,17 @@ PACKAGE_NAME=prometheus
 PACKAGE_VERSION=${PROMETHEUS_VERSION}
 PACKAGE_URL=${PROMETHEUS_URL}
 
-rm -rf ${WORKING_FOLDER}/vitam-${PACKAGE_NAME}/vitam/app/*
-rm -rf ${WORKING_FOLDER}/vitam-${PACKAGE_NAME}/vitam/bin/*
-rm -rf ${WORKING_FOLDER}/vitam-${PACKAGE_NAME}/vitam/data/*
+rm -rf ${WORKING_FOLDER}/vitam-${PACKAGE_NAME}/vitam
 
 mkdir -p ${WORKING_FOLDER}/vitam-${PACKAGE_NAME}/vitam/app/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-${PACKAGE_NAME}/vitam/bin/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-${PACKAGE_NAME}/vitam/data/${PACKAGE_NAME}
-
+mkdir -p ${WORKING_FOLDER}/vitam-${PACKAGE_NAME}/vitam/conf/${PACKAGE_NAME}
 
 pushd ${WORKING_FOLDER}/sources/
 echo "Repertoire courant: $(pwd)"
 echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
 if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
 	curl -L -k --max-time 1200 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
-	if [ ${?} != 0 ]; then
-		echo "Erreur sur le telechargement du fichier tar gz de ${PACKAGE_NAME}: ${PACKAGE_URL}"
-		exit 1
-	fi
 fi
 
 echo "Décompacter ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
@@ -78,25 +72,16 @@ PACKAGE_NAME=node_exporter
 PACKAGE_VERSION=${PROMETHEUS_NODE_EXPORTER_VERSION}
 PACKAGE_URL=${PROMETHEUS_NODE_EXPORTER_URL}
 
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/app/*
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/bin/*
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/data/*
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/conf/*
+rm -rf ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam
 
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/app/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/bin/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/data/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-node-exporter/vitam/conf/${PACKAGE_NAME}
 
 pushd ${WORKING_FOLDER}/sources/
 echo "Repertoire courant: $(pwd)"
 echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
 if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
 	curl -L -k --max-time 1200 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
-	if [ ${?} != 0 ]; then
-		echo "Erreur sur le telechargement du fichier tar gz de ${PACKAGE_NAME}: ${PACKAGE_URL}"
-		exit 1
-	fi
 fi
 
 echo "Décompacter ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
@@ -124,15 +109,10 @@ PACKAGE_NAME=consul_exporter
 PACKAGE_VERSION=${PROMETHEUS_CONSUL_EXPORTER_VERSION}
 PACKAGE_URL=${PROMETHEUS_CONSUL_EXPORTER_URL}
 
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/app/*
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/bin/*
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/data/*
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/conf/*
+rm -rf ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam
 
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/app/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/bin/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/data/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-consul-exporter/vitam/conf/${PACKAGE_NAME}
 
 
 pushd ${WORKING_FOLDER}/sources/
@@ -140,10 +120,6 @@ echo "Repertoire courant: $(pwd)"
 echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
 if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
 	curl -L -k --max-time 120 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
-	if [ ${?} != 0 ]; then
-		echo "Erreur sur le telechargement du fichier tar gz de ${PACKAGE_NAME}: ${PACKAGE_URL}"
-		exit 1
-	fi
 fi
 
 echo "Décompacter ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
@@ -171,15 +147,10 @@ PACKAGE_NAME=elasticsearch_exporter
 PACKAGE_VERSION=${PROMETHEUS_ELASTICSEARCH_EXPORTER_VERSION}
 PACKAGE_URL=${PROMETHEUS_ELASTICSEARCH_EXPORTER_URL}
 
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/app/*
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/bin/*
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/data/*
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/conf/*
+rm -rf ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam
 
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/app/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/bin/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/data/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-elasticsearch-exporter/vitam/conf/${PACKAGE_NAME}
 
 
 pushd ${WORKING_FOLDER}/sources/
@@ -187,10 +158,6 @@ echo "Repertoire courant: $(pwd)"
 echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
 if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
 	curl -L -k --max-time 120 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
-	if [ ${?} != 0 ]; then
-		echo "Erreur sur le telechargement du fichier tar gz de ${PACKAGE_NAME}: ${PACKAGE_URL}"
-		exit 1
-	fi
 fi
 
 echo "Décompacter ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
@@ -218,23 +185,17 @@ PACKAGE_VERSION=${PROMETHEUS_ALERTMANAGER_VERSION}
 PACKAGE_URL=${PROMETHEUS_ALERTMANAGER_URL}
 
 
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam/app/*
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam/bin/*
-rm -rf ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam/data/*
+rm -rf ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam
 
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam/app/${PACKAGE_NAME}
 mkdir -p ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam/bin/${PACKAGE_NAME}
-mkdir -p ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam/data/${PACKAGE_NAME}
+mkdir -p ${WORKING_FOLDER}/vitam-prometheus-${PACKAGE_NAME}/vitam/conf/${PACKAGE_NAME}
 
 pushd ${WORKING_FOLDER}/sources/
 echo "Repertoire courant: $(pwd)"
 echo "Récupérer ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"
 if [ ! -f ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz ]; then
 	curl -L -k --max-time 1200 ${PACKAGE_URL} -o ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz
-	if [ ${?} != 0 ]; then
-		echo "Erreur sur le telechargement du fichier tar gz de ${PACKAGE_NAME}: ${PACKAGE_URL}"
-		exit 1
-	fi
 fi
 
 echo "Décompacter ${PACKAGE_NAME}-${PACKAGE_VERSION}.linux-amd64.tar.gz"

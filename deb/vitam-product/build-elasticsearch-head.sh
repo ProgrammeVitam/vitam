@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 HEAD_VERSION="1.x"
 WORKING_FOLDER=$(dirname $0)
 
