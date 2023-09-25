@@ -40,8 +40,8 @@
 
 - name: Copy siegfried sysconfig file
   template:
-    src: sysconfig.j2
-    dest: "{{ vitam_defaults.folder.root_path }}/conf/siegfried/sysconfig"
+    src: sysconfig.conf.j2
+    dest: "{{ vitam_defaults.folder.root_path }}/conf/siegfried/sysconfig.conf"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.script_permission }}"

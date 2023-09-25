@@ -4,7 +4,7 @@ Documentation=https://github.com/prometheus/consul_exporter
 After=network.target
 
 [Service]
-EnvironmentFile=-{{ vitam_defaults.folder.root_path }}/conf/consul_exporter/sysconfig
+EnvironmentFile=-{{ vitam_defaults.folder.root_path }}/conf/consul_exporter/sysconfig.conf
 User={{ vitam_defaults.users.vitam }}
 Group={{ vitam_defaults.users.group }}
 ExecStart={{ vitam_defaults.folder.root_path }}/bin/consul_exporter/consul_exporter \

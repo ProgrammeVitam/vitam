@@ -7,7 +7,7 @@ Wants=network-online.target
 [Service]
 User={{ vitam_defaults.users.vitam }}
 Group={{ vitam_defaults.users.group }}
-EnvironmentFile={{ vitam_defaults.folder.root_path }}/conf/siegfried/sysconfig
+EnvironmentFile={{ vitam_defaults.folder.root_path }}/conf/siegfried/sysconfig.conf
 ExecStart={{ vitam_defaults.folder.root_path }}/bin/siegfried/sf -home {{ vitam_defaults.folder.root_path }}/app/siegfried -serve $LISTEN
 
 [Install]
