@@ -29,6 +29,8 @@ package fr.gouv.vitam.batch.report.model.entry;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
+import java.util.List;
 
 public class PurgeUnitReportEntry {
     private final static String ID = "id";
@@ -45,7 +47,7 @@ public class PurgeUnitReportEntry {
     private final String initialOperation;
     private final String objectGroupId;
     private final JsonNode extraInfo;
-    private final JsonNode persistentIdentifier;
+    private final List<PersistentIdentifierModel> persistentIdentifier;
     private final String status;
     private final String type;
 
@@ -57,7 +59,7 @@ public class PurgeUnitReportEntry {
       @JsonProperty(OBJECT_GROUP) String objectGroupId,
       @JsonProperty(STATUS) String status,
       @JsonProperty(EXTRA_INFO) JsonNode extraInfo,
-      @JsonProperty(PERSISTENT_IDENTIFIER) JsonNode persistentIdentifier,
+      @JsonProperty(PERSISTENT_IDENTIFIER) List<PersistentIdentifierModel> persistentIdentifier,
       @JsonProperty(TYPE) String type) {
         this.id = id;
         this.originatingAgency = originatingAgency;
@@ -100,10 +102,9 @@ public class PurgeUnitReportEntry {
     }
 
     @JsonProperty(PERSISTENT_IDENTIFIER)
-    public JsonNode getPersistentIdentifier() {
+    public List<PersistentIdentifierModel> getPersistentIdentifier() {
         return persistentIdentifier;
     }
-
     @JsonProperty(TYPE)
     public String getType() {
         return type;

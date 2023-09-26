@@ -103,7 +103,7 @@ public class PurgeUnitRepositoryTest {
         Object metadata = first.get("_metadata");
         JsonNode metadataNode = JsonHandler.toJsonNode(metadata);
         JsonNode expected = JsonHandler.getFromString(
-            "{\"id\":\"unitId1\",\"originatingAgency\":\"sp1\",\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"status\":\"DELETED\",\"extraInfo\":{\"key1\":\"unit1_value1\",\"key2\":[\"unit1_value2\"]},\"persistentIdentifier\":{\"PersistentIdentifier\":[{\"PersistentIdentifierType\":\"ark\",\"PersistentIdentifierContent\":\"ark:/666567/001a957db5eadaac\"},{\"PersistentIdentifierType\":\"ark\",\"PersistentIdentifierContent\":\"ark:/26661/001d957db5eadaac\"}]},\"type\":\"INGEST\"}");
+            "{\"id\":\"unitId1\",\"originatingAgency\":\"sp1\",\"opi\":\"opi0\",\"objectGroupId\":\"id2\",\"status\":\"DELETED\",\"extraInfo\":{\"key1\":\"unit1_value1\",\"key2\":[\"unit1_value2\"]},\"persistentIdentifier\":[{\"PersistentIdentifierType\":\"ark\",\"PersistentIdentifierContent\":\"ark:/666567/001a957db5eadaac\"},{\"PersistentIdentifierType\":\"ark\",\"PersistentIdentifierContent\":\"ark:/26661/001d957db5eadaac\"}],\"type\":\"INGEST\"}");
         assertThat(metadataNode).isNotNull().isEqualTo(expected);
         repository.bulkAppendReport(purgeUnitModels);
         assertThat(purgeUnitCollection.countDocuments()).isEqualTo(4);
@@ -233,18 +233,14 @@ public class PurgeUnitRepositoryTest {
         }
 
         List<Document> persistentIdentifiers = documents.stream()
-            .map(doc -> ((Document) doc.get("params")).get("persistentIdentifier"))
-            .filter(Objects::nonNull)
-            .map(persistentIdentifier -> (List<Document>) ((Document) persistentIdentifier).get("PersistentIdentifier"))
+            .map(doc -> (List<Document>)((Document) doc.get("params")).get("persistentIdentifier"))
             .filter(Objects::nonNull)
             .flatMap(Collection::stream)
             .collect(Collectors.toList());
 
         assertThat(persistentIdentifiers).hasSize(2);
 
-        // Verify each persistentIdentifier entry
         assertThat(persistentIdentifiers)
-            .usingElementComparatorIgnoringFields("someFieldThatMightVary")
             .containsExactlyInAnyOrder(
                 new Document()
                     .append("PersistentIdentifierType", "ark")
