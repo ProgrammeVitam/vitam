@@ -4,7 +4,7 @@ Documentation=https://github.com/prometheus/alertmanager
 After=network.target
 
 [Service]
-EnvironmentFile=-{{ vitam_defaults.folder.root_path }}/conf/alertmanager/sysconfig
+EnvironmentFile=-{{ vitam_defaults.folder.root_path }}/conf/alertmanager/sysconfig.conf
 User={{ vitam_defaults.users.vitam }}
 Group={{ vitam_defaults.users.group }}
 ExecStart={{ vitam_defaults.folder.root_path }}/bin/alertmanager/alertmanager \

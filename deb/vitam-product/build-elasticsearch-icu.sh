@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 ICU_VERSION="7.17.8"
 WORKING_FOLDER=$(dirname $0)
@@ -11,8 +12,6 @@ pushd ${WORKING_FOLDER}/vitam-elasticsearch-analysis-icu/usr/share/elasticsearch
 
 curl -k -L https://artifacts.elastic.co/downloads/elasticsearch-plugins/analysis-icu/analysis-icu-${ICU_VERSION}.zip -o analysis-icu-${ICU_VERSION}.zip
 unzip analysis-icu-${ICU_VERSION}.zip
-mv elasticsearch/* .
-rmdir elasticsearch
 #mv elasticsearch-kopf-${KOPF_VERSION}/* .
 #rm -rf elasticsearch-kopf-${KOPF_VERSION}
 rm -f analysis-icu-${ICU_VERSION}.zip

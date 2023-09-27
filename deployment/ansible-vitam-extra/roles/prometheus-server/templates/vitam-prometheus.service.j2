@@ -4,7 +4,7 @@ Documentation=https://prometheus.io
 After=network.target
 
 [Service]
-EnvironmentFile=-{{ vitam_defaults.folder.root_path }}/conf/prometheus/sysconfig
+EnvironmentFile=-{{ vitam_defaults.folder.root_path }}/conf/prometheus/sysconfig.conf
 User={{ vitam_defaults.users.vitam }}
 Group={{ vitam_defaults.users.group }}
 ExecStart={{ vitam_defaults.folder.root_path }}/bin/prometheus/prometheus \

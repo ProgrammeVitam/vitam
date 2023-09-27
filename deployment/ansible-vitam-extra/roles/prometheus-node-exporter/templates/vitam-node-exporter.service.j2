@@ -4,7 +4,7 @@ Documentation=https://github.com/prometheus/node_exporter
 After=network.target
 
 [Service]
-EnvironmentFile=-/vitam/conf/node_exporter/sysconfig
+EnvironmentFile=-/vitam/conf/node_exporter/sysconfig.conf
 User=vitam
 Group=vitam
 ExecStart=/bin/bash -c 'exec /vitam/bin/node_exporter/node_exporter $NODE_EXPORTER_OPTS 2>> {{ vitam_defaults.folder.root_path | default('/vitam') }}/log/node_exporter/node-exporter.log'

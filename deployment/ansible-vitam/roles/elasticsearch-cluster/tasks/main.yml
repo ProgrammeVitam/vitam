@@ -163,8 +163,8 @@
 
 - name: apply elasticsearch sysconfig default
   template:
-    src: sysconfig.j2
-    dest: "{{ elasticsearch_conf_dir }}/sysconfig"
+    src: sysconfig.conf.j2
+    dest: "{{ elasticsearch_conf_dir }}/sysconfig.conf"
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"

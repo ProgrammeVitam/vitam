@@ -53,8 +53,8 @@
 
 - name: Apply elasticsearch_exporter sysconfig settings
   template:
-    src: sysconfig.j2
-    dest: "{{ prometheus_elasticsearch_exporter_config_path }}/sysconfig"
+    src: sysconfig.conf.j2
+    dest: "{{ prometheus_elasticsearch_exporter_config_path }}/sysconfig.conf"
     owner: "{{ vitam_defaults.users.vitam | default('vitam') }}"
     group: "{{ vitam_defaults.users.group | default('vitam') }}"
     mode: "{{ vitam_defaults.folder.conf_permission | default('0640') }}"

@@ -53,8 +53,8 @@
 
 - name: apply cerebro sysconfig custom configuration
   template:
-    src: sysconfig.j2
-    dest: "{{ vitam_defaults.folder.root_path }}/conf/cerebro/sysconfig"
+    src: sysconfig.conf.j2
+    dest: "{{ vitam_defaults.folder.root_path }}/conf/cerebro/sysconfig.conf"
     owner: "{{ vitam_defaults.users.vitam }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
