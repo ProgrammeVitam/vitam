@@ -92,30 +92,6 @@
   notify:
     - "logstash - restart service"
 
-- block:
-  # related to https://github.com/elastic/logstash/issues/11107
-  # info here : https://stackoverflow.com/questions/6784463/error-trustanchors-parameter-must-be-non-empty
-  - name: change default keystore type in java.security
-    lineinfile:
-      path: /etc/java-11-openjdk/security/java.security
-      regexp: '^keystore.type=pkcs12'
-      line: "keystore.type=jks"
-
-  - name: remove cacerts only on debian
-    file:
-      path: /etc/ssl/certs/java/cacerts
-      state: absent
-    notify:
-      - "logstash - restart service"
-
-  - name: recreate cacerts only on Debian
-    shell: "update-ca-certificates -f"
-    notify:
-      - "logstash - restart service"
-
-  when:
-    - ansible_os_family == "Debian"
-
 #### Consul configuration ####
 
 - name: Ensure consul config dir is OK
