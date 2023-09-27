@@ -56,6 +56,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
@@ -92,7 +93,7 @@ public class MetadataHelper {
     }
 
     public static ObjectGroupResponse createObjectGroup(String transactionId, String fileName, String objectId,
-        String newFilename, FormatIdentifierResponse format, String digest, Long size) {
+        String newFilename, Optional<FormatIdentifierResponse> formatOpt, String digest, Long size) {
 
 
         FileInfoModel fileInfoModel = new FileInfoModel();
@@ -112,13 +113,15 @@ public class MetadataHelper {
         versionsModel.setUri(CONTENT_FOLDER + File.separator + newFilename);
         versionsModel.setOpi(transactionId);
 
+        if (formatOpt.isPresent()) {
+            FormatIdentifierResponse format = formatOpt.get();
+            FormatIdentificationModel formatIdentificationModel = new FormatIdentificationModel();
 
-        FormatIdentificationModel formatIdentificationModel = new FormatIdentificationModel();
-        formatIdentificationModel.setFormatId(format.getPuid());
-        formatIdentificationModel.setMimeType(format.getMimetype());
-        formatIdentificationModel.setFormatLitteral(format.getFormatLiteral());
-
-        versionsModel.setFormatIdentification(formatIdentificationModel);
+            formatIdentificationModel.setFormatId(format.getPuid());
+            formatIdentificationModel.setMimeType(format.getMimetype());
+            formatIdentificationModel.setFormatLitteral(format.getFormatLiteral());
+            versionsModel.setFormatIdentification(formatIdentificationModel);
+        }
 
         qualifiersModel.setQualifier(DataObjectVersionType.BINARY_MASTER.getName());
         qualifiersModel.setVersions(Collections.singletonList(versionsModel));

@@ -126,7 +126,8 @@ public class FluxServiceTest {
         projectModel.setId(PROJECT_ID);
 
         projectModel.setManifestContext(new ManifestContext());
-        when(collectService.detectFileFormat(any(File.class))).thenReturn(new FormatIdentifierResponse("", "", "", ""));
+        when(collectService.detectFileFormat(any(File.class))).thenReturn(
+            Optional.of(new FormatIdentifierResponse("", "", "", "")));
     }
 
     @Test
@@ -204,7 +205,9 @@ public class FluxServiceTest {
 
         verify(metadataService).updateUnitsWithMetadataFile(eq("TRANSACTION_ID"), any());
     }
-    private static final String TRANSACTION_WITHOUT_FILE_COLUMN_ZIP_PATH = "streamZip/transaction_without_file_column.zip";
+
+    private static final String TRANSACTION_WITHOUT_FILE_COLUMN_ZIP_PATH =
+        "streamZip/transaction_without_file_column.zip";
 
     @Test
     @RunWithCustomExecutor
@@ -213,19 +216,24 @@ public class FluxServiceTest {
         when(projectRepository.findProjectById(anyString())).thenReturn(Optional.of(projectModel));
         final AtomicReference<File> fileReference = new AtomicReference<>();
         when(metadataService.prepareAttachmentUnits(any(), anyString())).thenReturn(new HashMap<>());
-        when(collectService.pushStreamToWorkspace(any(), any(InputStream.class), eq(METADATA_CSV_FILE))).thenAnswer((e) -> {
-            final InputStream is = e.getArgument(1);
-            final File file = tempFolder.newFile(METADATA_CSV_FILE);
-            Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            fileReference.set(file);
-            return "";
-        });
-        when(collectService.getInputStreamFromWorkspace(any(), eq(METADATA_CSV_FILE))).thenAnswer((e) -> new FileInputStream(fileReference.get()));
+        when(collectService.pushStreamToWorkspace(any(), any(InputStream.class), eq(METADATA_CSV_FILE))).thenAnswer(
+            (e) -> {
+                final InputStream is = e.getArgument(1);
+                final File file = tempFolder.newFile(METADATA_CSV_FILE);
+                Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                fileReference.set(file);
+                return "";
+            });
+        when(collectService.getInputStreamFromWorkspace(any(), eq(METADATA_CSV_FILE))).thenAnswer(
+            (e) -> new FileInputStream(fileReference.get()));
 
         // When
-        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_WITHOUT_FILE_COLUMN_ZIP_PATH)) {
-            CollectInternalException exception = Assert.assertThrows(CollectInternalException.class, () -> fluxService.processStream(resourceAsStream, transactionModel));
-            Assert.assertEquals("Mapping for File not found, expected one of [Content.DescriptionLevel, Content.Title]", exception.getMessage());
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
+            TRANSACTION_WITHOUT_FILE_COLUMN_ZIP_PATH)) {
+            CollectInternalException exception = Assert.assertThrows(CollectInternalException.class,
+                () -> fluxService.processStream(resourceAsStream, transactionModel));
+            Assert.assertEquals("Mapping for File not found, expected one of [Content.DescriptionLevel, Content.Title]",
+                exception.getMessage());
         }
 
         // Then

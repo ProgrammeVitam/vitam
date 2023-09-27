@@ -37,6 +37,8 @@ import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.format.identification.FormatIdentifier;
 import fr.gouv.vitam.common.format.identification.FormatIdentifierFactory;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierNotFoundException;
+import fr.gouv.vitam.common.format.identification.exception.FormatIdentifierTechnicalException;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -283,5 +285,81 @@ public class CollectServiceTest {
         Assertions.assertThat(objectVersionsModel.getMessageDigest()).isNotNull();
         Assertions.assertThat(objectVersionsModel.getUri())
             .isEqualTo("Content/aebbaaaaacaltpovaewckal62ukh4ml5a67q.txt");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldAcceptZipUploadForUnknownFormat() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
+        DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModel();
+        dbObjectGroupModel.setOpi("opi");
+        DbQualifiersModel qualifiersModel = new DbQualifiersModel();
+        qualifiersModel.setQualifier(BINARY_MASTER.getName());
+        List<DbQualifiersModel> dbQualifiersModels = new ArrayList<>();
+        dbQualifiersModels.add(qualifiersModel);
+        String fileName = "memoire_nationale.txt";
+        String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
+        DataObjectVersionType usage = BINARY_MASTER;
+        int version = 1;
+        DbVersionsModel versionsModel = new DbVersionsModelBuilder().build(versionId, fileName, usage, version);
+        List<DbVersionsModel> dbVersionsModels = new ArrayList<>();
+        dbVersionsModels.add(versionsModel);
+        qualifiersModel.setVersions(dbVersionsModels);
+        dbObjectGroupModel.setQualifiers(dbQualifiersModels);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        Response response =
+            Response.ok(new ByteArrayInputStream("ResponseOK".getBytes())).status(Response.Status.OK).build();
+        when(workspaceClient.getObject(any(), any())).thenReturn(response);
+        FormatIdentifier formatIdentifier = mock(FormatIdentifier.class);
+        when(formatIdentifierFactory.getFormatIdentifierFor(anyString())).thenThrow(
+            FormatIdentifierNotFoundException.class);
+        when(formatIdentifier.analysePath(any())).thenReturn(List.of(new FormatIdentifierResponse("", "", "", "")));
+        // When
+        collectService.addBinaryInfoToQualifier(dbObjectGroupModel, BINARY_MASTER, 1,
+            StreamUtils.toInputStream("Vitam test"));
+        DbVersionsModel objectVersionsModel =
+            CollectHelper.getObjectVersionsModel(dbObjectGroupModel, BINARY_MASTER, 1);
+        // Then
+        Assertions.assertThat(objectVersionsModel.getMessageDigest()).isNotNull();
+        Assertions.assertThat(objectVersionsModel.getUri())
+            .isEqualTo("Content/aebbaaaaacaltpovaewckal62ukh4ml5a67q.txt");
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void shouldThrowCollectInternalExceptionWhenTechnicalErrorOnFileIdentification() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_ID));
+        DbObjectGroupModel dbObjectGroupModel = new DbObjectGroupModel();
+        dbObjectGroupModel.setOpi("opi");
+        DbQualifiersModel qualifiersModel = new DbQualifiersModel();
+        qualifiersModel.setQualifier(BINARY_MASTER.getName());
+        List<DbQualifiersModel> dbQualifiersModels = new ArrayList<>();
+        dbQualifiersModels.add(qualifiersModel);
+        String fileName = "memoire_nationale.txt";
+        String versionId = "aebbaaaaacaltpovaewckal62ukh4ml5a67q";
+        DataObjectVersionType usage = BINARY_MASTER;
+        int version = 1;
+        DbVersionsModel versionsModel = new DbVersionsModelBuilder().build(versionId, fileName, usage, version);
+        List<DbVersionsModel> dbVersionsModels = new ArrayList<>();
+        dbVersionsModels.add(versionsModel);
+        qualifiersModel.setVersions(dbVersionsModels);
+        dbObjectGroupModel.setQualifiers(dbQualifiersModels);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
+        Response response =
+            Response.ok(new ByteArrayInputStream("ResponseOK".getBytes())).status(Response.Status.OK).build();
+        when(workspaceClient.getObject(any(), any())).thenReturn(response);
+        FormatIdentifier formatIdentifier = mock(FormatIdentifier.class);
+        when(formatIdentifierFactory.getFormatIdentifierFor(anyString())).thenThrow(
+            FormatIdentifierTechnicalException.class);
+        when(formatIdentifier.analysePath(any())).thenReturn(List.of(new FormatIdentifierResponse("", "", "", "")));
+        // When
+
+        assertThrows(CollectInternalException.class,
+            () -> {
+                collectService.addBinaryInfoToQualifier(dbObjectGroupModel, BINARY_MASTER, 1,
+                    StreamUtils.toInputStream("Vitam test with technical exception on identification"));
+            });
     }
 }
