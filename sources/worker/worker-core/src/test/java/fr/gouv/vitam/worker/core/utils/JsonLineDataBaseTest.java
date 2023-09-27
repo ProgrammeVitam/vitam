@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import org.apache.commons.io.FileUtils;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -49,18 +50,19 @@ public class JsonLineDataBaseTest {
     public static JsonLineDataBase dataBase;
 
     @BeforeClass
-    public static void setUpClass() throws Exception {
+    public static void setUpClass() {
         HandlerIO handlerIO = mock(HandlerIO.class);
         doAnswer((a) -> {
             String name = a.getArgument(0);
             Path path = Path.of(tempFolderRule.newFile().getPath()).getParent().resolve(name);
+            FileUtils.createParentDirectories(path.toFile());
             if (Files.exists(path)) {
                 return path.toFile();
             } else {
                 return tempFolderRule.newFile(name);
             }
         }).when(handlerIO).getNewLocalFile(anyString());
-        dataBase = new JsonLineDataBase(handlerIO);
+        dataBase = new JsonLineDataBase(handlerIO, "dir");
     }
 
     @Test

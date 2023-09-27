@@ -30,6 +30,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.VitamConstants;
+import fr.gouv.vitam.common.security.SafeFileChecker;
+import fr.gouv.vitam.common.security.SanityChecker;
 import fr.gouv.vitam.worker.common.HandlerIO;
 
 import java.io.File;
@@ -37,9 +39,11 @@ import java.io.File;
 public class JsonLineDataBase {
 
     private final HandlerIO handlerIO;
+    private final String baseDir;
 
-    public JsonLineDataBase(HandlerIO handlerIO) {
+    public JsonLineDataBase(HandlerIO handlerIO, String baseDir) {
         this.handlerIO = handlerIO;
+        this.baseDir = baseDir;
     }
 
     /**
@@ -49,7 +53,7 @@ public class JsonLineDataBase {
      * @param object The JSON object
      */
     public void write(String id, JsonNode object) {
-        File file = handlerIO.getNewLocalFile(id + VitamConstants.JSON_EXTENSION);
+        File file = handlerIO.getNewLocalFile(baseDir + File.separator + id + VitamConstants.JSON_EXTENSION);
         try {
             JsonHandler.writeAsFile(object, file);
         } catch (InvalidParseOperationException e) {
@@ -65,7 +69,7 @@ public class JsonLineDataBase {
      */
     public JsonNode read(String id) {
         try {
-            File file = handlerIO.getNewLocalFile(id + VitamConstants.JSON_EXTENSION);
+            File file = handlerIO.getNewLocalFile(baseDir + File.separator + id + VitamConstants.JSON_EXTENSION);
             return JsonHandler.getFromFile(file);
         } catch (InvalidParseOperationException e) {
             throw new RuntimeException(e);
