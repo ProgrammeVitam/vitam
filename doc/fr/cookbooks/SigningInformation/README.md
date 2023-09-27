@@ -45,36 +45,43 @@ alors de *signature détachée*.
 
 > **Important** : La description des informations de signature est purement déclarative. Vitam ne fait **AUCUN**
 > contrôle de cohérence structurelle (ex. Hiérarchie des unités d'archives détachées), ou de validité technique
-> (ex. format de signature, validation de la signature, date de signature ou d'horodatage...etc.).
+> (ex. format de signature, validation cryptographique de la signature, date de signature ou d'horodatage...etc.).
 
 La norme SEDA 2.3 permet de modéliser les informations de signature électronique via une nouvelle balise englobante
 `<SigningInformation>` qui remplace la balise `<Signature>` des précédentes versions du SEDA :
 
 ```mermaid
 classDiagram
-    SigningInformation --> SigningRole
-    SigningInformation --> SignatureType
+    SigningInformation --> SigningRoleType
+    SigningInformation --> DetachedSigningRoleType
+    SigningInformation --> SignatureDescriptionType
     SigningInformation --> TimestampingInformationType
     SigningInformation --> AdditionalProofType
-    SignatureType --> SignerType
-    SignatureType --> ValidatorType
+    SignatureDescriptionType --> SignerType
+    SignatureDescriptionType --> ValidatorType
     class SigningInformation {
         [SigningRoleType] SigningRole [1..n]
-        [SigningRoleType] DetachedSigningRole [0..n]
+        [DetachedSigningRoleType] DetachedSigningRole [0..n]
         [xsd:IDREF] SignedDocumentReferenceId [0..n] - Unsupported by Vitam*
-        [SignatureType] Signature [0..n]
+        [SignatureDescriptionType] SignatureDescription [0..n]
         [TimestampingInformationType] TimestampingInformation [0..n]
         [AdditionalProofType] AdditionalProof [0..n]
         [seda:OpenType] Extended [0..1]
     }
-    class SigningRole {
+    class SigningRoleType {
          <<enumeration>>
          SignedDocument 
          Signature
          Timestamp
          AdditionalProof
     }
-    class SignatureType {
+    class DetachedSigningRoleType {
+         <<enumeration>>
+         Signature
+         Timestamp
+         AdditionalProof
+    }
+    class SignatureDescriptionType {
         [SignerType] Signer [0..1]
         [ValidatorType] Validator [0..1]
         [NonEmptyTokenType] SigningType [0..1]
@@ -120,7 +127,7 @@ d'archive déclarante :
   `SigningRole` de `SignedDocument`). Ce champ est **non supporté par Vitam** et est **ignoré** lors du processus de
   versement.
 
-- `<Signature>` : Balise décrivant une ou plusieurs signatures. Cette balise est typiquement définie lorsque le
+- `<SignatureDescription>` : Balise décrivant une ou plusieurs signatures. Cette balise est typiquement définie lorsque le
   champ `SigningRole` prend la valeur `Signature` pour décrire la ou les signatures définies dans le présent binaire.
   Optionnellement, elle peut également être utilisée lorsque le `DetachedSigningRole` prend la valeur `Signature`
   (l'unité d'archives déclarante décrit également des informations de signature détachée redondées ici à des fins
@@ -136,7 +143,7 @@ d'archive déclarante :
 
     - `<SigningType>`: Décrit le type de signature, au sens juridique du terme. Par exemple, simple, avancée, qualifiée.
 
-- `<TimestampingInformation>` :  Balise décrivant le ou les horodatages. Cette balise est typiquement définie lorsque le
+- `<TimestampingInformation>` : Balise décrivant le ou les horodatages. Cette balise est typiquement définie lorsque le
   champ `SigningRole` prend la valeur `Timestamp` pour décrire le ou les horodatage(s) définis dans le présent binaire.
   Optionnellement, elle peut également être utilisée lorsque le `DetachedSigningRole` prend la valeur `Timestamp`
   (l'unité d'archives déclarante décrit également des informations d'horodatage détaché redondées ici à des fins
@@ -210,12 +217,12 @@ Exemple de document signé avec signature et horodatage embarqués :
                         <SigningRole>Signature</SigningRole>
                         <SigningRole>Timestamp</SigningRole>
 
-                        <Signature>
+                        <SignatureDescription>
                             <Signer>
                                 <FullName>Caroline DISTRIQUIN</FullName>
                                 <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
                             </Signer>
-                        </Signature>
+                        </SignatureDescription>
                         <TimestampingInformation>
                             <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
                         </TimestampingInformation>
@@ -276,12 +283,12 @@ au [cas 1](#cas-1---document-simple-embarquant-une-signature-et-un-horodatage)
                         <SigningRole>Signature</SigningRole>
                         <SigningRole>Timestamp</SigningRole>
                         <SigningRole>AdditionalProof</SigningRole>
-                        <Signature>
+                        <SignatureDescription>
                             <Signer>
                                 <FullName>Caroline DISTRIQUIN</FullName>
                                 <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
                             </Signer>
-                        </Signature>
+                        </SignatureDescription>
                         <TimestampingInformation>
                             <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
                         </TimestampingInformation>
@@ -391,12 +398,12 @@ modélisation serait ainsi :
 
                         <!-- Additional proof binaries are "detached" -->
                         <DetachedSigningRole>AdditionalProof</DetachedSigningRole>
-                        <Signature>
+                        <SignatureDescription>
                             <Signer>
                                 <FullName>Caroline DISTRIQUIN</FullName>
                                 <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
                             </Signer>
-                        </Signature>
+                        </SignatureDescription>
                         <TimestampingInformation>
                             <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
                         </TimestampingInformation>
@@ -548,12 +555,12 @@ niveau de l'unité d'archives « racine ».
 
                         <!-- Additional proof binaries are "detached" -->
                         <DetachedSigningRole>AdditionalProof</DetachedSigningRole>
-                        <Signature>
+                        <SignatureDescription>
                             <Signer>
                                 <FullName>Caroline DISTRIQUIN</FullName>
                                 <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
                             </Signer>
-                        </Signature>
+                        </SignatureDescription>
                         <TimestampingInformation>
                             <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
                         </TimestampingInformation>
@@ -741,12 +748,12 @@ duplication des informations de signature dans l'unité racine, la modélisation
 
                         <!-- Additional proof binaries are "detached" -->
                         <DetachedSigningRole>AdditionalProof</DetachedSigningRole>
-                        <Signature>
+                        <SignatureDescription>
                             <Signer>
                                 <FullName>Caroline DISTRIQUIN</FullName>
                                 <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
                             </Signer>
-                        </Signature>
+                        </SignatureDescription>
                         <TimestampingInformation>
                             <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
                         </TimestampingInformation>
@@ -881,12 +888,12 @@ Ainsi, un exemple de modélisation d'un premier versement contenant un document 
 
                         <!-- Additional proof binaries are "detached" -->
                         <DetachedSigningRole>AdditionalProof</DetachedSigningRole>
-                        <Signature>
+                        <SignatureDescription>
                             <Signer>
                                 <FullName>Caroline DISTRIQUIN</FullName>
                                 <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
                             </Signer>
-                        </Signature>
+                        </SignatureDescription>
                         <TimestampingInformation>
                             <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
                         </TimestampingInformation>
@@ -1068,12 +1075,12 @@ Exemple de document signé avec signature et horodatage embarqués avec champs l
                         <SigningRole>Signature</SigningRole>
                         <SigningRole>Timestamp</SigningRole>
 
-                        <Signature>
+                        <SignatureDescription>
                             <Signer>
                                 <FullName>Caroline DISTRIQUIN</FullName>
                                 <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
                             </Signer>
-                        </Signature>
+                        </SignatureDescription>
                         <TimestampingInformation>
                             <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
                         </TimestampingInformation>

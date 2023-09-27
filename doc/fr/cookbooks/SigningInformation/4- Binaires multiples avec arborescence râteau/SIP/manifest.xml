@@ -129,12 +129,12 @@
 
                         <!-- Additional proof binaries are "detached" -->
                         <DetachedSigningRole>AdditionalProof</DetachedSigningRole>
-                        <Signature>
+                        <SignatureDescription>
                             <Signer>
                                 <FullName>Caroline DISTRIQUIN</FullName>
                                 <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
                             </Signer>
-                        </Signature>
+                        </SignatureDescription>
                         <TimestampingInformation>
                             <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
                         </TimestampingInformation>
