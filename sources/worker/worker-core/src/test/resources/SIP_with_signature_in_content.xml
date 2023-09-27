@@ -76,7 +76,7 @@
                         <SigningRole>Signature</SigningRole>
                         <SigningRole>Timestamp</SigningRole>
                         <DetachedSigningRole>AdditionalProof</DetachedSigningRole>
-                        <Signature>
+                        <SignatureDescription>
                             <Signer>
                                 <FirstName>Fulgence Marie Auguste</FirstName>
                                 <BirthName>Bienvenüe</BirthName>
@@ -144,7 +144,7 @@
                                 <Mandate>Loi du 30 mars 1898</Mandate>
                             </Validator>
                             <SigningType>QualifiedSignature</SigningType>
-                        </Signature>
+                        </SignatureDescription>
                         <TimestampingInformation>
                             <TimeStamp>2017-04-04T08:07:06</TimeStamp>
                             <AdditionalTimestampingInformation>ExtraInfo</AdditionalTimestampingInformation>

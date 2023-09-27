@@ -79,7 +79,7 @@
       "DetachedSigningRole": [
         "Timestamp"
       ],
-      "Signature": [
+      "SignatureDescription": [
         {
           "Signer": {
             "FirstName": "John",

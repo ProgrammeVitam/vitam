@@ -27,14 +27,14 @@
           "AdditionalProofInformation": ["ExtraProofInfo", "ExtraProofInfo2"]
         }
       ],
-      "Signature": [
+      "SignatureDescription": [
         {
           "Signer": {
             "BirthName": "Henry",
             "Role": ["Directeur des travaux", "Expert"],
             "SigningTime": "2016-06-03T15:28:00"
           },
-          "SigningType": "QualifedSignature",
+          "SigningType": "QualifiedSignature",
           "Validator": {
             "FirstName": "ValidatorFirstName",
             "FullName": "ValidatorFullName",
