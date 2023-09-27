@@ -87,7 +87,7 @@ public enum OutcomeMessage {
     /**
      * KO : fail message, manifest is not a valid SEDA file
      */
-    CHECK_MANIFEST_NOT_XSD_VALID("Bordereau non conforme au schéma SEDA " + VitamConstants.SEDA_CURRENT_VERSION),
+    CHECK_MANIFEST_NOT_XSD_VALID("Bordereau non conforme au schéma SEDA"),
 
     /**
      * OK : success message

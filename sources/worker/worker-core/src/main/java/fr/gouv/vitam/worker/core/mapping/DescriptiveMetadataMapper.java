@@ -33,8 +33,8 @@ import fr.gouv.culture.archivesdefrance.seda.v2.LinkingAgentIdentifierType;
 import fr.gouv.culture.archivesdefrance.seda.v2.MessageDigestBinaryObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.ReferencedObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.RelatedObjectReferenceType;
+import fr.gouv.culture.archivesdefrance.seda.v2.SignatureDescriptionType;
 import fr.gouv.culture.archivesdefrance.seda.v2.SignatureType;
-import fr.gouv.culture.archivesdefrance.seda.v2.SigningInformationSignatureType;
 import fr.gouv.culture.archivesdefrance.seda.v2.SigningInformationType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TextType;
 import fr.gouv.culture.archivesdefrance.seda.v2.TimestampingInformationType;
@@ -43,13 +43,14 @@ import fr.gouv.vitam.common.mapping.mapper.ElementMapper;
 import fr.gouv.vitam.common.model.unit.AdditionalProofType;
 import fr.gouv.vitam.common.model.unit.CustodialHistoryModel;
 import fr.gouv.vitam.common.model.unit.DescriptiveMetadataModel;
+import fr.gouv.vitam.common.model.unit.DetachedSigningRoleType;
 import fr.gouv.vitam.common.model.unit.EventTypeModel;
 import fr.gouv.vitam.common.model.unit.LinkingAgentIdentifierTypeModel;
 import fr.gouv.vitam.common.model.unit.ReferencedObjectTypeModel;
 import fr.gouv.vitam.common.model.unit.SignatureInformationExtendedModel;
 import fr.gouv.vitam.common.model.unit.SignatureTypeModel;
 import fr.gouv.vitam.common.model.unit.SignedObjectDigestModel;
-import fr.gouv.vitam.common.model.unit.SigningInformationSignatureTypeModel;
+import fr.gouv.vitam.common.model.unit.SignatureDescriptionTypeModel;
 import fr.gouv.vitam.common.model.unit.SigningInformationTypeModel;
 import fr.gouv.vitam.common.model.unit.SigningRoleType;
 import fr.gouv.vitam.common.model.unit.TextByLang;
@@ -228,15 +229,15 @@ public class DescriptiveMetadataMapper {
             return null;
         }
         return new SigningInformationTypeModel()
-            .setSigningRole(mapSignatureRole(signingInformation.getSigningRole()))
-            .setDetachedSigningRole(mapSignatureRole(signingInformation.getDetachedSigningRole()))
-            .setSignature(mapSigningInformationSignatures(signingInformation.getSignature()))
+            .setSigningRole(mapSigningRole(signingInformation.getSigningRole()))
+            .setDetachedSigningRole(mapDetachedSigningRole(signingInformation.getDetachedSigningRole()))
+            .setSignatureDescription(mapSignatureDescription(signingInformation.getSignatureDescription()))
             .setTimestampingInformation(mapTimestampingInformation(signingInformation.getTimestampingInformation()))
             .setAdditionalProof(mapAdditionalProof(signingInformation.getAdditionalProof()))
             .setExtended(mapExtendedParams(signingInformation.getExtended()));
     }
 
-    private List<SigningRoleType> mapSignatureRole(
+    private List<SigningRoleType> mapSigningRole(
         List<fr.gouv.culture.archivesdefrance.seda.v2.SigningRoleType> signingRole) {
         if (signingRole == null) {
             return null;
@@ -259,22 +260,43 @@ public class DescriptiveMetadataMapper {
             .collect(Collectors.toList());
     }
 
-    private List<SigningInformationSignatureTypeModel> mapSigningInformationSignatures(
-        List<SigningInformationSignatureType> signature) {
+    private List<DetachedSigningRoleType> mapDetachedSigningRole(
+        List<fr.gouv.culture.archivesdefrance.seda.v2.DetachedSigningRoleType> detachedSigningRole) {
+        if (detachedSigningRole == null) {
+            return null;
+        }
+        return detachedSigningRole.stream()
+            .map(role -> {
+                switch (role) {
+                    case TIMESTAMP:
+                        return DetachedSigningRoleType.TIMESTAMP;
+                    case SIGNATURE:
+                        return DetachedSigningRoleType.SIGNATURE;
+                    case ADDITIONAL_PROOF:
+                        return DetachedSigningRoleType.ADDITIONAL_PROOF;
+                    default:
+                        throw new IllegalStateException("Unexpected value: " + role);
+                }
+            })
+            .collect(Collectors.toList());
+    }
+
+    private List<SignatureDescriptionTypeModel> mapSignatureDescription(
+        List<SignatureDescriptionType> signature) {
         if (signature == null) {
             return null;
         }
         return signature.stream()
-            .map(this::mapSigningInformationSignature)
+            .map(this::mapSignatureDescription)
             .collect(Collectors.toList());
     }
 
-    private SigningInformationSignatureTypeModel mapSigningInformationSignature(
-        SigningInformationSignatureType signatureType) {
-        return new SigningInformationSignatureTypeModel()
-            .setSigner(signatureType.getSigner())
-            .setValidator(signatureType.getValidator())
-            .setSigningType(signatureType.getSigningType());
+    private SignatureDescriptionTypeModel mapSignatureDescription(
+        SignatureDescriptionType signatureDescriptionType) {
+        return new SignatureDescriptionTypeModel()
+            .setSigner(signatureDescriptionType.getSigner())
+            .setValidator(signatureDescriptionType.getValidator())
+            .setSigningType(signatureDescriptionType.getSigningType());
     }
 
     private List<TimestampingInformationTypeModel> mapTimestampingInformation(

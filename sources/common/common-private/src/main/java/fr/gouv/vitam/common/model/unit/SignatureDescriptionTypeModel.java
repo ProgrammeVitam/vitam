@@ -28,7 +28,7 @@ package fr.gouv.vitam.common.model.unit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class SigningInformationSignatureTypeModel {
+public class SignatureDescriptionTypeModel {
 
     @JsonProperty("Signer")
     protected ValidatorOrSignerModel signer;
@@ -41,7 +41,7 @@ public class SigningInformationSignatureTypeModel {
         return signer;
     }
 
-    public SigningInformationSignatureTypeModel setSigner(ValidatorOrSignerModel signer) {
+    public SignatureDescriptionTypeModel setSigner(ValidatorOrSignerModel signer) {
         this.signer = signer;
         return this;
     }
@@ -50,7 +50,7 @@ public class SigningInformationSignatureTypeModel {
         return validator;
     }
 
-    public SigningInformationSignatureTypeModel setValidator(ValidatorOrSignerModel validator) {
+    public SignatureDescriptionTypeModel setValidator(ValidatorOrSignerModel validator) {
         this.validator = validator;
         return this;
     }
@@ -59,7 +59,7 @@ public class SigningInformationSignatureTypeModel {
         return signingType;
     }
 
-    public SigningInformationSignatureTypeModel setSigningType(String signingType) {
+    public SignatureDescriptionTypeModel setSigningType(String signingType) {
         this.signingType = signingType;
         return this;
     }

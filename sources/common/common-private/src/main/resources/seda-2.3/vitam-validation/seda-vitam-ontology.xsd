@@ -705,7 +705,7 @@
                     <xsd:documentation>Rôle de l'unité d'archives dans un contexte de signature. Quatre rôles (étiquettes) ont été identifiés : document signé, signature, horodatage et preuves complémentaires.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="DetachedSigningRole" type="SigningRoleType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="DetachedSigningRole" type="DetachedSigningRoleType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>Référence aux rôles des unités d'archives encapsulées sous la racine contenant le document signé.</xsd:documentation>
                 </xsd:annotation>
@@ -715,7 +715,7 @@
                     <xsd:documentation>Relation technique à l'unité d'archives racine décrivant le document signé à partir des unités d'archives encapsulées contenant les autres rôles d'un contexte de signature.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Signature" type="SigningInformationSignatureType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="SignatureDescription" type="SignatureDescriptionType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
                         <xsd:documentation>Bloc permettant de décrire la signature dans un contexte de signature.</xsd:documentation>
@@ -741,6 +741,7 @@
             <xsd:element name="Extended" type="ExtendedType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
+    <!-- Redefined by VITAM -->
     <xsd:complexType name="ExtendedType">
         <xsd:annotation>
             <xsd:documentation>Contient toutes les métadonnées libres de signature.</xsd:documentation>
@@ -757,20 +758,27 @@
             <xsd:enumeration value="AdditionalProof"/>
         </xsd:restriction>
     </xsd:simpleType>
-    <xsd:complexType name="SigningInformationSignatureType">
+    <xsd:simpleType name="DetachedSigningRoleType">
+        <xsd:restriction base="xsd:token">
+            <xsd:enumeration value="Timestamp"/>
+            <xsd:enumeration value="Signature"/>
+            <xsd:enumeration value="AdditionalProof"/>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:complexType name="SignatureDescriptionType">
         <xsd:sequence>
-            <xsd:element name="Signer" type="SignerType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="Signer" type="SignerType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Signataire(s) de la transaction ou de l'objet.</xsd:documentation>
                     <xsd:documentation>Références : premis.signer</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="Validator" type="ValidatorType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="Validator" type="ValidatorType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Validateur de la signature.</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="SigningType" type="NonEmptyTokenType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="SigningType" type="NonEmptyTokenType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Type de signature, au sens juridique du terme. Par exemple, simple, avancée, qualifiée.</xsd:documentation>
                 </xsd:annotation>
@@ -812,7 +820,7 @@
                     <xsd:documentation>Horodatage de la signature</xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="AdditionalTimestampingInformation" type="NonEmptyTokenType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="AdditionalTimestampingInformation" type="NonEmptyTokenType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>Informations complémentaires sur l'horodatage d'une signature</xsd:documentation>
                 </xsd:annotation>
@@ -828,6 +836,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
 
     <!-- Addressee description -->
     <xsd:group name="AddresseeGroup">
