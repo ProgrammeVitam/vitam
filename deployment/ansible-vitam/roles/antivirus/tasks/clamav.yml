@@ -12,7 +12,7 @@
 
 - name: install ClamAV packages
   package:
-    name: clamav,clamav-freshclam,clamav-base,clamav-daemon,clamav-unofficial-sigs
+    name: clamav,clamav-freshclam,clamav-base,clamav-daemon,clamav-unofficial-sigs,apparmor-utils
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
@@ -129,6 +129,18 @@
       group: root
       mode: 0644
 
+  - name: Modify /etc/apparmor.d/usr.sbin.clamd
+    replace:
+      path: /etc/apparmor.d/usr.sbin.clamd
+      regexp: '/var/log/clamav/\* krw,'
+      replace: '/vitam/log/clamav/* krw,'
+    register: updated_apparmor_clamd
+
+  - name: reload apparmor clamd
+    command: aa-enforce /usr/sbin/clamd
+    when: updated_apparmor_clamd is changed
+    notify: restart clamav
+
   - name: Enable clamav-daemon.socket at boot & service is started
     systemd:
       name: clamav-daemon.socket
@@ -139,32 +151,38 @@
   - name: stop clamav-freshclam service to force update
     systemd:
       name: clamav-freshclam
-      daemon_reload: yes
-      enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
       state: stopped
 
+  - name: Modify /etc/apparmor.d/usr.bin.freshclam
+    replace:
+      path: /etc/apparmor.d/usr.bin.freshclam
+      regexp: '/var/log/clamav/\* krw,'
+      replace: '/vitam/log/clamav/* krw,'
+    register: updated_apparmor_freshclam
+
+  - name: reload apparmor freshclam
+    command: aa-enforce /usr/bin/freshclam
+    when: updated_apparmor_freshclam is changed
+ 
   - name: update database for clamAV
     shell: freshclam
     ignore_errors: true
     notify:
       - restart clamav
+      - restart freshclam
+  
+  - meta: flush_handlers
 
-  - name: restart clamav-freshclam service
+  - name: ensure clamav-freshclam is started
     systemd:
       name: clamav-freshclam
       enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
       state: started
 
-  - name: restart clamav-daemon service
+  - name: ensure clamav-daemon is started
     systemd:
       name: clamav-daemon
-      daemon_reload: yes
       enabled: "{{ clamav.at_boot | default(service_at_boot) }}"
-      state: restarted
-
-# - name: restart clamav-daemon.socket service
-#   systemd:
-#     name: clamav-daemon
-#     state: restarted
+      state: started
 
   when: ansible_os_family == "Debian"
