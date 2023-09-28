@@ -664,10 +664,12 @@ public class PreservationIT extends VitamRuleRunner {
             excludeFields);
     }
 
-    private static JsonNode getQueryDslByOpiType(String operationId) throws InvalidCreateOperationException {
+    private static JsonNode getQueryDslByOpiType(String operationId)
+        throws InvalidCreateOperationException, InvalidParseOperationException {
         Select select = new Select();
         Query query = QueryHelper.eq(AccessionRegisterDetailModel.OPI, operationId);
         select.setQuery(query);
+        select.addOrderByAscFilter("OriginatingAgency");
         return select.getFinalSelect();
     }
 
