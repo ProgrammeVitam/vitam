@@ -57,6 +57,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BinaryOperator;
@@ -144,13 +145,17 @@ public class SchedulerResource extends ApplicationStatusResource {
         JobKey jobKey =
             (jobKeyPath.length > 1) ? JobKey.jobKey(jobKeyPath[1], jobKeyPath[0]) : JobKey.jobKey(jobKeyPath[0]);
         List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
-        Optional<Trigger.TriggerState> reduce = triggers.stream().map(Trigger::getKey).map(e -> {
-            try {
-                return scheduler.getTriggerState(e);
-            } catch (SchedulerException ex) {
-                throw new RuntimeException(ex);
-            }
-        }).reduce(BinaryOperator.maxBy(Enum::compareTo));
+
+        Optional<Trigger.TriggerState> reduce = triggers.stream()
+            // In rare conditions quartz-mongodb library returns a null trigger !
+            .filter(Objects::nonNull)
+            .map(Trigger::getKey).map(e -> {
+                try {
+                    return scheduler.getTriggerState(e);
+                } catch (SchedulerException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }).reduce(BinaryOperator.maxBy(Enum::compareTo));
 
         if (reduce.isPresent()) {
             return Response.ok(new RequestResponseOK<>().addResult(reduce.get())).build();
