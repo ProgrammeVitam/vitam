@@ -800,7 +800,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
             new ReferentialAuditService(storageClientFactory, vitamCounterService);
         try {
             referentialAuditService.runAudit(referentialAuditOptions.getCollectionName(), tenant);
-        } catch (StorageNotFoundClientException | StorageServerClientException | StorageNotFoundException | InvalidParseOperationException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (StorageNotFoundClientException | StorageServerClientException | StorageNotFoundException |
+                 InvalidParseOperationException | StorageUnavailableDataFromAsyncOfferClientException e) {
             LOGGER.error(e);
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
@@ -849,7 +850,9 @@ public class AdminManagementResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    public Response launchAudit(AuditOptions options, @HeaderParam(GlobalDataRest.CHECK_ACCESS_CONTRACT) boolean checkAccessContract) {
+
+    public Response launchAudit(AuditOptions options,
+        @HeaderParam(GlobalDataRest.CHECK_ACCESS_CONTRACT) boolean checkAccessContract) {
         ParametersChecker.checkParameter(OPTIONS_IS_MANDATORY_PARAMETER, options);
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
             WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
@@ -878,18 +881,22 @@ public class AdminManagementResource extends ApplicationStatusResource {
 
             SelectMultiQuery selectQuery = new SelectMultiQuery();
             if ("tenant".equals(options.getAuditType())) {
+                // @Deprecated Be careful, this audit type is no longer supported for audit action. Use dsl query instead.
                 selectQuery.setQuery(
                     QueryHelper.eq(BuilderToken.PROJECTIONARGS.TENANT.exactToken(), options.getObjectId()));
+                LOGGER.warn("this audit type is no longer supported for audit action. Use dsl query instead");
             } else if ("originatingagency".equals(options.getAuditType())) {
+                // @Deprecated Be careful, this audit type is no longer supported for audit action. Use dsl query instead.
                 selectQuery.setQuery(QueryHelper.in(BuilderToken.PROJECTIONARGS.ORIGINATING_AGENCY.exactToken(),
                     options.getObjectId()));
+                LOGGER.warn("this audit type is no longer supported for audit action. Use dsl query instead");
             } else if ("dsl".equals(options.getAuditType())) {
                 final SelectParserMultiple parser = new SelectParserMultiple();
                 parser.parse(options.getQuery().deepCopy());
                 selectQuery = parser.getRequest();
             }
 
-            if(checkAccessContract){
+            if (checkAccessContract) {
                 JsonNode restrictedQuery = AccessContractRestrictionHelper
                     .applyAccessContractRestrictionForObjectGroupForSelect(selectQuery.getFinalSelect(), contract);
                 // for CheckThresholdHandler
@@ -1208,7 +1215,8 @@ public class AdminManagementResource extends ApplicationStatusResource {
             }
             return Response.status(CREATED).entity(new RequestResponseOK<>()
                 .setHttpCode(CREATED.getStatusCode())).build();
-        } catch (LogbookClientBadRequestException | IllegalArgumentException | InvalidParseOperationException | InvalidGuidOperationException e) {
+        } catch (LogbookClientBadRequestException | IllegalArgumentException | InvalidParseOperationException |
+                 InvalidGuidOperationException e) {
             LOGGER.error(e);
             return Response.status(BAD_REQUEST)
                 .entity(getErrorEntity(BAD_REQUEST, e.getMessage())).build();
