@@ -11,16 +11,25 @@
     gpgcheck: yes
     enabled: yes
 
-
-- name: Install docker packages
+- name: Install docker packages for Centos & AlmaLinux
   package:
-    name: ['docker-ce', 'docker-ce-cli', 'containerd.io', 'docker-buildx-plugin', 'docker-compose-plugin', 'docker-python']
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+      - "{{ 'python-pip' if ansible_distribution == 'AlmaLinux' else 'docker-python' }}"
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
 
+- name: Install docker-py package for AlmaLinux
+  pip:
+    name: docker-py
+  when: ansible_distribution == 'AlmaLinux'
 
   # KWA : check if still useful with newer docker versions
 - name: Make sure net.ipv4.ip_forward is enabled (allow port-forwarding into docker containers)
@@ -28,4 +37,3 @@
     name: net.ipv4.ip_forward
     sysctl_set: yes
     value: '1'
-
