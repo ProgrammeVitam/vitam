@@ -36,10 +36,10 @@ public class SigningInformationTypeModel {
     protected List<SigningRoleType> signingRole;
 
     @JsonProperty("DetachedSigningRole")
-    protected List<SigningRoleType> detachedSigningRole;
+    protected List<DetachedSigningRoleType> detachedSigningRole;
 
-    @JsonProperty("Signature")
-    protected List<SigningInformationSignatureTypeModel> signature;
+    @JsonProperty("SignatureDescription")
+    protected List<SignatureDescriptionTypeModel> signatureDescription;
 
     @JsonProperty("TimestampingInformation")
     protected List<TimestampingInformationTypeModel> timestampingInformation;
@@ -60,23 +60,23 @@ public class SigningInformationTypeModel {
         return this;
     }
 
-    public List<SigningRoleType> getDetachedSigningRole() {
+    public List<DetachedSigningRoleType> getDetachedSigningRole() {
         return detachedSigningRole;
     }
 
     public SigningInformationTypeModel setDetachedSigningRole(
-        List<SigningRoleType> detachedSigningRole) {
+        List<DetachedSigningRoleType> detachedSigningRole) {
         this.detachedSigningRole = detachedSigningRole;
         return this;
     }
 
-    public List<SigningInformationSignatureTypeModel> getSignature() {
-        return signature;
+    public List<SignatureDescriptionTypeModel> getSignatureDescription() {
+        return signatureDescription;
     }
 
-    public SigningInformationTypeModel setSignature(
-        List<SigningInformationSignatureTypeModel> signature) {
-        this.signature = signature;
+    public SigningInformationTypeModel setSignatureDescription(
+        List<SignatureDescriptionTypeModel> signatureDescription) {
+        this.signatureDescription = signatureDescription;
         return this;
     }
 

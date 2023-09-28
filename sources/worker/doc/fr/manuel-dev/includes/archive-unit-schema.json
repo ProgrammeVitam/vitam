@@ -18,6 +18,14 @@
         "AdditionalProof"
       ]
     },
+    "DetachedSigningRoleType": {
+      "type": "string",
+      "enum": [
+        "Timestamp",
+        "Signature",
+        "AdditionalProof"
+      ]
+    },
     "date-time-opt": {
       "anyOf": [
         {
@@ -1070,10 +1078,10 @@
         "DetachedSigningRole": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/SigningRoleType"
+            "$ref": "#/definitions/DetachedSigningRoleType"
           }
         },
-        "Signature": {
+        "SignatureDescription": {
           "type": "array",
           "items": {
             "additionalProperties": false,
