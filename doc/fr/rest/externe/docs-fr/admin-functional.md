@@ -1,4 +1,5 @@
-*L'API d'administration fonctionnelle* propose les points d'entrées et les méthodes pour requêter et récupérer les informations des collections suivantes :
+*L'API d'administration fonctionnelle* propose les points d'entrées et les méthodes pour requêter et récupérer les
+informations des collections suivantes :
 
 - Référentiel des Formats basé sur PRONOM (TNA)
 - Référentiel des Règles de Gestion
@@ -17,8 +18,10 @@
 ## Tenant d'administration
 
 Certaines APIs dites "cross-tenants" nécessitent une vérification spécifique.
-Ces opérations doivent être exécutées à partir d'un tenant dit tenant d'administration (configuré comme tel à l'intérieur de VITAM).
-Il s'agit de s'assurer que pour les collections Formats, Contextes et Profils de sécurité, le tenant utilisé pour l'import soit conforme à celui configuré dans VITAM.
+Ces opérations doivent être exécutées à partir d'un tenant dit tenant d'administration (configuré comme tel à
+l'intérieur de VITAM).
+Il s'agit de s'assurer que pour les collections Formats, Contextes et Profils de sécurité, le tenant utilisé pour
+l'import soit conforme à celui configuré dans VITAM.
 En cas de différence, une erreur 401 sera retournée.
 
 # Référentiel des Ontologies
@@ -28,8 +31,10 @@ Ce référentiel référence les champs utilisés dans Vitam ainsi que leur mét
 # Référentiel des Formats
 
 Ce référentiel est basé sur PRONOM (TNA) mais il peut être étendu. Il est trans-tenant.
+
 - Il est possible de mettre à jour ce référentiel via les API.
-- Notez cependant que la mise à jour des outils utilisant ce référentiel n'est pas encore opérationnelle. Il n'est donc pas recommandé de mettre à jour ce référentiel avec une autre version que celle livrée par Vitam.
+- Notez cependant que la mise à jour des outils utilisant ce référentiel n'est pas encore opérationnelle. Il n'est donc
+  pas recommandé de mettre à jour ce référentiel avec une autre version que celle livrée par Vitam.
 
 # Référentiel des Règles de Gestion
 
@@ -83,9 +88,9 @@ Actuellement ce référentiel est utilisé lors du processus de préservation
 
 # Référentiel des scénarios de préservation
 
- Il est possible de mettre à jour ce référentiel via les API. Il est par tenant.
+Il est possible de mettre à jour ce référentiel via les API. Il est par tenant.
 
- Actuellement ce référentiel est utilisé lors du processus de préservation.
+Actuellement ce référentiel est utilisé lors du processus de préservation.
 
 # Registre des Fonds
 
@@ -97,20 +102,28 @@ Il est possible de gérer les processus en mode administrateur (CANCEL, PAUSE, N
 
 # Sécurisation des journaux - vérification
 
-**traceability/checks** est le point d'entrée pour la vérification de la sécurisation des journaux d'opérations dans Vitam.
+**traceability/checks** est le point d'entrée pour la vérification de la sécurisation des journaux d'opérations dans
+Vitam.
 
 # Audit d'existence et d'intégrité
 
 Il est possible de vérifier l'existence ou l'intégrité des objets binaires et physiques des groupes d'objets pour :
+
 * un tenant
 * un service producteur
 * une requête DSL sur des unités archivistiques
 
 Il y a 4 paramètres dans le body :
-* **auditActions** (obligatoire): qui peut avoir comme valeur  *AUDIT_FILE_EXISTING*  ou *AUDIT_FILE_INTEGRITY* pour lancer respectivement l'audit d'existence ou l'audit d'intégrité.
+
+* **auditActions** (obligatoire): qui peut avoir comme valeur  *AUDIT_FILE_EXISTING*  ou *AUDIT_FILE_INTEGRITY* pour
+  lancer respectivement l'audit d'existence ou l'audit d'intégrité.
 * **auditType** (obligatoire): avec  *originatingagency* ou *tenant* ou *dsl*
-* **objectId** (optionel): doit prendre la valeur de ce qui va être audité. Si auditType indique *tenant*, objectId doit prendre *la valeur du tenant* sur lequel on exécute la requête. Si auditType est *originatingagency*, alors objectId doit être *l'identifiant du service producteur* dont tous les objets vont être audité. Le paramètre n'est pas utilisé si auditType indique *dsl*
-* **query** (optionel): doit prendre une requête DSL au format multiple pour batch (doit contenir *$roots*, *$query* et *$threshold*)
+* **objectId** (optionel): doit prendre la valeur de ce qui va être audité. Si auditType indique *tenant*, objectId doit
+  prendre *la valeur du tenant* sur lequel on exécute la requête. Si auditType est *originatingagency*, alors objectId
+  doit être *l'identifiant du service producteur* dont tous les objets vont être audité. Le paramètre n'est pas utilisé
+  si auditType indique *dsl*
+* **query** (optionel): doit prendre une requête DSL au format multiple pour batch (doit contenir *$roots*, *$query*et *
+  $threshold*)
 
 Trois exemples :
 
@@ -119,8 +132,18 @@ Trois exemples :
 ```JSON
 {
   "auditActions": "AUDIT_FILE_EXISTING",
-  "auditType": "originatingagency",
-  "objectId": "FRAN_09905"
+  "auditType": "dsl",
+  "query": {
+    "$roots": [],
+    "$query": [
+      {
+        "$eq": {
+          "#originating_agency": "FRAN_09905"
+        }
+      }
+    ],
+    "$threshold": 1000
+  }
 }
 ```
 
@@ -128,9 +151,19 @@ Trois exemples :
 
 ```JSON
 {
-  "auditActions":"AUDIT_FILE_INTEGRITY",
-  "auditType":"tenant",
-  "objectId": "9"
+  "auditActions": "AUDIT_FILE_INTEGRITY",
+  "auditType": "dsl",
+  "query": {
+    "$roots": [],
+    "$query": [
+      {
+        "$eq": {
+          "#tenant": "9"
+        }
+      }
+    ],
+    "$threshold": 1000
+  }
 }
 ```
 
@@ -162,7 +195,8 @@ Trois exemples :
 
 Il est possible de définir les requêtes pour lancer un audit de cohérence à partir d'une requête DSL.
 
-**Remarque :** L'audit de cohérence est un workflow lourd qui doit être lancé sur un volume modéré d'unités archivistiques (**100K maximum**).
+**Remarque :** L'audit de cohérence est un workflow lourd qui doit être lancé sur un volume modéré d'unités
+archivistiques (**100K maximum**).
 
 Deux exemples de requête :
 
@@ -176,17 +210,22 @@ Deux exemples de requête :
       "$and": [
         {
           "$in": {
-            "#operations": [ "#id1", "#id2" ]
-            }
+            "#operations": [
+              "#id1",
+              "#id2"
+            ]
+          }
         },
         {
-          "$exists" : "Title"
+          "$exists": "Title"
         }
       ]
-    }],
-    "$projection": {}
+    }
+  ],
+  "$projection": {}
 }
 ```
+
 * Audit de cohérence des unités archivistiques:
 
 ```JSON

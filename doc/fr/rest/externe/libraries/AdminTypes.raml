@@ -8,8 +8,8 @@ uses:
 
 types:
   AuditOptions:
-      displayName: Requête DSL multiple de traitement de masse pour élimination
-      description: Requête DSL multiple Vitam de traitement de masse pour élimination
+      displayName: Requête DSL multiple de traitement de masse pour l'audit
+      description: Requête DSL multiple Vitam de traitement de masse pour l'audit
       type: object
       properties:
         auditType:
@@ -17,8 +17,8 @@ types:
           description: Type du 
           type: string
           enum:
-            - "originatingagency"
-            - "tenant"
+            - "originatingagency" **[DEPRECATED] - Be careful, this audit type is no longer supported for audit action. Use dsl query instead.** <br/> <br/>
+            - "tenant" **[DEPRECATED] - Be careful, this audit type is no longer supported for audit action. Use dsl query instead.** <br/> <br/>
             - "dsl"
         auditActions:
           required: true
