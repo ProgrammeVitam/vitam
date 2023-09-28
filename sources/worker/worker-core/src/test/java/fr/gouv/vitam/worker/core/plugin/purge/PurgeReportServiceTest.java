@@ -26,7 +26,15 @@
  */
 package fr.gouv.vitam.worker.core.plugin.purge;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.ACCESSION_REGISTER_REPORT_JSONL;
+import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.DISTINCT_REPORT_JSONL;
+import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.OBJECT_GROUP_REPORT_JSONL;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportBody;
@@ -37,7 +45,6 @@ import fr.gouv.vitam.batch.report.model.entry.PurgeObjectGroupReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.collection.CloseableIterator;
-import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
@@ -45,7 +52,13 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import javax.ws.rs.core.Response;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -55,22 +68,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import javax.ws.rs.core.Response;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-
-import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.ACCESSION_REGISTER_REPORT_JSONL;
-import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.DISTINCT_REPORT_JSONL;
-import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.OBJECT_GROUP_REPORT_JSONL;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 
 public class PurgeReportServiceTest {
 
@@ -113,14 +110,21 @@ public class PurgeReportServiceTest {
     @RunWithCustomExecutor
     public void appendUnitEntries() throws Exception {
 
-        String myPersistentIdentifier = "[{\"PersistentIdentifierType\":\"ark\",\"PersistentIdentifierContent\":\"ark:/666567/001a957db5eadaac\"},{\"PersistentIdentifierType\":\"ark\",\"PersistentIdentifierContent\":\"ark:/26661/001d957db5eadaac\"}]";
-        final JsonNode persistentIdentifier = JsonHandler.getFromString(myPersistentIdentifier);
+        List<PersistentIdentifierModel> persistentIdentifiers = new ArrayList<>();
+        PersistentIdentifierModel persistentIdentifier1 = new PersistentIdentifierModel();
+        PersistentIdentifierModel persistentIdentifier2 = new PersistentIdentifierModel();
+        persistentIdentifier1.setPersistentIdentifierType("ark");
+        persistentIdentifier1.setPersistentIdentifierContent("ark:/666567/001a957db5eadaac");
+        persistentIdentifier2.setPersistentIdentifierType("ark");
+        persistentIdentifier2.setPersistentIdentifierContent("ark:/26661/001d957db5eadaac");
+        persistentIdentifiers.add(persistentIdentifier1);
+        persistentIdentifiers.add(persistentIdentifier2);
 
         // Given
         List<PurgeUnitReportEntry> entries = Arrays.asList(
             new PurgeUnitReportEntry("unit1", "sp1", "opi1", "got1", PurgeUnitStatus.DELETED.name(), null, null, "INGEST"),
             new PurgeUnitReportEntry("unit2", "sp2", "opi2", "got2",
-                PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name(), null, persistentIdentifier, "INGEST")
+                PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name(), null, persistentIdentifiers, "INGEST")
         );
 
         // When

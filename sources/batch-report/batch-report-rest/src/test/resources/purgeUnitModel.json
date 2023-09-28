@@ -10,8 +10,7 @@
       "unitId": "unitId1",
       "detailType": "Unit",
       "id": "unitId1",
-      "persistentIdentifier": {
-        "PersistentIdentifier": [
+      "persistentIdentifier": [
           {
             "PersistentIdentifierType": "ark",
             "PersistentIdentifierContent": "ark:/666567/001a957db5eadaac"
@@ -21,7 +20,7 @@
             "PersistentIdentifierContent": "ark:/26661/001d957db5eadaac"
           }
         ]
-      },
+      ,
       "extraInfo": {
         "key1": "unit1_value1",
         "key2": [

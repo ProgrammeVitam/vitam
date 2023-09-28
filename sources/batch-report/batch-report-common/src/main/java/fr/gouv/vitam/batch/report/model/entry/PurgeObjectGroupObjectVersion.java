@@ -28,7 +28,6 @@ package fr.gouv.vitam.batch.report.model.entry;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
 import java.util.List;
 
@@ -37,7 +36,7 @@ public class PurgeObjectGroupObjectVersion {
     private final Long size;
     private final String version;
     private final String usage;
-    List<PersistentIdentifierModel> persistentIdentifier;
+    private final List<PersistentIdentifierModel> persistentIdentifier;
 
     @JsonCreator
     public PurgeObjectGroupObjectVersion(

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.worker.core.plugin.purge;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
@@ -48,6 +49,7 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.LifeCycleStatusCode;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
+import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
 import fr.gouv.vitam.common.parameter.ParameterHelper;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientBadRequestException;
 import fr.gouv.vitam.logbook.common.exception.LogbookClientNotFoundException;
@@ -214,7 +216,7 @@ public class PurgeUnitPlugin extends ActionHandler {
             unit.has(VitamFieldsHelper.unitType()) ? unit.get(VitamFieldsHelper.unitType()).asText() : null;
 
         if (purgeUnitStatus.equals(PurgeUnitStatus.DELETED)) {
-            JsonNode persistentIdentifier = extractPersistentIdentifierFromUnit(unit);
+            List<PersistentIdentifierModel> persistentIdentifier = extractPersistentIdentifiersFromUnit(unit);
             JsonNode extraInfo = extractExtraInfoFromUnit(unit);
             return new PurgeUnitReportEntry(unitId, originatingAgency, initialOperation, objectGroupId,
                 purgeUnitStatus.name(), extraInfo, persistentIdentifier, unitType);
@@ -224,14 +226,31 @@ public class PurgeUnitPlugin extends ActionHandler {
         }
     }
 
-    private static JsonNode extractPersistentIdentifierFromUnit(JsonNode unit) {
-        ObjectNode persistentIdentifier = JsonHandler.createObjectNode();
-        String metadataKey = REPORT_PERSISTENT_IDENTIFIER_FIELD;
-        if (unit.has(metadataKey)) {
-            persistentIdentifier.set(metadataKey, unit.get(metadataKey));
+    @VisibleForTesting
+    protected static List<PersistentIdentifierModel> extractPersistentIdentifiersFromUnit(JsonNode unit) {
+
+        List<PersistentIdentifierModel> persistentIdentifiers = new ArrayList<>();
+
+        if (unit.has(REPORT_PERSISTENT_IDENTIFIER_FIELD)) {
+            JsonNode persistentIdentifierArray = unit.get(REPORT_PERSISTENT_IDENTIFIER_FIELD);
+
+            if (persistentIdentifierArray.isArray()) {
+                for (JsonNode identifierNode : persistentIdentifierArray) {
+                    PersistentIdentifierModel identifierModel = mapJsonToPersistentIdentifierModel(identifierNode);
+                    persistentIdentifiers.add(identifierModel);
+                }
+            }
         }
-        return persistentIdentifier;
+
+        return persistentIdentifiers;
     }
+
+    @VisibleForTesting
+    protected static PersistentIdentifierModel mapJsonToPersistentIdentifierModel(JsonNode identifierNode) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.convertValue(identifierNode, PersistentIdentifierModel.class);
+    }
+
 
     private static JsonNode extractExtraInfoFromUnit(JsonNode unit) {
         ObjectNode extraInfo = JsonHandler.createObjectNode();
