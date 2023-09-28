@@ -82,6 +82,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static fr.gouv.vitam.collect.internal.core.helpers.CollectHelper.writeToTemporaryFile;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.FILTERARGS.OBJECTGROUPS;
@@ -285,8 +286,9 @@ public class CollectService {
                 CONTENT_FOLDER.concat(File.separator).concat(fileName));
 
 
-            FormatIdentifierResponse formatIdentifierResponse = detectFileFormat(file);
-            if (null != formatIdentifierResponse) {
+            Optional<FormatIdentifierResponse> formatIdentifierResponseOpt = detectFileFormat(file);
+            if (formatIdentifierResponseOpt.isPresent()) {
+                FormatIdentifierResponse formatIdentifierResponse = formatIdentifierResponseOpt.get();
                 DbFormatIdentificationModel formatIdentificationModel = new DbFormatIdentificationModel();
                 formatIdentificationModel.setFormatId(formatIdentifierResponse.getPuid());
                 formatIdentificationModel.setMimeType(formatIdentifierResponse.getMimetype());
@@ -352,16 +354,19 @@ public class CollectService {
         }
     }
 
-    public FormatIdentifierResponse detectFileFormat(File fileToDetect) throws CollectInternalException {
+    public Optional<FormatIdentifierResponse> detectFileFormat(File fileToDetect) throws CollectInternalException {
+        Optional<FormatIdentifierResponse> detectedFormats = Optional.empty();
         try {
             FormatIdentifier formatIdentifier = formatIdentifierFactory.getFormatIdentifierFor(FORMAT_IDENTIFIER_ID);
             final List<FormatIdentifierResponse> formats = formatIdentifier.analysePath(fileToDetect.toPath());
-            return CollectHelper.getFirstPronomFormat(formats);
-        } catch (FormatIdentifierNotFoundException | FormatIdentifierBadRequestException |
-                 FormatIdentifierTechnicalException | FormatIdentifierFactoryException |
-                 FileFormatNotFoundException e) {
-            throw new CollectInternalException("Can't detect format for the object : ", e);
+            detectedFormats = Optional.ofNullable(CollectHelper.getFirstPronomFormat(formats));
+        } catch (FormatIdentifierNotFoundException | FileFormatNotFoundException e) {
+            LOGGER.warn("Can't detect format for the file  " + fileToDetect.getName(), e);
+        } catch (FormatIdentifierFactoryException | FormatIdentifierTechnicalException |
+                 FormatIdentifierBadRequestException e) {
+            throw new CollectInternalException("Technical issue on detecting format for the object : ", e);
         }
+        return detectedFormats;
     }
 
     public Response getBinaryByUsageAndVersion(CollectUnitModel unitModel, DataObjectVersionType usage, int version)

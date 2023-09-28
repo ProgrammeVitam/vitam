@@ -267,12 +267,12 @@ public class FluxService {
 
             File file = writeToTemporaryFile(entryInputStream, extension);
             try {
-                FormatIdentifierResponse formatIdentifierResponse = collectService.detectFileFormat(file);
+                Optional<FormatIdentifierResponse> formatIdentifierResponseOpt = collectService.detectFileFormat(file);
                 Entry<String, Long> binaryInformations =
                     writeObjectToWorkspace(transactionModel.getId(), file, newFilename);
                 ObjectGroupResponse objectGroup =
                     MetadataHelper.createObjectGroup(transactionModel.getId(), fileName, objectId, newFilename,
-                        formatIdentifierResponse, binaryInformations.getKey(), binaryInformations.getValue());
+                        formatIdentifierResponseOpt, binaryInformations.getKey(), binaryInformations.getValue());
                 writeObjectGroupToTemporaryFile(objectGroup, transactionModel.getId());
                 unit.setOg(objectGroup.getId());
             } finally {
