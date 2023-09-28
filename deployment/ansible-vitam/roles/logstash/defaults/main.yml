@@ -1,4 +1,5 @@
 ---
 
-logstash_version: "{{ logstash.version | default('7.17.8') }}"
+# HOTFIX: Workaround for logstash package which is actually a "1:7.17.8-1" on Debian, and "7.17.8" for Redhat-family
+logstash_version: "{{ '1:' if ansible_os_family == 'Debian' else '' }}{{ logstash.version | default('7.17.8') }}{{ '-1' if ansible_os_family == 'Debian' else '' }}"
 logstash_package: "logstash{{ '=' if ansible_os_family == 'Debian' else '-' }}{{ logstash_version }}"
