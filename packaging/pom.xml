@@ -81,7 +81,7 @@
 							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<executable>../rpm/vitam-product/build-all.sh</executable>
+							<executable>../rpm/vitam-product/build-all-docker.sh</executable>
 						</configuration>
 					</execution>
 					<execution>
@@ -235,17 +235,6 @@
 							<executable>./remove_griffins.sh</executable>
 						</configuration>
 					</execution>
-					<!-- sign rpm -->
-					<execution>
-						<id>Create signed rpm</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>./create_rpm_signed.sh</executable>
-						</configuration>
-					</execution>
 				</executions>
 			</plugin>
 			<!-- TODO : copy all other rpm (from vitam-external & vitam-product) to rpm_signed -->
@@ -268,7 +257,7 @@
 						</resources>
 						</configuration>
 					</execution>
-						<execution>
+					<execution>
 						<id>copy-resources-product</id>
 						<phase>compile</phase>
 						<goals>
@@ -286,6 +275,36 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>${maven.exec.version}</version>
+				<!-- sign RPM -->
+				<executions>
+					<execution>
+						<id>sign RPM</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>./sign_rpm.sh</executable>
+						</configuration>
+					</execution>
+					<execution>
+						<id>sign DEB</id>
+						<phase>package</phase>
+						<goals>
+							<goal>exec</goal>
+						</goals>
+						<configuration>
+							<executable>./sign_deb.sh</executable>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
 			<!-- generate assemblies -->
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>

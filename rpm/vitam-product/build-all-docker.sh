@@ -28,7 +28,10 @@ set -e
 #*******************************************************************************
 WORKING_FOLDER=$(dirname $0)
 
-docker build "$WORKING_FOLDER" -f Dockerfile-build-rpm -t rpm_builder
+pushd $WORKING_FOLDER
+
+docker build . -f Dockerfile-build-rpm -t rpm_builder
 
 docker run --rm -e uid="$(id -u)" -e gid="$(id -g)" -v "$WORKING_FOLDER":/home rpm_builder build-all.sh
 
+popd
