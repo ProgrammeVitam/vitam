@@ -20,22 +20,6 @@ Ce fichier est utilisé pour créer un assemblage de distribution. Il spécifie 
 
 Ce fichier est utilisé pour créer un assemblage de distribution signé pour les environnements RPM. Il spécifie les fichiers à inclure dans la distribution ainsi que leur emplacement dans l'arborescence de fichier. Il est utilisé pour créer un fichier de distribution contenant tous les fichiers nécessaires pour les environnements RPM.
 
-## create_deb_signed.sh
-
-Ce script est utilisé pour signer les packages au format .deb.
-
-## create_rpm_signed.sh
-
-Ce script est utilisé pour signer les packages au format .rpm à l'aide de la clé GPG-KEY-vitam.
-
-## expect_gpg.sh
-
-Ce script est utilisé pour automatiser le processus de signature de package. Il utilise Expect pour fournir les informations nécessaires à GPG (phrase secrète) afin de signer les package automatiquement.
-
-## functions.sh
-
-Ce script contient des fonctions utilisées par les autres scripts dans le dossier packaging. Il définit des fonctions pour créer des archives, vérifier l'existence des fichiers.
-
 ## pom.xml
 
 Ce fichier est utilisé par Maven pour configurer et construire le projet. Il contient des informations sur les dépendances, les plugins, les propriétés, nécessaires à la construction du projet.
@@ -53,13 +37,9 @@ Ce script est utilisé pour supprimer les certificats utilisateur du système de
 ## packaging
 
 * Le fichier assembly-deployment.xml est utilisé pour créer un déploiement contenant les fichiers nécessaires pour le déploiement, tandis que assembly-full.xml est utilisé pour créer une distribution pour tous les environnements.
-* Assembly-deb-signed.xml et assembly-rpm.xml sont utilisés pour créer des distributions signées et non signées pour les environnements deb/rpm.
-
-## Scripts
-
-* create_deb_signed.sh et create_rpm_signed.sh sont utilisés pour créer des packages DEB et RPM signés.
-* Le script expect_gpg.sh est utilisé pour automatiser le processus de signature de package.
-* Functions.sh contient des fonctions pour la création d'archives et la vérification de fichiers.
+* assembly-deb.xml, assembly-rpm.xml, assembly-full.xml, ... sont utilisés pour créer des distributions deb et rpm. ils seront 
+    -  signé -avec la clef gpg propre à vitam- lors du packaging d'une release ou un bugfix.
+    -  non signées lors de builds classiques.
 
 ## Autres
 
