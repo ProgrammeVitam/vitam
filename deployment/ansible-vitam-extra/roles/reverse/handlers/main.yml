@@ -4,7 +4,7 @@
 # Best way to do that is to use openssl rsa but after it the certificate headers are missing
 # We should investigate more on this subject as sed should not be used for that...
 - name: extract certificate
-  shell: "openssl pkcs12 -nodes -in /etc/{{ apache_service }}/certs/keystore_client_{{ vitam_site_name }}.p12 -passin pass:'{{ keystores.client_external.reverse }}' -out /etc/{{ apache_service }}/certs/keystore_client_{{ vitam_site_name }}.pem && sed -i 's/ PRIVATE KEY/ RSA PRIVATE KEY/g' /etc/{{ apache_service }}/certs/keystore_client_{{ vitam_site_name }}.pem"
+  shell: "openssl pkcs12 -nodes -in /etc/{{ apache_service }}/certs/keystore_client_{{ vitam_site_name }}.p12  {{ '-provider legacy' if ansible_distribution == 'AlmaLinux' else '' }} -passin pass:'{{ keystores.client_external.reverse }}' -out /etc/{{ apache_service }}/certs/keystore_client_{{ vitam_site_name }}.pem && sed -i 's/ PRIVATE KEY/ RSA PRIVATE KEY/g' /etc/{{ apache_service }}/certs/keystore_client_{{ vitam_site_name }}.pem"
 
 - name: set certificate attributes
   file:

@@ -11,6 +11,23 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
+  when: ansible_distribution == "CentOS" or ansible_distribution == "Debian"
+
+### WIP: Temporary solution
+## mongodb-org-tools is currently incompatible with AlmaLinux.
+## compat-openssl10 is mandatory to allow usage of SSLv1.0 with mongodb.
+- name: Install common mongodb packages
+  package:
+    name:
+      - compat-openssl10
+      - mongodb-org-shell
+      - mongodb-mongosh
+    state: present
+  register: result
+  retries: "{{ packages_install_retries_number }}"
+  until: result is succeeded
+  delay: "{{ packages_install_retries_delay }}"
+  when: ansible_distribution == "AlmaLinux"
 
 ### System tuning best practices ####
 
