@@ -78,4 +78,4 @@
     day: "{{ restic.cron.day | default('*') }}"
     month: "{{ restic.cron.month | default('*') }}"
     weekday: "{{ restic.cron.weekday | default('*') }}"
-    job: /vitam/script/restic/restic_backup
+    job: "/vitam/script/restic/restic_backup > /dev/null"
