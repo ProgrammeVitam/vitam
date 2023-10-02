@@ -71,13 +71,13 @@
         "SignedDocument": {
           "type": "keyword"
         },
-        "NeedSignature": {
+        "DeclaredSignature": {
           "type": "boolean"
         },
-        "NeedTimestamp": {
+        "DeclaredTimestamp": {
           "type": "boolean"
         },
-        "NeedAdditionalProof": {
+        "DeclaredAdditionalProof": {
           "type": "boolean"
         }
       }

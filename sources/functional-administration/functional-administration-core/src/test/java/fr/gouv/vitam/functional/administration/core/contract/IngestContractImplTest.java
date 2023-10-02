@@ -1291,15 +1291,16 @@ public class IngestContractImplTest {
     public void testIsInvalidSignaturePolicy_PassingCase() {
         SignaturePolicy validPolicy = new SignaturePolicy();
         validPolicy.setSignedDocument(SignaturePolicy.SignedDocumentPolicyEnum.FORBIDDEN);
-        validPolicy.setNeedSignature(true);
-        validPolicy.setNeedTimestamp(true);
-        validPolicy.setNeedAdditionalProof(true);
+        validPolicy.setDeclaredSignature(true);
+        validPolicy.setDeclaredTimestamp(true);
+        validPolicy.setDeclaredAdditionalProof(true);
 
         assertTrue(validationService.isInvalidSignaturePolicy(validPolicy));
 
         validPolicy.setSignedDocument(null);
         assertTrue(validationService.isInvalidSignaturePolicy(validPolicy));
     }
+
     @Test
     @RunWithCustomExecutor
     public void testIsInvalidSignaturePolicy_FailingCase() {
@@ -1308,9 +1309,9 @@ public class IngestContractImplTest {
         assertFalse(validationService.isInvalidSignaturePolicy(validPolicy));
 
         validPolicy.setSignedDocument(SignaturePolicy.SignedDocumentPolicyEnum.ALLOWED);
-        validPolicy.setNeedSignature(true);
-        validPolicy.setNeedTimestamp(true);
-        validPolicy.setNeedAdditionalProof(true);
+        validPolicy.setDeclaredSignature(true);
+        validPolicy.setDeclaredTimestamp(true);
+        validPolicy.setDeclaredAdditionalProof(true);
         assertFalse(validationService.isInvalidSignaturePolicy(validPolicy));
     }
 }
