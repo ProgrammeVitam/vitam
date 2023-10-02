@@ -127,17 +127,17 @@
           "type": "string",
           "enum": [
             "ALLOWED",
-            "ONLY",
+            "MANDATORY",
             "FORBIDDEN"
           ]
         },
-        "NeedSignature": {
+        "DeclaredSignature": {
           "type": "boolean"
         },
-        "NeedTimestamp": {
+        "DeclaredTimestamp": {
           "type": "boolean"
         },
-        "NeedAdditionalProof": {
+        "DeclaredAdditionalProof": {
           "type": "boolean"
         }
       }

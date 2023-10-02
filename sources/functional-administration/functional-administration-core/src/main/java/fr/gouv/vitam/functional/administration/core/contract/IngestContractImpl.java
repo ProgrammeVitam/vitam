@@ -265,7 +265,7 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
                         error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                             GenericRejectionCause
                                 .rejectInconsistentContract(acm.getName(),
-                                    "The fields needSignature, needTimestamp, or needAdditionalProof are not authorized due to the signature policy")
+                                    "The fields declaredSignature, declaredTimestamp, or declaredAdditionalProof are not authorized due to the signature policy")
                                 .getReason()).setMessage(UPDATE_CONTRACT_BAD_REQUEST));
                         continue;
                     }
@@ -589,12 +589,13 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
             final JsonNode signaturePolicyNode = queryDsl.findValue(IngestContractModel.TAG_SIGNATURE_POLICY);
             if (signaturePolicyNode != null) {
                 ObjectMapper objectMapper = new ObjectMapper();
-                SignaturePolicy signaturePolicy = JsonHandler.getFromJsonNode(signaturePolicyNode, SignaturePolicy.class);
+                SignaturePolicy signaturePolicy =
+                    JsonHandler.getFromJsonNode(signaturePolicyNode, SignaturePolicy.class);
                 if (validationService.isInvalidSignaturePolicy(signaturePolicy)) {
                     error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
                         GenericRejectionCause
                             .rejectInconsistentContract(ingestContractModel.getName(),
-                                "The fields needSignature, needTimestamp, or needAdditionalProof are not authorized due to the signature policy")
+                                "The fields declaredSignature, declaredTimestamp, or declaredAdditionalProof are not authorized due to the signature policy")
                             .getReason()).setMessage(UPDATE_CONTRACT_BAD_REQUEST));
                 }
                 validationService.validSignatureObject(signaturePolicy);
@@ -773,18 +774,24 @@ public class IngestContractImpl implements ContractService<IngestContractModel> 
         protected boolean isInvalidSignaturePolicy(SignaturePolicy signaturePolicy) {
             return signaturePolicy.getSignedDocument() == null ||
                 (signaturePolicy.getSignedDocument() == SignaturePolicy.SignedDocumentPolicyEnum.FORBIDDEN &&
-                (signaturePolicy.isNeedSignature() != null || signaturePolicy.isNeedTimestamp() != null ||
-                    signaturePolicy.isNeedAdditionalProof() != null));
+                    (signaturePolicy.isDeclaredSignature() != null || signaturePolicy.isDeclaredTimestamp() != null ||
+                        signaturePolicy.isDeclaredAdditionalProof() != null));
         }
 
         protected void validSignatureObject(SignaturePolicy signaturePolicy) {
-            if (!signaturePolicy.getSignedDocument().equals(SignaturePolicy.SignedDocumentPolicyEnum.FORBIDDEN)) {
-                signaturePolicy.setNeedSignature(
-                    signaturePolicy.isNeedSignature() != null ? signaturePolicy.isNeedSignature() : false);
-                signaturePolicy.setNeedAdditionalProof(
-                    signaturePolicy.isNeedAdditionalProof() != null ? signaturePolicy.isNeedAdditionalProof() : false);
-                signaturePolicy.setNeedTimestamp(
-                    signaturePolicy.isNeedTimestamp() != null ? signaturePolicy.isNeedTimestamp() : false);
+            if (signaturePolicy.getSignedDocument().equals(SignaturePolicy.SignedDocumentPolicyEnum.FORBIDDEN)) {
+                signaturePolicy.setDeclaredSignature(null);
+                signaturePolicy.setDeclaredTimestamp(null);
+                signaturePolicy.setDeclaredAdditionalProof(null);
+            } else {
+                signaturePolicy.setDeclaredSignature(
+                    signaturePolicy.isDeclaredSignature() != null ? signaturePolicy.isDeclaredSignature() : false);
+                signaturePolicy.setDeclaredAdditionalProof(
+                    signaturePolicy.isDeclaredAdditionalProof() != null ?
+                        signaturePolicy.isDeclaredAdditionalProof() :
+                        false);
+                signaturePolicy.setDeclaredTimestamp(
+                    signaturePolicy.isDeclaredTimestamp() != null ? signaturePolicy.isDeclaredTimestamp() : false);
             }
         }
 

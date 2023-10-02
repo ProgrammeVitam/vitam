@@ -150,19 +150,19 @@
     "indexed": true
   },
   {
-    "path": "SignaturePolicy.NeedSignature",
+    "path": "SignaturePolicy.DeclaredSignature",
     "type": "bool",
     "cardinality": "one",
     "indexed": true
   },
   {
-    "path": "SignaturePolicy.NeedTimestamp",
+    "path": "SignaturePolicy.DeclaredTimestamp",
     "type": "bool",
     "cardinality": "one",
     "indexed": true
   },
   {
-    "path": "SignaturePolicy.NeedAdditionalProof",
+    "path": "SignaturePolicy.DeclaredAdditionalProof",
     "type": "bool",
     "cardinality": "one",
     "indexed": true

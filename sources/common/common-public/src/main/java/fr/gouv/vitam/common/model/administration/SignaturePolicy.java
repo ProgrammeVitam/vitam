@@ -32,14 +32,14 @@ public class SignaturePolicy {
     @JsonProperty("SignedDocument")
     private SignedDocumentPolicyEnum signedDocument;
 
-    @JsonProperty("NeedSignature")
-    private Boolean needSignature;
+    @JsonProperty("DeclaredSignature")
+    private Boolean declaredSignature;
 
-    @JsonProperty("NeedTimestamp")
-    private Boolean needTimestamp;
+    @JsonProperty("DeclaredTimestamp")
+    private Boolean declaredTimestamp;
 
-    @JsonProperty("NeedAdditionalProof")
-    private Boolean needAdditionalProof;
+    @JsonProperty("DeclaredAdditionalProof")
+    private Boolean declaredAdditionalProof;
 
     public SignedDocumentPolicyEnum getSignedDocument() {
         return signedDocument;
@@ -49,34 +49,34 @@ public class SignaturePolicy {
         this.signedDocument = signedDocument;
     }
 
-    public Boolean isNeedSignature() {
-        return needSignature;
+    public Boolean isDeclaredSignature() {
+        return declaredSignature;
     }
 
-    public void setNeedSignature(Boolean needSignature) {
-        this.needSignature = needSignature;
+    public void setDeclaredSignature(Boolean declaredSignature) {
+        this.declaredSignature = declaredSignature;
     }
 
-    public Boolean isNeedTimestamp() {
-        return needTimestamp;
+    public Boolean isDeclaredTimestamp() {
+        return declaredTimestamp;
     }
 
-    public void setNeedTimestamp(Boolean needTimestamp) {
-        this.needTimestamp = needTimestamp;
+    public void setDeclaredTimestamp(Boolean declaredTimestamp) {
+        this.declaredTimestamp = declaredTimestamp;
 
     }
 
-    public Boolean isNeedAdditionalProof() {
-        return needAdditionalProof;
+    public Boolean isDeclaredAdditionalProof() {
+        return declaredAdditionalProof;
     }
 
-    public void setNeedAdditionalProof(Boolean needAdditionalProof) {
-        this.needAdditionalProof = needAdditionalProof;
+    public void setDeclaredAdditionalProof(Boolean declaredAdditionalProof) {
+        this.declaredAdditionalProof = declaredAdditionalProof;
     }
 
     public enum SignedDocumentPolicyEnum {
         ALLOWED,
-        ONLY,
+        MANDATORY,
         FORBIDDEN
     }
 }
