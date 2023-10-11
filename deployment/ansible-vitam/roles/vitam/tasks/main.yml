@@ -44,12 +44,6 @@
     - "vitam - restart service"
   when: force_vitam_version is not defined
 
-### WIP: Temporary solution. Problem with installation of metadata-collect on AlmaLinux; must be fixed later.
-- name: Install {{ package_name }} package when Almalinux
-  shell:
-    cmd: yum install -y vitam-metadata-collect
-  when: ansible_distribution == "AlmaLinux" and package_name == "vitam-metadata-collect"
-
 # Force a specific version to install (even downgrade)
 - block:
 
