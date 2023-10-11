@@ -16,13 +16,11 @@ RUN apt-get clean && apt-get update && apt-get install -y apt-utils procps init
 
 # Make sure the package repository and packages are up to date.
 
-COPY deb/buster-backports.list /etc/apt/sources.list.d/
-
 RUN apt-get clean && apt-get update && apt-get upgrade -y
 
 RUN apt-get remove -y openjdk*
 
-RUN apt-get update && apt-get install -t buster-backports -y openjdk-11-jdk-headless
+RUN apt-get update && apt-get install -y openjdk-11-jdk-headless
 
 #RUN apt-get install -y systemd-sysv
 
@@ -72,12 +70,12 @@ ENV PATH ${M2_HOME}/bin:${JAVA_HOME}/bin:${PATH}
 ################################  Install ansible  ###############################
 # for sudo in automatic deployment ; note : ansible needs epel repo
 
-RUN apt-get install -y -t buster-backports golang
+RUN apt-get install -y golang
 
 RUN apt-get install -y node-gyp  libnode-dev && \
     apt-get install -y nodejs
 # symbolic link is not necessary anymore
-# RUN apt-get -t buster-backports -y install ansible
+# RUN apt-get -y install ansible
 
 RUN apt-get clean && apt-get update && apt-get install -y git vim
 

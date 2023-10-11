@@ -90,7 +90,7 @@ if [ -z "$(podman ps -a | grep -w vitam-${VITAM_TARGET}-${CONTAINER_NAME})" ]; t
   sudo mkdir -p ${VOLUME_DATA_TMP}
   sudo mkdir -p ${VOLUME_COLLECT_TMP}
 
-  podman run -d --privileged -v "${VITAMDEV_GIT_REPO}:/code" -v ${VOLUME_INGEST}:${VOLUME_INGEST} -v ${VOLUME_WORKER}:${VOLUME_WORKER} -v ${VOLUME_WORKER_TMP}:${VOLUME_WORKER_TMP} -v  ${VOLUME_COLLECT_TMP}:${VOLUME_COLLECT_TMP} -v ${VOLUME_DATA_TMP}:${VOLUME_DATA_TMP} -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.npmrc:/root/.npmrc"  -v "${VITAMDEV_HOME}/.m2:/root/.m2" ${MAPPING_PORTS}  --security-opt seccomp=unconfined --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 --dns=8.8.8.8 ${VITAMDEV_IMAGE}
+  podman run -d -v "${VITAMDEV_GIT_REPO}:/code" -v ${VOLUME_INGEST}:${VOLUME_INGEST} -v ${VOLUME_WORKER}:${VOLUME_WORKER} -v ${VOLUME_WORKER_TMP}:${VOLUME_WORKER_TMP} -v  ${VOLUME_COLLECT_TMP}:${VOLUME_COLLECT_TMP} -v ${VOLUME_DATA_TMP}:${VOLUME_DATA_TMP} -v /sys/fs/cgroup:/sys/fs/cgroup:ro -v "${VITAMDEV_HOME}/.npmrc:/root/.npmrc"  -v "${VITAMDEV_HOME}/.m2:/root/.m2" ${MAPPING_PORTS} --name=${VITAMDEV_CONTAINER} --net=bridge --dns=127.0.0.1 --dns=10.100.211.222 --dns=8.8.8.8 ${VITAMDEV_IMAGE}
 
 	if (( ${?} != 0 )); then
 		echo "Container refused to start please correct and retry"
