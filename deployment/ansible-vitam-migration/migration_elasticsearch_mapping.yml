@@ -1,0 +1,20 @@
+---
+# Confirm launching this playbook
+- hosts: localhost
+  any_errors_fatal: yes
+  gather_facts: no
+  vars_prompt:
+    name: "confirmation"
+    prompt: "This playbook will migrate your elasticsearch-data index mapping configuration after migrating.\n\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
+    default: "NO"
+    private: no
+  tasks:
+    - name: Check Confirmation
+      fail: msg="Playbook run confirmation failed"
+      when: confirmation|upper != "YES"
+
+- hosts: hosts_elasticsearch_data
+  any_errors_fatal: true
+  run_once: true
+  roles:
+    - migrate_elasticsearch_mapping

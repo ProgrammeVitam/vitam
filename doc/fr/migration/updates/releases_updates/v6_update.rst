@@ -190,7 +190,7 @@ Application de la montée de version
 
 .. caution:: L'application de la montée de version s'effectue d'abord sur les sites secondaires puis sur le site primaire.
 
-.. caution:: Sous Debian, si vous appliquez la montée de version depuis la V6.RC, vous devrez rajouter le paramètre ``-e force_vitam_version=6.0`` aux commandes suivantes. Sinon les packages vitam ne seront pas correctement mis à jour. En effet, Debian considère que 6.rc.X > 6.X.
+.. caution:: Sous Debian, si vous appliquez la montée de version depuis la V6.RC, vous devrez rajouter le paramètre ``-e force_vitam_version=6.x`` (exemple: ``-e force_vitam_version=6.2``) aux commandes suivantes. Sinon les packages vitam ne seront pas correctement mis à jour. En effet, Debian considère que 6.rc.X > 6.X.
 
 Lancement du master playbook vitam
 ----------------------------------
@@ -212,3 +212,57 @@ Lancement du master playbook extra
 
 Procédures à exécuter APRÈS la montée de version
 ================================================
+
+Arrêt des jobs Vitam et des accès externes à Vitam
+--------------------------------------------------
+
+.. caution:: Cette opération doit être effectuée IMMÉDIATEMENT APRÈS la montée de version vers la V6
+
+Les jobs Vitam et les services externals de Vitam doivent être arrêtés sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_external.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_scheduling.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/stop_vitam_scheduler.yml --ask-vault-pass
+
+..
+
+Réindexation des référentiels sur elasticsearch
+-----------------------------------------------
+
+Cette migration de données consiste à mettre à jour le modèle d'indexation des référentiels sur elasticsearch-data.
+
+Elle est réalisée en exécutant la procédure suivante sur **tous les sites** (primaire et secondaire(s)) :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --ask-vault-pass --tags "securityprofile, context, ontology, ingestcontract, agencies, accessionregisterdetail, archiveunitprofile, accessionregistersummary, accesscontract, fileformat, filerules, profile, griffin, preservationscenario, managementcontract"
+
+..
+
+Migration des mappings elasticsearch pour les métadonnées
+---------------------------------------------------------
+
+Cette migration de données consiste à mettre à jour le modèle d'indexation des métadonnées sur elasticsearch-data.
+
+Elle est réalisée en exécutant la procédure suivante sur **tous les sites** (primaire et secondaire(s)) :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_elasticsearch_mapping.yml --ask-vault-pass
+
+..
+
+Redémarrage des Jobs Vitam et des accès externes à Vitam
+--------------------------------------------------------
+
+La montée de version est maintenant terminée, vous pouvez réactiver les services externals ainsi que les jobs Vitam sur **tous les sites** :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_external.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_scheduler.yml --ask-vault-pass
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_scheduling.yml --ask-vault-pass
+
+..

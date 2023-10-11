@@ -199,7 +199,7 @@ Application de la montée de version
 
 .. caution:: L'application de la montée de version s'effectue d'abord sur les sites secondaires puis sur le site primaire.
 
-.. caution:: Sous Debian, si vous appliquez la montée de version depuis la V5.RC, vous devrez rajouter le paramètre ``-e force_vitam_version=5.1`` aux commandes suivantes. Sinon les packages vitam ne seront pas correctement mis à jour. En effet, Debian considère que 5.rc.X > 5.X.
+.. caution:: Sous Debian, si vous appliquez la montée de version depuis la V5.RC, vous devrez rajouter le paramètre ``-e force_vitam_version=5.x`` (exemple: ``-e force_vitam_version=5.4``) aux commandes suivantes. Sinon les packages vitam ne seront pas correctement mis à jour. En effet, Debian considère que 5.rc.X > 5.X.
 
 Lancement du master playbook vitam
 ----------------------------------
