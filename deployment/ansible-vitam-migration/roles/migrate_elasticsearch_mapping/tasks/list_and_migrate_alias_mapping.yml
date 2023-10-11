@@ -1,0 +1,16 @@
+---
+
+- name: List elasticsearch-data {{ alias_prefix }} indexes
+  uri:
+    url: "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/_cat/aliases/{{ alias_prefix}}_*"
+    method: GET
+    return_content: true
+    headers:
+      Accept: application/json
+    status_code: 200
+  register: es_aliases
+
+- include_tasks: migrate_alias_mapping.yml
+  loop: "{{ es_aliases.json | map(attribute='alias') | list }}"
+  loop_control:
+    loop_var: alias

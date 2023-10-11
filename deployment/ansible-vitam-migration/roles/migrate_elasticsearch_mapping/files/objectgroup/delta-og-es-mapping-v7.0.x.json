@@ -1,0 +1,29 @@
+{
+  "properties": {
+    "_qualifiers": {
+      "properties": {
+        "versions": {
+          "type": "nested",
+          "properties": {
+            "PersistentIdentifier": {
+              "properties": {
+                "PersistentIdentifierType": {
+                  "type": "keyword"
+                },
+                "PersistentIdentifierOrigin": {
+                  "type": "keyword"
+                },
+                "PersistentIdentifierReference": {
+                  "type": "keyword"
+                },
+                "PersistentIdentifierContent": {
+                  "type": "keyword"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

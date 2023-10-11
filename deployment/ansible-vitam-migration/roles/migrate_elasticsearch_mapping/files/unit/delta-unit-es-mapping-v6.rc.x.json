@@ -1,0 +1,23 @@
+{
+  "properties": {
+    "OriginatingSystemIdReplyTo": {
+      "type": "text"
+    },
+    "DateLitteral": {
+      "type": "text"
+    },
+    "LinkingAgentIdentifier": {
+      "properties": {
+        "LinkingAgentIdentifierType": {
+          "type": "keyword"
+        },
+        "LinkingAgentIdentifierValue": {
+          "type": "text"
+        },
+        "LinkingAgentRole": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}
