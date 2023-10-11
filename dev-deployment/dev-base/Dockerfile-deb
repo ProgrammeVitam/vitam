@@ -16,13 +16,11 @@ RUN apt-get clean && apt-get update && apt-get install -y apt-utils procps init
 
 # Make sure the package repository and packages are up to date.
 
-COPY deb/buster-backports.list /etc/apt/sources.list.d
-
 RUN apt-get clean && apt-get update && apt-get upgrade -y
 
 RUN apt-get remove -y openjdk*
 
-RUN apt-get update && apt-get install -t buster-backports -y openjdk-11-jdk-headless
+RUN apt-get update && apt-get install -y openjdk-11-jdk-headless
 
 #RUN apt-get install -y systemd-sysv
 
@@ -81,12 +79,12 @@ RUN apt-get update && apt-get install -y sudo net-tools \
 # Editor & unzip
 RUN apt-get install -y vim unzip wget
 
-RUN apt-get install -y -t buster-backports golang
+RUN apt-get install -y golang
 
 RUN apt-get install -y node-gyp  libnode-dev && \
     apt-get install -y nodejs 
 # symbolic link is not necessary anymore
-# RUN apt-get -t buster-backports -y install ansible
+# RUN apt-get -y install ansible
 
 RUN apt-get clean && apt-get update && apt-get install -y git vim
 
@@ -124,7 +122,7 @@ RUN chmod 664 /etc/sudoers.d/sudo-nopwd
 ENV TERM xterm
 
 # If we don't install openjdk a 2nd time, sometimes it doesn't work, why ???
-RUN apt-get install -t buster-backports -y openjdk-11-jdk-headless
+RUN apt-get install -y openjdk-11-jdk-headless
 
 ##################################  CONTAINER SETTINGS  #################################
 
