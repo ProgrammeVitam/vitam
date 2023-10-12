@@ -12,6 +12,7 @@
     - name: Check Confirmation
       fail: msg="Playbook run confirmation failed"
       when: confirmation|upper != "YES"
+      tags: always
 
 - hosts: hosts_storage_engine
   any_errors_fatal: true
