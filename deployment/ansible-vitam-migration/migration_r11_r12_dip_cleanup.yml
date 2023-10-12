@@ -12,6 +12,7 @@
     - name: Check Confirmation
       fail: msg="Playbook run confirmation failed"
       when: confirmation|upper != "YES"
+      tags: always
 
 - import_playbook: ../ansible-vitam-exploitation/stop_external.yml
 
