@@ -98,7 +98,7 @@ public enum MetadataCollections {
      * @return the name of the collection
      */
     public String getName() {
-        return vitamCollection.getName();
+        return this.prefix + vitamCollection.getName();
     }
 
     public String getPrefix() {
