@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 if [ -d /vitam/data/offer ]; then
   rm -rf /vitam/data/offer/*_backup
