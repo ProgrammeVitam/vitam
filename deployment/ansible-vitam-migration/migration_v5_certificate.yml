@@ -12,6 +12,7 @@
     - name: Check Confirmation
       fail: msg="Playbook run confirmation failed"
       when: confirmation|upper != "YES"
+      tags: always
 
 - hosts: hosts_mongos_data
   roles:

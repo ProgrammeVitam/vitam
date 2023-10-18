@@ -1,0 +1,16 @@
+---
+
+- name: Update elasticsearch-data {{ alias }} mapping
+  uri:
+      url: "http://{{ elasticsearch.data.host }}:{{ elasticsearch.data.port_http }}/{{alias}}/_mapping"
+      method: PUT
+      body_format: json
+      body: "{{ lookup('file','{{ mapping_file }}') }}"
+      return_content: true
+      headers:
+          Accept: application/json
+      status_code: 200
+  with_fileglob:
+    - "{{ role_path }}/files/{{ mapping_folder }}/*.json"
+  loop_control:
+    loop_var: "mapping_file"

@@ -272,6 +272,32 @@ La procédure est à réaliser sur tous les **sites secondaires** de Vitam APRÈ
 
   ..
 
+Réindexation des référentiels sur elasticsearch
+-----------------------------------------------
+
+Cette migration de données consiste à mettre à jour le modèle d'indexation des référentiels sur elasticsearch-data.
+
+Elle est réalisée en exécutant la procédure suivante sur **tous les sites** (primaire et secondaire(s)) :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/reindex_es_data.yml --ask-vault-pass --tags "securityprofile, context, ontology, ingestcontract, agencies, accessionregisterdetail, archiveunitprofile, accessionregistersummary, accesscontract, fileformat, filerules, profile, griffin, preservationscenario, managementcontract"
+
+..
+
+Migration des mappings elasticsearch pour les métadonnées
+---------------------------------------------------------
+
+Cette migration de données consiste à mettre à jour le modèle d'indexation des métadonnées sur elasticsearch-data.
+
+Elle est réalisée en exécutant la procédure suivante sur **tous les sites** (primaire et secondaire(s)) :
+
+.. code-block:: bash
+
+    ansible-playbook -i environments/<inventaire> ansible-vitam-migration/migration_elasticsearch_mapping.yml --ask-vault-pass
+
+..
+
 Redémarrage des Jobs Vitam et des accès externes à Vitam
 --------------------------------------------------------
 
@@ -283,4 +309,4 @@ La montée de version est maintenant terminée, vous pouvez réactiver les servi
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_scheduler.yml --ask-vault-pass
     ansible-playbook -i environments/<inventaire> ansible-vitam-exploitation/start_vitam_scheduling.yml --ask-vault-pass
 
-  ..
+..

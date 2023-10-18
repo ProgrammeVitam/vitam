@@ -5,7 +5,7 @@
   gather_facts: no
   vars_prompt:
     name: "confirmation"
-    prompt: "This playbook will delete old collect data and binaries.\n\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
+    prompt: "This playbook will migrate your elasticsearch-data index mapping configuration after migrating.\n\nAre you sure you want to run this playbook ?\nAnswer with 'YES'"
     default: "NO"
     private: no
   tasks:
@@ -14,11 +14,8 @@
       when: confirmation|upper != "YES"
       tags: always
 
-- hosts: hosts_collect
+- hosts: hosts_elasticsearch_data
+  any_errors_fatal: true
+  run_once: true
   roles:
-    - purge_collect
-
-- hosts: hosts_mongos_data
-  gather_facts: no
-  roles:
-    - update_collect_referential_data
+    - migrate_elasticsearch_mapping
