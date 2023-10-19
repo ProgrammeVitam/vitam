@@ -368,7 +368,7 @@ A titre informatif, le positionnement des variables ainsi que des dérivations d
 
 * ``deployment/environments/group_vars/all/advanced/jvm_opts.yml``, comme suit :
 
-  .. literalinclude:: ../../../../deployment/environments/group_vars/all/advanced/jvm_opts.yml
+  .. literalinclude:: ../../../../deployment/environments/group_vars/all/main/jvm_opts.yml
      :language: yaml
      :linenos:
 
