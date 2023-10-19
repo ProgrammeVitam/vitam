@@ -50,6 +50,7 @@ Mise à jour de l'architecture du module de collecte
 * Ne pas oublier les paramètres de configuration associés aux jvms de ces nouveaux composants dans le fichier ``environments/group_vars/all/main/jvm_opts.yml``
 
   .. code-block:: yaml
+
       collect_internal:
           jvm_opts:
               # memory: "-Xms512m -Xmx512m"

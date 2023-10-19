@@ -98,7 +98,7 @@ autres:
 	cp -r ${AUTRECONTENT}/* ${AUTREBUILD}/
 
 .PHONY: cookbooks
-autres:
+cookbooks:
 	@echo "Création du répertoire de sortie"
 	mkdir -p ${COOKBOOKBUILD}; \
 	cp -r ${COOKBOOKSCONTENT}/* ${COOKBOOKBUILD}/

@@ -70,19 +70,19 @@
 							<goal>exec</goal>
 						</goals>
 						<configuration>
-							<executable>/usr/bin/make</executable>							
+							<executable>/usr/bin/make</executable>
 							<arguments>
 								<argument>${basedir}/Makefile</argument>
 								<!-- Note : DON'T call the Mllakefile goal 'clean' here -->
 								<argument>symlinks</argument>
 								<argument>html</argument>
-								<argument>latexpdf</argument> 
+								<argument>latexpdf</argument>
 								<argument>raml</argument>
 								<argument>autres</argument>
 								<argument>cookbooks</argument>
 							</arguments>
 						</configuration>
-					</execution>			
+					</execution>
 				</executions>
 			</plugin>
 			<plugin>

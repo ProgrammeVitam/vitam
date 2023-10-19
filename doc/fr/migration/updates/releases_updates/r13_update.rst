@@ -151,7 +151,7 @@ ou, si ``vault_pass.txt`` n'a pas été renseigné :
 
 Le template ``upgrade_contracts.js`` contient : 
 
-.. literalinclude::  ../../../../../deployment/ansible-vitam-exploitation/roles/upgrade_R10_contracts/templates/upgrade_contracts.js.j2
+.. literalinclude::  ../../../../../deployment/ansible-vitam-migration/roles/upgrade_R10_contracts/templates/upgrade_contracts.js.j2
    :language: javascript
 
 Nettoyage des DIPs depuis les offres
