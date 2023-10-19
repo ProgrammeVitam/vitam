@@ -1,6 +1,37 @@
 ---
 
+- name: Set facts for bootstrap repositories
+  set_fact:
+    vitam_gpgkey_file: "{{ '/etc/apt/keyrings' if ansible_os_family == 'Debian' else '/etc/pki/rpm-gpg' }}/GPG-KEY-vitam"
+    vitam_gpgcheck_enabled: "{{ vitam_repositories | selectattr('gpgcheck', 'defined') | selectattr('gpgcheck', '==', true) | selectattr('gpgkey', 'undefined') | list | length > 0 | bool }}"
+
+- name: Ensure /etc/apt/keyrings directory exists for Debian
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  when:
+    - ansible_os_family == "Debian"
+    - vitam_gpgcheck_enabled
+
+- name: Copy Vitam public GPG key
+  copy:
+    src: files/GPG-KEY-vitam
+    dest: "{{ vitam_gpgkey_file }}"
+    owner: root
+    group: root
+    mode: 0644
+  when: vitam_gpgcheck_enabled
+
 - block:
+
+  - name: Import GPG key for Vitam repositories for CentOS
+    rpm_key:
+      state: present
+      key: "{{ vitam_gpgkey_file }}"
+    when: vitam_gpgcheck_enabled
 
   - name: create VITAM repositories for CentOS
     template:
