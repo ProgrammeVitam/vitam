@@ -1,3 +1,3 @@
 {% for item in vitam_repositories %}
-deb {% if item.trusted %}{{ item.trusted }}{%endif %} {{ item.value }} {{ item.subtree }}
+deb [{% if item.gpgcheck | default(false) %}signed-by={{ item.gpgkey | default(vitam_gpgkey_file) }}{% else %}trusted=yes{% endif %}] {{ item.value }} {{ item.subtree | default('./') }}
 {% endfor %}
