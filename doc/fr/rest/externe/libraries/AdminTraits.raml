@@ -96,6 +96,12 @@ traits:
       201:
         description: Réponse si le versement ou la vérification de <<resourcePathName | !uppercamelcase>> est OK
 
+  AdminAccessContracts:
+      description: Admin AccessContracts models
+      body:
+        application/json:
+          description: Admin AccessContracts models au format JSON.
+          example: !include examples/accessContractsBody.json
   AdminProfileUpload:
     description: Response model for upload of <<resourcePathName | !uppercamelcase>>
     is: [ StandardTraits.StandardOptionalHeader, StandardTraits.AccessContractHeader,

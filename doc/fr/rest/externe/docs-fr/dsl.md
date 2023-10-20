@@ -29,7 +29,7 @@ LIMIT n ORDER BY field1 ASC   /* les Filtres */
 
 
 #### Requêtes de recherche pour un élément spécifique (GET BY ID)
-La requête DSL **GET BY ID** est la plus simple. Elle permet de renvoyer le contenu (ou un partie) d'un élément spécifique pour lequel l'identifiant est spécifié dans l'URL. Seule la section **$projection** peut être renseignée.
+La requête DSL **GET BY ID** est la plus simple. Elle permet de renvoyer le contenu (ou un partie) d'un élément spécifique pour lequel l'identifiant est spécifié dans l'URL. Seule la section **$projection** peut être renseignée (Attention : La projection $rules est dépreciée et son retrait est planifié pour une prochaine version).
 
 ```JSON
 {
@@ -60,7 +60,7 @@ Le DSL permet d'effectuer des requêtes arborescentes via la spécification de r
   - *$depth =n avec n >0* : cherche sur les unités enfants jusqu'à *n* niveau(x) de profondeur et ne cherche pas dans les unités de $roots elles-mêmes.
   **IMPORTANT :** Le paramètre **$depth** doit être spécifié lorsque des racines sont définies dans **$roots** (recherche arborescente). Le paramètre **$depth** ne doit pas être spécifié lorsque les racines ne sont pas spécifiées (recherche sur toutes les unités).
 
-Il est possible de spécifier sur la recherche des filtres de recherche via **$filter** et des projections **$projection**.
+Il est possible de spécifier sur la recherche des filtres de recherche via **$filter** et des projections **$projection** (La projection $rules est actuellement obsolète et est prévue pour être supprimée dans une prochaine version).
 
 Le DSL permet également d'ajouter des requêtes d'aggrégation sur le résultats total (hors application de **$filter** et **$projection**) de type **$facets**.
 
@@ -718,7 +718,7 @@ Le nombre de résultats ne doit être être trop important (**$limit** + **$offs
 ## Projections
 Par défaut, les requêtes de recherche DSL renvoient tous les champs des documents. Ce qui correspond à un `SELECT *` dans le language SQL.
 
-Cependant, il est fortement recommandé de limiter les champs à retourner en les spécifiant dans la section **$projection**.
+Cependant, il est fortement recommandé de limiter les champs à retourner en les spécifiant dans la section **$projection** (Il convient de noter que la projection $rules est obsolète et sera retirée dans une prochaine version. Elle a été remplacée par la nouvelle API GET /unitsWithInheritedRules).
 Ce qui correspond au `SELECT X, Y, Z` dans le langage SQL.
 
 ```json
