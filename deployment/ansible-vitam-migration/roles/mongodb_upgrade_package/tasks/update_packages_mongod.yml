@@ -48,8 +48,6 @@
       name:
         - "mongodb-org-server-{{ mongo_version }}"
         - "mongodb-org-shell-{{ mongo_version }}"
-        - "mongodb-org-tools-{{ mongo_version }}"
-        - "mongodb-org-database-tools-extra-{{ mongo_version }}"
       state: present
       update_cache: yes   # make sure cache is up to date for upgrade
     register: result
@@ -63,8 +61,6 @@
       name:
         - "mongodb-org-server={{ mongo_version }}"
         - "mongodb-org-shell={{ mongo_version }}"
-        - "mongodb-org-tools={{ mongo_version }}"
-        - "mongodb-org-database-tools-extra={{ mongo_version }}"
       state: present
       update_cache: yes   # make sure cache is up to date for upgrade
     register: result

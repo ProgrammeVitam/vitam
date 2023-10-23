@@ -8,7 +8,7 @@ Requirements
 
 The `restic` package is available under vitam-extra repository.
 
-The `mongodb-org-tools` package is mandatory to execute mongodump commands.
+The `mongodb-database-tools` package is mandatory to execute mongodump commands.
 
 Role Variables
 --------------

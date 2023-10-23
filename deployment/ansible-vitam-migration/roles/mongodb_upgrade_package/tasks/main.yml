@@ -1,9 +1,17 @@
 ---
 
-- name: Update mongosh package
+- name: Remove deprecated mongodb packages
+  package:
+    name:
+      - mongodb-org-tools
+      - mongodb-org-database-tools-extra
+    state: absent
+
+- name: Update common mongodb packages
   package:
     name:
       - mongodb-mongosh
+      - mongodb-database-tools
     state: latest
   register: result
   retries: "{{ packages_install_retries_number }}"
