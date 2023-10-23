@@ -124,9 +124,13 @@ public class IngestAttachementIT extends VitamRuleRunner {
 
 
     private static final String SIP_BASE_INIT = "integration-ingest-internal/base_init.zip";
+    private static final String SIP_UPDATE_INIT = "integration-ingest-internal/Photo-Objet-physique.zip";
+
     private static final String SIP_BASE_WITH_UNIT = "integration-ingest-internal/base_with_unit";
     private static final String SIP_BASE_WITH_GOT = "integration-ingest-internal/base_with_got";
     private static final String LINK_AU_TO_EXISTING_GOT = "integration-ingest-internal/LINK_AU_TO_EXISTING_GOT";
+
+    private static final String LINK_AU_TO_SIP_UPDATING = "integration-ingest-internal/LINK_AU_TO_SIP_UPDATING";
 
     @ClassRule public static VitamServerRunner runner =
         new VitamServerRunner(fr.gouv.vitam.ingest.internal.IngestInternalIT.class,
@@ -341,6 +345,40 @@ public class IngestAttachementIT extends VitamRuleRunner {
         assertThat(logbook.toPrettyString()).contains("LifeCycle Object already exists");
         stopProcess(firstOperationId);
         file.delete();
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void test_og_attachement_for_another_version() throws Exception {
+        prepareVitamSession(TENANT_ID, "aName", "Context_IT");
+
+        // make an ingest
+        String operationId = doIngest(TENANT_ID, SIP_UPDATE_INIT);
+        verifyOperation(operationId, WARNING);
+        verifyProcessState(operationId, TENANT_ID, COMPLETED);
+
+        // prepare 2nd zip to ingest
+        MongoIterable<Document> resultUnits = MetadataCollections.UNIT.getCollection()
+            .find(Filters.and(Filters.eq("_opi", operationId), Filters.exists("_og")));
+        Document unit = resultUnits.first();
+        assertNotNull(unit);
+        String idUnit = unit.getString("_id");
+        String idGot = unit.getString("_og");
+        assertThat(idGot).isNotNull();
+        assertThat(idUnit).isNotNull();
+        replaceStringInFile(LINK_AU_TO_SIP_UPDATING + "/manifest.xml",
+            "(?<=<SystemId>).*?(?=</SystemId>)", idUnit);
+
+        InputStream streamSip = createZipFile(LINK_AU_TO_SIP_UPDATING);
+
+        String ingestOperationGuid = doIngest(TENANT_ID, streamSip);
+        verifyOperation(ingestOperationGuid, WARNING);
+
+        JsonNode lfc = VitamTestHelper.getUnitLFC(idUnit);
+
+        JsonNode lfCfromOffer = VitamTestHelper.getUnitLFCfromOffer(idUnit);
+
+        assertEquals(lfc, lfCfromOffer);
     }
 
     private String ingest(File file, boolean full) throws Exception {

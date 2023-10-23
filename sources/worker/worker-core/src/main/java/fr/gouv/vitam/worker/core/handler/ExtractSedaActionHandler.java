@@ -78,6 +78,7 @@ import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.administration.ContractsDetailsModel;
+import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.administration.IngestContractCheckState;
 import fr.gouv.vitam.common.model.administration.IngestContractModel;
 import fr.gouv.vitam.common.model.administration.ManagementContractModel;
@@ -203,7 +204,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import static fr.gouv.vitam.common.SedaConstants.TAG_ARCHIVE_TRANSFER;
 import static fr.gouv.vitam.common.database.parser.query.QueryParserHelper.ne;
@@ -224,6 +224,11 @@ import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outco
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcomeDetail;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.outcomeDetailMessage;
 import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.parentEventIdentifier;
+import static java.util.Objects.isNull;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 /**
  * Handler class used to extract metaData. </br>
@@ -231,38 +236,8 @@ import static fr.gouv.vitam.logbook.common.parameters.LogbookParameterName.paren
  */
 public class ExtractSedaActionHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractSedaActionHandler.class);
-    private static final TypeReference<List<LogbookEvent>> LIST_TYPE_REFERENCE = new TypeReference<>() {
-    };
-    private static final PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
-
-    // OUT RANK
-    private static final int GRAPH_WITH_LONGEST_PATH_IO_RANK = 0;
-    private static final int DO_ID_TO_OG_ID_IO_RANK = 1;
-    private static final int DO_ID_TO_GUID_IO_RANK = 2;
-    private static final int OG_ID_TO_GUID_IO_RANK = 3;
     public static final int OG_ID_TO_UNID_ID_IO_RANK = 4;
-    private static final int BDO_ID_TO_VERSION_DO_IO_RANK = 5;
-    private static final int UNIT_ID_TO_GUID_IO_RANK = 6;
-    private static final int GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK = 7;
     public static final int OG_ID_TO_GUID_IO_MEMORY_RANK = 8;
-    private static final int EXISTING_GOT_RANK = 9;
-    private static final int GUID_TO_UNIT_ID_IO_RANK = 10;
-    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 15;
-    private static final int ONTOLOGY_IO_RANK = 11;
-    private static final int EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK = 12;
-    private static final int EXISTING_UNITS_GUID_FOR_ATTACHMENT_RANK = 13;
-    private static final int EXISTING_GOTS_GUID_FOR_ATTACHMENT_RANK = 14;
-
-    // IN RANK
-    private static final int UNIT_TYPE_INPUT_RANK = 1;
-    private static final int STORAGE_INFO_INPUT_RANK = 2;
-    private static final int CONTRACTS_INPUT_RANK = 3;
-
-    private static final String TRANSFORM_XSLT_PATH = "transform.xsl";
-
-    private static final String HANDLER_ID = "CHECK_MANIFEST";
-    private static final String SUBTASK_LOOP = "CHECK_MANIFEST_LOOP";
     public static final String SUBTASK_ERROR_PARSE_ATTACHMENT = "ERROR_PARSE_ATTACHMENT";
     public static final String SUBTASK_EMPTY_KEY_ATTACHMENT = "EMPTY_KEY_ATTACHMENT";
     public static final String SUBTASK_NULL_LINK_PARENT_ID_ATTACHMENT = "NULL_LINK_PARENT_ID_ATTACHMENT";
@@ -276,7 +251,32 @@ public class ExtractSedaActionHandler extends ActionHandler {
     public static final String SUBTASK_INVALID_GUID_ATTACHMENT = "INVALID_GUID_ATTACHMENT";
     public static final String SUBTASK_MODIFY_PARENT_EXISTING_UNIT_UNAUTHORIZED =
         "MODIFY_PARENT_EXISTING_UNIT_UNAUTHORIZED";
-
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ExtractSedaActionHandler.class);
+    private static final TypeReference<List<LogbookEvent>> LIST_TYPE_REFERENCE = new TypeReference<>() {
+    };
+    private static final PerformanceLogger PERFORMANCE_LOGGER = PerformanceLogger.getInstance();
+    // OUT RANK
+    private static final int GRAPH_WITH_LONGEST_PATH_IO_RANK = 0;
+    private static final int DO_ID_TO_OG_ID_IO_RANK = 1;
+    private static final int DO_ID_TO_GUID_IO_RANK = 2;
+    private static final int OG_ID_TO_GUID_IO_RANK = 3;
+    private static final int BDO_ID_TO_VERSION_DO_IO_RANK = 5;
+    private static final int UNIT_ID_TO_GUID_IO_RANK = 6;
+    private static final int GLOBAL_SEDA_PARAMETERS_FILE_IO_RANK = 7;
+    private static final int EXISTING_GOT_RANK = 9;
+    private static final int GUID_TO_UNIT_ID_IO_RANK = 10;
+    private static final int HANDLER_IO_OUT_PARAMETER_NUMBER = 15;
+    private static final int ONTOLOGY_IO_RANK = 11;
+    private static final int EXISTING_GOT_TO_NEW_GOT_GUID_FOR_ATTACHMENT_RANK = 12;
+    private static final int EXISTING_UNITS_GUID_FOR_ATTACHMENT_RANK = 13;
+    private static final int EXISTING_GOTS_GUID_FOR_ATTACHMENT_RANK = 14;
+    // IN RANK
+    private static final int UNIT_TYPE_INPUT_RANK = 1;
+    private static final int STORAGE_INFO_INPUT_RANK = 2;
+    private static final int CONTRACTS_INPUT_RANK = 3;
+    private static final String TRANSFORM_XSLT_PATH = "transform.xsl";
+    private static final String HANDLER_ID = "CHECK_MANIFEST";
+    private static final String SUBTASK_LOOP = "CHECK_MANIFEST_LOOP";
     private static final String SUBTASK_MALFORMED = "CHECK_MANIFEST_MALFORMED_DATA";
     private static final String AU_REFRENCES_MULTIPLE_GOT = "ARCHIVEUNIT_REFERENCES_MULTIPLE_OBJECTGROUP";
     private static final String EXISTING_OG_NOT_DECLARED = "EXISTING_OG_NOT_DECLARED";
@@ -331,7 +331,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         Arrays.asList(String.class, String.class, File.class, File.class);
 
     private final static String namespaceURI = UNIFIED_NAMESPACE;
-
+    private final static boolean asyncIO = true;
     private static JAXBContext jaxbContext;
 
     static {
@@ -347,7 +347,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private final AdminManagementClientFactory adminManagementClientFactory;
     private final TransformerFactory transformerFactory;
     private final SedaUtilsFactory sedaUtilsFactory;
-    private final static boolean asyncIO = true;
     private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
 
@@ -375,6 +374,47 @@ public class ExtractSedaActionHandler extends ActionHandler {
      */
     public static String getId() {
         return HANDLER_ID;
+    }
+
+    private static ObjectNode buildRightsStatementIdentifier(IngestContext ingestContext) {
+        ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
+        IngestContractModel ingestContract = ingestContext.getIngestContract();
+        if (ingestContract != null) {
+            LOGGER.debug("contract name  is: " + ingestContract.getIdentifier());
+            rightsStatementIdentifier.put(ARCHIVAl_AGREEMENT, ingestContract.getIdentifier());
+        }
+        final String archivalProfile = ingestContext.getArchivalProfile();
+        if (archivalProfile != null) {
+            LOGGER.debug("archivalProfile  is: " + archivalProfile);
+            rightsStatementIdentifier.put(ARCHIVAl_PROFIL, archivalProfile);
+        }
+        return rightsStatementIdentifier;
+    }
+
+    private static ObjectNode buildAgIdExt(IngestContext ingestContext) {
+        final ObjectNode agIdExt = JsonHandler.createObjectNode();
+
+        final String originatingAgency = ingestContext.getOriginatingAgency();
+        if (originatingAgency != null) {
+            LOGGER.debug("supplier service is: " + originatingAgency);
+            agIdExt.put(ORIGIN_ANGENCY_NAME, originatingAgency);
+        }
+        final String transferringAgency = ingestContext.getTransferringAgency();
+        if (transferringAgency != null) {
+            LOGGER.debug("Find a transfAgency: " + transferringAgency);
+            agIdExt.put(TRANSFER_AGENCY, transferringAgency);
+        }
+        final String archivalAgency = ingestContext.getArchivalAgency();
+        if (archivalAgency != null) {
+            LOGGER.debug("Find a archivalAgency: " + archivalAgency);
+            agIdExt.put(ARCHIVAL_AGENCY, archivalAgency);
+        }
+        final String submissionAgencyIdentifier = ingestContext.getSubmissionAgencyIdentifier();
+        if (submissionAgencyIdentifier != null) {
+            LOGGER.debug("Find a submissionAgencyIdentifier: " + submissionAgencyIdentifier);
+            agIdExt.put(ORIGIN_ANGENCY_SUBMISSION, submissionAgencyIdentifier);
+        }
+        return agIdExt;
     }
 
     @Override
@@ -547,8 +587,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             updateDetailItemStatus(globalCompositeItemStatus, e.getMessage(), SUBTASK_ATTACHMENT_REQUIRED);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingObjectGroupLifeCycleException e) {
-            updateDetailItemStatus(globalCompositeItemStatus,
-                e.getMessage(), null);
+            updateDetailItemStatus(globalCompositeItemStatus, e.getMessage(), null);
             globalCompositeItemStatus.increment(StatusCode.KO);
         } catch (final ProcessingObjectGroupLinkingException e) {
             updateDetailItemStatus(globalCompositeItemStatus,
@@ -583,47 +622,6 @@ public class ExtractSedaActionHandler extends ActionHandler {
         ingestContext.setIngestContract(contracts.getIngestContractModel());
         ingestContext.setManagementContractModel(contracts.getManagementContractModel());
         return ingestContext;
-    }
-
-    private static ObjectNode buildRightsStatementIdentifier(IngestContext ingestContext) {
-        ObjectNode rightsStatementIdentifier = JsonHandler.createObjectNode();
-        IngestContractModel ingestContract = ingestContext.getIngestContract();
-        if (ingestContract != null) {
-            LOGGER.debug("contract name  is: " + ingestContract.getIdentifier());
-            rightsStatementIdentifier.put(ARCHIVAl_AGREEMENT, ingestContract.getIdentifier());
-        }
-        final String archivalProfile = ingestContext.getArchivalProfile();
-        if (archivalProfile != null) {
-            LOGGER.debug("archivalProfile  is: " + archivalProfile);
-            rightsStatementIdentifier.put(ARCHIVAl_PROFIL, archivalProfile);
-        }
-        return rightsStatementIdentifier;
-    }
-
-    private static ObjectNode buildAgIdExt(IngestContext ingestContext) {
-        final ObjectNode agIdExt = JsonHandler.createObjectNode();
-
-        final String originatingAgency = ingestContext.getOriginatingAgency();
-        if (originatingAgency != null) {
-            LOGGER.debug("supplier service is: " + originatingAgency);
-            agIdExt.put(ORIGIN_ANGENCY_NAME, originatingAgency);
-        }
-        final String transferringAgency = ingestContext.getTransferringAgency();
-        if (transferringAgency != null) {
-            LOGGER.debug("Find a transfAgency: " + transferringAgency);
-            agIdExt.put(TRANSFER_AGENCY, transferringAgency);
-        }
-        final String archivalAgency = ingestContext.getArchivalAgency();
-        if (archivalAgency != null) {
-            LOGGER.debug("Find a archivalAgency: " + archivalAgency);
-            agIdExt.put(ARCHIVAL_AGENCY, archivalAgency);
-        }
-        final String submissionAgencyIdentifier = ingestContext.getSubmissionAgencyIdentifier();
-        if (submissionAgencyIdentifier != null) {
-            LOGGER.debug("Find a submissionAgencyIdentifier: " + submissionAgencyIdentifier);
-            agIdExt.put(ORIGIN_ANGENCY_SUBMISSION, submissionAgencyIdentifier);
-        }
-        return agIdExt;
     }
 
     private void updateItemStatusForManifestReferenceException(ItemStatus globalCompositeItemStatus,
@@ -734,8 +732,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
      */
     private ObjectNode extractSEDA(HandlerIO handlerIO, Unmarshaller unmarshaller, IngestContext ingestContext,
         IngestSession ingestSession, JsonLineDataBase unitsDatabase, JsonLineDataBase objectsDatabase,
-        ItemStatus globalCompositeItemStatus)
-        throws ProcessingException, CycleFoundException {
+        ItemStatus globalCompositeItemStatus) throws ProcessingException, CycleFoundException {
         ParametersChecker.checkParameter("ContainerId is a mandatory parameter", ingestContext);
         ParametersChecker.checkParameter("itemStatus is a mandatory parameter", globalCompositeItemStatus);
 
@@ -1081,8 +1078,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             checkMasterIsMandatoryAndCheckCanAddObjectToExistingObjectGroup(ingestSession,
                 ingestContext.getIngestContract());
             saveObjectGroupsToWorkspace(handlerIO, ingestContext, ingestSession, objectsDatabase,
-                storageObjectGroupInfo,
-                storageObjectInfo);
+                storageObjectGroupInfo, storageObjectInfo);
 
             PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.saveObjectGroup",
                 saveObjectGroupToWorkspaceStopWatch.elapsed(TimeUnit.MILLISECONDS));
@@ -1092,8 +1088,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
             Stopwatch saveArchiveUnitStopWatch = Stopwatch.createStarted();
 
-            finalizeAndSaveArchiveUnitToWorkspace(handlerIO, ingestContext, ingestSession,
-                unitsDatabase,
+            finalizeAndSaveArchiveUnitToWorkspace(handlerIO, ingestContext, ingestSession, unitsDatabase,
                 storageUnitInfo);
 
             PERFORMANCE_LOGGER.log("STP_INGEST_CONTROL_SIP", "CHECK_DATAOBJECTPACKAGE", "extractSeda.saveArchiveUnit",
@@ -1615,7 +1610,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             uuids.stream().filter(value -> handlerIO.getHelper().containsUpdate(value)).map(
                     value -> new LogbookLifeCycleUnitModel(value,
                         (Queue<LogbookLifeCycleUnitParameters>) handlerIO.getHelper().removeUpdateDelegate(value)))
-                .collect(Collectors.toList());
+                .collect(toList());
         try (LogbookLifeCyclesClient logbookLifeCycleClient = logbookLifeCyclesClientFactory.getClient()) {
             logbookLifeCycleClient.bulkUnit(containerId, collect);
         } catch (LogbookClientAlreadyExistsException e) {
@@ -1630,7 +1625,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
             uuids.stream().filter(value -> handlerIO.getHelper().containsCreate(value)).map(
                     value -> new LogbookLifeCycleObjectGroupModel(value,
                         (Queue<LogbookLifeCycleObjectGroupParameters>) handlerIO.getHelper().removeCreateDelegate(value)))
-                .collect(Collectors.toList());
+                .collect(toList());
         try (LogbookLifeCyclesClient logbookLifeCycleClient = logbookLifeCyclesClientFactory.getClient()) {
             logbookLifeCycleClient.bulkObjectGroup(containerId, collect);
         } catch (LogbookClientAlreadyExistsException e) {
@@ -2124,9 +2119,9 @@ public class ExtractSedaActionHandler extends ActionHandler {
     private Set<String> getUpdatedObjectGroupIds(IngestSession ingestSession) {
         Set<String> updatedUnitsId = ingestSession.getUnitIdToGuid().keySet().stream().filter(
             unitId -> ingestSession.getExistingUnitIdWithExistingObjectGroup()
-                .containsKey(ingestSession.getUnitIdToGuid().get(unitId))).collect(Collectors.toSet());
+                .containsKey(ingestSession.getUnitIdToGuid().get(unitId))).collect(toSet());
         return ingestSession.getUnitIdToGroupId().entrySet().stream()
-            .filter(entry -> updatedUnitsId.contains(entry.getKey())).map(Entry::getValue).collect(Collectors.toSet());
+            .filter(entry -> updatedUnitsId.contains(entry.getKey())).map(Entry::getValue).collect(toSet());
 
     }
 
@@ -2135,10 +2130,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
         if (contract.isMasterMandatory()) {
             List<String> objectIdWithoutMaster =
                 ingestSession.getDataObjectGroupMasterMandatory().entrySet().stream().filter(entry -> !entry.getValue())
-                    .map(Entry::getKey).collect(Collectors.toList());
+                    .map(Entry::getKey).collect(toList());
             List<String> objectIdWithoutUpdatedOG =
                 objectIdWithoutMaster.stream().filter(objectId -> !updatedObjectGroupIds.contains(objectId))
-                    .collect(Collectors.toList());
+                    .collect(toList());
             if (!objectIdWithoutUpdatedOG.isEmpty()) {
                 String objectGroupsId = String.join(" , ", objectIdWithoutMaster);
                 throw new ProcessingObjectGroupMasterMandatoryException(
@@ -2163,10 +2158,10 @@ public class ExtractSedaActionHandler extends ActionHandler {
                             Set<String> values = new HashSet<>(entry.getValue());
                             List<String> updatedObjectGroupGuids =
                                 updatedObjectGroupIds.stream().map(e -> ingestSession.getObjectGroupIdToGuid().get(e))
-                                    .collect(Collectors.toList());
+                                    .collect(toList());
                             values.retainAll(updatedObjectGroupGuids);
                             return new AbstractMap.SimpleEntry<>(entry.getKey(), values);
-                        }).filter(entry -> !entry.getValue().isEmpty()).map(Entry::getKey).collect(Collectors.toSet());
+                        }).filter(entry -> !entry.getValue().isEmpty()).map(Entry::getKey).collect(toSet());
                 if (usageInObjectVersion.size() == dataObjectVersion.size()) {
                     return;
                 }
@@ -2326,12 +2321,13 @@ public class ExtractSedaActionHandler extends ActionHandler {
                 objectGroup.put(SedaConstants.PREFIX_TYPE, objectGroupType);
                 objectGroup.set(SedaConstants.TAG_FILE_INFO, fileInfo);
 
-                if (!checkBinaryMasterVersion(categoryMap)) {
-                    throw new MissingMandatoryVersionException(
-                        "The object group (" + entry.getKey() + ") requires Mandatory version 1 to be present");
+                boolean isCreation = !existingGot;
+                if (isCreation) {
+                    checkFirstMasterVersion(DataObjectVersionType.BINARY_MASTER, categoryMap.keySet());
+                    checkFirstMasterVersion(DataObjectVersionType.PHYSICAL_MASTER, categoryMap.keySet());
                 }
 
-                updateGotwithManagementContract(categoryMap, ingestContext);
+                updateGotWithManagementContract(categoryMap, ingestContext);
 
                 final ArrayNode qualifiersNode =
                     getObjectGroupQualifiers(ingestSession, categoryMap, ingestContext.getOperationId());
@@ -2431,67 +2427,59 @@ public class ExtractSedaActionHandler extends ActionHandler {
         }
     }
 
-    private boolean checkBinaryMasterVersion(Map<String, List<JsonNode>> categoryMap) {
-        boolean existBinaryMaster = categoryMap.keySet().stream().anyMatch(key -> key.startsWith("BinaryMaster"));
-        boolean existPhysicalMaster = categoryMap.keySet().stream().anyMatch(key -> key.startsWith("PhysicalMaster"));
+    private void checkFirstMasterVersion(DataObjectVersionType qualifier, Set<String> qualifiers)
+        throws MissingMandatoryVersionException {
 
-        if (existBinaryMaster && existPhysicalMaster) {
-            return categoryMap.containsKey("BinaryMaster_1") && categoryMap.containsKey("PhysicalMaster_1");
-        } else if (existBinaryMaster) {
-            return categoryMap.containsKey("BinaryMaster_1");
-        } else if (existPhysicalMaster) {
-            return categoryMap.containsKey("PhysicalMaster_1");
+        boolean hasAtLeastOneQualifier = qualifiers.stream().anyMatch(key -> key.startsWith(qualifier.getName()));
+        boolean hasFirstQualifierVersion = qualifiers.contains(qualifier.getName() + "_1");
+        if (hasAtLeastOneQualifier && !hasFirstQualifierVersion) {
+            throw new MissingMandatoryVersionException(
+                "The object group (" + qualifier.getName() + ") requires Mandatory version 1 to be present");
         }
-        return true;
     }
 
-
-    private void updateGotwithManagementContract(Map<String, List<JsonNode>> map, IngestContext ingestContext) {
-        ManagementContractModel managementContractModel = ingestContext.getManagementContractModel();
-        if (null != managementContractModel) {
-            List<PersistentIdentifierPolicy> persistentIdentifierPolicies =
-                managementContractModel.getPersistentIdentifierPolicyList();
-            if (persistentIdentifierPolicies != null && !persistentIdentifierPolicies.isEmpty()) {
-                Optional<PersistentIdentifierPolicy> arkPolicy = persistentIdentifierPolicies.stream()
-                    .filter(policy -> policy.getPersistentIdentifierPolicyType()
-                        .equals(PersistentIdentifierPolicyTypeEnum.ARK))
-                    .findFirst();
-
-                arkPolicy.ifPresent(policy -> {
-                    for (PersistentIdentifierUsage usageNode : policy.getPersistentIdentifierUsages()) {
-                        // Filtrage des clés de la map basé sur la valeur de usageName
-                        List<String> usageVersionList = map.keySet().stream()
-                            .filter(key -> key.startsWith(usageNode.getUsageName().getName()))
-                            .sorted(Comparator.comparingInt(
-                                key -> Integer.parseInt(key.substring(key.lastIndexOf("_") + 1))))
-                            .collect(Collectors.toList());
-                        if (!usageVersionList.isEmpty()) {
-                            if (usageNode.isInitialVersion()) {
-                                ObjectNode qualifierToUpdate = (ObjectNode) map.get(usageVersionList.get(0)).get(0);
-                                qualifierToUpdate.put("_managementContractId", managementContractModel.getIdentifier());
-                            }
-
-                            if (usageNode.getIntermediaryVersion()
-                                .equals(VersionUsageModel.IntermediaryVersionEnum.LAST)) {
-                                ObjectNode qualifierToUpdate =
-                                    (ObjectNode) map.get(usageVersionList.get(usageVersionList.size() - 1)).get(0);
-                                qualifierToUpdate.put("_managementContractId", managementContractModel.getIdentifier());
-                            }
-                            if (usageNode.getIntermediaryVersion()
-                                .equals(VersionUsageModel.IntermediaryVersionEnum.ALL)) {
-                                usageVersionList.stream()
-                                    .skip(1) // Ignorer le premier élément
-                                    .map(key -> (ObjectNode) map.get(key).get(0))
-                                    .forEach(qualifierToUpdate -> {
-                                        qualifierToUpdate.put("_managementContractId",
-                                            managementContractModel.getIdentifier());
-                                    });
-                            }
-                        }
-                    }
-                });
-            }
+    private void updateGotWithManagementContract(Map<String, List<JsonNode>> map, IngestContext ingestContext) {
+        final ManagementContractModel managementContractModel = ingestContext.getManagementContractModel();
+        if (isNull(managementContractModel)) {
+            return;
         }
+
+        final List<PersistentIdentifierPolicy> persistentIdentifierPolicies =
+            managementContractModel.getPersistentIdentifierPolicyList();
+        if (isEmpty(persistentIdentifierPolicies)) {
+            return;
+        }
+
+        final Optional<PersistentIdentifierPolicy> arkPolicy = persistentIdentifierPolicies.stream()
+            .filter(policy -> policy.getPersistentIdentifierPolicyType().equals(PersistentIdentifierPolicyTypeEnum.ARK))
+            .findFirst();
+        arkPolicy.ifPresent(policy -> {
+            for (PersistentIdentifierUsage usageNode : policy.getPersistentIdentifierUsages()) {
+                // Filtrage des clés de la map basé sur la valeur de usageName
+                final List<String> usageVersionList =
+                    map.keySet().stream().filter(key -> key.startsWith(usageNode.getUsageName().getName())).sorted(
+                            Comparator.comparingInt(key -> Integer.parseInt(key.substring(key.lastIndexOf("_") + 1))))
+                        .collect(toList());
+                if (usageVersionList.isEmpty()) {
+                    continue;
+                }
+                if (usageNode.isInitialVersion()) {
+                    ObjectNode qualifierToUpdate = (ObjectNode) map.get(usageVersionList.get(0)).get(0);
+                    qualifierToUpdate.put("_managementContractId", managementContractModel.getIdentifier());
+                }
+                if (usageNode.getIntermediaryVersion().equals(VersionUsageModel.IntermediaryVersionEnum.LAST)) {
+                    ObjectNode qualifierToUpdate =
+                        (ObjectNode) map.get(usageVersionList.get(usageVersionList.size() - 1)).get(0);
+                    qualifierToUpdate.put("_managementContractId", managementContractModel.getIdentifier());
+                }
+                if (usageNode.getIntermediaryVersion().equals(VersionUsageModel.IntermediaryVersionEnum.ALL)) {
+                    usageVersionList.stream().skip(1) // Ignorer le premier élément
+                        .map(key -> (ObjectNode) map.get(key).get(0)).forEach(qualifierToUpdate -> {
+                            qualifierToUpdate.put("_managementContractId", managementContractModel.getIdentifier());
+                        });
+                }
+            }
+        });
     }
 
     private void checkOriginatingAgencyAttachementConformity(String originatingAgency,
@@ -2580,7 +2568,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
 
         final Set<String> collect =
             ingestSession.getExistingGOTs().entrySet().stream().filter(e -> e.getValue() != null).map(Entry::getKey)
-                .filter(Predicate.not(toIgnore::contains)).map(e -> e + JSON_EXTENSION).collect(Collectors.toSet());
+                .filter(Predicate.not(toIgnore::contains)).map(e -> e + JSON_EXTENSION).collect(toSet());
 
         File existingGotsFile = handlerIO.getNewLocalFile(handlerIO.getOutput(EXISTING_GOT_RANK).getPath());
 

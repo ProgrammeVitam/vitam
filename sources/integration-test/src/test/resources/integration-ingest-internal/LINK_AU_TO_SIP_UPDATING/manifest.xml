@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8'?><ArchiveTransfer xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:pr="info:lc/xmlns/premis-v2" xmlns="fr:gouv:culture:archivesdefrance:seda:v2.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="fr:gouv:culture:archivesdefrance:seda:v2.1 seda-2.1-main.xsd" xml:id="ID1">
+  <Comment>Photographies des 14 juillet de la Présidence Jacques Chirac</Comment>
+  <Date>2023-04-27T14:33:29.921</Date>
+  <MessageIdentifier>14 juillet - Objet physique</MessageIdentifier>
+  <ArchivalAgreement>ArchivalAgreementAttachment</ArchivalAgreement>
+  <CodeListVersions>
+    <ReplyCodeListVersion>ReplyCodeListVersion0</ReplyCodeListVersion>
+    <MessageDigestAlgorithmCodeListVersion>MessageDigestAlgorithmCodeListVersion0</MessageDigestAlgorithmCodeListVersion>
+    <MimeTypeCodeListVersion>MimeTypeCodeListVersion0</MimeTypeCodeListVersion>
+    <EncodingCodeListVersion>EncodingCodeListVersion0</EncodingCodeListVersion>
+    <FileFormatCodeListVersion>FileFormatCodeListVersion0</FileFormatCodeListVersion>
+    <CompressionAlgorithmCodeListVersion>CompressionAlgorithmCodeListVersion0</CompressionAlgorithmCodeListVersion>
+    <DataObjectVersionCodeListVersion>DataObjectVersionCodeListVersion0</DataObjectVersionCodeListVersion>
+    <StorageRuleCodeListVersion>StorageRuleCodeListVersion0</StorageRuleCodeListVersion>
+    <AppraisalRuleCodeListVersion>AppraisalRuleCodeListVersion0</AppraisalRuleCodeListVersion>
+    <AccessRuleCodeListVersion>AccessRuleCodeListVersion0</AccessRuleCodeListVersion>
+    <DisseminationRuleCodeListVersion>DisseminationRuleCodeListVersion0</DisseminationRuleCodeListVersion>
+    <ReuseRuleCodeListVersion>ReuseRuleCodeListVersion0</ReuseRuleCodeListVersion>
+    <ClassificationRuleCodeListVersion>ClassificationRuleCodeListVersion0</ClassificationRuleCodeListVersion>
+    <AuthorizationReasonCodeListVersion>AuthorizationReasonCodeListVersion0</AuthorizationReasonCodeListVersion>
+    <RelationshipCodeListVersion>RelationshipCodeListVersion0</RelationshipCodeListVersion>
+  </CodeListVersions>
+  <DataObjectPackage>
+    <DataObjectGroup id="ID8">
+      <BinaryDataObject id="ID11">
+        <DataObjectVersion>BinaryMaster_2</DataObjectVersion>
+        <Uri>content/ID11.JPG</Uri>
+        <MessageDigest algorithm="SHA-512">6d92f7bf4d7939d1908f0663e4cff2956cec0a12cdc751ae58dbe1b5fde9cd3980fa4d7a7c68b0d913ba7ed8f884f7475841bcc340b8f7447e436cffe80d3da2</MessageDigest>
+        <Size>408</Size>
+        <FormatIdentification>
+          <FormatLitteral>Exchangeable Image File Format (Compressed)</FormatLitteral>
+          <MimeType>image/jpeg</MimeType>
+          <FormatId>x-fmt/391</FormatId>
+        </FormatIdentification>
+        <FileInfo>
+          <Filename>chirac-poncelet.JPG</Filename>
+          <LastModified>2004-02-03T11:23:00</LastModified>
+        </FileInfo>
+      </BinaryDataObject>
+      <BinaryDataObject id="ID12">
+        <DataObjectVersion>Dissemination_2</DataObjectVersion>
+        <Uri>content/ID12.JPG</Uri>
+        <MessageDigest algorithm="SHA-512">6d92f7bf4d7939d1908f0663e4cff2956cec0a12cdc751ae58dbe1b5fde9cd3980fa4d7a7c68b0d913ba7ed8f884f7475841bcc340b8f7447e436cffe80d3da2</MessageDigest>
+        <Size>408</Size>
+        <FormatIdentification>
+          <FormatLitteral>Exchangeable Image File Format (Compressed)</FormatLitteral>
+          <MimeType>image/jpeg</MimeType>
+          <FormatId>x-fmt/391</FormatId>
+        </FormatIdentification>
+        <FileInfo>
+          <Filename>chirac-poncelet.JPG</Filename>
+          <LastModified>2004-02-03T11:23:00</LastModified>
+        </FileInfo>
+      </BinaryDataObject>
+      <PhysicalDataObject id="ID10">
+        <DataObjectVersion>PhysicalMaster_2</DataObjectVersion>
+        <PhysicalId>12354</PhysicalId>
+        <PhysicalDimensions>
+          <Width unit="inch">13.0</Width>
+          <Height unit="metre">10.0</Height>
+          <Depth unit="MMT">4.0</Depth>
+          <Shape>rectangle</Shape>
+          <Diameter unit="CMT">2.0</Diameter>
+          <Length unit="metre">52.0</Length>
+          <Thickness unit="millimetre">10.0</Thickness>
+          <Weight unit="KGM">2.0</Weight>
+          <NumberOfPage>12</NumberOfPage>
+        </PhysicalDimensions>
+      </PhysicalDataObject>
+    </DataObjectGroup>
+    <DescriptiveMetadata>
+      <ArchiveUnit id="ID9">
+        <Management>
+          <UpdateOperation>
+            <SystemId>aeaqaaaaaagfbczsblpxmamlil33pqaaaabq</SystemId>
+          </UpdateOperation>
+        </Management>
+        <Content>
+          <DescriptionLevel>Item</DescriptionLevel>
+          <Title>__14-juillet-2003-defile-01__</Title>
+          <TransactedDate>2004-02-03T11:23:40</TransactedDate>
+        </Content>
+        <DataObjectReference>
+          <DataObjectGroupReferenceId>ID8</DataObjectGroupReferenceId>
+        </DataObjectReference>
+      </ArchiveUnit>
+      
+
+    </DescriptiveMetadata>
+    <ManagementMetadata>
+      <OriginatingAgencyIdentifier>RATP</OriginatingAgencyIdentifier>
+      <SubmissionAgencyIdentifier>RATP</SubmissionAgencyIdentifier>
+    </ManagementMetadata>
+  </DataObjectPackage>
+  <ArchivalAgency>
+    <Identifier>Identifier4</Identifier>
+  </ArchivalAgency>
+  <TransferringAgency>
+    <Identifier>Identifier4</Identifier>
+  </TransferringAgency>
+</ArchiveTransfer>
