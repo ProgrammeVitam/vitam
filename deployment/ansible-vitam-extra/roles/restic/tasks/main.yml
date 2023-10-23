@@ -1,21 +1,13 @@
 ---
 
-- name: Install restic & mandatory packages on RedHat
+- name: Install restic & mandatory packages
   package:
     name:
       - restic
-      - mongodb-org-tools
-      - bind-utils
+      - mongodb-database-tools
+      - "{{ 'dnsutils' if ansible_os_family == 'Debian' else 'bind-utils' }}"
     state: latest
   when: ansible_os_family == "RedHat"
-
-- name: Install restic & mandatory packages on Debian
-  package:
-    name:
-      - restic
-      - mongodb-org-tools
-      - dnsutils
-  when: ansible_os_family == "Debian"
 
 - name: Check that the restic directories exist
   file:
