@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>fr.gouv.vitam</groupId>
 		<artifactId>parent</artifactId>
-		<version>7.0.0</version>
+		<version>7.0.1-SNAPSHOT</version>
 		<relativePath>../sources/pom.xml</relativePath>
 	</parent>
 	<artifactId>vitam-package</artifactId>
