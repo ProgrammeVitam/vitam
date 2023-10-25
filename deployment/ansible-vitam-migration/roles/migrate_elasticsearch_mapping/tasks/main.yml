@@ -1,0 +1,11 @@
+---
+
+- include_tasks: list_and_migrate_alias_mapping.yml
+  vars:
+    - alias_prefix: "unit"
+    - mapping_folder: "unit"
+
+- include_tasks: list_and_migrate_alias_mapping.yml
+  vars:
+    - alias_prefix: "collect_unit"
+    - mapping_folder: "unit"

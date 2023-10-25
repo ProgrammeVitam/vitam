@@ -32,6 +32,7 @@
     - name: Check Confirmation
       fail: msg="Playbook run confirmation failed"
       when: confirmation|upper != "YES"
+      tags: always
 
 ### INFRASTRUCTURE CHECKS AND HOSTS NETWORK VARS CHECK ###
 - import_playbook: services/others/pre_check.yml
