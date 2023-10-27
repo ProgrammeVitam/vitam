@@ -1,24 +1,30 @@
 [Unit]
 Description=MongoDB (mongos) Database Service
-Wants=network.target
-After=network.target
+Documentation=https://docs.mongodb.org/manual
+After=network-online.target
+Wants=network-online.target
 
 [Service]
-Type=simple
-ExecStart=/usr/bin/mongos --config {{ vitam_defaults.folder.root_path }}/conf/mongos/mongos.conf
-ExecReload=/bin/kill -HUP $MAINPID
-Restart=always
 User={{ vitam_defaults.users.vitamdb }}
 Group={{ vitam_defaults.users.group }}
-StandardOutput=syslog
-StandardError=syslog
-# ulimits
+ExecStart=/usr/bin/mongos --config {{ vitam_defaults.folder.root_path }}/conf/mongos/mongos.conf
+# file size
 LimitFSIZE=infinity
+# cpu time
 LimitCPU=infinity
+# virtual memory size
 LimitAS=infinity
+# open files
 LimitNOFILE=64000
-LimitRSS=infinity
+# processes/threads
 LimitNPROC=64000
+# locked memory
+LimitMEMLOCK=infinity
+# total threads (user+kernel)
+TasksMax=infinity
+TasksAccounting=false
+# Recommended limits for mongod as specified in
+# https://docs.mongodb.com/manual/reference/ulimit/#recommended-ulimit-settings
 
 [Install]
 WantedBy=multi-user.target
