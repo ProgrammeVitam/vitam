@@ -67,6 +67,7 @@
     src: mongos.conf.j2
     dest: "{{ mongo_config_path }}/mongos.conf"
     owner: "{{ vitam_defaults.users.vitamdb }}"
+    group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
   notify:
     - "mongos - restart service"
