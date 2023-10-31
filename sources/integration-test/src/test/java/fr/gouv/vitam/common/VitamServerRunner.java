@@ -75,6 +75,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.client.MetadataType;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.config.MetadataIndexationConfiguration;
+import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
 import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.client.ProcessingManagementClientFactory;
@@ -1008,6 +1009,7 @@ public class VitamServerRunner extends ExternalResource {
 
     public void startMetadataServer() throws IOException, VitamApplicationServerException {
         if (null != metadataMain) {
+            MetadataCollections.UNIT.setPrefix("");
             MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA));
             return;
         }
@@ -1024,6 +1026,7 @@ public class VitamServerRunner extends ExternalResource {
         realMetadataConfig.setDbName(dbname);
         realMetadataConfig.setElasticsearchNodes(esNodes);
         realMetadataConfig.setClusterName(cluster);
+        realMetadataConfig.setCollectModule(false);
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
         realMetadataConfig.setElasticsearchExternalMetadataMappings(mappingLoader.getElasticsearchExternalMappings());
 
@@ -1293,6 +1296,7 @@ public class VitamServerRunner extends ExternalResource {
 
     public void startMetadataCollectServer() throws IOException, VitamApplicationServerException {
         if (null != metadataCollectMain) {
+
             MetaDataClientFactory.changeMode(new ClientConfigurationImpl("localhost", PORT_SERVICE_METADATA_COLLECT));
             return;
         }
@@ -1310,6 +1314,7 @@ public class VitamServerRunner extends ExternalResource {
         realMetadataConfig.setDbName(dbname);
         realMetadataConfig.setElasticsearchNodes(esNodes);
         realMetadataConfig.setClusterName(cluster);
+        realMetadataConfig.setCollectModule(true);
         MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
         realMetadataConfig.setElasticsearchExternalMetadataMappings(mappingLoader.getElasticsearchExternalMappings());
 

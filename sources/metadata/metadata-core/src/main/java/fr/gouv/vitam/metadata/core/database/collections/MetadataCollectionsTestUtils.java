@@ -94,7 +94,7 @@ public final class MetadataCollectionsTestUtils {
         ParametersChecker.checkParameter("metadataCollections is required", metadataCollections);
         for (MetadataCollections collection : metadataCollections) {
             collection.getVitamCollection()
-                .setName(prefix + collection.getPrefix() + collection.getVitamCollection().getClasz().getSimpleName());
+                .setName(prefix + collection.getVitamCollection().getClasz().getSimpleName());
             collection.initialize(db, true);
             if (collection.getEsClient() == null) {
                 collection.initialize(esClient);
