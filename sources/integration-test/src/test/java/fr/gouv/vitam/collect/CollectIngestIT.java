@@ -107,6 +107,10 @@ public class CollectIngestIT extends VitamRuleRunner {
 
     private static final String ACCESS_CONTRACT = "aName3";
 
+    private static String prefix;
+
+
+
     @ClassRule public static VitamServerRunner runner =
         new VitamServerRunner(CollectIngestIT.class, mongoRule.getMongoDatabase().getName(),
             ElasticsearchRule.getClusterName(),
@@ -122,6 +126,7 @@ public class CollectIngestIT extends VitamRuleRunner {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        prefix = MetadataCollections.UNIT.getPrefix();
         runner.startMetadataCollectServer();
         runner.startWorkspaceCollectServer();
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
@@ -130,6 +135,7 @@ public class CollectIngestIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
+        MetadataCollections.UNIT.setPrefix(prefix);
         runner.stopMetadataCollectServer(false);
         runner.stopWorkspaceCollectServer();
         runner.stopMetadataServer(true);
@@ -196,6 +202,7 @@ public class CollectIngestIT extends VitamRuleRunner {
         runAfterEs(ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), TENANT_ID),
             ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.OBJECTGROUP.getName(), TENANT_ID));
         MetadataCollectionsTestUtils.afterTestClass(metadataIndexManager, false);
+
         runner.startMetadataServer();
 
         String processId;
@@ -257,5 +264,25 @@ public class CollectIngestIT extends VitamRuleRunner {
         }
 
 
+        //// Cette requette permet de récupérer des unités par transaction avec l'opi de vitam core
+        // du coup le nombre des résultats obtenus doit être zéro.
+
+        runner.startMetadataCollectServer();
+
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+
+            final RequestResponseOK<JsonNode> unitsByTransaction =
+                (RequestResponseOK<JsonNode>) collectClient.getUnitsByTransaction(vitamContext,
+                    processId, new SelectMultiQuery().getFinalSelect());
+
+            assertEquals(0, unitsByTransaction.getResults().size());
+
+        }
+
+
+
     }
+
+
+
 }
