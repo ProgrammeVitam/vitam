@@ -40,12 +40,14 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.collections4.IteratorUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -53,6 +55,8 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
@@ -78,6 +82,9 @@ public class PurgeReportServiceTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private BatchReportClientFactory batchReportClientFactory;
@@ -188,16 +195,20 @@ public class PurgeReportServiceTest {
     public void exportDistinctObjectGroups() throws Exception {
 
         // Given
-        InputStream is =
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        File unitObjectGroupsFile = tempFolder.newFile();
+        doReturn(unitObjectGroupsFile).when(handlerIO).getNewLocalFile("unitObjectGroups.jsonl");
+
+        File reportFile =
             PropertiesUtils
-                .getResourceAsStream("EliminationAction/EliminationActionUnitReportService/unitObjectGroups.jsonl");
+                .getResourceFile("EliminationAction/EliminationActionUnitReportService/unitObjectGroups.jsonl");
         Response response = mock(Response.class);
-        doReturn(is).when(response).readEntity(InputStream.class);
+        doReturn(new FileInputStream(reportFile)).when(response).readEntity(InputStream.class);
         doReturn(response).when(workspaceClient).getObject(PROC_ID, DISTINCT_REPORT_JSONL);
 
         // When
         CloseableIterator<String> entries =
-            instance.exportDistinctObjectGroups(PROC_ID);
+            instance.exportDistinctObjectGroups(handlerIO, PROC_ID);
 
         // Then
         ArgumentCaptor<ReportExportRequest> reportExportRequestArgumentCaptor =
@@ -208,6 +219,8 @@ public class PurgeReportServiceTest {
             .isEqualTo(DISTINCT_REPORT_JSONL);
 
         assertThat(IteratorUtils.toList(entries)).containsExactly("got1", "got2");
+        verify(handlerIO).getNewLocalFile("unitObjectGroups.jsonl");
+        assertThat(unitObjectGroupsFile).hasSameContentAs(reportFile);
     }
 
     @Test
