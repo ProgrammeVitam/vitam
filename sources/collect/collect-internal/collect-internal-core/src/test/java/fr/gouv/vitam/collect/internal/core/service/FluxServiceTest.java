@@ -242,4 +242,54 @@ public class FluxServiceTest {
         // bulkWriteObjectGroups
         verify(metadataRepository, never()).saveObjectGroups(any());
     }
+
+    @Test
+    @RunWithCustomExecutor
+    public void processStream_with_attachment_params_should_be_ok() throws Exception {
+        final ProjectModel project = JsonHandler.getFromString(
+            PropertiesUtils.getResourceAsString("json/01_project_flux_auto_attach_param.json"), ProjectModel.class);
+        final TransactionModel transaction = JsonHandler.getFromString(
+            PropertiesUtils.getResourceAsString("json/01_transaction.json"), TransactionModel.class);
+
+        when(projectRepository.findProjectById(anyString())).thenReturn(Optional.of(project));
+        Map<String, JsonNode> units = new HashMap<>();
+        Map<String, JsonNode> objectGroups = new HashMap<>();
+        when(metadataRepository.saveArchiveUnits(ArgumentMatchers.anyList())).thenAnswer(e -> {
+            final List<ObjectNode> unitsToSave = e.getArgument(0);
+            for (ObjectNode unit : unitsToSave) {
+                units.put(unit.get(VitamFieldsHelper.id()).asText(), unit);
+            }
+            return JsonHandler.toJsonNode(
+                new RequestResponseOK<>(JsonHandler.createObjectNode(), unitsToSave, unitsToSave.size()));
+        });
+        when(metadataRepository.saveObjectGroups(anyList())).thenAnswer(e -> {
+            final List<ObjectNode> ogToSave = e.getArgument(0);
+            for (ObjectNode og : ogToSave) {
+                objectGroups.put(og.get(VitamFieldsHelper.id()).asText(), og);
+            }
+            return JsonHandler.toJsonNode(
+                new RequestResponseOK<>(JsonHandler.createObjectNode(), ogToSave, ogToSave.size()));
+        });
+        when(metadataService.prepareAttachmentUnits(any(), anyString())).thenReturn(new HashMap<>());
+
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
+            fluxService.processStream(resourceAsStream, transaction);
+        }
+
+        final JsonNode expectedUnits = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("json/01_expected_units.json"));
+        JsonAssert.assertJsonEquals(units.values(), expectedUnits, JsonAssert.when(Option.IGNORING_ARRAY_ORDER)
+            .whenIgnoringPaths(List.of("[*]." + VitamFieldsHelper.id(), "[*]." + VitamFieldsHelper.unitups(),
+                "[*]." + VitamFieldsHelper.object())));
+
+        final JsonNode expectedGots = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("json/01_expected_got.json"));
+        JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(objectGroups.values()), expectedGots,
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER).whenIgnoringPaths(List.of("[*]." + VitamFieldsHelper.id(),
+                "[*]." + VitamFieldsHelper.qualifiers() + "[*]." + TAG_VERSIONS + "[*]." + VitamFieldsHelper.id(),
+                "[*]." + TAG_FILE_INFO + "." + FileInfoModel.LAST_MODIFIED,
+                "[*]." + VitamFieldsHelper.qualifiers() + "[*]." + TAG_VERSIONS + "[*]." + TAG_FILE_INFO + "." +
+                    FileInfoModel.LAST_MODIFIED,
+                "[*]." + VitamFieldsHelper.qualifiers() + "[*]." + TAG_VERSIONS + "[*]." + TAG_URI)));
+    }
 }

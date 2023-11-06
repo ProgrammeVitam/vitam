@@ -60,6 +60,7 @@ import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveException;
@@ -311,7 +312,7 @@ public class FluxService {
     private ObjectNode updateParent(ObjectNode unit, Map<String, Set<String>> unitUps) {
         String title = unit.get(TITLE).asText();
         Set<String> up = unitUps.get(title);
-        if (!up.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(up)) {
             unit.set(VitamFieldsHelper.unitups(),
                 JsonHandler.createArrayNode().addAll(up.stream().map(TextNode::new).collect(Collectors.toList())));
         }
