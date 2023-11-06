@@ -138,7 +138,7 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
                 JsonLineWriter objectGroupsToDeleteWriter = new JsonLineWriter(objectGroupsToDeleteStream);
                 JsonLineWriter objectGroupsToDetachWriter = new JsonLineWriter(objectGroupsToDetachStream);
                 CloseableIterator<String> iterator =
-                    purgeReportService.exportDistinctObjectGroups(param.getContainerName())) {
+                    purgeReportService.exportDistinctObjectGroups(handler, param.getContainerName())) {
 
                 Iterator<List<String>> bulkIterator = Iterators.partition(iterator, objectGroupBulkSize);
 
