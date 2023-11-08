@@ -42,6 +42,11 @@
     no_log: "{{ hide_passwords_during_deploy }}"
     ignore_errors: true # as we are brutally disconnected by the server (because of shutdown)
 
+  - name: Workaround to manually force shutdown as services are set to Restart=always
+    systemd:
+      name: "vitam-{{ mongo_type }}"
+      state: stopped
+
   # Upgrade the package
   - name: "Update mongodb packages ({{ mongo_version }})"
     yum:
