@@ -137,6 +137,7 @@ public class EvidenceAuditPrepareReport extends ActionHandler {
         }
 
         try {
+            evidenceAuditReportService.deleteReportFromWorkspaceIfExists(handlerIO.getContainerName());
             evidenceAuditReportService.storeReportToWorkspace(evidenceReport);
         } catch (ProcessingStatusException e) {
             throw new ProcessingException(e);

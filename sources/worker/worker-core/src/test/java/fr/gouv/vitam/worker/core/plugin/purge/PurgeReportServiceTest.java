@@ -69,9 +69,12 @@ import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.ACCESSIO
 import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.DISTINCT_REPORT_JSONL;
 import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.OBJECT_GROUP_REPORT_JSONL;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 public class PurgeReportServiceTest {
@@ -99,7 +102,6 @@ public class PurgeReportServiceTest {
 
     @Mock
     private WorkspaceClient workspaceClient;
-
 
     @InjectMocks
     private PurgeReportService instance;
@@ -215,12 +217,13 @@ public class PurgeReportServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void exportDistinctObjectGroups() throws Exception {
+    public void exportDistinctObjectGroupsThenGenerateReportOnWorkspace() throws Exception {
 
         // Given
         HandlerIO handlerIO = mock(HandlerIO.class);
         File unitObjectGroupsFile = tempFolder.newFile();
         doReturn(unitObjectGroupsFile).when(handlerIO).getNewLocalFile("unitObjectGroups.jsonl");
+        doReturn(false).when(workspaceClient).isExistingObject(anyString(), eq(DISTINCT_REPORT_JSONL));
 
         File reportFile =
             PropertiesUtils
@@ -248,6 +251,35 @@ public class PurgeReportServiceTest {
 
     @Test
     @RunWithCustomExecutor
+    public void exportDistinctObjectGroupsWithExistingReportOnWorkspaceThenDoNotRegenerateReport() throws Exception {
+
+        // Given
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        File unitObjectGroupsFile = tempFolder.newFile();
+        doReturn(unitObjectGroupsFile).when(handlerIO).getNewLocalFile("unitObjectGroups.jsonl");
+        doReturn(true).when(workspaceClient).isExistingObject(anyString(), eq(DISTINCT_REPORT_JSONL));
+
+        File reportFile =
+            PropertiesUtils
+                .getResourceFile("EliminationAction/EliminationActionUnitReportService/unitObjectGroups.jsonl");
+        Response response = mock(Response.class);
+        doReturn(new FileInputStream(reportFile)).when(response).readEntity(InputStream.class);
+        doReturn(response).when(workspaceClient).getObject(PROC_ID, DISTINCT_REPORT_JSONL);
+
+        // When
+        CloseableIterator<String> entries =
+            instance.exportDistinctObjectGroups(handlerIO, PROC_ID);
+
+        // Then
+        verify(batchReportClient, never()).generatePurgeDistinctObjectGroupInUnitReport(anyString(), any());
+
+        assertThat(IteratorUtils.toList(entries)).containsExactly("got1", "got2");
+        verify(handlerIO).getNewLocalFile("unitObjectGroups.jsonl");
+        assertThat(unitObjectGroupsFile).hasSameContentAs(reportFile);
+    }
+
+    @Test
+    @RunWithCustomExecutor
     public void exportAccessionRegisters() throws Exception {
 
         // Given
@@ -256,6 +288,7 @@ public class PurgeReportServiceTest {
         Response response = mock(Response.class);
         doReturn(is).when(response).readEntity(InputStream.class);
         doReturn(response).when(workspaceClient).getObject(PROC_ID, OBJECT_GROUP_REPORT_JSONL);
+        doReturn(false).when(workspaceClient).isExistingObject(anyString(), eq(ACCESSION_REGISTER_REPORT_JSONL));
 
         // When
         instance.exportAccessionRegisters(PROC_ID);
@@ -267,6 +300,26 @@ public class PurgeReportServiceTest {
             .generatePurgeAccessionRegisterReport(eq(PROC_ID), reportExportRequestArgumentCaptor.capture());
         assertThat(reportExportRequestArgumentCaptor.getValue().getFilename())
             .isEqualTo(ACCESSION_REGISTER_REPORT_JSONL);
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void exportAccessionRegistersWithExistingReportOnWorkspaceThenDoNotRegenerateReport() throws Exception {
+
+        // Given
+        InputStream is = PropertiesUtils.getResourceAsStream(
+            "EliminationAction/EliminationActionObjectGroupReportService/objectGroupReport.jsonl");
+        Response response = mock(Response.class);
+        doReturn(is).when(response).readEntity(InputStream.class);
+        doReturn(response).when(workspaceClient).getObject(PROC_ID, OBJECT_GROUP_REPORT_JSONL);
+        doReturn(true).when(workspaceClient).isExistingObject(anyString(), eq(ACCESSION_REGISTER_REPORT_JSONL));
+
+        // When
+        instance.exportAccessionRegisters(PROC_ID);
+
+        // Then
+        verify(batchReportClient, never())
+            .generatePurgeAccessionRegisterReport(anyString(), any());
     }
 
     @Test
