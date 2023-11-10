@@ -607,8 +607,10 @@ documentation:
 
 
 /units/byunitspersistentidentifier/{persistentIdentifier}:
+  displayName: Retourne la liste des unités d'archives correspondantes à l'identifiant pérenne fourni en entrée.
+  description: |
+    Requête qui retourne la liste des unités d'archives correspondantes à l'identifiant pérenne fourni en entrée. La requête utilise le langage de requête (DSL) de Vitam en entrée pour filter et retourner que les informations demandées en cas de succès.
   get:
-    description: "Requête qui retourne la liste des unités d'archives correspondantes à l'identifiant pérenne fourni en entrée. La requête utilise le langage de requête (DSL) de Vitam en entrée pour filter et retourner que les informations demandées en cas de succès."
     uriParameters:
         persistentIdentifier:
           description: "L'identifiant pérenne des unités d'archive"
@@ -628,7 +630,7 @@ documentation:
       500:
         description: "Internal Server Error."
       401:
-        description: "Un authorized."
+        description: "Unauthorized."
       301:
         description: "Units moved to another system."
       410:
@@ -646,8 +648,10 @@ documentation:
         example: "1"
 
 /objects/byunitspersistentidentifier/{persistentIdentifier}:
+  displayName: Télécharger le premier objet correspondant à l'identifiant pérenne d'une unité selon les critères passés en paramètre.
+  description: |
+    Télécharger le premier objet correspondant à l'identifiant pérenne d'une unité selon les critères passés en paramètre.
   get:
-    description: "Télécharger le premier objet correspondant à l'identifiant pérenne d'une unité selon les critères passés en paramètre."
     uriParameters:
         persistentIdentifier:
           description: "L'identifiant pérenne de l'unité d'archive"
@@ -701,8 +705,10 @@ documentation:
 
 
 /objects/byobjectspersistentidentifier/{persistentIdentifier}:
+  displayName: Télécharger le premier objet correspondant à l'identifiant pérenne d'une unité selon les critères passés en paramètre.
+  description: |
+    Télécharger le premier objet correspondant à l'identifiant pérenne d'une unité selon les critères passés en paramètre.
   get:
-    description: "Télécharger le premier objet correspondant à l'identifiant pérenne fourni en entrée."
     uriParameters:
         persistentIdentifier:
           description: "L'identifiant pérenne de l'objet"
