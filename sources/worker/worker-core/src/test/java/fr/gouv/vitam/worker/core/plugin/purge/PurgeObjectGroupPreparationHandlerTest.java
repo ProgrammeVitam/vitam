@@ -135,7 +135,7 @@ public class PurgeObjectGroupPreparationHandlerTest {
 
         doReturn(CloseableIteratorUtils
             .toCloseableIterator(asList("id_got_1", "id_got_2", "id_got_3", "id_got_4", "id_got_5").iterator()))
-            .when(purgeReportService).exportDistinctObjectGroups(any());
+            .when(purgeReportService).exportDistinctObjectGroups(any(), any());
 
         JsonNode objectGroups = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
             "EliminationAction/EliminationActionObjectGroupPreparationHandler/objectGroups.json"));
