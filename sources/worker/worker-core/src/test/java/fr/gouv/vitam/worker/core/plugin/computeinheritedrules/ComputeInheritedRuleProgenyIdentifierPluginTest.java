@@ -42,6 +42,8 @@ import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -61,6 +63,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static fr.gouv.vitam.worker.core.plugin.computeinheritedrules.ComputeInheritedRuleProgenyIdentifierPlugin.UNITS_JSONL_FILE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -91,14 +94,22 @@ public class ComputeInheritedRuleProgenyIdentifierPluginTest {
     @Mock
     private BatchReportClient batchReportClient;
 
+    @Mock
+    private WorkspaceClient workspaceClient;
+
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+
     private ComputeInheritedRuleProgenyIdentifierPlugin computeInheritedRuleProgenyIdentifierPlugin;
 
     @Before
     public void setUp() throws Exception {
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         when(batchReportClientFactory.getClient()).thenReturn(batchReportClient);
+        when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         computeInheritedRuleProgenyIdentifierPlugin =
-            new ComputeInheritedRuleProgenyIdentifierPlugin(metaDataClientFactory, batchReportClientFactory, 2);
+            new ComputeInheritedRuleProgenyIdentifierPlugin(metaDataClientFactory, batchReportClientFactory,
+                workspaceClientFactory, 2);
     }
 
     @Test
@@ -107,6 +118,8 @@ public class ComputeInheritedRuleProgenyIdentifierPluginTest {
         List<String> distributedUnits = Collections.singletonList("momaUnit");
         HandlerIO handlerIO = givenHandlerIo(distributedUnits);
         WorkerParameters workerParameters = givenWorkerParameters();
+        when(workspaceClient.isExistingObject("processId", UNITS_JSONL_FILE_NAME))
+            .thenReturn(false);
 
         List<String> progenyUnits = Collections.singletonList("daughter");
         List<String> allUnitsToInvalidate = new ArrayList<>();
@@ -129,6 +142,40 @@ public class ComputeInheritedRuleProgenyIdentifierPluginTest {
         assertThat(reportBody.getEntries())
             .extracting("unitId").containsAll(allUnitsToInvalidate);
         verify(batchReportClient).exportUnitsToInvalidate(anyString(), any());
+        verify(workspaceClient, never()).deleteObject("processId", UNITS_JSONL_FILE_NAME);
+    }
+
+    @Test
+    public void should_regenerate_invalidation_distribution_file() throws Exception {
+        // Given
+        List<String> distributedUnits = Collections.singletonList("momaUnit");
+        HandlerIO handlerIO = givenHandlerIo(distributedUnits);
+        WorkerParameters workerParameters = givenWorkerParameters();
+        when(workspaceClient.isExistingObject("processId", UNITS_JSONL_FILE_NAME))
+            .thenReturn(true);
+
+        List<String> progenyUnits = Collections.singletonList("daughter");
+        List<String> allUnitsToInvalidate = new ArrayList<>();
+        allUnitsToInvalidate.addAll(distributedUnits);
+        allUnitsToInvalidate.addAll(progenyUnits);
+
+        when(metaDataClient.selectUnits(any(JsonNode.class)))
+            .thenReturn(createMetadataResponseFromList(allUnitsToInvalidate));
+        ArgumentCaptor<ReportBody<UnitComputedInheritedRulesInvalidationReportEntry>> reportBodyArgumentCaptor =
+            ArgumentCaptor.forClass(ReportBody.class);
+        doNothing().when(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
+
+        // When
+        computeInheritedRuleProgenyIdentifierPlugin.executeList(workerParameters, handlerIO);
+
+        // Then
+        ReportBody<UnitComputedInheritedRulesInvalidationReportEntry> reportBody = reportBodyArgumentCaptor.getValue();
+        assertThat(reportBody.getProcessId()).isEqualTo("processId");
+        assertThat(reportBody.getReportType()).isEqualTo(ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION);
+        assertThat(reportBody.getEntries())
+            .extracting("unitId").containsAll(allUnitsToInvalidate);
+        verify(batchReportClient).exportUnitsToInvalidate(anyString(), any());
+        verify(workspaceClient).deleteObject("processId", UNITS_JSONL_FILE_NAME);
     }
 
     @Test

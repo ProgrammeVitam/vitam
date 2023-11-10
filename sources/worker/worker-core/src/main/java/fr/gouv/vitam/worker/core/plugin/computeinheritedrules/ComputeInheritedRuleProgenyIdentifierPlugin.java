@@ -62,6 +62,10 @@ import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
+import fr.gouv.vitam.workspace.client.WorkspaceClient;
+import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang.StringUtils;
 
@@ -84,22 +88,26 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_PROGENY_IDENTIFIER";
     private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {
     };
-    private static final String UNITS_JSONL_FILE_NAME = "unitsToInvalidate.jsonl";
+    static final String UNITS_JSONL_FILE_NAME = "unitsToInvalidate.jsonl";
 
     private final MetaDataClientFactory metaDataClientFactory;
     private final BatchReportClientFactory batchReportClientFactory;
+    private final WorkspaceClientFactory workspaceClientFactory;
     private final int bulkSize;
 
     public ComputeInheritedRuleProgenyIdentifierPlugin() {
-        this(MetaDataClientFactory.getInstance(), BatchReportClientFactory.getInstance(), GlobalDatas.LIMIT_LOAD);
+        this(MetaDataClientFactory.getInstance(), BatchReportClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance(), GlobalDatas.LIMIT_LOAD);
         // Default constructor for workflow initialization by Worker
     }
 
     @VisibleForTesting
     ComputeInheritedRuleProgenyIdentifierPlugin(MetaDataClientFactory metaDataClientFactory,
-        BatchReportClientFactory batchReportClientFactory, int bulkSize) {
+        BatchReportClientFactory batchReportClientFactory, WorkspaceClientFactory workspaceClientFactory,
+        int bulkSize) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.batchReportClientFactory = batchReportClientFactory;
+        this.workspaceClientFactory = workspaceClientFactory;
         this.bulkSize = bulkSize;
     }
 
@@ -111,6 +119,15 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
         if (StringUtils.isEmpty(processId)) {
             LOGGER.error("processId null or empty.");
             return buildBulkItemStatus(workerParameters, PLUGIN_NAME, StatusCode.FATAL);
+        }
+
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            if (workspaceClient.isExistingObject(handler.getContainerName(), UNITS_JSONL_FILE_NAME)) {
+                LOGGER.warn(UNITS_JSONL_FILE_NAME + " already exists. Will be overridden with fresh data");
+                workspaceClient.deleteObject(handler.getContainerName(), UNITS_JSONL_FILE_NAME);
+            }
+        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+            throw new ProcessingException(e);
         }
 
         handler.setCurrentObjectId(workerParameters.getObjectNameList().get(0));
