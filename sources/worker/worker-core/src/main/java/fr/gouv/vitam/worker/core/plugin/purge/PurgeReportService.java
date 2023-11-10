@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
@@ -47,8 +48,14 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.IOUtils;
 
 import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 
 public class PurgeReportService {
@@ -101,8 +108,10 @@ public class PurgeReportService {
         }
     }
 
-    public CloseableIterator<String> exportDistinctObjectGroups(String processId) throws ProcessingStatusException {
+    public CloseableIterator<String> exportDistinctObjectGroups(HandlerIO handler, String processId)
+        throws ProcessingStatusException {
 
+        // Generate report to workspace
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
 
             batchReportClient.generatePurgeDistinctObjectGroupInUnitReport(processId,
@@ -113,17 +122,29 @@ public class PurgeReportService {
                 "Could not generate distinct object group report for deleted units to workspace", e);
         }
 
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+        // Write report to local file
+        File distinctObjectGroupsReportFile = handler.getNewLocalFile(DISTINCT_REPORT_JSONL);
+
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
+            OutputStream os = new FileOutputStream(distinctObjectGroupsReportFile)) {
 
             Response reportResponse = workspaceClient.getObject(processId, DISTINCT_REPORT_JSONL);
+            IOUtils.copy(new VitamAsyncInputStream(reportResponse), os);
+
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException |
+                 IOException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load report from workspace", e);
+        }
+
+        // Return a stream iterator over local file (to avoid keeping an HTTP connection open too long)
+        try {
             JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
-                new JsonLineGenericIterator<>(new VitamAsyncInputStream(reportResponse),
+                new JsonLineGenericIterator<>(new FileInputStream(distinctObjectGroupsReportFile),
                     JSON_LINE_MODEL_TYPE_REFERENCE);
 
             return CloseableIteratorUtils.map(jsonLineIterator, JsonLineModel::getId);
-
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load report from workspace", e);
+        } catch (IOException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not load local report file", e);
         }
     }
 

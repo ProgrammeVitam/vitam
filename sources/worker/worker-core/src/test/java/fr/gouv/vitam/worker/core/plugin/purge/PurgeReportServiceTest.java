@@ -26,15 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.purge;
 
-import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.ACCESSION_REGISTER_REPORT_JSONL;
-import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.DISTINCT_REPORT_JSONL;
-import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.OBJECT_GROUP_REPORT_JSONL;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-
 import fr.gouv.vitam.batch.report.client.BatchReportClient;
 import fr.gouv.vitam.batch.report.client.BatchReportClientFactory;
 import fr.gouv.vitam.batch.report.model.ReportBody;
@@ -50,24 +41,38 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
+import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.collections4.IteratorUtils;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
+
+import javax.ws.rs.core.Response;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import javax.ws.rs.core.Response;
-import org.apache.commons.collections4.IteratorUtils;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+
+import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.ACCESSION_REGISTER_REPORT_JSONL;
+import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.DISTINCT_REPORT_JSONL;
+import static fr.gouv.vitam.worker.core.plugin.purge.PurgeReportService.OBJECT_GROUP_REPORT_JSONL;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 public class PurgeReportServiceTest {
 
@@ -79,6 +84,9 @@ public class PurgeReportServiceTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private BatchReportClientFactory batchReportClientFactory;
@@ -122,7 +130,8 @@ public class PurgeReportServiceTest {
 
         // Given
         List<PurgeUnitReportEntry> entries = Arrays.asList(
-            new PurgeUnitReportEntry("unit1", "sp1", "opi1", "got1", PurgeUnitStatus.DELETED.name(), null, null, "INGEST"),
+            new PurgeUnitReportEntry("unit1", "sp1", "opi1", "got1", PurgeUnitStatus.DELETED.name(), null, null,
+                "INGEST"),
             new PurgeUnitReportEntry("unit2", "sp2", "opi2", "got2",
                 PurgeUnitStatus.NON_DESTROYABLE_HAS_CHILD_UNITS.name(), null, persistentIdentifiers, "INGEST")
         );
@@ -151,7 +160,7 @@ public class PurgeReportServiceTest {
     @RunWithCustomExecutor
     public void appendEntries() throws Exception {
 
-        List<PersistentIdentifierModel> persistentIdentifier= new ArrayList<>();
+        List<PersistentIdentifierModel> persistentIdentifier = new ArrayList<>();
         final PersistentIdentifierModel persistentIdentifierModel = new PersistentIdentifierModel();
         persistentIdentifierModel.setPersistentIdentifierType("ark");
         persistentIdentifierModel.setPersistentIdentifierContent("ark:/666567/001a957db5eadaac");
@@ -163,8 +172,10 @@ public class PurgeReportServiceTest {
             new PurgeObjectGroupReportEntry("got1", "sp1", "opi1",
                 null, new HashSet<>(Arrays.asList("o1", "o2")), PurgeObjectGroupStatus.DELETED.name(),
                 Arrays.asList(
-                    new PurgeObjectGroupObjectVersion("opi_o_1", 10L, "BinaryMaster_1", "BinaryMaster", persistentIdentifier),
-                    new PurgeObjectGroupObjectVersion("opi_o_2", 100L, "BinaryMaster_1", "BinaryMaster", persistentIdentifier))),
+                    new PurgeObjectGroupObjectVersion("opi_o_1", 10L, "BinaryMaster_1", "BinaryMaster",
+                        persistentIdentifier),
+                    new PurgeObjectGroupObjectVersion("opi_o_2", 100L, "BinaryMaster_1", "BinaryMaster",
+                        persistentIdentifier))),
             new PurgeObjectGroupReportEntry("got2", "sp2", "opi2",
                 new HashSet<>(Collections.singletonList("unit3")), null,
                 PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name(),
@@ -207,16 +218,20 @@ public class PurgeReportServiceTest {
     public void exportDistinctObjectGroups() throws Exception {
 
         // Given
-        InputStream is =
+        HandlerIO handlerIO = mock(HandlerIO.class);
+        File unitObjectGroupsFile = tempFolder.newFile();
+        doReturn(unitObjectGroupsFile).when(handlerIO).getNewLocalFile("unitObjectGroups.jsonl");
+
+        File reportFile =
             PropertiesUtils
-                .getResourceAsStream("EliminationAction/EliminationActionUnitReportService/unitObjectGroups.jsonl");
+                .getResourceFile("EliminationAction/EliminationActionUnitReportService/unitObjectGroups.jsonl");
         Response response = mock(Response.class);
-        doReturn(is).when(response).readEntity(InputStream.class);
+        doReturn(new FileInputStream(reportFile)).when(response).readEntity(InputStream.class);
         doReturn(response).when(workspaceClient).getObject(PROC_ID, DISTINCT_REPORT_JSONL);
 
         // When
         CloseableIterator<String> entries =
-            instance.exportDistinctObjectGroups(PROC_ID);
+            instance.exportDistinctObjectGroups(handlerIO, PROC_ID);
 
         // Then
         ArgumentCaptor<ReportExportRequest> reportExportRequestArgumentCaptor =
@@ -227,6 +242,8 @@ public class PurgeReportServiceTest {
             .isEqualTo(DISTINCT_REPORT_JSONL);
 
         assertThat(IteratorUtils.toList(entries)).containsExactly("got1", "got2");
+        verify(handlerIO).getNewLocalFile("unitObjectGroups.jsonl");
+        assertThat(unitObjectGroupsFile).hasSameContentAs(reportFile);
     }
 
     @Test
