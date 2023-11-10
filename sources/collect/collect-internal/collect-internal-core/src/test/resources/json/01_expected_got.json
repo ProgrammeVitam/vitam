@@ -1,0 +1,126 @@
+[
+  {
+    "#qualifiers": [
+      {
+        "qualifier": "BinaryMaster",
+        "#nbobjects": "1",
+        "versions": [
+          {
+            "#id": "aeaaaaaaaaeaaaabab44mamlsx7dj7iaaaba",
+            "DataObjectVersion": "BinaryMaster_1",
+            "FormatIdentification": {},
+            "FileInfo": {
+              "Filename": "Child D",
+              "LastModified": "2023-11-03T17:22:26.814"
+            },
+            "Size": 0,
+            "Uri": "Content/aeaaaaaaaaeaaaabab44mamlsx7dj7iaaaba",
+            "Algorithm": "SHA-512",
+            "#opi": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq"
+          }
+        ]
+      }
+    ],
+    "#id": "aebaaaaaaaeaaaabab44mamlsx7dj7qaaaaq",
+    "#tenant": 0,
+    "FileInfo": {
+      "Filename": "Child D",
+      "LastModified": "2023-11-03T17:22:26.814"
+    },
+    "#nbobjects": 1,
+    "#opi": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq"
+  },
+  {
+    "#qualifiers": [
+      {
+        "qualifier": "BinaryMaster",
+        "#nbobjects": "1",
+        "versions": [
+          {
+            "#id": "aeaaaaaaaaeaaaabab44mamlsx7djuqaaaba",
+            "DataObjectVersion": "BinaryMaster_1",
+            "FormatIdentification": {},
+            "FileInfo": {
+              "Filename": "Child C",
+              "LastModified": "2023-11-03T17:22:26.789"
+            },
+            "Size": 0,
+            "Uri": "Content/aeaaaaaaaaeaaaabab44mamlsx7djuqaaaba",
+            "Algorithm": "SHA-512",
+            "#opi": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq"
+          }
+        ]
+      }
+    ],
+    "#id": "aebaaaaaaaeaaaabab44mamlsx7dj3aaaaaq",
+    "#tenant": 0,
+    "FileInfo": {
+      "Filename": "Child C",
+      "LastModified": "2023-11-03T17:22:26.789"
+    },
+    "#nbobjects": 1,
+    "#opi": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq"
+  },
+  {
+    "#qualifiers": [
+      {
+        "qualifier": "BinaryMaster",
+        "#nbobjects": "1",
+        "versions": [
+          {
+            "#id": "aeaaaaaaaaeaaaabab44mamlsx7dkaiaaaba",
+            "DataObjectVersion": "BinaryMaster_1",
+            "FormatIdentification": {},
+            "FileInfo": {
+              "Filename": "Child E",
+              "LastModified": "2023-11-03T17:22:26.818"
+            },
+            "Size": 0,
+            "Uri": "Content/aeaaaaaaaaeaaaabab44mamlsx7dkaiaaaba",
+            "Algorithm": "SHA-512",
+            "#opi": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq"
+          }
+        ]
+      }
+    ],
+    "#id": "aebaaaaaaaeaaaabab44mamlsx7dkaqaaaaq",
+    "#tenant": 0,
+    "FileInfo": {
+      "Filename": "Child E",
+      "LastModified": "2023-11-03T17:22:26.818"
+    },
+    "#nbobjects": 1,
+    "#opi": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq"
+  },
+  {
+    "#qualifiers": [
+      {
+        "qualifier": "BinaryMaster",
+        "#nbobjects": "1",
+        "versions": [
+          {
+            "#id": "aeaaaaaaaaeaaaabab44mamlsx7dkayaaaba",
+            "DataObjectVersion": "BinaryMaster_1",
+            "FormatIdentification": {},
+            "FileInfo": {
+              "Filename": "Child F",
+              "LastModified": "2023-11-03T17:22:26.820"
+            },
+            "Size": 0,
+            "Uri": "Content/aeaaaaaaaaeaaaabab44mamlsx7dkayaaaba",
+            "Algorithm": "SHA-512",
+            "#opi": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq"
+          }
+        ]
+      }
+    ],
+    "#id": "aebaaaaaaaeaaaabab44mamlsx7dkbaaaaaq",
+    "#tenant": 0,
+    "FileInfo": {
+      "Filename": "Child F",
+      "LastModified": "2023-11-03T17:22:26.820"
+    },
+    "#nbobjects": 1,
+    "#opi": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq"
+  }
+]

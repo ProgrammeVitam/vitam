@@ -1,0 +1,19 @@
+{
+  "_id": "aeeaaaaaagecf4ubabqu6amlswzeekiaaaaq",
+  "Name": "Alex-transaction-test",
+  "Context": {
+    "ArchivalAgreement": "IC-000001",
+    "MessageIdentifier": "Transaction de test",
+    "ArchivalAgencyIdentifier": "ArchivalAgencyIdentifier5",
+    "TransferringAgencyIdentifier": "TransferingAgencyIdentifier5",
+    "OriginatingAgencyIdentifier": "FRAN_NP_009913",
+    "SubmissionAgencyIdentifier": "FRAN_NP_005761",
+    "ArchivalProfile": "ArchiveProfile5",
+    "Comment": "Commentaires"
+  },
+  "Status": "OPEN",
+  "CreationDate": "2023-11-03T14:59:29.475",
+  "LastUpdate": "2023-11-03T14:59:29.475",
+  "ProjectId": "aeaaaaaaaaecf4ugabkkwamlswxosxqaaaaq",
+  "_tenant": 1
+}

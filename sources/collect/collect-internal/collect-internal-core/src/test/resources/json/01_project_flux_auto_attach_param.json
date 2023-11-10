@@ -1,0 +1,28 @@
+{
+  "_id": "aeaaaaaaaaecf4ugabkkwamlswxosxqaaaaq",
+  "Name": "alex-flux-auto-param-01",
+  "Context": {
+    "ArchivalAgreement": "ertgyhujk",
+    "MessageIdentifier": "alex-flux-auto-param-01",
+    "ArchivalAgencyIdentifier": "ertyhujkl",
+    "TransferringAgencyIdentifier": "edrftgyhujkl",
+    "OriginatingAgencyIdentifier": "sdfghj",
+    "SubmissionAgencyIdentifier": "rtyujkl"
+  },
+  "Status": "OPEN",
+  "CreationDate": "2023-11-03T14:55:50.110",
+  "LastUpdate": "2023-11-03T14:55:50.110",
+  "UnitUps": [
+    {
+      "UnitUp": "aeaqaaaaaeecf4uiaarliamlswm2fjaaaaaq",
+      "MetadataKey": "SubmissionAgency.Identifier",
+      "MetadataValue": "Test01"
+    },
+    {
+      "UnitUp": "aeaqaaaaaeecf4uiaarliamlswm2gjyaaaaq",
+      "MetadataKey": "SubmissionAgency.Identifier",
+      "MetadataValue": "Test02"
+    }
+  ],
+  "_tenant": 1
+}
