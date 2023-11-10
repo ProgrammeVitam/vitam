@@ -43,6 +43,7 @@ import fr.gouv.vitam.storage.engine.client.exception.StorageServerClientExceptio
 import fr.gouv.vitam.storage.engine.common.model.DataCategory;
 import fr.gouv.vitam.storage.engine.common.model.request.ObjectDescription;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
+import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundException;
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
@@ -95,6 +96,16 @@ public abstract class CommonReportService<T> {
             return workspaceClient.isExistingObject(processId, WORKSPACE_REPORT_URI);
         } catch (ContentAddressableStorageServerException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not check report existence in workspace", e);
+        }
+    }
+
+    public void deleteReportFromWorkspaceIfExists(String processId) throws ProcessingStatusException {
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+            if (workspaceClient.isExistingObject(processId, WORKSPACE_REPORT_URI)) {
+                workspaceClient.deleteObject(processId, WORKSPACE_REPORT_URI);
+            }
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not purge existing report from workspace", e);
         }
     }
 

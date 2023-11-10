@@ -38,6 +38,8 @@ import fr.gouv.vitam.batch.report.model.entry.PurgeUnitReportEntry;
 import fr.gouv.vitam.common.collection.CloseableIterator;
 import fr.gouv.vitam.common.collection.CloseableIteratorUtils;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.stream.VitamAsyncInputStream;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -59,6 +61,9 @@ import java.io.OutputStream;
 import java.util.List;
 
 public class PurgeReportService {
+
+    private static final VitamLogger LOGGER =
+        VitamLoggerFactory.getInstance(PurgeReportService.class);
 
     static final String OBJECT_GROUP_REPORT_JSONL = "objectGroupReport.jsonl";
     static final String DISTINCT_REPORT_JSONL = "unitObjectGroups.jsonl";
@@ -111,16 +116,7 @@ public class PurgeReportService {
     public CloseableIterator<String> exportDistinctObjectGroups(HandlerIO handler, String processId)
         throws ProcessingStatusException {
 
-        // Generate report to workspace
-        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
-            batchReportClient.generatePurgeDistinctObjectGroupInUnitReport(processId,
-                new ReportExportRequest(DISTINCT_REPORT_JSONL));
-
-        } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not generate distinct object group report for deleted units to workspace", e);
-        }
+        generateDistinctObjectGroupsToWorkspace(processId);
 
         // Write report to local file
         File distinctObjectGroupsReportFile = handler.getNewLocalFile(DISTINCT_REPORT_JSONL);
@@ -148,7 +144,32 @@ public class PurgeReportService {
         }
     }
 
+    private void generateDistinctObjectGroupsToWorkspace(String processId) throws ProcessingStatusException {
+
+        if (isReportAlreadyExisting(processId, DISTINCT_REPORT_JSONL)) {
+            LOGGER.info(DISTINCT_REPORT_JSONL + " report already exists. No need for regeneration (idempotency)");
+            return;
+        }
+
+        // Generate report to workspace
+        try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
+
+            batchReportClient.generatePurgeDistinctObjectGroupInUnitReport(processId,
+                new ReportExportRequest(DISTINCT_REPORT_JSONL));
+
+        } catch (VitamClientInternalException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL,
+                "Could not generate distinct object group report for deleted units to workspace", e);
+        }
+    }
+
     public void exportAccessionRegisters(String processId) throws ProcessingStatusException {
+
+        if (isReportAlreadyExisting(processId, ACCESSION_REGISTER_REPORT_JSONL)) {
+            LOGGER.info(ACCESSION_REGISTER_REPORT_JSONL +
+                " report already exists. No need for regeneration (idempotency)");
+            return;
+        }
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
             batchReportClient.generatePurgeAccessionRegisterReport(
@@ -169,5 +190,19 @@ public class PurgeReportService {
             throw new ProcessingStatusException(StatusCode.FATAL,
                 "Could not cleanup purge reports (" + processId + ")", e);
         }
+    }
+
+    private boolean isReportAlreadyExisting(String processId, String reportFileName) throws ProcessingStatusException {
+        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
+
+            if (workspaceClient.isExistingObject(processId, reportFileName)) {
+                return true;
+            }
+
+        } catch (ContentAddressableStorageServerException e) {
+            throw new ProcessingStatusException(StatusCode.FATAL,
+                "Could not check report existence in workspace", e);
+        }
+        return false;
     }
 }
