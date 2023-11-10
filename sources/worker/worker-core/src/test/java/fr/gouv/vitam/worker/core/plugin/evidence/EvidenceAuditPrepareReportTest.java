@@ -51,6 +51,7 @@ import java.io.File;
 
 import static fr.gouv.vitam.common.json.JsonHandler.getFromInputStream;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class EvidenceAuditPrepareReportTest {
@@ -93,6 +94,9 @@ public class EvidenceAuditPrepareReportTest {
 
         ItemStatus execute = evidenceAuditPrepareReport.execute(defaultWorkerParameters, handlerIO);
         Assertions.assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
+        verify(evidenceAuditReportService).deleteReportFromWorkspaceIfExists(any());
+        verify(evidenceAuditReportService).storeReportToWorkspace(any());
     }
 
     @RunWithCustomExecutor
@@ -107,5 +111,8 @@ public class EvidenceAuditPrepareReportTest {
 
         ItemStatus execute = evidenceAuditPrepareReport.execute(defaultWorkerParameters, handlerIO);
         Assertions.assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
+
+        verify(evidenceAuditReportService).deleteReportFromWorkspaceIfExists(any());
+        verify(evidenceAuditReportService).storeReportToWorkspace(any());
     }
 }
