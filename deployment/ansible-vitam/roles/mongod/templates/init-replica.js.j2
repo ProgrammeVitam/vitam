@@ -1,3 +1,4 @@
+#jinja2: lstrip_blocks: True
 /*
  * IMPORTANT :
  * - This script creates mongod replica set on first Vitam installation.
@@ -8,7 +9,7 @@
  */
 
 function checkExistingReplicaSet() {
-
+    print("INFO: checkExistingReplicaSet");
     var rsStatus = rs.status();
 
     if(!rsStatus.ok) {
@@ -28,7 +29,7 @@ function checkExistingReplicaSet() {
 }
 
 function checkExistingReplicaSetMembers() {
-
+    print("INFO: checkExistingReplicaSetMembers");
     var rsConfig = rs.config();
 
     let targetMembers = buildTargetReplicaSetMemberConfiguration();
@@ -57,27 +58,27 @@ function checkExistingReplicaSetMembers() {
 }
 
 function buildTargetReplicaSetMemberConfiguration() {
+    print("INFO: buildTargetReplicaSetMemberConfiguration");
     var idCpt = 0;
-    let members = [ { _id: idCpt++, host: "{{ ip_service }}:{{ mongodb.mongod_port }}", arbiterOnly: false } ];
+    let members = [];
 {% for host in groups[group_name] %}
-    {% if mongo_cluster_name == hostvars[host]['mongo_cluster_name'] %}
-        {% if mongo_shard_id == hostvars[host]['mongo_shard_id'] %}
-            {% if hostvars[host]['mongo_rs_bootstrap'] is not defined or hostvars[host]['mongo_rs_bootstrap'] | lower != "true" %}
+    {% if mongo_cluster_name == hostvars[host]['mongo_cluster_name'] and mongo_shard_id == hostvars[host]['mongo_shard_id'] %}
     members.push({
         _id: idCpt++,
         host: "{{ hostvars[host]['ip_service'] }}:{{ mongodb.mongod_port }}",
-        priority: {{ '10' if (hostvars[host]['is_small'] is not defined or hostvars[host]['is_small'] | lower != "true") else '1'}},
-        arbiterOnly: {{ 'true' if (hostvars[host]['mongo_arbiter'] is defined and hostvars[host]['mongo_arbiter'] | lower == "true") else 'false'}}
-    });
-            {% endif %}
+        {% if (hostvars[host]['mongo_rs_bootstrap'] | default(false) | bool != true) and (hostvars[host]['mongo_arbiter'] | default(false) | bool == true) %}
+        arbiterOnly: true
+        {% else %}
+        priority: {{ '1' if (hostvars[host]['is_small'] | default(false) | bool == true) else '10' }}
         {% endif %}
+    });
     {% endif %}
 {% endfor %}
     return members;
 }
 
 function initReplicaSetPrimary() {
-
+    print("INFO: initReplicaSetPrimary");
     let members = buildTargetReplicaSetMemberConfiguration();
 
     let rsInit = rs.initiate(
@@ -94,7 +95,7 @@ function initReplicaSetPrimary() {
 }
 
 function waitForReplicaSetPrimaryElection() {
-
+    print("INFO: waitForReplicaSetPrimaryElection");
     var status;
     for (let i = 0; i < 60; i++) {
 
@@ -119,7 +120,7 @@ function waitForReplicaSetPrimaryElection() {
 }
 
 function waitForWritablePrimary() {
-
+    print("INFO: waitForWritablePrimary");
     var instanceStatus;
     for (let i = 0; i < 60; i++) {
 
@@ -131,7 +132,7 @@ function waitForWritablePrimary() {
         }
 
         if(instanceStatus.isWritablePrimary) {
-            print("OK : Primary node is writable");
+            print("OK : Primary node " + instanceStatus.primary + " is writable");
             return;
         }
 
