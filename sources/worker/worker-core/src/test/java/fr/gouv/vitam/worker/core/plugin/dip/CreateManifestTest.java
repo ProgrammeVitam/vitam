@@ -39,7 +39,6 @@ import fr.gouv.vitam.common.model.export.ExportRequest;
 import fr.gouv.vitam.common.model.export.ExportRequestParameters;
 import fr.gouv.vitam.common.model.processing.ProcessingUri;
 import fr.gouv.vitam.common.model.processing.UriPrefix;
-import fr.gouv.vitam.common.stream.StreamUtils;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -556,7 +555,7 @@ public class CreateManifestTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_not_exceed_threshold() throws Exception {
+    public void should_return_KO_status_when_exceeding_threshold() throws Exception {
         // Given
         HandlerIO handlerIO = mock(HandlerIO.class);
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
@@ -612,7 +611,7 @@ public class CreateManifestTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_not_exceed_threshold_when_export_only_manifest() throws Exception {
+    public void should_return_KO_status_when_exceeding_threshold_with_only_manifest() throws Exception {
         // Given
         HandlerIO handlerIO = mock(HandlerIO.class);
         MetaDataClient metaDataClient = mock(MetaDataClient.class);
@@ -653,7 +652,8 @@ public class CreateManifestTest {
         given(handlerIO.getNewLocalFile(reportFile.getPath())).willReturn(reportFile);
 
         ExportRequest exportRequest = getExportRequest(queryUnit);
-        exportRequest.setMaxSizeThreshold(7000L);
+        // We set threshold to 10 to be sure it's smaller than manifest size
+        exportRequest.setMaxSizeThreshold(10L);
         given(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME)).willReturn(JsonHandler.toJsonNode(exportRequest));
 
         WorkerParameters wp = WorkerParametersFactory.newWorkerParameters();
