@@ -215,4 +215,4 @@
       tags:
         - update_mongodb_configuration
 
-  when: mongo_rs_bootstrap is defined and mongo_rs_bootstrap | lower == "true"
+  when: mongo_rs_bootstrap | default(false) | bool == true
