@@ -216,7 +216,7 @@ pipeline {
 
                     )
                     updateGitlabCommitStatus name: 'mergerequest', state: "success"
-                    addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.preprod.programmevitam.fr/dashboard?id=${gitlabSourceBranch}) de la branche"
+                    addGitLabMRComment comment: "pipeline-job : [analyse sonar](https://sonar.dev.programmevitam.fr/dashboard?id=${gitlabSourceBranch}) de la branche"
                 }
                 failure {
                     updateGitlabCommitStatus name: 'mergerequest', state: "failed"
