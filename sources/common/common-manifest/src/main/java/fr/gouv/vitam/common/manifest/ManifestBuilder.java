@@ -37,7 +37,6 @@ import fr.gouv.culture.archivesdefrance.seda.v2.BinaryDataObjectType;
 import fr.gouv.culture.archivesdefrance.seda.v2.CodeListVersionsType;
 import fr.gouv.culture.archivesdefrance.seda.v2.CodeType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectGroupType;
-import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectOrArchiveUnitReferenceType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectPackageType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
 import fr.gouv.culture.archivesdefrance.seda.v2.EventLogBookOgType;
@@ -74,6 +73,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.bson.Document;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -92,6 +92,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -184,7 +185,7 @@ public class ManifestBuilder implements AutoCloseable {
 
         // Default to 2.2 till official SEDA 2.3 is available
         this.supportedSedaVersion =
-            supportedSedaVersion != null? supportedSedaVersion :SupportedSedaVersions.SEDA_2_2;
+            supportedSedaVersion != null ? supportedSedaVersion : SupportedSedaVersions.SEDA_2_2;
     }
 
     public void startDocument(String operationId, ExportType exportType,
@@ -334,24 +335,24 @@ public class ManifestBuilder implements AutoCloseable {
                 dataObjectGroup), writer);
     }
 
-
     public ArchiveUnitModel writeArchiveUnit(ArchiveUnitModel archiveUnitModel, ListMultimap<String, String> multimap,
         Map<String, String> ogs)
         throws JAXBException, DatatypeConfigurationException, ExportException {
-        ArchiveUnitType archiveUnitType = mapUnitModelToXML(archiveUnitModel, multimap, ogs);
-        marshaller.marshal(archiveUnitType, writer);
-        return archiveUnitModel;
+        return writeArchiveUnitWithLFC(archiveUnitModel, multimap, ogs, null);
     }
 
-    public ArchiveUnitModel writeArchiveUnitWithLFC(ListMultimap<String, String> multimap, Map<String, String> ogs,
-        LogbookLifeCycleUnit logbookLFC, ArchiveUnitModel archiveUnitModel)
+    public ArchiveUnitModel writeArchiveUnitWithLFC(ArchiveUnitModel archiveUnitModel,
+        ListMultimap<String, String> multimap, Map<String, String> ogs,
+        @Nullable LogbookLifeCycleUnit logbookLFC)
         throws DatatypeConfigurationException, JAXBException, ExportException {
         ArchiveUnitType archiveUnitType = mapUnitModelToXML(archiveUnitModel, multimap, ogs);
-        LogBookType logBookType = addArchiveUnitLogbookType(logbookLFC);
-        if(archiveUnitType.getManagement() == null){
-            archiveUnitType.setManagement(new ManagementType());
+        if (logbookLFC != null) {
+            LogBookType logBookType = addArchiveUnitLogbookType(logbookLFC);
+            if (archiveUnitType.getManagement() == null) {
+                archiveUnitType.setManagement(new ManagementType());
+            }
+            archiveUnitType.getManagement().setLogBook(logBookType);
         }
-        archiveUnitType.getManagement().setLogBook(logBookType);
         marshaller.marshal(archiveUnitType, writer);
         return archiveUnitModel;
     }
@@ -374,18 +375,15 @@ public class ManifestBuilder implements AutoCloseable {
         }
         xmlUnit.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().addAll(unitChildren);
 
-        if (ogs.containsKey(xmlUnit.getId())) {
-
-            DataObjectOrArchiveUnitReferenceType dataObjectReference = new DataObjectOrArchiveUnitReferenceType();
-            DataObjectRefType value = new DataObjectRefType();
-            value.setDataObjectGroupReferenceId(ogs.get(xmlUnit.getId()));
-
-            dataObjectReference.setDataObjectReference(value);
-
-            JAXBElement<DataObjectRefType> archiveUnitTypeDataObjectReference =
-                objectFactory.createArchiveUnitTypeDataObjectReference(value);
-            xmlUnit.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().add(archiveUnitTypeDataObjectReference);
-        }
+        Optional.ofNullable(ogs)
+            .map(tmp -> tmp.get(xmlUnit.getId()))
+            .ifPresent(og -> {
+                final DataObjectRefType value = new DataObjectRefType();
+                value.setDataObjectGroupReferenceId(og);
+                JAXBElement<DataObjectRefType> archiveUnitTypeDataObjectReference =
+                    objectFactory.createArchiveUnitTypeDataObjectReference(value);
+                xmlUnit.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().add(archiveUnitTypeDataObjectReference);
+            });
 
         return xmlUnit;
     }

@@ -44,7 +44,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -202,5 +201,35 @@ public class ManifestBuilderTest {
         ruleCategoryModel.getRules().add(rule);
 
         return ruleCategoryModel;
+    }
+
+    @Test
+    public void should_write_archive_unit_with_DataObjectGroupReferenceId_tag_only_if_object_groups_is_not_empty()
+        throws Exception {
+        final String archiveUnitModelId = "1234564";
+        final String dataObjectGroupReferenceId = "654321";
+
+        final ArchiveUnitModel archiveUnitModel = new ArchiveUnitModel();
+        archiveUnitModel.setId(archiveUnitModelId);
+        archiveUnitModel.setDescriptiveMetadataModel(new DescriptiveMetadataModel());
+
+        final ListMultimap<String, String> multimap = mock(ListMultimap.class);
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ManifestBuilder manifestBuilder = new ManifestBuilder(outputStream, SupportedSedaVersions.SEDA_2_3);
+        manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, null);
+        Assert.assertFalse(outputStream.toString().contains("DataObjectGroupReferenceId>" + dataObjectGroupReferenceId + "</"));
+
+        outputStream = new ByteArrayOutputStream();
+        manifestBuilder = new ManifestBuilder(outputStream, SupportedSedaVersions.SEDA_2_3);
+        manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, Map.of());
+        Assert.assertFalse(outputStream.toString().contains("DataObjectGroupReferenceId>" + dataObjectGroupReferenceId + "</"));
+
+        outputStream = new ByteArrayOutputStream();
+        manifestBuilder = new ManifestBuilder(outputStream, SupportedSedaVersions.SEDA_2_3);
+        manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, Map.of(
+            archiveUnitModelId, dataObjectGroupReferenceId
+        ));
+        Assert.assertTrue(outputStream.toString().contains("DataObjectGroupReferenceId>" + dataObjectGroupReferenceId + "</"));
     }
 }
