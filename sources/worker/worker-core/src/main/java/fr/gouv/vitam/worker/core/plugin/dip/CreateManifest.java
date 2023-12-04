@@ -90,6 +90,7 @@ import fr.gouv.vitam.worker.core.plugin.transfer.TransferReportHeader;
 import fr.gouv.vitam.worker.core.plugin.transfer.TransferReportLine;
 import fr.gouv.vitam.worker.core.plugin.transfer.TransferStatus;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.collections4.MapUtils;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -348,22 +349,22 @@ public class CreateManifest extends ActionHandler {
                     try {
                         ArchiveUnitModel unit;
                         ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(result, ArchiveUnitModel.class);
-                        if (exportWithLogBookLFC) {
-                            JsonNode response =
-                                logbookLifeCyclesClient.selectUnitLifeCycleById(archiveUnitModel.getId(),
-                                    select.getFinalSelect());
-                            if (response != null && response.has(TAG_RESULTS) && response.get(TAG_RESULTS).size() > 0) {
-                                JsonNode rootEvent = response.get(TAG_RESULTS).get(0);
-                                LogbookLifeCycleUnit logbookLFC = new LogbookLifeCycleUnit(rootEvent);
 
-                                unit = manifestBuilder
-                                    .writeArchiveUnitWithLFC(multimap, ogs, logbookLFC, archiveUnitModel);
-                            } else {
-                                unit = manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
-                            }
-                        } else {
-                            unit = manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
-                        }
+                        final JsonNode response =
+                            exportWithLogBookLFC ?
+                                logbookLifeCyclesClient.selectUnitLifeCycleById(archiveUnitModel.getId(),
+                                    select.getFinalSelect()) :
+                                null;
+                        final LogbookLifeCycleUnit logbookLFC = Optional.ofNullable(response)
+                            .map(r -> r.get(TAG_RESULTS))
+                            .map(node -> node.get(0))
+                            .map(LogbookLifeCycleUnit::new)
+                            .orElse(null);
+                        // If we export no GOT, we exclude object groups
+                        final Map<String, String> filteredOgs = MapUtils.isEmpty(idBinaryWithFileName) ? Map.of() : ogs;
+                        unit = manifestBuilder.writeArchiveUnitWithLFC(archiveUnitModel, multimap, filteredOgs,
+                            logbookLFC);
+
                         if (ArchiveTransfer.equals(exportRequest.getExportType())) {
                             List<String> opts = ListUtils.defaultIfNull(unit.getOpts(), new ArrayList<>());
                             TransferStatus status = opts.isEmpty() ?
