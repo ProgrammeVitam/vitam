@@ -10,8 +10,7 @@
   retries: "{{ packages_install_retries_number }}"
   until: result is succeeded
   delay: "{{ packages_install_retries_delay }}"
-  notify:
-    - "mongoc - restart service"
+  notify: "mongoc - restart service"
 
 - name: Disable mongod default service
   service:
@@ -26,8 +25,7 @@
     owner: root
     group: root
     mode: "0644"
-  notify:
-    - "mongoc - restart service"
+  notify: "mongoc - restart service"
 
 #### Configuration ####
 
@@ -47,10 +45,8 @@
     - log
     - script
     - tmp
-  tags:
-    - update_mongodb_configuration
-  notify:
-    - "mongoc - restart service"
+  tags: update_mongodb_configuration
+  notify: "mongoc - restart service"
 
 - name: Create db directory
   file:
@@ -59,10 +55,8 @@
     group: "{{ vitam_defaults.users.group }}"
     state: directory
     mode: "{{ vitam_defaults.folder.folder_permission }}"
-  tags:
-    - update_mongodb_configuration
-  notify:
-    - "mongoc - restart service"
+  tags: update_mongodb_configuration
+  notify: "mongoc - restart service"
 
 - name: Create the mongoc configuration server file
   template:
@@ -71,10 +65,8 @@
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: "{{ vitam_defaults.folder.conf_permission }}"
-  tags:
-    - update_mongodb_configuration
-  notify:
-    - "mongoc - restart service"
+  tags: update_mongodb_configuration
+  notify: "mongoc - restart service"
 
 - name: Enable logrotate for vitam-mongoc
   template:
@@ -122,15 +114,12 @@
     owner: "{{ vitam_defaults.users.vitamdb }}"
     group: "{{ vitam_defaults.users.group }}"
     mode: 0600
-  tags:
-    - update_mongodb_configuration
-  notify:
-    - "mongoc - restart service"
+  tags: update_mongodb_configuration
+  notify: "mongoc - restart service"
 
 # Ensure that the installation is complete and consul up before continuing...
 - meta: flush_handlers
-  tags:
-    - update_mongodb_configuration
+  tags: update_mongodb_configuration
 
 - name: Ensure {{ mongo_cluster_name }}-mongoc service is started at boot
   service:
@@ -167,10 +156,8 @@
         host: "{{ hostvars[item]['ip_service'] }}"
         port: "{{ mongodb.mongoc_port }}"
         timeout: "{{ vitam_defaults.services.start_timeout }}"
-      tags:
-        - update_mongodb_configuration
-      when:
-        - "hostvars[item]['mongo_cluster_name'] == mongo_cluster_name"
+      tags: update_mongodb_configuration
+      when: hostvars[item]['mongo_cluster_name'] == mongo_cluster_name
       with_items: "{{ groups[group_name] }}"
 
     - name: Copy the script which initiate the replica set
@@ -180,8 +167,7 @@
         owner: "{{ vitam_defaults.users.vitamdb }}"
         group: "{{ vitam_defaults.users.group }}"
         mode: "{{ vitam_defaults.folder.conf_permission }}"
-      tags:
-        - update_mongodb_configuration
+      tags: update_mongodb_configuration
 
     - name: Copy script that restore configuration of mongoc replicaSet
       template:
@@ -190,15 +176,19 @@
         owner: "{{ vitam_defaults.users.vitamdb }}"
         group: "{{ vitam_defaults.users.group }}"
         mode: "{{ vitam_defaults.folder.conf_permission }}"
-      tags:
-        - update_mongodb_configuration
+      tags: update_mongodb_configuration
 
     - name: Initiate the replica set
-      command: "mongo --host {{ ip_service }} --port {{ mongodb.mongoc_port }} {{ vitam_defaults.folder.root_path }}/app/mongoc/init-replica-config.js"
-      tags:
-        - update_mongodb_configuration
+      command: "mongosh --host {{ ip_service }} --port {{ mongodb.mongoc_port }} --quiet --file {{ vitam_defaults.folder.root_path }}/app/mongoc/init-replica-config.js"
+      tags: update_mongodb_configuration
 
     # Create the local shard admin user
+    - name: Compute list of mongoc_nodes
+      set_fact:
+        mongoc_nodes: "{{ mongoc_nodes | default([]) + [ hostvars[item]['ip_service'] + ':' + mongodb.mongoc_port | string ] }}"
+      loop: "{{ groups[group_name] }}"
+      when: hostvars[item]['mongo_cluster_name'] == mongo_cluster_name
+      tags: update_mongodb_configuration
 
     - name: Copy the script which create the local users
       template:
@@ -207,12 +197,10 @@
         owner: "{{ vitam_defaults.users.vitamdb }}"
         group: "{{ vitam_defaults.users.group }}"
         mode: "{{ vitam_defaults.folder.conf_permission }}"
-      tags:
-        - update_mongodb_configuration
+      tags: update_mongodb_configuration
 
     - name: Create the local shard user
-      command: "mongo --host configsvr/{{ ip_service }}:{{ mongodb.mongoc_port }} {{ vitam_defaults.folder.root_path }}/app/mongoc/local-user.js"
-      tags:
-        - update_mongodb_configuration
+      command: "mongosh --host configsvr/{{ mongoc_nodes | join(',') }} --quiet --file {{ vitam_defaults.folder.root_path }}/app/mongoc/local-user.js"
+      tags: update_mongodb_configuration
 
   when: mongo_rs_bootstrap | default(false) | bool == true
