@@ -143,6 +143,7 @@
     - fail:
         msg: "ERROR: mongo_rs_bootstrap node can't be mongo_arbiter !"
       when: mongo_arbiter | default(false) | bool == true
+      tags: update_mongodb_configuration
 
     - name: Wait for the service port to be open on all members of the replica
       wait_for:
@@ -150,8 +151,8 @@
         port: "{{ mongodb.mongod_port }}"
         timeout: "{{ vitam_defaults.services.start_timeout }}"
       when:
-        - "hostvars[item]['mongo_cluster_name'] == mongo_cluster_name"
-        - "hostvars[item]['mongo_shard_id'] == mongo_shard_id"
+        - hostvars[item]['mongo_cluster_name'] == mongo_cluster_name
+        - hostvars[item]['mongo_shard_id'] == mongo_shard_id
       with_items: "{{ groups[group_name] }}"
       tags: update_mongodb_configuration
 
@@ -174,10 +175,19 @@
       tags: update_mongodb_configuration
 
     - name: Initiate the replica set
-      command: "mongo --host {{ ip_service }} --port {{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/init-replica.js"
+      command: "mongosh --host {{ ip_service }} --port {{ mongodb.mongod_port }} --quiet --file {{ vitam_defaults.folder.root_path }}/app/mongod/init-replica.js"
       tags: update_mongodb_configuration
 
     # Create the local shard admin user
+    - name: Compute list of mongod_nodes
+      set_fact:
+        mongod_nodes: "{{ mongod_nodes | default([]) + [ hostvars[item]['ip_service'] + ':' + mongodb.mongod_port | string ] }}"
+      loop: "{{ groups[group_name] }}"
+      when:
+        - hostvars[item]['mongo_cluster_name'] == mongo_cluster_name
+        - hostvars[item]['mongo_shard_id'] == mongo_shard_id
+        - hostvars[item]['mongo_arbiter'] | default(false) | bool == false
+      tags: update_mongodb_configuration
 
     - name: Copy the script which create the local users
       template:
@@ -189,7 +199,7 @@
       tags: update_mongodb_configuration
 
     - name: Create the local shard user
-      command: "mongo --host shard{{ mongo_shard_id }}/{{ ip_service }}:{{ mongodb.mongod_port }} {{ vitam_defaults.folder.root_path }}/app/mongod/local-user.js"
+      command: "mongosh --host shard{{ mongo_shard_id }}/{{ mongod_nodes | join(',') }} --quiet --file {{ vitam_defaults.folder.root_path }}/app/mongod/local-user.js"
       tags: update_mongodb_configuration
 
   when: mongo_rs_bootstrap | default(false) | bool == true
