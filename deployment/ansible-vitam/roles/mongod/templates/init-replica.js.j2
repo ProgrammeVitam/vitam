@@ -69,6 +69,7 @@ function buildTargetReplicaSetMemberConfiguration() {
         {% if (hostvars[host]['mongo_rs_bootstrap'] | default(false) | bool != true) and (hostvars[host]['mongo_arbiter'] | default(false) | bool == true) %}
         arbiterOnly: true
         {% else %}
+        arbiterOnly: false,
         priority: {{ '1' if (hostvars[host]['is_small'] | default(false) | bool == true) else '10' }}
         {% endif %}
     });
