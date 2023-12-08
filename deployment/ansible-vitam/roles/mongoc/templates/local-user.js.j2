@@ -2,9 +2,36 @@
  * No need for authentication when executing this script since "security.authorization" absent / removed from server configuration before script execution.
  */
 
+function waitForWritablePrimary() {
+    print("INFO: waitForWritablePrimary");
+    var instanceStatus;
+    for (let i = 0; i < 60; i++) {
+
+        instanceStatus = db.hello();
+
+        if (!instanceStatus.ok) {
+            printjson(instanceStatus);
+            throw "ERROR : Cannot get db instance status";
+        }
+
+        if (instanceStatus.isWritablePrimary) {
+            print("OK : Primary node " + instanceStatus.primary + " is writable");
+            return;
+        }
+
+        // Retry later
+        sleep(1000);
+    }
+
+    printjson(instanceStatus);
+    throw "ERROR : Timeout - NO PRIMARY NODE FOUND";
+}
+
+waitForWritablePrimary();
+
 admin = db.getSiblingDB("admin")
 
-if (! admin.getUser("{{ mongodb[mongo_cluster_name].localadmin.user }}")) {
+if (!admin.getUser("{{ mongodb[mongo_cluster_name].localadmin.user }}")) {
     admin.createUser(
         {
             user: "{{ mongodb[mongo_cluster_name].localadmin.user }}",
@@ -12,8 +39,7 @@ if (! admin.getUser("{{ mongodb[mongo_cluster_name].localadmin.user }}")) {
             roles: [ { role: "clusterAdmin", db: "admin" } ]
         }
     )
-}
-else {
+} else {
     admin.updateUser(
         "{{ mongodb[mongo_cluster_name].localadmin.user }}",
         {
