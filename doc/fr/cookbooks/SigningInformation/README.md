@@ -1,54 +1,39 @@
 # Signature électronique - Cookbook
 
-Le présent repository décrit la modélisation des documents signés numériquement au format SEDA 2.3+ en vue de leur
-archivage.
+Le présent cookbook décrit la modélisation des documents signés numériquement au format SEDA en vue de leur archivage.
 
 ## Généralités
 
-La version 2.3, la norme SEDA prévoit de pouvoir décrire les différents types de document signé numériquement, ainsi que
-les éventuels documents annexes à la signature électronique.
+Dans sa version 2.3, le standard SEDA prévoit de pouvoir décrire les différents types de document signé numériquement, ainsi que les éventuels documents annexes à la signature électronique.
+Par anticipation, la solution logicielle Vitam intègre la description de document signé numériquement dans la version 2.2 du SEDA.
 
-La norme distingue 4 types de **rôle** (ou **étiquette**) :
+Le standard distingue 4 types de **rôle** (ou **étiquette**) :
 
-- **Le document signé** : Il s'agit de tout contenu numérique, tel un rapport textuel, un contrat au format PDF, ou un
-  document xml, qui fait l'objet d'une signature numérique.
+- **Le document signé** : il s'agit de tout contenu numérique, tel qu'un rapport textuel, un contrat au format PDF, ou un document XML, qui fait l'objet d'une signature numérique.
 
-- **La signature numérique** ou **signature électronique** : Il s'agit de l'équivalent numérique d'une "signature
-  manuscrite" ou d'un "cachet" qui atteste de l'authenticité d'un document numérique et de l'identité de la personne ou
-  de l'entité qui l'a signé. Elle est générée à l'aide de méthodes cryptographiques la rendant quasi-infalsifiable.
+- **La signature numérique** ou **signature électronique** : il s'agit de l'équivalent numérique d'une "signature manuscrite" ou d'un "cachet" qui atteste de l'authenticité d'un document numérique et de l'identité de la personne ou de l'entité qui l'a signé. Elle est générée à l'aide de méthodes cryptographiques la rendant quasi-infalsifiable.
 
-- **Horodatage** : Il s'agit d'un marqueur temporel appliqué à un document numérique. Cela permet de prouver l'existence
-  du contenu numérique à une date/heure spécifique. L'horodatage implique l'ajout d'une empreinte cryptographique
-  temporelle fiable et vérifiable, typiquement créée par une source de confiance.
+- **Horodatage** : il s'agit d'un marqueur temporel appliqué à un document numérique. Cela permet de prouver l'existence du contenu numérique à une date/heure spécifique. L'horodatage implique l'ajout d'une empreinte cryptographique temporelle fiable et vérifiable, typiquement créée par une source de confiance.
 
-- **Preuves complémentaires** : Ensemble des données renforçant la crédibilité de la signature numérique. Elles peuvent
-  inclure des informations diverses sur le contexte de signature telles que l'adresse IP de l'appareil utilisé pour
-  signer, preuves de connexion ou d'authentification, version technique du dispositif de signature ou de l'outil
-  validant la signature...etc. Ces données sont typiquement dans un format non standardisé selon l'outil qui les
-  génère.
+- **Preuves complémentaires** : ensemble des données renforçant la crédibilité de la signature numérique. Elles peuvent inclure des informations diverses sur le contexte de signature telles que l'adresse IP de l'appareil utilisé pour signer, des preuves de connexion ou d'authentification, la version technique du dispositif de signature ou de l'outil validant la signature, etc. Ces données sont produites dans un format non standardisé selon l'outil qui les génère.
 
-Un seul objet binaire peut porter plusieurs rôles à la fois. Il peut par exemple contenir le document signé, une ou
-plusieurs signatures numériques ainsi qu'un ou plusieurs horodatages dans un même binaire au format PDF ou XML.
+Un seul objet binaire peut porter plusieurs rôles à la fois. Il peut par exemple contenir le document signé, une ou plusieurs signatures numériques ainsi qu'un ou plusieurs horodatages dans un même binaire au format PDF ou XML.
 
-À contrario, il est également possible que les rôles de signature puissent être portés par des binaires distincts. Par
-exemple, un premier objet binaire contient le document signé, et un second contient la signature effective. On parle
-alors de *signature détachée*.
+A contrario, il est également possible que les rôles de signature puissent être portés par des objets binaires distincts. Par exemple, un premier objet binaire contient le document signé, et un second contient la signature effective. On parle alors de *signature détachée*.
 
-## Prise en charge de la signature électronique dans la norme SEDA
+## Prise en charge de la signature électronique dans le standard SEDA
 
-> **Important** : Les versions `2.1` et `2.2` de la norme SEDA prévoient une balise `<Signature>` (au sein
-> du `BaseObjectGroup`). Cette balise est dépréciée et supprimée à partir de la version 2.3 de la norme.
->
->  L'utilisation de la balise `<Signature>` est **fortement déconseillée**.
+**Important** :
 
-> **Important** : Vitam ne prévoit pas de migration ou de reprise de données pour les anciennes balises `<Signature>`
+> Les versions `2.1` et `2.2` du standard SEDA prévoient un bloc `<Signature>` (au sein du bloc `BaseObjectGroup`). Ce bloc est déprécié et supprimé à partir de la version 2.3 du standard.
 
-> **Important** : La description des informations de signature est purement déclarative. Vitam ne fait **AUCUN**
-> contrôle de cohérence structurelle (ex. Hiérarchie des unités d'archives détachées), ou de validité technique
-> (ex. format de signature, validation cryptographique de la signature, date de signature ou d'horodatage...etc.).
+> L'utilisation du bloc `<Signature>` est **fortement déconseillée**.
 
-La norme SEDA 2.3 permet de modéliser les informations de signature électronique via une nouvelle balise englobante
-`<SigningInformation>` qui remplace la balise `<Signature>` des précédentes versions du SEDA :
+> Vitam ne prévoit pas de migration ou de reprise de données pour les anciens champs du bloc `<Signature>`.
+
+> La description des informations de signature est purement déclarative. Vitam ne fait **AUCUN** contrôle de cohérence structurelle (ex. hiérarchie des unités archivistiques détachées), ou de validité technique (ex. format de signature, validation cryptographique de la signature, date de signature ou d'horodatage, etc.).
+
+Le standard SEDA 2.3 permet de modéliser les informations de signature électronique via un nouveau bloc englobant `<SigningInformation>` qui remplace le bloc `<Signature>` des précédentes versions du SEDA :
 
 ```mermaid
 classDiagram
@@ -59,10 +44,11 @@ classDiagram
     SigningInformation --> AdditionalProofType
     SignatureDescriptionType --> SignerType
     SignatureDescriptionType --> ValidatorType
+	
     class SigningInformation {
         [SigningRoleType] SigningRole [1..n]
         [DetachedSigningRoleType] DetachedSigningRole [0..n]
-        [xsd:IDREF] SignedDocumentReferenceId [0..n] - Unsupported by Vitam*
+        [xsd:IDREF] SignedDocumentReferenceId [0..n] - **Unsupported by Vitam**
         [SignatureDescriptionType] SignatureDescription [0..n]
         [TimestampingInformationType] TimestampingInformation [0..n]
         [AdditionalProofType] AdditionalProof [0..n]
@@ -105,85 +91,59 @@ classDiagram
     }
 ```
 
-La balise `<SigningInformation>` permet de décrire les informations de signature de l'objet binaire associé à l'unité
-d'archive déclarante :
+Le bloc `<SigningInformation>` permet de décrire les informations de signature de l'objet binaire associé à l'unité archivistique et inclut :
 
-- `<SigningRole>` : Décrit le ou les rôles de signature de l'objet binaire. Ces rôles peuvent être combinés, mais pas ne
-  doivent pas être répétés (pas de doublons) :
-    - `SignedDocument` : Le binaire contient le document signé
-    - `Signature` : Le binaire contient une ou plusieurs signatures
-    - `Timestamp` : Le binaire contient un ou plusieurs données d'horodatage
-    - `AdditionalProof` : Le binaire contient des preuves complémentaires.
+- `<SigningRole>` : décrit le ou les rôles de signature de l'objet binaire. Ces rôles peuvent être combinés, mais ne doivent pas être répétés (pas de doublon possible) :
+  - `SignedDocument` : le binaire contient le document signé,
+  - `Signature` : le binaire contient une ou plusieurs signatures,
+  - `Timestamp` : le binaire contient une ou plusieurs données d'horodatage,
+  - `AdditionalProof` : le binaire contient des preuves complémentaires.
 
-- `<DetachedSigningRole>` : Décrit les éventuels rôles détachés relatifs au présent binaire, au sein d'un ou plusieurs
-  autres objets binaires annexes. Ces rôles peuvent être combinés, mais pas ne doivent pas être répétés (pas de
-  doublons) :
-    - `Signature` : Une signature détachée du présent binaire est présente dans un binaire annexe.
-    - `Timestamp` : Un horodatage détaché du présent binaire est présente dans un binaire annexe.
-    - `AdditionalProof` : Des preuves complémentaires de signature du présent binaire sont présentes dans un binaire
-      annexe
+- `<DetachedSigningRole>` : décrit les éventuels rôles détachés relatifs au présent binaire, au sein d'un ou plusieurs autres objets binaires annexes. Ces rôles peuvent être combinés, mais ne doivent pas être répétés (pas de doublon possible) :
+  - `Signature` : une signature détachée du présent binaire est présente dans un binaire annexe,
+  - `Timestamp` : un horodatage détaché du présent binaire est présent dans un binaire annexe,
+  - `AdditionalProof` : des preuves complémentaires de signature du présent binaire sont présentes dans un binaire annexe.
 
-- `<SignedDocumentReferenceId>` : Référence technique (Id XML) de l'unité archivistique « racine » (qui porte le
-  `SigningRole` de `SignedDocument`). Ce champ est **non supporté par Vitam** et est **ignoré** lors du processus de
-  versement.
+- `<SignedDocumentReferenceId>` : référence technique (ID XML) de l'unité archivistique « racine » (qui porte le rôle de `SignedDocument` dans le champ `SigningRole`). Ce champ est **non supporté par Vitam** et est **ignoré** lors du processus de versement.
 
-- `<SignatureDescription>` : Balise décrivant une ou plusieurs signatures. Cette balise est typiquement définie lorsque le
-  champ `SigningRole` prend la valeur `Signature` pour décrire la ou les signatures définies dans le présent binaire.
-  Optionnellement, elle peut également être utilisée lorsque le `DetachedSigningRole` prend la valeur `Signature`
-  (l'unité d'archives déclarante décrit également des informations de signature détachée redondées ici à des fins
-  d'indexation).
+- `<SignatureDescription>` : bloc décrivant une ou plusieurs signatures.
+  Ce bloc est typiquement défini lorsque le champ `SigningRole` prend la valeur `Signature` pour décrire la ou les signatures définies dans le présent binaire.
+  Optionnellement, il peut également être utilisé lorsque le `DetachedSigningRole` prend la valeur `Signature` (l'unité archivistique déclarante décrit également des informations de signature détachée redondées ici à des fins d'indexation).
 
-    - `<Signer>` : Balise décrivant l’identité du signataire qu’il s’agisse d’une personne physique ou
-      morale (`FirstName`, `LastName`, `Corpname`, `Activity`, `Role`...), ainsi qu'une date et heure de
-      signature `SigningTime`
+  - `<Signer>` : bloc décrivant l’identité du signataire, qu’il s’agisse d’une personne physique ou morale (`FirstName`, `LastName`, `Corpname`, `Activity`, `Role`, etc.), ainsi qu'une date et heure de signature (`SigningTime`),
 
-    - `<Validator>` : Balise décrivant l’identité du validateur qu’il s’agisse d’une personne physique ou
-      morale (`FirstName`, `LastName`, `Corpname`, `Activity`, `Role`...), ainsi qu'une date et heure de validation de
-      la signature `ValidationTime`
+  - `<Validator>` : bloc décrivant l’identité du validateur, qu’il s’agisse d’une personne physique ou morale (`FirstName`, `LastName`, `Corpname`, `Activity`, `Role`, etc.), ainsi qu'une date et heure de validation de la signature (`ValidationTime`),
 
-    - `<SigningType>`: Décrit le type de signature, au sens juridique du terme. Par exemple, simple, avancée, qualifiée.
+  - `<SigningType>`: décrit le type de signature, au sens juridique du terme. Par exemple, simple, avancée, qualifiée.
 
-- `<TimestampingInformation>` : Balise décrivant le ou les horodatages. Cette balise est typiquement définie lorsque le
-  champ `SigningRole` prend la valeur `Timestamp` pour décrire le ou les horodatage(s) définis dans le présent binaire.
-  Optionnellement, elle peut également être utilisée lorsque le `DetachedSigningRole` prend la valeur `Timestamp`
-  (l'unité d'archives déclarante décrit également des informations d'horodatage détaché redondées ici à des fins
-  d'indexation).
+- `<TimestampingInformation>` : champ décrivant le ou les horodatages.
+  Ce champ est typiquement défini lorsque le champ `SigningRole` prend la valeur `Timestamp` pour décrire le ou les horodatage(s) définis dans le présent binaire.
+  Optionnellement, il peut également être utilisé lorsque le `DetachedSigningRole` prend la valeur `Timestamp` (l'unité archivistique déclarante décrit également des informations d'horodatage détachées redondées ici à des fins d'indexation).
 
-    - `<TimeStamp>` : Date et heure d'horodatage
-    - `<AdditionalTimestampingInformation>` : Champ textuel optionnel décrivant des informations complémentaires sur
-      l'horodatage.
+  - `<TimeStamp>` : Date et heure d'horodatage,
+  - `<AdditionalTimestampingInformation>` : champ textuel optionnel décrivant des informations complémentaires sur l'horodatage.
 
-- `<AdditionalProof>` : Bloc permettant de conserver les preuves complémentaires dans un contexte de signature.
+- `<AdditionalProof>` : bloc permettant de conserver les preuves complémentaires dans un contexte de signature.
 
-    - `<AdditionalProofInformation>` : Champ textuel optionnel décrivant des informations complémentaires sur
-      l'horodatage.
+  - `<AdditionalProofInformation>` : champ textuel optionnel décrivant des informations complémentaires sur les preuves complémentaires.
 
-- `<Extended>` : Permet d'enrichir les informations de signature avec des champs libres d'extension.
+- `<Extended>` : permet d'enrichir les informations de signature avec des champs libres d'extension.
 
-> **Important** : Afin de simplifier le versement d'archives avec signature électronique, les versions `7.0+` de Vitam
-> supportent le versement d'unités d'archives avec la balise `<SigningInformation>` au sein d'archives SIP aux formats
-> `2.1` et `2.2` de la norme SEDA, en tant que champ libre (extension).
->
-> À noter cependant que dans ce cas, la balise `<SigningInformation>` est mutuellement incompatible avec les balises
-> `<Signature>`, `<GPS>`, `<OriginatingSystemIdReplyTo>` et `<TextContent>`.
-> Aussi, si plusieurs champs libres (extensions) sont présents, la balise `<SigningInformation>` doit être la
-> première de la liste.
->
-> Vitam recommande cependant l'utilisation de la version `2.3` de la norme SEDA, notamment en présence des balises
-> `<SigningInformation>`.
+**Important** : Afin de simplifier le versement d'archives avec signature électronique, les versions `7.0+` de Vitam supportent le versement d'unités archivistiques avec le bloc `<SigningInformation>` dans le message ArchiveTransfer utilisant les versions `2.1` et `2.2` du SEDA, en tant que champ libre (extension).
+À noter cependant que, dans ce cas, la balise `<SigningInformation>` est mutuellement incompatible avec les balises `<Signature>`, `<GPS>`, `<OriginatingSystemIdReplyTo>` et `<TextContent>`.
+De même, si plusieurs champs libres (extensions) sont présents, la balise `<SigningInformation>` doit être la première de la liste.
+Vitam recommande cependant l'utilisation de la version `2.3` du SEDA, notamment en présence des champs  `<SigningInformation>`.
 
 ## Principes de modélisation
 
-Le présent cookbook est livré avec plusieurs exemples de SIP de modélisation de signature électroniques.
+Le présent cookbook est livré avec plusieurs exemples de SIP modélisant la signature électronique.
 
 ### Cas 1 - Document simple embarquant une signature et un horodatage
 
-Dans le cas d'un binaire simple sans annexes (sans autres binaires complémentaires de signature, d'horodatage ou de
-preuves complémentaires détachés), la modélisation est triviale :
+Dans le cas d'un binaire simple sans annexes (sans autres binaires complémentaires de signature, d'horodatage ou de preuves complémentaires détachées), la modélisation est la suivante :
 
-- Un objet binaire décrit au sein d'une balise `<BinaryDataObject>` ordinaire (BinaryMaster_1)
-- Une unité d'archive `<ArchiveUnit>` décrivant le binaire et les informations de signature le concernant au sein d'une
-  balise `<SigningInformation>`
+- un objet binaire décrit au sein d'une balise `<BinaryDataObject>` ordinaire (BinaryMaster_1)
+- une unité archivistique `<ArchiveUnit>` décrivant le binaire et les informations de signature le concernant au sein d'un bloc `<SigningInformation>`
 
 Exemple de document signé avec signature et horodatage embarqués :
 
@@ -229,7 +189,7 @@ Exemple de document signé avec signature et horodatage embarqués :
                     </SigningInformation>
                 </Content>
 
-                <!-- The Archive Unit references the Object Group Id of the binary object (BinaryMaster_1) -->
+                <!-- The Archive Unit references the Object Group ID of the binary object (BinaryMaster_1) -->
                 <DataObjectReference>
                     <DataObjectGroupReferenceId>ID10</DataObjectGroupReferenceId>
                 </DataObjectReference>
@@ -244,13 +204,12 @@ Exemple de document signé avec signature et horodatage embarqués :
 
 ### Cas 2 - Archive ZIP contenant le document signé et horodaté ainsi que ses preuves complémentaires
 
-Ce cas démontre le cas où un binaire contenant à la fois le document signé et horodaté, ainsi que les preuves de
+Ce cas démontre le cas où un objet binaire contenant à la fois le document signé et horodaté, ainsi que les preuves de
 signature (XML, PDF et annexes), le tout packagé dans un seul binaire de type archive ZIP. La modélisation est similaire
-au [cas 1](#cas-1---document-simple-embarquant-une-signature-et-un-horodatage)
+au [cas 1](#cas-1---document-simple-embarquant-une-signature-et-un-horodatage):
 
-- Un objet binaire décrit au sein d'une balise `<BinaryDataObject>` ordinaire
-- Une unité d'archive `<ArchiveUnit>` décrivant le binaire et les informations de signature le concernant au sein d'une
-  balise `<SigningInformation>`
+- Un objet binaire décrit au sein d'un bloc `<BinaryDataObject>`,
+- Une unité archivistique `<ArchiveUnit>` décrivant le binaire et les informations de signature le concernant au sein d'un bloc `<SigningInformation>`
 
 ```xml
 
@@ -303,7 +262,7 @@ au [cas 1](#cas-1---document-simple-embarquant-une-signature-et-un-horodatage)
                     </SigningInformation>
                 </Content>
 
-                <!-- The Archive Unit references the Object Group Id of the binary object (BinaryMaster_1) -->
+                <!-- The Archive Unit references the Object Group ID of the binary object (BinaryMaster_1) -->
                 <DataObjectReference>
                     <DataObjectGroupReferenceId>ID10</DataObjectGroupReferenceId>
                 </DataObjectReference>
@@ -318,21 +277,17 @@ au [cas 1](#cas-1---document-simple-embarquant-une-signature-et-un-horodatage)
 
 ### Cas 3 - Binaires multiples
 
-Dans le cas d'un document signé accompagné de binaires détachés (Ex : signatures détachées, preuves complémentaires
-détachées...), les binaires sont déclarés dans des groupes d'objets distincts, et décrits via dans une arborescence
-d'unités d'archives.
+Dans le cas d'un document signé accompagné d'objets binaires détachés (ex : signatures détachées, preuves complémentaires détachées...), les objets binaires sont déclarés dans des groupes d'objets distincts, et décrits via dans une arborescence d'unités archivistiques.
 
-Ainsi, pour décrire par exemple un document signé, ainsi qu'un ensemble de binaires de preuves complémentaires, la
-modélisation serait ainsi :
+Ainsi, pour décrire par exemple un document signé, ainsi qu'un ensemble de binaires de preuves complémentaires, la modélisation serait ainsi :
 
-- Objet binaire représentant le document signé décrit au sein d'une balise `<BinaryDataObject>` (BinaryMaster_1)
-- Autres objets binaires de preuves complémentaires également décrits via des balises `<BinaryDataObject>`
-  (BinaryMaster_1)
-- Une unité d'archives « racine » `<ArchiveUnit>` décrit le document signé via la balise `<SigningInformation>`.
+- objet binaire représentant le document signé décrit au sein d'un bloc `<BinaryDataObject>` (BinaryMaster_1),
+- autres objets binaires de preuves complémentaires également décrits via des blocs `<BinaryDataObject>` (BinaryMaster_1),
+- une unité archivistique « racine » `<ArchiveUnit>` décrit le document signé via le bloc `<SigningInformation>`.
   Elle déclare également une balise `<DetachedSigningRole>` avec pour valeur `AdditionalProof` pour indiquer la présence
   de binaires détachés de type preuves complémentaires.
-- Des unités d'archives « filles » `<ArchiveUnit>`, rattachées **directement** à l'unité racine, décrivent les
-  différents documents détachés liés au document signé, via des balises `<SigningInformation>`.
+- des unités archivistiques « filles » `<ArchiveUnit>`, rattachées **directement** à l'unité racine, décrivent les
+  différents documents détachés liés au document signé, via des blocs `<SigningInformation>`.
 
 ```xml
 
@@ -381,7 +336,7 @@ modélisation serait ainsi :
         </DataObjectGroup>
 
         <DescriptiveMetadata>
-            <!-- Root archive unit referencing the signed document -->
+            <!-- Root Archive Unit referencing the signed document -->
             <ArchiveUnit id="ID12">
                 <Content>
                     <DescriptionLevel>Item</DescriptionLevel>
@@ -411,7 +366,7 @@ modélisation serait ainsi :
                     </SigningInformation>
                 </Content>
 
-                <!-- Child archive units referencing detached binaries -->
+                <!-- Child Archive Units referencing detached binaries -->
                 <ArchiveUnit id="ID16">
                     <Content>
                         <DescriptionLevel>Item</DescriptionLevel>
@@ -473,7 +428,7 @@ modélisation serait ainsi :
                     </DataObjectReference>
                 </ArchiveUnit>
 
-                <!-- The root Archive Unit references the Object Group Id of the signed document (BinaryMaster_1) -->
+                <!-- The root Archive Unit references the Object Group ID of the signed document (BinaryMaster_1) -->
                 <DataObjectReference>
                     <DataObjectGroupReferenceId>ID10</DataObjectGroupReferenceId>
                 </DataObjectReference>
@@ -488,12 +443,10 @@ modélisation serait ainsi :
 
 ### Cas 4 - Binaires multiples avec arborescence râteau
 
-Dans le cas d'un document signé accompagné de binaires détachés, les unités d'archives peuvent être modélisées en mode
-« râteau ».
+Dans le cas d'un document signé accompagné de binaires détachés, les unités archivistiques peuvent être modélisées en mode « râteau ».
 
-La modélisation est similaire au [cas 3](#cas-3---binaires-multiples), seulement, les unités d'archives « filles » sont
-déclarées à la racine de la balise `<DescriptiveMetadata>`, et sont référencées via la balise `<ArchiveUnitRefId>` au
-niveau de l'unité d'archives « racine ».
+La modélisation est similaire au [cas 3](#cas-3---binaires-multiples), seulement, les unités archivistiques « filles » sont
+déclarées à la racine du bloc `<DescriptiveMetadata>`, et sont référencées via le champ `<ArchiveUnitRefId>` au niveau de l'unité archvistique « racine ».
 
 ```xml
 
@@ -542,7 +495,7 @@ niveau de l'unité d'archives « racine ».
         </DataObjectGroup>
 
         <DescriptiveMetadata>
-            <!-- Root archive unit referencing the signed document -->
+            <!-- Root Archive Unit referencing the signed document -->
             <ArchiveUnit id="ID12">
                 <Content>
                     <DescriptionLevel>Item</DescriptionLevel>
@@ -568,7 +521,7 @@ niveau de l'unité d'archives « racine ».
                     </SigningInformation>
                 </Content>
 
-                <!-- Reference to "child" archive units -->
+                <!-- Reference to "Child" Archive Units -->
                 <ArchiveUnit id="ID121">
                     <ArchiveUnitRefId>ID16</ArchiveUnitRefId>
                 </ArchiveUnit>
@@ -582,13 +535,13 @@ niveau de l'unité d'archives « racine ».
                     <ArchiveUnitRefId>ID14</ArchiveUnitRefId>
                 </ArchiveUnit>
 
-                <!-- The root Archive Unit references the Object Group Id of the signed document (BinaryMaster_1) -->
+                <!-- The root Archive Unit references the Object Group ID of the signed document (BinaryMaster_1) -->
                 <DataObjectReference>
                     <DataObjectGroupReferenceId>ID10</DataObjectGroupReferenceId>
                 </DataObjectReference>
             </ArchiveUnit>
 
-            <!-- Child archive units referencing detached binaries -->
+            <!-- Child Archive Units referencing detached binaries -->
             <ArchiveUnit id="ID16">
                 <Content>
                     <DescriptionLevel>Item</DescriptionLevel>
@@ -657,32 +610,34 @@ niveau de l'unité d'archives « racine ».
 </ArchiveTransfer>
 ```
 
-### Cas 5 - Duplication des informations de signature dans l'unité d'archive racine
+### Cas 5 - Duplication des informations de signature dans l'unité archivistique racine
 
 Dans le cas d'un document signé accompagné de binaires détachés, il est possible de recopier/dupliquer les
-informations de signature des unités d'archives « filles » au niveau de l'unité d'archives « racine ».
+informations de signature des unités archivistiques « filles » au niveau de l'unité archivistique « racine ».
 
-Ceci permet de décrire et d'indexer au sein d'une seule unité d'archives racine l'ensemble des informations de signature
+Ceci permet de décrire et d'indexer au sein d'une seule unité archivistique racine l'ensemble des informations de signature
 et de simplifier certains types de requêtes.
 
-> **Important :** Il est à noter que la duplication d'informations peut causer des incohérences dans la description des
-> archives si des modifications partielles sont réalisées.
->
+**Important :**
+
+> Il est à noter que la duplication d'informations peut causer des incohérences dans la description des
+archives si des modifications partielles sont réalisées.
+
 > Ceci rajoute également un surcoût de stockage pour l'indexation des données.
 
 Ainsi, pour décrire par exemple un document signé, ainsi qu'un ensemble de binaires de preuves complémentaires avec
 duplication des informations de signature dans l'unité racine, la modélisation serait ainsi :
 
-- Objet binaire représentant le document signé portant la signature et l'horodatage décrit au sein d'une
-  balise `<BinaryDataObject>` (BinaryMaster_1)
-- Autres objets binaires de preuves complémentaires également décrits via des balises `<BinaryDataObject>`
+- objet binaire représentant le document signé portant la signature et l'horodatage décrit au sein d'un bloc `<BinaryDataObject>`  
   (BinaryMaster_1)
-- Une unité d'archives « racine » `<ArchiveUnit>` décrit le document racine via la balise `<SigningInformation>`.
-  Elle déclare également une balise `<DetachedSigningRole>` avec pour valeur `AdditionalProof` pour indiquer la présence
+- autres objets binaires de preuves complémentaires également décrits via des blocs `<BinaryDataObject>`
+  (BinaryMaster_1)
+- une unité archivistique « racine » `<ArchiveUnit>` décrit le document racine via le bloc `<SigningInformation>`.
+  Elle déclare également un champ `<DetachedSigningRole>` avec pour valeur `AdditionalProof` pour indiquer la présence
   de binaires détachés de type preuves complémentaires. Enfin, l'unité d'archives duplique également les informations
-  des preuves complémentaires via une balise `<AdditionalProof>`.
-- Des unités d'archives « filles » `<ArchiveUnit>`, rattachées à l'unité racine, décrivent les différents documents
-  détachés liés au document signé, via des balises `<SigningInformation>`.
+  des preuves complémentaires via un champ `<AdditionalProof>`.
+- des unités archivistiques « filles » `<ArchiveUnit>`, rattachées à l'unité archivistique racine, décrivent les différents documents
+  détachés liés au document signé, via des blocs `<SigningInformation>`.
 
 ```xml
 
@@ -731,7 +686,7 @@ duplication des informations de signature dans l'unité racine, la modélisation
         </DataObjectGroup>
 
         <DescriptiveMetadata>
-            <!-- Root archive unit referencing the signed document -->
+            <!-- Root Archive Unit referencing the Signed document -->
             <ArchiveUnit id="ID12">
                 <Content>
                     <DescriptionLevel>Item</DescriptionLevel>
@@ -758,7 +713,7 @@ duplication des informations de signature dans l'unité racine, la modélisation
                             <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
                         </TimestampingInformation>
 
-                        <!-- Duplication of detached addition proof binaries in root archive unit -->
+                        <!-- Duplication of detached additionnal proof binaries in root Archive Unit -->
                         <AdditionalProof>
                             <AdditionalProofInformation>Additional proof: Appendix 1</AdditionalProofInformation>
                             <AdditionalProofInformation>Additional proof: Appendix 2</AdditionalProofInformation>
@@ -769,7 +724,7 @@ duplication des informations de signature dans l'unité racine, la modélisation
                     </SigningInformation>
                 </Content>
 
-                <!-- Child archive units referencing detached binaries -->
+                <!-- Child Archive Units referencing detached binaries -->
                 <ArchiveUnit id="ID16">
                     <Content>
                         <DescriptionLevel>Item</DescriptionLevel>
@@ -831,7 +786,7 @@ duplication des informations de signature dans l'unité racine, la modélisation
                     </DataObjectReference>
                 </ArchiveUnit>
 
-                <!-- The root Archive Unit references the Object Group Id of the signed document (BinaryMaster_1) -->
+                <!-- The root Archive Unit references the Object Group ID of the Signed document (BinaryMaster_1) -->
                 <DataObjectReference>
                     <DataObjectGroupReferenceId>ID10</DataObjectGroupReferenceId>
                 </DataObjectReference>
@@ -850,8 +805,8 @@ Il se peut qu'un ou plusieurs binaires complémentaires aient besoin d'être ver
 lorsque la signature, l'horodatage et/ou les preuves complémentaires ne sont pas versées au même moment que le document
 signé.
 
-Dans ce cas, il convient simplement de procéder un rattachement d'unités d'archives « filles » à l'unité d'archives
-« racine » via la balise `<UpdateOperation>`.
+Dans ce cas, il convient simplement de procéder à un rattachement d'unités archivistiques « filles » à l'unité archivistique
+« racine » via le bloc `<UpdateOperation>`.
 
 Ainsi, un exemple de modélisation d'un premier versement contenant un document signé et horodaté serait comme suit :
 
@@ -871,7 +826,7 @@ Ainsi, un exemple de modélisation d'un premier versement contenant un document 
         </DataObjectGroup>
 
         <DescriptiveMetadata>
-            <!-- Root archive unit referencing the signed document -->
+            <!-- Root Archive Unit referencing the Signed document -->
             <ArchiveUnit id="ID12">
                 <Content>
                     <DescriptionLevel>Item</DescriptionLevel>
@@ -901,7 +856,7 @@ Ainsi, un exemple de modélisation d'un premier versement contenant un document 
                     </SigningInformation>
                 </Content>
 
-                <!-- The root Archive Unit references the Object Group Id of the signed document (BinaryMaster_1) -->
+                <!-- The root Archive Unit references the Object Group ID of the Signed document (BinaryMaster_1) -->
                 <DataObjectReference>
                     <DataObjectGroupReferenceId>ID10</DataObjectGroupReferenceId>
                 </DataObjectReference>
@@ -914,7 +869,7 @@ Ainsi, un exemple de modélisation d'un premier versement contenant un document 
 </ArchiveTransfer>
 ```
 
-Le rattachement de preuves complémentaires au précédent binaire se ferait via :
+Le rattachement de preuves complémentaires au précédent binaire se ferait au moyen d'une modélisation comme suit :
 
 ```xml
 
@@ -953,7 +908,7 @@ Le rattachement de preuves complémentaires au précédent binaire se ferait via
         </DataObjectGroup>
 
         <DescriptiveMetadata>
-            <!-- Root archive unit referenced by SystemId (guid) -->
+            <!-- Root Archive Unit referenced by SystemId (GUID) -->
             <ArchiveUnit id="ID12">
                 <Management>
                     <UpdateOperation>
@@ -965,7 +920,7 @@ Le rattachement de preuves complémentaires au précédent binaire se ferait via
                     <Title>Document</Title>
                 </Content>
 
-                <!-- Child archive units referencing detached binaries -->
+                <!-- Child Archive Units referencing detached binaries -->
                 <ArchiveUnit id="ID16">
                     <Content>
                         <DescriptionLevel>Item</DescriptionLevel>
@@ -1037,75 +992,73 @@ Le rattachement de preuves complémentaires au précédent binaire se ferait via
 
 ### Cas 7 - Extensions (champs libres)
 
-La norme SEDA prévoit la possibilité de rajouter des champs libres (extensions) pour rajouter des informations
-additionnelles via la balise `<Extended>`
+Le standard SEDA prévoit la possibilité de rajouter des champs libres (extensions) pour rajouter des informations additionnelles via le champ `<Extended>`
 
-> **Important** : Il est fortement recommandé de décrire les champs libres dans l'Ontologie et d'adapter la
-> configuration du mapping elasticsearch de Vitam pour la bonne indexation de ces champs.
+**Important** : Il est fortement recommandé de décrire les champs libres dans l'ontologie et d'adapter la configuration du mapping Elasticsearch de Vitam pour la bonne indexation de ces champs.
 
 Exemple de document signé avec signature et horodatage embarqués avec champs libres :
 
 ```xml
 
 <ArchiveTransfer>
-    <!-- ... -->
-    <DataObjectPackage>
+  <!-- ... -->
+  <DataObjectPackage>
 
-        <!-- An Object Group with signed and timestamped document to archive (BinaryMaster_1) -->
-        <DataObjectGroup id="ID10">
-            <BinaryDataObject id="ID11">
-                <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
-                <Uri>content/ID11.pdf</Uri>
-                <!-- ... -->
-            </BinaryDataObject>
-        </DataObjectGroup>
-
-        <DescriptiveMetadata>
-            <ArchiveUnit id="ID12">
-                <Content>
-                    <DescriptionLevel>Item</DescriptionLevel>
-                    <Title>Document</Title>
-                    <Description>Signed Document with embedded Signature and TimeStamp</Description>
-                    <!-- Other descriptive fields... -->
-
-                    <!-- Signing information -->
-                    <SigningInformation>
-
-                        <SigningRole>SignedDocument</SigningRole>
-                        <SigningRole>Signature</SigningRole>
-                        <SigningRole>Timestamp</SigningRole>
-
-                        <SignatureDescription>
-                            <Signer>
-                                <FullName>Caroline DISTRIQUIN</FullName>
-                                <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
-                            </Signer>
-                        </SignatureDescription>
-                        <TimestampingInformation>
-                            <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
-                        </TimestampingInformation>
-
-                        <!-- Extended fields -->
-                        <Extended>
-                            <ExtraField1>Val1</ExtraField1>
-                            <ExtraField1>Val2</ExtraField1>
-                            <ExtraField2>
-                                <SubField2>Val3</SubField2>
-                            </ExtraField2>
-                        </Extended>
-
-                    </SigningInformation>
-                </Content>
-
-                <!-- The Archive Unit references the Object Group Id of the binary object (BinaryMaster_1) -->
-                <DataObjectReference>
-                    <DataObjectGroupReferenceId>ID10</DataObjectGroupReferenceId>
-                </DataObjectReference>
-
-            </ArchiveUnit>
-        </DescriptiveMetadata>
+    <!-- An Object Group with signed and timestamped document to archive (BinaryMaster_1) -->
+    <DataObjectGroup id="ID10">
+      <BinaryDataObject id="ID11">
+        <DataObjectVersion>BinaryMaster_1</DataObjectVersion>
+        <Uri>content/ID11.pdf</Uri>
         <!-- ... -->
-    </DataObjectPackage>
+      </BinaryDataObject>
+    </DataObjectGroup>
+
+    <DescriptiveMetadata>
+      <ArchiveUnit id="ID12">
+        <Content>
+          <DescriptionLevel>Item</DescriptionLevel>
+          <Title>Document</Title>
+          <Description>Signed Document with embedded Signature and TimeStamp</Description>
+          <!-- Other descriptive fields... -->
+
+          <!-- Signing information -->
+          <SigningInformation>
+
+            <SigningRole>SignedDocument</SigningRole>
+            <SigningRole>Signature</SigningRole>
+            <SigningRole>Timestamp</SigningRole>
+
+            <SignatureDescription>
+              <Signer>
+                <FullName>Caroline DISTRIQUIN</FullName>
+                <SigningTime>2023-01-27T10:54:54+01:00</SigningTime>
+              </Signer>
+            </SignatureDescription>
+            <TimestampingInformation>
+              <TimeStamp>2023-01-27T10:54:54+01:00</TimeStamp>
+            </TimestampingInformation>
+
+            <!-- Extended fields -->
+            <Extended>
+              <ExtraField1>Value 1</ExtraField1>
+              <ExtraField1>Value 2</ExtraField1>
+              <ExtraField2>
+                <SubField2>Value 3</SubField2>
+              </ExtraField2>
+            </Extended>
+
+          </SigningInformation>
+        </Content>
+
+        <!-- The Archive Unit references the Object Group ID of the binary object (BinaryMaster_1) -->
+        <DataObjectReference>
+          <DataObjectGroupReferenceId>ID10</DataObjectGroupReferenceId>
+        </DataObjectReference>
+
+      </ArchiveUnit>
+    </DescriptiveMetadata>
     <!-- ... -->
+  </DataObjectPackage>
+  <!-- ... -->
 </ArchiveTransfer>
 ```
