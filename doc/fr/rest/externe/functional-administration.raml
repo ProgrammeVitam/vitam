@@ -1274,21 +1274,21 @@ documentation:
             description: some predicates are incorrect, DSL Query is not valid.
 
 /rulesreferential/{opId}:
-  displayName: Référentiel des rêgles de gestion
+  displayName: Référentiel des règles de gestion
   uriParameters:
         opId:
           required: true
           description: |
             Identifiant de l'opération
   description: |
-   API qui permet de récupérer le fichier original des rêgles de gestion sous forme de csv
+   API qui permet de récupérer le fichier original des règles de gestion sous forme de csv
   get:
       headers:
         Accept:
           required: true
           enum: [ "application/octet-stream" ]
       description: |
-        Récupére le fichier original des rêgles de gestion sous forme de csv à partir de l'id de l'opération
+        Récupère le fichier original des règles de gestion sous forme de csv à partir de l'id de l'opération
 
         Permissions requises:
           - rulesreferential:id:read
@@ -1322,7 +1322,7 @@ documentation:
           required: true
           enum: [ "application/octet-stream" ]
       description: |
-        Récupére le fichier original des services agents sous forme de csv à partir de l'id de l'opération
+        Récupère le fichier original des services agents sous forme de csv à partir de l'id de l'opération
 
         Permissions requises:
           - agenciesreferential:id:read

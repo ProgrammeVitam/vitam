@@ -36,7 +36,6 @@ import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CsvParseInternalException;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
-import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.helpers.CsvHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
 import fr.gouv.vitam.collect.internal.core.helpers.TempWorkspace;
@@ -115,10 +114,10 @@ public class FluxService {
         this.metadataRepository = metadataRepository;
     }
 
-    public void processStream(InputStream inputStreamObject, TransactionModel transactionModel)
+    public void processStream(InputStream inputStreamObject, String projectId, String transactionId)
         throws CollectInternalException {
 
-        Optional<ProjectModel> projectById = projectRepository.findProjectById(transactionModel.getProjectId());
+        Optional<ProjectModel> projectById = projectRepository.findProjectById(projectId);
         if (projectById.isEmpty()) {
             throw new CollectInternalException("Project not found");
         }
@@ -132,7 +131,7 @@ public class FluxService {
             ArchiveEntry entry;
             boolean isEmpty = true;
             Map<String, String> unitIds =
-                metadataService.prepareAttachmentUnits(projectModel, transactionModel.getId());
+                metadataService.prepareAttachmentUnits(projectModel, transactionId);
             File metadataCsvFile = null;
             // create entryInputStream to resolve the stream closed problem
             final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
@@ -154,13 +153,13 @@ public class FluxService {
 
                         if (metadataCsvFile != null) {
                             throw new CollectInternalInvalidRequestException(
-                                "Cannot process zip upload for " + projectById + "/" + transactionModel.getId() +
-                                    ". Multiple metadata update files");
+                                "Cannot process zip upload for " + projectById + "/" + transactionId +
+                                    ". Multiple metadata update files found.");
                         }
 
                         metadataCsvFile = tempWorkspace.writeToFile(path, entryInputStream);
                     } else {
-                        maxLevel = createMetadata(tempWorkspace, transactionModel.getId(), path, entryInputStream,
+                        maxLevel = createMetadata(tempWorkspace, transactionId, path, entryInputStream,
                             entry.isDirectory(), maxLevel, unitIds, projectModel.getUnitUp() != null);
                     }
                     isEmpty = false;
@@ -189,7 +188,7 @@ public class FluxService {
 
             if (tranformedMetadataFile != null) {
                 try (InputStream is = new FileInputStream(tranformedMetadataFile)) {
-                    metadataService.updateUnitsWithMetadataFile(transactionModel.getId(), is);
+                    metadataService.updateUnitsWithMetadataFile(transactionId, is);
                 }
             }
         } catch (IOException | ArchiveException e) {

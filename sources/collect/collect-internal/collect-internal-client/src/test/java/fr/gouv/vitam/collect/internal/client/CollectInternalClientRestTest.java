@@ -34,10 +34,12 @@ import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import org.apache.commons.io.input.NullInputStream;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -60,6 +62,7 @@ import java.io.InputStream;
 import java.util.Set;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class CollectInternalClientRestTest extends ResteasyTestApplication {
 
@@ -151,6 +154,14 @@ public class CollectInternalClientRestTest extends ResteasyTestApplication {
         Mockito.when(mock.get()).thenReturn(Response.ok().build());
         final RequestResponse<JsonNode> response = client.getProjects();
         Assertions.assertThat(response).isNotNull();
+    }
+
+    @Test
+    public void uploadZipToTransaction() {
+        Mockito.when(mock.post()).thenReturn(Response.ok(new RequestResponseOK<>().addResult("RESULT")).build());
+        assertThatCode(() ->
+            client.uploadZipToTransaction("TX_ID", new NullInputStream(100))
+        ).doesNotThrowAnyException();
     }
 
     @Path("/collect-internal/v1")
@@ -287,15 +298,6 @@ public class CollectInternalClientRestTest extends ResteasyTestApplication {
             return expectedResponse.get();
         }
 
-        @Path("/transactions/{transactionId}/upload")
-        @POST
-        @Consumes({CommonMediaType.ZIP})
-        @Produces(APPLICATION_JSON)
-        public Response uploadZipToTransaction(@PathParam("transactionId") String transactionId,
-            InputStream inputStreamObject) {
-            return expectedResponse.post();
-        }
-
         @Path("/units/{unitId}")
         @GET
         @Produces(MediaType.APPLICATION_JSON)
@@ -335,6 +337,15 @@ public class CollectInternalClientRestTest extends ResteasyTestApplication {
         public Response download(@PathParam("unitId") String unitId, @PathParam("usage") String usageString,
             @PathParam("version") Integer version) {
             return expectedResponse.get();
+        }
+
+        @Path("/transactions/{transactionId}/upload")
+        @POST
+        @Consumes({CommonMediaType.ZIP})
+        @Produces(APPLICATION_JSON)
+        public Response uploadZipToTransaction(@PathParam("transactionId") String transactionId,
+            InputStream inputStreamObject) {
+            return expectedResponse.post();
         }
     }
 }

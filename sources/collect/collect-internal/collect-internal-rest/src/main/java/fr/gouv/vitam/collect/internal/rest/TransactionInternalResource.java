@@ -405,7 +405,8 @@ public class TransactionInternalResource {
                 LOGGER.error(TRANSACTION_NOT_FOUND);
                 return CollectRequestResponse.toVitamError(NOT_FOUND, TRANSACTION_NOT_FOUND);
             }
-            fluxService.processStream(inputStreamObject, transactionModel.get());
+            fluxService.processStream(
+                inputStreamObject, transactionModel.get().getProjectId(), transactionModel.get().getId());
             return Response.ok().build();
         } catch (CollectInternalInvalidRequestException | IllegalArgumentException e) {
             LOGGER.error("An error occurs when try to upload the ZIP: {}", e);

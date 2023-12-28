@@ -117,7 +117,7 @@ documentation:
       responses:
         200:
   /{id}/transactions:
-    displayName: Permet de gerer les transactions d'un projet
+    displayName: Permet de gérer les transactions d'un projet
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
@@ -188,6 +188,19 @@ documentation:
             application/json:
               type: object
               example: !include libraries/examples/CollectUnitObjectResponse.json
+    put:
+      description: |
+        Permet de mettre à jour les métadonnées à partir d'un fichier CSV en entrée.
+      body:
+        application/octet-stream: Fichier CSV de MAJ
+      headers:
+        X-tenant-Id:
+          required: true
+      responses:
+        200:
+          body:
+            application/json:
+              type: object
 
   /{id}/unitsWithInheritedRules:
     is: [ StandardTraits.StandardOptionalHeader,
@@ -248,7 +261,7 @@ documentation:
           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
     post:
       description: |
-        Permet de génerer un SIP et l'envoyer a Vitam (Ingest)
+        Permet de générer un SIP et l'envoyer a Vitam (Ingest)
       body:
         application/json:
       headers:
@@ -292,7 +305,9 @@ documentation:
           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
     post:
       description: |
-        Permet de soumettre un ensemble de binaire au format Zip
+        Permet de soumettre un ensemble de binaire au format Zip.
+        Optionnellement, le Zip peut contenir un fichier "metadata.csv" décrivant l'ensemble des métadonnées de
+        l'arborescence.
       body:
         application/zip:
       headers:
@@ -330,13 +345,13 @@ documentation:
               example: !include libraries/examples/CollectUnitObjectResponse.json
 
   /{id}/objects/{usage}/{version}:
-    displayName: Ajout d'un groupe d'objects
+    displayName: Ajout d'un groupe d'objets
     is: [ StandardTraits.StandardOptionalHeader,
           StandardTraits.StandardHeader401, StandardTraits.StandardHeader404,
           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
     post:
       description: |
-        Permet de rajouter un groupe d'objects
+        Permet de rajouter un groupe d'objets
       body:
         application/json:
           type: object
@@ -398,7 +413,7 @@ documentation:
           StandardTraits.StandardHeader409, StandardTraits.StandardHeader412 ]
     get:
       description: |
-        Permet de retourner une groupe d'object par son id
+        Permet de retourner un groupe d'objets par son id
       headers:
         X-tenant-Id:
           required: true

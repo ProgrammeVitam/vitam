@@ -158,7 +158,7 @@ public class FluxServiceTest {
 
 
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
-            fluxService.processStream(resourceAsStream, transactionModel);
+            fluxService.processStream(resourceAsStream, PROJECT_ID, TRANSACTION_ID);
         }
 
 
@@ -200,7 +200,7 @@ public class FluxServiceTest {
         when(metadataService.prepareAttachmentUnits(any(), anyString())).thenReturn(new HashMap<>());
 
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION2_ZIP_PATH)) {
-            fluxService.processStream(resourceAsStream, transactionModel);
+            fluxService.processStream(resourceAsStream, PROJECT_ID, TRANSACTION_ID);
         }
 
         verify(metadataService).updateUnitsWithMetadataFile(eq("TRANSACTION_ID"), any());
@@ -231,7 +231,7 @@ public class FluxServiceTest {
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
             TRANSACTION_WITHOUT_FILE_COLUMN_ZIP_PATH)) {
             CollectInternalException exception = Assert.assertThrows(CollectInternalException.class,
-                () -> fluxService.processStream(resourceAsStream, transactionModel));
+                () -> fluxService.processStream(resourceAsStream, PROJECT_ID, TRANSACTION_ID));
             Assert.assertEquals("Mapping for File not found, expected one of [Content.DescriptionLevel, Content.Title]",
                 exception.getMessage());
         }
@@ -273,7 +273,7 @@ public class FluxServiceTest {
         when(metadataService.prepareAttachmentUnits(any(), anyString())).thenReturn(new HashMap<>());
 
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
-            fluxService.processStream(resourceAsStream, transaction);
+            fluxService.processStream(resourceAsStream, transaction.getProjectId(), transaction.getId());
         }
 
         final JsonNode expectedUnits = JsonHandler.getFromFile(

@@ -371,7 +371,8 @@ public class CollectExternalClientRest extends DefaultClient implements CollectE
             .withPath(TRANSACTION_PATH + "/" + transactionId + "/upload")
             .withHeaders(vitamContext.getHeaders())
             .withBody(inputStreamUploaded)
-            .withContentType(CommonMediaType.ZIP_TYPE))) {
+            .withContentType(CommonMediaType.ZIP_TYPE)
+            .withJsonAccept())) {
             check(response);
             return RequestResponse.parseFromResponse(response, JsonNode.class);
         }

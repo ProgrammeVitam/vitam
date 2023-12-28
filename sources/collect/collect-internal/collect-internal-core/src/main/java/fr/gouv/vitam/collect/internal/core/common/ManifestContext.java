@@ -68,7 +68,7 @@ public class ManifestContext {
     public ManifestContext(String acquisitionInformation, String legalStatus,
         String archivalAgreement, String messageIdentifier, String archivalAgencyIdentifier,
         String transferingAgencyIdentifier, String originatingAgencyIdentifier, String submissionAgencyIdentifier,
-        String archivalProfile, String comment, String unitUp) {
+        String archivalProfile, String comment) {
         this.acquisitionInformation = acquisitionInformation;
         this.legalStatus = legalStatus;
         this.archivalAgreement = archivalAgreement;

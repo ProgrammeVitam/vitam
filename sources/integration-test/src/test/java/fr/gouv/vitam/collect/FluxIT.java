@@ -51,6 +51,8 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
+import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -63,6 +65,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -227,6 +230,7 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_upload_zip_to_transaction_with_multi_rattachement() throws Exception {
         try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
             ProjectDto projectDto = initProjectData();
@@ -280,6 +284,7 @@ public class FluxIT extends VitamRuleRunner {
                         "[*]." + VitamFieldsHelper.approximateUpdateDate())));
         }
     }
+
 
     @Test
     @RunWithCustomExecutor
