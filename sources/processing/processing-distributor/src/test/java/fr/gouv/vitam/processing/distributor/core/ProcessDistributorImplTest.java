@@ -463,6 +463,22 @@ public class ProcessDistributorImplTest {
 
     @Test
     @RunWithCustomExecutor
+    public void whenDistributeDistributionEmptyListWithLevelOK() throws Exception {
+        int numberOfObjectInIngestLevelStack = 170;
+        final File fileContracts = PropertiesUtils.getResourceFile("emptyIngestLevelStack.json");
+
+        givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
+
+        ProcessStep step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
+        ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
+        assertNotNull(itemStatus);
+
+        assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
+    }
+
+
+    @Test
+    @RunWithCustomExecutor
     public void whenDistributeDistributionKindListWithLevelKO() throws Exception {
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
 
