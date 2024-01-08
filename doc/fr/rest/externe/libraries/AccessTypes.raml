@@ -249,10 +249,6 @@ types:
           description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets
           type: boolean
           required: false
-        transferWithLogBookLFC:
-          description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets pour le transfert
-          type: boolean
-          required: false
         dslRequest:
           description: Contient la requête de recherche
           type: DslTypes.DslMultipleQuery
@@ -319,10 +315,6 @@ types:
       description: Requête pour faire un transfert d'unités archivistiques
       type: object
       properties:
-        exportWithLogBookLFC:
-          description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets pour le DIP
-          type: boolean
-          required: false
         transferWithLogBookLFC:
           description: True pour inclure les logbook de cycle de vie des unités archivistiques et groupes d'objets pour le transfert
           type: boolean
