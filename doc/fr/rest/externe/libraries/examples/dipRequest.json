@@ -5,7 +5,7 @@
       "BinaryMaster"
     ]
   },
-  "transferWithLogBookLFC": true,
+  "exportWithLogBookLFC": true,
   "dipRequestParameters": {
     "archivalAgreement": "ArchivalAgreement",
     "originatingAgencyIdentifier": "OriginatingAgencyIdentifier",
