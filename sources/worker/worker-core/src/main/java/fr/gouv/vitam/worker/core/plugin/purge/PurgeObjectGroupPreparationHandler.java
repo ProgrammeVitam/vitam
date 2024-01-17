@@ -240,7 +240,7 @@ public class PurgeObjectGroupPreparationHandler extends ActionHandler {
 
         return ListUtils.emptyIfNull(objectGroup.getQualifiers()).stream()
             .flatMap(qualifier -> ListUtils.emptyIfNull(qualifier.getVersions()).stream())
-            .map(version -> new PurgeObjectGroupObjectVersion(
+            .map(version -> new PurgeObjectGroupObjectVersion(version.getId(),
                 version.getOpi(), version.getSize(), version.getDataObjectVersion(), version.getDataObjectUse(), version.getPersistentIdentifier()))
             .collect(Collectors.toList());
     }

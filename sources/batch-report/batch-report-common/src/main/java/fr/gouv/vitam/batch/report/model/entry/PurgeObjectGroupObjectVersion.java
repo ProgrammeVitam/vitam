@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
 import java.util.List;
 
 public class PurgeObjectGroupObjectVersion {
+    private final String id;
     private final String opi;
     private final Long size;
     private final String version;
@@ -40,6 +41,7 @@ public class PurgeObjectGroupObjectVersion {
 
     @JsonCreator
     public PurgeObjectGroupObjectVersion(
+      @JsonProperty("id") String id,
       @JsonProperty("opi") String opi,
       @JsonProperty("size") Long size,
       @JsonProperty("version") String version,
@@ -50,6 +52,12 @@ public class PurgeObjectGroupObjectVersion {
         this.version = version;
         this.usage = usage;
         this.persistentIdentifier = persistentIdentifier;
+        this.id = id;
+    }
+
+    @JsonProperty("id")
+    public String getId() {
+        return id;
     }
 
     @JsonProperty("opi")
