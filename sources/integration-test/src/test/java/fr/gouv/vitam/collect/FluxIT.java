@@ -36,6 +36,7 @@ import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.collect.external.external.rest.CollectExternalMain;
 import fr.gouv.vitam.collect.internal.CollectInternalMain;
+import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
 import fr.gouv.vitam.common.DataLoader;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamRuleRunner;
@@ -57,17 +58,28 @@ import fr.gouv.vitam.workspace.rest.WorkspaceMain;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.assertj.core.api.Assertions;
-import org.junit.*;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static fr.gouv.vitam.collect.CollectTestHelper.*;
+import static fr.gouv.vitam.collect.CollectTestHelper.closeTransaction;
+import static fr.gouv.vitam.collect.CollectTestHelper.createProject;
+import static fr.gouv.vitam.collect.CollectTestHelper.createTransaction;
+import static fr.gouv.vitam.collect.CollectTestHelper.initProjectData;
+import static fr.gouv.vitam.collect.CollectTestHelper.initTransaction;
+import static fr.gouv.vitam.collect.CollectTestHelper.updateUnit;
+import static fr.gouv.vitam.collect.CollectTestHelper.uploadZipTransaction;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
@@ -116,7 +128,7 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
-    public void should_upload_project_zip() throws Exception {
+    public void should_upload_zip_to_transaction() throws Exception {
         try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
             final ProjectDto projectDto = initProjectData();
             projectDto.setUnitUp(ATTACHMENT_UNIT_ID);
@@ -165,7 +177,54 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
-    public void should_upload_project_zip_with_multi_rattachement() throws Exception {
+    public void should_upload_windows_generated_zip_with_implicit_parent_entries_to_transaction_11756()
+        throws Exception {
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+            final ProjectDto projectDto = initProjectData();
+            projectDto.setUnitUp(ATTACHMENT_UNIT_ID);
+            final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
+            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+            final ProjectDto projectDtoResult =
+                JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+                    ProjectDto.class);
+            final TransactionDto transactiondto = initTransaction();
+            final RequestResponse<JsonNode> transactionResponse =
+                collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
+            Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
+            final RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
+            final TransactionDto transactionDtoResult =
+                JsonHandler.getFromJsonNode(requestResponseOK.getFirstResult(), TransactionDto.class);
+            try (InputStream inputStream = PropertiesUtils.getResourceAsStream(
+                "collect/collect_windows_generated_zip_with_implicit_parent_entries_to_transaction_11756.zip")) {
+                final RequestResponse<JsonNode> response =
+                    collectClient.uploadProjectZip(vitamContext, transactionDtoResult.getId(), inputStream);
+                Assertions.assertThat(response.getStatus()).isEqualTo(200);
+            }
+            final RequestResponseOK<JsonNode> unitsByTransaction =
+                (RequestResponseOK<JsonNode>) collectClient.getUnitsByTransaction(vitamContext,
+                    transactionDtoResult.getId(),
+                    new SelectMultiQuery().addUsedProjection("#id", "Title").getFinalSelect());
+
+            assertThat(unitsByTransaction.getResults()).hasSize(6);
+            assertThat(unitsByTransaction.getResults().stream().map(u -> u.get("Title").asText()))
+                .containsExactlyInAnyOrder(MetadataHelper.STATIC_ATTACHMENT, "content", "AU1",
+                    "doc2.txt", "doc3.txt", "doc4.txt");
+
+            // test download got
+            String unitId = unitsByTransaction.getResults().stream()
+                .filter(a -> a.get("Title").asText().equals("AU1"))
+                .map(a -> a.get(VitamFieldsHelper.id()).asText()).findFirst().get();
+            Response response = collectClient.getObjectStreamByUnitId(vitamContext, unitId,
+                DataObjectVersionType.BINARY_MASTER.getName(), 1);
+
+            assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
+            assertThat(response.readEntity(InputStream.class)).hasSameContentAs(new ByteArrayInputStream(
+                "sdfgdsfgdsfgdfs".getBytes(StandardCharsets.UTF_8)));
+        }
+    }
+
+    @Test
+    public void should_upload_zip_to_transaction_with_multi_rattachement() throws Exception {
         try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
             ProjectDto projectDto = initProjectData();
             projectDto.setUnitUp(ATTACHMENT_UNIT_ID);
@@ -218,7 +277,6 @@ public class FluxIT extends VitamRuleRunner {
                         "[*]." + VitamFieldsHelper.approximateUpdateDate())));
         }
     }
-
 
     @Test
     public void should_create_unit_with_multi_rattachement() throws Exception {
@@ -302,7 +360,8 @@ public class FluxIT extends VitamRuleRunner {
                     unit.put(Unit.OPI, transactionDtoResult.getId());
                 }
                 MetadataCollections.UNIT.<Unit>getCollection().insertMany(units);
-                MetadataCollections.UNIT.getEsClient().insertFullDocuments(MetadataCollections.UNIT, TENANT_ID, units);
+                MetadataCollections.UNIT.getEsClient()
+                    .insertFullDocuments(MetadataCollections.UNIT, TENANT_ID, units);
             }
 
 
@@ -313,7 +372,8 @@ public class FluxIT extends VitamRuleRunner {
             }
 
             final RequestResponseOK<JsonNode> unitsByTransaction =
-                (RequestResponseOK<JsonNode>) client.getUnitsByTransaction(vitamContext, transactionDtoResult.getId(),
+                (RequestResponseOK<JsonNode>) client.getUnitsByTransaction(vitamContext,
+                    transactionDtoResult.getId(),
                     new SelectMultiQuery().getFinalSelect());
 
             final JsonNode expectedUnits =
@@ -342,7 +402,7 @@ public class FluxIT extends VitamRuleRunner {
         CollectTestHelper.uploadUnit(vitamContext, transaction.getId(), unitUploadResourcePath);
 
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-                () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+            () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
         assertThat(vitamClientException.getLocalizedMessage()).contains("Invalid input bytes length");
     }
@@ -360,7 +420,7 @@ public class FluxIT extends VitamRuleRunner {
         CollectTestHelper.uploadUnit(vitamContext, transaction.getId(), unitUploadResourcePath);
 
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-                () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+            () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
         assertThat(vitamClientException.getLocalizedMessage()).contains("Invalid input bytes");
     }
@@ -378,7 +438,7 @@ public class FluxIT extends VitamRuleRunner {
         uploadZipTransaction(vitamContext, transaction.getId(), zipPath);
 
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-                () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+            () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
         assertThat(vitamClientException.getLocalizedMessage()).contains("Cannot find unit with path no-dir");
     }
@@ -396,7 +456,7 @@ public class FluxIT extends VitamRuleRunner {
         uploadZipTransaction(vitamContext, transaction.getId(), zipPath);
 
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-                () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+            () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
         assertThat(vitamClientException.getLocalizedMessage()).contains("Duplicate key versement/pastis.json");
     }
@@ -414,9 +474,10 @@ public class FluxIT extends VitamRuleRunner {
         uploadZipTransaction(vitamContext, transaction.getId(), zipPath);
 
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-                () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+            () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
-        assertThat(vitamClientException.getLocalizedMessage()).contains("Error when trying to update units metadata");
+        assertThat(vitamClientException.getLocalizedMessage()).contains(
+            "Error when trying to update units metadata");
     }
 
     @Test
@@ -433,9 +494,9 @@ public class FluxIT extends VitamRuleRunner {
         closeTransaction(vitamContext, transaction.getId());
 
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-                () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+            () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
         assertThat(vitamClientException.getLocalizedMessage())
-                .contains("Unable to find transaction Id or invalid status");
+            .contains("Unable to find transaction Id or invalid status");
     }
 }
