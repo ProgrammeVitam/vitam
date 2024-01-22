@@ -6,8 +6,8 @@
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
+ * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
  * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
@@ -21,45 +21,16 @@
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.external.external.exception;
+package fr.gouv.vitam.collect.internal.client.exceptions;
 
-import fr.gouv.vitam.common.exception.VitamClientException;
+import fr.gouv.vitam.common.exception.VitamClientInternalException;
 
-/**
- * Main Access Client Exception
- */
-public class CollectExternalClientException extends VitamClientException {
-    private static final long serialVersionUID = -7474519631306009204L;
+public class CollectInternalClientInvalidRequestException extends VitamClientInternalException {
 
-
-    /**
-     * constructor with message
-     *
-     * @param message associated message
-     */
-    public CollectExternalClientException(String message) {
+    public CollectInternalClientInvalidRequestException(String message) {
         super(message);
-    }
-
-    /**
-     * constructor with throwable
-     *
-     * @param cause associated cause
-     */
-    public CollectExternalClientException(Throwable cause) {
-        super(cause);
-    }
-
-    /**
-     * constructor with message and throwable
-     *
-     * @param messsage associated message
-     * @param cause associated cause
-     */
-    public CollectExternalClientException(String messsage, Throwable cause) {
-        super(messsage, cause);
     }
 }

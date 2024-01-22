@@ -28,38 +28,17 @@ package fr.gouv.vitam.collect.external.external.exception;
 
 import fr.gouv.vitam.common.exception.VitamClientException;
 
-/**
- * Main Access Client Exception
- */
-public class CollectExternalClientException extends VitamClientException {
-    private static final long serialVersionUID = -7474519631306009204L;
+public class CollectExternalClientInvalidRequestException  extends VitamClientException {
 
-
-    /**
-     * constructor with message
-     *
-     * @param message associated message
-     */
-    public CollectExternalClientException(String message) {
+    public CollectExternalClientInvalidRequestException(String message) {
         super(message);
     }
 
-    /**
-     * constructor with throwable
-     *
-     * @param cause associated cause
-     */
-    public CollectExternalClientException(Throwable cause) {
+    public CollectExternalClientInvalidRequestException(Throwable cause) {
         super(cause);
     }
 
-    /**
-     * constructor with message and throwable
-     *
-     * @param messsage associated message
-     * @param cause associated cause
-     */
-    public CollectExternalClientException(String messsage, Throwable cause) {
-        super(messsage, cause);
+    public CollectExternalClientInvalidRequestException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

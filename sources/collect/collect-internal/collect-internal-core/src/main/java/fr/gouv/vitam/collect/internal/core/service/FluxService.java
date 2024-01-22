@@ -32,6 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.Iterators;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
+import fr.gouv.vitam.collect.common.exception.CollectInternalClientInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CsvParseInternalException;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
@@ -138,6 +139,9 @@ public class FluxService {
             int maxLevel = -1;
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {
+
+                    checkNonEmptyBinary(entry);
+
                     String path = FilenameUtils.normalize(entry.getName());
                     if (!FilenameUtils.equals(entry.getName(), path)) {
                         throw new IllegalStateException("path " + path + " is not canonical");
@@ -180,8 +184,6 @@ public class FluxService {
 
             bulkWriteObjectGroups(transactionModel.getId());
 
-            cleanTemporaryFiles(maxLevel, transactionModel.getId());
-
             if (isExtraMetadataExist) {
                 File metadataFile = PropertiesUtils.fileFromTmpFolder(
                     METADATA + "_" + transactionModel.getId() + VitamConstants.JSONL_EXTENSION);
@@ -196,16 +198,30 @@ public class FluxService {
             throw new CollectInternalException("An error occurs when try to upload the ZIP: {}");
         } catch (InvalidParseOperationException | CsvParseInternalException e) {
             throw new CollectInternalException(e.getMessage(), e);
+        } finally {
+            cleanTemporaryFiles(transactionModel.getId());
         }
     }
 
-    private void cleanTemporaryFiles(int maxLevel, String transactionId) {
+    private void checkNonEmptyBinary(ArchiveEntry entry) throws CollectInternalClientInvalidRequestException {
+        if (!entry.isDirectory() && entry.getSize() == 0L) {
+            throw new CollectInternalClientInvalidRequestException(
+                "Cannot upload empty file '" + entry.getName() + "'");
+        }
+    }
+
+    private void cleanTemporaryFiles(String transactionId) {
         File ogFile = PropertiesUtils.fileFromTmpFolder(
             MetadataType.OBJECTGROUP.getName() + "_" + transactionId + VitamConstants.JSONL_EXTENSION);
         FileUtils.deleteQuietly(ogFile);
-        for (int level = 0; level < maxLevel; level++) {
+        for (int level = 0; ; level++) {
             File file = PropertiesUtils.fileFromTmpFolder(
                 MetadataType.UNIT.getName() + "_" + level + "_" + transactionId + VitamConstants.JSONL_EXTENSION);
+
+            if (!file.exists()) {
+                // No more files...
+                return;
+            }
             FileUtils.deleteQuietly(file);
         }
     }

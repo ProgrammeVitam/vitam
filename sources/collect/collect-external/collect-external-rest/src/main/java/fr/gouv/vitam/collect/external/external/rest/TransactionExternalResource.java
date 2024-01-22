@@ -33,6 +33,7 @@ import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClient;
 import fr.gouv.vitam.collect.internal.client.CollectInternalClientFactory;
+import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientInvalidRequestException;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -84,7 +85,10 @@ import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_UPDATE;
 import static fr.gouv.vitam.utils.SecurityProfilePermissions.TRANSACTION_ZIP_CREATE;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
-import static javax.ws.rs.core.Response.Status.*;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
+import static javax.ws.rs.core.Response.Status.OK;
+import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
 
 
 @Path("/collect-external/v1/transactions")
@@ -339,6 +343,9 @@ public class TransactionExternalResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter("You must supply a file!", inputStreamObject);
             client.uploadTransactionZip(transactionId, inputStreamObject);
             return Response.ok().build();
+        } catch (CollectInternalClientInvalidRequestException e) {
+            LOGGER.error("Error when uploading transaction Zip - BAD REQUEST ", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (final VitamClientException e) {
             LOGGER.error("Error when uploading transaction Zip   ", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());

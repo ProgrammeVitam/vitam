@@ -31,6 +31,8 @@ import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
+import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientInvalidRequestException;
+import fr.gouv.vitam.collect.internal.client.exceptions.CollectInternalClientNotFoundException;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.client.DefaultClient;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
@@ -446,6 +448,14 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
                 message = vitamError.getMessage();
             }
 
+            if (response.getStatusInfo().getStatusCode() == Response.Status.BAD_REQUEST.getStatusCode()) {
+                throw new CollectInternalClientInvalidRequestException(message);
+            }
+
+            if (response.getStatusInfo().getStatusCode() == Response.Status.NOT_FOUND.getStatusCode()) {
+                throw new CollectInternalClientNotFoundException(message);
+            }
+
             throw new VitamClientException(message);
         } catch (InvalidParseOperationException e) {
             throw new VitamClientException(message);
@@ -489,7 +499,6 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
         }
     }
 
-
     @Override
     public Response changeTransactionStatus(String transactionId, TransactionStatus transactionStatus)
         throws VitamClientException {
@@ -512,8 +521,7 @@ public class CollectInternalClientRest extends DefaultClient implements CollectI
             .withJson();
         try (Response response = make(request)) {
             check(response);
-            RequestResponse<JsonNode> result = RequestResponse.parseFromResponse(response, JsonNode.class);
-            return result;
+            return RequestResponse.parseFromResponse(response, JsonNode.class);
         }
     }
 
