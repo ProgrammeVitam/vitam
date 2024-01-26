@@ -174,10 +174,8 @@ public class PurgeReportServiceTest {
             new PurgeObjectGroupReportEntry("got1", "sp1", "opi1",
                 null, new HashSet<>(Arrays.asList("o1", "o2")), PurgeObjectGroupStatus.DELETED.name(),
                 Arrays.asList(
-                    new PurgeObjectGroupObjectVersion("opi_o_1", 10L, "BinaryMaster_1", "BinaryMaster",
-                        persistentIdentifier),
-                    new PurgeObjectGroupObjectVersion("opi_o_2", 100L, "BinaryMaster_1", "BinaryMaster",
-                        persistentIdentifier))),
+                    new PurgeObjectGroupObjectVersion("1234", "opi_o_1", 10L, "BinaryMaster_1", "BinaryMaster", persistentIdentifier),
+                    new PurgeObjectGroupObjectVersion("4321", "opi_o_2", 100L, "BinaryMaster_1", "BinaryMaster", persistentIdentifier))),
             new PurgeObjectGroupReportEntry("got2", "sp2", "opi2",
                 new HashSet<>(Collections.singletonList("unit3")), null,
                 PurgeObjectGroupStatus.PARTIAL_DETACHMENT.name(),
