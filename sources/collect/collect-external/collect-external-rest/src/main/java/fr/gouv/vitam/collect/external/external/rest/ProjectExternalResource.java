@@ -97,7 +97,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = PROJECT_READ, description = "Récupére la liste des projets par tenant")
+    @Secured(permission = PROJECT_READ, description = "Récupère la liste des projets par tenant")
     public Response getProjects() {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             RequestResponse<JsonNode> response = client.getProjects();
@@ -139,7 +139,8 @@ public class ProjectExternalResource extends ApplicationStatusResource {
         } catch (VitamClientException e) {
             final String message = e.getLocalizedMessage();
             LOGGER.error("Client error : {}", message);
-            return CollectRequestResponse.toVitamError(fromStatusCode(e.getVitamError().getStatus()), e.getVitamError().getMessage());
+            return CollectRequestResponse.toVitamError(fromStatusCode(e.getVitamError().getStatus()),
+                e.getVitamError().getMessage());
         }
 
         return Response.status(Response.Status.OK).entity(listProjectsResponse).build();
@@ -187,7 +188,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = PROJECT_ID_READ, description = "Récupére un projet par son id")
+    @Secured(permission = PROJECT_ID_READ, description = "Récupère un projet par son id")
     public Response getProjectById(@PathParam("projectId") String projectId) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(projectId);
@@ -224,7 +225,7 @@ public class ProjectExternalResource extends ApplicationStatusResource {
     @Path("/{projectId}/units")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = PROJECT_ID_UNITS, description = "Récupére toutes les unités archivistique d'un projet")
+    @Secured(permission = PROJECT_ID_UNITS, description = "Récupère toutes les unités archivistique d'un projet")
     @Deprecated */
     public Response getUnitsByProjectId(@PathParam("projectId") String projectId, JsonNode queryDsl) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {

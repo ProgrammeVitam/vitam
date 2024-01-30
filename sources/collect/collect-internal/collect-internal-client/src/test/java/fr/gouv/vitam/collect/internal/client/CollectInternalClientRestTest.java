@@ -59,9 +59,9 @@ import javax.ws.rs.core.Response;
 import java.io.InputStream;
 import java.util.Set;
 
-public class CollectInternalClientRestTest extends ResteasyTestApplication {
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
-    private final static int TENANT_ID = 0;
+public class CollectInternalClientRestTest extends ResteasyTestApplication {
 
     protected static CollectInternalClientRest client;
 
@@ -287,13 +287,13 @@ public class CollectInternalClientRestTest extends ResteasyTestApplication {
             return expectedResponse.get();
         }
 
-
-        @Path("/projects/{projectId}/binary")
+        @Path("/transactions/{transactionId}/upload")
         @POST
         @Consumes({CommonMediaType.ZIP})
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response uploadProjectZip(@PathParam("projectId") String projectId, InputStream inputStreamObject) {
-            return expectedResponse.get();
+        @Produces(APPLICATION_JSON)
+        public Response uploadZipToTransaction(@PathParam("transactionId") String transactionId,
+            InputStream inputStreamObject) {
+            return expectedResponse.post();
         }
 
         @Path("/units/{unitId}")

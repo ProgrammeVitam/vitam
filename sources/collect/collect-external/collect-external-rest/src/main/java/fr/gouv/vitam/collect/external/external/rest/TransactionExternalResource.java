@@ -203,7 +203,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_UNIT_READ, description = "Récupére toutes les unités archivistique")
+    @Secured(permission = TRANSACTION_UNIT_READ, description = "Récupère toutes les unités archivistique")
     public Response selectUnits(@PathParam("transactionId") String transactionId,
         @Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode jsonQuery) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
@@ -341,7 +341,7 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
             ParametersChecker.checkParameter("You must supply a file!", inputStreamObject);
-            client.uploadTransactionZip(transactionId, inputStreamObject);
+            client.uploadZipToTransaction(transactionId, inputStreamObject);
             return Response.ok().build();
         } catch (CollectInternalClientInvalidRequestException e) {
             LOGGER.error("Error when uploading transaction Zip - BAD REQUEST ", e);

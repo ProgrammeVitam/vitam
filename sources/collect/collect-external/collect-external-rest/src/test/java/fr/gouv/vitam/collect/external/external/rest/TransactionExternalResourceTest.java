@@ -53,7 +53,7 @@ public class TransactionExternalResourceTest {
         RestAssured.port = portAvailable;
         RestAssured.basePath = "collect-external/v1";
         application = new CollectExternalMain("collect-external-test.conf",
-                BusinessApplicationTest.class, null);
+            BusinessApplicationTest.class, null);
         application.start();
     }
 
@@ -61,7 +61,7 @@ public class TransactionExternalResourceTest {
     public static void tearDown() throws Exception {
         try {
             if (application != null && application.getVitamServer() != null &&
-                    application.getVitamServer() != null) {
+                application.getVitamServer() != null) {
 
                 application.stop();
             }
@@ -77,65 +77,65 @@ public class TransactionExternalResourceTest {
     @Test
     public void uploadArchiveUnit_OK() {
         given()
-                .accept(ContentType.JSON)
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, "0")
-                .body("{\n" +
-                        "  \"DescriptionLevel\": \"RecordGrp\",\n" +
-                        "  \"Title\": \"Bulletins de salaire : mars 2020\"\n" +
-                        "}")
-                .when().log().all()
-                .post("/transactions/" + CollectInternalClientRestMock.TRANSACTION_ID + "/units")
-                .then().log().all()
-                .statusCode(Response.Status.OK.getStatusCode());
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body("{\n" +
+                "  \"DescriptionLevel\": \"RecordGrp\",\n" +
+                "  \"Title\": \"Bulletins de salaire : mars 2020\"\n" +
+                "}")
+            .when().log().all()
+            .post("/transactions/" + CollectInternalClientRestMock.TRANSACTION_ID + "/units")
+            .then().log().all()
+            .statusCode(Response.Status.OK.getStatusCode());
     }
 
     @Test
     public void uploadArchiveUnit_with_bad_transaction_id() {
         given()
-                .accept(ContentType.JSON)
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, "0")
-                .body("{\n" +
-                        "  \"DescriptionLevel\": \"RecordGrp\",\n" +
-                        "  \"Title\": \"Bulletins de salaire : mars 2020\"\n" +
-                        "}")
-                .when().log().all()
-                .post("/transactions/BAD_TRANSACTION_ID/units")
-                .then().log().all()
-                .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body("{\n" +
+                "  \"DescriptionLevel\": \"RecordGrp\",\n" +
+                "  \"Title\": \"Bulletins de salaire : mars 2020\"\n" +
+                "}")
+            .when().log().all()
+            .post("/transactions/BAD_TRANSACTION_ID/units")
+            .then().log().all()
+            .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
     }
 
 
     @Test
     public void bad_endpoint_match_pattern() {
         given()
-                .accept(ContentType.JSON)
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, "0")
-                .body("{\n" +
-                        "  \"DescriptionLevel\": \"RecordGrp\",\n" +
-                        "  \"Title\": \"Bulletins de salaire : mars 2020\"\n" +
-                        "}")
-                .when().log().all()
-                .post("/transactions/units")
-                .then().log().all()
-                .statusCode(Response.Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body("{\n" +
+                "  \"DescriptionLevel\": \"RecordGrp\",\n" +
+                "  \"Title\": \"Bulletins de salaire : mars 2020\"\n" +
+                "}")
+            .when().log().all()
+            .post("/transactions/units")
+            .then().log().all()
+            .statusCode(Response.Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
     @Test
     public void bad_endpoint_no_match() {
         given()
-                .accept(ContentType.JSON)
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, "0")
-                .body("{\n" +
-                        "  \"DescriptionLevel\": \"RecordGrp\",\n" +
-                        "  \"Title\": \"Bulletins de salaire : mars 2020\"\n" +
-                        "}")
-                .when().log().all()
-                .post("/transactions//units")
-                .then().log().all()
-                .statusCode(Response.Status.NOT_FOUND.getStatusCode());
+            .accept(ContentType.JSON)
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body("{\n" +
+                "  \"DescriptionLevel\": \"RecordGrp\",\n" +
+                "  \"Title\": \"Bulletins de salaire : mars 2020\"\n" +
+                "}")
+            .when().log().all()
+            .post("/transactions//units")
+            .then().log().all()
+            .statusCode(Response.Status.NOT_FOUND.getStatusCode());
     }
 }

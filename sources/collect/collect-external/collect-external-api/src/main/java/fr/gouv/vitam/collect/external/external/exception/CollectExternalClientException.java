@@ -56,10 +56,10 @@ public class CollectExternalClientException extends VitamClientException {
     /**
      * constructor with message and throwable
      *
-     * @param messsage associated message
+     * @param message associated message
      * @param cause associated cause
      */
-    public CollectExternalClientException(String messsage, Throwable cause) {
-        super(messsage, cause);
+    public CollectExternalClientException(String message, Throwable cause) {
+        super(message, cause);
     }
 }
