@@ -24,42 +24,19 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.external.external.exception;
+package fr.gouv.vitam.collect.common.exception;
 
-import fr.gouv.vitam.common.exception.VitamClientException;
+public class CollectInternalClientInvalidRequestException extends CollectInternalException {
 
-/**
- * Main Access Client Exception
- */
-public class CollectExternalClientException extends VitamClientException {
-    private static final long serialVersionUID = -7474519631306009204L;
-
-
-    /**
-     * constructor with message
-     *
-     * @param message associated message
-     */
-    public CollectExternalClientException(String message) {
-        super(message);
+    public CollectInternalClientInvalidRequestException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    /**
-     * constructor with throwable
-     *
-     * @param cause associated cause
-     */
-    public CollectExternalClientException(Throwable cause) {
+    public CollectInternalClientInvalidRequestException(Throwable cause) {
         super(cause);
     }
 
-    /**
-     * constructor with message and throwable
-     *
-     * @param message associated message
-     * @param cause associated cause
-     */
-    public CollectExternalClientException(String message, Throwable cause) {
-        super(message, cause);
+    public CollectInternalClientInvalidRequestException(String message) {
+        super(message);
     }
 }

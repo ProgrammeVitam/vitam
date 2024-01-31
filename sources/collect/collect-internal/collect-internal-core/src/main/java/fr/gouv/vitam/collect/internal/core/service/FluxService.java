@@ -32,9 +32,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.collect.Iterators;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
+import fr.gouv.vitam.collect.common.exception.CollectInternalClientInvalidRequestException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CsvParseInternalException;
-import fr.gouv.vitam.collect.internal.core.common.DescriptionLevel;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.helpers.CsvHelper;
@@ -139,6 +139,9 @@ public class FluxService {
             int maxLevel = -1;
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {
+
+                    checkNonEmptyBinary(entry);
+
                     String path = FilenameUtils.normalize(entry.getName());
                     if (!FilenameUtils.equals(entry.getName(), path)) {
                         throw new IllegalStateException("path " + path + " is not canonical");
@@ -153,8 +156,8 @@ public class FluxService {
                             METADATA_CSV_FILE);
                         isExtraMetadataExist = true;
                     } else {
-                        maxLevel = createMetadata(transactionModel, entry, entryInputStream, maxLevel, unitIds, path,
-                            projectModel.getUnitUp() != null);
+                        maxLevel = createMetadata(transactionModel.getId(), path, entryInputStream, entry.isDirectory(),
+                            maxLevel, unitIds, projectModel.getUnitUp() != null);
                     }
                     isEmpty = false;
                 }
@@ -181,8 +184,6 @@ public class FluxService {
 
             bulkWriteObjectGroups(transactionModel.getId());
 
-            cleanTemporaryFiles(maxLevel, transactionModel.getId());
-
             if (isExtraMetadataExist) {
                 File metadataFile = PropertiesUtils.fileFromTmpFolder(
                     METADATA + "_" + transactionModel.getId() + VitamConstants.JSONL_EXTENSION);
@@ -197,16 +198,30 @@ public class FluxService {
             throw new CollectInternalException("An error occurs when try to upload the ZIP: {}");
         } catch (InvalidParseOperationException | CsvParseInternalException e) {
             throw new CollectInternalException(e.getMessage(), e);
+        } finally {
+            cleanTemporaryFiles(transactionModel.getId());
         }
     }
 
-    private void cleanTemporaryFiles(int maxLevel, String transactionId) {
+    private void checkNonEmptyBinary(ArchiveEntry entry) throws CollectInternalClientInvalidRequestException {
+        if (!entry.isDirectory() && entry.getSize() == 0L) {
+            throw new CollectInternalClientInvalidRequestException(
+                "Cannot upload empty file '" + entry.getName() + "'");
+        }
+    }
+
+    private void cleanTemporaryFiles(String transactionId) {
         File ogFile = PropertiesUtils.fileFromTmpFolder(
             MetadataType.OBJECTGROUP.getName() + "_" + transactionId + VitamConstants.JSONL_EXTENSION);
         FileUtils.deleteQuietly(ogFile);
-        for (int level = 0; level < maxLevel; level++) {
+        for (int level = 0; ; level++) {
             File file = PropertiesUtils.fileFromTmpFolder(
                 MetadataType.UNIT.getName() + "_" + level + "_" + transactionId + VitamConstants.JSONL_EXTENSION);
+
+            if (!file.exists()) {
+                // No more files...
+                return;
+            }
             FileUtils.deleteQuietly(file);
         }
     }
@@ -234,34 +249,36 @@ public class FluxService {
         }
     }
 
-    private int createMetadata(TransactionModel transactionModel, ArchiveEntry entry,
-        ArchiveEntryInputStream entryInputStream, int maxLevel, Map<String, String> unitIds, String path,
-        boolean isAttachmentAuExist) throws IOException, CollectInternalException, InvalidParseOperationException {
-        DescriptionLevel descriptionLevel = (entry.isDirectory()) ? DescriptionLevel.RECORD_GRP : DescriptionLevel.ITEM;
-
-        String parent = FilenameUtils.getPathNoEndSeparator(path);
+    private int createMetadata(String transactionId, String path, InputStream entryInputStream, boolean isDirectory,
+        int maxLevel, Map<String, String> unitIds, boolean isAttachmentAuExist)
+        throws IOException, CollectInternalException, InvalidParseOperationException {
+        LevelType descriptionLevel = isDirectory ? LevelType.RECORD_GRP : LevelType.ITEM;
+        String parentPath = FilenameUtils.getPathNoEndSeparator(path);
 
         String parentUnit;
-        if (Strings.isNullOrEmpty(parent)) {
+        if (Strings.isNullOrEmpty(parentPath)) {
             if (isAttachmentAuExist) {
                 parentUnit = unitIds.get(STATIC_ATTACHMENT);
             } else {
                 parentUnit = null;
             }
         } else {
-            parentUnit = unitIds.get(parent);
+            parentUnit = unitIds.get(parentPath);
             if (parentUnit == null) {
-                throw new IllegalStateException("Malformed zip file : cannot import tree");
+                LOGGER.debug("Creating implicit parent folder '{}'", parentPath);
+                createMetadata(transactionId, parentPath, null, true, maxLevel, unitIds, isAttachmentAuExist);
             }
+
+            parentUnit = unitIds.get(parentPath);
         }
         String fileName = FilenameUtils.getName(path);
 
         ArchiveUnitModel unit =
-            MetadataHelper.createUnit(transactionModel.getId(), LevelType.fromValue(descriptionLevel.getValue()),
+            MetadataHelper.createUnit(transactionId, descriptionLevel,
                 fileName, parentUnit);
 
         unitIds.put(path, unit.getId());
-        if (!entry.isDirectory()) {
+        if (!isDirectory) {
             String extension = FilenameUtils.getExtension(fileName).toLowerCase();
             String objectId = GUIDFactory.newGUID().getId();
             String newFilename = (Strings.isNullOrEmpty(extension)) ? objectId : objectId + "." + extension;
@@ -270,11 +287,11 @@ public class FluxService {
             try {
                 Optional<FormatIdentifierResponse> formatIdentifierResponseOpt = collectService.detectFileFormat(file);
                 Entry<String, Long> binaryInformations =
-                    writeObjectToWorkspace(transactionModel.getId(), file, newFilename);
+                    writeObjectToWorkspace(transactionId, file, newFilename);
                 ObjectGroupResponse objectGroup =
-                    MetadataHelper.createObjectGroup(transactionModel.getId(), fileName, objectId, newFilename,
+                    MetadataHelper.createObjectGroup(transactionId, fileName, objectId, newFilename,
                         formatIdentifierResponseOpt, binaryInformations.getKey(), binaryInformations.getValue());
-                writeObjectGroupToTemporaryFile(objectGroup, transactionModel.getId());
+                writeObjectGroupToTemporaryFile(objectGroup, transactionId);
                 unit.setOg(objectGroup.getId());
             } finally {
                 Files.deleteIfExists(file.toPath());
@@ -282,7 +299,7 @@ public class FluxService {
         }
 
         maxLevel = writeUnitToTemporaryFile(StringUtils.countMatches(path, File.separator), maxLevel, unit,
-            transactionModel.getId());
+            transactionId);
         return maxLevel;
     }
 

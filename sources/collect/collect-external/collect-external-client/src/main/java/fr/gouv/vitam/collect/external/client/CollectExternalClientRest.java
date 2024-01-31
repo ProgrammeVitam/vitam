@@ -30,6 +30,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.external.external.exception.CollectExternalClientException;
+import fr.gouv.vitam.collect.external.external.exception.CollectExternalClientInvalidRequestException;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.client.VitamClientFactoryInterface;
 import fr.gouv.vitam.common.client.VitamContext;
@@ -41,7 +43,6 @@ import fr.gouv.vitam.common.external.client.DefaultClient;
 import fr.gouv.vitam.common.model.RequestResponse;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.NewCookie;
 import javax.ws.rs.core.Response;
 import java.io.InputStream;
@@ -448,7 +449,11 @@ public class CollectExternalClientRest extends DefaultClient implements CollectE
                 message = vitamError.getMessage();
             }
 
-            throw new VitamClientException(message);
+            if (response.getStatusInfo().getStatusCode() == Response.Status.BAD_REQUEST.getStatusCode()) {
+                throw new CollectExternalClientInvalidRequestException(message);
+            }
+
+            throw new CollectExternalClientException(message);
         } catch (InvalidParseOperationException e) {
             throw new VitamClientException(message);
         }

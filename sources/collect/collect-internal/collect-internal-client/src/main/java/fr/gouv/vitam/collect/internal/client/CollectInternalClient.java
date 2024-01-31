@@ -265,7 +265,7 @@ public interface CollectInternalClient extends MockOrRestClient {
      * @return Response
      * @throws VitamClientException exception occurs when parse operation failed
      */
-    void uploadTransactionZip(String transactionId, InputStream inputStreamUploaded)
+    void uploadZipToTransaction(String transactionId, InputStream inputStreamUploaded)
         throws VitamClientException;
 
 

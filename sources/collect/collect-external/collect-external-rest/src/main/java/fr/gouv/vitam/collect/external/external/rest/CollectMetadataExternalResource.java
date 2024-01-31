@@ -90,7 +90,7 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
     @Path("/units/{unitId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_UNIT_ID_READ, description = "Récupére une unité archivistique par ID")
+    @Secured(permission = TRANSACTION_UNIT_ID_READ, description = "Récupère une unité archivistique par ID")
     public Response getUnitById(@PathParam("unitId") String unitId) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(unitId);
@@ -132,7 +132,7 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
     @Path("/objects/{gotId}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_OBJECT_READ, description = "Récupére un groupe d'objet")
+    @Secured(permission = TRANSACTION_OBJECT_READ, description = "Récupère un groupe d'objet")
     public Response getObjectById(@PathParam("gotId") String gotId) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(gotId);

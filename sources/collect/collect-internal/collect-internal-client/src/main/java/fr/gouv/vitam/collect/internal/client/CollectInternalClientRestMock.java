@@ -153,7 +153,7 @@ public class CollectInternalClientRestMock extends AbstractMockClient implements
     }
 
     @Override
-    public void uploadTransactionZip(String transactionId, InputStream inputStreamUploaded) {
+    public void uploadZipToTransaction(String transactionId, InputStream inputStreamUploaded) {
 
     }
 

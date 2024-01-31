@@ -75,8 +75,6 @@ public class ProjectInternalResource {
 
     public static final String PROJECT_NOT_FOUND = "Unable to find project Id or invalid status";
 
-    private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
-
     private static final String ERROR_GETTING_UNITS_BY_PROJECT_ID_MSG =
         "Error when getting units by project ID in metadata : {}";
 
