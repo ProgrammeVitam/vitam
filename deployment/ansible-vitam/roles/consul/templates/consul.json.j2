@@ -40,7 +40,7 @@
   "data_dir": "{{ consul_folder_data }}",
   "log_level": "{{ consul.log_level | default('INFO') }}",
   "log_file": "{{ consul_folder_log }}/consul.log",
-  "enable_syslog": {{ consul.enable_syslog | default('true') }},
+  "enable_syslog": {{ consul.enable_syslog | default(true) | bool | lower }},
 
   "checks" : [
     {
