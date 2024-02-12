@@ -26,17 +26,17 @@
  */
 package fr.gouv.vitam.collect.common.exception;
 
-public class CollectInternalClientInvalidRequestException extends CollectInternalException {
+public class CollectInternalInvalidRequestException extends CollectInternalException {
 
-    public CollectInternalClientInvalidRequestException(String message, Throwable cause) {
+    public CollectInternalInvalidRequestException(String message, Throwable cause) {
         super(message, cause);
     }
 
-    public CollectInternalClientInvalidRequestException(Throwable cause) {
+    public CollectInternalInvalidRequestException(Throwable cause) {
         super(cause);
     }
 
-    public CollectInternalClientInvalidRequestException(String message) {
+    public CollectInternalInvalidRequestException(String message) {
         super(message);
     }
 }
