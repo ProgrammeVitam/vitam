@@ -315,9 +315,7 @@ public interface CollectInternalClient extends MockOrRestClient {
     RequestResponse<JsonNode> updateTransaction(
         TransactionDto transactionDto) throws VitamClientException;
 
-
-
-    RequestResponseOK<JsonNode> updateUnits(String transactionId, InputStream is)
+    RequestResponseOK<JsonNode> updateUnitsWithCsvMetadata(String transactionId, InputStream metadataCsvInputStream)
         throws VitamClientException;
 
     /**

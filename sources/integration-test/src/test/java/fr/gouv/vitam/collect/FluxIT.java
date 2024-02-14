@@ -34,6 +34,7 @@ import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
+import fr.gouv.vitam.collect.external.external.exception.CollectExternalClientInvalidRequestException;
 import fr.gouv.vitam.collect.external.external.rest.CollectExternalMain;
 import fr.gouv.vitam.collect.internal.CollectInternalMain;
 import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
@@ -45,6 +46,7 @@ import fr.gouv.vitam.common.client.VitamContext;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.elasticsearch.ElasticsearchRule;
+import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
@@ -81,10 +83,10 @@ import static fr.gouv.vitam.collect.CollectTestHelper.closeTransaction;
 import static fr.gouv.vitam.collect.CollectTestHelper.createProject;
 import static fr.gouv.vitam.collect.CollectTestHelper.createTransaction;
 import static fr.gouv.vitam.collect.CollectTestHelper.initProjectData;
-import static fr.gouv.vitam.collect.CollectTestHelper.initTransaction;
-import static fr.gouv.vitam.collect.CollectTestHelper.updateUnit;
+import static fr.gouv.vitam.collect.CollectTestHelper.updateUnitWithMetadataCsv;
 import static fr.gouv.vitam.collect.CollectTestHelper.uploadZipTransaction;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
@@ -104,7 +106,7 @@ public class FluxIT extends VitamRuleRunner {
         "collect/updated_units_with_dynamic_attachment.json";
     private static final String CREATED_UNIT_WITH_DYNAMIC_ATTACHMENT =
         "collect/created_unit_with_dynamic_attachment.json";
-    private static final String ZIP_FILE = "collect/sampleStream.zip";
+    private static final String ZIP_FILE_WITH_CSV_METADATA = "collect/sampleStreamWithCsvMetadata.zip";
     private static final String FILE_ZIP_FILE = "collect/file.zip";
     private static final String UNITS_TO_UPDATE = "collect/updateMetadata/units.json";
     private static final String UNITS_UPDATED_BY_CSV_PATH = "collect/updateMetadata/units_updated.json";
@@ -135,28 +137,17 @@ public class FluxIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_upload_zip_to_transaction() throws Exception {
         try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
-            final ProjectDto projectDto = initProjectData();
-            projectDto.setUnitUp(ATTACHMENT_UNIT_ID);
-            final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
-            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
-            final ProjectDto projectDtoResult =
-                JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
-                    ProjectDto.class);
-            final TransactionDto transactiondto = initTransaction();
-            final RequestResponse<JsonNode> transactionResponse =
-                collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
-            Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
-            final RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
-            final TransactionDto transactionDtoResult =
-                JsonHandler.getFromJsonNode(requestResponseOK.getFirstResult(), TransactionDto.class);
-            try (InputStream inputStream = PropertiesUtils.getResourceAsStream(ZIP_FILE)) {
+            final ProjectDto projectDtoResult = createProjectWithAttachement(collectClient);
+            final TransactionDto transactionDto = createTransaction(vitamContext, projectDtoResult.getId())
+                .orElseThrow();
+            try (InputStream inputStream = PropertiesUtils.getResourceAsStream(ZIP_FILE_WITH_CSV_METADATA)) {
                 final RequestResponse<JsonNode> response =
-                    collectClient.uploadProjectZip(vitamContext, transactionDtoResult.getId(), inputStream);
+                    collectClient.uploadProjectZip(vitamContext, transactionDto.getId(), inputStream);
                 Assertions.assertThat(response.getStatus()).isEqualTo(200);
             }
             final RequestResponseOK<JsonNode> unitsByTransaction =
                 (RequestResponseOK<JsonNode>) collectClient.getUnitsByTransaction(vitamContext,
-                    transactionDtoResult.getId(), new SelectMultiQuery().getFinalSelect());
+                    transactionDto.getId(), new SelectMultiQuery().getFinalSelect());
             final JsonNode expectedUnits =
                 JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UNITS_UPDATED_BY_ZIP_PATH));
 
@@ -186,29 +177,18 @@ public class FluxIT extends VitamRuleRunner {
     public void should_upload_windows_generated_zip_with_implicit_parent_entries_to_transaction_11756()
         throws Exception {
         try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
-            final ProjectDto projectDto = initProjectData();
-            projectDto.setUnitUp(ATTACHMENT_UNIT_ID);
-            final RequestResponse<JsonNode> projectResponse = collectClient.initProject(vitamContext, projectDto);
-            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
-            final ProjectDto projectDtoResult =
-                JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
-                    ProjectDto.class);
-            final TransactionDto transactiondto = initTransaction();
-            final RequestResponse<JsonNode> transactionResponse =
-                collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
-            Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
-            final RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
-            final TransactionDto transactionDtoResult =
-                JsonHandler.getFromJsonNode(requestResponseOK.getFirstResult(), TransactionDto.class);
+            final ProjectDto projectDtoResult = createProjectWithAttachement(collectClient);
+            final TransactionDto transactionDto = createTransaction(vitamContext, projectDtoResult.getId())
+                .orElseThrow();
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(
                 "collect/collect_windows_generated_zip_with_implicit_parent_entries_to_transaction_11756.zip")) {
                 final RequestResponse<JsonNode> response =
-                    collectClient.uploadProjectZip(vitamContext, transactionDtoResult.getId(), inputStream);
+                    collectClient.uploadProjectZip(vitamContext, transactionDto.getId(), inputStream);
                 Assertions.assertThat(response.getStatus()).isEqualTo(200);
             }
             final RequestResponseOK<JsonNode> unitsByTransaction =
                 (RequestResponseOK<JsonNode>) collectClient.getUnitsByTransaction(vitamContext,
-                    transactionDtoResult.getId(),
+                    transactionDto.getId(),
                     new SelectMultiQuery().addUsedProjection("#id", "Title").getFinalSelect());
 
             assertThat(unitsByTransaction.getResults()).hasSize(6);
@@ -226,6 +206,23 @@ public class FluxIT extends VitamRuleRunner {
             assertThat(response.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
             assertThat(response.readEntity(InputStream.class)).hasSameContentAs(new ByteArrayInputStream(
                 "sdfgdsfgdsfgdfs".getBytes(StandardCharsets.UTF_8)));
+        }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_fail_when_upload_zip_with_empty_binary_to_transaction_11756() throws Exception {
+        try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
+
+            final ProjectDto projectDtoResult = createProjectWithAttachement(collectClient);
+            TransactionDto transactionDto = createTransaction(vitamContext, projectDtoResult.getId()).orElseThrow();
+            try (InputStream inputStream = PropertiesUtils.getResourceAsStream(
+                "collect/zipWithEmptyBinary_11756.zip")) {
+                assertThatThrownBy(() ->
+                    collectClient.uploadProjectZip(vitamContext, transactionDto.getId(), inputStream))
+                    .isExactlyInstanceOf(CollectExternalClientInvalidRequestException.class)
+                    .hasMessage("Cannot upload empty file 'A/C.txt'");
+            }
         }
     }
 
@@ -252,25 +249,17 @@ public class FluxIT extends VitamRuleRunner {
                 JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
                     ProjectDto.class);
 
-            TransactionDto transactiondto = initTransaction();
+            TransactionDto transactionDto = createTransaction(vitamContext, projectDtoResult.getId()).orElseThrow();
 
-            RequestResponse<JsonNode> transactionResponse =
-                collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
-            Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
-
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
-            TransactionDto transactionDtoResult =
-                JsonHandler.getFromJsonNode(requestResponseOK.getFirstResult(), TransactionDto.class);
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(FILE_ZIP_FILE)) {
                 RequestResponse<JsonNode> response =
-                    collectClient.uploadProjectZip(vitamContext, transactionDtoResult.getId(), inputStream);
+                    collectClient.uploadProjectZip(vitamContext, transactionDto.getId(), inputStream);
                 Assertions.assertThat(response.getStatus()).isEqualTo(200);
             }
 
             final RequestResponseOK<JsonNode> unitsByTransaction =
                 (RequestResponseOK<JsonNode>) collectClient.getUnitsByTransaction(vitamContext,
-                    transactionDtoResult.getId(), new SelectMultiQuery().getFinalSelect());
-
+                    transactionDto.getId(), new SelectMultiQuery().getFinalSelect());
 
             final JsonNode expectedUnits =
                 JsonHandler.getFromFile(PropertiesUtils.getResourceFile(UPDATED_UNITS_WITH_DYNAMIC_ATTACHMENT));
@@ -301,26 +290,18 @@ public class FluxIT extends VitamRuleRunner {
                 JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
                     ProjectDto.class);
 
-            TransactionDto transactiondto = initTransaction();
-
-            RequestResponse<JsonNode> transactionResponse =
-                collectClient.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
-            Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
-
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
-            TransactionDto transactionDtoResult =
-                JsonHandler.getFromJsonNode(requestResponseOK.getFirstResult(), TransactionDto.class);
+            TransactionDto transactionDto = createTransaction(vitamContext, projectDtoResult.getId()).orElseThrow();
 
             ObjectNode unit = JsonHandler.createObjectNode();
             unit.put("Title", UNIT_TITLE);
             unit.put("DescriptionLevel", "Item");
             unit.put("Departement", 75);
 
-            collectClient.uploadArchiveUnit(vitamContext, unit, transactionDtoResult.getId());
+            collectClient.uploadArchiveUnit(vitamContext, unit, transactionDto.getId());
 
             final RequestResponseOK<JsonNode> unitsByTransaction =
                 (RequestResponseOK<JsonNode>) collectClient.getUnitsByTransaction(vitamContext,
-                    transactionDtoResult.getId(), new SelectMultiQuery().getFinalSelect());
+                    transactionDto.getId(), new SelectMultiQuery().getFinalSelect());
 
             final JsonNode expectedUnits =
                 JsonHandler.getFromFile(PropertiesUtils.getResourceFile(CREATED_UNIT_WITH_DYNAMIC_ATTACHMENT));
@@ -343,31 +324,16 @@ public class FluxIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void should_update_metadata() throws Exception {
+    public void should_update_metadata_csv() throws Exception {
         try (CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
-            ProjectDto projectDto = initProjectData();
 
-            final RequestResponse<JsonNode> projectResponse = client.initProject(vitamContext, projectDto);
-            Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
-
-            ProjectDto projectDtoResult =
-                JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
-                    ProjectDto.class);
-
-            TransactionDto transactiondto = initTransaction();
-
-            RequestResponse<JsonNode> transactionResponse =
-                client.initTransaction(vitamContext, transactiondto, projectDtoResult.getId());
-            Assertions.assertThat(transactionResponse.getStatus()).isEqualTo(200);
-
-            RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) transactionResponse;
-            TransactionDto transactionDtoResult =
-                JsonHandler.getFromJsonNode(requestResponseOK.getFirstResult(), TransactionDto.class);
+            final ProjectDto project = createProject(vitamContext).orElseThrow();
+            final TransactionDto transaction = createTransaction(vitamContext, project.getId()).orElseThrow();
 
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(UNITS_TO_UPDATE)) {
                 final List<Unit> units = JsonHandler.getFromInputStream(inputStream, List.class, Unit.class);
                 for (Unit unit : units) {
-                    unit.put(Unit.OPI, transactionDtoResult.getId());
+                    unit.put(Unit.OPI, transaction.getId());
                 }
                 MetadataCollections.UNIT.<Unit>getCollection().insertMany(units);
                 MetadataCollections.UNIT.getEsClient()
@@ -377,13 +343,13 @@ public class FluxIT extends VitamRuleRunner {
 
             try (InputStream inputStream = PropertiesUtils.getResourceAsStream(METADATA_FILE)) {
                 RequestResponse<JsonNode> response =
-                    client.updateUnits(vitamContext, transactionDtoResult.getId(), inputStream);
+                    client.updateUnits(vitamContext, transaction.getId(), inputStream);
                 Assert.assertTrue(response.isOk());
             }
 
             final RequestResponseOK<JsonNode> unitsByTransaction =
                 (RequestResponseOK<JsonNode>) client.getUnitsByTransaction(vitamContext,
-                    transactionDtoResult.getId(),
+                    transaction.getId(),
                     new SelectMultiQuery().getFinalSelect());
 
             final JsonNode expectedUnits =
@@ -413,7 +379,7 @@ public class FluxIT extends VitamRuleRunner {
         CollectTestHelper.uploadUnit(vitamContext, transaction.getId(), unitUploadResourcePath);
 
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-            () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+            () -> updateUnitWithMetadataCsv(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
         assertThat(vitamClientException.getLocalizedMessage()).contains("Invalid input bytes length");
     }
@@ -432,7 +398,7 @@ public class FluxIT extends VitamRuleRunner {
         CollectTestHelper.uploadUnit(vitamContext, transaction.getId(), unitUploadResourcePath);
 
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-            () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+            () -> updateUnitWithMetadataCsv(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
         assertThat(vitamClientException.getLocalizedMessage()).contains("Invalid input bytes");
     }
@@ -451,7 +417,7 @@ public class FluxIT extends VitamRuleRunner {
         uploadZipTransaction(vitamContext, transaction.getId(), zipPath);
 
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-            () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+            () -> updateUnitWithMetadataCsv(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
         assertThat(vitamClientException.getLocalizedMessage()).contains("Cannot find unit with path no-dir");
     }
@@ -470,7 +436,7 @@ public class FluxIT extends VitamRuleRunner {
         uploadZipTransaction(vitamContext, transaction.getId(), zipPath);
 
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-            () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+            () -> updateUnitWithMetadataCsv(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
         assertThat(vitamClientException.getLocalizedMessage()).contains("Duplicate key versement/pastis.json");
     }
@@ -489,7 +455,7 @@ public class FluxIT extends VitamRuleRunner {
         uploadZipTransaction(vitamContext, transaction.getId(), zipPath);
 
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-            () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+            () -> updateUnitWithMetadataCsv(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
         assertThat(vitamClientException.getLocalizedMessage()).contains(
             "Error when trying to update units metadata");
@@ -510,9 +476,19 @@ public class FluxIT extends VitamRuleRunner {
         closeTransaction(vitamContext, transaction.getId());
 
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-            () -> updateUnit(vitamContext, transaction.getId(), unitUpdateResourcePath));
+            () -> updateUnitWithMetadataCsv(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
         assertThat(vitamClientException.getLocalizedMessage())
             .contains("Unable to find transaction Id or invalid status");
+    }
+
+    private ProjectDto createProjectWithAttachement(CollectExternalClient client)
+        throws VitamClientException, InvalidParseOperationException {
+        final ProjectDto projectDto = initProjectData();
+        projectDto.setUnitUp(ATTACHMENT_UNIT_ID);
+        final RequestResponse<JsonNode> projectResponse = client.initProject(vitamContext, projectDto);
+        Assertions.assertThat(projectResponse.getStatus()).isEqualTo(200);
+        return JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) projectResponse).getFirstResult(),
+            ProjectDto.class);
     }
 }

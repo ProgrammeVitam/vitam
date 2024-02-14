@@ -100,14 +100,30 @@ public final class JsonHandler {
      * Default ObjectMapperLowerCamelCase
      */
     private static final ObjectMapper OBJECT_MAPPER_LOWER_CAMEL_CASE;
+    /**
+     * ObjectMapper with strict deserialization policy
+     */
+    private static final ObjectMapper STRICT_OBJECT_MAPPER;
 
     static {
         OBJECT_MAPPER = buildObjectMapper();
+
         OBJECT_MAPPER_UNPRETTY = buildObjectMapper();
         OBJECT_MAPPER_UNPRETTY.disable(SerializationFeature.INDENT_OUTPUT);
+
         OBJECT_MAPPER_LOWER_CAMEL_CASE = buildObjectMapper();
         OBJECT_MAPPER_LOWER_CAMEL_CASE.setPropertyNamingStrategy(PropertyNamingStrategies.LOWER_CAMEL_CASE);
         OBJECT_MAPPER_LOWER_CAMEL_CASE.disable(SerializationFeature.INDENT_OUTPUT);
+
+        STRICT_OBJECT_MAPPER = buildObjectMapper();
+        STRICT_OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true);
+        STRICT_OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES, true);
+        STRICT_OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_NUMBERS_FOR_ENUMS, true);
+        STRICT_OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_READING_DUP_TREE_KEY, true);
+        STRICT_OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_IGNORED_PROPERTIES, true);
+        STRICT_OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_TRAILING_TOKENS, true);
+        STRICT_OBJECT_MAPPER.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, false);
+        STRICT_OBJECT_MAPPER.configure(DeserializationFeature.UNWRAP_SINGLE_VALUE_ARRAYS, false);
     }
 
     private JsonHandler() {
@@ -530,6 +546,17 @@ public final class JsonHandler {
         try {
             ParametersChecker.checkParameter("JsonNode or class", jsonNode, clazz);
             ObjectReader objectReader = OBJECT_MAPPER.readerFor(clazz);
+            return objectReader.readValue(jsonNode);
+        } catch (IOException e) {
+            throw new InvalidParseOperationException(e);
+        }
+    }
+
+    public static <T> T getFromStrictJsonNode(JsonNode jsonNode, TypeReference<T> clazz)
+        throws InvalidParseOperationException {
+        try {
+            ParametersChecker.checkParameter("JsonNode or class", jsonNode, clazz);
+            ObjectReader objectReader = STRICT_OBJECT_MAPPER.readerFor(clazz);
             return objectReader.readValue(jsonNode);
         } catch (IOException e) {
             throw new InvalidParseOperationException(e);

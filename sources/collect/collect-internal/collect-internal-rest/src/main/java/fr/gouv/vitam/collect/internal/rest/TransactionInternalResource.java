@@ -76,8 +76,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
+import static fr.gouv.vitam.common.CommonMediaType.TEXT_CSV;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_OCTET_STREAM;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
@@ -88,6 +88,8 @@ public class TransactionInternalResource {
     public static final String SIP_GENERATED_MANIFEST_CAN_T_BE_NULL = "SIP generated manifest can't be null";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionInternalResource.class);
     private static final String TRANSACTION_NOT_FOUND = "Unable to find transaction Id or invalid status";
+    private static final String TRANSACTION_NOT_FOUND_OR_INVALID_STATUS =
+        "Unable to find transaction Id or invalid status";
     private static final String PROJECT_NOT_FOUND = "Unable to find project Id or invalid status";
 
     private static final String EMPTY_QUERY_IS_IMPOSSIBLE = "Empty query is impossible";
@@ -95,7 +97,6 @@ public class TransactionInternalResource {
     private static final String EXECUTION_OF_DSL_VITAM_FROM_COLLECT_ONGOING =
         "Execution of DSL Vitam from Collect ongoing...";
     private static final String DEBUG = "DEBUG {}";
-
     private final TransactionService transactionService;
     private final MetadataService metadataService;
     private final SipService sipService;
@@ -338,56 +339,43 @@ public class TransactionInternalResource {
         }
     }
 
-
-    @Path("/{transactionId}/units")
+    @Path("/{transactionId}/units/metadata/csv")
     @PUT
-    @Consumes(APPLICATION_OCTET_STREAM)
+    @Consumes(TEXT_CSV)
     @Produces(APPLICATION_JSON)
-    public Response updateUnits(@PathParam("transactionId") String transactionId, InputStream is) {
+    public Response updateUnitsWithMetadataCsv(@PathParam("transactionId") String transactionId,
+        InputStream metadataCsvInputStream) {
         try {
-            ParametersChecker.checkParameter("DOCUMENT_IS_MANDATORY", is);
+            ParametersChecker.checkParameter("DOCUMENT_IS_MANDATORY", metadataCsvInputStream);
             SanityChecker.checkParameter(transactionId);
 
-            Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
-            if (transactionModel.isEmpty() ||
-                !transactionService.checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
-                LOGGER.error(TRANSACTION_NOT_FOUND);
-                return CollectRequestResponse.toVitamError(BAD_REQUEST, TRANSACTION_NOT_FOUND);
-            }
-            TransactionModel transaction = transactionModel.get();
-
-            Optional<ProjectDto> projectDto = projectService.findProject(transaction.getProjectId());
-            if (projectDto.isEmpty()) {
-                LOGGER.error(PROJECT_NOT_FOUND);
-                return CollectRequestResponse.toVitamError(BAD_REQUEST, PROJECT_NOT_FOUND);
-            }
+            TransactionModel transaction = getOpenTransaction(transactionId);
 
             final String requestId = VitamThreadUtils.getVitamSession().getRequestId();
             File file = PropertiesUtils.fileFromTmpFolder(String.format("metadata_%s.csv", requestId));
 
             // Check Html Pattern
             try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
-                StreamUtils.copy(is, fileOutputStream);
+                StreamUtils.copy(metadataCsvInputStream, fileOutputStream);
                 if (file.length() == 0) {
                     throw new IllegalArgumentException("Empty file");
                 }
                 SanityChecker.checkHTMLFile(file);
 
-
                 try (InputStream sanityStream = new FileInputStream(file)) {
-                    metadataService.updateUnits(transaction, sanityStream);
+                    metadataService.updateUnitsWithMetadataCsv(transaction, sanityStream);
                 }
             } finally {
                 FileUtils.deleteQuietly(file);
             }
 
             return Response.ok(new RequestResponseOK<>()).build();
+        } catch (IllegalArgumentException | InvalidParseOperationException | CollectInternalInvalidRequestException e) {
+            LOGGER.error("An error occurs when try to update metadata : {}", e);
+            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (CollectInternalException | IOException e) {
             LOGGER.error("An error occurs when try to update metadata : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
-        } catch (IllegalArgumentException | InvalidParseOperationException e) {
-            LOGGER.error("An error occurs when try to update metadata : {}", e);
-            return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         }
     }
 
@@ -503,5 +491,23 @@ public class TransactionInternalResource {
                 .build();
         }
         return Response.status(Response.Status.OK).entity(result).build();
+    }
+
+    private TransactionModel getOpenTransaction(String transactionId)
+        throws InvalidParseOperationException, CollectInternalException {
+        SanityChecker.checkParameter(transactionId);
+
+        Optional<TransactionModel> transactionModel = transactionService.findTransaction(transactionId);
+        if (transactionModel.isEmpty() ||
+            !transactionService.checkStatus(transactionModel.get(), TransactionStatus.OPEN)) {
+            throw new CollectInternalInvalidRequestException(TRANSACTION_NOT_FOUND_OR_INVALID_STATUS);
+        }
+        TransactionModel transaction = transactionModel.get();
+
+        Optional<ProjectDto> projectDto = projectService.findProject(transaction.getProjectId());
+        if (projectDto.isEmpty()) {
+            throw new CollectInternalInvalidRequestException(PROJECT_NOT_FOUND);
+        }
+        return transaction;
     }
 }

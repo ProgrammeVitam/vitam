@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.culture.archivesdefrance.seda.v2.LegalStatusType;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
-import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.external.client.CollectExternalClient;
 import fr.gouv.vitam.collect.external.client.CollectExternalClientFactory;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -154,7 +153,7 @@ public class CollectTestHelper {
         }
     }
 
-    public static void updateUnit(VitamContext vitamContext, final String transactionId, final String resourcePath) throws IOException, VitamClientException {
+    public static void updateUnitWithMetadataCsv(VitamContext vitamContext, final String transactionId, final String resourcePath) throws IOException, VitamClientException {
         try (
                 final CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient();
                 final InputStream is = PropertiesUtils.getResourceAsStream(resourcePath)
@@ -162,7 +161,8 @@ public class CollectTestHelper {
             final String data = PropertiesUtils.getResourceAsString(resourcePath);
             assertThat(data.length()).isGreaterThan(0);
 
-            final RequestResponse<JsonNode> response = client.updateUnits(vitamContext, transactionId, is);
+            final RequestResponse<JsonNode> response =
+                client.updateUnits(vitamContext, transactionId, is);
 
             if (!response.isOk()) {
                 throw new RuntimeException("Something wrong with archive upload");

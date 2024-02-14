@@ -191,8 +191,21 @@ documentation:
     put:
       description: |
         Permet de mettre à jour les métadonnées à partir d'un fichier CSV en entrée.
+
+        **Attention:** Le fichier CSV doit être séparé par des point-virgules (`;`), et sans lignes vides.
+
+        **NB.** Le nombre de lignes du fichier de métadonnées CSV en entrée doit rester raisonnable,
+        idéalement pas plus de 1000 par appel.
+
+        **Important :** L'API est synchrone / bloquante, et peut prendre quelques instants.
+
+        Permissions requises:
+          - transaction:id:units:update
+
       body:
-        application/octet-stream: Fichier CSV de MAJ
+        application/octet-stream:
+            Description: Fichier CSV de MAJ.
+            example: !include libraries/examples/CollectMetadata.csv
       headers:
         X-tenant-Id:
           required: true

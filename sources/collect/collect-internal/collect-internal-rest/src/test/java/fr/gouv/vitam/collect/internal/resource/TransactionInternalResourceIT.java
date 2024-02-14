@@ -40,11 +40,9 @@ import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
-import fr.gouv.vitam.common.error.VitamError;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponseOK;
-import io.restassured.http.ContentType;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -54,7 +52,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Optional;
 
+import static fr.gouv.vitam.common.CommonMediaType.TEXT_CSV;
 import static io.restassured.RestAssured.given;
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 import static org.mockito.ArgumentMatchers.any;
@@ -109,11 +109,11 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
-                    .contentType(ContentType.BINARY)
+                    .contentType(TEXT_CSV)
                     .header(GlobalDataRest.X_TENANT_ID, 0)
-                    .body(resourceAsStream)
+                    .body(resourceAsStream.readAllBytes())
                     .when()
-                    .put("transactions/" + transaction.getId() + "/units")
+                    .put("transactions/" + transaction.getId() + "/units/metadata/csv")
                     .then()
                     .statusCode(OK.getStatusCode());
             } catch (FileNotFoundException e) {
@@ -174,11 +174,11 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
-                    .contentType(ContentType.BINARY)
+                    .contentType(TEXT_CSV)
                     .header(GlobalDataRest.X_TENANT_ID, 0)
-                    .body(resourceAsStream)
+                    .body(resourceAsStream.readAllBytes())
                     .when()
-                    .put("transactions/" + transaction.getId() + "/units")
+                    .put("transactions/" + transaction.getId() + "/units/metadata/csv")
                     .then()
                     .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
                     .body("message", Matchers.equalTo("Error when trying to update units metadata"))
@@ -242,11 +242,11 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
-                    .contentType(ContentType.BINARY)
+                    .contentType(TEXT_CSV)
                     .header(GlobalDataRest.X_TENANT_ID, 0)
-                    .body(resourceAsStream)
+                    .body(resourceAsStream.readAllBytes())
                     .when()
-                    .put("transactions/" + transaction.getId() + "/units")
+                    .put("transactions/" + transaction.getId() + "/units/metadata/csv")
                     .then()
                     .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
                     .body("message", Matchers.equalTo("Internal Server Error"))
@@ -310,11 +310,11 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
-                    .contentType(ContentType.BINARY)
+                    .contentType(TEXT_CSV)
                     .header(GlobalDataRest.X_TENANT_ID, 0)
-                    .body(resourceAsStream)
+                    .body(resourceAsStream.readAllBytes())
                     .when()
-                    .put("transactions/" + transaction.getId() + "/units")
+                    .put("transactions/" + transaction.getId() + "/units/metadata/csv")
                     .then()
                     .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
                     .body("message", Matchers.containsString("no update data found !"))
@@ -377,11 +377,11 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
-                    .contentType(ContentType.BINARY)
+                    .contentType(TEXT_CSV)
                     .header(GlobalDataRest.X_TENANT_ID, 0)
-                    .body(resourceAsStream)
+                    .body(resourceAsStream.readAllBytes())
                     .when()
-                    .put("transactions/" + transaction.getId() + "/units")
+                    .put("transactions/" + transaction.getId() + "/units/metadata/csv")
                     .then()
                     .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
                     .body("message", Matchers.containsString("Internal Server Error"))
@@ -445,13 +445,13 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
-                    .contentType(ContentType.BINARY)
+                    .contentType(TEXT_CSV)
                     .header(GlobalDataRest.X_TENANT_ID, 0)
-                    .body(resourceAsStream)
+                    .body(resourceAsStream.readAllBytes())
                     .when()
-                    .put("transactions/" + transaction.getId() + "/units")
+                    .put("transactions/" + transaction.getId() + "/units/metadata/csv")
                     .then()
-                    .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
+                    .statusCode(BAD_REQUEST.getStatusCode())
                     .body("message", Matchers.containsString("Cannot find unit with path no-dir"));
             } catch (FileNotFoundException e) {
                 Assert.fail(String.format("File not found on %s: %s", metadataResourcePath, e.getLocalizedMessage()));

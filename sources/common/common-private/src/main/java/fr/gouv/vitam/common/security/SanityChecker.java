@@ -34,6 +34,8 @@ import fr.gouv.vitam.common.StringUtils;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.SysErrLogger;
+import fr.gouv.vitam.common.logging.VitamLogger;
+import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.xml.XMLInputFactoryUtils;
 import org.owasp.esapi.Validator;
 import org.owasp.esapi.errors.IntrusionException;
@@ -54,21 +56,27 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Checker for Sanity of XML and Json <br>
+ * Checker for Sanity of XML, Json and JsonL (json-lines) <br>
  * <br>
  * Json : check if json is not exceed the limit size, if json does not contain script tag <br>
  * XML: check if XML file is not exceed the limit size, and it does not contain CDATA, ENTITY or SCRIPT tag
  */
 public class SanityChecker {
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SanityChecker.class);
+
     private static final String JSON_IS_NOT_VALID_FROM_SANITIZE_CHECK = "Json is not valid from Sanitize check";
     private static final int DEFAULT_LIMIT_PARAMETER_SIZE = 5000;
     private static final int DEFAULT_LIMIT_FIELD_SIZE = 10000000;
     private static final int DEFAULT_LIMIT_JSON_SIZE = 16000000;
+    private static final int DEFAULT_LIMIT_JSONL_SIZE = 100_000_000;
+    private static final int DEFAULT_LIMIT_JSONL_LINE_COUNT = 100_000;
     private static final long DEFAULT_LIMIT_FILE_SIZE = 8000000000L;
 
     public static final String HTTP_PARAMETER_VALUE = "HTTPParameterValue";
@@ -90,6 +98,14 @@ public class SanityChecker {
      * max size of json
      */
     private static long limitJsonSize = DEFAULT_LIMIT_JSON_SIZE;
+    /**
+     * max size of json-lines (jsonl)
+     */
+    private static long limitJsonLinesSize = DEFAULT_LIMIT_JSONL_SIZE;
+    /**
+     * max json-lines (jsonl) line count
+     */
+    private static long limitJsonLinesLineCount = DEFAULT_LIMIT_JSONL_LINE_COUNT;
     /**
      * max size of Json or Xml value field
      */
@@ -163,6 +179,25 @@ public class SanityChecker {
         }
         checkJsonFileSize(jsonish);
         checkJsonSanity(json);
+    }
+
+    public static void checkJsonLines(File jsonlFile) throws IOException, InvalidParseOperationException {
+        long fileLength = jsonlFile.length();
+        if (fileLength > limitJsonLinesSize) {
+            LOGGER.error("Json-lines files too long " + fileLength + ". Max=" + limitJsonLinesSize);
+            throw new InvalidParseOperationException("Max jsonl file size exceeded.");
+        }
+        try (BufferedReader bufferedReader = Files.newBufferedReader(jsonlFile.toPath(), StandardCharsets.UTF_8)) {
+            String line;
+            int i = 0;
+            while (null != (line = bufferedReader.readLine())) {
+                if (i > limitJsonLinesLineCount) {
+                    throw new InvalidParseOperationException("Max jsonl line count exceeded.");
+                }
+                checkJsonAll(line);
+                i++;
+            }
+        }
     }
 
     /**

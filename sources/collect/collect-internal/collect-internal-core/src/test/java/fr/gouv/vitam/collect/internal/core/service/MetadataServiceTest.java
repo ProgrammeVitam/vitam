@@ -88,7 +88,7 @@ public class MetadataServiceTest {
     private static final int TENANT_ID = 0;
     private static final String UNITS_WITH_GRAPH_PATH = "streamZip/units_with_graph.json";
     private static final String QUERIES_PATH = "streamZip/queries.json";
-    private static final String METADATA_FILE = "update/metadata.csv";
+    private static final String METADATA_CSV_FILE = "update/metadata.csv";
     private static final String UNIT_FILE = "collect_unit.json";
     private static final String UNIT_UP = "UNIT_UP";
 
@@ -251,7 +251,7 @@ public class MetadataServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void updateUnits() throws Exception {
+    public void testUpdateUnitsWithCsvMetadata() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0).getId());
         AtomicReference<List<JsonNode>> requestReference = new AtomicReference<>();
 
@@ -271,8 +271,8 @@ public class MetadataServiceTest {
             new ScrollSpliterator<>(mock(SelectMultiQuery.class),
                 (query) -> new RequestResponseOK<JsonNode>().addAllResults(new ArrayList<>(unitsJson)), 0, 0));
 
-        try (InputStream is = PropertiesUtils.getResourceAsStream(METADATA_FILE)) {
-            metadataService.updateUnits(transactionModel, is);
+        try (InputStream is = PropertiesUtils.getResourceAsStream(METADATA_CSV_FILE)) {
+            metadataService.updateUnitsWithMetadataCsv(transactionModel, is);
         }
 
         final JsonNode expectedQueries = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(QUERIES_PATH));

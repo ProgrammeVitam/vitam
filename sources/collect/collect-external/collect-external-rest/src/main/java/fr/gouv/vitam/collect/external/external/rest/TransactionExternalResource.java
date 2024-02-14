@@ -310,20 +310,23 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         }
     }
 
-
     @Path("/{transactionId}/units")
     @PUT
     @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_ID_UNITS_UPDATE, description = "Mettre à jour les unités archivistiques")
-    public Response updateUnits(@PathParam("transactionId") String transactionId, InputStream inputStream) {
+    public Response updateUnitsWithMetadataCsv(@PathParam("transactionId") String transactionId,
+        InputStream metadataCsvInputStream) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
-            ParametersChecker.checkParameter("You must supply a file!", inputStream);
-            final RequestResponse<JsonNode> response = client.updateUnits(transactionId, inputStream);
+
+            ParametersChecker.checkParameter("You must supply a file!", metadataCsvInputStream);
+            final RequestResponse<JsonNode> response =
+                client.updateUnitsWithCsvMetadata(transactionId, metadataCsvInputStream);
             return Response.status(OK).entity(response).build();
-        } catch (InvalidParseOperationException | IllegalArgumentException e) {
-            LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
+        } catch (InvalidParseOperationException | IllegalArgumentException |
+                 CollectInternalClientInvalidRequestException e) {
+            LOGGER.error("Bad request: " + e.getLocalizedMessage(), e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (final VitamClientException e) {
             LOGGER.error("Error when updating units   ", e);
