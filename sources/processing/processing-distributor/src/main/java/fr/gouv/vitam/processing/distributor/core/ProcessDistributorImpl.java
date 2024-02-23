@@ -217,6 +217,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                             workspaceClient.consumeAnyEntityAndClose(response);
                         }
                         final Iterator<Entry<String, JsonNode>> iteratorLevelFile = levelFileJson.fields();
+                        boolean distributeOnListIsCalledAtLeastOneTime = false;
                         while (iteratorLevelFile.hasNext()) {
                             final Entry<String, JsonNode> guidFieldList = iteratorLevelFile.next();
                             final String level = guidFieldList.getKey();
@@ -226,6 +227,7 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                     // include the GUID in the new URI
                                     objectsList.add(_idGuid.asText() + JSON_EXTENSION);
                                 }
+                                distributeOnListIsCalledAtLeastOneTime = true;
                                 boolean distributorIndexUsed =
                                     distributeOnList(workParams, step, level, objectsList, useDistributorIndex,
                                         tenantId);
@@ -243,6 +245,9 @@ public class ProcessDistributorImpl implements ProcessDistributor {
                                     break;
                                 }
                             }
+                        }
+                        if(!distributeOnListIsCalledAtLeastOneTime){
+                            step.getStepResponses().increment(StatusCode.OK);
                         }
                     }
                 }
