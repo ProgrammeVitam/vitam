@@ -50,6 +50,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
+import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -128,6 +129,7 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_upload_zip_to_transaction() throws Exception {
         try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
             final ProjectDto projectDto = initProjectData();
@@ -177,6 +179,7 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_upload_windows_generated_zip_with_implicit_parent_entries_to_transaction_11756()
         throws Exception {
         try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
@@ -279,6 +282,7 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_create_unit_with_multi_rattachement() throws Exception {
         try (CollectExternalClient collectClient = CollectExternalClientFactory.getInstance().getClient()) {
             ProjectDto projectDto = initProjectData();
@@ -333,6 +337,7 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void should_update_metadata() throws Exception {
         try (CollectExternalClient client = CollectExternalClientFactory.getInstance().getClient()) {
             ProjectDto projectDto = initProjectData();
@@ -390,6 +395,7 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void shouldUpdateTransactionFailWhenCsvLinesAreTooLong() {
         final String unitUploadResourcePath = "collect/upload_au_collect.json";
         final String unitUpdateResourcePath = "collect/metadata.csv";
@@ -408,6 +414,7 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void shouldUpdateTransactionFailWhenNotAllowedFileFormatHasMetadata() {
         final String unitUploadResourcePath = "collect/upload_au_collect.json";
         final String unitUpdateResourcePath = "collect/transaction/unit/update/metadata.pdf";
@@ -426,6 +433,7 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void shouldUpdateTransactionFailWhenCsvContainsWrongFilePath() {
         final String unitUpdateResourcePath = "collect/transaction/unit/update/metadata-with-wrong-file-path.csv";
         final String zipPath = "collect/transaction/unit/update/versement.zip";
@@ -444,6 +452,7 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void shouldUpdateTransactionFailWhenCsvContainsFileDupes() {
         final String unitUpdateResourcePath = "collect/transaction/unit/update/metadata-with-duplicates.csv";
         final String zipPath = "collect/transaction/unit/update/versement.zip";
@@ -462,6 +471,7 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void shouldUpdateTransactionFailWhenCsvContainsBadDateFormat() {
         final String unitUpdateResourcePath = "collect/transaction/unit/update/metadata-with-bad-date-format.csv";
         final String zipPath = "collect/transaction/unit/update/versement.zip";
@@ -481,6 +491,7 @@ public class FluxIT extends VitamRuleRunner {
     }
 
     @Test
+    @RunWithCustomExecutor
     public void shouldUpdateTransactionFailWhenTransactionIsNotOpen() {
         final String unitUpdateResourcePath = "collect/transaction/unit/update/metadata.csv";
         final String zipPath = "collect/transaction/unit/update/versement.zip";

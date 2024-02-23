@@ -69,6 +69,7 @@ import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageNotFoundEx
 import fr.gouv.vitam.workspace.api.exception.ContentAddressableStorageServerException;
 import fr.gouv.vitam.workspace.client.WorkspaceClient;
 import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.CountingInputStream;
 
@@ -276,10 +277,11 @@ public class CollectService {
                 "Cannot found version for object with id(" + dbObjectGroupModel.getId() + ")");
         }
 
+        File file = null;
         String extension = FilenameUtils.getExtension(dbVersionsModel.getFileInfoModel().getFilename()).toLowerCase();
         String fileName = dbVersionsModel.getId() + (extension.equals("") ? "" : "." + extension);
         try {
-            File file = writeToTemporaryFile(uploadedInputStream, extension);
+            file = writeToTemporaryFile(uploadedInputStream, extension);
 
             CountingInputStream countingInputStream = new CountingInputStream(new FileInputStream(file));
             String digest = pushStreamToWorkspace(dbObjectGroupModel.getOpi(), countingInputStream,
@@ -309,6 +311,8 @@ public class CollectService {
             dbObjectGroupModel.getQualifiers().set(indexQualifier, qualifierModelToUpdate);
         } catch (IOException e) {
             throw new CollectInternalException("Error when writing object to workspace", e);
+        } finally {
+            FileUtils.deleteQuietly(file);
         }
         try {
             Map<String, JsonNode> action = new HashMap<>();
