@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
+import fr.gouv.vitam.collect.internal.core.common.CollectArchiveUnitModel;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
@@ -80,14 +81,15 @@ public class MetadataHelper {
     private MetadataHelper() {
     }
 
-    public static ArchiveUnitModel createUnit(String transactionId, LevelType descriptionLevel, String title,
-        String unitParent) {
+    public static ArchiveUnitModel createUnit(String transactionId, LevelType descriptionLevel, String path,
+        String title, String unitParent) {
         String id = GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()).getId();
-        ArchiveUnitModel unitInternalModel = new ArchiveUnitModel();
+        CollectArchiveUnitModel unitInternalModel = new CollectArchiveUnitModel();
 
         unitInternalModel.setId(id);
         unitInternalModel.setOpi(transactionId);
         unitInternalModel.setUnitType(UnitType.INGEST.name());
+        unitInternalModel.setUploadPath(path);
 
         DescriptiveMetadataModel description = new DescriptiveMetadataModel();
         description.setTitle(title);

@@ -167,6 +167,8 @@ public class MongoDbVarNameAdapter extends VarNameAdapter {
                         return MetadataDocument.APPROXIMATE_CREATION_DATE;
                     case APPROXIMATE_UPDATE_DATE:
                         return MetadataDocument.APPROXIMATE_UPDATE_DATE;
+                    case UPLOADPATH:
+                        return MetadataDocument.UPLOAD_PATH;
                     case ALL:
                     default:
                         break;

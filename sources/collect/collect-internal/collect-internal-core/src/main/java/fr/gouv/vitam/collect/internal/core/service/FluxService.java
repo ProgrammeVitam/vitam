@@ -265,7 +265,7 @@ public class FluxService {
         String fileName = FilenameUtils.getName(path);
 
         ArchiveUnitModel unit =
-            MetadataHelper.createUnit(transactionId, descriptionLevel, fileName, parentUnit);
+            MetadataHelper.createUnit(transactionId, descriptionLevel, path, fileName, parentUnit);
 
         unitIdsByUploadPath.put(path, unit.getId());
         if (!isDirectory) {

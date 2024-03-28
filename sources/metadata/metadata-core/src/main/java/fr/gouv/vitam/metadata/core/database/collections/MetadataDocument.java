@@ -116,6 +116,8 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
      */
     public static final String APPROXIMATE_UPDATE_DATE = "_aud";
 
+    public static final String UPLOAD_PATH = "_uploadPath";
+
     /**
      * Quick projection for ID and ObjectGroup Only
      */

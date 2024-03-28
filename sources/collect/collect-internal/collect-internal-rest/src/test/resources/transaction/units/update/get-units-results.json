@@ -11,6 +11,7 @@
       "#id": "aeaqaaaaaeekagw6aahg6amhbdmd2cyaaaaq",
       "DescriptionLevel": "Series",
       "Title": "versement",
+      "#uploadPath": "versement",
       "#managment": {},
       "#unitType": "INGEST",
       "#opi": "aeeaaaaaagekagw6aahg6amhbdmdvkqaaaaq",
@@ -23,7 +24,8 @@
     {
       "#id": "aeaqaaaaaeekagw6aahg6amhbdmd2daaaaaq",
       "DescriptionLevel": "Item",
-      "Title": "versement/pastis.json",
+      "Title": "versement",
+      "#uploadPath": "versement/pastis.json",
       "#managment": {},
       "#unitType": "INGEST",
       "#opi": "aeeaaaaaagekagw6aahg6amhbdmdvkqaaaaq",

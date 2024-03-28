@@ -29,10 +29,7 @@ package fr.gouv.vitam.collect.internal.core.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Iterators;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
@@ -78,7 +75,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -96,7 +92,6 @@ public class MetadataService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataService.class);
 
-    private static final String TITLE = "Title";
     private static final String SYSTEM_ID_FIELD_PATH =
         VitamFieldsHelper.management() + "." + "UpdateOperation" + "." + "SystemId";
 
@@ -243,28 +238,23 @@ public class MetadataService {
         try {
             SelectMultiQuery select = new SelectMultiQuery();
             select.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), transactionId));
-            select.addUsedProjection(VitamFieldsHelper.id(), TITLE, VitamFieldsHelper.unitups(),
-                VitamFieldsHelper.allunitups());
+            select.addUsedProjection(VitamFieldsHelper.id(), VitamFieldsHelper.uploadPath());
             final ScrollSpliterator<JsonNode> unitScrollSpliterator =
                 metadataRepository.selectUnits(select, transactionId);
 
-            final List<JsonNode> units = new ArrayList<>();
-            unitScrollSpliterator.forEachRemaining(units::add);
-            units.sort(Comparator.comparingInt(a -> a.get(VitamFieldsHelper.allunitups()).size()));
-
-            BiMap<String, String> hash = HashBiMap.create();
-            units.forEach(u -> {
-                final ArrayNode parentUnit = (ArrayNode) u.get(VitamFieldsHelper.unitups());
-                if (!parentUnit.isEmpty()) {
-                    hash.put(hash.inverse().get(parentUnit.get(0).asText()) + File.separator + u.get(TITLE).asText(),
-                        u.get(VitamFieldsHelper.id()).asText());
-                } else {
-                    hash.put(u.get(TITLE).asText(), u.get(VitamFieldsHelper.id()).asText());
+            // Duplicate uploadPaths are NOT supported!
+            final Map<String, String> unitIdsByUploadPath = new HashMap<>();
+            unitScrollSpliterator.forEachRemaining(unit -> {
+                if (unit.has(VitamFieldsHelper.uploadPath())) {
+                    unitIdsByUploadPath.put(
+                        unit.get(VitamFieldsHelper.uploadPath()).asText(),
+                        unit.get(VitamFieldsHelper.id()).asText());
                 }
             });
-            return hash;
+
+            return unitIdsByUploadPath;
         } catch (Exception e) {
-            throw new CollectInternalException(e);
+            throw new CollectInternalServerSideException("Cannot build unit path", e);
         }
     }
 
@@ -303,7 +293,7 @@ public class MetadataService {
     }
 
     private ArchiveUnitModel createAttachmentUnit(String transactionId, String title, String unitUp) {
-        ArchiveUnitModel unit = MetadataHelper.createUnit(transactionId, LevelType.SERIES, title, null);
+        ArchiveUnitModel unit = MetadataHelper.createUnit(transactionId, LevelType.SERIES, null, title, null);
         ManagementModel managementModel = new ManagementModel();
         UpdateOperationType updateOperationType = new UpdateOperationType();
         updateOperationType.setSystemId(unitUp);

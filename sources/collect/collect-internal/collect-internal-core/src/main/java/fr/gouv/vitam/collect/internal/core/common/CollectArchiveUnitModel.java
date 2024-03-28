@@ -24,13 +24,22 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.collect.internal.client.exceptions;
+package fr.gouv.vitam.collect.internal.core.common;
 
-import fr.gouv.vitam.common.exception.VitamClientInternalException;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.unit.ArchiveUnitModel;
 
-public class ClientInternalNotFoundException extends VitamClientInternalException {
-    
-    public ClientInternalNotFoundException(String message) {
-        super(message);
+public class CollectArchiveUnitModel extends ArchiveUnitModel {
+
+    @JsonProperty("#uploadPath")
+    private String uploadPath;
+
+    public String getUploadPath() {
+        return uploadPath;
+    }
+
+    public CollectArchiveUnitModel setUploadPath(String uploadPath) {
+        this.uploadPath = uploadPath;
+        return this;
     }
 }

@@ -183,7 +183,11 @@ public class MongoDbMetadataResponseFilter {
                     replace(document, MetadataDocument.APPROXIMATE_CREATION_DATE, VitamFieldsHelper.approximateCreationDate());
                     break;
                 case APPROXIMATE_UPDATE_DATE:
-                    replace(document, MetadataDocument.APPROXIMATE_UPDATE_DATE, VitamFieldsHelper.approximateUpdateDate());
+                    replace(document, MetadataDocument.APPROXIMATE_UPDATE_DATE,
+                        VitamFieldsHelper.approximateUpdateDate());
+                    break;
+                case UPLOADPATH:
+                    replace(document, MetadataDocument.UPLOAD_PATH, VitamFieldsHelper.uploadPath());
                     break;
                 case MANAGEMENT_CONTRACT_ID:
                     replace(document, MetadataDocument.MANAGEMENT_CONTRACT_ID, VitamFieldsHelper.managementContractId());
