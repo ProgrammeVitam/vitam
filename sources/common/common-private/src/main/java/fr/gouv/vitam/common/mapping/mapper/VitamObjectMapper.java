@@ -108,11 +108,11 @@ public class VitamObjectMapper {
     private VitamObjectMapper() {
     }
 
-    public static ObjectMapper buildDeserializationObjectMapper() {
+    public static ObjectMapper getDeserializationObjectMapper() {
         return deserializationObjectMapper;
     }
 
-    public static ObjectMapper buildSerializationObjectMapper() {
+    public static ObjectMapper getSerializationObjectMapper() {
         return serializationObjectMapper;
     }
 

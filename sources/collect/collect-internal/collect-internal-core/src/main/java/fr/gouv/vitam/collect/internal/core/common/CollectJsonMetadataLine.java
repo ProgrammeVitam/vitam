@@ -27,9 +27,14 @@
 package fr.gouv.vitam.collect.internal.core.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class CollectJsonMetadataLine {
+
+    public static final TypeReference<CollectJsonMetadataLine> TYPE_REFERENCE =
+        new TypeReference<>() {
+        };
 
     public static final String FILE_FIELD = "File";
     public static final String SELECTOR_FIELD = "Selector";

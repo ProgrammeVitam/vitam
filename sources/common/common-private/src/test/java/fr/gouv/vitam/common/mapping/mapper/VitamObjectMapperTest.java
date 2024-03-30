@@ -51,7 +51,7 @@ public class VitamObjectMapperTest {
 
     @Test
     public void buildDeserializationObjectMapper() throws Exception {
-        ObjectMapper objectMapper = VitamObjectMapper.buildDeserializationObjectMapper();
+        ObjectMapper objectMapper = VitamObjectMapper.getDeserializationObjectMapper();
         try (InputStream is = PropertiesUtils.getResourceAsStream("objectmapper/unit.json")) {
             JsonNode json = JsonHandler.getFromInputStream(is);
             ArchiveUnitInternalModel archiveUnitModel = objectMapper.treeToValue(json, ArchiveUnitInternalModel.class);
@@ -84,7 +84,7 @@ public class VitamObjectMapperTest {
         archiveUnitRoot.setManagement(managementModel);
 
         try (InputStream is = PropertiesUtils.getResourceAsStream("objectmapper/unit.json")) {
-            ObjectMapper objectMapper = VitamObjectMapper.buildSerializationObjectMapper();
+            ObjectMapper objectMapper = VitamObjectMapper.getSerializationObjectMapper();
             JsonNode jsonNode = objectMapper.convertValue(archiveUnitRoot, JsonNode.class);
             JsonNode fromInputStream = JsonHandler.getFromInputStream(is);
             JsonAssert.assertJsonEquals(jsonNode, fromInputStream);

@@ -79,7 +79,7 @@ public class CsvMetadataMapper {
 
     }
 
-    public static Map.Entry<String, JsonNode> map(CSVRecord record, List<String> headerNames) {
+    public static Map.Entry<String, ObjectNode> map(CSVRecord record, List<String> headerNames) {
         ObjectNode node = JsonHandler.createObjectNode();
         try {
             SanityChecker.checkJsonAll(JsonHandler.unprettyPrint(record.toMap()));
@@ -87,7 +87,7 @@ public class CsvMetadataMapper {
             mapManagement(node, headerNames, record);
             unflatSingleElementInArrays(node);
             final String json = JsonUnflattener.unflatten(node.toString());
-            final JsonNode unit = JsonHandler.getFromString(json);
+            final ObjectNode unit = (ObjectNode) JsonHandler.getFromString(json);
             fixSpeceficSedaFields(unit);
             return new AbstractMap.SimpleEntry<>(FilenameUtils.separatorsToUnix(record.get(FILE_FIELD)), unit);
         } catch (Exception e) {

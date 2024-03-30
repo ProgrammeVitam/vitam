@@ -29,11 +29,10 @@ package fr.gouv.vitam.collect.internal.core.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateStatus;
 import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
+import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
-import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
 import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfiguration;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.common.InternalActionKeysRetriever;
@@ -56,12 +55,14 @@ import fr.gouv.vitam.metadata.common.bulkatomicupdate.BulkSelectQueryResultOK;
 import fr.gouv.vitam.metadata.common.bulkatomicupdate.QueryRestrictionConverter;
 import org.apache.commons.collections4.ListUtils;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.applyTransactionToQuery;
 
+@ThreadSafe
 public class BulkAtomicUpdateMetadataService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BulkAtomicUpdateMetadataService.class);
@@ -81,18 +82,15 @@ public class BulkAtomicUpdateMetadataService {
         batchSize = configuration.getBulkAtomicUpdateBatchSize();
     }
 
-    public List<BulkAtomicUpdateResult> bulkAtomicUpdateUnits(TransactionModel transactionModel, JsonNode request)
+    public List<BulkAtomicUpdateResult> bulkAtomicUpdateUnits(String transactionId, ArrayNode queries)
         throws CollectInternalException {
 
         try {
 
-            checkThreshold(request);
-
             BulkAtomicUpdateReportAppender reportAppender = new BulkAtomicUpdateReportAppender();
 
-            ArrayNode queries = BulkAtomicUpdateModelUtils.getQueries(request);
             List<BulkSelectQueryResultOK> selectQueryResults
-                = selectUnitIdsPerUpdateQueries(transactionModel, reportAppender, queries);
+                = selectUnitIdsPerUpdateQueries(transactionId, reportAppender, queries);
 
             processUpdate(selectQueryResults, reportAppender);
 
@@ -103,7 +101,7 @@ public class BulkAtomicUpdateMetadataService {
         }
     }
 
-    private static void checkThreshold(JsonNode updateQueriesJson)
+    public void checkThreshold(JsonNode updateQueriesJson)
         throws CollectInternalInvalidRequestException {
         Long queryThreshold = BulkAtomicUpdateModelUtils.getQueryThreshold(updateQueriesJson);
         long total = BulkAtomicUpdateModelUtils.queryCount(updateQueriesJson);
@@ -117,7 +115,7 @@ public class BulkAtomicUpdateMetadataService {
     }
 
     private List<BulkSelectQueryResultOK> selectUnitIdsPerUpdateQueries(
-        TransactionModel transactionModel,
+        String transactionId,
         BulkAtomicUpdateReportAppender reportAppender,
         ArrayNode queries) throws CollectInternalInvalidRequestException {
 
@@ -130,7 +128,7 @@ public class BulkAtomicUpdateMetadataService {
                     threadPoolSize, threadPoolQueueSize, batchSize,
                     selectUnitIdsResults::add,
                     createFailureResultReportAppender(reportAppender),
-                    createTransactionIdRestrictionConverter(transactionModel.getId())
+                    createTransactionIdRestrictionConverter(transactionId)
                 );
             bulkSelectQueryParallelProcessor.processQueries(queries.iterator());
 

@@ -128,7 +128,7 @@ import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTION
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.SEDAVERSION;
 import static fr.gouv.vitam.common.database.parser.query.ParserTokens.PROJECTIONARGS.UNITUPS;
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
-import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.buildDeserializationObjectMapper;
+import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.getDeserializationObjectMapper;
 import static fr.gouv.vitam.common.model.RequestResponseOK.TAG_RESULTS;
 import static fr.gouv.vitam.common.model.export.ExportRequest.EXPORT_QUERY_FILE_NAME;
 import static fr.gouv.vitam.common.model.export.ExportType.ArchiveTransfer;
@@ -176,7 +176,7 @@ public class CreateManifest extends ActionHandler {
 
         this.projection = JsonHandler.createObjectNode();
         this.projection.set(FIELDS.exactToken(), fields);
-        this.objectMapper = buildDeserializationObjectMapper();
+        this.objectMapper = getDeserializationObjectMapper();
     }
 
     @Override

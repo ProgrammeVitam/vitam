@@ -91,7 +91,7 @@ import java.util.stream.StreamSupport;
 
 import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.STATIC_ATTACHMENT;
 import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.findUnitParent;
-import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.buildSerializationObjectMapper;
+import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.getSerializationObjectMapper;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
 
 public class FluxService {
@@ -347,7 +347,7 @@ public class FluxService {
     private void writeObjectGroupToTemporaryFile(TempWorkspace tempWorkspace, Object objectGroup) throws IOException {
         File file = tempWorkspace.getFile(MetadataType.OBJECTGROUP.getName() + VitamConstants.JSONL_EXTENSION);
         try (JsonLineWriter writer = new JsonLineWriter(new FileOutputStream(file, true), file.length() == 0)) {
-            JsonNode objectGroupToSave = buildSerializationObjectMapper().convertValue(objectGroup, JsonNode.class);
+            JsonNode objectGroupToSave = getSerializationObjectMapper().convertValue(objectGroup, JsonNode.class);
             writer.addEntry(objectGroupToSave);
         }
     }
@@ -357,7 +357,7 @@ public class FluxService {
         File file = tempWorkspace.getFile(
             MetadataType.UNIT.getName() + "_" + level + VitamConstants.JSONL_EXTENSION);
         try (JsonLineWriter writer = new JsonLineWriter(new FileOutputStream(file, true), file.length() == 0)) {
-            JsonNode unitToSave = buildSerializationObjectMapper().convertValue(unit, JsonNode.class);
+            JsonNode unitToSave = getSerializationObjectMapper().convertValue(unit, JsonNode.class);
             writer.addEntry(unitToSave);
         }
         return Math.max(maxLevel, level);
