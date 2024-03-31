@@ -47,7 +47,6 @@ import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
-import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -78,7 +77,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -136,16 +134,17 @@ public class MetadataService {
         }
 
         ProjectModel projectModel = project.get();
-        HashMap<String, String> attachmentUnits = prepareAttachmentUnits(projectModel, transactionModel.getId());
+        Map<String, String> attachmentUnitsBySystemId = prepareAttachmentUnits(projectModel, transactionModel.getId());
         if (unitModel.getUnitups() == null || unitModel.getUnitups().isEmpty()) {
             if (projectModel.getUnitUp() != null) {
-                unitModel.setUnitups(Collections.singletonList(attachmentUnits.get(STATIC_ATTACHMENT)));
+                unitModel.setUnitups(List.of(
+                    attachmentUnitsBySystemId.get(projectModel.getUnitUp())));
             }
             if (projectModel.getUnitUps() != null) {
                 Set<String> unitUpSet =
                     MetadataHelper.findUnitParent(((ObjectNode) unit).put(VitamFieldsHelper.id(), unitId),
-                        projectModel.getUnitUps(), attachmentUnits);
-                if (!attachmentUnits.isEmpty()) {
+                        projectModel.getUnitUps(), attachmentUnitsBySystemId);
+                if (!attachmentUnitsBySystemId.isEmpty()) {
                     unitModel.setUnitups(new ArrayList<>(unitUpSet));
                 }
             }
@@ -256,7 +255,7 @@ public class MetadataService {
             BiMap<String, String> hash = HashBiMap.create();
             units.forEach(u -> {
                 final ArrayNode parentUnit = (ArrayNode) u.get(VitamFieldsHelper.unitups());
-                if (parentUnit.size() > 0) {
+                if (!parentUnit.isEmpty()) {
                     hash.put(hash.inverse().get(parentUnit.get(0).asText()) + File.separator + u.get(TITLE).asText(),
                         u.get(VitamFieldsHelper.id()).asText());
                 } else {
@@ -313,76 +312,73 @@ public class MetadataService {
         return unit;
     }
 
-    private List<JsonNode> findAttachmentUnits(String transactionId, Collection<String> systemIds)
+    private Map<String, String> findAttachmentUnitIdsBySystemId(String transactionId, ProjectModel projectModel)
         throws InvalidCreateOperationException, CollectInternalException, InvalidParseOperationException {
-        SelectMultiQuery query = new SelectMultiQuery();
-        BooleanQuery orQuery = QueryHelper.or();
-        for (String systemId : systemIds) {
-            orQuery.add(QueryHelper.eq(SYSTEM_ID_FIELD_PATH, systemId));
 
+        Set<String> unitsToFetchBySystemId = new HashSet<>();
+        if (projectModel.getUnitUp() != null) {
+            unitsToFetchBySystemId.add(projectModel.getUnitUp());
         }
-        query.addQueries(orQuery);
+        if (projectModel.getUnitUps() != null) {
+            projectModel.getUnitUps()
+                .forEach(unitUp -> unitsToFetchBySystemId.add(unitUp.getUnitUp()));
+        }
+        if (unitsToFetchBySystemId.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        SelectMultiQuery query = new SelectMultiQuery();
+        query.addQueries(QueryHelper.in(SYSTEM_ID_FIELD_PATH, unitsToFetchBySystemId.toArray(new String[0])));
         query.addUsedProjection(VitamFieldsHelper.id(), SYSTEM_ID_FIELD_PATH);
         RequestResponseOK<JsonNode> units = metadataRepository.selectUnits(query.getFinalSelect(), transactionId);
-        return units.getResults();
+
+        return units.getResults().stream()
+            .collect(Collectors.toMap(
+                this::findSystemId,
+                attachmentUnit -> attachmentUnit.get(VitamFieldsHelper.id()).asText()
+            ));
     }
 
-    HashMap<String, String> prepareAttachmentUnits(ProjectModel projectModel, String transactionId)
+    Map<String, String> prepareAttachmentUnits(ProjectModel projectModel, String transactionId)
         throws CollectInternalException {
-        List<ArchiveUnitModel> units = new ArrayList<>();
-        HashMap<String, String> savedGuidUnits = new HashMap<>();
-        Set<String> unitsToFetchBySystemId = new HashSet<>();
         try {
+
+            // Get existing virtual attachment units
+            Map<String, String> attachmentUnitsBySystemId =
+                findAttachmentUnitIdsBySystemId(transactionId, projectModel);
+
+            // Create virtual attachment units in needed
+            List<ArchiveUnitModel> unitsToCreate = new ArrayList<>();
             if (projectModel.getUnitUp() != null) {
-                unitsToFetchBySystemId.add(projectModel.getUnitUp());
+                if (!attachmentUnitsBySystemId.containsKey(projectModel.getUnitUp())) {
+                    ArchiveUnitModel unit =
+                        createAttachmentUnit(transactionId, STATIC_ATTACHMENT, projectModel.getUnitUp());
+                    unitsToCreate.add(unit);
+                    attachmentUnitsBySystemId.put(projectModel.getUnitUp(), unit.getId());
+                }
             }
+
             if (projectModel.getUnitUps() != null) {
-                projectModel.getUnitUps().stream().map(MetadataUnitUp::getUnitUp).forEach(unitsToFetchBySystemId::add);
-            }
-            if (!unitsToFetchBySystemId.isEmpty()) {
-                List<JsonNode> attachmentUnits = findAttachmentUnits(transactionId, unitsToFetchBySystemId);
-
-                for (JsonNode attachmentUnit : attachmentUnits) {
-                    String systemId = findSystemId(attachmentUnit);
-                    if (systemId.equals(projectModel.getUnitUp())) {
-                        savedGuidUnits.put(STATIC_ATTACHMENT, attachmentUnit.get(VitamFieldsHelper.id()).asText());
-                    } else {
-                        final String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, systemId);
-                        savedGuidUnits.put(unitTitle, attachmentUnit.get(VitamFieldsHelper.id()).asText());
+                for (MetadataUnitUp unitUp : projectModel.getUnitUps()) {
+                    if (!attachmentUnitsBySystemId.containsKey(unitUp.getUnitUp())) {
+                        String unitTitle = DYNAMIC_ATTACHEMENT + "_" + unitUp.getUnitUp();
+                        ArchiveUnitModel unit = createAttachmentUnit(transactionId, unitTitle, unitUp.getUnitUp());
+                        unitsToCreate.add(unit);
+                        attachmentUnitsBySystemId.put(unitUp.getUnitUp(), unit.getId());
                     }
-                }
-
-                if (projectModel.getUnitUp() != null) {
-                    if (!savedGuidUnits.containsKey(STATIC_ATTACHMENT)) {
-                        ArchiveUnitModel unit =
-                            createAttachmentUnit(transactionId, STATIC_ATTACHMENT, projectModel.getUnitUp());
-                        units.add(unit);
-                        savedGuidUnits.put(STATIC_ATTACHMENT, unit.getId());
-                        unitsToFetchBySystemId.remove(projectModel.getUnitUp());
-                    }
-                }
-
-                if (projectModel.getUnitUps() != null) {
-                    unitsToFetchBySystemId.stream().filter(e -> {
-                        String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, e);
-                        return !savedGuidUnits.containsKey(unitTitle);
-                    }).forEach(e -> {
-                        String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, e);
-                        ArchiveUnitModel unit = createAttachmentUnit(transactionId, unitTitle, e);
-                        units.add(unit);
-                        savedGuidUnits.put(unitTitle, unit.getId());
-                    });
-                }
-
-                if (!units.isEmpty()) {
-                    ObjectMapper objectMapper = getSerializationObjectMapper();
-                    metadataRepository.saveArchiveUnits(
-                        units.stream().map(unit -> objectMapper.convertValue(unit, ObjectNode.class))
-                            .collect(Collectors.toList()));
                 }
             }
 
-            return savedGuidUnits;
+            if (!unitsToCreate.isEmpty()) {
+                // FIXME : Attachment units should be created on transaction initialization to avoid concurrent creation
+                ObjectMapper objectMapper = getSerializationObjectMapper();
+                metadataRepository.saveArchiveUnits(
+                    unitsToCreate.stream().map(unit -> objectMapper.convertValue(unit, ObjectNode.class))
+                        .collect(Collectors.toList()));
+            }
+
+            return attachmentUnitsBySystemId;
+
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             throw new CollectInternalException(e);
         }

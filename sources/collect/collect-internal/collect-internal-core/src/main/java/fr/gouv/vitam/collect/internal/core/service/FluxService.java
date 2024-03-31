@@ -89,7 +89,6 @@ import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.STATIC_ATTACHMENT;
 import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.findUnitParent;
 import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.getSerializationObjectMapper;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
@@ -131,8 +130,9 @@ public class FluxService {
                 CommonMediaType.ZIP_TYPE, inputStreamClosable)) {
             ArchiveEntry entry;
             boolean isEmpty = true;
-            Map<String, String> unitIds =
+            Map<String, String> attachmentUnitsBySystemId =
                 metadataService.prepareAttachmentUnits(projectModel, transactionId);
+            Map<String, String> unitIdsByUploadPath = new HashMap<>();
             File metadataFile = null;
             // create entryInputStream to resolve the stream closed problem
             final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
@@ -160,8 +160,9 @@ public class FluxService {
 
                         metadataFile = tempWorkspace.writeToFile(path, entryInputStream);
                     } else {
+                        String staticAttachmentUnitId = attachmentUnitsBySystemId.get(projectModel.getUnitUp());
                         maxLevel = createMetadata(tempWorkspace, transactionId, path, entryInputStream,
-                            entry.isDirectory(), maxLevel, unitIds, projectModel.getUnitUp() != null);
+                            entry.isDirectory(), maxLevel, unitIdsByUploadPath, staticAttachmentUnitId);
                     }
                     isEmpty = false;
                 }
@@ -178,7 +179,7 @@ public class FluxService {
             }
 
             Map<String, Set<String>> unitUps = (transformedMetadataFile != null) ?
-                findUnitUps(transformedMetadataFile, projectModel, unitIds) : new HashMap<>();
+                findUnitUps(transformedMetadataFile, projectModel, attachmentUnitsBySystemId) : new HashMap<>();
 
             bulkWriteUnits(tempWorkspace, maxLevel, unitUps);
 
@@ -220,7 +221,7 @@ public class FluxService {
     }
 
     private Map<String, Set<String>> findUnitUps(File tranformedMetadataFile, ProjectModel projectModel,
-        Map<String, String> unitIds) throws FileNotFoundException {
+        Map<String, String> attachmentUnitsBySystemId) throws FileNotFoundException {
         if (projectModel.getUnitUps() != null) {
             try (JsonLineGenericIterator<JsonLineModel> iterator = new JsonLineGenericIterator<>(
                 new FileInputStream(tranformedMetadataFile), new TypeReference<>() {
@@ -230,7 +231,8 @@ public class FluxService {
                         String id = e.getId();
                         ObjectNode unit = (ObjectNode) e.getParams();
                         unit.put(VitamFieldsHelper.id(), id);
-                        Set<String> unitUps = findUnitParent(unit, projectModel.getUnitUps(), unitIds);
+                        Set<String> unitUps =
+                            findUnitParent(unit, projectModel.getUnitUps(), attachmentUnitsBySystemId);
                         return new SimpleEntry<>(id, unitUps);
                     }).filter(e -> !e.getValue().isEmpty()).collect(
                         Collectors.toMap(Entry<String, Set<String>>::getKey, Entry<String, Set<String>>::getValue));
@@ -241,35 +243,31 @@ public class FluxService {
     }
 
     private int createMetadata(TempWorkspace tempWorkspace, String transactionId, String path,
-        InputStream entryInputStream, boolean isDirectory, int maxLevel, Map<String, String> unitIds,
-        boolean isAttachmentAuExist)
+        InputStream entryInputStream, boolean isDirectory, int maxLevel, Map<String, String> unitIdsByUploadPath,
+        String staticAttachmentUnitId)
         throws IOException, CollectInternalException, InvalidParseOperationException {
         LevelType descriptionLevel = isDirectory ? LevelType.RECORD_GRP : LevelType.ITEM;
         String parentPath = FilenameUtils.getPathNoEndSeparator(path);
 
         String parentUnit;
         if (Strings.isNullOrEmpty(parentPath)) {
-            if (isAttachmentAuExist) {
-                parentUnit = unitIds.get(STATIC_ATTACHMENT);
-            } else {
-                parentUnit = null;
-            }
+            parentUnit = staticAttachmentUnitId;
         } else {
-            parentUnit = unitIds.get(parentPath);
+            parentUnit = unitIdsByUploadPath.get(parentPath);
             if (parentUnit == null) {
                 LOGGER.debug("Creating implicit parent folder '{}'", parentPath);
-                createMetadata(tempWorkspace, transactionId, parentPath, null, true, maxLevel, unitIds,
-                    isAttachmentAuExist);
+                createMetadata(tempWorkspace, transactionId, parentPath, null, true, maxLevel, unitIdsByUploadPath,
+                    staticAttachmentUnitId);
             }
 
-            parentUnit = unitIds.get(parentPath);
+            parentUnit = unitIdsByUploadPath.get(parentPath);
         }
         String fileName = FilenameUtils.getName(path);
 
         ArchiveUnitModel unit =
             MetadataHelper.createUnit(transactionId, descriptionLevel, fileName, parentUnit);
 
-        unitIds.put(path, unit.getId());
+        unitIdsByUploadPath.put(path, unit.getId());
         if (!isDirectory) {
             String extension = FilenameUtils.getExtension(fileName).toLowerCase();
             String objectId = GUIDFactory.newGUID().getId();

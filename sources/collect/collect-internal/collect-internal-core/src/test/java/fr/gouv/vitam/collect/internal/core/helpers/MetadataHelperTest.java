@@ -39,8 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.DYNAMIC_ATTACHEMENT;
-
 public class MetadataHelperTest {
     private static final String UNIT_UP = "UNIT_UP";
     private static final String UNIT_UP_1 = "UNIT_UP_1";
@@ -59,7 +57,7 @@ public class MetadataHelperTest {
             unit.put(VitamFieldsHelper.id(), "ID");
             Set<String> unitParent = MetadataHelper.findUnitParent(unit,
                 List.of(new MetadataUnitUp(UNIT_UP, COMPLEX_PATH, "Aisne (departement)")),
-                Map.of(DYNAMIC_ATTACHEMENT + "_" + UNIT_UP, UNIT_GUID));
+                Map.of(UNIT_UP, UNIT_GUID));
 
             Assertions.assertThat(unitParent).containsOnly(UNIT_GUID);
         }
@@ -73,7 +71,7 @@ public class MetadataHelperTest {
 
             Set<String> unitParent =
                 MetadataHelper.findUnitParent(unit, List.of(new MetadataUnitUp(UNIT_UP, SIMPLE_PATH, "My title")),
-                    Map.of(DYNAMIC_ATTACHEMENT + "_" + UNIT_UP, UNIT_GUID));
+                    Map.of(UNIT_UP, UNIT_GUID));
 
             Assertions.assertThat(unitParent).containsOnly(UNIT_GUID);
         }
@@ -87,7 +85,7 @@ public class MetadataHelperTest {
             unit.put(VitamFieldsHelper.id(), "ID");
             Set<String> unitParent = MetadataHelper.findUnitParent(unit,
                 List.of(new MetadataUnitUp(UNIT_UP, SIMPLE_PATH_ARRAY_VALUE, "ID01")),
-                Map.of(DYNAMIC_ATTACHEMENT + "_" + UNIT_UP, UNIT_GUID));
+                Map.of(UNIT_UP, UNIT_GUID));
 
             Assertions.assertThat(unitParent).containsOnly(UNIT_GUID);
         }
@@ -101,8 +99,7 @@ public class MetadataHelperTest {
             Set<String> unitParent = MetadataHelper.findUnitParent(unit,
                 List.of(new MetadataUnitUp(UNIT_UP_1, SIMPLE_PATH_ARRAY_VALUE, "ID01"),
                     new MetadataUnitUp(UNIT_UP_2, SIMPLE_PATH, "My title")),
-                Map.of(DYNAMIC_ATTACHEMENT + "_" + UNIT_UP_1, UNIT_GUID_1, DYNAMIC_ATTACHEMENT + "_" + UNIT_UP_2,
-                    UNIT_GUID_2));
+                Map.of(UNIT_UP_1, UNIT_GUID_1, UNIT_UP_2, UNIT_GUID_2));
             Assertions.assertThat(unitParent).containsOnly(UNIT_GUID_1, UNIT_GUID_2);
         }
     }

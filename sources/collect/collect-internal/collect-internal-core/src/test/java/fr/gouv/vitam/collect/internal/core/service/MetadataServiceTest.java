@@ -34,7 +34,6 @@ import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
 import fr.gouv.vitam.collect.internal.core.common.TransactionModel;
-import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
@@ -56,6 +55,7 @@ import net.javacrumbs.jsonunit.JsonAssert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -64,8 +64,8 @@ import org.mockito.junit.MockitoRule;
 
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -283,13 +283,13 @@ public class MetadataServiceTest {
     @Test
     public void given_only_unitup_then_prepareAttachmentUnits_return_only_static() throws Exception {
         projectModel.setUnitUp("SYSTEM_ID");
-        JsonNode unitJson = createAttachmentUnit();
+        JsonNode unitJson = createAttachmentUnit("UNIT_ID", "SYSTEM_ID");
 
         when(metadataRepository.selectUnits(any(JsonNode.class), eq(TRANSACTION_ID))).thenReturn(
             new RequestResponseOK<JsonNode>().addResult(unitJson));
-        HashMap<String, String> result = metadataService.prepareAttachmentUnits(projectModel, TRANSACTION_ID);
+        Map<String, String> result = metadataService.prepareAttachmentUnits(projectModel, TRANSACTION_ID);
 
-        assertThat(result).containsOnlyKeys(MetadataHelper.STATIC_ATTACHMENT);
+        assertThat(result).containsOnlyKeys("SYSTEM_ID");
         assertThat(result.values()).containsOnly("UNIT_ID");
         verify(metadataRepository, never()).saveArchiveUnits(anyList());
     }
@@ -301,9 +301,9 @@ public class MetadataServiceTest {
         projectModel.setUnitUp("SYSTEM_ID");
         when(metadataRepository.selectUnits(any(JsonNode.class), eq(TRANSACTION_ID))).thenReturn(
             new RequestResponseOK<>());
-        HashMap<String, String> result = metadataService.prepareAttachmentUnits(projectModel, TRANSACTION_ID);
+        Map<String, String> result = metadataService.prepareAttachmentUnits(projectModel, TRANSACTION_ID);
 
-        assertThat(result).containsOnlyKeys(MetadataHelper.STATIC_ATTACHMENT);
+        assertThat(result).containsOnlyKeys("SYSTEM_ID");
         assertThat(result.values()).hasSize(1);
         verify(metadataRepository, times(1)).saveArchiveUnits(anyList());
     }
@@ -312,44 +312,60 @@ public class MetadataServiceTest {
     @RunWithCustomExecutor
     public void should_create_unit_when_prepareAttachmentUnits_with_unitups_only() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        MetadataUnitUp up = new MetadataUnitUp();
-        up.setUnitUp("SYSTEM_ID");
-        up.setMetadataKey("KEY");
-        up.setMetadataKey("VALUE");
-        projectModel.setUnitUps(List.of(up));
+        MetadataUnitUp up1 = new MetadataUnitUp();
+        up1.setUnitUp("SYSTEM_ID1");
+        up1.setMetadataKey("KEY1");
+        up1.setMetadataKey("VALUE1");
+        MetadataUnitUp up2 = new MetadataUnitUp();
+        up2.setUnitUp("SYSTEM_ID2");
+        up2.setMetadataKey("KEY2");
+        up2.setMetadataKey("VALUE2");
+        projectModel.setUnitUps(List.of(up1, up2));
         when(metadataRepository.selectUnits(any(JsonNode.class), eq(TRANSACTION_ID))).thenReturn(
             new RequestResponseOK<>());
-        HashMap<String, String> result = metadataService.prepareAttachmentUnits(projectModel, TRANSACTION_ID);
+        Map<String, String> result = metadataService.prepareAttachmentUnits(projectModel, TRANSACTION_ID);
 
-        assertThat(result).containsOnlyKeys(MetadataHelper.DYNAMIC_ATTACHEMENT + "_" + "SYSTEM_ID");
-        assertThat(result.values()).hasSize(1);
-        verify(metadataRepository, times(1)).saveArchiveUnits(anyList());
+        assertThat(result).containsOnlyKeys("SYSTEM_ID1", "SYSTEM_ID2");
+        assertThat(result.values()).hasSize(2);
+
+        ArgumentCaptor<List<ObjectNode>> saveUnitsArgumentCaptor = ArgumentCaptor.forClass(List.class);
+        verify(metadataRepository, times(1)).saveArchiveUnits(saveUnitsArgumentCaptor.capture());
+        assertThat(saveUnitsArgumentCaptor.getAllValues()).hasSize(1);
+        assertThat(saveUnitsArgumentCaptor.getAllValues().get(0)).hasSize(2);
+        assertThat(saveUnitsArgumentCaptor.getAllValues().get(0))
+            .extracting(unit -> unit.get("Title").asText())
+            .containsExactlyInAnyOrder("DYNAMIC_ATTACHEMENT_SYSTEM_ID1", "DYNAMIC_ATTACHEMENT_SYSTEM_ID2");
     }
 
     @Test
     public void given_only_unitups_then_prepareAttachmentUnits_return_only_dynamic() throws Exception {
-        MetadataUnitUp up = new MetadataUnitUp();
-        up.setUnitUp("SYSTEM_ID");
-        up.setMetadataKey("KEY");
-        up.setMetadataKey("VALUE");
-        projectModel.setUnitUps(List.of(up));
-        JsonNode unitJson = createAttachmentUnit();
+        MetadataUnitUp up1 = new MetadataUnitUp();
+        up1.setUnitUp("SYSTEM_ID1");
+        up1.setMetadataKey("KEY1");
+        up1.setMetadataKey("VALUE1");
+        MetadataUnitUp up2 = new MetadataUnitUp();
+        up2.setUnitUp("SYSTEM_ID2");
+        up2.setMetadataKey("KEY2");
+        up2.setMetadataKey("VALUE2");
+        projectModel.setUnitUps(List.of(up1, up2));
+        JsonNode unitJson1 = createAttachmentUnit("UNIT_ID1", "SYSTEM_ID1");
+        JsonNode unitJson2 = createAttachmentUnit("UNIT_ID2", "SYSTEM_ID2");
 
         when(metadataRepository.selectUnits(any(JsonNode.class), eq(TRANSACTION_ID))).thenReturn(
-            new RequestResponseOK<JsonNode>().addResult(unitJson));
-        HashMap<String, String> result = metadataService.prepareAttachmentUnits(projectModel, TRANSACTION_ID);
+            new RequestResponseOK<JsonNode>().addResult(unitJson1).addResult(unitJson2));
+        Map<String, String> result = metadataService.prepareAttachmentUnits(projectModel, TRANSACTION_ID);
 
-        assertThat(result).containsOnlyKeys(MetadataHelper.DYNAMIC_ATTACHEMENT + "_" + "SYSTEM_ID");
-        assertThat(result.values()).containsOnly("UNIT_ID");
+        assertThat(result).containsOnlyKeys("SYSTEM_ID1", "SYSTEM_ID2");
+        assertThat(result.values()).containsOnly("UNIT_ID1", "UNIT_ID2");
         verify(metadataRepository, never()).saveArchiveUnits(anyList());
     }
 
-    private static JsonNode createAttachmentUnit() throws InvalidParseOperationException {
+    private static JsonNode createAttachmentUnit(String id, String systemId) throws InvalidParseOperationException {
         ArchiveUnitModel unit = new ArchiveUnitModel();
-        unit.setId("UNIT_ID");
+        unit.setId(id);
         ManagementModel managementModel = new ManagementModel();
         UpdateOperationType updateOperationType = new UpdateOperationType();
-        updateOperationType.setSystemId("SYSTEM_ID");
+        updateOperationType.setSystemId(systemId);
         managementModel.setUpdateOperationType(updateOperationType);
         unit.setManagement(managementModel);
 
