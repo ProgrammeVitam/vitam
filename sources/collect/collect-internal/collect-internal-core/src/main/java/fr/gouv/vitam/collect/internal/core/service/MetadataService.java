@@ -261,19 +261,19 @@ public class MetadataService {
     private List<JsonNode> convertToQuery(Map<String, JsonNode> unitContentToSetByURI, Map<String, String> unitIdsByURI)
         throws InvalidCreateOperationException, InvalidParseOperationException, CollectInternalException {
         List<JsonNode> listQueries = new ArrayList<>();
-        for (Map.Entry<String, JsonNode> unit : unitContentToSetByURI.entrySet()) {
-            Optional<String> first = unitIdsByURI.keySet().stream().filter(e -> e.endsWith(unit.getKey())).findFirst();
-            if (first.isEmpty()) {
-                throw new CollectInternalInvalidRequestException("Cannot find unit with path " + unit.getKey());
+        for (Map.Entry<String, JsonNode> unitByPath : unitContentToSetByURI.entrySet()) {
+            String unitId = unitIdsByURI.get(unitByPath.getKey());
+            if (unitId == null) {
+                throw new CollectInternalInvalidRequestException("Cannot find unit with path " + unitByPath.getKey());
             }
-            String unitId = unitIdsByURI.get(first.get());
             UpdateMultiQuery query = new UpdateMultiQuery();
             query.addRoots(unitId);
 
             Map<String, JsonNode> fieldsToSet = new HashMap<>();
             List<String> fieldsToUnset = new ArrayList<>();
 
-            unit.getValue().fields().forEachRemaining(e -> {
+            JsonNode unitContent = unitByPath.getValue();
+            unitContent.fields().forEachRemaining(e -> {
                 if (e.getValue().isNull()) {
                     fieldsToUnset.add(e.getKey());
                 } else {
