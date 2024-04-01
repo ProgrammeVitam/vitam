@@ -26,7 +26,7 @@
  */
 package fr.gouv.vitam.collect.internal.core.helpers;
 
-import fr.gouv.vitam.worker.core.distribution.JsonLineModel;
+import fr.gouv.vitam.collect.internal.core.common.CollectJsonMetadataLine;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.csv.CSVFormat;
@@ -46,17 +46,18 @@ public class CsvHelper {
     private CsvHelper() {
     }
 
-    public static void convertCsvToMetadataFile(InputStream is, File metadataFile) throws IOException {
+    public static void convertCsvToJsonlMetadataFile(InputStream is, File metadataFile) throws IOException {
         try (final InputStreamReader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
             CSVParser parser = new CSVParser(reader,
                 CSVFormat.DEFAULT.withHeader().withTrim().withIgnoreEmptyLines(false).withDelimiter(';'));
             JsonLineWriter writer = new JsonLineWriter(new FileOutputStream(metadataFile, true), true)) {
             final List<String> headerNames = parser.getHeaderNames();
 
-            Iterator<JsonLineModel> iterator = IteratorUtils.transformedIterator(
-                IteratorUtils.transformedIterator(parser.iterator(),
-                    e -> CsvMetadataMapper.map(e, headerNames)),
-                e -> new JsonLineModel(e.getKey(), null, e.getValue()));
+            Iterator<CollectJsonMetadataLine> iterator = IteratorUtils.transformedIterator(
+                IteratorUtils.transformedIterator(parser.iterator(), e -> CsvMetadataMapper.map(e, headerNames)),
+                e -> new CollectJsonMetadataLine()
+                    .setFile(e.getKey())
+                    .setUnitContent(e.getValue()));
 
             while (iterator.hasNext()) {
                 writer.addEntry(iterator.next());

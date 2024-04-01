@@ -201,7 +201,7 @@ public class FluxServiceTest {
             return null;
         })
             .when(metadataService)
-            .updateUnitsWithMetadataFile(eq("TRANSACTION_ID"), any());
+            .updateUnitsWithJsonlMetadataFile(eq("TRANSACTION_ID"), any());
 
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
             TRANSACTION_ZIP_WITH_METADATA_CSV_PATH)) {
