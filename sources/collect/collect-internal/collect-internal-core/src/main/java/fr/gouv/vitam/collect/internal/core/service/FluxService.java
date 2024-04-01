@@ -136,7 +136,6 @@ public class FluxService {
             File metadataFile = null;
             // create entryInputStream to resolve the stream closed problem
             final ArchiveEntryInputStream entryInputStream = new ArchiveEntryInputStream(archiveInputStream);
-            int maxLevel = -1;
             while ((entry = archiveInputStream.getNextEntry()) != null) {
                 if (archiveInputStream.canReadEntryData(entry)) {
 
@@ -161,8 +160,8 @@ public class FluxService {
                         metadataFile = tempWorkspace.writeToFile(path, entryInputStream);
                     } else {
                         String staticAttachmentUnitId = attachmentUnitsBySystemId.get(projectModel.getUnitUp());
-                        maxLevel = createMetadata(tempWorkspace, transactionId, path, entryInputStream,
-                            entry.isDirectory(), maxLevel, unitIdsByUploadPath, staticAttachmentUnitId);
+                        createMetadata(tempWorkspace, transactionId, path, entryInputStream,
+                            entry.isDirectory(), unitIdsByUploadPath, staticAttachmentUnitId);
                     }
                     isEmpty = false;
                 }
@@ -181,7 +180,7 @@ public class FluxService {
             Map<String, Set<String>> unitUps = (transformedMetadataFile != null) ?
                 findUnitUps(transformedMetadataFile, projectModel, attachmentUnitsBySystemId) : new HashMap<>();
 
-            bulkWriteUnits(tempWorkspace, maxLevel, unitUps);
+            bulkWriteUnits(tempWorkspace, unitUps);
 
             bulkWriteObjectGroups(tempWorkspace);
 
@@ -190,6 +189,7 @@ public class FluxService {
                     metadataService.updateUnitsWithMetadataFile(transactionId, is);
                 }
             }
+
         } catch (IOException | ArchiveException e) {
             LOGGER.error("An error occurs when try to upload the ZIP: {}", e);
             throw new CollectInternalException("An error occurs when try to upload the ZIP: {}");
@@ -242,8 +242,8 @@ public class FluxService {
         }
     }
 
-    private int createMetadata(TempWorkspace tempWorkspace, String transactionId, String path,
-        InputStream entryInputStream, boolean isDirectory, int maxLevel, Map<String, String> unitIdsByUploadPath,
+    private void createMetadata(TempWorkspace tempWorkspace, String transactionId, String path,
+        InputStream entryInputStream, boolean isDirectory, Map<String, String> unitIdsByUploadPath,
         String staticAttachmentUnitId)
         throws IOException, CollectInternalException, InvalidParseOperationException {
         LevelType descriptionLevel = isDirectory ? LevelType.RECORD_GRP : LevelType.ITEM;
@@ -256,7 +256,7 @@ public class FluxService {
             parentUnit = unitIdsByUploadPath.get(parentPath);
             if (parentUnit == null) {
                 LOGGER.debug("Creating implicit parent folder '{}'", parentPath);
-                createMetadata(tempWorkspace, transactionId, parentPath, null, true, maxLevel, unitIdsByUploadPath,
+                createMetadata(tempWorkspace, transactionId, parentPath, null, true, unitIdsByUploadPath,
                     staticAttachmentUnitId);
             }
 
@@ -289,16 +289,19 @@ public class FluxService {
             }
         }
 
-        maxLevel =
-            writeUnitToTemporaryFile(tempWorkspace, StringUtils.countMatches(path, File.separator), maxLevel, unit);
-        return maxLevel;
+        writeUnitToTemporaryFile(tempWorkspace, StringUtils.countMatches(path, File.separator), unit);
     }
 
-    private void bulkWriteUnits(TempWorkspace tempWorkspace, int maxLevel, Map<String, Set<String>> unitUps)
+    private void bulkWriteUnits(TempWorkspace tempWorkspace, Map<String, Set<String>> unitUps)
         throws IOException {
-        for (int level = 0; level <= maxLevel; level++) {
+        int level = 0;
+        do {
             File unitFile = tempWorkspace.getFile(
                 MetadataType.UNIT.getName() + "_" + level + VitamConstants.JSONL_EXTENSION);
+            if (!unitFile.exists()) {
+                // All levels processed
+                return;
+            }
             Iterator<ObjectNode> unitIterator =
                 new JsonLineGenericIterator<>(new FileInputStream(unitFile), new TypeReference<>() {
                 });
@@ -314,7 +317,8 @@ public class FluxService {
                     throw new RuntimeException(e);
                 }
             });
-        }
+            level++;
+        } while ((true));
     }
 
     private ObjectNode updateParent(ObjectNode unit, Map<String, Set<String>> unitUps) {
@@ -350,19 +354,20 @@ public class FluxService {
         }
     }
 
-    private int writeUnitToTemporaryFile(TempWorkspace tempWorkspace, int level, int maxLevel, Object unit)
+    private void writeUnitToTemporaryFile(TempWorkspace tempWorkspace, int level, Object unit)
         throws IOException {
+        // TODO : Do not open/write/close for each entry, use an appender to write units per-level
         File file = tempWorkspace.getFile(
             MetadataType.UNIT.getName() + "_" + level + VitamConstants.JSONL_EXTENSION);
         try (JsonLineWriter writer = new JsonLineWriter(new FileOutputStream(file, true), file.length() == 0)) {
             JsonNode unitToSave = getSerializationObjectMapper().convertValue(unit, JsonNode.class);
             writer.addEntry(unitToSave);
         }
-        return Math.max(maxLevel, level);
     }
 
     private Entry<String, Long> writeObjectToWorkspace(String transactionId, File fileToWrite, String fileName)
         throws IOException, CollectInternalException {
+        // TODO : Do not open/write/close for each entry, use an appender to write objects groups
         try (CountingInputStream countingInputStream = new CountingInputStream(new FileInputStream(fileToWrite))) {
             String digest = collectService.pushStreamToWorkspace(transactionId, countingInputStream,
                 CONTENT_FOLDER.concat(File.separator).concat(fileName));
