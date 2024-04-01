@@ -28,10 +28,13 @@ package fr.gouv.vitam.collect.internal.core.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.ValueNode;
 import com.google.common.collect.Iterators;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
+import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.common.exception.CollectInternalInvalidRequestException;
@@ -45,6 +48,9 @@ import fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper;
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.common.PropertiesUtils;
+import fr.gouv.vitam.common.database.builder.query.BooleanQuery;
+import fr.gouv.vitam.common.database.builder.query.CompareQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
@@ -52,14 +58,12 @@ import fr.gouv.vitam.common.database.builder.query.action.UnsetAction;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
-import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.UnitType;
 import fr.gouv.vitam.common.model.VitamConstants;
@@ -95,13 +99,18 @@ public class MetadataService {
     private static final String SYSTEM_ID_FIELD_PATH =
         VitamFieldsHelper.management() + "." + "UpdateOperation" + "." + "SystemId";
 
+    public static final int BULK_SIZE = 1000;
+
     private final MetadataRepository metadataRepository;
 
     private final ProjectRepository projectRepository;
+    private final BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService;
 
-    public MetadataService(MetadataRepository metadataRepository, ProjectRepository projectRepository) {
+    public MetadataService(MetadataRepository metadataRepository, ProjectRepository projectRepository,
+        BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService) {
         this.metadataRepository = metadataRepository;
         this.projectRepository = projectRepository;
+        this.bulkAtomicUpdateMetadataService = bulkAtomicUpdateMetadataService;
     }
 
 
@@ -188,95 +197,85 @@ public class MetadataService {
         }
     }
 
-    void updateUnitsWithJsonlMetadataFile(String transactionId, InputStream is)
-        throws CollectInternalException, IOException {
-        Map<String, String> unitIdsByURI = buildGraphFromExistingUnits(transactionId);
-        updateUnitsMetadata(is, unitIdsByURI);
-    }
-
     public RequestResponseOK<JsonNode> selectUnitsByTransactionId(JsonNode queryDsl, String transactionId)
         throws CollectInternalException {
         return metadataRepository.selectUnits(queryDsl, transactionId);
     }
 
-    private void updateUnitsMetadata(InputStream is, Map<String, String> unitIdsByURI) throws CollectInternalException {
+    void updateUnitsWithJsonlMetadataFile(String transactionId, InputStream is)
+        throws CollectInternalException {
 
-        JsonLineGenericIterator<CollectJsonMetadataLine> metadata =
-            new JsonLineGenericIterator<>(is,
-                CollectJsonMetadataLine.TYPE_REFERENCE);
+        try (JsonLineGenericIterator<CollectJsonMetadataLine> metadata =
+            new JsonLineGenericIterator<>(is, CollectJsonMetadataLine.TYPE_REFERENCE)) {
 
-        Iterator<List<CollectJsonMetadataLine>> iterator = Iterators.partition(metadata, 100);
-        boolean updated = false;
-        while (iterator.hasNext()) {
-            try {
-                updated = true;
-                List<CollectJsonMetadataLine> next = iterator.next();
-                Map<String, JsonNode> unitContentToSetByURI = next.stream().collect(Collectors.toMap(
-                        CollectJsonMetadataLine::getFile,
-                        CollectJsonMetadataLine::getUnitContent));
-                // update unit with list
-                final List<JsonNode> updateMultiQueries = convertToQuery(unitContentToSetByURI, unitIdsByURI);
-                final RequestResponse<JsonNode> result = metadataRepository.atomicBulkUpdate(updateMultiQueries);
+            Iterator<List<CollectJsonMetadataLine>> iterator = Iterators.partition(metadata, BULK_SIZE);
+            int nbOK = 0;
+            int nbKO = 0;
+            List<String> firstNErrorMessages = new ArrayList<>();
+            while (iterator.hasNext()) {
+                List<CollectJsonMetadataLine> jsonlMetadataLinesBatch = iterator.next();
 
-                final boolean thereIsError =
-                    ((RequestResponseOK<JsonNode>) result).getResults().stream().map(e -> e.get("$results"))
-                        .map(e -> e.get(0)).map(e -> e.get("#status")).map(JsonNode::asText)
-                        .anyMatch(e -> !e.equals("OK"));
+                List<BulkAtomicUpdateResult> updateUnitsBatchResults
+                    = updateUnitsBatch(transactionId, jsonlMetadataLinesBatch);
 
-                if (thereIsError) {
-                    throw new CollectInternalException("Error when trying to update units metadata");
+                for (BulkAtomicUpdateResult updateUnitsBatchResult : updateUnitsBatchResults) {
+                    switch (updateUnitsBatchResult.getStatus()) {
+                        case OK:
+                            nbOK++;
+                            LOGGER.debug("Update OK of unit " + updateUnitsBatchResult.getUpdatedUnitId());
+                            break;
+                        case KO:
+                            LOGGER.debug("Update failed : " + updateUnitsBatchResult.getErrorDetails());
+                            if (firstNErrorMessages.size() < 10) {
+                                firstNErrorMessages.add(updateUnitsBatchResult.getErrorDetails());
+                            }
+                            nbKO++;
+                            break;
+                        default:
+                            throw new IllegalStateException("Unexpected value: " + updateUnitsBatchResult.getStatus());
+                    }
                 }
-            } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
-                LOGGER.error("Could not create update query", e);
-                throw new CollectInternalException(e);
             }
-        }
 
-        if (!updated) {
-            throw new CollectInternalException("no update data found !");
+            if (nbOK == 0 && nbKO == 0) {
+                throw new CollectInternalException("no update data found !");
+            }
+
+            if (nbKO == 0) {
+                LOGGER.info("Metadata update succeeded. Nb OK: " + nbOK);
+                return;
+            }
+
+            boolean isTruncated = nbKO > firstNErrorMessages.size();
+            throw new CollectInternalInvalidRequestException(
+                "Metadata update failed. Nb OK: " + nbOK + ", Nb KO: " + nbKO
+                    + ". Error messages" + (isTruncated ? " (truncated)" : "") + ":" + firstNErrorMessages);
         }
     }
 
-    private Map<String, String> buildGraphFromExistingUnits(String transactionId) throws CollectInternalException {
+    private List<BulkAtomicUpdateResult> updateUnitsBatch(String transactionId,
+        List<CollectJsonMetadataLine> jsonlMetadataLines)
+        throws CollectInternalException {
+
+        ArrayNode queries = JsonHandler.createArrayNode();
+        for (CollectJsonMetadataLine jsonMetadataLine : jsonlMetadataLines) {
+            queries.add(createUpdateQuery(jsonMetadataLine));
+        }
+
+        return this.bulkAtomicUpdateMetadataService.bulkAtomicUpdateUnits(transactionId, queries, true);
+    }
+
+    private static ObjectNode createUpdateQuery(CollectJsonMetadataLine jsonMetadataLine)
+        throws CollectInternalServerSideException {
+
         try {
-            SelectMultiQuery select = new SelectMultiQuery();
-            select.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), transactionId));
-            select.addUsedProjection(VitamFieldsHelper.id(), VitamFieldsHelper.uploadPath());
-            final ScrollSpliterator<JsonNode> unitScrollSpliterator =
-                metadataRepository.selectUnits(select, transactionId);
-
-            // Duplicate uploadPaths are NOT supported!
-            final Map<String, String> unitIdsByUploadPath = new HashMap<>();
-            unitScrollSpliterator.forEachRemaining(unit -> {
-                if (unit.has(VitamFieldsHelper.uploadPath())) {
-                    unitIdsByUploadPath.put(
-                        unit.get(VitamFieldsHelper.uploadPath()).asText(),
-                        unit.get(VitamFieldsHelper.id()).asText());
-                }
-            });
-
-            return unitIdsByUploadPath;
-        } catch (Exception e) {
-            throw new CollectInternalServerSideException("Cannot build unit path", e);
-        }
-    }
-
-    private List<JsonNode> convertToQuery(Map<String, JsonNode> unitContentToSetByURI, Map<String, String> unitIdsByURI)
-        throws InvalidCreateOperationException, InvalidParseOperationException, CollectInternalException {
-        List<JsonNode> listQueries = new ArrayList<>();
-        for (Map.Entry<String, JsonNode> unitByPath : unitContentToSetByURI.entrySet()) {
-            String unitId = unitIdsByURI.get(unitByPath.getKey());
-            if (unitId == null) {
-                throw new CollectInternalInvalidRequestException("Cannot find unit with path " + unitByPath.getKey());
-            }
-            UpdateMultiQuery query = new UpdateMultiQuery();
-            query.addRoots(unitId);
+            UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
+            updateMultiQuery.addQueries(buildSelectorQuery(jsonMetadataLine));
 
             Map<String, JsonNode> fieldsToSet = new HashMap<>();
             List<String> fieldsToUnset = new ArrayList<>();
 
-            JsonNode unitContent = unitByPath.getValue();
-            unitContent.fields().forEachRemaining(e -> {
+            jsonMetadataLine.getUnitContent().fields().forEachRemaining(e -> {
                 if (e.getValue().isNull()) {
                     fieldsToUnset.add(e.getKey());
                 } else {
@@ -285,14 +284,49 @@ public class MetadataService {
             });
 
             if (!fieldsToSet.isEmpty()) {
-                query.addActions(new SetAction(fieldsToSet));
+                updateMultiQuery.addActions(new SetAction(fieldsToSet));
             }
             if (!fieldsToUnset.isEmpty()) {
-                query.addActions(new UnsetAction(fieldsToUnset.toArray(String[]::new)));
+                updateMultiQuery.addActions(new UnsetAction(fieldsToUnset.toArray(String[]::new)));
             }
-            listQueries.add(query.getFinalUpdate());
+
+            return updateMultiQuery.getFinalUpdate();
+        } catch (InvalidCreateOperationException e) {
+            throw new CollectInternalServerSideException("Cannot build query", e);
         }
-        return listQueries;
+    }
+
+    private static Query buildSelectorQuery(CollectJsonMetadataLine jsonMetadataLine)
+        throws InvalidCreateOperationException {
+        if (jsonMetadataLine.getFile() != null) {
+            return QueryHelper.term(VitamFieldsHelper.uploadPath(), jsonMetadataLine.getFile());
+        }
+
+        Map<String, ValueNode> selectorEntries = jsonMetadataLine.getSelector().getEntries();
+        if (selectorEntries.size() == 1) {
+            Map.Entry<String, ValueNode> selector = selectorEntries.entrySet().iterator().next();
+            return getSelectorQuery(selector);
+        }
+        BooleanQuery andQuery = QueryHelper.and();
+        for (Map.Entry<String, ValueNode> selector : selectorEntries.entrySet()) {
+            andQuery.add(getSelectorQuery(selector));
+        }
+        return andQuery;
+    }
+
+    private static CompareQuery getSelectorQuery(Map.Entry<String, ValueNode> selector)
+        throws InvalidCreateOperationException {
+        ValueNode value = selector.getValue();
+        switch (selector.getValue().getNodeType()) {
+            case STRING:
+                return QueryHelper.eq(selector.getKey(), value.textValue());
+            case BOOLEAN:
+                return QueryHelper.eq(selector.getKey(), value.booleanValue());
+            case NUMBER:
+                return QueryHelper.eq(selector.getKey(), value.longValue());
+            default:
+                throw new IllegalStateException("Unexpected selector value type: " + selector.getValue().getNodeType());
+        }
     }
 
     private ArchiveUnitModel createAttachmentUnit(String transactionId, String title, String unitUp) {

@@ -82,7 +82,8 @@ public class BulkAtomicUpdateMetadataService {
         batchSize = configuration.getBulkAtomicUpdateBatchSize();
     }
 
-    public List<BulkAtomicUpdateResult> bulkAtomicUpdateUnits(String transactionId, ArrayNode queries)
+    public List<BulkAtomicUpdateResult> bulkAtomicUpdateUnits(String transactionId, ArrayNode queries,
+        boolean allowInternalFieldsUpdate)
         throws CollectInternalException {
 
         try {
@@ -90,7 +91,7 @@ public class BulkAtomicUpdateMetadataService {
             BulkAtomicUpdateReportAppender reportAppender = new BulkAtomicUpdateReportAppender();
 
             List<BulkSelectQueryResultOK> selectQueryResults
-                = selectUnitIdsPerUpdateQueries(transactionId, reportAppender, queries);
+                = selectUnitIdsPerUpdateQueries(transactionId, reportAppender, queries, allowInternalFieldsUpdate);
 
             processUpdate(selectQueryResults, reportAppender);
 
@@ -117,7 +118,8 @@ public class BulkAtomicUpdateMetadataService {
     private List<BulkSelectQueryResultOK> selectUnitIdsPerUpdateQueries(
         String transactionId,
         BulkAtomicUpdateReportAppender reportAppender,
-        ArrayNode queries) throws CollectInternalInvalidRequestException {
+        ArrayNode queries,
+        boolean allowInternalFieldsUpdate) throws CollectInternalInvalidRequestException {
 
         List<BulkSelectQueryResultOK> selectUnitIdsResults = new ArrayList<>();
 
@@ -128,8 +130,8 @@ public class BulkAtomicUpdateMetadataService {
                     threadPoolSize, threadPoolQueueSize, batchSize,
                     selectUnitIdsResults::add,
                     createFailureResultReportAppender(reportAppender),
-                    createTransactionIdRestrictionConverter(transactionId)
-                );
+                    createTransactionIdRestrictionConverter(transactionId),
+                    allowInternalFieldsUpdate);
             bulkSelectQueryParallelProcessor.processQueries(queries.iterator());
 
             return selectUnitIdsResults;

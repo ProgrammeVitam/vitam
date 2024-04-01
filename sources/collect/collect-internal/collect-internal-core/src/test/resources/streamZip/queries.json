@@ -1,9 +1,13 @@
 [
   {
-    "$roots": [
-      "aeaqaaaaaacpbveraqxzuamdvda5lcqaaaaq"
+    "$roots": [],
+    "$query": [
+      {
+        "$term": {
+          "#uploadPath": "ROOT/Parent A"
+        }
+      }
     ],
-    "$query": [],
     "$filter": {},
     "$action": [
       {
@@ -25,10 +29,14 @@
     ]
   },
   {
-    "$roots": [
-      "aeaqaaaaaacpbveraqxzuamdvda5j5yaaaaq"
+    "$roots": [],
+    "$query": [
+      {
+        "$term": {
+          "#uploadPath": "ROOT"
+        }
+      }
     ],
-    "$query": [],
     "$filter": {},
     "$action": [
       {
@@ -40,10 +48,14 @@
     ]
   },
   {
-    "$roots": [
-      "aeaqaaaaaacpbveraqxzuamdvda5l4qaaaaq"
+    "$roots": [],
+    "$query": [
+      {
+        "$term": {
+          "#uploadPath": "ROOT/Parent B"
+        }
+      }
     ],
-    "$query": [],
     "$filter": {},
     "$action": [
       {
@@ -65,10 +77,14 @@
     ]
   },
   {
-    "$roots": [
-      "aeaqaaaaaacpbveraqxzuamdvda5lcyaaaaq"
+    "$roots": [],
+    "$query": [
+      {
+        "$term": {
+          "#uploadPath": "ROOT/Parent A/Child D"
+        }
+      }
     ],
-    "$query": [],
     "$filter": {},
     "$action": [
       {
@@ -112,10 +128,14 @@
     ]
   },
   {
-    "$roots": [
-      "aeaqaaaaaacpbveraqxzuamdvda5l3qaaaaq"
+    "$roots": [],
+    "$query": [
+      {
+        "$term": {
+          "#uploadPath": "ROOT/Parent A/Child C"
+        }
+      }
     ],
-    "$query": [],
     "$filter": {},
     "$action": [
       {
@@ -133,10 +153,14 @@
     ]
   },
   {
-    "$roots": [
-      "aeaqaaaaaacpbveraqxzuamdvda5l4qaaaba"
+    "$roots": [],
+    "$query": [
+      {
+        "$term": {
+          "#uploadPath": "ROOT/Parent B/Child E"
+        }
+      }
     ],
-    "$query": [],
     "$filter": {},
     "$action": [
       {
@@ -154,10 +178,14 @@
     ]
   },
   {
-    "$roots": [
-      "aeaqaaaaaacpbveraqxzuamdvda5l5qaaaaq"
+    "$roots": [],
+    "$query": [
+      {
+        "$term": {
+          "#uploadPath": "ROOT/Parent B/Child F"
+        }
+      }
     ],
-    "$query": [],
     "$filter": {},
     "$action": [
       {

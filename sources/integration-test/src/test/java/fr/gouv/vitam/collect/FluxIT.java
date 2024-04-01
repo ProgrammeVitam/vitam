@@ -53,8 +53,6 @@ import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
-import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
-import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.functional.administration.rest.AdminManagementMain;
 import fr.gouv.vitam.logbook.rest.LogbookMain;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -67,7 +65,6 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
-import org.junit.Rule;
 import org.junit.Test;
 
 import javax.ws.rs.core.Response;
@@ -419,26 +416,8 @@ public class FluxIT extends VitamRuleRunner {
         final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
             () -> updateUnitWithMetadataCsv(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
-        assertThat(vitamClientException.getLocalizedMessage()).contains("Cannot find unit with path no-dir");
-    }
-
-    @Test
-    @RunWithCustomExecutor
-    public void shouldUpdateTransactionFailWhenCsvContainsFileDupes() {
-        final String unitUpdateResourcePath = "collect/transaction/unit/update/metadata-with-duplicates.csv";
-        final String zipPath = "collect/transaction/unit/update/versement.zip";
-        final ProjectDto project = createProject(vitamContext).orElseThrow();
-        final TransactionDto transaction = createTransaction(vitamContext, project.getId()).orElseThrow();
-
-        assertThat(transaction).isNotNull();
-        assertThat(transaction.getId()).isNotBlank();
-
-        uploadZipTransaction(vitamContext, transaction.getId(), zipPath);
-
-        final VitamClientException vitamClientException = assertThrows(VitamClientException.class,
-            () -> updateUnitWithMetadataCsv(vitamContext, transaction.getId(), unitUpdateResourcePath));
-
-        assertThat(vitamClientException.getLocalizedMessage()).contains("Duplicate key versement/pastis.json");
+        assertThat(vitamClientException.getLocalizedMessage()).contains(
+            "Metadata update failed. Nb OK: 0, Nb KO: 1. Error messages:[No unit was matches selection criteria]");
     }
 
     @Test
@@ -458,7 +437,7 @@ public class FluxIT extends VitamRuleRunner {
             () -> updateUnitWithMetadataCsv(vitamContext, transaction.getId(), unitUpdateResourcePath));
 
         assertThat(vitamClientException.getLocalizedMessage()).contains(
-            "Error when trying to update units metadata");
+            "Metadata update failed. Nb OK: 1, Nb KO: 1. Error messages:[metadata contains fields declared in ontology with a wrong format");
     }
 
     @Test

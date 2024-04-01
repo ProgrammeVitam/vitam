@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.InternalActionKeysRetriever;
 import fr.gouv.vitam.common.database.builder.query.Query;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.UpdateMultiQuery;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
@@ -60,12 +61,14 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -116,7 +119,93 @@ public class BulkSelectQueryParallelProcessorTest {
             metadataClient, new InternalActionKeysRetriever(), 2, 4, 10,
             successResults::add,
             failureResults::add,
-            queryRestrictionConverter
+            queryRestrictionConverter,
+            false
+        );
+        instance.processQueries(queries.iterator());
+
+        // Then
+        assertThat(successResults).hasSize(1);
+        assertThat(successResults.get(0)).extracting(BulkSelectQueryResultOK::getQueryIndex).isEqualTo(0);
+        assertThat(successResults.get(0)).extracting(BulkSelectQueryResultOK::getUnitId).isEqualTo("unitId1");
+
+        assertThat(failureResults).isEmpty();
+
+        verify(queryRestrictionConverter).convert(any());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testProcessSingleQueryForbidInternalFields() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
+
+        UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
+        updateMultiQuery.addQueries(QueryHelper.exists("#id"));
+        updateMultiQuery.addActions(UpdateActionHelper.set(VitamFieldsHelper.originatingAgency(), "illegal"));
+        JsonNode query = updateMultiQuery.getFinalUpdate();
+        List<JsonNode> queries = List.of(query);
+
+        List<BulkSelectQueryResultOK> successResults = new ArrayList<>();
+        List<BulkSelectQueryResultFailure> failureResults = new ArrayList<>();
+        QueryRestrictionConverter queryRestrictionConverter = mock(QueryRestrictionConverter.class);
+        doAnswer(args -> args.getArgument(0)).when(queryRestrictionConverter).convert(any());
+
+        // When
+        BulkSelectQueryParallelProcessor instance = new BulkSelectQueryParallelProcessor(
+            metadataClient, new InternalActionKeysRetriever(), 2, 4, 10,
+            successResults::add,
+            failureResults::add,
+            queryRestrictionConverter,
+            false
+        );
+        instance.processQueries(queries.iterator());
+
+        // Then
+        assertThat(successResults).isEmpty();
+
+        assertThat(failureResults).hasSize(1);
+        assertThat(failureResults.get(0)).extracting(BulkSelectQueryResultFailure::getQueryIndex).isEqualTo(0);
+        assertThat(failureResults.get(0)).extracting(BulkSelectQueryResultFailure::getMessage).isEqualTo(
+            "Invalid DSL query: cannot contains internal field(s) : '#originating_agency'");
+
+        verify(queryRestrictionConverter, never()).convert(any());
+
+        verify(metadataClient, never()).selectUnitsBulk(anyList());
+    }
+
+    @RunWithCustomExecutor
+    @Test
+    public void testProcessSingleQueryAllowInternalFields() throws Exception {
+
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(0);
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
+
+        UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
+        updateMultiQuery.addQueries(QueryHelper.exists("#id"));
+        updateMultiQuery.addActions(UpdateActionHelper.set(VitamFieldsHelper.originatingAgency(), "override"));
+        JsonNode query = updateMultiQuery.getFinalUpdate();
+        List<JsonNode> queries = List.of(query);
+
+        List<BulkSelectQueryResultOK> successResults = new ArrayList<>();
+        List<BulkSelectQueryResultFailure> failureResults = new ArrayList<>();
+        QueryRestrictionConverter queryRestrictionConverter = mock(QueryRestrictionConverter.class);
+        doAnswer(args -> args.getArgument(0)).when(queryRestrictionConverter).convert(any());
+
+        doReturn(List.of(new RequestResponseOK<JsonNode>().addResult(
+            JsonHandler.createObjectNode().put("#id", "unitId1")
+        ))).when(metadataClient).selectUnitsBulk(anyList());
+
+        // When
+        BulkSelectQueryParallelProcessor instance = new BulkSelectQueryParallelProcessor(
+            metadataClient, new InternalActionKeysRetriever(), 2, 4, 10,
+            successResults::add,
+            failureResults::add,
+            queryRestrictionConverter,
+            true
         );
         instance.processQueries(queries.iterator());
 
@@ -189,7 +278,8 @@ public class BulkSelectQueryParallelProcessorTest {
             metadataClient, new InternalActionKeysRetriever(), 2, 4, 10,
             successResults::add,
             failureResults::add,
-            queryRestrictionConverter
+            queryRestrictionConverter,
+            false
         );
         instance.processQueries(queries.iterator());
 
@@ -248,7 +338,8 @@ public class BulkSelectQueryParallelProcessorTest {
             },
             result -> {
             },
-            dslQuery -> dslQuery);
+            dslQuery -> dslQuery,
+            false);
 
         // When
 

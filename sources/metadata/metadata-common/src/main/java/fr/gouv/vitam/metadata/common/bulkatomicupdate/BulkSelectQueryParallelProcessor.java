@@ -49,6 +49,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CancellationException;
@@ -76,13 +77,15 @@ public class BulkSelectQueryParallelProcessor {
     private final int batchSize;
     private final AtomicInteger nbWarnings = new AtomicInteger(0);
     private final AtomicInteger nbOKs = new AtomicInteger(0);
+    private final boolean allowInternalFieldsUpdate;
 
     public BulkSelectQueryParallelProcessor(MetaDataClient metadataClient,
         InternalActionKeysRetriever internalActionKeysRetriever,
         int threadPoolSize, int threadPoolQueueSize, int batchSize,
         Consumer<BulkSelectQueryResultOK> successReporter,
         Consumer<BulkSelectQueryResultFailure> failureReporter,
-        QueryRestrictionConverter queryRestrictionConverter) {
+        QueryRestrictionConverter queryRestrictionConverter,
+        boolean allowInternalFieldsUpdate) {
         this.metadataClient = metadataClient;
         this.internalActionKeysRetriever = internalActionKeysRetriever;
         this.queryRestrictionConverter = queryRestrictionConverter;
@@ -91,6 +94,7 @@ public class BulkSelectQueryParallelProcessor {
         this.threadPoolSize = threadPoolSize;
         this.threadPoolQueueSize = threadPoolQueueSize;
         this.batchSize = batchSize;
+        this.allowInternalFieldsUpdate = allowInternalFieldsUpdate;
     }
 
     public void processQueries(Iterator<JsonNode> queryIterator) throws InvalidParseOperationException {
@@ -167,6 +171,11 @@ public class BulkSelectQueryParallelProcessor {
 
     private List<CountingIterator.EntryWithIndex<JsonNode>> reportAndFilterInvalidQueries(
         List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess) {
+
+        if (this.allowInternalFieldsUpdate) {
+            return bulkQueriesToProcess;
+        }
+
         List<CountingIterator.EntryWithIndex<JsonNode>> validQueries = new ArrayList<>();
         for (CountingIterator.EntryWithIndex<JsonNode> queryToProcess : bulkQueriesToProcess) {
             List<String> internalKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(
@@ -186,6 +195,10 @@ public class BulkSelectQueryParallelProcessor {
         List<JsonNode> executableQueries)
         throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
         MetaDataClientServerException {
+
+        if (executableQueries.isEmpty()) {
+            return Collections.emptyList();
+        }
 
         // Submit queries
         List<RequestResponseOK<JsonNode>> queriesResponses =

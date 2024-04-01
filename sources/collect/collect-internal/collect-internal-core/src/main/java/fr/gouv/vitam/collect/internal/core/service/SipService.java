@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.database.builder.query.InQuery;
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
 import fr.gouv.vitam.common.database.parser.query.ParserTokens;
@@ -69,6 +70,7 @@ import org.apache.commons.io.FileUtils;
 import javax.ws.rs.core.Response;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -193,8 +195,7 @@ public class SipService {
             manifestBuilder.writeFooter(ExportType.ArchiveTransfer, exportRequest.getExportRequestParameters());
             manifestBuilder.closeManifest();
 
-        } catch (IOException | InvalidCreateOperationException | ExportException | InternalServerException |
-                 InvalidParseOperationException | JAXBException | XMLStreamException e) {
+        } catch (Exception e) {
             LOGGER.error(e.getLocalizedMessage());
             throw new CollectInternalException(e);
         }

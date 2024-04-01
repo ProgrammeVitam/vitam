@@ -190,7 +190,7 @@ documentation:
               example: !include libraries/examples/CollectUnitObjectResponse.json
     put:
       description: |
-        Permet de mettre à jour les métadonnées à partir d'un fichier CSV en entrée.
+        Permet de mettre à jour les métadonnées à partir d'un fichier de métadonnées CSV en entrée.
 
         **Attention:** Le fichier CSV doit être séparé par des point-virgules (`;`), et sans lignes vides.
 
@@ -319,8 +319,9 @@ documentation:
     post:
       description: |
         Permet de soumettre un ensemble de binaire au format Zip.
-        Optionnellement, le Zip peut contenir un fichier "metadata.csv" décrivant l'ensemble des métadonnées de
-        l'arborescence.
+        Optionnellement, le Zip peut contenir un fichier "metadata.csv" décrivant l'ensemble des métadonnées
+        de l'arborescence.
+
       body:
         application/zip:
       headers:

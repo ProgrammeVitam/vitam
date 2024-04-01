@@ -28,8 +28,11 @@ package fr.gouv.vitam.collect.internal.core.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.culture.archivesdefrance.seda.v2.UpdateOperationType;
+import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
+import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateStatus;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.collect.internal.core.common.ManifestContext;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
@@ -52,6 +55,7 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
 import net.javacrumbs.jsonunit.JsonAssert;
+import net.javacrumbs.jsonunit.core.Option;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,6 +72,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -99,6 +105,7 @@ public class MetadataServiceTest {
 
     @Mock private MetadataRepository metadataRepository;
     @Mock private ProjectRepository projectRepository;
+    @Mock private BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService;
 
     @InjectMocks private MetadataService metadataService;
 
@@ -253,19 +260,21 @@ public class MetadataServiceTest {
     @RunWithCustomExecutor
     public void testUpdateUnitsWithCsvMetadata() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0).getId());
-        AtomicReference<List<JsonNode>> requestReference = new AtomicReference<>();
+        AtomicReference<ArrayNode> requestReference = new AtomicReference<>();
 
         final List<JsonNode> unitsJson =
             JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(UNITS_WITH_GRAPH_PATH),
                 new TypeReference<>() {
                 });
 
-        when(metadataRepository.atomicBulkUpdate(any())).thenAnswer((e) -> {
-            final List<JsonNode> argument = e.getArgument(0);
-            requestReference.set(argument);
-            return new RequestResponseOK<>().addAllResults(List.of(JsonHandler.toJsonNode(
-                new RequestResponseOK<>().addResult(JsonHandler.createObjectNode().put("#status", "OK")))));
-        });
+        when(bulkAtomicUpdateMetadataService.bulkAtomicUpdateUnits(eq(transactionModel.getId()), any(), eq(true)))
+            .thenAnswer((e) -> {
+                final ArrayNode argument = e.getArgument(1);
+                requestReference.set(argument);
+                return IntStream.range(0, argument.size())
+                    .mapToObj(i -> new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.OK, "guid" + i, null))
+                    .collect(Collectors.toList());
+            });
 
         when(metadataRepository.selectUnits(any(SelectMultiQuery.class), any())).thenReturn(
             new ScrollSpliterator<>(mock(SelectMultiQuery.class),
@@ -277,7 +286,8 @@ public class MetadataServiceTest {
 
         final JsonNode expectedQueries = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(QUERIES_PATH));
 
-        JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(requestReference.get()), expectedQueries);
+        JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(requestReference.get()), expectedQueries,
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
     }
 
     @Test

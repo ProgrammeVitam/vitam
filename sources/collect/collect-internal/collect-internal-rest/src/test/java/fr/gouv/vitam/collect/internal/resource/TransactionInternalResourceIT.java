@@ -27,6 +27,8 @@
 package fr.gouv.vitam.collect.internal.resource;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateResult;
+import fr.gouv.vitam.collect.common.dto.BulkAtomicUpdateStatus;
 import fr.gouv.vitam.collect.common.enums.TransactionStatus;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
 import fr.gouv.vitam.collect.internal.core.common.ProjectModel;
@@ -50,6 +52,7 @@ import org.junit.Test;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Optional;
 
 import static fr.gouv.vitam.common.CommonMediaType.TEXT_CSV;
@@ -68,7 +71,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
         final String projectsResourcePath = "transaction/units/update/projects.json";
         final String transactionsResourcePath = "transaction/units/update/transactions.json";
         final String getUnitsResultsResourcePath = "transaction/units/update/get-units-results.json";
-        final String updateResultsResourcePath = "transaction/units/update/update-results.json";
 
         try {
             final ProjectModel[] projects =
@@ -79,9 +81,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     TransactionModel[].class);
             final JsonNode getUnitsResults = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(getUnitsResultsResourcePath), JsonNode.class);
 
-            final JsonNode updateResults =
-                JsonHandler.getFromString(PropertiesUtils.getResourceAsString(updateResultsResourcePath),
-                    JsonNode.class);
             final ProjectModel project = projects[0];
             final TransactionModel transaction = transactions[0];
             final SelectMultiQuery select = new SelectMultiQuery();
@@ -105,7 +104,11 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     throw new RuntimeException(e);
                 }
             }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit()));
-            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(RequestResponseOK.getFromJsonNode(updateResults));
+            when(bulkAtomicUpdateMetadataService.bulkAtomicUpdateUnits(eq(transaction.getId()), any(), eq(true)))
+                .thenReturn(List.of(
+                    new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.OK, "unitId", null),
+                    new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.OK, "unitId2", null)
+                ));
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
@@ -144,9 +147,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                 JsonHandler.getFromString(PropertiesUtils.getResourceAsString(transactionsResourcePath),
                     TransactionModel[].class);
             final JsonNode getUnitsResults = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(getUnitsResultsResourcePath), JsonNode.class);
-            final JsonNode updateResults =
-                JsonHandler.getFromString(PropertiesUtils.getResourceAsString(updateResultsResourcePath),
-                    JsonNode.class);
             final ProjectModel project = projects[0];
             final TransactionModel transaction = transactions[0];
             final SelectMultiQuery select = new SelectMultiQuery();
@@ -170,8 +170,11 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     throw new RuntimeException(e);
                 }
             }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit()));
-            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(RequestResponseOK.getFromJsonNode(updateResults));
-
+            when(bulkAtomicUpdateMetadataService.bulkAtomicUpdateUnits(eq(transaction.getId()), any(), eq(true)))
+                .thenReturn(List.of(
+                    new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.KO, "unitId", "Some update error"),
+                    new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.OK, "unitId2", null)
+                ));
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
                     .contentType(TEXT_CSV)
@@ -180,8 +183,8 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     .when()
                     .put("transactions/" + transaction.getId() + "/units/metadata/csv")
                     .then()
-                    .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
-                    .body("message", Matchers.equalTo("Error when trying to update units metadata"))
+                    .statusCode(BAD_REQUEST.getStatusCode())
+                    .body("message", Matchers.equalTo("Metadata update failed. Nb OK: 1, Nb KO: 1. Error messages:[Some update error]"))
                     .body("description", Matchers.equalTo(null));
             } catch (FileNotFoundException e) {
                 Assert.fail(String.format("File not found on %s: %s", metadataResourcePath, e.getLocalizedMessage()));
@@ -201,7 +204,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
         final String projectsResourcePath = "transaction/units/update/projects.json";
         final String transactionsResourcePath = "transaction/units/update/transactions.json";
         final String getUnitsResultsResourcePath = "transaction/units/update/get-units-results.json";
-        final String updateResultsResourcePath = "transaction/units/update/update-results.json";
 
         try {
             final ProjectModel[] projects =
@@ -212,9 +214,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     TransactionModel[].class);
             final JsonNode getUnitsResults = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(getUnitsResultsResourcePath), JsonNode.class);
 
-            final JsonNode updateResults =
-                JsonHandler.getFromString(PropertiesUtils.getResourceAsString(updateResultsResourcePath),
-                    JsonNode.class);
             final ProjectModel project = projects[0];
             final TransactionModel transaction = transactions[0];
             final SelectMultiQuery select = new SelectMultiQuery();
@@ -238,7 +237,11 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     throw new RuntimeException(e);
                 }
             }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit()));
-            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(RequestResponseOK.getFromJsonNode(updateResults));
+            when(bulkAtomicUpdateMetadataService.bulkAtomicUpdateUnits(eq(transaction.getId()), any(), eq(true)))
+                .thenReturn(List.of(
+                    new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.OK, "unitId", null),
+                    new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.OK, "unitId2", null)
+                ));
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
@@ -269,7 +272,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
         final String projectsResourcePath = "transaction/units/update/projects.json";
         final String transactionsResourcePath = "transaction/units/update/transactions.json";
         final String getUnitsResultsResourcePath = "transaction/units/update/get-units-results.json";
-        final String updateResultsResourcePath = "transaction/units/update/update-results.json";
 
         try {
             final ProjectModel[] projects =
@@ -280,9 +282,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     TransactionModel[].class);
             final JsonNode getUnitsResults = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(getUnitsResultsResourcePath), JsonNode.class);
 
-            final JsonNode updateResults =
-                JsonHandler.getFromString(PropertiesUtils.getResourceAsString(updateResultsResourcePath),
-                    JsonNode.class);
             final ProjectModel project = projects[0];
             final TransactionModel transaction = transactions[0];
             final SelectMultiQuery select = new SelectMultiQuery();
@@ -306,7 +305,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     throw new RuntimeException(e);
                 }
             }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit()));
-            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(RequestResponseOK.getFromJsonNode(updateResults));
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
@@ -330,73 +328,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
             Assert.fail("Fail while parsing resources: " + e.getLocalizedMessage());
         }
     }
-    @Test
-    public void shouldGetErrorWhenUpdateUnitsWithDuplicateFilesInCsv() throws CollectInternalException {
-        final String metadataResourcePath = "transaction/units/update/metadata-with-duplicates.csv";
-        final String projectsResourcePath = "transaction/units/update/projects.json";
-        final String transactionsResourcePath = "transaction/units/update/transactions.json";
-        final String getUnitsResultsResourcePath = "transaction/units/update/get-units-results.json";
-        final String updateResultsResourcePath = "transaction/units/update/update-results.json";
-
-        try {
-            final ProjectModel[] projects =
-                JsonHandler.getFromString(PropertiesUtils.getResourceAsString(projectsResourcePath),
-                    ProjectModel[].class);
-            final TransactionModel[] transactions =
-                JsonHandler.getFromString(PropertiesUtils.getResourceAsString(transactionsResourcePath),
-                    TransactionModel[].class);
-            final JsonNode getUnitsResults = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(getUnitsResultsResourcePath), JsonNode.class);
-
-            final JsonNode updateResults =
-                JsonHandler.getFromString(PropertiesUtils.getResourceAsString(updateResultsResourcePath),
-                    JsonNode.class);
-            final ProjectModel project = projects[0];
-            final TransactionModel transaction = transactions[0];
-            final SelectMultiQuery select = new SelectMultiQuery();
-            try {
-                select.addQueries(QueryHelper.eq(VitamFieldsHelper.initialOperation(), transaction.getId()));
-            } catch (InvalidCreateOperationException e) {
-                throw new RuntimeException(e);
-            }
-            select.addUsedProjection(VitamFieldsHelper.id(), "Title", VitamFieldsHelper.unitups(),
-                VitamFieldsHelper.allunitups());
-
-            when(transactionService.findTransaction(transaction.getId())).thenReturn(Optional.of(transaction));
-            when(transactionService.checkStatus(any(TransactionModel.class), eq(TransactionStatus.OPEN))).thenReturn(
-                true);
-            when(projectService.findProject(project.getId())).thenReturn(
-                Optional.of(CollectHelper.convertProjectModeltoProjectDto(project)));
-            when(metadataRepository.selectUnits(any(SelectMultiQuery.class), eq(transaction.getId()))).thenReturn(new ScrollSpliterator<>(select, selectMultiQuery -> {
-                try {
-                    return JsonHandler.getFromJsonNode(getUnitsResults, RequestResponseOK.class, JsonNode.class);
-                } catch (InvalidParseOperationException e) {
-                    throw new RuntimeException(e);
-                }
-            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit()));
-            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(RequestResponseOK.getFromJsonNode(updateResults));
-
-            try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
-                given()
-                    .contentType(TEXT_CSV)
-                    .header(GlobalDataRest.X_TENANT_ID, 0)
-                    .body(resourceAsStream.readAllBytes())
-                    .when()
-                    .put("transactions/" + transaction.getId() + "/units/metadata/csv")
-                    .then()
-                    .statusCode(INTERNAL_SERVER_ERROR.getStatusCode())
-                    .body("message", Matchers.containsString("Internal Server Error"))
-                    .body("description", Matchers.containsString("Duplicate key versement/pastis.json"));
-            } catch (FileNotFoundException e) {
-                Assert.fail(String.format("File not found on %s: %s", metadataResourcePath, e.getLocalizedMessage()));
-            } catch (IOException e) {
-                Assert.fail(String.format("IO exception on %s: %s", metadataResourcePath, e.getLocalizedMessage()));
-            }
-        } catch (FileNotFoundException e) {
-            Assert.fail("File not found: " + e.getLocalizedMessage());
-        } catch (InvalidParseOperationException e) {
-            Assert.fail("Fail while parsing resources: " + e.getLocalizedMessage());
-        }
-    }
 
     @Test
     public void shouldGetErrorWhenUpdateUnitsWithWrongFilesPathInCsv() throws CollectInternalException {
@@ -404,7 +335,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
         final String projectsResourcePath = "transaction/units/update/projects.json";
         final String transactionsResourcePath = "transaction/units/update/transactions.json";
         final String getUnitsResultsResourcePath = "transaction/units/update/get-units-results.json";
-        final String updateResultsResourcePath = "transaction/units/update/update-results.json";
 
         try {
             final ProjectModel[] projects =
@@ -415,9 +345,6 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     TransactionModel[].class);
             final JsonNode getUnitsResults = JsonHandler.getFromString(PropertiesUtils.getResourceAsString(getUnitsResultsResourcePath), JsonNode.class);
 
-            final JsonNode updateResults =
-                JsonHandler.getFromString(PropertiesUtils.getResourceAsString(updateResultsResourcePath),
-                    JsonNode.class);
             final ProjectModel project = projects[0];
             final TransactionModel transaction = transactions[0];
             final SelectMultiQuery select = new SelectMultiQuery();
@@ -441,7 +368,9 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     throw new RuntimeException(e);
                 }
             }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), VitamConfiguration.getElasticSearchScrollLimit()));
-            when(metadataRepository.atomicBulkUpdate(any())).thenReturn(RequestResponseOK.getFromJsonNode(updateResults));
+            when(bulkAtomicUpdateMetadataService.bulkAtomicUpdateUnits(eq(transaction.getId()), any(), eq(true)))
+                .thenReturn(List.of(
+                    new BulkAtomicUpdateResult(BulkAtomicUpdateStatus.KO, null, "No unit found with criteria")));
 
             try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(metadataResourcePath)) {
                 given()
@@ -452,7 +381,7 @@ public class TransactionInternalResourceIT extends CollectInternalResourceBaseIT
                     .put("transactions/" + transaction.getId() + "/units/metadata/csv")
                     .then()
                     .statusCode(BAD_REQUEST.getStatusCode())
-                    .body("message", Matchers.containsString("Cannot find unit with path no-dir"));
+                    .body("message", Matchers.containsString("Metadata update failed. Nb OK: 0, Nb KO: 1. Error messages:[No unit found with criteria]"));
             } catch (FileNotFoundException e) {
                 Assert.fail(String.format("File not found on %s: %s", metadataResourcePath, e.getLocalizedMessage()));
             } catch (IOException e) {

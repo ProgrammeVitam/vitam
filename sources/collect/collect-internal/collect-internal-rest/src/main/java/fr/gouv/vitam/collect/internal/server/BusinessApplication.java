@@ -34,6 +34,7 @@ import fr.gouv.vitam.collect.internal.core.configuration.CollectInternalConfigur
 import fr.gouv.vitam.collect.internal.core.repository.MetadataRepository;
 import fr.gouv.vitam.collect.internal.core.repository.ProjectRepository;
 import fr.gouv.vitam.collect.internal.core.repository.TransactionRepository;
+import fr.gouv.vitam.collect.internal.core.service.BulkAtomicUpdateMetadataService;
 import fr.gouv.vitam.collect.internal.core.service.CollectService;
 import fr.gouv.vitam.collect.internal.core.service.FluxService;
 import fr.gouv.vitam.collect.internal.core.service.MetadataService;
@@ -105,7 +106,11 @@ public class BusinessApplication extends ConfigurationApplication {
             MetadataRepository metadataRepository = new MetadataRepository(metadataCollectClientFactory);
 
             // Services
-            MetadataService metadataService = new MetadataService(metadataRepository, projectRepository);
+            BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService =
+                new BulkAtomicUpdateMetadataService(metadataRepository, metadataCollectClientFactory,
+                    configuration);
+            MetadataService metadataService = new MetadataService(metadataRepository, projectRepository,
+                bulkAtomicUpdateMetadataService);
             ProjectService projectService = new ProjectService(projectRepository);
             TransactionService transactionService =
                 new TransactionService(transactionRepository, projectService, metadataRepository,
@@ -116,7 +121,6 @@ public class BusinessApplication extends ConfigurationApplication {
                     FormatIdentifierFactory.getInstance());
             FluxService fluxService = new FluxService(collectService, metadataService, projectRepository,
                 metadataRepository);
-
 
             // Resources
             final TransactionInternalResource transactionInternalResource =
