@@ -72,7 +72,7 @@ import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
 import fr.gouv.vitam.metadata.core.metrics.CommonMetadataMetrics;
 import fr.gouv.vitam.metadata.core.model.MetadataResult;
-import fr.gouv.vitam.metadata.core.model.UpdateUnit;
+import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.rules.MetadataRuleService;
 import fr.gouv.vitam.metadata.core.validation.MetadataValidationException;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
@@ -231,10 +231,6 @@ public class MetadataResource extends ApplicationStatusResource {
                     .setDescription(e.getMessage()))
                 .build();
         }
-        RequestResponseOK<?> responseOK = new RequestResponseOK<>(updateQuery);
-        responseOK.setHits(1, 0, 1)
-            .setHttpCode(OK.getStatusCode());
-
         return Response.status(OK)
             .entity(result)
             .build();

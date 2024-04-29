@@ -301,7 +301,7 @@ public class TransactionInternalResource {
     @POST
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     public Response generateSip(@PathParam("transactionId") String transactionId) throws CollectInternalException {
-        TransactionModel transaction = null;
+        TransactionModel transaction;
         InputStream sipInputStream = null;
         try {
             SanityChecker.checkParameter(transactionId);
@@ -472,7 +472,6 @@ public class TransactionInternalResource {
      * @param queryDsl as JsonNode
      * @return an archive unit result list with inherited rules
      */
-
     @GET
     @Path("/{transactionId}/unitsWithInheritedRules")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -498,7 +497,7 @@ public class TransactionInternalResource {
             LOGGER.error(ve);
             status = Response.Status.INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(new VitamError(status.name()).setHttpCode(status.getStatusCode())
+                .entity(new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode())
                     .setMessage(ve.getMessage())
                     .setDescription(status.getReasonPhrase()))
                 .build();

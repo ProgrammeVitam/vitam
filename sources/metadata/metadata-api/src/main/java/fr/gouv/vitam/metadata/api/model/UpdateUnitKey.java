@@ -24,45 +24,13 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.metadata.api.model;
 
-package fr.gouv.vitam.worker.core.utils;
-
-import java.util.Iterator;
-
-public class CountingIterator<T> implements Iterator<CountingIterator.EntryWithIndex<T>> {
-
-    private final Iterator<T> innerIterator;
-    private int entryIndex = 0;
-
-    public CountingIterator(Iterator<T> innerIterator) {
-        this.innerIterator = innerIterator;
-    }
-
-    @Override
-    public boolean hasNext() {
-        return this.innerIterator.hasNext();
-    }
-
-    @Override
-    public EntryWithIndex<T> next() {
-        return new EntryWithIndex<>(this.innerIterator.next(), entryIndex++);
-    }
-
-    public static class EntryWithIndex<T> {
-        private final T value;
-        private final int index;
-
-        public EntryWithIndex(T value, int index) {
-            this.value = value;
-            this.index = index;
-        }
-
-        public T getValue() {
-            return value;
-        }
-
-        public int getIndex() {
-            return index;
-        }
-    }
+public enum UpdateUnitKey {
+    UNIT_METADATA_UPDATE_CHECK_DT,
+    UNIT_METADATA_UPDATE,
+    CHECK_UNIT_SCHEMA,
+    UNIT_UNKNOWN_OR_FORBIDDEN,
+    UNIT_METADATA_NO_NEW_DATA,
+    UNIT_METADATA_NO_CHANGES
 }

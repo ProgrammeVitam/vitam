@@ -33,7 +33,12 @@ import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
+import fr.gouv.vitam.common.database.builder.query.InQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.UnitType;
@@ -51,6 +56,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -63,6 +69,8 @@ import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.initialOperation;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
 
 public class MetadataHelper {
@@ -180,6 +188,20 @@ public class MetadataHelper {
                 .reduce(false, Boolean::logicalOr);
         }
         return false;
+    }
+
+    public static void applyTransactionToQuery(String transactionId, RequestMultiple select)
+        throws InvalidCreateOperationException {
+        InQuery inQuery = QueryHelper.in(initialOperation(), transactionId);
+        final List<Query> queries = select.getQueries();
+        if (queries.isEmpty()) {
+            queries.add(inQuery);
+        } else {
+            List<Query> queryList = new ArrayList<>(queries);
+            Query lastQuery = queryList.get(queryList.size() - 1);
+            Query mergedQuery = and().add(lastQuery, inQuery);
+            queries.set(queryList.size() - 1, mergedQuery);
+        }
     }
 
 }

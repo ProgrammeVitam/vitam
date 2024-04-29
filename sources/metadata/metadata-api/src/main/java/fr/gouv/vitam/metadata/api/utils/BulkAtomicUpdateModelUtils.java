@@ -24,43 +24,33 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.utils;
+package fr.gouv.vitam.metadata.api.utils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Consumer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
-public class BufferedConsumer<T> implements AutoCloseable {
+public final class BulkAtomicUpdateModelUtils {
 
-    private final Consumer<List<T>> bufferConsumer;
-    private final List<T> entryBuffer;
-    private final int bufferSize;
+    public static final String QUERIES = "queries";
+    public static final String THRESHOLD = "threshold";
 
-    public BufferedConsumer(int bufferSize, Consumer<List<T>> bufferConsumer) {
-        this.entryBuffer = new ArrayList<>();
-        this.bufferSize = bufferSize;
-        this.bufferConsumer = bufferConsumer;
-    }
-
-    public void appendEntry(T entry) {
-
-        entryBuffer.add(entry);
-
-        if (entryBuffer.size() >= bufferSize) {
-            flush();
+    public static Long getQueryThreshold(JsonNode query) {
+        if (!query.has(BulkAtomicUpdateModelUtils.THRESHOLD)) {
+            return null;
         }
+
+        return query.get(BulkAtomicUpdateModelUtils.THRESHOLD).asLong();
     }
 
-    public void flush() {
-        if (!this.entryBuffer.isEmpty()) {
-
-            this.bufferConsumer.accept(entryBuffer);
-            this.entryBuffer.clear();
-        }
+    public static ArrayNode getQueries(JsonNode queryNode) {
+        return (ArrayNode) queryNode.get(BulkAtomicUpdateModelUtils.QUERIES);
     }
 
-    @Override
-    public void close() {
-        flush();
+    public static long queryCount(JsonNode queryNode) {
+        return getQueries(queryNode).size();
+    }
+
+    private BulkAtomicUpdateModelUtils() {
+        // Empty constructor
     }
 }

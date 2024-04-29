@@ -55,6 +55,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
+import fr.gouv.vitam.metadata.common.bulkatomicupdate.BulkUpdateUnitReportKey;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.DefaultWorkerParameters;
 import fr.gouv.vitam.processing.common.parameter.WorkerParametersFactory;
@@ -507,6 +508,7 @@ public class PrepareBulkAtomicUpdateTest {
         DefaultWorkerParameters params = WorkerParametersFactory.newWorkerParameters();
         String processId = GUIDFactory.newGUID().getId();
         params.setProcessId(processId);
+        VitamThreadUtils.getVitamSession().setRequestId(processId);
 
         HandlerIO handlerIO = mock(HandlerIO.class);
 

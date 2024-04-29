@@ -54,7 +54,7 @@ import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.plugin.ScrollSpliteratorHelper;
 import fr.gouv.vitam.worker.core.plugin.ingestcleanup.report.CleanupReportManager;
-import fr.gouv.vitam.worker.core.utils.BufferedConsumer;
+import fr.gouv.vitam.common.utils.BufferedConsumer;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
@@ -102,7 +102,7 @@ public class IngestCleanupEligibilityService {
                 ids -> checkChildUnitsFromOtherIngests(ingestOperationId, cleanupReportManager, ids))) {
 
                 scrollRequest.forEachRemaining(
-                    entry -> bufferedConsumer.appendEntry(entry.get(VitamFieldsHelper.id()).asText()));
+                    entry -> bufferedConsumer.accept(entry.get(VitamFieldsHelper.id()).asText()));
             }
 
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {

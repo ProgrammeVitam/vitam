@@ -43,7 +43,7 @@ import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -58,10 +58,10 @@ import static fr.gouv.vitam.common.database.builder.query.action.UpdateActionHel
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.DIFF;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.KEY;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.MESSAGE;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.STATUS;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnit.DIFF;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnit.KEY;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnit.MESSAGE;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnit.STATUS;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMessage;
 
 public class PreservationInsertionAuMetadata extends ActionHandler {

@@ -23,6 +23,9 @@ adminBasicAuth:
 statusTransactionThreadFrequency: {{ vitam.collect_internal.statusTransactionThreadFrequency | default(5) }}
 transactionStatusThreadPoolSize: {{ vitam.collect_internal.transactionStatusThreadPoolSize | default(4) }}
 
+bulkAtomicUpdateThreadPoolSize: {{ vitam.collect_internal.bulkAtomicUpdateThreadPoolSize | default(8) }}
+bulkAtomicUpdateThreadPoolQueueSize: {{ vitam.collect_internal.bulkAtomicUpdateThreadPoolQueueSize | default(16) }}
+bulkAtomicUpdateBatchSize: {{ vitam.collect_internal.bulkAtomicUpdateBatchSize | default(100) }}
 
 purgeTransactionThreadFrequency: 60
 purgeTransactionThreadPoolSize: 3

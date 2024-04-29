@@ -86,7 +86,8 @@ public class ProjectInternalResource {
 
     private final MetadataService metadataService;
 
-    public ProjectInternalResource(ProjectService projectService, TransactionService transactionService,
+    public ProjectInternalResource(ProjectService projectService,
+        TransactionService transactionService,
         MetadataService metadataService) {
         this.projectService = projectService;
         this.transactionService = transactionService;

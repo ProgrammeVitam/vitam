@@ -68,7 +68,7 @@ import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.model.TransferReplyContext;
 import fr.gouv.vitam.worker.core.plugin.transfer.reply.utils.SortedLevelJsonLineWriter;
-import fr.gouv.vitam.worker.core.utils.BufferedConsumer;
+import fr.gouv.vitam.common.utils.BufferedConsumer;
 import org.apache.commons.collections4.SetUtils;
 
 import java.io.File;
@@ -166,7 +166,7 @@ public class TransferReplyUnitPreparationHandler extends ActionHandler {
                     .collect(Collectors.toSet());
                 Set<String> notFoundUnitIds = SetUtils.difference(unitIds, foundUnitIds);
                 for (String notFoundUnitId : notFoundUnitIds) {
-                    reportAppender.appendEntry(new TransferReplyUnitReportEntry(notFoundUnitId,
+                    reportAppender.accept(new TransferReplyUnitReportEntry(notFoundUnitId,
                         TransferReplyUnitStatus.ALREADY_DELETED.name()));
                 }
 

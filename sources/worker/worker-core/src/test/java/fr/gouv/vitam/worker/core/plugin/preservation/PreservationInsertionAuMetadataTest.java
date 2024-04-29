@@ -40,8 +40,8 @@ import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.model.UpdateUnit;
-import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.api.model.UpdateUnit;
+import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
@@ -213,7 +213,7 @@ public class PreservationInsertionAuMetadataTest {
                 "UNIT_ID",
                 StatusCode.FATAL,
                 UpdateUnitKey.UNIT_METADATA_UPDATE,
-                "Extracted  Metada updated successfully.",
+                "Extracted metadata updated successfully.",
                 "UNKNOWN diff"
             )
         );

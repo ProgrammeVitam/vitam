@@ -24,14 +24,37 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.plugin.bulkatomicupdate;
+package fr.gouv.vitam.metadata.common.bulkatomicupdate;
 
-public class BulkAtomicUpdateModelUtils {
+import com.fasterxml.jackson.databind.JsonNode;
 
-    public static final String QUERIES = "queries";
-    public static final String THRESHOLD = "threshold";
+public class BulkSelectQueryResultFailure {
+    private final int queryIndex;
+    private final JsonNode query;
+    private final BulkUpdateUnitReportKey bulkUpdateUnitReportKey;
+    private final String message;
 
-    private BulkAtomicUpdateModelUtils() {
-        // Empty constructor
+    public BulkSelectQueryResultFailure(int queryIndex, JsonNode query, BulkUpdateUnitReportKey bulkUpdateUnitReportKey,
+        String message) {
+        this.queryIndex = queryIndex;
+        this.query = query;
+        this.bulkUpdateUnitReportKey = bulkUpdateUnitReportKey;
+        this.message = message;
+    }
+
+    public int getQueryIndex() {
+        return queryIndex;
+    }
+
+    public JsonNode getQuery() {
+        return query;
+    }
+
+    public BulkUpdateUnitReportKey getBulkUpdateUnitReportKey() {
+        return bulkUpdateUnitReportKey;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }
