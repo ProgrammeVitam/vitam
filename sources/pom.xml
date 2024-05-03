@@ -136,6 +136,9 @@
         <maven-scm-provider-jgit.version>1.11.2</maven-scm-provider-jgit.version>
         <maven-jar-plugin.version>3.2.0</maven-jar-plugin.version>
         <maven-scm-plugin.version>1.11.2</maven-scm-plugin.version>
+        <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
+        <spotless-maven-plugin.prettier.version>3.2.4</spotless-maven-plugin.prettier.version>
+        <spotless-maven-plugin.prettier-plugin-java.version>2.6.0</spotless-maven-plugin.prettier-plugin-java.version>
 
         <!-- tests -->
         <maven.surefire.version>3.0.0</maven.surefire.version>
@@ -983,6 +986,42 @@
                                 <package>fr.gouv.vitam.ingest.external.rest</package>
                             </resourcePackages>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless-maven-plugin.version}</version>
+                <configuration>
+                    <java>
+                        <includes>
+                            <include>src/main/java/**/*.java</include>
+                            <include>src/test/java/**/*.java</include>
+                        </includes>
+                        <prettier>
+                            <devDependencies>
+                                <prettier>${spotless-maven-plugin.prettier.version}</prettier>
+                                <prettier-plugin-java>${spotless-maven-plugin.prettier-plugin-java.version}</prettier-plugin-java>
+                            </devDependencies>
+                            <config>
+                                <printWidth>120</printWidth>
+                                <tabWidth>4</tabWidth>
+                                <parser>java</parser>
+                                <plugins>prettier-plugin-java</plugins>
+                            </config>
+                        </prettier>
+                        <importOrder>
+                            <order>,javax|java,\#</order>
+                        </importOrder>
+                        <removeUnusedImports/>
+                    </java>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
