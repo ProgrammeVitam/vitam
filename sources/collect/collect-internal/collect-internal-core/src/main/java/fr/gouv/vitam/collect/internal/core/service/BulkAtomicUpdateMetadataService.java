@@ -102,19 +102,6 @@ public class BulkAtomicUpdateMetadataService {
         }
     }
 
-    public void checkThreshold(JsonNode updateQueriesJson)
-        throws CollectInternalInvalidRequestException {
-        Long queryThreshold = BulkAtomicUpdateModelUtils.getQueryThreshold(updateQueriesJson);
-        long total = BulkAtomicUpdateModelUtils.queryCount(updateQueriesJson);
-        long threshold = queryThreshold != null ? queryThreshold : VitamConfiguration.getQueriesThreshold();
-
-        if (total > threshold) {
-            LOGGER.error("Too many update queries. Platform threshold={}, queryThreshold={}, actual={}",
-                VitamConfiguration.getQueriesThreshold(), queryThreshold, total);
-            throw new CollectInternalInvalidRequestException("Too many update queries. Threshold exceeded.");
-        }
-    }
-
     private List<BulkSelectQueryResultOK> selectUnitIdsPerUpdateQueries(
         String transactionId,
         BulkAtomicUpdateReportAppender reportAppender,
