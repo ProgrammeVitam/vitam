@@ -24,13 +24,58 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.metadata.core.model;
+package fr.gouv.vitam.collect.internal.core.common;
 
-public enum UpdateUnitKey {
-    UNIT_METADATA_UPDATE_CHECK_DT,
-    UNIT_METADATA_UPDATE,
-    CHECK_UNIT_SCHEMA,
-    UNIT_UNKNOWN_OR_FORBIDDEN,
-    UNIT_METADATA_NO_NEW_DATA,
-    UNIT_METADATA_NO_CHANGES
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+public class CollectJsonMetadataLine {
+
+    public static final TypeReference<CollectJsonMetadataLine> TYPE_REFERENCE =
+        new TypeReference<>() {
+        };
+
+    public static final String FILE_FIELD = "File";
+    public static final String SELECTOR_FIELD = "Selector";
+    public static final String UNIT_CONTENT_FIELD = "UnitContent";
+
+    @JsonProperty(FILE_FIELD)
+    private String file;
+    @JsonProperty(SELECTOR_FIELD)
+    private CollectJsonMetadataSelector selector;
+    @JsonProperty(UNIT_CONTENT_FIELD)
+    private ObjectNode unitContent;
+
+    public CollectJsonMetadataLine() {
+        // Empty constructor for serialization
+    }
+
+    public String getFile() {
+        return file;
+    }
+
+    public CollectJsonMetadataLine setFile(String file) {
+        this.file = file;
+        return this;
+    }
+
+    public CollectJsonMetadataSelector getSelector() {
+        return selector;
+    }
+
+    public CollectJsonMetadataLine setSelector(
+        CollectJsonMetadataSelector selector) {
+        this.selector = selector;
+        return this;
+    }
+
+    public ObjectNode getUnitContent() {
+        return unitContent;
+    }
+
+    public CollectJsonMetadataLine setUnitContent(ObjectNode unitContent) {
+        this.unitContent = unitContent;
+        return this;
+    }
 }

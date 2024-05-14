@@ -81,8 +81,8 @@ import static fr.gouv.vitam.common.model.IngestWorkflowConstants.ARCHIVE_UNIT_FO
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.DIFF;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnit.ID;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnit.DIFF;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnit.ID;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 

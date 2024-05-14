@@ -37,6 +37,8 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
+import fr.gouv.vitam.common.iterables.CountingIterator;
+import fr.gouv.vitam.common.iterables.CountingIterator.EntryWithIndex;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -48,6 +50,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.metadata.api.exception.MetaDataClientServerException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
+import fr.gouv.vitam.metadata.api.utils.BulkAtomicUpdateModelUtils;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -56,8 +59,6 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.distribution.JsonLineWriter;
 import fr.gouv.vitam.worker.core.exception.ProcessingStatusException;
 import fr.gouv.vitam.worker.core.handler.ActionHandler;
-import fr.gouv.vitam.worker.core.utils.CountingIterator;
-import fr.gouv.vitam.worker.core.utils.CountingIterator.EntryWithIndex;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -70,7 +71,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Prepare execute execute each query in query.json.
+ * Prepares the execution of atomic update queries.
  * Queries are executed in bulks, each bulk is run concurrently is a thread pool.
  * Queries are updated with access contract restrictions.
  * Query projection is set to "_id" field only.
@@ -117,7 +118,7 @@ public class PrepareBulkAtomicUpdate extends ActionHandler {
      *
      * @param metaDataClientFactory metadata client factory
      * @param batchReportClientFactory batch report client factory
-     * @param internalActionKeysRetriever
+     * @param internalActionKeysRetriever DSL query field name validator
      * @param batchSize batch size for processing
      * @param threadPoolSize max threads that can be run in concurrently is thread pool
      * @param threadPoolQueueSize number of jobs that can be queued before blocking (limits workload memory usage)

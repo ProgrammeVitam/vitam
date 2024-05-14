@@ -3852,6 +3852,12 @@
     "cardinality": "one"
   },
   {
+    "path": "_uploadPath",
+    "type": "keyword",
+    "indexed": true,
+    "cardinality": "one"
+  },
+  {
     "path": "_ops",
     "type": "keyword",
     "indexed": true,

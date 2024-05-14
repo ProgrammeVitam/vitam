@@ -56,7 +56,7 @@ import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisRes
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
-import fr.gouv.vitam.worker.core.utils.BufferedConsumer;
+import fr.gouv.vitam.common.utils.BufferedConsumer;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -179,7 +179,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
                                 status = EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT;
                             }
 
-                            reportAppender.appendEntry(new EliminationActionUnitReportEntry(unitId,
+                            reportAppender.accept(new EliminationActionUnitReportEntry(unitId,
                                 getField(unit, VitamFieldsHelper.originatingAgency()),
                                 getField(unit, VitamFieldsHelper.initialOperation()),
                                 getField(unit, VitamFieldsHelper.object()),

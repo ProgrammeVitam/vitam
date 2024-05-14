@@ -31,9 +31,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Strings;
 import fr.gouv.culture.archivesdefrance.seda.v2.LevelType;
 import fr.gouv.vitam.collect.common.dto.MetadataUnitUp;
+import fr.gouv.vitam.collect.internal.core.common.CollectArchiveUnitModel;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
+import fr.gouv.vitam.common.database.builder.query.InQuery;
+import fr.gouv.vitam.common.database.builder.query.Query;
+import fr.gouv.vitam.common.database.builder.query.QueryHelper;
+import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
+import fr.gouv.vitam.common.database.builder.request.multiple.RequestMultiple;
 import fr.gouv.vitam.common.format.identification.model.FormatIdentifierResponse;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.UnitType;
@@ -51,6 +56,7 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -63,6 +69,8 @@ import java.util.Spliterators;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
+import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.initialOperation;
 import static fr.gouv.vitam.common.model.IngestWorkflowConstants.CONTENT_FOLDER;
 
 public class MetadataHelper {
@@ -73,14 +81,15 @@ public class MetadataHelper {
     private MetadataHelper() {
     }
 
-    public static ArchiveUnitModel createUnit(String transactionId, LevelType descriptionLevel, String title,
-        String unitParent) {
+    public static ArchiveUnitModel createUnit(String transactionId, LevelType descriptionLevel, String path,
+        String title, String unitParent) {
         String id = GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()).getId();
-        ArchiveUnitModel unitInternalModel = new ArchiveUnitModel();
+        CollectArchiveUnitModel unitInternalModel = new CollectArchiveUnitModel();
 
         unitInternalModel.setId(id);
         unitInternalModel.setOpi(transactionId);
         unitInternalModel.setUnitType(UnitType.INGEST.name());
+        unitInternalModel.setUploadPath(path);
 
         DescriptiveMetadataModel description = new DescriptiveMetadataModel();
         description.setTitle(title);
@@ -138,22 +147,15 @@ public class MetadataHelper {
     }
 
     public static Set<String> findUnitParent(ObjectNode unit, @Nonnull List<MetadataUnitUp> unitUps,
-        Map<String, String> unitIds) {
+        Map<String, String> attachmentUnitsBySystemId) {
         Set<String> attachmentUnits = new HashSet<>();
         for (MetadataUnitUp metadataUnitUp : unitUps) {
             if (metadataMatches(unit, metadataUnitUp.getMetadataKey(), metadataUnitUp.getMetadataValue())) {
-                final String unitTitle = String.format("%s_%s", DYNAMIC_ATTACHEMENT, metadataUnitUp.getUnitUp());
-                String unitUpId = unitIds.get(unitTitle);
+                String unitUpId = attachmentUnitsBySystemId.get(metadataUnitUp.getUnitUp());
                 attachmentUnits.add(unitUpId);
             }
         }
-        if (attachmentUnits.isEmpty()) {
-            return (unit.get(VitamFieldsHelper.unitups()) != null) ?
-                Collections.singleton(unit.get(VitamFieldsHelper.unitups()).asText()) :
-                Collections.emptySet();
-        } else {
-            return attachmentUnits;
-        }
+        return attachmentUnits;
     }
 
     private static boolean metadataMatches(JsonNode objectNode, String path, String value) {
@@ -180,6 +182,20 @@ public class MetadataHelper {
                 .reduce(false, Boolean::logicalOr);
         }
         return false;
+    }
+
+    public static void applyTransactionToQuery(String transactionId, RequestMultiple select)
+        throws InvalidCreateOperationException {
+        InQuery inQuery = QueryHelper.in(initialOperation(), transactionId);
+        final List<Query> queries = select.getQueries();
+        if (queries.isEmpty()) {
+            queries.add(inQuery);
+        } else {
+            List<Query> queryList = new ArrayList<>(queries);
+            Query lastQuery = queryList.get(queryList.size() - 1);
+            Query mergedQuery = and().add(lastQuery, inQuery);
+            queries.set(queryList.size() - 1, mergedQuery);
+        }
     }
 
 }

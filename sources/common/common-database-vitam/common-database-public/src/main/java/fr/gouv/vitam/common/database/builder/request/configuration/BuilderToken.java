@@ -760,6 +760,11 @@ public abstract class BuilderToken {
         APPROXIMATE_CREATION_DATE("approximate_creation_date"),
         APPROXIMATE_UPDATE_DATE("approximate_update_date"),
 
+        /**
+         * Initial upload path (Collect-only)
+         */
+        UPLOAD_PATH("uploadPath"),
+
         OPERATION_TRANSFERS("opts");
 
 

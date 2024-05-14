@@ -841,7 +841,7 @@ public class ArchiveUnitListener {
 
     private void storeArchiveUnit(JsonLineDataBase unitsDatabase, String elementGuid, ArchiveUnitRoot archiveUnitRoot) {
         JsonNode jsonNode =
-            VitamObjectMapper.buildSerializationObjectMapper().convertValue(archiveUnitRoot, JsonNode.class);
+            VitamObjectMapper.getSerializationObjectMapper().convertValue(archiveUnitRoot, JsonNode.class);
         unitsDatabase.write(elementGuid, jsonNode);
     }
 

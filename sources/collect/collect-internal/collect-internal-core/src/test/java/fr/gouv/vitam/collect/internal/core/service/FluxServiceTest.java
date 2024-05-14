@@ -27,6 +27,7 @@
 
 package fr.gouv.vitam.collect.internal.core.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.collect.common.exception.CollectInternalException;
@@ -47,6 +48,7 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.common.tmp.TempFolderRule;
+import fr.gouv.vitam.worker.core.distribution.JsonLineGenericIterator;
 import net.javacrumbs.jsonunit.JsonAssert;
 import net.javacrumbs.jsonunit.core.Option;
 import org.junit.Assert;
@@ -59,6 +61,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -78,6 +81,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -94,7 +98,11 @@ public class FluxServiceTest {
 
     private static final String TRANSACTION_ZIP_PATH = "streamZip/transaction.zip";
 
-    private static final String TRANSACTION2_ZIP_PATH = "streamZip/transaction2.zip";
+    private static final String TRANSACTION_ZIP_WITH_METADATA_CSV_PATH
+        = "streamZip/transaction_with_metadata_csv.zip";
+
+    private static final String TRANSACTION_WITHOUT_FILE_COLUMN_ZIP_PATH =
+        "streamZip/transaction_without_file_column.zip";
 
     @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -158,7 +166,7 @@ public class FluxServiceTest {
 
 
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
-            fluxService.processStream(resourceAsStream, transactionModel);
+            fluxService.processStream(resourceAsStream, PROJECT_ID, TRANSACTION_ID);
         }
 
 
@@ -181,33 +189,40 @@ public class FluxServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void processStream_with_metadata_update() throws Exception {
+    public void processStream_with_metadata_csv_update() throws Exception {
         when(projectRepository.findProjectById(anyString())).thenReturn(Optional.of(projectModel));
-
-        final AtomicReference<File> fileReference = new AtomicReference<>();
-        when(collectService.pushStreamToWorkspace(any(), any(InputStream.class), eq(METADATA_CSV_FILE))).thenAnswer(
-            (e) -> {
-                final InputStream is = e.getArgument(1);
-                final File file = tempFolder.newFile(METADATA_CSV_FILE);
-                Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                fileReference.set(file);
-                return "";
-            });
-
-        when(collectService.getInputStreamFromWorkspace(any(), eq(METADATA_CSV_FILE))).thenAnswer(
-            (e) -> new FileInputStream(fileReference.get()));
 
         when(metadataService.prepareAttachmentUnits(any(), anyString())).thenReturn(new HashMap<>());
 
-        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION2_ZIP_PATH)) {
-            fluxService.processStream(resourceAsStream, transactionModel);
+        AtomicReference<byte[]> transformedMetadataFile = new AtomicReference<>();
+        doAnswer(args -> {
+            InputStream is = args.getArgument(1);
+            transformedMetadataFile.set(is.readAllBytes());
+            return null;
+        })
+            .when(metadataService)
+            .updateUnitsWithJsonlMetadataFile(eq("TRANSACTION_ID"), any());
+
+        try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
+            TRANSACTION_ZIP_WITH_METADATA_CSV_PATH)) {
+            fluxService.processStream(resourceAsStream, PROJECT_ID, TRANSACTION_ID);
         }
 
-        verify(metadataService).updateUnitsWithMetadataFile(eq("TRANSACTION_ID"), any());
-    }
+        JsonNode transformedMetadataFileLines =
+            JsonHandler.toJsonNode(
+                new JsonLineGenericIterator<JsonNode>(new ByteArrayInputStream(transformedMetadataFile.get()),
+                    new TypeReference<>() {
+                    }).stream().toArray());
 
-    private static final String TRANSACTION_WITHOUT_FILE_COLUMN_ZIP_PATH =
-        "streamZip/transaction_without_file_column.zip";
+        JsonNode expectedTransformedMetadataFileLines =
+            JsonHandler.toJsonNode(new JsonLineGenericIterator<JsonNode>(
+                PropertiesUtils.getResourceAsStream("streamZip/expected_transformed_metadata_from_csv.jsonl"),
+                new TypeReference<>() {
+                }).stream().toArray());
+
+        JsonAssert.assertJsonEquals(expectedTransformedMetadataFileLines, transformedMetadataFileLines,
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+    }
 
     @Test
     @RunWithCustomExecutor
@@ -231,7 +246,7 @@ public class FluxServiceTest {
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(
             TRANSACTION_WITHOUT_FILE_COLUMN_ZIP_PATH)) {
             CollectInternalException exception = Assert.assertThrows(CollectInternalException.class,
-                () -> fluxService.processStream(resourceAsStream, transactionModel));
+                () -> fluxService.processStream(resourceAsStream, PROJECT_ID, TRANSACTION_ID));
             Assert.assertEquals("Mapping for File not found, expected one of [Content.DescriptionLevel, Content.Title]",
                 exception.getMessage());
         }
@@ -273,7 +288,7 @@ public class FluxServiceTest {
         when(metadataService.prepareAttachmentUnits(any(), anyString())).thenReturn(new HashMap<>());
 
         try (final InputStream resourceAsStream = PropertiesUtils.getResourceAsStream(TRANSACTION_ZIP_PATH)) {
-            fluxService.processStream(resourceAsStream, transaction);
+            fluxService.processStream(resourceAsStream, transaction.getProjectId(), transaction.getId());
         }
 
         final JsonNode expectedUnits = JsonHandler.getFromFile(

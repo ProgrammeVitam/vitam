@@ -2,6 +2,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Root",
+    "#uploadPath": "Seine-Saint-Denis/Tree/Root",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugwbqaaaaq",
     "#tenant": 0,
     "#unitups": [
@@ -25,6 +26,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "A",
+    "#uploadPath": "Seine-Saint-Denis/Tree/Root/A",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugwciaaaaq",
     "#tenant": 0,
     "#unitups": [
@@ -49,6 +51,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "B",
+    "#uploadPath": "Seine-Saint-Denis/Tree/Root/B",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugwjyaaaaq",
     "#tenant": 0,
     "#unitups": [
@@ -73,6 +76,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "index",
+    "#uploadPath": "Essonne/index",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugu2qaaaaq",
     "#tenant": 0,
     "#object": "aebaaaaaaaeaaaabahb3aamgxsugu5iaaaaq",
@@ -96,6 +100,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "index",
+    "#uploadPath": "Hauts-de-Seine/index",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugvkaaaaaq",
     "#tenant": 0,
     "#object": "aebaaaaaaaeaaaabahb3aamgxsugvmaaaaaq",
@@ -119,6 +124,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "index",
+    "#uploadPath": "Paris/index",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugv2iaaaaq",
     "#tenant": 0,
     "#object": "aebaaaaaaaeaaaabahb3aamgxsugv5qaaaaq",
@@ -142,6 +148,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Tree",
+    "#uploadPath": "Seine-Saint-Denis/Tree",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugwayaaaaq",
     "#tenant": 0,
     "#unitups": [
@@ -164,6 +171,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "index",
+    "#uploadPath": "Seine-Saint-Denis/index",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugwoiaaaaq",
     "#tenant": 0,
     "#object": "aebaaaaaaaeaaaabahb3aamgxsugwriaaaaq",
@@ -187,6 +195,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "index",
+    "#uploadPath": "Seine-et-Marne/index",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugw6qaaaaq",
     "#tenant": 0,
     "#object": "aebaaaaaaaeaaaabahb3aamgxsugxbqaaaaq",
@@ -210,6 +219,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "index",
+    "#uploadPath": "Val-de-Marne/index",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugyeqaaaaq",
     "#tenant": 0,
     "#object": "aebaaaaaaaeaaaabahb3aamgxsugygyaaaaq",
@@ -233,6 +243,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "index",
+    "#uploadPath": "Yvelines/index",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugyuqaaaaq",
     "#tenant": 0,
     "#object": "aebaaaaaaaeaaaabahb3aamgxsugyxiaaaaq",
@@ -256,6 +267,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "b.txt",
+    "#uploadPath": "Val-d_Oise/Tree/Root/B/b.txt",
     "Description": "A",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugxoiaaaaq",
     "#tenant": 0,
@@ -283,6 +295,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Root",
+    "#uploadPath": "Yvelines/Tree/Root",
     "Description": "racine",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugykqaaaaq",
     "#tenant": 0,
@@ -307,6 +320,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Seine-Saint-Denis",
+    "#uploadPath": "Seine-Saint-Denis",
     "Departement": [
       "93"
     ],
@@ -331,6 +345,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Seine-et-Marne",
+    "#uploadPath": "Seine-et-Marne",
     "Departement": [
       "77"
     ],
@@ -355,6 +370,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Val-d'Oise",
+    "#uploadPath": "Val-d_Oise",
     "Departement": [
       "95"
     ],
@@ -421,6 +437,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "a.txt",
+    "#uploadPath": "Seine-Saint-Denis/Tree/Root/A/a.txt",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugwdaaaaaq",
     "#tenant": 0,
     "#object": "aebaaaaaaaeaaaabahb3aamgxsugwhyaaaaq",
@@ -447,6 +464,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "b.txt",
+    "#uploadPath": "Seine-Saint-Denis/Tree/Root/B/b.txt",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugwkqaaaaq",
     "#tenant": 0,
     "#object": "aebaaaaaaaeaaaabahb3aamgxsugwmyaaaaq",
@@ -473,6 +491,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "a.txt",
+    "#uploadPath": "Val-d_Oise/Tree/Root/A/a.txt",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugxgiaaaaq",
     "#tenant": 0,
     "#object": "aebaaaaaaaeaaaabahb3aamgxsugxjiaaaaq",
@@ -499,6 +518,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "b.txt",
+    "#uploadPath": "Yvelines/Tree/Root/B/b.txt",
     "Description": "deuxieme fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugyqqaaaaq",
     "#tenant": 0,
@@ -526,6 +546,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "b.txt",
+    "#uploadPath": "Hauts-de-Seine/Tree/Root/B/b.txt",
     "Description": "deuxieme fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugvhaaaaaq",
     "#tenant": 0,
@@ -553,6 +574,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "a.txt",
+    "#uploadPath": "Yvelines/Tree/Root/A/a.txt",
     "Description": "premier fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugymaaaaaq",
     "#tenant": 0,
@@ -580,6 +602,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "a.txt",
+    "#uploadPath": "Seine-et-Marne/Tree/Root/A/a.txt",
     "Description": "premier fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugwwiaaaaq",
     "#tenant": 0,
@@ -607,6 +630,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "a.txt",
+    "#uploadPath": "Essonne/Tree/Root/A/a.txt",
     "Description": "premier fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugulqaaaaq",
     "#tenant": 0,
@@ -634,6 +658,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Root",
+    "#uploadPath": "Paris/Tree/Root",
     "Description": "racine",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugvoyaaaaq",
     "#tenant": 0,
@@ -658,6 +683,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Root",
+    "#uploadPath": "Val-d_Oise/Tree/Root",
     "Description": "b",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugxeyaaaaq",
     "#tenant": 0,
@@ -682,6 +708,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Tree",
+    "#uploadPath": "Essonne/Tree",
     "Description": "Arbre",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugujaaaaaq",
     "#tenant": 0,
@@ -705,6 +732,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Val-de-Marne",
+    "#uploadPath": "Val-de-Marne",
     "Departement": [
       "94"
     ],
@@ -729,6 +757,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "a.txt",
+    "#uploadPath": "Paris/Tree/Root/A/a.txt",
     "Description": "premier fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugvpyaaaaq",
     "#tenant": 0,
@@ -756,6 +785,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "b.txt",
+    "#uploadPath": "Val-de-Marne/Tree/Root/B/b.txt",
     "Description": "deuxieme fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugx7yaaaaq",
     "#tenant": 0,
@@ -783,6 +813,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "A",
+    "#uploadPath": "Val-de-Marne/Tree/Root/A",
     "Description": "A",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugx2aaaaaq",
     "#tenant": 0,
@@ -808,6 +839,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "B",
+    "#uploadPath": "Val-de-Marne/Tree/Root/B",
     "Description": "b",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugx7aaaaaq",
     "#tenant": 0,
@@ -833,6 +865,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "B",
+    "#uploadPath": "Yvelines/Tree/Root/B",
     "Description": "b",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugypqaaaaq",
     "#tenant": 0,
@@ -858,6 +891,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "A",
+    "#uploadPath": "Hauts-de-Seine/Tree/Root/A",
     "Description": "A",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugvaaaaaaq",
     "#tenant": 0,
@@ -883,6 +917,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "B",
+    "#uploadPath": "Hauts-de-Seine/Tree/Root/B",
     "Description": "b",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugveaaaaaq",
     "#tenant": 0,
@@ -908,6 +943,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "index",
+    "#uploadPath": "Val-d_Oise/index",
     "Description": "Arbre",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugxtqaaaaq",
     "#tenant": 0,
@@ -932,6 +968,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Tree",
+    "#uploadPath": "Val-de-Marne/Tree",
     "Description": "Arbre",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugxyqaaaaq",
     "#tenant": 0,
@@ -955,6 +992,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "a.txt",
+    "#uploadPath": "Hauts-de-Seine/Tree/Root/A/a.txt",
     "Description": "premier fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugvaqaaaaq",
     "#tenant": 0,
@@ -982,6 +1020,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "b.txt",
+    "#uploadPath": "Paris/Tree/Root/B/b.txt",
     "Description": "deuxieme fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugvuyaaaaq",
     "#tenant": 0,
@@ -1009,6 +1048,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "a.txt",
+    "#uploadPath": "Val-de-Marne/Tree/Root/A/a.txt",
     "Description": "premier fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugx2yaaaaq",
     "#tenant": 0,
@@ -1036,6 +1076,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "B",
+    "#uploadPath": "Val-d_Oise/Tree/Root/B",
     "Description": "deuxieme fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugxnqaaaaq",
     "#tenant": 0,
@@ -1061,6 +1102,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "A",
+    "#uploadPath": "Val-d_Oise/Tree/Root/A",
     "Description": "premier fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugxfqaaaaq",
     "#tenant": 0,
@@ -1086,6 +1128,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "A",
+    "#uploadPath": "Yvelines/Tree/Root/A",
     "Description": "A",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugyliaaaaq",
     "#tenant": 0,
@@ -1111,6 +1154,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Root",
+    "#uploadPath": "Val-de-Marne/Tree/Root",
     "Description": "racine",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugxzqaaaaq",
     "#tenant": 0,
@@ -1135,6 +1179,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Root",
+    "#uploadPath": "Seine-et-Marne/Tree/Root",
     "Description": "racine",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugwuiaaaaq",
     "#tenant": 0,
@@ -1159,6 +1204,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Hauts-de-Seine",
+    "#uploadPath": "Hauts-de-Seine",
     "Departement": [
       "92"
     ],
@@ -1183,6 +1229,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "b.txt",
+    "#uploadPath": "Seine-et-Marne/Tree/Root/B/b.txt",
     "Description": "deuxieme fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugw2yaaaaq",
     "#tenant": 0,
@@ -1210,6 +1257,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "B",
+    "#uploadPath": "Paris/Tree/Root/B",
     "Description": "b",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugvuaaaaaq",
     "#tenant": 0,
@@ -1235,6 +1283,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "A",
+    "#uploadPath": "Paris/Tree/Root/A",
     "Description": "A",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugvpiaaaaq",
     "#tenant": 0,
@@ -1260,6 +1309,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Root",
+    "#uploadPath": "Hauts-de-Seine/Tree/Root",
     "Description": "racine",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugu7qaaaaq",
     "#tenant": 0,
@@ -1284,6 +1334,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Root",
+    "#uploadPath": "Essonne/Tree/Root",
     "Description": "racine",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugujyaaaaq",
     "#tenant": 0,
@@ -1308,6 +1359,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Tree",
+    "#uploadPath": "Yvelines/Tree",
     "Description": "Arbre",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugyjyaaaaq",
     "#tenant": 0,
@@ -1331,6 +1383,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Tree",
+    "#uploadPath": "Hauts-de-Seine/Tree",
     "Description": "Arbre",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugu7aaaaaq",
     "#tenant": 0,
@@ -1354,6 +1407,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Yvelines",
+    "#uploadPath": "Yvelines",
     "Departement": [
       "78"
     ],
@@ -1378,6 +1432,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Essonne",
+    "#uploadPath": "Essonne",
     "Departement": [
       "91"
     ],
@@ -1402,6 +1457,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "B",
+    "#uploadPath": "Essonne/Tree/Root/B",
     "Description": "b",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsuguwiaaaaq",
     "#tenant": 0,
@@ -1427,6 +1483,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Tree",
+    "#uploadPath": "Val-d_Oise/Tree",
     "Description": "racine",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugxeaaaaaq",
     "#tenant": 0,
@@ -1450,6 +1507,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "A",
+    "#uploadPath": "Essonne/Tree/Root/A",
     "Description": "A",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugukyaaaaq",
     "#tenant": 0,
@@ -1475,6 +1533,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Tree",
+    "#uploadPath": "Seine-et-Marne/Tree",
     "Description": "Arbre",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugwtqaaaaq",
     "#tenant": 0,
@@ -1498,6 +1557,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Tree",
+    "#uploadPath": "Paris/Tree",
     "Description": "Arbre",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugvoaaaaaq",
     "#tenant": 0,
@@ -1521,6 +1581,7 @@
   {
     "DescriptionLevel": "Item",
     "Title": "b.txt",
+    "#uploadPath": "Essonne/Tree/Root/B/b.txt",
     "Description": "deuxieme fichier",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsuguxaaaaaq",
     "#tenant": 0,
@@ -1548,6 +1609,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "A",
+    "#uploadPath": "Seine-et-Marne/Tree/Root/A",
     "Description": "A",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugwvaaaaaq",
     "#tenant": 0,
@@ -1573,6 +1635,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "B",
+    "#uploadPath": "Seine-et-Marne/Tree/Root/B",
     "Description": "b",
     "#id": "aeaqaaaaaaeaaaabahb3aamgxsugw2aaaaaq",
     "#tenant": 0,
@@ -1598,6 +1661,7 @@
   {
     "DescriptionLevel": "RecordGrp",
     "Title": "Paris",
+    "#uploadPath": "Paris",
     "Departement": [
       "75"
     ],

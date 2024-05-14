@@ -24,14 +24,59 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.worker.core.plugin.bulkatomicupdate;
+package fr.gouv.vitam.metadata.api.model;
 
-public class BulkAtomicUpdateModelUtils {
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import fr.gouv.vitam.common.model.StatusCode;
 
-    public static final String QUERIES = "queries";
-    public static final String THRESHOLD = "threshold";
+import java.util.Objects;
 
-    private BulkAtomicUpdateModelUtils() {
-        // Empty constructor
+public class UpdateUnit {
+    public static final String ID = "#id";
+    public static final String STATUS = "#status";
+    public static final String KEY = "#key";
+    public static final String MESSAGE = "#message";
+    public static final String DIFF = "#diff";
+
+    private final String unitId;
+    private final StatusCode status;
+    private final UpdateUnitKey key;
+    private final String message;
+    private final String diff;
+
+    @JsonCreator
+    public UpdateUnit(@JsonProperty(ID) String unitId, @JsonProperty(STATUS) StatusCode status,
+        @JsonProperty(KEY) UpdateUnitKey key, @JsonProperty(MESSAGE) String message, @JsonProperty(DIFF) String diff) {
+        this.unitId = Objects.requireNonNull(unitId);
+        this.status = Objects.requireNonNull(status);
+        this.key = Objects.requireNonNull(key);
+        this.message = Objects.requireNonNull(message);
+        this.diff = Objects.requireNonNull(diff);
+    }
+
+    @JsonProperty(ID)
+    public String getUnitId() {
+        return unitId;
+    }
+
+    @JsonProperty(STATUS)
+    public StatusCode getStatus() {
+        return status;
+    }
+
+    @JsonProperty(KEY)
+    public UpdateUnitKey getKey() {
+        return key;
+    }
+
+    @JsonProperty(MESSAGE)
+    public String getMessage() {
+        return message;
+    }
+
+    @JsonProperty(DIFF)
+    public String getDiff() {
+        return diff;
     }
 }

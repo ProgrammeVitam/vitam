@@ -27,7 +27,9 @@
 package fr.gouv.vitam.common.json;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -47,6 +49,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -450,6 +454,44 @@ public class JsonHandlerTest {
         JsonNode unit = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("archive-unit_OK.json"));
         JsonNode node = JsonHandler.findNode(unit, "ArchiveUnit.xxx");
         assertTrue(node.isMissingNode());
+    }
+
+    @Test
+    public void testParseStrict() throws Exception {
+        JsonNode jsonNode = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("strict_test_pojo_ok.json"));
+        TestPojo value = JsonHandler.getFromStrictJsonNode(jsonNode, new TypeReference<>() {
+        });
+        assertThat(value.field1).isEqualTo("val1");
+        assertThat(value.field2).isEqualTo(true);
+    }
+
+    @Test
+    public void testParseStrictKoUnknownField() throws Exception {
+        JsonNode jsonNode = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(
+            "strict_test_pojo_ko_unknown_field.json"));
+
+        assertThatThrownBy(() -> JsonHandler.getFromStrictJsonNode(jsonNode, new TypeReference<TestPojo>() {
+        }))
+            .isInstanceOf(InvalidParseOperationException.class)
+            .hasMessageContaining("Unrecognized field \"unknown\"");
+    }
+
+    @Test
+    public void testParseStrictKoUnknownArray() throws Exception {
+        JsonNode jsonNode = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(
+            "strict_test_pojo_ko_array.json"));
+
+        assertThatThrownBy(() -> JsonHandler.getFromStrictJsonNode(jsonNode, new TypeReference<TestPojo>() {
+        }))
+            .isInstanceOf(InvalidParseOperationException.class)
+            .hasMessageContaining("Cannot deserialize value of type `java.lang.String` from Array value");
+    }
+
+    private static class TestPojo {
+        @JsonProperty("field1")
+        private String field1;
+        @JsonProperty("field2")
+        private boolean field2;
     }
 
 }

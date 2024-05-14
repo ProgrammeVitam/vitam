@@ -62,11 +62,7 @@ public class BusinessApplicationTest extends Application {
     }
 
     public BusinessApplicationTest(@Context ServletConfig servletConfig) {
-        this.collectInternalClientFactory = CollectInternalClientFactory.getInstance();
-        this.ingestExternalClientFactory = IngestExternalClientFactory.getInstance();
-        this.vitamStatusService = new BasicVitamStatusServiceImpl();
-        commonBusinessApplication = new CommonBusinessApplication(true);
-        prepare();
+        this();
     }
 
     public void prepare() {
@@ -75,7 +71,8 @@ public class BusinessApplicationTest extends Application {
 
         final CollectExternalResource collectExternalResource =
             new CollectExternalResource(secureEndpointRegistry);
-        final TransactionExternalResource transactionExternalResource = new TransactionExternalResource(null);
+        final TransactionExternalResource transactionExternalResource = new TransactionExternalResource(
+            collectInternalClientFactory, ingestExternalClientFactory, null);
 
         final ProjectExternalResource projectExternalResource =
             new ProjectExternalResource(collectInternalClientFactory);

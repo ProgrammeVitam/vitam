@@ -5,6 +5,7 @@
     "#unitType": "INGEST",
     "#management": {},
     "Title": "ROOT",
+    "#uploadPath": "ROOT",
     "DescriptionLevel": "RecordGrp",
     "#unitups": [],
     "#allunitups": []
@@ -15,6 +16,7 @@
     "#unitType": "INGEST",
     "#management": {},
     "Title": "Parent B",
+    "#uploadPath": "ROOT/Parent B",
     "DescriptionLevel": "RecordGrp",
     "#unitups": [
       "aeaqaaaaaacpbveraqxzuamdvda5j5yaaaaq"
@@ -29,6 +31,7 @@
     "#unitType": "INGEST",
     "#management": {},
     "Title": "Child E",
+    "#uploadPath": "ROOT/Parent B/Child E",
     "DescriptionLevel": "Item",
     "#unitups": [
       "aeaqaaaaaacpbveraqxzuamdvda5l4qaaaaq"
@@ -45,6 +48,7 @@
     "#unitType": "INGEST",
     "#management": {},
     "Title": "Child D",
+    "#uploadPath": "ROOT/Parent A/Child D",
     "DescriptionLevel": "Item",
     "#unitups": [
       "aeaqaaaaaacpbveraqxzuamdvda5lcqaaaaq"
@@ -61,6 +65,7 @@
     "#unitType": "INGEST",
     "#management": {},
     "Title": "Child F",
+    "#uploadPath": "ROOT/Parent B/Child F",
     "DescriptionLevel": "Item",
     "#unitups": [
       "aeaqaaaaaacpbveraqxzuamdvda5l4qaaaaq"
@@ -77,6 +82,7 @@
     "#unitType": "INGEST",
     "#management": {},
     "Title": "Parent A",
+    "#uploadPath": "ROOT/Parent A",
     "DescriptionLevel": "RecordGrp",
     "#unitups": [
       "aeaqaaaaaacpbveraqxzuamdvda5j5yaaaaq"
@@ -91,6 +97,7 @@
     "#unitType": "INGEST",
     "#management": {},
     "Title": "Child C",
+    "#uploadPath": "ROOT/Parent A/Child C",
     "DescriptionLevel": "Item",
     "#unitups": [
       "aeaqaaaaaacpbveraqxzuamdvda5lcqaaaaq"

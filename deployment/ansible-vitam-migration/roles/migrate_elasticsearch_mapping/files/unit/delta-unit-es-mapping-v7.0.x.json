@@ -251,6 +251,9 @@
           "type": "object"
         }
       }
+    },
+    "_uploadPath": {
+      "type": "keyword"
     }
   }
 }

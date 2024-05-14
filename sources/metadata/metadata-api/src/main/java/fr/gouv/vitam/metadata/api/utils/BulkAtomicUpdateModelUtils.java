@@ -24,59 +24,33 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
-package fr.gouv.vitam.metadata.core.model;
+package fr.gouv.vitam.metadata.api.utils;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import fr.gouv.vitam.common.model.StatusCode;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 
-import java.util.Objects;
+public final class BulkAtomicUpdateModelUtils {
 
-public class UpdateUnit {
-    public static final String ID = "#id";
-    public static final String STATUS = "#status";
-    public static final String KEY = "#key";
-    public static final String MESSAGE = "#message";
-    public static final String DIFF = "#diff";
+    public static final String QUERIES = "queries";
+    public static final String THRESHOLD = "threshold";
 
-    private final String unitId;
-    private final StatusCode status;
-    private final UpdateUnitKey key;
-    private final String message;
-    private final String diff;
+    public static Long getQueryThreshold(JsonNode query) {
+        if (!query.has(BulkAtomicUpdateModelUtils.THRESHOLD)) {
+            return null;
+        }
 
-    @JsonCreator
-    public UpdateUnit(@JsonProperty(ID) String unitId, @JsonProperty(STATUS) StatusCode status,
-        @JsonProperty(KEY) UpdateUnitKey key, @JsonProperty(MESSAGE) String message, @JsonProperty(DIFF) String diff) {
-        this.unitId = Objects.requireNonNull(unitId);
-        this.status = Objects.requireNonNull(status);
-        this.key = Objects.requireNonNull(key);
-        this.message = Objects.requireNonNull(message);
-        this.diff = Objects.requireNonNull(diff);
+        return query.get(BulkAtomicUpdateModelUtils.THRESHOLD).asLong();
     }
 
-    @JsonProperty(ID)
-    public String getUnitId() {
-        return unitId;
+    public static ArrayNode getQueries(JsonNode queryNode) {
+        return (ArrayNode) queryNode.get(BulkAtomicUpdateModelUtils.QUERIES);
     }
 
-    @JsonProperty(STATUS)
-    public StatusCode getStatus() {
-        return status;
+    public static long queryCount(JsonNode queryNode) {
+        return getQueries(queryNode).size();
     }
 
-    @JsonProperty(KEY)
-    public UpdateUnitKey getKey() {
-        return key;
-    }
-
-    @JsonProperty(MESSAGE)
-    public String getMessage() {
-        return message;
-    }
-
-    @JsonProperty(DIFF)
-    public String getDiff() {
-        return diff;
+    private BulkAtomicUpdateModelUtils() {
+        // Empty constructor
     }
 }

@@ -201,7 +201,9 @@ public class TransactionService {
      * @param id model id to find
      * @return Optional<TransactionModel>
      * @throws CollectInternalException exception thrown in case of error
+     * FIXME : Delete usages since no there is no more 1 transaction limit for project
      */
+    @Deprecated
     public Optional<TransactionModel> findLastTransactionByProjectId(String id) throws CollectInternalException {
         LOGGER.debug("Project id to find : {}", id);
         return transactionRepository.findTransactionByQuery(eq(PROJECT_ID, id));

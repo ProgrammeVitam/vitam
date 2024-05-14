@@ -81,6 +81,9 @@ public class CommonMediaType extends MediaType {
      */
     public static final MediaType BZIP2_TYPE = new MediaType(APPLICATION, "x-bzip2");
 
+    public static final String TEXT_CSV = "text/csv";
+    public static final MediaType TEXT_CSV_MEDIATYPE = MediaType.valueOf(TEXT_CSV);
+
     /**
      * Creates an instance of {@code MediaType} by the supplied string.
      *

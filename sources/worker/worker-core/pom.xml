@@ -58,6 +58,11 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
+            <artifactId>metadata-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
             <artifactId>functional-administration-client</artifactId>
             <version>${project.version}</version>
         </dependency>

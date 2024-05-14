@@ -153,7 +153,7 @@ public class ExtractMetadataListener extends Unmarshaller.Listener {
             DbVersionsModel versionsModel = ObjectGroupMapper.map(dataObject, objectGroupGuid);
 
             JsonNode value =
-                VitamObjectMapper.buildSerializationObjectMapper().convertValue(versionsModel, JsonNode.class);
+                VitamObjectMapper.getSerializationObjectMapper().convertValue(versionsModel, JsonNode.class);
             objectsDatabase.write(objectGuid, value);
 
             final DataObjectDetail detail = new DataObjectDetail();

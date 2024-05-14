@@ -92,6 +92,8 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.api.model.ObjectGroupPerOriginatingAgency;
+import fr.gouv.vitam.metadata.api.model.UpdateUnit;
+import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.database.collections.DbRequest;
 import fr.gouv.vitam.metadata.core.database.collections.MetadataCollections;
@@ -101,8 +103,6 @@ import fr.gouv.vitam.metadata.core.database.collections.MongoDbAccessMetadataImp
 import fr.gouv.vitam.metadata.core.database.collections.MongoDbVarNameAdapter;
 import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.model.MetadataResult;
-import fr.gouv.vitam.metadata.core.model.UpdateUnit;
-import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.utils.MetadataJsonResponseUtils;
 import fr.gouv.vitam.metadata.core.utils.OriginatingAgencyBucketResult;
@@ -160,17 +160,17 @@ import static fr.gouv.vitam.common.database.server.mongodb.VitamDocument.TENANT_
 import static fr.gouv.vitam.common.json.JsonHandler.toArrayList;
 import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.CHECK_UNIT_SCHEMA;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_UNKNOWN_OR_FORBIDDEN;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataCollections.OBJECTGROUP;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.NAME;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollDate;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollNumber;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollDate;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollNumber;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.CHECK_UNIT_SCHEMA;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_UNKNOWN_OR_FORBIDDEN;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static java.util.Collections.singletonList;
 import static java.util.function.Predicate.not;
@@ -504,7 +504,6 @@ public class MetaDataImpl {
                     .setObjectGroup(groupObjectsCount)
                     .setBinaryObject(objectCount)
                     .setBinaryObjectSize(binaryObjectSize));
-            return;
         }
     }
 
@@ -874,20 +873,6 @@ public class MetaDataImpl {
                 JsonHandler.prettyPrint(updatedDocument.getAfterUpdate()))));
 
         return new UpdateUnit(unitId, StatusCode.OK, UNIT_METADATA_UPDATE, "Update unit OK.", diffs);
-    }
-
-    private SelectMultiQuery createSearchParentSelect(List<String> unitList) throws InvalidParseOperationException {
-        SelectMultiQuery newSelectQuery = new SelectMultiQuery();
-        String[] rootList = new String[unitList.size()];
-        rootList = unitList.toArray(rootList);
-        newSelectQuery.addRoots(rootList);
-        newSelectQuery.addProjection(
-            JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(),
-                JsonHandler.createObjectNode()
-                    .put(PROJECTIONARGS.ID.exactToken(), 1)
-                    .put(PROJECTIONARGS.UNITUPS.exactToken(), 1)
-                    .put(PROJECTIONARGS.MANAGEMENT.exactToken(), 1)));
-        return newSelectQuery;
     }
 
     public void refreshUnit()

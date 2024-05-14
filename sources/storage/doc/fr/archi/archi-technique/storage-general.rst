@@ -33,8 +33,8 @@ Le stockage des *objets binaires* contenus dans un *groupe d'objet technique* se
 
     - étape 7 : le **worker** met à jour le **journal du cycle de vie** de l'objet (STARTED)
     - étape 8 : le **worker** appelle le **moteur de stockage** pour envoyer l'objet dont l'identifiant est donné en suivant la *stratégie de stockage* donnée
-    - étape 9 : le **moteur de stockage** appelle le **référentiel des stratégies de stockage** pour récupérer les détail de la *statégie de stockage*
-    - étape 10 : le **moteur de stockage** récupére l'objet binaire dans le **workspace**
+    - étape 9 : le **moteur de stockage** appelle le **référentiel des stratégies de stockage** pour récupérer les détail de la *stratégie de stockage*
+    - étape 10 : le **moteur de stockage** récupère l'objet binaire dans le **workspace**
     - étape 11 : le **moteur de stockage** envoi l'objet binaire dans les **offres de stockage** définies par la *stratégie de stockage* à travers leur driver correspondant
     - étape 12 : le **worker** met à jour le **journal du cycle de vie** de l'objet (OK/...)
 

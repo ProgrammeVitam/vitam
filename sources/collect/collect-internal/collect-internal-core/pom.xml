@@ -93,6 +93,11 @@
         </dependency>
         <dependency>
             <groupId>fr.gouv.vitam</groupId>
+            <artifactId>metadata-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.gouv.vitam</groupId>
             <artifactId>collect-common</artifactId>
             <version>${project.version}</version>
         </dependency>

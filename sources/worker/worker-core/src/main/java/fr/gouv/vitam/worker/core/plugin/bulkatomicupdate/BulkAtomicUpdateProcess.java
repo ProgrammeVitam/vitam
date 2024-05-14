@@ -79,7 +79,7 @@ import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.core.model.UpdateUnit;
+import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -102,10 +102,10 @@ import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_NO_CHANGES;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA;
 import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
-import static fr.gouv.vitam.worker.core.plugin.bulkatomicupdate.BulkUpdateUnitReportKey.ERROR_METADATA_UPDATE;
+import static fr.gouv.vitam.metadata.common.bulkatomicupdate.BulkUpdateUnitReportKey.ERROR_METADATA_UPDATE;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 /**

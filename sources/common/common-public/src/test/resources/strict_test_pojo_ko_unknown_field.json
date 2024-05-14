@@ -1,0 +1,5 @@
+{
+  "field1": "val1",
+  "field2": true,
+  "unknown": "bad"
+}

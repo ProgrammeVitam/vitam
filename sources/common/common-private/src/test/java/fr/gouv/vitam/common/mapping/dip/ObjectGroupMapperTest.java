@@ -95,7 +95,7 @@ public class ObjectGroupMapperTest {
         JAXBException {
         final JsonNode GOTMetadataResponse = JsonHandler.getFromFile(
             PropertiesUtils.getResourceFile(SIMPLE_OBJECT_GROUP_DBREQUEST_RESULT_WITH_METADATA));
-        ObjectMapper objectMapper = VitamObjectMapper.buildDeserializationObjectMapper();
+        ObjectMapper objectMapper = VitamObjectMapper.getDeserializationObjectMapper();
         ObjectGroupResponse objectGroupSource =
             objectMapper.treeToValue(GOTMetadataResponse, ObjectGroupResponse.class);
         ObjectGroupMapper objectGroupMapper = new ObjectGroupMapper();

@@ -135,7 +135,7 @@ import static fr.gouv.vitam.common.SedaConstants.TAG_STORAGE_RULE_CODE_LIST_VERS
 import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFERRING_AGENCY;
 import static fr.gouv.vitam.common.SedaConstants.TAG_TRANSFER_REQUEST_REPLY_IDENTIFIER;
 import static fr.gouv.vitam.common.SedaConstants.TAG_UNIT_IDENTIFIER;
-import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.buildDeserializationObjectMapper;
+import static fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper.getDeserializationObjectMapper;
 import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
 
 /**
@@ -175,7 +175,7 @@ public class ManifestBuilder implements AutoCloseable {
         throws XMLStreamException, JAXBException {
         archiveUnitMapper = new ArchiveUnitMapper();
         this.objectFactory = new ObjectFactory();
-        this.objectMapper = buildDeserializationObjectMapper();
+        this.objectMapper = getDeserializationObjectMapper();
         this.objectGroupMapper = new ObjectGroupMapper();
 
         XMLOutputFactory xmlOutputFactory = XMLOutputFactory.newFactory();

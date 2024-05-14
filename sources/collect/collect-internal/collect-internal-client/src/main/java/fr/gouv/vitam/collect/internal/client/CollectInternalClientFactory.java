@@ -100,8 +100,7 @@ public class CollectInternalClientFactory extends VitamClientFactory<CollectInte
                 client = new CollectInternalClientRest(this);
                 break;
             case MOCK:
-                client = new CollectInternalClientRestMock();
-                break;
+                throw new IllegalStateException("Unsupported MOCK mode");
             default:
                 throw new IllegalArgumentException("Collect client type unknown");
         }

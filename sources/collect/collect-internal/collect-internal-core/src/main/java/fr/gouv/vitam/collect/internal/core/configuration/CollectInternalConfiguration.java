@@ -45,6 +45,10 @@ public class CollectInternalConfiguration extends DbConfigurationImpl {
 
     private int purgeTransactionThreadFrequency = 60;
 
+    private final int bulkAtomicUpdateThreadPoolSize = 8;
+    private final int bulkAtomicUpdateThreadPoolQueueSize = 16;
+    private final int bulkAtomicUpdateBatchSize = 100;
+
     /**
      * Must return the value of a 'workspaceUrl' attribute
      *
@@ -107,5 +111,17 @@ public class CollectInternalConfiguration extends DbConfigurationImpl {
 
     public void setStatusTransactionThreadFrequency(int statusTransactionThreadFrequency) {
         this.statusTransactionThreadFrequency = statusTransactionThreadFrequency;
+    }
+
+    public int getBulkAtomicUpdateThreadPoolSize() {
+        return bulkAtomicUpdateThreadPoolSize;
+    }
+
+    public int getBulkAtomicUpdateThreadPoolQueueSize() {
+        return bulkAtomicUpdateThreadPoolQueueSize;
+    }
+
+    public int getBulkAtomicUpdateBatchSize() {
+        return bulkAtomicUpdateBatchSize;
     }
 }

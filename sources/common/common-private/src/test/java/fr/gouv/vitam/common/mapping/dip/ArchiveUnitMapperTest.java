@@ -264,7 +264,7 @@ public class ArchiveUnitMapperTest {
         File sample_unit = PropertiesUtils.getResourceFile(SIMPLE_UNIT_WITH_ORG_DESC_METADATA);
         JsonNode node = JsonHandler.getFromFile(sample_unit);
 
-        ObjectMapper mapper = VitamObjectMapper.buildDeserializationObjectMapper();
+        ObjectMapper mapper = VitamObjectMapper.getDeserializationObjectMapper();
         Map<String, Object> map = mapper.convertValue(node, new TypeReference<>() {
         });
 

@@ -71,8 +71,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.common.database.builder.query.QueryHelper.and;
-import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.initialOperation;
+import static fr.gouv.vitam.collect.internal.core.helpers.MetadataHelper.applyTransactionToQuery;
 
 public class MetadataRepository {
 
@@ -266,20 +265,6 @@ public class MetadataRepository {
         } catch (final MetaDataException | InvalidParseOperationException e) {
             LOGGER.error("Error when delete units and objects in metadata: {}", e);
             throw new CollectInternalException("Error when delete units and objects in metadata: " + e);
-        }
-    }
-
-    private void applyTransactionToQuery(String transactionId, RequestMultiple select)
-        throws InvalidCreateOperationException {
-        InQuery inQuery = QueryHelper.in(initialOperation(), transactionId);
-        final List<Query> queries = select.getQueries();
-        if (queries.isEmpty()) {
-            queries.add(inQuery);
-        } else {
-            List<Query> queryList = new ArrayList<>(queries);
-            Query lastQuery = queryList.get(queryList.size() - 1);
-            Query mergedQuery = and().add(lastQuery, inQuery);
-            queries.set(queryList.size() - 1, mergedQuery);
         }
     }
 

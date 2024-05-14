@@ -79,17 +79,17 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
             TENANT_ID,
             processId,
             "0",
-            unPrettyQuery, null, "More than one Unit was found for the $query", StatusCode.KO,
+            unPrettyQuery, null, "More than one unit matches selection criteria", StatusCode.KO,
             String.format("%s.%s", "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST", StatusCode.KO),
-            "More than one Unit was found for the $query");
+            "More than one unit matches selection criteria");
 
         bulkUpdateUnitMetadataEntryWARNING = new BulkUpdateUnitMetadataReportEntry(
             TENANT_ID,
             processId,
             "1",
-            unPrettyQuery, null, "No Unit was found for the $query", StatusCode.WARNING,
+            unPrettyQuery, null, "No unit was matches selection criteria", StatusCode.WARNING,
             String.format("%s.%s", "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST", StatusCode.WARNING),
-            "No Unit was found for the $query");
+            "No unit was matches selection criteria");
 
         bulkUpdateUnitMetadataEntryOK = new BulkUpdateUnitMetadataReportEntry(
             TENANT_ID,

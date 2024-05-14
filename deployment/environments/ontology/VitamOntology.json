@@ -3551,6 +3551,17 @@
     "Collections": [
       "IngestContract"
     ]
+  },
+  {
+    "Identifier": "_uploadPath",
+    "ApiField": "#uploadPath",
+    "Description": "Mapping : unit-es-mapping.json (collect-only)",
+    "Type": "KEYWORD",
+    "Origin": "INTERNAL",
+    "ShortName": "Chemin initial de versement",
+    "Collections": [
+      "Unit"
+    ]
   }
 ]
 

@@ -65,8 +65,8 @@ import fr.gouv.vitam.metadata.core.database.collections.MetadataCollectionsTestU
 import fr.gouv.vitam.metadata.core.database.collections.ObjectGroup;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.mapping.MappingLoader;
-import fr.gouv.vitam.metadata.core.model.UpdateUnit;
-import fr.gouv.vitam.metadata.core.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.api.model.UpdateUnit;
+import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
 import fr.gouv.vitam.metadata.rest.utils.MappingLoaderTestUtils;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;

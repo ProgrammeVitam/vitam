@@ -1835,6 +1835,9 @@
     "_opi": {
       "type": "keyword"
     },
+    "_uploadPath": {
+      "type": "keyword"
+    },
     "_tenant": {
       "type": "long"
     },

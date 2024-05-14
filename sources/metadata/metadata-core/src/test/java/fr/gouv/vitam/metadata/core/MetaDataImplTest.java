@@ -71,7 +71,7 @@ import fr.gouv.vitam.metadata.core.database.collections.Result;
 import fr.gouv.vitam.metadata.core.database.collections.ResultDefault;
 import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import fr.gouv.vitam.metadata.core.model.MetadataResult;
-import fr.gouv.vitam.metadata.core.model.UpdateUnit;
+import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.core.model.UpdatedDocument;
 import fr.gouv.vitam.metadata.core.utils.MappingLoaderTestUtils;
 import fr.gouv.vitam.metadata.core.validation.OntologyValidator;
@@ -99,7 +99,7 @@ import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.ObjectsScrollNumber;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollDate;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataSnapshot.PARAMETERS.UnitsScrollNumber;
-import static fr.gouv.vitam.metadata.core.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
+import static fr.gouv.vitam.metadata.api.model.UpdateUnitKey.UNIT_METADATA_UPDATE;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;

@@ -32,13 +32,19 @@ import fr.gouv.vitam.collect.common.dto.CriteriaProjectDto;
 import fr.gouv.vitam.collect.common.dto.ObjectDto;
 import fr.gouv.vitam.collect.common.dto.ProjectDto;
 import fr.gouv.vitam.collect.common.dto.TransactionDto;
+import fr.gouv.vitam.collect.common.exception.CollectRequestResponse;
+import fr.gouv.vitam.collect.external.external.exception.CollectExternalClientInvalidRequestException;
 import fr.gouv.vitam.common.CommonMediaType;
 import fr.gouv.vitam.common.client.VitamContext;
+import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.RequestResponse;
+import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
 import fr.gouv.vitam.common.serverv2.VitamServerTestRunner;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.NullInputStream;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -57,8 +63,15 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
+
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class CollectExternalClientRestTest extends ResteasyTestApplication {
 
@@ -154,6 +167,33 @@ public class CollectExternalClientRestTest extends ResteasyTestApplication {
         Assertions.assertThat(response).isNotNull();
     }
 
+    @Test
+    public void uploadZipToTransaction() throws Exception {
+        Mockito.when(mock.post()).thenReturn(
+            Response.ok(new RequestResponseOK<JsonNode>().addResult(JsonHandler.toJsonNode("TX_ID"))).build());
+        RequestResponse<JsonNode> response =
+            client.uploadProjectZip(new VitamContext(TENANT_ID), "TX_ID", new NullInputStream(100));
+        Assertions.assertThat(response).isNotNull();
+    }
+
+    @Test
+    public void updateUnitsWithMetadataCsv_OK() throws Exception {
+        RequestResponse<JsonNode> response =
+            client.updateUnits(new VitamContext(TENANT_ID), "transactionId",
+                new ByteArrayInputStream("CSV_REQ".getBytes(StandardCharsets.UTF_8)));
+        assertThat(response.isOk()).isTrue();
+        assertThat(((RequestResponseOK<JsonNode>) response).getResults()).isEmpty();
+    }
+
+    @Test
+    public void updateUnitsWithMetadataCsv_KO() {
+        assertThatThrownBy(() ->
+            client.updateUnits(new VitamContext(TENANT_ID), "transactionId",
+                new ByteArrayInputStream("CSV_REQ_BAD".getBytes(StandardCharsets.UTF_8)))
+        ).isInstanceOf(CollectExternalClientInvalidRequestException.class)
+            .hasMessage("BAD !");
+    }
+
     @Path("/collect-external/v1")
     public static class MockResource {
         private final ExpectedResults expectedResponse;
@@ -210,12 +250,15 @@ public class CollectExternalClientRestTest extends ResteasyTestApplication {
 
         @Path("/transactions/{transactionId}/units")
         @PUT
-        @Consumes(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response updateUnits(@PathParam("transactionId") String transactionId, InputStream is) {
-            return expectedResponse.get();
+        public Response updateUnits(@PathParam("transactionId") String transactionId,
+            InputStream metadataCsvInputStream) throws IOException {
+            if (!"CSV_REQ".equals(IOUtils.toString(metadataCsvInputStream, StandardCharsets.UTF_8))) {
+                return CollectRequestResponse.toVitamError(BAD_REQUEST, "BAD !");
+            }
+            return Response.ok(new RequestResponseOK<>()).build();
         }
-
 
         @Path("/projects")
         @POST
@@ -288,15 +331,6 @@ public class CollectExternalClientRestTest extends ResteasyTestApplication {
             return expectedResponse.get();
         }
 
-
-        @Path("/projects/{projectId}/binary")
-        @POST
-        @Consumes({CommonMediaType.ZIP})
-        @Produces(MediaType.APPLICATION_JSON)
-        public Response uploadProjectZip(@PathParam("projectId") String projectId, InputStream inputStreamObject) {
-            return expectedResponse.get();
-        }
-
         @Path("/units/{unitId}")
         @GET
         @Produces(MediaType.APPLICATION_JSON)
@@ -336,6 +370,15 @@ public class CollectExternalClientRestTest extends ResteasyTestApplication {
         public Response download(@PathParam("unitId") String unitId, @PathParam("usage") String usageString,
             @PathParam("version") Integer version) {
             return expectedResponse.get();
+        }
+
+        @Path("/transactions/{transactionId}/upload")
+        @POST
+        @Consumes({CommonMediaType.ZIP})
+        @Produces(MediaType.APPLICATION_JSON)
+        public Response uploadZipToTransaction(@PathParam("transactionId") String transactionId,
+            InputStream inputStreamObject) {
+            return expectedResponse.post();
         }
     }
 }

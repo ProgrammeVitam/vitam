@@ -28,6 +28,7 @@
     "_unitType": "INGEST",
     "_mgt": {},
     "Title": "monSIP",
+    "_uploadPath": "monSIP",
     "DescriptionLevel": "RecordGrp",
     "_up": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"],
     "_us": ["aeaqaaaaaaeaaaabasglmamecofpfjiaaaaq"],
@@ -51,6 +52,7 @@
     "_unitType": "INGEST",
     "_mgt": {},
     "Title": "GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf",
+    "_uploadPath": "monSIP/GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf",
     "DescriptionLevel": "Item",
     "_up": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
     "_us": [
@@ -82,6 +84,7 @@
     "_unitType": "INGEST",
     "_mgt": {},
     "Title": "IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf",
+    "_uploadPath": "monSIP/IfTPz6AWS1VwRfNSlhsq83sMNPidvA.pdf",
     "DescriptionLevel": "Item",
     "_up": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
     "_us": [
@@ -113,6 +116,7 @@
     "_unitType": "INGEST",
     "_mgt": {},
     "Title": "dossier1",
+    "_uploadPath": "monSIP/dossier1",
     "DescriptionLevel": "RecordGrp",
     "_up": ["aeaqaaaaaaeaaaabasglmamecofpg2qaaaaq"],
     "_us": [
@@ -143,6 +147,7 @@
     "_unitType": "INGEST",
     "_mgt": {},
     "Title": "BAD0431E2C5E80E5BD42D547A3ED5964",
+    "_uploadPath": "monSIP/dossier1/BAD0431E2C5E80E5BD42D547A3ED5964",
     "DescriptionLevel": "RecordGrp",
     "_up": ["aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq"],
     "_us": [
@@ -176,6 +181,7 @@
     "_unitType": "INGEST",
     "_mgt": {},
     "Title": "GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf",
+    "_uploadPath": "monSIP/dossier1/GBlNSraIrmIpWQNmJlDzPYLOC8CBk0.pdf",
     "DescriptionLevel": "Item",
     "_up": ["aeaqaaaaaaeaaaabasglmamecofpnvqaaaaq"],
     "_us": [

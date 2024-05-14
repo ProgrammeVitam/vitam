@@ -6,8 +6,8 @@
  * This software is a computer program whose purpose is to implement a digital archiving back-office system managing
  * high volumetry securely and efficiently.
  *
- * This software is governed by the CeCILL 2.1 license under French law and abiding by the rules of distribution of free
- * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL 2.1 license as
+ * This software is governed by the CeCILL-C license under French law and abiding by the rules of distribution of free
+ * software. You can use, modify and/ or redistribute the software under the terms of the CeCILL-C license as
  * circulated by CEA, CNRS and INRIA at the following URL "https://cecill.info".
  *
  * As a counterpart to the access to the source code and rights to copy, modify and redistribute granted by the license,
@@ -21,48 +21,41 @@
  * software's suitability as regards their requirements in conditions enabling the security of their systems and/or data
  * to be ensured and, more generally, to use and operate it in the same conditions as regards security.
  *
- * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
+ * The fact that you are presently reading this means that you have had knowledge of the CeCILL-C license and that you
  * accept its terms.
  */
+package fr.gouv.vitam.collect.external.external.exception;
 
-package fr.gouv.vitam.worker.core.utils;
+/**
+ * NotFound Access Client Exception
+ */
+public class CollectExternalClientNotFoundException extends CollectExternalClientException {
 
-import java.util.Iterator;
-
-public class CountingIterator<T> implements Iterator<CountingIterator.EntryWithIndex<T>> {
-
-    private final Iterator<T> innerIterator;
-    private int entryIndex = 0;
-
-    public CountingIterator(Iterator<T> innerIterator) {
-        this.innerIterator = innerIterator;
+    /**
+     * constructor with message
+     *
+     * @param message associated message
+     */
+    public CollectExternalClientNotFoundException(String message) {
+        super(message);
     }
 
-    @Override
-    public boolean hasNext() {
-        return this.innerIterator.hasNext();
+    /**
+     * constructor with throwable
+     *
+     * @param cause associated cause
+     */
+    public CollectExternalClientNotFoundException(Throwable cause) {
+        super(cause);
     }
 
-    @Override
-    public EntryWithIndex<T> next() {
-        return new EntryWithIndex<>(this.innerIterator.next(), entryIndex++);
-    }
-
-    public static class EntryWithIndex<T> {
-        private final T value;
-        private final int index;
-
-        public EntryWithIndex(T value, int index) {
-            this.value = value;
-            this.index = index;
-        }
-
-        public T getValue() {
-            return value;
-        }
-
-        public int getIndex() {
-            return index;
-        }
+    /**
+     * constructor with message and throwable
+     *
+     * @param message associated message
+     * @param cause associated cause
+     */
+    public CollectExternalClientNotFoundException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

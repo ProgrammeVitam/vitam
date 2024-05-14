@@ -47,12 +47,12 @@ import fr.gouv.vitam.common.database.parser.query.ParserTokens;
 import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultiple;
 import fr.gouv.vitam.common.database.utils.ScrollSpliterator;
 import fr.gouv.vitam.common.digest.Digest;
+import fr.gouv.vitam.common.exception.ExportException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
-import fr.gouv.vitam.common.exception.ExportException;
 import fr.gouv.vitam.common.manifest.ManifestBuilder;
 import fr.gouv.vitam.common.mapping.mapper.VitamObjectMapper;
 import fr.gouv.vitam.common.model.RequestResponseOK;
@@ -170,7 +170,7 @@ public class SipService {
 
             StreamSupport.stream(scrollRequest, false).forEach(result -> {
                 try {
-                    ArchiveUnitModel archiveUnitModel = VitamObjectMapper.buildDeserializationObjectMapper()
+                    ArchiveUnitModel archiveUnitModel = VitamObjectMapper.getDeserializationObjectMapper()
                         .treeToValue(result, ArchiveUnitModel.class);
                     manifestBuilder.writeArchiveUnit(archiveUnitModel, multimap, ogs);
                 } catch (JsonProcessingException | JAXBException | DatatypeConfigurationException | ExportException e) {
@@ -195,8 +195,7 @@ public class SipService {
             manifestBuilder.writeFooter(ExportType.ArchiveTransfer, exportRequest.getExportRequestParameters());
             manifestBuilder.closeManifest();
 
-        } catch (IOException | InvalidCreateOperationException | ExportException | InternalServerException |
-                 InvalidParseOperationException | JAXBException | XMLStreamException e) {
+        } catch (Exception e) {
             LOGGER.error(e.getLocalizedMessage());
             throw new CollectInternalException(e);
         }
