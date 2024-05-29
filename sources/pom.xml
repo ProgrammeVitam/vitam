@@ -815,21 +815,6 @@
                                 </mapper>
                             </data>
 
-                            <!-- Conf & other -->
-
-
-                            <data>
-                                <src>${project.build.directory}/systemd/vitam-${unix.name}.service</src>
-                                <type>file</type>
-                                <mapper>
-                                    <type>perm</type>
-                                    <user>${unix.user}</user>
-                                    <group>${unix.group}</group>
-                                    <filemode>0755</filemode>
-                                    <prefix>/lib/systemd/system/</prefix>
-                                </mapper>
-                            </data>
-
                             <!-- Additional templates -->
                             <data>
                                 <type>template</type>
@@ -885,32 +870,7 @@
                                     </source>
                                 </sources>
                             </mapping>
-                            <!-- OMA : disabled as useless now (no files within) <mapping> <directory>/vitam/script/${unix.name}</directory>
-                                <sources> <source> <location>${project.build.directory}/script</location>
-                                </source> </sources> </mapping> -->
-                            <mapping>
-                                <directory>/usr/lib/systemd/system/</directory>
-                                <filemode>644</filemode>
-                                <username>root</username>
-                                <groupname>root</groupname>
-                                <directoryIncluded>false</directoryIncluded>
-                                <sources>
-                                    <source>
-                                        <location>${project.build.directory}/systemd</location>
-                                    </source>
-                                </sources>
-                            </mapping>
                         </mappings>
-                        <!-- Systemd hook scriptlets -->
-                        <postinstallScriptlet>
-                            <script>%systemd_post vitam-${unix.name}.service</script>
-                        </postinstallScriptlet>
-                        <preremoveScriptlet>
-                            <script>%systemd_preun vitam-${unix.name}.service</script>
-                        </preremoveScriptlet>
-                        <postremoveScriptlet>
-                            <script>%systemd_postun vitam-${unix.name}.service</script>
-                        </postremoveScriptlet>
                     </configuration>
                 </plugin>
                 <plugin>
