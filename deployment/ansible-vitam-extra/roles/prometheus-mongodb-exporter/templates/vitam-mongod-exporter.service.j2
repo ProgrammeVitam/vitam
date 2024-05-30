@@ -9,7 +9,7 @@ Group={{ vitam_defaults.users.group }}
 Type=simple
 Restart=always
 ExecStart={{ vitam_defaults.folder.root_path }}/bin/mongodb_exporter/mongodb_exporter --collect-all \
-          --compatible-mode --mongodb.uri=mongodb://{{ vitamdbadmin }}:{{ vitamdbpassword }}@{{ ip_admin }}:{{ mongodb.mongod_port }} --web.listen-address=:{{ prometheus.mongodb_exporter.port_mongod | default(9217) }}
+          --compatible-mode --mongodb.uri=mongodb://{{ vitamdbadmin }}:{{ vitamdbpassword }}@{{ ip_service }}:{{ mongodb.mongod_port }} --web.listen-address=:{{ prometheus.mongodb_exporter.port_mongod | default(9217) }}
 
 [Install]
 WantedBy=multi-user.target
