@@ -1377,7 +1377,7 @@
             "uid": "${datasource}"
           },
           "exemplar": true,
-          "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=\"/vitam\",hostname=~\"$workspace\"} * 100) / node_filesystem_size_bytes{mountpoint=\"/vitam\",hostname=~\"$ingestexternal\"})",
+          "expr": "100 - ((node_filesystem_avail_bytes{mountpoint=\"/vitam\",hostname=~\"$workspace\"} * 100) / node_filesystem_size_bytes{mountpoint=\"/vitam\",hostname=~\"$workspace\"})",
           "interval": "",
           "legendFormat": "{{hostname}}",
           "refId": "A"
