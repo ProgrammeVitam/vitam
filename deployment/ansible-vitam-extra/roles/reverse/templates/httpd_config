@@ -144,8 +144,8 @@
 {# <IHMDemo> #}
     # IHM Demo
     {% for host in groups['hosts_ihm_demo'] %}
-    ProxyPass /{{ vitam.ihm_demo.baseuri }} http{% if vitam.ihm_demo.https_enabled|lower == 'true' %}s{% endif %}://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }} {{ reverse_connection_params }}
-    ProxyPassReverse  {{ vitam.ihm_demo.baseuri }} http{% if vitam.ihm_demo.https_enabled|lower == 'true' %}s{% endif %}://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }}
+    ProxyPass /{{ vitam.ihm_demo.baseuri }} http{% if vitam.ihm_demo.https_enabled | bool == true %}s{% endif %}://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }} {{ reverse_connection_params }}
+    ProxyPassReverse  {{ vitam.ihm_demo.baseuri }} http{% if vitam.ihm_demo.https_enabled | bool == true %}s{% endif %}://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_demo.port_service }}/{{ vitam.ihm_demo.baseuri }}
     {% endfor %}
 {# </IHMDemo> #}
 
@@ -153,8 +153,8 @@
 {% if deployment_mode == "dev" %}
     # IHM Recette
     {% for host in groups['hosts_ihm_recette'] %}
-    ProxyPass /{{ vitam.ihm_recette.baseuri }}  http{% if vitam.ihm_recette.https_enabled|lower == 'true' %}s{% endif %}://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }} {{ reverse_connection_params }}
-    ProxyPassReverse  /{{ vitam.ihm_recette.baseuri }}  http{% if vitam.ihm_recette.https_enabled|lower == 'true' %}s{% endif %}://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}
+    ProxyPass /{{ vitam.ihm_recette.baseuri }} http{% if vitam.ihm_recette.https_enabled | bool == true %}s{% endif %}://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }} {{ reverse_connection_params }}
+    ProxyPassReverse /{{ vitam.ihm_recette.baseuri }} http{% if vitam.ihm_recette.https_enabled | bool == true %}s{% endif %}://{{ hostvars[host]['ip_service'] }}:{{ vitam.ihm_recette.port_service }}/{{ vitam.ihm_recette.baseuri }}
     {% endfor %}
 {% endif %}
 {# </IHMRecette> #}
