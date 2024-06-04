@@ -60,7 +60,7 @@ packetbeat.protocols:
 - type: http
   # Configure the ports where to listen for HTTP traffic. You can disable
   # the HTTP protocol by commenting out the list of ports.
-  ports: [80{% for composant in vitam %},{{ vitam[composant].port_admin }}{% if vitam[composant].https_enabled|lower == 'false' %},{{ vitam[composant].port_service }}{% endif %}{% endfor %}]
+  ports: [80{% for composant in vitam %},{{ vitam[composant].port_admin }}{% if vitam[composant].https_enabled | bool == false %},{{ vitam[composant].port_service }}{% endif %}{% endfor %}]
 
 - type: memcache
   # Configure the ports where to listen for memcache traffic. You can disable
@@ -101,7 +101,7 @@ packetbeat.protocols:
 - type: tls
   # Configure the ports where to listen for TLS traffic. You can disable
   # the TLS protocol by commenting out the list of ports.
-  ports: [443{% for composant in vitam %}{% if vitam[composant].https_enabled|lower == 'true' %},{{ vitam[composant].port_service }}{% endif %}{% endfor %}]
+  ports: [443{% for composant in vitam %}{% if vitam[composant].https_enabled | bool == true %},{{ vitam[composant].port_service }}{% endif %}{% endfor %}]
 
 
 #==================== Elasticsearch template setting ==========================

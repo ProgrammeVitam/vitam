@@ -1,3 +1,3 @@
 serverHost: {{ vitam.batchreport.host }}
 serverPort: {{ vitam.batchreport.port_service }}
-secure: {{ vitam.batchreport.https_enabled }}
+secure: {{ vitam.batchreport.https_enabled | bool | lower }}

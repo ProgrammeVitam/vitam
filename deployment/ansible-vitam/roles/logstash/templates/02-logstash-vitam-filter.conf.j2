@@ -44,7 +44,7 @@ filter
 
     if [vitam_component] =~ "mongo" {
         # Drop mongo (I)nformational log, for Verbosity Level of 0, if mongodb.drop_info_log is defined to true
-        {% if mongodb.drop_info_log==true %}
+        {% if mongodb.drop_info_log | bool == true %}
         if [message] =~ ".*\s+[ID]\s+.*" {
             drop { }
         }
