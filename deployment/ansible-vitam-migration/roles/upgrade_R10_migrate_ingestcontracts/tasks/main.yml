@@ -7,7 +7,7 @@
 
 - name: Set URL definition
   set_fact:
-    vitamurl: "{% if vitam_struct.https_enabled == true %}https{% else %}http{% endif %}://{{ hostvars[groups['hosts_access_external'][0]]['ip_service'] }}:{{ vitam.accessexternal.port_service }}/admin-external/v1/ingestcontracts"
+    vitamurl: "http{% if vitam_struct.https_enabled | bool == true %}s{% endif %}://{{ hostvars[groups['hosts_access_external'][0]]['ip_service'] }}:{{ vitam.accessexternal.port_service }}/admin-external/v1/ingestcontracts"
 
 
 - name: Copy temporary PEM certificate

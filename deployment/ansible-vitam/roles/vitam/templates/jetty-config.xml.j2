@@ -132,7 +132,7 @@
     <Set name="dumpAfterStart">false</Set>
     <Set name="dumpBeforeStop">false</Set>
 
-{% if vitam_struct.https_enabled==true %}
+{% if vitam_struct.https_enabled | bool == true %}
    <New id="httpsConfig" class="org.eclipse.jetty.server.HttpConfiguration">
         <Set name="sendServerVersion">false</Set>
         <Set name="sendDateHeader">false</Set>

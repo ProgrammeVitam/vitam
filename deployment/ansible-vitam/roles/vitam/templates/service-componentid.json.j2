@@ -17,11 +17,7 @@
     "checks": [
       {
         "name": "{{ vitam_struct.vitam_component }} : business service check",
-{% if vitam_struct.https_enabled==true %}
-        "notes": "HTTPS port opened",
-{% else %}
-        "notes": "HTTP port opened",
-{% endif %}
+        "notes": "HTTP{% if vitam_struct.https_enabled | bool == true %}S{% endif %} port opened",
         "tcp": "{{ ip_service }}:{{ vitam_struct.port_service }}",
         "interval": "{{ vitam_struct.consul_business_check | default(consul_business_check) }}s"
       },
@@ -31,7 +27,7 @@
         "http": "http://{{ ip_admin }}:{{ vitam_struct.port_admin }}/admin/v1/status",
         "interval": "{{ vitam_struct.consul_admin_check | default(consul_admin_check) }}s"
       }
-{% if (vitam_struct.https_enabled != true) and (vitam_struct.vitam_component != vitam.elastickibanainterceptor.vitam_component) and (vitam_struct.vitam_component != vitam.security_internal.vitam_component) and (vitam_struct.vitam_component != vitam.ihm_demo.vitam_component) and (vitam_struct.vitam_component != vitam.ihm_recette.vitam_component) and (vitam_struct.vitam_component != vitam.library.vitam_component) %}
+{% if (vitam_struct.https_enabled | bool != true) and (vitam_struct.vitam_component != vitam.elastickibanainterceptor.vitam_component) and (vitam_struct.vitam_component != vitam.security_internal.vitam_component) and (vitam_struct.vitam_component != vitam.ihm_demo.vitam_component) and (vitam_struct.vitam_component != vitam.ihm_recette.vitam_component) and (vitam_struct.vitam_component != vitam.library.vitam_component) %}
       ,{
         "name": "{{ vitam_struct.vitam_component }} : http business service check",
         "notes": "Status business : /{{ vitam_struct.baseuri }}/v1/status",
