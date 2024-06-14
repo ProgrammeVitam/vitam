@@ -32,6 +32,7 @@ import fr.gouv.vitam.access.internal.common.exception.AccessInternalExecutionExc
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalIllegalOperationException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalRuleExecutionException;
 import fr.gouv.vitam.access.internal.common.exception.AccessInternalUnavailableDataFromAsyncOfferException;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamDBException;
@@ -220,6 +221,8 @@ public interface AccessInternalModule {
 
     void removeAccessRequest(String storageStrategyId, String accessRequestId)
         throws AccessInternalExecutionException, AccessInternalIllegalOperationException;
+
+    void verifyContractAccessAndAuthorizeDownload() throws AccessUnauthorizedException;
 
     Response streamUnits(JsonNode applyAccessContractRestrictionForUnitForSelect)
         throws AccessInternalExecutionException, MetadataScrollLimitExceededException, MetadataScrollThresholdExceededException;

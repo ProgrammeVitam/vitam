@@ -67,6 +67,7 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 import fr.gouv.vitam.common.database.parser.request.multiple.UpdateParserMultiple;
 import fr.gouv.vitam.common.database.utils.MetadataDocumentHelper;
 import fr.gouv.vitam.common.error.VitamCode;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.UpdatePermissionException;
@@ -650,6 +651,18 @@ public class AccessInternalModuleImpl implements AccessInternalModule {
             return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
         } catch (final StorageServerClientException | StorageUnavailableDataFromAsyncOfferClientException e) {
             throw new AccessInternalExecutionException(e);
+        }
+    }
+
+    public void verifyContractAccessAndAuthorizeDownload() throws AccessUnauthorizedException {
+        var contractModel = getVitamSession().getContract();
+        if (
+            !Boolean.TRUE.equals(contractModel.isEveryDataObjectVersion()) &&
+            contractModel.getDataObjectVersion().isEmpty()
+        ) {
+            throw new AccessUnauthorizedException(
+                "Downloading is forbidden by the restrictions of this access contract."
+            );
         }
     }
 

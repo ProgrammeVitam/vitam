@@ -53,6 +53,7 @@ import fr.gouv.vitam.common.database.utils.AccessContractRestrictionHelper;
 import fr.gouv.vitam.common.error.VitamCode;
 import fr.gouv.vitam.common.error.VitamCodeHelper;
 import fr.gouv.vitam.common.error.VitamError;
+import fr.gouv.vitam.common.exception.AccessUnauthorizedException;
 import fr.gouv.vitam.common.exception.BadRequestException;
 import fr.gouv.vitam.common.exception.InternalServerException;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
@@ -163,6 +164,7 @@ import static fr.gouv.vitam.logbook.common.parameters.Contexts.PRESERVATION;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.TRANSFER_REPLY;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 @Path("/access-internal/v1")
 @Tag(name = "Access")
@@ -386,6 +388,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         @QueryParam("version") Integer version
     ) {
         try {
+            accessModule.verifyContractAccessAndAuthorizeDownload();
             return accessModule.getObjectByUnitPersistentIdentifier(unitPersistentIdentifier, qualifier, version);
         } catch (MetaDataNotFoundException | InvalidParseOperationException e) {
             final Optional<PurgedPersistentIdentifier> optionalPurgedPersistentIdentifier =
@@ -403,6 +406,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
                 .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(e);
+            return Response.status(UNAUTHORIZED).entity(getErrorStream(UNAUTHORIZED, e.getMessage())).build();
         }
     }
 
@@ -471,6 +477,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         @PathParam("persistentIdentifier") final String persistentIdentifier
     ) {
         try {
+            accessModule.verifyContractAccessAndAuthorizeDownload();
             return accessModule.getObjectByPersistentIdentifier(persistentIdentifier);
         } catch (MetaDataNotFoundException e) {
             final Optional<PurgedPersistentIdentifier> optionalPurgedPersistentIdentifier =
@@ -485,6 +492,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             return Response.status(INTERNAL_SERVER_ERROR)
                 .entity(getErrorEntity(INTERNAL_SERVER_ERROR, e.getMessage()))
                 .build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(e);
+            return Response.status(UNAUTHORIZED).entity(getErrorStream(UNAUTHORIZED, e.getMessage())).build();
         }
     }
 
@@ -509,7 +519,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (final MetadataScrollThresholdExceededException e) {
             return Response.status(Status.EXPECTATION_FAILED).build();
         } catch (final MetadataScrollLimitExceededException e) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            return Response.status(UNAUTHORIZED).build();
         } catch (final Exception ve) {
             LOGGER.error(ve);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -539,7 +549,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (final MetadataScrollThresholdExceededException e) {
             return Response.status(Status.EXPECTATION_FAILED).build();
         } catch (final MetadataScrollLimitExceededException e) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            return Response.status(UNAUTHORIZED).build();
         } catch (final Exception ve) {
             LOGGER.error(ve);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
@@ -1234,9 +1244,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
 
         if (!getVitamSession().getContract().isEveryDataObjectVersion() && !validUsage(xQualifier.split("_")[0])) {
             return Optional.of(
-                Response.status(Status.UNAUTHORIZED)
-                    .entity(getErrorStream(Status.UNAUTHORIZED, "Qualifier not allowed"))
-                    .build()
+                Response.status(UNAUTHORIZED).entity(getErrorStream(UNAUTHORIZED, "Qualifier not allowed")).build()
             );
         }
         try {
@@ -1271,6 +1279,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         final int version = Integer.parseInt(xVersion);
 
         try {
+            accessModule.verifyContractAccessAndAuthorizeDownload();
             return accessModule.getOneObjectFromObjectGroup(idObjectGroup, xQualifier, version, idUnit);
         } catch (final InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
@@ -1299,6 +1308,9 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         } catch (StorageNotFoundException | MetaDataNotFoundException exc) {
             LOGGER.warn(exc);
             return Response.status(NOT_FOUND).entity(getErrorStream(NOT_FOUND, exc.getMessage())).build();
+        } catch (AccessUnauthorizedException e) {
+            LOGGER.error(e);
+            return Response.status(UNAUTHORIZED).entity(getErrorStream(UNAUTHORIZED, e.getMessage())).build();
         }
     }
 
@@ -1306,7 +1318,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         final VitamSession vitamSession = getVitamSession();
         Set<String> versions = vitamSession.getContract().getDataObjectVersion();
 
-        if (versions == null || versions.isEmpty()) {
+        if (versions.isEmpty()) {
             return true;
         }
         for (String version : versions) {
@@ -1336,6 +1348,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
         @PathParam("id_unit") String idUnit
     ) {
         MultivaluedMap<String, String> multipleMap = headers.getRequestHeaders();
+
         return asyncObjectStream(multipleMap, idObjectGroup, idUnit);
     }
 
@@ -1542,7 +1555,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 getVitamSession().getContract().getWritingPermission() == null ||
                 !getVitamSession().getContract().getWritingPermission()
             ) {
-                status = Status.UNAUTHORIZED;
+                status = UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
             }
 
@@ -1646,7 +1659,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             // Check the writing rights
 
             if (!isAuthorized()) {
-                status = Status.UNAUTHORIZED;
+                status = UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
             }
             String operationId = getVitamSession().getRequestId();
@@ -1739,7 +1752,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 getVitamSession().getContract().getWritingPermission() == null ||
                 !getVitamSession().getContract().getWritingPermission()
             ) {
-                status = Status.UNAUTHORIZED;
+                status = UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
             }
 
@@ -1834,7 +1847,7 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
                 getVitamSession().getContract().getWritingPermission() == null ||
                 !getVitamSession().getContract().getWritingPermission()
             ) {
-                status = Status.UNAUTHORIZED;
+                status = UNAUTHORIZED;
                 return Response.status(status).entity(getErrorEntity(status, WRITE_PERMISSION_NOT_ALLOWED)).build();
             }
 
@@ -1932,8 +1945,8 @@ public class AccessInternalResourceImpl extends ApplicationStatusResource implem
             JsonNode restrictedQuery = applyAccessContractRestrictionForUnitForSelect(dslQuery.deepCopy(), contract);
 
             if (!isAuthorized()) {
-                return Response.status(Status.UNAUTHORIZED)
-                    .entity(getErrorEntity(Status.UNAUTHORIZED, WRITE_PERMISSION_NOT_ALLOWED))
+                return Response.status(UNAUTHORIZED)
+                    .entity(getErrorEntity(UNAUTHORIZED, WRITE_PERMISSION_NOT_ALLOWED))
                     .build();
             }
 

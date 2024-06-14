@@ -105,6 +105,7 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.common.GlobalDataRest.X_REQUEST_ID;
 import static fr.gouv.vitam.common.model.objectgroup.FileInfoModel.FILENAME;
 import static fr.gouv.vitam.common.model.objectgroup.FileInfoModel.LAST_MODIFIED;
+import static fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse.ID;
 import static fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse.OPERATIONS;
 import static fr.gouv.vitam.logbook.common.parameters.Contexts.DEFAULT_WORKFLOW;
 import static fr.gouv.vitam.metadata.core.MetaDataImpl.SNAPSHOT_COLLECTION;
@@ -577,6 +578,7 @@ public class AccessExternalIT extends VitamRuleRunner {
         if (collection.equals(MetadataCollections.UNIT)) {
             return accessExternalClient.selectUnits(vitamContext, select.getFinalSelect());
         }
+
         return accessExternalClient.selectObjects(vitamContext, select.getFinalSelect());
     }
 
@@ -603,6 +605,32 @@ public class AccessExternalIT extends VitamRuleRunner {
         assertEquals(1, resultUnit.size());
         assertEquals("monSIP", resultUnit.get(0).get("Title").asText());
         assertThat(resultUnit).isNotEmpty();
+
+        //When
+        vitamContext.setAccessContract("aName6");
+
+        // THEN
+        assertThatCode(
+            () ->
+                accessExternalClient.getObjectStreamByUnitId(
+                    vitamContext,
+                    resultUnit.get(0).get(ID).asText(),
+                    "BinaryMaster",
+                    0
+                )
+        )
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Error with the response, get status: '401' and reason 'Unauthorized'.");
+
+        assertThatCode(
+            () ->
+                accessExternalClient.downloadObjectByObjectPersistentIdentifier(
+                    vitamContext,
+                    "ark:/22567/001a957db5eadaac"
+                )
+        )
+            .isInstanceOf(VitamClientException.class)
+            .hasMessageContaining("Error with the response, get status: '401' and reason 'Unauthorized'.");
     }
 
     /**
