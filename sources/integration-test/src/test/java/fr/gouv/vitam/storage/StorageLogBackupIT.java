@@ -267,8 +267,8 @@ public class StorageLogBackupIT extends VitamRuleRunner {
         assertThat(storageLog.get(StorageLogbookParameterName.eventType.name()).asText()).isEqualTo("CREATE");
         assertThat(storageLog.get(StorageLogbookParameterName.tenantId.name()).asInt()).isEqualTo(TENANT_0);
         assertThat(storageLog.get(StorageLogbookParameterName.eventDateTime.name()).asText()).isBetween(
-            LocalDateUtil.getFormattedDateForMongo(beforeWrite),
-            LocalDateUtil.getFormattedDateForMongo(afterWrite)
+            LocalDateUtil.getFormattedDateTimeForMongo(beforeWrite),
+            LocalDateUtil.getFormattedDateTimeForMongo(afterWrite)
         );
     }
 
@@ -285,8 +285,8 @@ public class StorageLogBackupIT extends VitamRuleRunner {
         assertThat(storageLog.get(StorageLogbookParameterName.eventType.name()).asText()).isEqualTo("DELETE");
         assertThat(storageLog.get(StorageLogbookParameterName.tenantId.name()).asInt()).isEqualTo(TENANT_0);
         assertThat(storageLog.get(StorageLogbookParameterName.eventDateTime.name()).asText()).isBetween(
-            LocalDateUtil.getFormattedDateForMongo(beforeWrite),
-            LocalDateUtil.getFormattedDateForMongo(afterWrite)
+            LocalDateUtil.getFormattedDateTimeForMongo(beforeWrite),
+            LocalDateUtil.getFormattedDateTimeForMongo(afterWrite)
         );
     }
 }

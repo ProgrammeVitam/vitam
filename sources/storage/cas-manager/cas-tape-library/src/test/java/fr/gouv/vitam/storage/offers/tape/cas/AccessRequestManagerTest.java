@@ -280,9 +280,7 @@ public class AccessRequestManagerTest {
         assertThat(accessRequest.getRequestId()).isEqualTo(accessRequestId);
         assertThat(accessRequest.getObjectNames()).containsExactlyInAnyOrder("obj1", "obj2");
         assertThat(accessRequest.getUnavailableArchiveIds()).containsExactly("tarId4");
-        assertThat(accessRequest.getCreationDate()).isEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-        );
+        assertThat(accessRequest.getCreationDate()).isEqualTo(LocalDateUtil.nowFormatted());
         assertThat(accessRequest.getReadyDate()).isNull();
         assertThat(accessRequest.getExpirationDate()).isNull();
         assertThat(accessRequest.getPurgeDate()).isNull();
@@ -410,15 +408,13 @@ public class AccessRequestManagerTest {
         assertThat(accessRequest.getRequestId()).isEqualTo(accessRequestId);
         assertThat(accessRequest.getObjectNames()).containsExactlyInAnyOrder("obj1", "obj2");
         assertThat(accessRequest.getUnavailableArchiveIds()).isEmpty();
-        assertThat(accessRequest.getCreationDate()).isEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-        );
-        assertThat(accessRequest.getReadyDate()).isEqualTo(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        assertThat(accessRequest.getCreationDate()).isEqualTo(LocalDateUtil.nowFormatted());
+        assertThat(accessRequest.getReadyDate()).isEqualTo(LocalDateUtil.nowFormatted());
         assertThat(accessRequest.getExpirationDate()).isEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().plusMinutes(30))
+            LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.now().plusMinutes(30))
         );
         assertThat(accessRequest.getPurgeDate()).isEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().plusMinutes(60))
+            LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.now().plusMinutes(60))
         );
         assertThat(accessRequest.getVersion()).isEqualTo(0);
 
@@ -529,9 +525,7 @@ public class AccessRequestManagerTest {
         assertThat(accessRequest.getRequestId()).isEqualTo(accessRequestId);
         assertThat(accessRequest.getObjectNames()).containsExactlyInAnyOrder("obj1", "obj2");
         assertThat(accessRequest.getUnavailableArchiveIds()).containsExactlyInAnyOrder("tarId1", "tarId2", "tarId3");
-        assertThat(accessRequest.getCreationDate()).isEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-        );
+        assertThat(accessRequest.getCreationDate()).isEqualTo(LocalDateUtil.nowFormatted());
         assertThat(accessRequest.getReadyDate()).isNull();
         assertThat(accessRequest.getExpirationDate()).isNull();
         assertThat(accessRequest.getPurgeDate()).isNull();
@@ -1744,18 +1738,18 @@ public class AccessRequestManagerTest {
 
     private String nextDate() {
         logicalClock.logicalSleep(1, ChronoUnit.SECONDS);
-        return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+        return LocalDateUtil.nowFormatted();
     }
 
     private String now() {
-        return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+        return LocalDateUtil.nowFormatted();
     }
 
     private String getNowPlusMinutes(int plusMinutes) {
-        return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().plusMinutes(plusMinutes));
+        return LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.now().plusMinutes(plusMinutes));
     }
 
     private String getNowMinusMinutes(int minusMinutes) {
-        return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now().minusMinutes(minusMinutes));
+        return LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.now().minusMinutes(minusMinutes));
     }
 }

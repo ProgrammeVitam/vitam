@@ -28,6 +28,7 @@ package fr.gouv.vitam.storage.offers.core;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Stopwatch;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.collection.CloseableIterable;
@@ -73,7 +74,6 @@ import org.apache.commons.collections4.iterators.PeekingIterator;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -796,7 +796,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         CompactedOfferLog compactedOfferLog = new CompactedOfferLog(
             first.getSequence(),
             last.getSequence(),
-            LocalDateTime.now(),
+            LocalDateUtil.now(),
             first.getContainer(),
             bulkToSend
         );

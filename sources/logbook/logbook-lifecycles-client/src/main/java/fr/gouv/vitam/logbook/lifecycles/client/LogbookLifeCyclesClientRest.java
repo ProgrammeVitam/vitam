@@ -108,7 +108,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         String oid = parameters.getParameterValue(LogbookParameterName.objectIdentifier);
 
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
 
         ParametersChecker.checkNullOrEmptyParameters(
             parameters.getMapParameters(),
@@ -136,7 +136,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
         if (parameters.getParameterValue(LogbookParameterName.eventDateTime) == null) {
-            parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+            parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
         }
         ParametersChecker.checkNullOrEmptyParameters(
             parameters.getMapParameters(),
@@ -166,7 +166,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     public void commit(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
 
         ParametersChecker.checkNullOrEmptyParameters(
             parameters.getMapParameters(),
@@ -189,7 +189,7 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
     public void rollback(LogbookLifeCycleParameters parameters)
         throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
 
         ParametersChecker.checkNullOrEmptyParameters(
             parameters.getMapParameters(),
@@ -283,8 +283,8 @@ class LogbookLifeCyclesClientRest extends DefaultClient implements LogbookLifeCy
         int limit
     ) throws LogbookClientException, InvalidParseOperationException, IOException {
         RawLifecycleByLastPersistedDateRequest request = new RawLifecycleByLastPersistedDateRequest(
-            LocalDateUtil.getFormattedDateForMongo(startDate),
-            LocalDateUtil.getFormattedDateForMongo(endDate),
+            LocalDateUtil.getFormattedDateTimeForMongo(startDate),
+            LocalDateUtil.getFormattedDateTimeForMongo(endDate),
             limit
         );
         Response response = null;

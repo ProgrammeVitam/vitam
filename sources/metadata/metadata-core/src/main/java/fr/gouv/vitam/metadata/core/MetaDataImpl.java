@@ -1228,7 +1228,7 @@ public class MetaDataImpl {
             scrollDateFilter,
             combine(
                 setOnInsert(VitamDocument.ID, GUIDFactory.newGUID().getId()),
-                set(MetadataSnapshot.VALUE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+                set(MetadataSnapshot.VALUE, LocalDateUtil.nowFormatted())
             ),
             new UpdateOptions().upsert(true)
         );

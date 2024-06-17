@@ -390,7 +390,7 @@ public class OfferDiffProcess {
     }
 
     private String getCurrentDate() {
-        return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+        return LocalDateUtil.nowFormatted();
     }
 
     private File createTempFile(File diffOperationTempDir) throws IOException {

@@ -193,7 +193,7 @@ public class AccessRequestManager {
                 .map(TapeArchiveReferentialEntity::getArchiveId)
                 .collect(Collectors.toList());
             LocalDateTime now = LocalDateUtil.now();
-            String creationDate = LocalDateUtil.getFormattedDateForMongo(now);
+            String creationDate = LocalDateUtil.getFormattedDateTimeForMongo(now);
             String readyDate = unavailableArchiveIds.isEmpty() ? computeReadyDate(now) : null;
             String expirationDate = unavailableArchiveIds.isEmpty() ? computeExpirationDate(now) : null;
             String purgeDate = unavailableArchiveIds.isEmpty() ? computePurgeDate(now) : null;
@@ -247,7 +247,7 @@ public class AccessRequestManager {
             List<TapeAccessRequestReferentialEntity> accessRequestEntities =
                 accessRequestReferentialRepository.findByRequestIds(accessRequestIdSet);
 
-            String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+            String now = LocalDateUtil.nowFormatted();
             boolean skipTenantCheck = skipTenantCheck(adminCrossTenantAccessRequestAllowed);
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
@@ -750,17 +750,17 @@ public class AccessRequestManager {
     }
 
     private String computeReadyDate(LocalDateTime now) {
-        return LocalDateUtil.getFormattedDateForMongo(now);
+        return LocalDateUtil.getFormattedDateTimeForMongo(now);
     }
 
     private String computeExpirationDate(LocalDateTime now) {
-        return LocalDateUtil.getFormattedDateForMongo(
+        return LocalDateUtil.getFormattedDateTimeForMongo(
             now.plus(this.accessRequestExpirationDelay, this.accessRequestExpirationUnit.toChronoUnit())
         );
     }
 
     private String computePurgeDate(LocalDateTime now) {
-        return LocalDateUtil.getFormattedDateForMongo(
+        return LocalDateUtil.getFormattedDateTimeForMongo(
             now.plus(this.accessRequestPurgeDelay, this.accessRequestPurgeUnit.toChronoUnit())
         );
     }

@@ -448,12 +448,12 @@ public class LogbookOperationTraceabilityHelper implements LogbookTraceabilityHe
 
     @Override
     public String getTraceabilityStartDate() {
-        return LocalDateUtil.getFormattedDateForMongo(traceabilityStartDate);
+        return LocalDateUtil.getFormattedDateTimeForMongo(traceabilityStartDate);
     }
 
     @Override
     public String getTraceabilityEndDate() {
-        return LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate);
+        return LocalDateUtil.getFormattedDateTimeForMongo(traceabilityEndDate);
     }
 
     private void extractPreviousEvent() throws InvalidParseOperationException {

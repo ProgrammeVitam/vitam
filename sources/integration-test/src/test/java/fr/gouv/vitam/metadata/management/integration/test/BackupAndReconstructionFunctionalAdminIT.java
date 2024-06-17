@@ -1146,7 +1146,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.TENANT_ID, 1)
             .append(Unit.UP, Lists.newArrayList())
             .append("fakefake", "fakefake")
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(Unit.ORIGINATING_AGENCY, "OA1")
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA1"));
 
@@ -1155,7 +1155,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.TENANT_ID, 1)
             .append(Unit.UP, Lists.newArrayList())
             .append("fakefake", "fakefake")
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(Unit.ORIGINATING_AGENCY, "OA2")
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
@@ -1164,7 +1164,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.TENANT_ID, 1)
             .append(Unit.OG, "GOT_8")
             .append(Unit.UP, Lists.newArrayList("AU_1"))
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(Unit.ORIGINATING_AGENCY, "OA1")
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA1"));
 
@@ -1174,7 +1174,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.OG, "GOT_4")
             .append(Unit.UP, Lists.newArrayList("AU_1", "AU_2"))
             .append("fakefake", "fakefake")
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(Unit.ORIGINATING_AGENCY, "OA4")
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA4", "OA1", "OA2"));
 
@@ -1183,7 +1183,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.TENANT_ID, 1)
             .append(Unit.UP, Lists.newArrayList("AU_2"))
             .append("fakefake", "fakefake")
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(Unit.ORIGINATING_AGENCY, "OA2")
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
@@ -1193,7 +1193,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.OG, "GOT_6")
             .append(Unit.UP, Lists.newArrayList("AU_2", "AU_5"))
             .append(Unit.ORIGINATING_AGENCY, "OA2")
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
         Document au7 = new Document(Unit.ID, "AU_7")
@@ -1201,7 +1201,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.TENANT_ID, 1)
             .append(Unit.OG, "GOT_8")
             .append(Unit.UP, Lists.newArrayList("AU_4"))
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(Unit.ORIGINATING_AGENCY, "OA4")
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA4", "OA1", "OA2"));
 
@@ -1211,7 +1211,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.OG, "GOT_8")
             .append(Unit.UP, Lists.newArrayList("AU_6", "AU_4"))
             .append("fakefake", "fakefake")
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(Unit.ORIGINATING_AGENCY, "OA2")
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA4", "OA1", "OA2"));
 
@@ -1221,7 +1221,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.OG, "GOT_9")
             .append(Unit.UP, Lists.newArrayList("AU_5", "AU_6"))
             .append("fakefake", "fakefake")
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(Unit.ORIGINATING_AGENCY, "OA2")
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA2"));
 
@@ -1230,7 +1230,7 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.TENANT_ID, 1)
             .append(Unit.OG, "GOT_10")
             .append(Unit.UP, Lists.newArrayList("AU_8", "AU_9"))
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(Unit.ORIGINATING_AGENCY, "OA2")
             .append(Unit.ORIGINATING_AGENCIES, Lists.newArrayList("OA4", "OA1", "OA2"));
 
@@ -1250,13 +1250,13 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
             .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_4"))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA4")
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(ObjectGroup.ORIGINATING_AGENCIES, Lists.newArrayList("OA4"));
 
         // Got 6 have Graph Data
         Document got6 = new Document(ObjectGroup.ID, "GOT_6")
             .append(Unit.TENANT_ID, 1)
-            .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(ObjectGroup.UP, Lists.newArrayList("AU_6"))
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2")
             .append(ObjectGroup.ORIGINATING_AGENCIES, Lists.newArrayList("OA4", "OA1", "OA2"));
@@ -1265,19 +1265,19 @@ public class BackupAndReconstructionFunctionalAdminIT extends VitamRuleRunner {
         Document got8 = new Document(ObjectGroup.ID, "GOT_8")
             .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_8", "AU_3", "AU_7"))
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         Document got9 = new Document(ObjectGroup.ID, "GOT_9")
             .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_9"))
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         Document got10 = new Document(ObjectGroup.ID, "GOT_10")
             .append(Unit.TENANT_ID, 1)
             .append(ObjectGroup.UP, Lists.newArrayList("AU_10"))
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
             .append(ObjectGroup.ORIGINATING_AGENCY, "OA2");
 
         List<Document> gots = Lists.newArrayList(got4, got6, got8, got9, got10);

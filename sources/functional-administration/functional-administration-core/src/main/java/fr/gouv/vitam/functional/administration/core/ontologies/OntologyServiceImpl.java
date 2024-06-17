@@ -717,7 +717,7 @@ public class OntologyServiceImpl implements OntologyService {
         OntologyManager manager,
         Map<String, List<ErrorReportOntologies>> errors
     ) {
-        final String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+        final String now = LocalDateUtil.nowFormatted();
 
         ontologyModelList.forEach(ontology -> {
             // Identifier format (EXTERNAL)
@@ -744,8 +744,8 @@ public class OntologyServiceImpl implements OntologyService {
             try {
                 final String date = StringUtils.isBlank(ontology.getCreationdate())
                     ? now
-                    : LocalDateUtil.getFormattedDateForMongo(ontology.getCreationdate());
-                ontology.setCreationdate(LocalDateUtil.getFormattedDateForMongo(date));
+                    : LocalDateUtil.getFormattedDateTimeForMongo(ontology.getCreationdate());
+                ontology.setCreationdate(LocalDateUtil.getFormattedDateTimeForMongo(date));
             } catch (Exception e) {
                 LOGGER.error("Error ontology parse dates", e);
 
@@ -1121,7 +1121,7 @@ public class OntologyServiceImpl implements OntologyService {
         updateOntologies.setQuery(eq(TAG_IDENTIFIER, ontologyModel.getIdentifier()));
         updateOntologies.addActions(
             new SetAction(TAG_DESCRIPTION, ontologyModel.getDescription()),
-            new SetAction(LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())),
+            new SetAction(LAST_UPDATE, LocalDateUtil.nowFormatted()),
             new SetAction(TAG_APIFIELD, ontologyModel.getApiField()),
             new SetAction(TAG_SEDAFIELD, ontologyModel.getSedaField()),
             new SetAction(TAG_TYPE, ontologyModel.getType().toString()),
@@ -1180,7 +1180,7 @@ public class OntologyServiceImpl implements OntologyService {
         final ObjectNode guidmasterNode = JsonHandler.createObjectNode();
         final ObjectNode lineNode = JsonHandler.createObjectNode();
         guidmasterNode.put(EV_TYPE, ONTOLOGY_IMPORT_EVENT);
-        guidmasterNode.put(EV_DATE_TIME, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        guidmasterNode.put(EV_DATE_TIME, LocalDateUtil.nowFormatted());
         if (eipMaster != null) {
             guidmasterNode.put(EV_ID, eipMaster.toString());
         }
@@ -1231,7 +1231,7 @@ public class OntologyServiceImpl implements OntologyService {
         final ArrayNode createdArrayNode = JsonHandler.createArrayNode();
         final ArrayNode updatedArrayNode = JsonHandler.createArrayNode();
         guidmasterNode.put(EV_TYPE, ONTOLOGY_IMPORT_EVENT);
-        guidmasterNode.put(EV_DATE_TIME, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        guidmasterNode.put(EV_DATE_TIME, LocalDateUtil.nowFormatted());
         guidmasterNode.put(EV_ID, eip.toString());
         guidmasterNode.put(OUT_MESSG, ONTOLOGY_IMPORT_EVENT);
         for (OntologyModel ontologyModel : createdOntologies) {

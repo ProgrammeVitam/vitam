@@ -118,7 +118,7 @@ public class PurgeAccessionRegisterUpdatePlugin extends ActionHandler {
                 .setTotalGots(-1 * purgeAccessionRegisterModel.getTotalObjectGroups())
                 .setTotalObjects(-1 * purgeAccessionRegisterModel.getTotalObjects())
                 .setObjectSize(-1 * purgeAccessionRegisterModel.getTotalSize())
-                .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+                .setCreationdate(LocalDateUtil.nowFormatted());
 
             RegisterValueDetailModel totalUnits = new RegisterValueDetailModel()
                 .setIngested(0)
@@ -137,7 +137,7 @@ public class PurgeAccessionRegisterUpdatePlugin extends ActionHandler {
                 .setDeleted(purgeAccessionRegisterModel.getTotalSize())
                 .setRemained(-1 * purgeAccessionRegisterModel.getTotalSize());
 
-            String updateDate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+            String updateDate = LocalDateUtil.nowFormatted();
 
             int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
             GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(tenantId);

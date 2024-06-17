@@ -137,7 +137,7 @@ public class StoreGraphServiceTest {
         given(findIterableGot.iterator()).willReturn(mongoCursorGot);
 
         when(mongoCursorUnit.next()).thenAnswer(
-            o -> Document.parse("{\"_glpd\": \"" + LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()) + "\"}")
+            o -> Document.parse("{\"_glpd\": \"" + LocalDateUtil.nowFormatted() + "\"}")
         );
     }
 

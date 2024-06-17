@@ -262,13 +262,13 @@ public class LogbookOperationsImpl implements LogbookOperations {
                 .add(
                     QueryHelper.gte(
                         VitamFieldsHelper.lastPersistedDate(),
-                        LocalDateUtil.getFormattedDateForMongo(startDate)
+                        LocalDateUtil.getFormattedDateTimeForMongo(startDate)
                     )
                 )
                 .add(
                     QueryHelper.lte(
                         VitamFieldsHelper.lastPersistedDate(),
-                        LocalDateUtil.getFormattedDateForMongo(endDate)
+                        LocalDateUtil.getFormattedDateTimeForMongo(endDate)
                     )
                 )
         );
@@ -540,13 +540,13 @@ public class LogbookOperationsImpl implements LogbookOperations {
                     .add(
                         gte(
                             VitamFieldsHelper.lastPersistedDate(),
-                            LocalDateUtil.getFormattedDateForMongo(traceabilityStartDate)
+                            LocalDateUtil.getFormattedDateTimeForMongo(traceabilityStartDate)
                         )
                     )
                     .add(
                         lte(
                             VitamFieldsHelper.lastPersistedDate(),
-                            LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate)
+                            LocalDateUtil.getFormattedDateTimeForMongo(traceabilityEndDate)
                         )
                     )
                     .add(not().add(in("evTypeProc", ignoredBackgroundLogbookTypeProcesses)))

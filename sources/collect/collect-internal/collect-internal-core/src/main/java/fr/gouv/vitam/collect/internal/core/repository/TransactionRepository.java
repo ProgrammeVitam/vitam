@@ -129,7 +129,7 @@ public class TransactionRepository {
     }
 
     private UpdateOneModel<Document> getUpdateOneModel(TransactionModel transactionModel) {
-        transactionModel.setLastUpdate(LocalDateUtil.now().toString());
+        transactionModel.setLastUpdate(LocalDateUtil.nowFormatted());
         Document documentToUpdate = new Document()
             .append(
                 SET,

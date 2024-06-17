@@ -507,10 +507,7 @@ public class ContextServiceImpl implements ContextService {
             final JsonNode fieldName = fieldToSet.get(BuilderToken.UPDATEACTION.SET.exactToken());
             if (fieldName != null) {
                 ((ObjectNode) fieldName).remove(ContextModel.TAG_CREATION_DATE);
-                ((ObjectNode) fieldName).put(
-                        ContextModel.TAG_LAST_UPDATE,
-                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-                    );
+                ((ObjectNode) fieldName).put(ContextModel.TAG_LAST_UPDATE, LocalDateUtil.nowFormatted());
             }
         }
 

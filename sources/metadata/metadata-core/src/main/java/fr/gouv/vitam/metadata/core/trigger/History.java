@@ -57,7 +57,7 @@ public class History {
         final ArrayNode historyArray = JsonHandler.createArrayNode();
         ObjectNode history = JsonHandler.createObjectNode();
         historyArray.add(history);
-        history.put(UD, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        history.put(UD, LocalDateUtil.nowFormatted());
         ObjectNode data = history.putObject(DATA);
         data.put(_V, version);
         if (nodeToHistory.isMissingNode()) {
@@ -71,7 +71,7 @@ public class History {
 
     public JsonNode getNode() {
         ObjectNode history = JsonHandler.createObjectNode();
-        history.put(UD, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        history.put(UD, LocalDateUtil.nowFormatted());
         ObjectNode data = history.putObject(DATA);
         data.put(_V, version);
         createBranch(data).set(namePathForHistory, nodeToHistory);

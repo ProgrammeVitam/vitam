@@ -87,6 +87,7 @@ abstract class AbstractParameters implements LogbookParameters {
     public LocalDateTime getEventDateTime() {
         final String date = mapParameters.get(LogbookParameterName.eventDateTime);
         if (!Strings.isNullOrEmpty(date)) {
+            //TODO :LocalDateUtil
             return LocalDateTime.parse(date);
         }
         return null;
