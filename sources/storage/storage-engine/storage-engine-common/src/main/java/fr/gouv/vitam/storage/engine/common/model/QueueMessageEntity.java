@@ -45,10 +45,10 @@ public class QueueMessageEntity {
     private QueueState state = QueueState.READY;
 
     @JsonProperty(TAG_LAST_UPDATE)
-    private String lastUpdate = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+    private String lastUpdate = LocalDateUtil.nowFormatted();
 
     @JsonProperty(TAG_CREATION_DATE)
-    private String created = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+    private String created = LocalDateUtil.nowFormatted();
 
     @JsonProperty(MESSAGE_TYPE)
     private QueueMessageType messageType;

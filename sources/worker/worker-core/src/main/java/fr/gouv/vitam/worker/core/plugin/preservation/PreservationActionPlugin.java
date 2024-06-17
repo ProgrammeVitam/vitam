@@ -28,6 +28,7 @@ package fr.gouv.vitam.worker.core.plugin.preservation;
 
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.batch.report.model.entry.PreservationReportEntry;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -354,7 +355,7 @@ public class PreservationActionPlugin extends ActionHandler {
             GUIDFactory.newGUID().toString(),
             requestId,
             tenant,
-            now.toString(),
+            LocalDateUtil.getFormattedDateTimeForMongo(now),
             value.getOutput().getStatus(),
             model.getUnitId(),
             model.getId(),

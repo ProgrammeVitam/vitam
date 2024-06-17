@@ -452,7 +452,7 @@ public class AccessContractImplTest {
         }
 
         // Test update for access contract Status => inactive
-        final String now = LocalDateUtil.now().toString();
+        final String now = LocalDateUtil.nowFormatted();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         final SetAction setActionStatusInactive = UpdateActionHelper.set(
             "Status",
@@ -549,7 +549,7 @@ public class AccessContractImplTest {
         }
 
         // Test update for access contract Status => inactive
-        final String now = LocalDateUtil.now().toString();
+        final String now = LocalDateUtil.nowFormatted();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         final SetAction setActionStatusInactive = UpdateActionHelper.set(
             "Status",
@@ -1153,7 +1153,7 @@ public class AccessContractImplTest {
         }
 
         // Test update existing originatingAgencies
-        final String now = LocalDateUtil.now().toString();
+        final String now = LocalDateUtil.nowFormatted();
         UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         List<String> agencies = new ArrayList<>();
         agencies.add("FR_ORG_AGEN");

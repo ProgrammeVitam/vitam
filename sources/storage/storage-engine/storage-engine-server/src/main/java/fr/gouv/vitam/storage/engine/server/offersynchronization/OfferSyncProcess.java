@@ -118,7 +118,7 @@ public class OfferSyncProcess {
     }
 
     private String getCurrentDate() {
-        return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+        return LocalDateUtil.nowFormatted();
     }
 
     public void synchronize(

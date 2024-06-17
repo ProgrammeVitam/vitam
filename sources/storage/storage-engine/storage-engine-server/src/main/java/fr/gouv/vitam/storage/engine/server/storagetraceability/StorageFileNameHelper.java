@@ -26,8 +26,9 @@
  */
 package fr.gouv.vitam.storage.engine.server.storagetraceability;
 
+import fr.gouv.vitam.common.LocalDateUtil;
+
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * Helper class for storage file name parsing
@@ -50,7 +51,7 @@ public final class StorageFileNameHelper {
         // FileNamePattern (new): <Tenant>_<FileKind>_<GUID>_<yyyyMMdd-Date>_<HHmmss-Time>.zip
         String date =
             splittedFileName[splittedFileName.length - 2] + '-' + splittedFileName[splittedFileName.length - 1];
-        return LocalDateTime.parse(date, DateTimeFormatter.ofPattern("uuuuMMdd-HHmmss"));
+        return LocalDateTime.parse(date, LocalDateUtil.getDateTimeFormatterForStorageTraceabilityFileNames());
     }
 
     /**
@@ -62,6 +63,6 @@ public final class StorageFileNameHelper {
     public static LocalDateTime parseDateFromStorageLogFileName(String fileName) {
         // FileNamePattern: <Tenant>_<file_kind>_<yyyyMMddHHmmssSSS-StartDate>_<yyyyMMddHHmmssSSS-EndDate>_<OperationID>.log
         String date = fileName.split("_")[4].substring(0, 8) + '-' + fileName.split("_")[4].substring(8, 17);
-        return LocalDateTime.parse(date, DateTimeFormatter.ofPattern("uuuuMMdd-HHmmssSSS"));
+        return LocalDateTime.parse(date, LocalDateUtil.getDateTimeFormatterForStorageLogFileNames());
     }
 }

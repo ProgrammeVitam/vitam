@@ -1201,10 +1201,7 @@ public class DbRequest {
             final ObjectNode transformedUpdatedDocument = ontologyValidator.verifyAndReplaceFields(updatedJsonDocument);
 
             if (newDocumentVersion != documentVersion) {
-                transformedUpdatedDocument.put(
-                    MetadataDocument.APPROXIMATE_UPDATE_DATE,
-                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-                );
+                transformedUpdatedDocument.put(MetadataDocument.APPROXIMATE_UPDATE_DATE, LocalDateUtil.nowFormatted());
             }
 
             if (metadataCollection == MetadataCollections.UNIT) {

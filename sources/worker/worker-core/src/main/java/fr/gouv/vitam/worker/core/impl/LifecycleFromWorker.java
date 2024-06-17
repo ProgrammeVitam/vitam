@@ -24,8 +24,10 @@
  * The fact that you are presently reading this means that you have had knowledge of the CeCILL 2.1 license and that you
  * accept its terms.
  */
+
 package fr.gouv.vitam.worker.core.impl;
 
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.InvalidGuidOperationException;
 import fr.gouv.vitam.common.exception.VitamClientInternalException;
@@ -51,8 +53,6 @@ import fr.gouv.vitam.worker.common.utils.LogbookLifecycleWorkerHelper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import static fr.gouv.vitam.common.LocalDateUtil.now;
 
 /**
  * classe permettant de générer des LFC à partir des ItemStatus renvoyé par le résultat d'une action.
@@ -147,7 +147,7 @@ class LifecycleFromWorker {
                     GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams))
                 );
 
-                lfcParam.putParameterValue(LogbookParameterName.eventDateTime, now().toString());
+                lfcParam.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
 
                 break;
             case ObjectGroup:
@@ -163,7 +163,7 @@ class LifecycleFromWorker {
                     GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams))
                 );
 
-                lfcParam.putParameterValue(LogbookParameterName.eventDateTime, now().toString());
+                lfcParam.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
 
                 break;
         }

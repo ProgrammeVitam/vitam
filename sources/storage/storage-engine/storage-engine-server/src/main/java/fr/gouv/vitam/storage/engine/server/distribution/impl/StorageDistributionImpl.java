@@ -1906,7 +1906,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         StorageLogbookOutcome outcome
     ) {
         final Map<StorageLogbookParameterName, String> mandatoryParameters = new TreeMap<>();
-        mandatoryParameters.put(StorageLogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        mandatoryParameters.put(StorageLogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
         mandatoryParameters.put(StorageLogbookParameterName.outcome, outcome.name());
         mandatoryParameters.put(StorageLogbookParameterName.objectIdentifier, objectIdentifier);
         mandatoryParameters.put(StorageLogbookParameterName.dataCategory, dataCategory);
@@ -2062,7 +2062,7 @@ public class StorageDistributionImpl implements StorageDistribution {
             mapParameters.put(StorageLogbookParameterName.size, logInfo.getSize().toString());
         }
 
-        mapParameters.put(StorageLogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        mapParameters.put(StorageLogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
 
         return new AccessLogParameters(mapParameters);
     }

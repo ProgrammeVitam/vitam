@@ -428,7 +428,7 @@ public class ProfileManager {
         return profile -> {
             RejectionCause rejection = null;
 
-            String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+            String now = LocalDateUtil.nowFormatted();
             if (profile.getStatus() == null) {
                 profile.setStatus(ProfileStatus.INACTIVE);
             }
@@ -446,7 +446,7 @@ public class ProfileManager {
                 if (profile.getCreationdate() == null || profile.getCreationdate().trim().isEmpty()) {
                     profile.setCreationdate(now);
                 } else {
-                    profile.setCreationdate(LocalDateUtil.getFormattedDateForMongo(profile.getCreationdate()));
+                    profile.setCreationdate(LocalDateUtil.getFormattedDateTimeForMongo(profile.getCreationdate()));
                 }
             } catch (Exception e) {
                 LOGGER.error(PARSE_PROFILE_DATE_ERROR, e);
@@ -456,7 +456,7 @@ public class ProfileManager {
                 if (profile.getActivationdate() == null || profile.getActivationdate().trim().isEmpty()) {
                     profile.setActivationdate(now);
                 } else {
-                    profile.setActivationdate(LocalDateUtil.getFormattedDateForMongo(profile.getActivationdate()));
+                    profile.setActivationdate(LocalDateUtil.getFormattedDateTimeForMongo(profile.getActivationdate()));
                 }
             } catch (Exception e) {
                 LOGGER.error(PARSE_PROFILE_DATE_ERROR, e);
@@ -466,7 +466,9 @@ public class ProfileManager {
                 if (profile.getDeactivationdate() == null || profile.getDeactivationdate().trim().isEmpty()) {
                     profile.setDeactivationdate(null);
                 } else {
-                    profile.setDeactivationdate(LocalDateUtil.getFormattedDateForMongo(profile.getDeactivationdate()));
+                    profile.setDeactivationdate(
+                        LocalDateUtil.getFormattedDateTimeForMongo(profile.getDeactivationdate())
+                    );
                 }
             } catch (Exception e) {
                 LOGGER.error(PARSE_PROFILE_DATE_ERROR, e);

@@ -1121,8 +1121,8 @@ public class ReconstructionService {
      */
     public void purgeReconstructedDocumentsWithGraphOnlyData(MetadataCollections metaDaCollection) {
         try {
-            String dateDeleteLimit = LocalDateUtil.getFormattedDateForMongo(
-                LocalDateTime.now()
+            String dateDeleteLimit = LocalDateUtil.getFormattedDateTimeForMongo(
+                LocalDateUtil.now()
                     .minus(VitamConfiguration.getDeleteIncompleteReconstructedUnitDelay(), ChronoUnit.SECONDS)
             );
             Bson query = and(exists(Unit.TENANT_ID, false), lte(Unit.GRAPH_LAST_PERSISTED_DATE, dateDeleteLimit));

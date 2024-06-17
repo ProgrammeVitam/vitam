@@ -441,7 +441,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             mergeNewRegisterDetailIntoOld(accessionRegisterDetailStored, newRegisterDetail);
             List<Action> actions = new ArrayList<>();
 
-            actions.add(new SetAction(LAST_UPDATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())));
+            actions.add(new SetAction(LAST_UPDATE, LocalDateUtil.nowFormatted()));
             actions.add(new SetAction(OPC, accessionRegisterDetailStored.getOpc()));
             actions.add(
                 new PushAction(EVENTS, JsonHandler.toJsonNode(convertRegisterDetailToRegisterEvent(newRegisterDetail)))
@@ -578,7 +578,7 @@ public class ReferentialAccessionRegisterImpl implements VitamAutoCloseable {
             .setTotalObjects(registerDetail.getTotalObjects().getRemained())
             .setTotalUnits(registerDetail.getTotalUnits().getRemained())
             .setObjectSize(registerDetail.getObjectSize().getRemained())
-            .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+            .setCreationdate(LocalDateUtil.nowFormatted());
     }
 
     @Override

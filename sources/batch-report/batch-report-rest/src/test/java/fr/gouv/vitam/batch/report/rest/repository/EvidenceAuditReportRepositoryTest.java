@@ -118,7 +118,7 @@ public class EvidenceAuditReportRepositoryTest {
         evidenceAuditReportEntryOK = new EvidenceAuditObjectModel(
             processId,
             TENANT_ID,
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
+            LocalDateUtil.nowFormatted(),
             evidenceAuditReportEntry1
         );
 
@@ -157,7 +157,7 @@ public class EvidenceAuditReportRepositoryTest {
         evidenceAuditReportEntryKO = new EvidenceAuditObjectModel(
             processId,
             TENANT_ID,
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
+            LocalDateUtil.nowFormatted(),
             evidenceAuditReportEntry2
         );
 
@@ -199,7 +199,7 @@ public class EvidenceAuditReportRepositoryTest {
         evidenceAuditReportEntryWARN = new EvidenceAuditObjectModel(
             processId,
             TENANT_ID,
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
+            LocalDateUtil.nowFormatted(),
             evidenceAuditReportEntry3
         );
     }

@@ -36,6 +36,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import fr.gouv.vitam.batch.report.model.entry.DeleteGotVersionsReportEntry;
 import fr.gouv.vitam.batch.report.model.entry.ObjectGroupToDeleteReportEntry;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.VitamException;
@@ -81,7 +82,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.common.LocalDateUtil.now;
 import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNode;
 import static fr.gouv.vitam.common.json.JsonHandler.getFromJsonNodeList;
@@ -90,7 +90,8 @@ import static fr.gouv.vitam.common.model.StatusCode.FATAL;
 import static fr.gouv.vitam.common.model.StatusCode.KO;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.common.model.StatusCode.WARNING;
-import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.*;
+import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.BINARY_MASTER;
+import static fr.gouv.vitam.common.model.administration.DataObjectVersionType.PHYSICAL_MASTER;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
@@ -237,7 +238,7 @@ public class DeleteGotVersionsPreparationPlugin extends ActionHandler {
                     entry.getKey().getLeft(),
                     param.getRequestId(),
                     tenantId,
-                    now().toString(),
+                    LocalDateUtil.nowFormatted(),
                     entry.getKey().getLeft(),
                     entry.getKey().getRight(),
                     entry.getValue(),

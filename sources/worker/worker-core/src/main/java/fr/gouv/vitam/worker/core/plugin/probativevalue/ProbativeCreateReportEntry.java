@@ -245,7 +245,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
-        String startEntryCreation = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+        String startEntryCreation = LocalDateUtil.nowFormatted();
         String objectGroupId = param.getObjectName();
         String usageVersion = param.getObjectMetadata().get("usageVersion").asText();
 

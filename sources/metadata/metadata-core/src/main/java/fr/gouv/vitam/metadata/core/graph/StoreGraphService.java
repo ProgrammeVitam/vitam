@@ -312,8 +312,8 @@ public class StoreGraphService {
             }
 
             // Date in MongoDB
-            final String startDate = LocalDateUtil.getFormattedDateForMongo(lastStoreDate);
-            final String endDate = LocalDateUtil.getFormattedDateForMongo(currentStoreDate);
+            final String startDate = LocalDateUtil.getFormattedDateTimeForMongo(lastStoreDate);
+            final String endDate = LocalDateUtil.getFormattedDateTimeForMongo(currentStoreDate);
             // Zip file name in the storage
             final String graph_store_name = lastStoreDate.format(formatter) + "_" + currentStoreDate.format(formatter);
 

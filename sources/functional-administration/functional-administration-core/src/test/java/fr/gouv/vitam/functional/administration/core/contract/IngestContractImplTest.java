@@ -818,7 +818,7 @@ public class IngestContractImplTest {
 
         final String identifier = responseCast.getResults().get(0).getIdentifier();
         // Test update for ingest contract Status => inactive
-        final String now = LocalDateUtil.now().toString();
+        final String now = LocalDateUtil.nowFormatted();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         final SetAction setActionStatusInactive = UpdateActionHelper.set(
             "Status",
@@ -927,7 +927,7 @@ public class IngestContractImplTest {
         }
 
         final String identifier = responseCast.getResults().get(0).getIdentifier();
-        final String now = LocalDateUtil.now().toString();
+        final String now = LocalDateUtil.nowFormatted();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
 
         final SetAction setActionLastUpdateInactive = UpdateActionHelper.set("LastUpdate", now);
@@ -1210,7 +1210,7 @@ public class IngestContractImplTest {
         }
         final String identifier = responseCast.getResults().get(0).getIdentifier();
         // Test update for ingest contract Status => inactive
-        final String now = LocalDateUtil.now().toString();
+        final String now = LocalDateUtil.nowFormatted();
         final UpdateParserSingle updateParser = new UpdateParserSingle(new SingleVarNameAdapter());
         final SetAction setActionStatusInactive = UpdateActionHelper.set("Status", "INVALID_STATUS");
         final SetAction setActionDesactivationDateInactive = UpdateActionHelper.set("DeactivationDate", now);

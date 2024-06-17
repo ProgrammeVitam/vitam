@@ -213,6 +213,6 @@ public class Unit extends MetadataDocument<Unit> {
         put(MINDEPTH, unitGraphModel.minDepth());
         put(MAXDEPTH, unitGraphModel.maxDepth());
 
-        put(GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        put(GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted());
     }
 }

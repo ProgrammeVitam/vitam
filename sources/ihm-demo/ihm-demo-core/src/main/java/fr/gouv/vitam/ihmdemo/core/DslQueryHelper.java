@@ -1038,6 +1038,7 @@ public class DslQueryHelper {
         String endDate = (String) options.get("endDate");
         String originatingAgency = (String) options.get("OriginatingAgency");
 
+        //TODO :LocalDateUtil
         Date from = Date.from(LocalDateTime.parse(startDate, ISO_OFFSET_DATE_TIME).toInstant(UTC));
         Date to = Date.from(LocalDateTime.parse(endDate, ISO_OFFSET_DATE_TIME).toInstant(UTC));
         RangeQuery range = QueryHelper.range("CreationDate", from, true, to, true);

@@ -135,7 +135,7 @@ public class LogbookOperationTraceabilityHelperTest {
 
         // Then
         assertThat(helper.getTraceabilityStartDate()).isEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(LOGBOOK_OPERATION_EVENT_DATE)
+            LocalDateUtil.getFormattedDateTimeForMongo(LOGBOOK_OPERATION_EVENT_DATE)
         );
         assertThat(LocalDateUtil.parseMongoFormattedDate(helper.getTraceabilityEndDate()))
             .isAfterOrEqualTo(beforeInit.minusSeconds(OPERATION_TRACEABILITY_TEMPORIZATION_DELAY))
@@ -163,7 +163,7 @@ public class LogbookOperationTraceabilityHelperTest {
 
         // Then
         assertThat(helper.getTraceabilityStartDate()).isEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(LogbookTraceabilityHelper.INITIAL_START_DATE)
+            LocalDateUtil.getFormattedDateTimeForMongo(LogbookTraceabilityHelper.INITIAL_START_DATE)
         );
     }
 

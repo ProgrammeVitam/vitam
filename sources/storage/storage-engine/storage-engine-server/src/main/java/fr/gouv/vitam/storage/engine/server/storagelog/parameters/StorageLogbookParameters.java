@@ -97,7 +97,7 @@ public class StorageLogbookParameters implements StorageLogStructure {
         StorageLogbookOutcome outcome
     ) {
         final Map<StorageLogbookParameterName, String> mandatoryParameters = new TreeMap<>();
-        mandatoryParameters.put(StorageLogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        mandatoryParameters.put(StorageLogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
         mandatoryParameters.put(StorageLogbookParameterName.outcome, outcome.name());
         mandatoryParameters.put(StorageLogbookParameterName.objectIdentifier, objectIdentifier);
         mandatoryParameters.put(StorageLogbookParameterName.dataCategory, dataCategory);

@@ -315,7 +315,7 @@ public class ArchiveUnitProfileManager {
         return archiveUnitProfile -> {
             ArchiveUnitProfileValidator.RejectionCause rejection = null;
 
-            String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+            String now = LocalDateUtil.nowFormatted();
             if (archiveUnitProfile.getStatus() == null) {
                 archiveUnitProfile.setStatus(ArchiveUnitProfileStatus.INACTIVE);
             }
@@ -338,7 +338,7 @@ public class ArchiveUnitProfileManager {
                     archiveUnitProfile.setCreationdate(now);
                 } else {
                     archiveUnitProfile.setCreationdate(
-                        LocalDateUtil.getFormattedDateForMongo(archiveUnitProfile.getCreationdate())
+                        LocalDateUtil.getFormattedDateTimeForMongo(archiveUnitProfile.getCreationdate())
                     );
                 }
             } catch (Exception e) {
@@ -353,7 +353,7 @@ public class ArchiveUnitProfileManager {
                     archiveUnitProfile.setActivationdate(now);
                 } else {
                     archiveUnitProfile.setActivationdate(
-                        LocalDateUtil.getFormattedDateForMongo(archiveUnitProfile.getActivationdate())
+                        LocalDateUtil.getFormattedDateTimeForMongo(archiveUnitProfile.getActivationdate())
                     );
                 }
             } catch (Exception e) {
@@ -368,7 +368,7 @@ public class ArchiveUnitProfileManager {
                     archiveUnitProfile.setDeactivationdate(now);
                 } else {
                     archiveUnitProfile.setDeactivationdate(
-                        LocalDateUtil.getFormattedDateForMongo(archiveUnitProfile.getDeactivationdate())
+                        LocalDateUtil.getFormattedDateTimeForMongo(archiveUnitProfile.getDeactivationdate())
                     );
                 }
             } catch (Exception e) {

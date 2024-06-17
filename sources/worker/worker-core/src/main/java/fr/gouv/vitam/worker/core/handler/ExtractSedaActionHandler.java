@@ -1740,7 +1740,7 @@ public class ExtractSedaActionHandler extends ActionHandler {
         Map<String, String> parameters = new HashMap<>();
         parameters.put(eventIdentifier.name(), GUIDFactory.newGUID().getId());
         parameters.put(eventType.name(), "LFC.EXTERNAL_LOGBOOK");
-        parameters.put(eventDateTime.name(), LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        parameters.put(eventDateTime.name(), LocalDateUtil.nowFormatted());
         parameters.put(eventTypeProcess.name(), LogbookTypeProcess.INGEST.name());
         parameters.put(eventIdentifierProcess.name(), processId);
         parameters.put(outcome.name(), StatusCode.OK.name());

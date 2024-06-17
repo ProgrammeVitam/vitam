@@ -681,13 +681,13 @@ public class OntologyServiceImpl implements OntologyService {
             }
 
             // Creation date
-            String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+            String now = LocalDateUtil.nowFormatted();
 
             if (ontology.getCreationdate() == null || ontology.getCreationdate().trim().isEmpty()) {
                 ontology.setCreationdate(now);
             } else {
                 try {
-                    ontology.setCreationdate(LocalDateUtil.getFormattedDateForMongo(ontology.getCreationdate()));
+                    ontology.setCreationdate(LocalDateUtil.getFormattedDateTimeForMongo(ontology.getCreationdate()));
                 } catch (Exception e) {
                     LOGGER.error("Error ontology parse dates", e);
 
@@ -968,7 +968,7 @@ public class OntologyServiceImpl implements OntologyService {
         actions.add(setDescription);
         SetAction setUpdateDate = new SetAction(
             OntologyModel.LAST_UPDATE,
-            LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+            LocalDateUtil.nowFormatted()
         );
         actions.add(setUpdateDate);
 
@@ -1048,7 +1048,7 @@ public class OntologyServiceImpl implements OntologyService {
         final ObjectNode guidmasterNode = JsonHandler.createObjectNode();
         final ObjectNode lineNode = JsonHandler.createObjectNode();
         guidmasterNode.put(EV_TYPE, ONTOLOGY_IMPORT_EVENT);
-        guidmasterNode.put(EV_DATE_TIME, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        guidmasterNode.put(EV_DATE_TIME, LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.now()));
         if (eipMaster != null) {
             guidmasterNode.put(EV_ID, eipMaster.toString());
         }
@@ -1099,7 +1099,7 @@ public class OntologyServiceImpl implements OntologyService {
         final ArrayNode createdArrayNode = JsonHandler.createArrayNode();
         final ArrayNode updatedArrayNode = JsonHandler.createArrayNode();
         guidmasterNode.put(EV_TYPE, ONTOLOGY_IMPORT_EVENT);
-        guidmasterNode.put(EV_DATE_TIME, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+        guidmasterNode.put(EV_DATE_TIME, LocalDateUtil.nowFormatted());
         guidmasterNode.put(EV_ID, eip.toString());
         guidmasterNode.put(OUT_MESSG, ONTOLOGY_IMPORT_EVENT);
         for (OntologyModel ontologyModel : createdOntologies) {

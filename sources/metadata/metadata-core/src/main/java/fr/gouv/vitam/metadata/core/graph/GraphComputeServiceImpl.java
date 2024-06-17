@@ -541,7 +541,7 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
             .append(Unit.MINDEPTH, min)
             .append(Unit.MAXDEPTH, max)
             .append(Unit.GRAPH, graph)
-            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+            .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted());
 
         Document data = new Document($_SET, update).append($_INC, new Document(MetadataDocument.ATOMIC_VERSION, 1));
 
@@ -602,10 +602,7 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
             $_SET,
             new Document(ObjectGroup.ORIGINATING_AGENCIES, sps)
                 .append(Unit.UNITUPS, us)
-                .append(
-                    ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
-                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
-                )
+                .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted())
         ).append($_INC, new Document(MetadataDocument.ATOMIC_VERSION, 1));
 
         return new UpdateOneModel<>(eq(ObjectGroup.ID, gotId), data, new UpdateOptions().upsert(false));

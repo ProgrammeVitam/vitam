@@ -325,13 +325,13 @@ public class LogbookLFCAdministration {
         switch (lfcTraceabilityType) {
             case Unit:
                 return this.logbookLifeCycles.checkUnitLifecycleEntriesExistenceByLastPersistedDate(
-                        LocalDateUtil.getFormattedDateForMongo(traceabilityStartDate),
-                        LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate)
+                        LocalDateUtil.getFormattedDateTimeForMongo(traceabilityStartDate),
+                        LocalDateUtil.getFormattedDateTimeForMongo(traceabilityEndDate)
                     );
             case ObjectGroup:
                 return this.logbookLifeCycles.checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
-                        LocalDateUtil.getFormattedDateForMongo(traceabilityStartDate),
-                        LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate)
+                        LocalDateUtil.getFormattedDateTimeForMongo(traceabilityStartDate),
+                        LocalDateUtil.getFormattedDateTimeForMongo(traceabilityEndDate)
                     );
             default:
                 throw new IllegalStateException("Unexpected value: " + lfcTraceabilityType);

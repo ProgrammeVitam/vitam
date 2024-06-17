@@ -137,7 +137,7 @@ public class TransactionService {
      */
     public void createTransaction(TransactionDto transactionDto, ProjectDto projectDto)
         throws CollectInternalException {
-        final String creationDate = LocalDateUtil.now().toString();
+        final String creationDate = LocalDateUtil.nowFormatted();
 
         TransactionModel transactionModel = new TransactionModel(
             transactionDto.getId(),
@@ -266,7 +266,7 @@ public class TransactionService {
     }
 
     public void replaceTransaction(TransactionModel transactionModel) throws CollectInternalException {
-        final String updateDate = LocalDateUtil.now().toString();
+        final String updateDate = LocalDateUtil.nowFormatted();
         transactionModel.setLastUpdate(updateDate);
         transactionRepository.replaceTransaction(transactionModel);
     }
@@ -323,7 +323,7 @@ public class TransactionService {
                 break;
         }
         transactionModel.setStatus(transactionStatus);
-        transactionModel.setLastUpdate(LocalDateUtil.now().toString());
+        transactionModel.setLastUpdate(LocalDateUtil.nowFormatted());
         replaceTransaction(transactionModel);
     }
 
@@ -335,7 +335,7 @@ public class TransactionService {
         TransactionModel transactionModel = transactionModelOptional.get();
 
         transactionModel.setVitamOperationId(operationId);
-        transactionModel.setLastUpdate(LocalDateUtil.now().toString());
+        transactionModel.setLastUpdate(LocalDateUtil.nowFormatted());
         replaceTransaction(transactionModel);
     }
 

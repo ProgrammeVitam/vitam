@@ -143,7 +143,7 @@ public class AccessRequestReferentialRepository {
 
     public long countReadyAccessRequests() throws AccessRequestReferentialException {
         try {
-            String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+            String now = LocalDateUtil.nowFormatted();
 
             return collection.countDocuments(Filters.gte(TapeAccessRequestReferentialEntity.EXPIRATION_DATE, now));
         } catch (MongoException ex) {
@@ -153,7 +153,7 @@ public class AccessRequestReferentialRepository {
 
     public long countExpiredAccessRequests() throws AccessRequestReferentialException {
         try {
-            String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+            String now = LocalDateUtil.nowFormatted();
 
             return collection.countDocuments(Filters.lt(TapeAccessRequestReferentialEntity.EXPIRATION_DATE, now));
         } catch (MongoException ex) {
@@ -216,7 +216,7 @@ public class AccessRequestReferentialRepository {
     public List<TapeAccessRequestReferentialEntity> cleanupAndGetExpiredAccessRequests()
         throws AccessRequestReferentialException {
         try {
-            String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+            String now = LocalDateUtil.nowFormatted();
 
             List<TapeAccessRequestReferentialEntity> expiredAccessRequests = new ArrayList<>();
             try (
@@ -305,7 +305,7 @@ public class AccessRequestReferentialRepository {
         throws AccessRequestReferentialException {
         try {
             // Select distinct containerName / objectName pairs of non-expired access requests
-            String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
+            String now = LocalDateUtil.nowFormatted();
 
             List<Bson> aggregatePipeline = List.of(
                 // Exclude expired access requests
