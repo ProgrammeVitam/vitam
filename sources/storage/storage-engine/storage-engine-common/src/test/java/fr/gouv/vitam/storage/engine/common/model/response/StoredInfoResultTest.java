@@ -69,28 +69,28 @@ public class StoredInfoResultTest {
     @Test
     public void testGetSetCreationTime() throws Exception {
         final LocalDateTime localDateTime = LocalDateUtil.now();
-        storedInfoResult.setCreationTime(LocalDateUtil.getString(localDateTime));
-        assertEquals(LocalDateUtil.getString(localDateTime), storedInfoResult.getCreationTime());
+        storedInfoResult.setCreationTime(LocalDateUtil.getFormattedDateTimeForMongo(localDateTime));
+        assertEquals(LocalDateUtil.getFormattedDateTimeForMongo(localDateTime), storedInfoResult.getCreationTime());
     }
 
     @Test
     public void testGetSetLastAccessTime() throws Exception {
         final LocalDateTime localDateTime = LocalDateUtil.now();
-        storedInfoResult.setLastAccessTime(LocalDateUtil.getString(localDateTime));
-        assertEquals(LocalDateUtil.getString(localDateTime), storedInfoResult.getLastAccessTime());
+        storedInfoResult.setLastAccessTime(LocalDateUtil.getFormattedDateTimeForMongo(localDateTime));
+        assertEquals(LocalDateUtil.getFormattedDateTimeForMongo(localDateTime), storedInfoResult.getLastAccessTime());
     }
 
     @Test
     public void testGetSetLastCheckedTime() throws Exception {
         final LocalDateTime localDateTime = LocalDateUtil.now();
-        storedInfoResult.setLastCheckedTime(LocalDateUtil.getString(localDateTime));
-        assertEquals(LocalDateUtil.getString(localDateTime), storedInfoResult.getLastCheckedTime());
+        storedInfoResult.setLastCheckedTime(LocalDateUtil.getFormattedDateTimeForMongo(localDateTime));
+        assertEquals(LocalDateUtil.getFormattedDateTimeForMongo(localDateTime), storedInfoResult.getLastCheckedTime());
     }
 
     @Test
     public void testGetSetLastModifiedTime() throws Exception {
         final LocalDateTime localDateTime = LocalDateUtil.now();
-        storedInfoResult.setLastModifiedTime(LocalDateUtil.getString(localDateTime));
-        assertEquals(LocalDateUtil.getString(localDateTime), storedInfoResult.getLastModifiedTime());
+        storedInfoResult.setLastModifiedTime(LocalDateUtil.getFormattedDateTimeForMongo(localDateTime));
+        assertEquals(LocalDateUtil.getFormattedDateTimeForMongo(localDateTime), storedInfoResult.getLastModifiedTime());
     }
 }

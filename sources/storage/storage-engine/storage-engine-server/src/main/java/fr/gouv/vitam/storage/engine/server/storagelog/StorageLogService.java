@@ -243,7 +243,7 @@ public class StorageLogService implements StorageLog {
         String creationDateStr = matcher.group(FILENAME_PATTERN_CREATION_DATE_GROUP);
 
         try {
-            LocalDateTime creationDate = LocalDateTime.parse(
+            LocalDateTime creationDate = LocalDateUtil.parse(
                 creationDateStr,
                 LocalDateUtil.getDateTimeFormatterForFileNames()
             );

@@ -81,7 +81,7 @@ public class OffsetManagerTest {
     public void testSaveNextReconstructionDateInOffset() {
         int tenant = 1;
         final LocalDateTime lastSuccessfulOperationDate = LocalDateUtil.now().minusDays(1);
-        long timestamp = lastSuccessfulOperationDate.atOffset(ZoneOffset.UTC).toInstant().toEpochMilli();
+        long timestamp = LocalDateUtil.toEpochMilliUTC(lastSuccessfulOperationDate);
 
         doNothing()
             .when(offsetRepository)

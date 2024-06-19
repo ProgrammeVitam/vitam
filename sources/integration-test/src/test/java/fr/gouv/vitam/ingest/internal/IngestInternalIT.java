@@ -633,13 +633,13 @@ public class IngestInternalIT extends VitamRuleRunner {
                     .size()
             );
 
-            final LocalDateTime approximateCDAfterUpdate = LocalDateTime.parse(
+            final LocalDateTime approximateCDAfterUpdate = LocalDateUtil.parseMongoFormattedDate(
                 responseUnitAfterUpdatePreventInheritance
                     .getFirstResult()
                     .get(VitamFieldsHelper.approximateCreationDate())
                     .asText()
             );
-            final LocalDateTime approximateUDAfterUpdate = LocalDateTime.parse(
+            final LocalDateTime approximateUDAfterUpdate = LocalDateUtil.parseMongoFormattedDate(
                 responseUnitAfterUpdatePreventInheritance
                     .getFirstResult()
                     .get(VitamFieldsHelper.approximateUpdateDate())
@@ -750,10 +750,10 @@ public class IngestInternalIT extends VitamRuleRunner {
     }
 
     private void checkApproximateDates(LocalDateTime dateBeforeIngest, JsonNode metadata) {
-        final LocalDateTime approximateCD = LocalDateTime.parse(
+        final LocalDateTime approximateCD = LocalDateUtil.parseMongoFormattedDate(
             metadata.get(VitamFieldsHelper.approximateCreationDate()).asText()
         );
-        final LocalDateTime approximateUD = LocalDateTime.parse(
+        final LocalDateTime approximateUD = LocalDateUtil.parseMongoFormattedDate(
             metadata.get(VitamFieldsHelper.approximateUpdateDate()).asText()
         );
 

@@ -31,7 +31,6 @@ import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 
-import java.nio.file.attribute.FileTime;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
@@ -77,31 +76,12 @@ public final class LocalDateUtil {
 
     private static final DateTimeFormatter INDEX_DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
     public static final String LONG_SECOND_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
+    public static LocalDateTime EPOCH = LocalDateTime.of(1970, 1, 1, 0, 0);
 
     private static Clock clock = Clock.systemUTC();
 
     private LocalDateUtil() {
         // empty
-    }
-
-    /**
-     * Return date time with those formats:
-     * 2024-12-25T00:00:00
-     * 2024-12-25T12:00:00.123
-     *
-     * @param localDateTime in format LocalDateTime to transform
-     * @return the ISO Date Time
-     */
-    public static String getString(LocalDateTime localDateTime) {
-        return localDateTime.format(DateTimeFormatter.ISO_DATE_TIME);
-    }
-
-    /**
-     * @param date in format date to transform
-     * @return the ISO Date Time
-     */
-    public static String getString(Date date) {
-        return fromDate(date).format(DateTimeFormatter.ISO_DATE_TIME);
     }
 
     /**
@@ -116,13 +96,6 @@ public final class LocalDateUtil {
      */
     public static String nowFormatted() {
         return LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.now());
-    }
-
-    /**
-     * 2024-12-25
-     */
-    public static String nowFormattedDateOnly() {
-        return LocalDateUtil.getFormattedSimpleDate(LocalDateUtil.now().toLocalDate());
     }
 
     /**
@@ -144,17 +117,6 @@ public final class LocalDateUtil {
     }
 
     /**
-     * @param millis in format long to transform
-     * @return the corresponding LocalDateTime in UTC
-     */
-    public static LocalDateTime fromMillis(long millis) {
-        if (millis < 0) {
-            return now();
-        }
-        return LocalDateTime.ofEpochSecond(millis / THOUSAND, (int) ((millis % THOUSAND) * THOUSAND), ZoneOffset.UTC);
-    }
-
-    /**
      * @param date in format Date to transform
      * @return the corresponding LocalDateTime in UTC
      */
@@ -163,17 +125,6 @@ public final class LocalDateUtil {
             return now();
         }
         return LocalDateTime.ofInstant(date.toInstant(), ZoneOffset.UTC);
-    }
-
-    /**
-     * @param fileTime in format FileTime to transform
-     * @return the corresponding LocalDateTime in UTC
-     */
-    public static LocalDateTime fromDate(FileTime fileTime) {
-        if (fileTime == null) {
-            return now();
-        }
-        return LocalDateTime.ofInstant(fileTime.toInstant(), ZoneOffset.UTC);
     }
 
     /**
@@ -224,7 +175,7 @@ public final class LocalDateUtil {
      * @param date date
      * @return formatted date
      */
-    public static Date getSimpleFormattedDate(final String date) throws ParseException {
+    private static Date getSimpleFormattedDate(final String date) throws ParseException {
         final SimpleDateFormat dateFormat = new SimpleDateFormat(SIMPLE_DATE_FORMAT);
         return dateFormat.parse(date);
     }
@@ -288,7 +239,6 @@ public final class LocalDateUtil {
 
     /**
      * Parses a mongo formated date
-     * use parseDateTime instead
      *
      * @param str formatted date in database
      * @return the parsed local date time
@@ -316,7 +266,7 @@ public final class LocalDateUtil {
      * 2024-12-25T12:34
      * 2024-12-25
      */
-    public static LocalDateTime parseDateTime(String dateTime) {
+    static LocalDateTime parseDateTime(String dateTime) {
         LocalDateTime ldt;
         try {
             ldt = LocalDateTime.parse(dateTime, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -387,6 +337,18 @@ public final class LocalDateUtil {
             return localDateTime1;
         }
         return localDateTime2;
+    }
+
+    public static LocalDateTime parse(String dateTimeStr, DateTimeFormatter formatter) {
+        return LocalDateTime.from(formatter.parse(dateTimeStr));
+    }
+
+    public static LocalDateTime fromEpochMilliUTC(long epochMilli) {
+        return LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMilli), ZoneOffset.UTC);
+    }
+
+    public static long toEpochMilliUTC(LocalDateTime localDateTime) {
+        return localDateTime.atOffset(ZoneOffset.UTC).toInstant().toEpochMilli();
     }
 
     public static Instant getInstant() {

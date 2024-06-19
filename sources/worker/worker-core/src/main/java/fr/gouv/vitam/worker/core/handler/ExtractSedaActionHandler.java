@@ -1797,8 +1797,8 @@ public class ExtractSedaActionHandler extends ActionHandler {
             throw new ProcessingMalformedDataException(
                 String.format(
                     "EventDateTime in Logbook Event cannot be in the future, here '%s' is after '%s'.",
-                    evDateTime,
-                    now
+                    LocalDateUtil.getFormattedDateTimeForMongo(evDateTime),
+                    LocalDateUtil.getFormattedDateTimeForMongo(now)
                 )
             );
         }

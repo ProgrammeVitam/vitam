@@ -152,7 +152,8 @@ public class GlobalDatas {
      */
     public static final ObjectNode getDate(final Date date) {
         ParametersChecker.checkParameter("Date cannot be null", date);
-        return JsonHandler.createObjectNode().put(Query.DATE, LocalDateUtil.fromDate(date).toString());
+        return JsonHandler.createObjectNode()
+            .put(Query.DATE, LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.fromDate(date)));
     }
 
     /**

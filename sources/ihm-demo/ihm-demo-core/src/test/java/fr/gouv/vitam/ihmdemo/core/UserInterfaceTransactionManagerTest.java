@@ -251,7 +251,7 @@ public class UserInterfaceTransactionManagerTest {
         final JsonNode timeStampInfo =
             userInterfaceTransactionManager.extractInformationFromTimestamp(encodedTimeStampToken);
         assertTrue(!timeStampInfo.isNull());
-        assertTrue("2017-05-26T17:25:26".equals(timeStampInfo.get("genTime").asText()));
+        assertTrue("2017-05-26T17:25:26.000".equals(timeStampInfo.get("genTime").asText()));
         assertTrue(
             "C=FR,ST=idf,L=paris,O=Vitam.,CN=CA_timestamping".equals(timeStampInfo.get("signerCertIssuer").asText()));
 

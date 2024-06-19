@@ -287,7 +287,7 @@ public class LogbookOperationsImpl implements LogbookOperations {
     public LogbookOperation findFirstTraceabilityOperationOKAfterDate(final LocalDateTime date)
         throws InvalidCreateOperationException, LogbookDatabaseException {
         final Select select = new Select();
-        final Query query = QueryHelper.gt("evDateTime", date.toString());
+        final Query query = QueryHelper.gt("evDateTime", LocalDateUtil.getFormattedDateTimeForMongo(date));
         final Query type = QueryHelper.eq("evTypeProc", LogbookTypeProcess.TRACEABILITY.name());
         final Query status = QueryHelper.eq(
             LogbookDocument.EVENTS + "." + outcomeDetail.getDbname(),

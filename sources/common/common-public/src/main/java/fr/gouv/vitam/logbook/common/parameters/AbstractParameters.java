@@ -29,6 +29,7 @@ package fr.gouv.vitam.logbook.common.parameters;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.base.Strings;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.i18n.VitamLogbookMessages;
@@ -87,8 +88,7 @@ abstract class AbstractParameters implements LogbookParameters {
     public LocalDateTime getEventDateTime() {
         final String date = mapParameters.get(LogbookParameterName.eventDateTime);
         if (!Strings.isNullOrEmpty(date)) {
-            //TODO :LocalDateUtil
-            return LocalDateTime.parse(date);
+            return LocalDateUtil.parseMongoFormattedDate(date);
         }
         return null;
     }
