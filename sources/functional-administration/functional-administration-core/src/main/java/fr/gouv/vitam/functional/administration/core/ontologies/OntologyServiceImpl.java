@@ -966,10 +966,7 @@ public class OntologyServiceImpl implements OntologyService {
         String description = ontologyModel.getDescription() == null ? "" : ontologyModel.getDescription();
         SetAction setDescription = new SetAction(OntologyModel.TAG_DESCRIPTION, description);
         actions.add(setDescription);
-        SetAction setUpdateDate = new SetAction(
-            OntologyModel.LAST_UPDATE,
-            LocalDateUtil.nowFormatted()
-        );
+        SetAction setUpdateDate = new SetAction(OntologyModel.LAST_UPDATE, LocalDateUtil.nowFormatted());
         actions.add(setUpdateDate);
 
         String apiField = ontologyModel.getApiField() == null ? "" : ontologyModel.getApiField();

@@ -81,7 +81,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateTimeForMongo;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
@@ -492,9 +491,7 @@ public class PreservationScenarioService {
         throws InvalidParseOperationException, DatabaseException, ReferentialException {
         for (PreservationScenarioModel preservationScenarioModel : listToImport) {
             if (identifierToUpdate.contains(preservationScenarioModel.getIdentifier())) {
-                preservationScenarioModel.setLastUpdate(
-                    LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.now())
-                );
+                preservationScenarioModel.setLastUpdate(LocalDateUtil.nowFormatted());
 
                 formatDateForMongo(preservationScenarioModel);
 
@@ -514,9 +511,7 @@ public class PreservationScenarioService {
 
     private void formatDateForMongo(PreservationScenarioModel preservationScenarioModel) throws ReferentialException {
         try {
-            String lastUpdate = getFormattedDateTimeForMongo(
-                LocalDateUtil.getFormattedDateTimeForMongo(LocalDateUtil.now())
-            );
+            String lastUpdate = LocalDateUtil.nowFormatted();
             preservationScenarioModel.setLastUpdate(lastUpdate);
         } catch (DateTimeParseException e) {
             throw new ReferentialException(
@@ -531,7 +526,9 @@ public class PreservationScenarioService {
 
         if (preservationScenarioModel.getCreationDate() != null) {
             try {
-                String creationDate = getFormattedDateTimeForMongo(preservationScenarioModel.getCreationDate());
+                String creationDate = LocalDateUtil.getFormattedDateTimeForMongo(
+                    preservationScenarioModel.getCreationDate()
+                );
                 preservationScenarioModel.setCreationDate(creationDate);
             } catch (DateTimeParseException e) {
                 throw new ReferentialException(

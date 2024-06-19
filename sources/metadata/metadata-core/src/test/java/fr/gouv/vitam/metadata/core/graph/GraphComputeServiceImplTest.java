@@ -129,7 +129,7 @@ public class GraphComputeServiceImplTest {
 
         Answer<Object> objectAnswer = o ->
             new Document("_id", GUIDFactory.newGUID().getId())
-                .append("_og", LocalDateUtil.nowFormatted())
+                .append("_og", GUIDFactory.newGUID().getId())
                 .append("_glpd", LocalDateUtil.nowFormatted());
         when(mongoCursorUnit.next()).thenAnswer(objectAnswer);
         when(mongoCursorGot.next()).thenAnswer(objectAnswer);

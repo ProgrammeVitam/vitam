@@ -233,8 +233,8 @@ public class ContextServiceImpl implements ContextService {
                 // validate context
                 if (manager.validateContext(cm, error)) {
                     cm.setId(GUIDFactory.newContextGUID().getId());
-                    cm.setCreationdate(LocalDateUtil.getString(LocalDateUtil.now()));
-                    cm.setLastupdate(LocalDateUtil.getString(LocalDateUtil.now()));
+                    cm.setCreationdate(LocalDateUtil.nowFormatted());
+                    cm.setLastupdate(LocalDateUtil.nowFormatted());
 
                     final ObjectNode contextNode = (ObjectNode) JsonHandler.toJsonNode(cm);
                     JsonNode jsonNode = contextNode.remove(VitamFieldsHelper.id());

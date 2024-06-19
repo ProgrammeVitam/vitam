@@ -453,7 +453,7 @@ public class LogbookStorageTraceabilityHelper implements LogbookTraceabilityHelp
     private void extractPreviousEvent() {
         if (lastTraceabilityData != null) {
             previousTimestampToken = lastTraceabilityData.token;
-            previousStartDate = LocalDateUtil.getString(lastTraceabilityData.startDate);
+            previousStartDate = LocalDateUtil.getFormattedDateTimeForMongo(lastTraceabilityData.startDate);
         }
         isLastEventInit = true;
     }

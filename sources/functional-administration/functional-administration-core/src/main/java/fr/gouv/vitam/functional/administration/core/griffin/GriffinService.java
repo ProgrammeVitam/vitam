@@ -87,8 +87,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static fr.gouv.vitam.common.LocalDateUtil.getFormattedDateTimeForMongo;
-import static fr.gouv.vitam.common.LocalDateUtil.now;
 import static fr.gouv.vitam.common.database.builder.query.QueryHelper.eq;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.id;
 import static fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper.tenant;
@@ -519,7 +517,7 @@ public class GriffinService {
 
     private void formatDateForMongo(GriffinModel griffinModel) throws ReferentialException {
         try {
-            String lastUpdate = LocalDateUtil.getFormattedDateTimeForMongo(now());
+            String lastUpdate = LocalDateUtil.nowFormatted();
             griffinModel.setLastUpdate(lastUpdate);
 
             String creationDate = griffinModel.getCreationDate();
@@ -527,7 +525,7 @@ public class GriffinService {
             if (creationDate == null) {
                 creationDate = LocalDateUtil.nowFormatted();
             }
-            creationDate = getFormattedDateTimeForMongo(creationDate);
+            creationDate = LocalDateUtil.getFormattedDateTimeForMongo(creationDate);
             griffinModel.setCreationDate(creationDate);
         } catch (DateTimeParseException e) {
             throw new ReferentialException(

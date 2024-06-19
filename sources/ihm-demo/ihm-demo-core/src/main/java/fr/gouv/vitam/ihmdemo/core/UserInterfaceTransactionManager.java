@@ -543,7 +543,7 @@ public class UserInterfaceTransactionManager {
             X500Name signerCertIssuer = signerId.getIssuer();
             result.put(
                 "genTime",
-                LocalDateUtil.getString(
+                LocalDateUtil.getFormattedDateTimeForMongo(
                     LocalDateUtil.fromDate(tsResp.getTimeStampToken().getTimeStampInfo().getGenTime())
                 )
             );

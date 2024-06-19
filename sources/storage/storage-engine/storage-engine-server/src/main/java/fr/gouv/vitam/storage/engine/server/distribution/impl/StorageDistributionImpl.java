@@ -131,7 +131,6 @@ import javax.ws.rs.core.Response.Status;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -1048,7 +1047,7 @@ public class StorageDistributionImpl implements StorageDistribution {
         // TODO P1 Witch status code return if an offer is updated (Status.OK)
         // and another is created (Status.CREATED) ?
         final StoredInfoResult result = new StoredInfoResult();
-        final LocalDateTime now = LocalDateUtil.now();
+        final String now = LocalDateUtil.nowFormatted();
         final StringBuilder description = new StringBuilder();
         switch (category) {
             case UNIT:
@@ -1126,10 +1125,10 @@ public class StorageDistributionImpl implements StorageDistribution {
         description.append("' stored successfully");
         result.setId(objectId);
         result.setInfo(description.toString());
-        result.setCreationTime(LocalDateUtil.getString(now));
-        result.setLastAccessTime(LocalDateUtil.getString(now));
-        result.setLastCheckedTime(LocalDateUtil.getString(now));
-        result.setLastModifiedTime(LocalDateUtil.getString(now));
+        result.setCreationTime(now);
+        result.setLastAccessTime(now);
+        result.setLastCheckedTime(now);
+        result.setLastModifiedTime(now);
         result.setNbCopy(offerResults.size());
         result.setStrategy(strategy);
         result.setOfferIds(Arrays.asList(offerResults.keySet().toArray(new String[0])));

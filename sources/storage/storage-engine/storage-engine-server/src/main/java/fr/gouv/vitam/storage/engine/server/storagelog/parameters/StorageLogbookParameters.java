@@ -137,7 +137,7 @@ public class StorageLogbookParameters implements StorageLogStructure {
     @JsonIgnore
     public LocalDateTime getEventDateTime() {
         final String date = mapParameters.get(StorageLogbookParameterName.eventDateTime);
-        return LocalDateTime.parse(date);
+        return LocalDateUtil.parseMongoFormattedDate(date);
     }
 
     /**
