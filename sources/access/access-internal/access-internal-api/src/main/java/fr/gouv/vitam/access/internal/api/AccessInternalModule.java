@@ -37,6 +37,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.exception.UpdatePermissionException;
 import fr.gouv.vitam.common.exception.VitamDBException;
 import fr.gouv.vitam.common.model.identifier.PurgedCollectionType;
+import fr.gouv.vitam.common.model.objectgroup.ObjectGroupResponse;
 import fr.gouv.vitam.common.model.storage.AccessRequestReference;
 import fr.gouv.vitam.common.model.storage.StatusByAccessRequest;
 import fr.gouv.vitam.metadata.api.exception.MetaDataNotFoundException;
@@ -146,7 +147,7 @@ public interface AccessInternalModule {
      * @throws MetaDataNotFoundException when persistent identifier not found in metadata database.
      */
     Response getObjectByPersistentIdentifier(String persistentIdentifier)
-        throws MetaDataNotFoundException, StorageNotFoundException, AccessInternalException;
+        throws MetaDataNotFoundException, StorageNotFoundException, AccessInternalException, AccessUnauthorizedException;
 
     /**
      * Retrieve all accessLog by the concatenation of all accesslog files as InputStream
@@ -222,8 +223,6 @@ public interface AccessInternalModule {
     void removeAccessRequest(String storageStrategyId, String accessRequestId)
         throws AccessInternalExecutionException, AccessInternalIllegalOperationException;
 
-    void verifyContractAccessAndAuthorizeDownload() throws AccessUnauthorizedException;
-
     Response streamUnits(JsonNode applyAccessContractRestrictionForUnitForSelect)
         throws AccessInternalExecutionException, MetadataScrollLimitExceededException, MetadataScrollThresholdExceededException;
 
@@ -232,4 +231,7 @@ public interface AccessInternalModule {
 
     Response getObjectByUnitPersistentIdentifier(String persistentIdentifier, String qualifier, Integer version)
         throws InvalidParseOperationException, MetaDataNotFoundException, StorageNotFoundException, AccessInternalException;
+
+    ObjectGroupResponse findOneObjectGroupByPersistentId(String persistentId, @Nullable JsonNode query)
+        throws MetaDataNotFoundException, AccessUnauthorizedException;
 }
