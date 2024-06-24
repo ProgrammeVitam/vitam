@@ -70,7 +70,6 @@ public final class LocalDateUtil {
         .toFormatter();
     private static final DateTimeFormatter ISO_OFFSET_DATE_TIME_FORMATTER = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
 
-    private static final int THOUSAND = 1000;
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssZZ";
     public static final String SIMPLE_DATE_FORMAT = "yyyy-MM-dd";
 
@@ -82,6 +81,30 @@ public final class LocalDateUtil {
 
     private LocalDateUtil() {
         // empty
+    }
+
+    /**
+     * Formats date/time in ISO_DATE_TIME. Seconds / milliseconds are truncated when 0
+     * @deprecated Use getFormattedDateTimeForMongo
+     */
+    public static String getString(LocalDateTime localDateTime) {
+        return localDateTime.format(DateTimeFormatter.ISO_DATE_TIME);
+    }
+
+    /**
+     * Formats date/time in ISO_DATE_TIME. Seconds / milliseconds are truncated when 0
+     * @deprecated Use getFormattedDateTimeForMongo
+     */
+    public static String getStringFormatted(LocalDateTime localDateTime) {
+        return localDateTime.format(DateTimeFormatter.ISO_DATE_TIME);
+    }
+
+    /**
+     * Formats date/time in ISO_DATE_TIME. Seconds / milliseconds are truncated when 0
+     * @deprecated Use getFormattedDateTimeForMongo
+     */
+    public static String getString(Date date) {
+        return fromDate(date).format(DateTimeFormatter.ISO_DATE_TIME);
     }
 
     /**
@@ -215,6 +238,20 @@ public final class LocalDateUtil {
 
     public static String getFormattedDateTimeForMongo(LocalDateTime date) {
         return date.format(ZONED_DATE_TIME_FORMAT);
+    }
+
+    /**
+     * @deprecated Use getFormattedDateTimeForMongo
+     */
+    public static String getFormattedDateForMongo(String dateTime) {
+        return getFormattedDateTimeForMongo(dateTime);
+    }
+
+    /**
+     * @deprecated Use getFormattedDateTimeForMongo
+     */
+    public static String getFormattedDateForMongo(LocalDateTime dateTime) {
+        return getFormattedDateTimeForMongo(dateTime);
     }
 
     /**
