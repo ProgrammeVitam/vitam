@@ -205,6 +205,16 @@ public class AccessExternalIT extends VitamRuleRunner {
 
     @AfterClass
     public static void tearDownAfterClass() {
+        if (accessExternalClient != null) {
+            accessExternalClient.close();
+        }
+        if (ingestExternalClient != null) {
+            ingestExternalClient.close();
+        }
+        if (adminExternalClient != null) {
+            adminExternalClient.close();
+        }
+
         handleAfterClass();
         runAfter();
         fr.gouv.vitam.common.client.VitamClientFactory.resetConnections();
