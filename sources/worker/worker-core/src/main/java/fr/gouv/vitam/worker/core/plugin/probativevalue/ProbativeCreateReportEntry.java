@@ -1205,7 +1205,7 @@ public class ProbativeCreateReportEntry extends ActionHandler {
                     in("events.outDetail", operation.getEvType() + "." + OK, operation.getEvType() + "." + WARNING),
                     exists("events.evDetData.FileName"),
                     ne("#id", operation.getId()),
-                    lte("events.evDetData.EndDate", operation.getEvDateTime())
+                    lte(LogbookMongoDbName.eventDateTime.getDbname(), operation.getEvDateTime())
                 );
 
             select.setQuery(query);
