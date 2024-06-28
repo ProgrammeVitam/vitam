@@ -62,6 +62,8 @@ import fr.gouv.vitam.metadata.rest.MetadataMain;
 import fr.gouv.vitam.processing.management.rest.ProcessManagementMain;
 import fr.gouv.vitam.storage.engine.server.rest.StorageMain;
 import fr.gouv.vitam.storage.offers.rest.DefaultOfferMain;
+import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeCheck;
+import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportEntry;
 import fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ProbativeReportV2;
 import fr.gouv.vitam.worker.server.rest.WorkerMain;
 import fr.gouv.vitam.workspace.rest.WorkspaceMain;
@@ -84,6 +86,11 @@ import static fr.gouv.vitam.common.VitamTestHelper.readReportFile;
 import static fr.gouv.vitam.common.VitamTestHelper.verifyOperation;
 import static fr.gouv.vitam.common.VitamTestHelper.waitOperation;
 import static fr.gouv.vitam.common.model.StatusCode.OK;
+import static fr.gouv.vitam.common.model.StatusCode.WARNING;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.PREVIOUS_TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_COMPARISON;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.PREVIOUS_TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_VALIDATION;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.PREVIOUS_TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_COMPARISON;
+import static fr.gouv.vitam.worker.core.plugin.probativevalue.pojo.ChecksInformation.PREVIOUS_TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_VALIDATION;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -95,6 +102,7 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
     private static final Integer TENANT_ID = 0;
     private static final String CONTRACT_ID = "contract";
     private static final String CONTEXT_ID = "Context_IT";
+    private static final String SIP_1_UNIT_1_GOTS = "ProbativeValue/1_UNIT_1_GOT.zip";
 
     @ClassRule
     public static VitamServerRunner runner = new VitamServerRunner(
@@ -281,6 +289,84 @@ public class ProbativeValueAuditIT extends VitamRuleRunner {
                 "Unit17"
             );
         }
+    }
+
+    @Test
+    @RunWithCustomExecutor
+    public void should_execute_probative_value_audit_bug_13066() throws Exception {
+        // Given
+        VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
+
+        List<String> ingestOperationIds = new ArrayList<>();
+
+        // First ingest
+        String ingestOperationId1 = VitamTestHelper.doIngest(TENANT_ID, SIP_1_UNIT_1_GOTS);
+        verifyOperation(ingestOperationId1, OK);
+        ingestOperationIds.add(ingestOperationId1);
+
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        for (int i = 0; i < 3; i++) {
+            String ingestOperationId = VitamTestHelper.doIngest(TENANT_ID, SIP_1_UNIT_1_GOTS);
+            verifyOperation(ingestOperationId, OK);
+            ingestOperationIds.add(ingestOperationId);
+
+            logicalClock.logicalSleep(4, ChronoUnit.MINUTES);
+
+            VitamTestHelper.doTraceabilityUnits();
+            VitamTestHelper.doTraceabilityGots();
+            VitamTestHelper.doTraceabilityOperations();
+        }
+
+        // One last traceability
+        logicalClock.logicalSleep(5, ChronoUnit.MINUTES);
+
+        VitamTestHelper.doTraceabilityUnits();
+        VitamTestHelper.doTraceabilityGots();
+        VitamTestHelper.doTraceabilityOperations();
+
+        // When
+        String evidenceAuditOperation;
+        SelectMultiQuery query = new SelectMultiQuery();
+        query.setQuery(
+            QueryHelper.and()
+                .add(QueryHelper.in(VitamFieldsHelper.initialOperation(), ingestOperationIds.toArray(String[]::new)))
+        );
+
+        evidenceAuditOperation = runProbativeValueAudit(query.getFinalSelect(), false);
+
+        ProbativeReportV2 report = JsonHandler.getFromString(
+            readReportFile(evidenceAuditOperation + ".json"),
+            ProbativeReportV2.class
+        );
+
+        // First traceability will always have a WARNING status (no previous traceability to check)
+        assertThat(report.getReportSummary().getVitamResults().getNbWarning()).isEqualTo(1);
+        assertThat(report.getReportSummary().getVitamResults().getNbKo()).isEqualTo(0);
+        assertThat(report.getReportSummary().getVitamResults().getNbOk()).isEqualTo(ingestOperationIds.size() - 1);
+
+        List<ProbativeReportEntry> warningEntries = report
+            .getReportEntries()
+            .stream()
+            .filter(e -> WARNING.equals(e.getStatus()))
+            .collect(Collectors.toList());
+        assertThat(warningEntries).hasSize(1);
+
+        assertThat(warningEntries.get(0).getChecks().stream().map(ProbativeCheck::getStatus)).containsOnly(OK, WARNING);
+
+        assertThat(
+            warningEntries
+                .get(0)
+                .getChecks()
+                .stream()
+                .filter(c -> WARNING.equals(c.getStatus()))
+                .map(ProbativeCheck::getName)
+        ).containsAnyOf(
+            PREVIOUS_TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_VALIDATION.name(),
+            PREVIOUS_TIMESTAMP_OPERATION_DATABASE_TRACEABILITY_COMPARISON.name(),
+            PREVIOUS_TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_VALIDATION.name(),
+            PREVIOUS_TIMESTAMP_OBJECT_GROUP_DATABASE_TRACEABILITY_COMPARISON.name()
+        );
     }
 
     private String runProbativeValueAudit(JsonNode query, boolean includeDetachedSigningInformation)
