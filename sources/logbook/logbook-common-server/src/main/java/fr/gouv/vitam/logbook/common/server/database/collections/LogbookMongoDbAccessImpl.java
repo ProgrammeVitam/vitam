@@ -116,7 +116,6 @@ import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Indexes.hashed;
 import static com.mongodb.client.model.Updates.combine;
-import static fr.gouv.vitam.common.LocalDateUtil.now;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.ID;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.LAST_PERSISTED_DATE;
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookDocument.TENANT_ID;
@@ -663,7 +662,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
         }
 
-        String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
+        String lastPersistedDate = LocalDateUtil.nowFormatted();
 
         ArrayList<UpdateOneModel<Document>> updates = new ArrayList<>();
 
@@ -675,7 +674,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
                 .stream()
                 .map(event -> {
                     if (event.getParameterValue(LogbookParameterName.eventDateTime) == null) {
-                        event.putParameterValue(LogbookParameterName.eventDateTime, now().toString());
+                        event.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
                     }
                     LogbookLifeCycle<?> logbookLifeCycle = new LogbookLifeCycle<>(event);
                     removeDuplicatedInformation(logbookLifeCycle);
@@ -884,7 +883,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             throw new IllegalArgumentException(AT_LEAST_ONE_ITEM_IS_NEEDED);
         }
         final List<VitamDocument<?>> events = new ArrayList<>(items.length);
-        String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
+        String lastPersistedDate = LocalDateUtil.nowFormatted();
 
         List<Bson> listMaster = new ArrayList<>();
         for (LogbookParameters item : items) {
@@ -1011,7 +1010,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             LogbookLifeCycleUnit logbookLifeCycleUnit = new LogbookLifeCycleUnit(
                 BsonHelper.stringify(logbookLifeCycleUnitInProcess)
             );
-            String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
+            String lastPersistedDate = LocalDateUtil.nowFormatted();
             // Update last persisted date
             logbookLifeCycleUnit.append(LAST_PERSISTED_DATE, lastPersistedDate);
             List<Document> events = (List<Document>) logbookLifeCycleUnit.get(LogbookDocument.EVENTS);
@@ -1055,7 +1054,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             LogbookLifeCycleObjectGroup logbookLifeCycleObjectGroup = new LogbookLifeCycleObjectGroup(
                 BsonHelper.stringify(logbookLifeCycleObjectGroupInProcess)
             );
-            String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
+            String lastPersistedDate = LocalDateUtil.nowFormatted();
             // Update last persisted date
             logbookLifeCycleObjectGroup.append(LAST_PERSISTED_DATE, lastPersistedDate);
             List<Document> events = (List<Document>) logbookLifeCycleObjectGroup.get(LogbookDocument.EVENTS);
@@ -1165,7 +1164,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
             );
             logbookLifeCycleInProcess.append(LogbookDocument.EVENTS, Collections.emptyList());
             // Update last persisted date
-            logbookLifeCycleInProcess.append(LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(now()));
+            logbookLifeCycleInProcess.append(LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted());
 
             inProccessCollection.getCollection().insertOne(logbookLifeCycleInProcess);
         } catch (final MongoException e) {
@@ -1197,7 +1196,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, logbookLifeCycleUnitInProcess);
         String logbookLifeCycleId = logbookLifeCycleUnitInProcess.getId();
-        String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
+        String lastPersistedDate = LocalDateUtil.nowFormatted();
         try {
             List<Bson> listUpdates = new ArrayList<>();
 
@@ -1252,7 +1251,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
     ) throws LogbookDatabaseException, LogbookNotFoundException {
         ParametersChecker.checkParameter(ITEM_CANNOT_BE_NULL, logbookLifeCycleObjectGrouptInProcess);
         String logbookLifeCycleId = logbookLifeCycleObjectGrouptInProcess.getId();
-        String lastPersistedDate = LocalDateUtil.getFormattedDateForMongo(now());
+        String lastPersistedDate = LocalDateUtil.nowFormatted();
         try {
             List<Bson> listUpdates = new ArrayList<>();
 
@@ -1585,7 +1584,7 @@ public final class LogbookMongoDbAccessImpl extends MongoDbAccess implements Log
         document.append(LogbookDocument.EVENTS, events);
         document.append(TENANT_ID, ParameterHelper.getTenantParameter());
         document.append(VERSION, 0);
-        document.append(LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(now()));
+        document.append(LAST_PERSISTED_DATE, LocalDateUtil.nowFormatted());
         return document;
     }
 }

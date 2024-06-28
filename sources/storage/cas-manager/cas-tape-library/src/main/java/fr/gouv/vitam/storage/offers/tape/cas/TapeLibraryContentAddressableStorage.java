@@ -155,7 +155,7 @@ public class TapeLibraryContentAddressableStorage implements ContentAddressableS
 
         // Commit to mongo
         try {
-            String now = LocalDateUtil.now().toString();
+            String now = LocalDateUtil.nowFormatted();
             objectReferentialRepository.insertOrUpdate(
                 new TapeObjectReferentialEntity(
                     new TapeLibraryObjectReferentialId(containerName, objectName),

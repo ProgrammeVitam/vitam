@@ -79,7 +79,7 @@ public class LogbookLifeCyclesImplTest {
         );
         logbookLifeCyclesUnitParameters.putParameterValue(
             LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString()
+            LocalDateUtil.nowFormatted()
         );
         logbookLifeCyclesUnitParameters.putParameterValue(
             LogbookParameterName.agentIdentifier,
@@ -109,7 +109,7 @@ public class LogbookLifeCyclesImplTest {
         );
         logbookLifeCycleObjectGroupParameters.putParameterValue(
             LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString()
+            LocalDateUtil.nowFormatted()
         );
         logbookLifeCycleObjectGroupParameters.putParameterValue(
             LogbookParameterName.agentIdentifier,

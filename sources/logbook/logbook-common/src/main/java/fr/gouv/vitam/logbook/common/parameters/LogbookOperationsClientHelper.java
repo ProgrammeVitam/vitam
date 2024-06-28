@@ -71,7 +71,7 @@ public class LogbookOperationsClientHelper {
             !LogbookTypeProcess.EXTERNAL_LOGBOOK.equals(parameters.getTypeProcess()) ||
             parameters.getParameterValue(LogbookParameterName.eventDateTime) == null
         ) {
-            parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+            parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
         } else {
             try {
                 LocalDateUtil.getDate(parameters.getParameterValue(LogbookParameterName.eventDateTime));

@@ -27,6 +27,7 @@
 package fr.gouv.vitam.processing.management.core;
 
 import com.google.common.annotations.VisibleForTesting;
+import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
@@ -68,7 +69,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -655,7 +655,7 @@ public class ProcessManagementImpl implements ProcessManagement {
         // ugly ! can we have time here (on javascript date picker) ?
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         String date = processWorkflow.getProcessDate();
-        LocalDate ldt = LocalDateTime.parse(date).toLocalDate();
+        LocalDate ldt = LocalDateUtil.parseMongoFormattedDate(date).toLocalDate();
         LocalDate startDateTimeMin = LocalDate.parse(startDateMin, formatter);
         LocalDate startDateTimeMax = LocalDate.parse(startDateMax, formatter);
         return (

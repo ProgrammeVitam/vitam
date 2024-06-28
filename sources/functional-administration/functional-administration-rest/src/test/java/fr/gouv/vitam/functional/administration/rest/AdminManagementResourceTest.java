@@ -1123,7 +1123,7 @@ public class AdminManagementResourceTest {
             LogbookParameterName.eventType,
             "EXT_" + LogbookParameterName.eventType.name()
         );
-        logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.nowFormatted());
         logbookParamaters.putParameterValue(
             LogbookParameterName.eventIdentifierProcess,
             evIdProc != null ? evIdProc : guid

@@ -367,10 +367,10 @@ public class MassUpdateUnitsProcessTest {
     private StoredInfoResult getStoredInfoResult() {
         return new StoredInfoResult()
             .setNbCopy(1)
-            .setCreationTime(LocalDateUtil.now().toString())
+            .setCreationTime(LocalDateUtil.nowFormatted())
             .setId("id")
-            .setLastAccessTime(LocalDateUtil.now().toString())
-            .setLastModifiedTime(LocalDateUtil.now().toString())
+            .setLastAccessTime(LocalDateUtil.nowFormatted())
+            .setLastModifiedTime(LocalDateUtil.nowFormatted())
             .setObjectGroupId("id")
             .setOfferIds(Collections.singletonList("id1"))
             .setStrategy(VitamConfiguration.getDefaultStrategy());

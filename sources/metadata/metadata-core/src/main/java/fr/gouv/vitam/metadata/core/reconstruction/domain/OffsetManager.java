@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.database.offset.OffsetRepository;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.Optional;
 
 public class OffsetManager {
@@ -54,11 +53,11 @@ public class OffsetManager {
             .filter(t -> t != 0)
             .orElse(Instant.EPOCH.toEpochMilli());
 
-        return LocalDateTime.ofInstant(Instant.ofEpochMilli(lastReconstructedOffset), ZoneOffset.UTC);
+        return LocalDateUtil.fromEpochMilliUTC(lastReconstructedOffset);
     }
 
     public void saveNextReconstructionDateInOffset(Integer tenant, LocalDateTime lastSuccessfulOperationDate) {
-        long timestamp = lastSuccessfulOperationDate.atOffset(ZoneOffset.UTC).toInstant().toEpochMilli();
+        long timestamp = LocalDateUtil.toEpochMilliUTC(lastSuccessfulOperationDate);
         offsetRepository.createOrUpdateOffset(
             tenant,
             VitamConfiguration.getDefaultStrategy(),

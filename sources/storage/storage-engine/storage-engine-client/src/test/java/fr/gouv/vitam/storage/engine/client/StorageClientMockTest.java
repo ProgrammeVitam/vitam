@@ -130,8 +130,8 @@ public class StorageClientMockTest {
         final StoredInfoResult result = new StoredInfoResult();
         result.setId(guid);
         result.setInfo("Creation OK");
-        result.setCreationTime(LocalDateUtil.getString(LocalDateUtil.now()));
-        result.setLastModifiedTime(LocalDateUtil.getString(LocalDateUtil.now()));
+        result.setCreationTime(LocalDateUtil.nowFormatted());
+        result.setLastModifiedTime(LocalDateUtil.nowFormatted());
         return result;
     }
 }

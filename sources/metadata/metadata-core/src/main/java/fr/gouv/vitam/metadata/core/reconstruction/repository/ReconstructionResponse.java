@@ -51,7 +51,7 @@ public class ReconstructionResponse {
         return status == INIT;
     }
 
-    public void accumulate(ReconstructionResponse response) {
+    public synchronized void accumulate(ReconstructionResponse response) {
         this.status = ((this.isSuccess() || this.isInit()) && response.isSuccess()) ? SUCCESS : FAILURE;
     }
 

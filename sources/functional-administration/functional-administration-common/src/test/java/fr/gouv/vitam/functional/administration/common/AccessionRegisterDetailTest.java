@@ -89,7 +89,7 @@ public class AccessionRegisterDetailTest {
         JsonAssert.assertJsonEquals(initialValue, register.getTotalObjectSize());
         JsonAssert.assertJsonEquals(initialValue, register.getTotalUnits());
         JsonAssert.assertJsonEquals(initialValue, register.getTotalObjects());
-        assertEquals(LocalDateUtil.getFormattedDateForMongo(DATE), register.getEndDate());
+        assertEquals(LocalDateUtil.getFormattedDateTimeForMongo(DATE), register.getEndDate());
         assertEquals(TEST, register.getAcquisitionInformation());
         assertEquals(TEST, register.getLegalStatus());
 

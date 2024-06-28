@@ -551,7 +551,7 @@ public class UserInterfaceTransactionManager {
             TimeStampResponse tsResp = new TimeStampResponse(obj.toASN1Primitive().getEncoded());
             SignerId signerId = tsResp.getTimeStampToken().getSID();
             X500Name signerCertIssuer = signerId.getIssuer();
-            result.put("genTime", LocalDateUtil.getString(
+            result.put("genTime", LocalDateUtil.getFormattedDateTimeForMongo(
                 LocalDateUtil.fromDate(tsResp.getTimeStampToken().getTimeStampInfo().getGenTime())));
             result.put("signerCertIssuer", signerCertIssuer.toString());
         } catch (TSPException | IOException | DecoderException e) {

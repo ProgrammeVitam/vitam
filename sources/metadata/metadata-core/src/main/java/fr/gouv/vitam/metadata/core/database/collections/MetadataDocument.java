@@ -221,10 +221,10 @@ public abstract class MetadataDocument<E> extends VitamDocument<E> {
     }
 
     public void setApproximateCreationDate(LocalDateTime creationDate) {
-        put(APPROXIMATE_CREATION_DATE, LocalDateUtil.getFormattedDateForMongo(creationDate));
+        put(APPROXIMATE_CREATION_DATE, LocalDateUtil.getFormattedDateTimeForMongo(creationDate));
     }
 
     public void setApproximateUpdateDate(LocalDateTime lastUpdate) {
-        put(APPROXIMATE_UPDATE_DATE, LocalDateUtil.getFormattedDateForMongo(lastUpdate));
+        put(APPROXIMATE_UPDATE_DATE, LocalDateUtil.getFormattedDateTimeForMongo(lastUpdate));
     }
 }

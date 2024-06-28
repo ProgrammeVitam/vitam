@@ -122,7 +122,7 @@ public class PersistentIdentifierRepositoryImpl implements PersistentIdentifierR
                 .map(document -> {
                     document.append(VERSION, 0);
                     document.append(TENANT_ID, getTenantParameter());
-                    document.append(LAST_PERSISTENT_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+                    document.append(LAST_PERSISTENT_DATE, LocalDateUtil.nowFormatted());
                     return new InsertOneModel<>(document);
                 })
                 .collect(Collectors.toList());
