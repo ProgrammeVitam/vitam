@@ -188,7 +188,23 @@ public class VitamTestHelper {
             assertThat(result.getResults()).isNotEmpty();
             return JsonHandler.prettyPrint(result.getFirstResult());
         } catch (InvalidParseOperationException e) {
-            return fail("Error", e);
+            return fail("Error - Cannot read LogbookOperation " + opId, e);
+        }
+    }
+
+    public static String readReportFile(String fileName) {
+        try (StorageClient client = StorageClientFactory.getInstance().getClient()) {
+            Response containerAsync = client.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                fileName,
+                DataCategory.REPORT,
+                AccessLogUtils.getNoLogAccessLog()
+            );
+            return containerAsync.readEntity(String.class);
+        } catch (StorageNotFoundException e) {
+            return "No " + fileName + " found";
+        } catch (Exception e) {
+            return fail("Cannot read " + fileName, e);
         }
     }
 
@@ -504,6 +520,40 @@ public class VitamTestHelper {
             assertNotNull(results);
             assertFalse(results.isEmpty());
             return results.get(0);
+        }
+    }
+
+    public static void doTraceabilityGots() throws VitamException {
+        try (
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()
+        ) {
+            RequestResponseOK<?> traceabilityObjectGroupResponse = logbookOperationsClient.traceabilityLfcObjectGroup();
+            String traceabilityGotOperationId = traceabilityObjectGroupResponse.getHeaderString(
+                GlobalDataRest.X_REQUEST_ID
+            );
+            waitOperation(traceabilityGotOperationId);
+        }
+    }
+
+    public static void doTraceabilityUnits() throws VitamException {
+        try (
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()
+        ) {
+            RequestResponseOK<?> traceabilityUnitResponse = logbookOperationsClient.traceabilityLfcUnit();
+            String traceabilityUnitOperationId = traceabilityUnitResponse.getHeaderString(GlobalDataRest.X_REQUEST_ID);
+            waitOperation(traceabilityUnitOperationId);
+        }
+    }
+
+    public static void doTraceabilityOperations() throws VitamException {
+        Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+
+        try (LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
+            VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
+
+            client.traceability(List.of(tenantId));
+        } finally {
+            VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         }
     }
 }
