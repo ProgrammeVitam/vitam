@@ -82,7 +82,6 @@ import static org.mockito.Mockito.when;
 
 public class ListArchiveUnitsActionHandlerTest {
 
-
     private MetaDataClient metadataClient;
     private MetaDataClientFactory metadataClientFactory;
     private WorkspaceClient workspaceClient;
@@ -95,8 +94,7 @@ public class ListArchiveUnitsActionHandlerTest {
     private GUID guid = GUIDFactory.newGUID();
     private List<IOParameter> out;
 
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {
-    };
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {};
     private static final String UPDATED_RULES_JSON = "ListArchiveUnitsActionPlugin/updatedRules.json";
     private static final String UPDATED_AU = "ListArchiveUnitsActionPlugin/archiveUnitsToBeUpdated.json";
     private ListArchiveUnitsActionHandler plugin;
@@ -104,11 +102,13 @@ public class ListArchiveUnitsActionHandlerTest {
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectName("archiveUnit.json").setCurrentStep("currentStep")
-            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.UPDATE);
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+        .setUrlWorkspace("http://localhost:8083")
+        .setUrlMetadata("http://localhost:8083")
+        .setObjectName("archiveUnit.json")
+        .setCurrentStep("currentStep")
+        .setContainerName(guid.getId())
+        .setLogbookTypeProcess(LogbookTypeProcess.UPDATE);
 
     public ListArchiveUnitsActionHandlerTest() {
         // do nothing
@@ -120,7 +120,6 @@ public class ListArchiveUnitsActionHandlerTest {
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
 
-
         metadataClient = mock(MetaDataClient.class);
         metadataClientFactory = mock(MetaDataClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
@@ -129,18 +128,28 @@ public class ListArchiveUnitsActionHandlerTest {
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
 
-
         when(metadataClientFactory.getClient()).thenReturn(metadataClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
-
         plugin = new ListArchiveUnitsActionHandler(metadataClientFactory);
-        action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
-            Lists.newArrayList());
+        action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            guid.getId(),
+            "workerId",
+            Lists.newArrayList()
+        );
         out = new ArrayList<>();
-        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,
-            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON)));
+        out.add(
+            new IOParameter()
+                .setUri(
+                    new ProcessingUri(
+                        UriPrefix.WORKSPACE,
+                        UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON
+                    )
+                )
+        );
     }
 
     @After
@@ -148,33 +157,39 @@ public class ListArchiveUnitsActionHandlerTest {
         action.partialClose();
     }
 
-
     @Test
     public void givenRunningProcessWhenExecuteThenReturnResponseOK() throws Exception {
         action.addOutIOParameters(out);
 
         try (InputStream updatedRules = PropertiesUtils.getResourceAsStream(UPDATED_RULES_JSON)) {
-            final JsonNode archiveUnitsToBeUpdated =
-                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(UPDATED_AU));
+            final JsonNode archiveUnitsToBeUpdated = JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(UPDATED_AU)
+            );
             when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json"))).thenReturn(
-                Response.status(Status.OK).entity(updatedRules).build());
+                Response.status(Status.OK).entity(updatedRules).build()
+            );
             when(metadataClient.selectUnits(any())).thenReturn(archiveUnitsToBeUpdated);
 
             saveWorkspacePutObject(
-                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON);
+                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON
+            );
             saveWorkspacePutObject(
-                UpdateWorkflowConstants.UNITS_FOLDER + "/" + "aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba.json");
+                UpdateWorkflowConstants.UNITS_FOLDER + "/" + "aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba.json"
+            );
             final ItemStatus response = plugin.execute(params, action);
             assertEquals(StatusCode.OK, response.getGlobalStatus());
 
             String filename =
                 UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.AU_TO_BE_UPDATED_JSON;
-            JsonLineGenericIterator<JsonLineModel> lines =
-                new JsonLineGenericIterator<>(new FileInputStream(getFullPath(filename)), TYPE_REFERENCE);
+            JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(
+                new FileInputStream(getFullPath(filename)),
+                TYPE_REFERENCE
+            );
             assertEquals(3, lines.stream().count());
 
             JsonNode aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba = getSavedWorkspaceObject(
-                UpdateWorkflowConstants.UNITS_FOLDER + "/" + "aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba.json");
+                UpdateWorkflowConstants.UNITS_FOLDER + "/" + "aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba.json"
+            );
             assertNotNull(aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba);
             int numberOfRulesInvolved = 0;
             for (final JsonNode objNode : aeaqaaaaaagds5zjaabmaak5mlsoesaaaaba) {
@@ -182,62 +197,87 @@ public class ListArchiveUnitsActionHandlerTest {
             }
             assertEquals(3, numberOfRulesInvolved);
         }
-
     }
 
     private void saveWorkspacePutObject(String filename) throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
             InputStream inputStream = invocation.getArgument(2);
-            java.nio.file.Path file =
-                java.nio.file.Paths.get(System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" +
-                    action.getWorkerId() + "/" + filename.replaceAll("/", "_"));
+            java.nio.file.Path file = java.nio.file.Paths.get(
+                System.getProperty("vitam.tmp.folder") +
+                "/" +
+                action.getContainerName() +
+                "_" +
+                action.getWorkerId() +
+                "/" +
+                filename.replaceAll("/", "_")
+            );
             java.nio.file.Files.copy(inputStream, file);
             return null;
-        }).when(workspaceClient).putObject(org.mockito.ArgumentMatchers.anyString(),
-            org.mockito.ArgumentMatchers.eq(filename), org.mockito.ArgumentMatchers.any(InputStream.class));
+        })
+            .when(workspaceClient)
+            .putObject(
+                org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.eq(filename),
+                org.mockito.ArgumentMatchers.any(InputStream.class)
+            );
     }
 
     private String getFullPath(String filename) {
-        return System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" + action.getWorkerId() +
-            "/" + filename.replaceAll("/", "_");
+        return (
+            System.getProperty("vitam.tmp.folder") +
+            "/" +
+            action.getContainerName() +
+            "_" +
+            action.getWorkerId() +
+            "/" +
+            filename.replaceAll("/", "_")
+        );
     }
 
     private JsonNode getSavedWorkspaceObject(String filename) throws InvalidParseOperationException {
-        File objectNameFile = new File(System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" +
-            action.getWorkerId() + "/" + filename.replaceAll("/", "_"));
+        File objectNameFile = new File(
+            System.getProperty("vitam.tmp.folder") +
+            "/" +
+            action.getContainerName() +
+            "_" +
+            action.getWorkerId() +
+            "/" +
+            filename.replaceAll("/", "_")
+        );
         return JsonHandler.getFromFile(objectNameFile);
     }
 
     @Test
     public void givenProcessErrorsWhenExecuteThenReturnResponseFatal() throws Exception {
         action.addOutIOParameters(out);
-        when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json")))
-            .thenThrow(new ContentAddressableStorageNotFoundException("Storage not found"));
+        when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json"))).thenThrow(
+            new ContentAddressableStorageNotFoundException("Storage not found")
+        );
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
-        when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json")))
-            .thenReturn(Response.status(Status.OK)
-                .entity(IOUtils.toInputStream("<root><random>Random XML tags</random></root>", "UTF-8")).build());
+        when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json"))).thenReturn(
+            Response.status(Status.OK)
+                .entity(IOUtils.toInputStream("<root><random>Random XML tags</random></root>", "UTF-8"))
+                .build()
+        );
         final ItemStatus response2 = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response2.getGlobalStatus());
-
-
     }
 
     @Test
     public void givenProcessErrorMetadataWhenExecuteThenReturnResponseFatal() throws Exception {
-        final InputStream updatedRules =
-            PropertiesUtils.getResourceAsStream(UPDATED_RULES_JSON);
+        final InputStream updatedRules = PropertiesUtils.getResourceAsStream(UPDATED_RULES_JSON);
         try {
             action.addOutIOParameters(out);
-            when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json")))
-                .thenReturn(Response.status(Status.OK).entity(updatedRules).build());
-            when(metadataClient.selectUnits(any()))
-                .thenThrow(new MetaDataExecutionException("Error while requesting Metadata"));
+            when(workspaceClient.getObject(any(), eq("PROCESSING/updatedRules.json"))).thenReturn(
+                Response.status(Status.OK).entity(updatedRules).build()
+            );
+            when(metadataClient.selectUnits(any())).thenThrow(
+                new MetaDataExecutionException("Error while requesting Metadata")
+            );
             assertThatThrownBy(() -> plugin.execute(params, action)).isExactlyInstanceOf(IllegalStateException.class);
         } finally {
             updatedRules.close();
         }
-
     }
 }

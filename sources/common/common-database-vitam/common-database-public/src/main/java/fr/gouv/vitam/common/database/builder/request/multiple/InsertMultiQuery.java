@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * Insert: { $roots: roots, $query : query, $filter : multi, $data : data } or [ roots, query, multi, data ]
  */
 public class InsertMultiQuery extends RequestMultiple {
+
     protected ObjectNode data;
 
     /**
@@ -92,8 +93,7 @@ public class InsertMultiQuery extends RequestMultiple {
      * @throws InvalidParseOperationException when query is invalid
      */
     @Override
-    public final InsertMultiQuery setFilter(final JsonNode filterContent)
-        throws InvalidParseOperationException {
+    public final InsertMultiQuery setFilter(final JsonNode filterContent) throws InvalidParseOperationException {
         super.setFilter(filterContent);
         return setMult(filterContent);
     }
@@ -121,8 +121,7 @@ public class InsertMultiQuery extends RequestMultiple {
      * @return this Insert
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final InsertMultiQuery setData(final JsonNode dataContent)
-        throws InvalidParseOperationException {
+    public final InsertMultiQuery setData(final JsonNode dataContent) throws InvalidParseOperationException {
         if (data == null) {
             data = JsonHandler.createObjectNode();
         }
@@ -135,8 +134,7 @@ public class InsertMultiQuery extends RequestMultiple {
      * @return this Insert
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final InsertMultiQuery parseData(final String data)
-        throws InvalidParseOperationException {
+    public final InsertMultiQuery parseData(final String data) throws InvalidParseOperationException {
         GlobalDatas.sanityValueCheck(data);
         final JsonNode dataContent = JsonHandler.getFromString(data);
         return setData(dataContent);
@@ -169,8 +167,7 @@ public class InsertMultiQuery extends RequestMultiple {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("INSERT: ").append(super.toString())
-            .append("\n\tData: ").append(data);
+        builder.append("INSERT: ").append(super.toString()).append("\n\tData: ").append(data);
         return builder.toString();
     }
 }

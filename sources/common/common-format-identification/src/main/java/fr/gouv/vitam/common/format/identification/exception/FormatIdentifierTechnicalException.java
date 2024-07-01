@@ -60,4 +60,3 @@ public class FormatIdentifierTechnicalException extends VitamException {
         super(messsage, cause);
     }
 }
-

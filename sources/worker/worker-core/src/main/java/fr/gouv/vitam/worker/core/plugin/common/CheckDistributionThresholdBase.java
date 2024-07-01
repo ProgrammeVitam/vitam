@@ -70,10 +70,7 @@ public abstract class CheckDistributionThresholdBase extends ActionHandler {
 
     protected ItemStatus checkThreshold(HandlerIO handler, long defaultThreshold, String action)
         throws ProcessingException {
-
-
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
-
             String queryType = (String) handler.getInput(QUERY_TYPE_IN_RANK);
             String queryUri = (String) handler.getInput(QUERY_URI_IN_RANK);
 
@@ -96,28 +93,32 @@ public abstract class CheckDistributionThresholdBase extends ActionHandler {
             long threshold = (requestThreshold != null) ? requestThreshold : defaultThreshold;
 
             if (total > threshold) {
-
                 ObjectNode eventDetails = JsonHandler.createObjectNode();
                 eventDetails.put("error", "Too many units found. Threshold=" + threshold + ", found=" + total);
 
-                return buildItemStatus(action, StatusCode.KO,
-                    eventDetails);
+                return buildItemStatus(action, StatusCode.KO, eventDetails);
             }
 
             if (total > defaultThreshold) {
                 ObjectNode eventDetails = JsonHandler.createObjectNode();
-                String errorMessage = String
-                    .format("Unit count exceeds default threshold. Default threshold=%d, found=%d", defaultThreshold,
-                        total);
+                String errorMessage = String.format(
+                    "Unit count exceeds default threshold. Default threshold=%d, found=%d",
+                    defaultThreshold,
+                    total
+                );
                 eventDetails.put("warning", errorMessage);
 
-                return buildItemStatus(action, StatusCode.WARNING,
-                    eventDetails);
+                return buildItemStatus(action, StatusCode.WARNING, eventDetails);
             }
 
             return buildItemStatus(action, StatusCode.OK, null);
-
-        } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
+        } catch (
+            InvalidCreateOperationException
+            | InvalidParseOperationException
+            | MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException e
+        ) {
             LOGGER.error(e);
             return buildItemStatus(action, StatusCode.FATAL, null);
         }

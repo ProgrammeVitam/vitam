@@ -37,7 +37,6 @@ public class ComputedInheritedRulesException extends VitamException {
 
     private StatusCode statusCode;
 
-
     /**
      * @param cause associated cause
      */
@@ -73,5 +72,4 @@ public class ComputedInheritedRulesException extends VitamException {
     public void setStatusCode(StatusCode statusCode) {
         this.statusCode = statusCode;
     }
-
 }

@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.core.plugin.elimination;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.configuration.EliminationReportConfiguration;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -65,20 +64,20 @@ public final class EliminationUtils {
         // Private constructor
     }
 
-    public static EliminationAnalysisResult computeEliminationAnalysisForUnitWithInheritedRules(JsonNode unit,
+    public static EliminationAnalysisResult computeEliminationAnalysisForUnitWithInheritedRules(
+        JsonNode unit,
         EliminationAnalysisService eliminationAnalysisService,
         WorkerParameters param,
-        LocalDate expirationDate) throws ProcessingStatusException {
-
+        LocalDate expirationDate
+    ) throws ProcessingStatusException {
         InheritedRuleCategoryResponseModel inheritedEliminatedRuleCategory =
             EliminationUtils.parseAppraisalRuleCategory(unit);
 
-        InheritedRuleCategoryResponseModel inheritedHoldRuleCategory =
-            HoldRuleUtils.parseHoldRuleCategory(unit);
+        InheritedRuleCategoryResponseModel inheritedHoldRuleCategory = HoldRuleUtils.parseHoldRuleCategory(unit);
 
-        String originatingAgency = unit.has(VitamFieldsHelper.originatingAgency()) ?
-            unit.get(VitamFieldsHelper.originatingAgency()).asText() :
-            null;
+        String originatingAgency = unit.has(VitamFieldsHelper.originatingAgency())
+            ? unit.get(VitamFieldsHelper.originatingAgency()).asText()
+            : null;
 
         String unitId = unit.get(VitamFieldsHelper.id()).asText();
         UnitType unitType = UnitType.valueOf(unit.get(VitamFieldsHelper.unitType()).asText());
@@ -91,19 +90,20 @@ public final class EliminationUtils {
             inheritedEliminatedRuleCategory.getProperties(),
             inheritedHoldRuleCategory.getRules(),
             expirationDate,
-            originatingAgency);
+            originatingAgency
+        );
     }
 
     private static InheritedRuleCategoryResponseModel parseAppraisalRuleCategory(JsonNode unit)
         throws ProcessingStatusException {
-
         try {
             JsonNode inheritedRules = unit.get(MetadataRuleService.INHERITED_RULES);
 
-            UnitInheritedRulesResponseModel unitInheritedRulesResponseModel =
-                JsonHandler.getFromJsonNode(inheritedRules, UnitInheritedRulesResponseModel.class);
+            UnitInheritedRulesResponseModel unitInheritedRulesResponseModel = JsonHandler.getFromJsonNode(
+                inheritedRules,
+                UnitInheritedRulesResponseModel.class
+            );
             return unitInheritedRulesResponseModel.getRuleCategories().get(VitamConstants.TAG_RULE_APPRAISAL);
-
         } catch (InvalidParseOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not parse unit information", e);
         }
@@ -113,19 +113,23 @@ public final class EliminationUtils {
         throws ProcessingStatusException {
         try {
             return JsonHandler.getFromInputStream(
-                handler.getInputStreamFromWorkspace(REQUEST_JSON), EliminationRequestBody.class);
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException |
-                 IOException e) {
+                handler.getInputStreamFromWorkspace(REQUEST_JSON),
+                EliminationRequestBody.class
+            );
+        } catch (
+            ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | IOException e
+        ) {
             throw new ProcessingStatusException(StatusCode.FATAL, COULD_NOT_LOAD_REQUEST_FROM_WORKSPACE, e);
         } catch (InvalidParseOperationException e) {
-            EliminationEventDetails eventDetails = new EliminationEventDetails()
-                .setError(INVALID_REQUEST);
+            EliminationEventDetails eventDetails = new EliminationEventDetails().setError(INVALID_REQUEST);
             throw new ProcessingStatusException(StatusCode.KO, eventDetails, INVALID_REQUEST, e);
         }
     }
 
     public static List<String> getReportExtraFields() {
-        return Objects.requireNonNullElse(VitamConfiguration.getEliminationReportExtraFields()
-            .get(VitamThreadUtils.getVitamSession().getTenantId()), Collections.emptyList());
+        return Objects.requireNonNullElse(
+            VitamConfiguration.getEliminationReportExtraFields().get(VitamThreadUtils.getVitamSession().getTenantId()),
+            Collections.emptyList()
+        );
     }
 }

@@ -56,10 +56,16 @@ public class AdminManagementMain {
      * @param configurationFile the configuration of the web application
      */
     public AdminManagementMain(String configurationFile) {
-        ParametersChecker.checkParameter(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(AdminManagementConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminFunctionalApplication.class);
+        ParametersChecker.checkParameter(
+            String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
+        vitamStarter = new VitamStarter(
+            AdminManagementConfiguration.class,
+            configurationFile,
+            BusinessApplication.class,
+            AdminFunctionalApplication.class
+        );
     }
 
     /**
@@ -71,8 +77,7 @@ public class AdminManagementMain {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    CONF_FILE_NAME));
+                throw new IllegalArgumentException(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
             }
             AdminManagementMain main = new AdminManagementMain(args[0]);
 
@@ -115,5 +120,4 @@ public class AdminManagementMain {
     public void stop() throws VitamApplicationServerException {
         vitamStarter.stop();
     }
-
 }

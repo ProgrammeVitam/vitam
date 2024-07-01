@@ -33,7 +33,7 @@ import fr.gouv.vitam.common.model.processing.PauseOrCancelAction;
  */
 public class PauseCancelException extends RuntimeException {
 
-    final private PauseOrCancelAction pauseOrCancelAction;
+    private final PauseOrCancelAction pauseOrCancelAction;
 
     /**
      * Constructor

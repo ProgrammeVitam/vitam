@@ -78,11 +78,15 @@ public class MetadataHelper {
     public static final String STATIC_ATTACHMENT = "STATIC_ATTACHEMENT";
     public static final String DYNAMIC_ATTACHEMENT = "DYNAMIC_ATTACHEMENT";
 
-    private MetadataHelper() {
-    }
+    private MetadataHelper() {}
 
-    public static ArchiveUnitModel createUnit(String transactionId, LevelType descriptionLevel, String path,
-        String title, String unitParent) {
+    public static ArchiveUnitModel createUnit(
+        String transactionId,
+        LevelType descriptionLevel,
+        String path,
+        String title,
+        String unitParent
+    ) {
         String id = GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()).getId();
         CollectArchiveUnitModel unitInternalModel = new CollectArchiveUnitModel();
 
@@ -101,16 +105,20 @@ public class MetadataHelper {
         return unitInternalModel;
     }
 
-    public static ObjectGroupResponse createObjectGroup(String transactionId, String fileName, String objectId,
-        String newFilename, Optional<FormatIdentifierResponse> formatOpt, String digest, Long size) {
-
-
+    public static ObjectGroupResponse createObjectGroup(
+        String transactionId,
+        String fileName,
+        String objectId,
+        String newFilename,
+        Optional<FormatIdentifierResponse> formatOpt,
+        String digest,
+        Long size
+    ) {
         FileInfoModel fileInfoModel = new FileInfoModel();
         fileInfoModel.setFilename(fileName);
         fileInfoModel.setLastModified(LocalDateUtil.getFormattedDateForMongo(LocalDateTime.now()));
 
         QualifiersModel qualifiersModel = new QualifiersModel();
-
 
         VersionsModel versionsModel = new VersionsModel();
         versionsModel.setId(objectId);
@@ -146,8 +154,11 @@ public class MetadataHelper {
         return dbObjectGroupModel;
     }
 
-    public static Set<String> findUnitParent(ObjectNode unit, @Nonnull List<MetadataUnitUp> unitUps,
-        Map<String, String> attachmentUnitsBySystemId) {
+    public static Set<String> findUnitParent(
+        ObjectNode unit,
+        @Nonnull List<MetadataUnitUp> unitUps,
+        Map<String, String> attachmentUnitsBySystemId
+    ) {
         Set<String> attachmentUnits = new HashSet<>();
         for (MetadataUnitUp metadataUnitUp : unitUps) {
             if (metadataMatches(unit, metadataUnitUp.getMetadataKey(), metadataUnitUp.getMetadataValue())) {
@@ -197,5 +208,4 @@ public class MetadataHelper {
             queries.set(queryList.size() - 1, mergedQuery);
         }
     }
-
 }

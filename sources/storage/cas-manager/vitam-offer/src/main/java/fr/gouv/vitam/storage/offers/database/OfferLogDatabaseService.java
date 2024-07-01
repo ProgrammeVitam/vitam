@@ -78,8 +78,10 @@ public class OfferLogDatabaseService {
             OfferLog offerLog = new OfferLog(sequence, LocalDateUtil.now(), containerName, fileName, action);
             mongoCollection.insertOne(Document.parse(JsonHandler.writeAsString(offerLog)));
         } catch (MongoException e) {
-            throw new ContentAddressableStorageDatabaseException(String.format(
-                "Database Error while saving %s in OfferLog collection", fileName), e);
+            throw new ContentAddressableStorageDatabaseException(
+                String.format("Database Error while saving %s in OfferLog collection", fileName),
+                e
+            );
         } catch (InvalidParseOperationException e) {
             throw new ContentAddressableStorageServerException("Cannot parse storage log", e);
         }
@@ -96,59 +98,67 @@ public class OfferLogDatabaseService {
             }
             mongoCollection.insertMany(documents, new InsertManyOptions().ordered(false));
         } catch (MongoException e) {
-            throw new ContentAddressableStorageDatabaseException(String.format(
-                "Database Error while saving %s in OfferLog collection", fileNames), e);
+            throw new ContentAddressableStorageDatabaseException(
+                String.format("Database Error while saving %s in OfferLog collection", fileNames),
+                e
+            );
         } catch (InvalidParseOperationException exc) {
             throw new ContentAddressableStorageServerException("Cannot parse storage log", exc);
         }
     }
 
     public List<OfferLog> getDescendingOfferLogsBy(String containerName, Long offset, int limit) {
-
         Bson searchFilter = offset != null
             ? and(eq(CONTAINER, containerName), lte(SEQUENCE, offset))
             : eq(CONTAINER, containerName);
 
-        try (MongoCursor<OfferLog> cursor = mongoCollection.find(searchFilter)
-            .sort(Sorts.orderBy(Sorts.descending(SEQUENCE)))
-            .limit(limit)
-            .map(this::transformDocumentToOfferLog)
-            .cursor()
+        try (
+            MongoCursor<OfferLog> cursor = mongoCollection
+                .find(searchFilter)
+                .sort(Sorts.orderBy(Sorts.descending(SEQUENCE)))
+                .limit(limit)
+                .map(this::transformDocumentToOfferLog)
+                .cursor()
         ) {
             return IteratorUtils.toList(cursor);
         }
     }
 
     public List<OfferLog> getAscendingOfferLogsBy(String containerName, Long offset, int limit) {
-
         Bson searchFilter = offset != null
             ? and(eq(CONTAINER, containerName), gte(SEQUENCE, offset))
             : eq(CONTAINER, containerName);
 
-        try (MongoCursor<OfferLog> cursor = mongoCollection.find(searchFilter)
-            .sort(Sorts.orderBy(Sorts.ascending(SEQUENCE)))
-            .limit(limit)
-            .map(this::transformDocumentToOfferLog)
-            .cursor()
+        try (
+            MongoCursor<OfferLog> cursor = mongoCollection
+                .find(searchFilter)
+                .sort(Sorts.orderBy(Sorts.ascending(SEQUENCE)))
+                .limit(limit)
+                .map(this::transformDocumentToOfferLog)
+                .cursor()
         ) {
             return IteratorUtils.toList(cursor);
         }
     }
 
     public CloseableIterable<OfferLog> getExpiredOfferLogByContainer(long expirationValue, ChronoUnit expirationUnit) {
-        LocalDateTime expirationDate = LocalDateUtil.now()
-            .minus(expirationValue, expirationUnit);
+        LocalDateTime expirationDate = LocalDateUtil.now().minus(expirationValue, expirationUnit);
 
         return toCloseableIterable(
-            mongoCollection.find(lte(TIME, LocalDateUtil.getFormattedDateForMongo(expirationDate)))
+            mongoCollection
+                .find(lte(TIME, LocalDateUtil.getFormattedDateForMongo(expirationDate)))
                 .sort(Sorts.ascending(CONTAINER, SEQUENCE))
-                .map(d -> new OfferLog(
-                        ((Number) d.get(SEQUENCE)).longValue(),
-                        LocalDateUtil.parseMongoFormattedDate(LocalDateUtil.getFormattedDateForMongo(d.getString(TIME))),
-                        d.getString(CONTAINER),
-                        d.getString(FILENAME),
-                        OfferLogAction.valueOf(d.getString(ACTION).toUpperCase())
-                    )
+                .map(
+                    d ->
+                        new OfferLog(
+                            ((Number) d.get(SEQUENCE)).longValue(),
+                            LocalDateUtil.parseMongoFormattedDate(
+                                LocalDateUtil.getFormattedDateForMongo(d.getString(TIME))
+                            ),
+                            d.getString(CONTAINER),
+                            d.getString(FILENAME),
+                            OfferLogAction.valueOf(d.getString(ACTION).toUpperCase())
+                        )
                 )
         );
     }
@@ -180,8 +190,7 @@ public class OfferLogDatabaseService {
 
             @Override
             public void close() {
-                mongoIterable.cursor()
-                    .close();
+                mongoIterable.cursor().close();
             }
         };
     }

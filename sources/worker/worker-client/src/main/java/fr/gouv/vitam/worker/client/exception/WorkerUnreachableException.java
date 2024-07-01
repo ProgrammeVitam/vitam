@@ -31,7 +31,6 @@ package fr.gouv.vitam.worker.client.exception;
  */
 public class WorkerUnreachableException extends WorkerExecutorException {
 
-
     public WorkerUnreachableException(String workerId, String message) {
         super(workerId, message);
     }

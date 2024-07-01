@@ -52,16 +52,18 @@ import static org.joda.time.DateTimeFieldType.year;
  * Vitam version of Validator for the {@code date-time-vitam} format attribute
  */
 public final class VitamDateTimeAttribute extends AbstractFormatAttribute {
-    private static final List<String> FORMATS = ImmutableList.of(
-        "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.SSS");
+
+    private static final List<String> FORMATS = ImmutableList.of("yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.SSS");
     private static final DateTimeFormatter FORMATTER;
 
     static {
         final DateTimeParser msParser = new DateTimeFormatterBuilder()
-            .appendLiteral('.').appendDecimal(millisOfSecond(), 1, 3)
+            .appendLiteral('.')
+            .appendDecimal(millisOfSecond(), 1, 3)
             .toParser();
         DateTimeFormatterBuilder builder = new DateTimeFormatterBuilder();
-        builder = builder.appendFixedDecimal(year(), 4)
+        builder = builder
+            .appendFixedDecimal(year(), 4)
             .appendLiteral('-')
             .appendFixedDecimal(monthOfYear(), 2)
             .appendLiteral('-')
@@ -87,15 +89,17 @@ public final class VitamDateTimeAttribute extends AbstractFormatAttribute {
     }
 
     @Override
-    public void validate(final ProcessingReport report,
-        final MessageBundle bundle, final FullData data)
+    public void validate(final ProcessingReport report, final MessageBundle bundle, final FullData data)
         throws ProcessingException {
         final String value = data.getInstance().getNode().textValue();
         try {
             FORMATTER.parseDateTime(value);
         } catch (IllegalArgumentException ignored) {
-            report.error(newMsg(data, bundle, "err.format.invalidDate")
-                .putArgument("value", value).putArgument("expected", FORMATS));
+            report.error(
+                newMsg(data, bundle, "err.format.invalidDate")
+                    .putArgument("value", value)
+                    .putArgument("expected", FORMATS)
+            );
         }
     }
 }

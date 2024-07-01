@@ -41,8 +41,12 @@ public class InternalActionKeysRetrieverTest {
     @Test
     public void should_return_internal_fields() throws Exception {
         // Given
-        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetInternalField.json"));
+        JsonNode query = JsonHandler.getFromInputStream(
+            getClass()
+                .getResourceAsStream(
+                    "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetInternalField.json"
+                )
+        );
 
         // When
         List<String> internalActionKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(query);
@@ -54,8 +58,12 @@ public class InternalActionKeysRetrieverTest {
     @Test
     public void should_return_internal_fields_to_internal_object() throws Exception {
         // Given
-        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetInternalField2.json"));
+        JsonNode query = JsonHandler.getFromInputStream(
+            getClass()
+                .getResourceAsStream(
+                    "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetInternalField2.json"
+                )
+        );
 
         // When
         List<String> internalActionKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(query);
@@ -67,50 +75,84 @@ public class InternalActionKeysRetrieverTest {
     @Test
     public void should_return_internal_fields_to_internal_object_with_interpunct() throws Exception {
         // Given
-        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetInternalField3.json"));
+        JsonNode query = JsonHandler.getFromInputStream(
+            getClass()
+                .getResourceAsStream(
+                    "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetInternalField3.json"
+                )
+        );
 
         // When
         List<String> internalActionKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(query);
 
         // Then
-        assertThat(internalActionKeyFields).containsExactly("_firstExample", "_secondExample", "_thirdExample",
-            "_fourthExample", "_fifthExample", "_sixthExample");
+        assertThat(internalActionKeyFields).containsExactly(
+            "_firstExample",
+            "_secondExample",
+            "_thirdExample",
+            "_fourthExample",
+            "_fifthExample",
+            "_sixthExample"
+        );
     }
 
     @Test
     public void should_return_internal_fields_to_internal_object_with_interpuct2() throws Exception {
         // Given
-        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetInternalField4.json"));
+        JsonNode query = JsonHandler.getFromInputStream(
+            getClass()
+                .getResourceAsStream(
+                    "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetInternalField4.json"
+                )
+        );
 
         // When
         List<String> internalActionKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(query);
 
         // Then
-        assertThat(internalActionKeyFields).containsExactly("#firstExample", "#secondExample", "#thirdExample",
-            "#fourthExample", "#fifthExample", "#sixthExample");
+        assertThat(internalActionKeyFields).containsExactly(
+            "#firstExample",
+            "#secondExample",
+            "#thirdExample",
+            "#fourthExample",
+            "#fifthExample",
+            "#sixthExample"
+        );
     }
 
     @Test
     public void should_return_internal_fields_to_internal_object_with_interpuct3() throws Exception {
         // Given
-        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetInternalField5.json"));
+        JsonNode query = JsonHandler.getFromInputStream(
+            getClass()
+                .getResourceAsStream(
+                    "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetInternalField5.json"
+                )
+        );
 
         // When
         List<String> internalActionKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(query);
 
         // Then
-        assertThat(internalActionKeyFields).containsExactly("$firstExample", "$secondExample", "$thirdExample",
-            "$fourthExample", "$fifthExample", "$sixthExample");
+        assertThat(internalActionKeyFields).containsExactly(
+            "$firstExample",
+            "$secondExample",
+            "$thirdExample",
+            "$fourthExample",
+            "$fifthExample",
+            "$sixthExample"
+        );
     }
 
     @Test
     public void should_return_no_internal_fields() throws Exception {
         // Given
-        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetExternalField.json"));
+        JsonNode query = JsonHandler.getFromInputStream(
+            getClass()
+                .getResourceAsStream(
+                    "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetExternalField.json"
+                )
+        );
 
         // When
         List<String> internalActionKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(query);
@@ -122,8 +164,12 @@ public class InternalActionKeysRetrieverTest {
     @Test
     public void should_return_internal_fields_for_regex() throws Exception {
         // Given
-        JsonNode query = JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetInternalFieldREGEX.json"));
+        JsonNode query = JsonHandler.getFromInputStream(
+            getClass()
+                .getResourceAsStream(
+                    "/preservation/internalActionKeysRetrieverTestFiles/queryActionSetInternalFieldREGEX.json"
+                )
+        );
 
         // When
         List<String> internalActionKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(query);
@@ -136,16 +182,40 @@ public class InternalActionKeysRetrieverTest {
     public void should_return_any_forbidden_field_when_using_getInternalKeyFields() throws Exception {
         // Given
         JsonNode query = JsonHandler.getFromInputStream(
-            getClass().getResourceAsStream("/preservation/internalActionKeysRetrieverTestFiles/setAnyMetadata.json"));
+            getClass().getResourceAsStream("/preservation/internalActionKeysRetrieverTestFiles/setAnyMetadata.json")
+        );
 
         // When
         List<String> internalActionKeyFields = internalActionKeysRetriever.getInternalKeyFields(query);
 
         // Then
-        assertThat(internalActionKeyFields).containsOnly("$action", "$setregex", "$target", "$controlPattern",
-            "$updatePattern", "$set", "$firstExample", "$secondExample", "$thirdExample", "$fourthExample",
-            "$fifthExample", "$sixthExample", "#set", "#firstExample", "#secondExample", "#thirdExample",
-            "#fourthExample", "#fifthExample", "#sixthExample", "_set", "_firstExample", "_secondExample",
-            "_thirdExample", "_fourthExample", "_fifthExample", "_sixthExample");
+        assertThat(internalActionKeyFields).containsOnly(
+            "$action",
+            "$setregex",
+            "$target",
+            "$controlPattern",
+            "$updatePattern",
+            "$set",
+            "$firstExample",
+            "$secondExample",
+            "$thirdExample",
+            "$fourthExample",
+            "$fifthExample",
+            "$sixthExample",
+            "#set",
+            "#firstExample",
+            "#secondExample",
+            "#thirdExample",
+            "#fourthExample",
+            "#fifthExample",
+            "#sixthExample",
+            "_set",
+            "_firstExample",
+            "_secondExample",
+            "_thirdExample",
+            "_fourthExample",
+            "_fifthExample",
+            "_sixthExample"
+        );
     }
 }

@@ -37,17 +37,19 @@ public class WorkerRemoteConfiguration {
 
     @JsonProperty("serverHost")
     private String serverHost;
+
     @JsonProperty("serverPort")
     private int serverPort;
-
 
     /**
      * @param serverHost : the worker server host
      * @param serverPort : the worker server port
      */
     @JsonCreator
-    public WorkerRemoteConfiguration(@JsonProperty("serverHost") String serverHost,
-        @JsonProperty("serverPort") int serverPort) {
+    public WorkerRemoteConfiguration(
+        @JsonProperty("serverHost") String serverHost,
+        @JsonProperty("serverPort") int serverPort
+    ) {
         ParametersChecker.checkParameter("serverPort is a mandatory parameter", serverPort);
         ParametersChecker.checkParameter("serverHost is a mandatory parameter", serverHost);
         this.serverHost = serverHost;
@@ -96,5 +98,4 @@ public class WorkerRemoteConfiguration {
         sb.append("serverPort=" + getServerPort() + "\n");
         return sb.toString();
     }
-
 }

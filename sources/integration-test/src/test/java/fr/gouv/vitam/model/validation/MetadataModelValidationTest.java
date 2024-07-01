@@ -45,14 +45,14 @@ public class MetadataModelValidationTest {
 
     @Test
     public void testUnitElasticsearchMapping() throws Exception {
-
         ModelValidatorUtils.validateDataModel(mappingLoader.loadMapping(UNIT.name()), UNIT.getVitamCollection());
     }
 
     @Test
     public void testObjectGroupElasticsearchMapping() throws Exception {
-        ModelValidatorUtils
-            .validateDataModel(mappingLoader.loadMapping(OBJECTGROUP.name()), OBJECTGROUP.getVitamCollection());
+        ModelValidatorUtils.validateDataModel(
+            mappingLoader.loadMapping(OBJECTGROUP.name()),
+            OBJECTGROUP.getVitamCollection()
+        );
     }
-
 }

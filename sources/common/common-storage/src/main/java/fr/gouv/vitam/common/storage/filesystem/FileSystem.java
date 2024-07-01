@@ -108,7 +108,8 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
         File file = new File(getBaseDir(containerName), objectId);
         if (!file.exists()) {
             throw new ContentAddressableStorageNotFoundException(
-                "Storage not found: " + containerName + "/" + objectId);
+                "Storage not found: " + containerName + "/" + objectId
+            );
         }
         return file;
     }
@@ -124,17 +125,20 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
     public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException {
         MetadatasStorageObject result = new MetadatasStorageObject();
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectId);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectId
+        );
         try {
             File file = getFileFromJClouds(containerName, objectId);
             BasicFileAttributes basicAttribs = getFileAttributes(file);
             long size = Files.size(Paths.get(file.getPath()));
             result.setObjectName(objectId);
             // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
-            result
-                .setDigest(
-                    getObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType(), noCache));
+            result.setDigest(
+                getObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType(), noCache)
+            );
             result.setFileSize(size);
             // TODO store vitam metadatas
             result.setType(containerName.split("_")[1]);
@@ -142,10 +146,14 @@ public class FileSystem extends ContentAddressableStorageJcloudsAbstract {
             result.setLastModifiedDate(basicAttribs.lastModifiedTime().toString());
         } catch (FileNotFoundException | NoSuchFileException fe) {
             throw new ContentAddressableStorageNotFoundException(
-                "The file for object " + objectId + " for container " + containerName + " is not found", fe);
+                "The file for object " + objectId + " for container " + containerName + " is not found",
+                fe
+            );
         } catch (IOException io) {
             throw new ContentAddressableStorageException(
-                "The file for object " + objectId + "for container " + containerName + " is not accessible", io);
+                "The file for object " + objectId + "for container " + containerName + " is not accessible",
+                io
+            );
         } finally {
             closeContext();
         }

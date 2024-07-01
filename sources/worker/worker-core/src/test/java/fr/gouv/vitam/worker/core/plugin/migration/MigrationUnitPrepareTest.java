@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.migration;
 
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
@@ -62,14 +61,23 @@ import static org.mockito.Mockito.when;
 
 public class MigrationUnitPrepareTest {
 
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
-    };
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {};
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-    @Mock private MetaDataClientFactory metaDataClientFactory;
-    @Mock private MetaDataClient metaDataClient;
-    @Mock private HandlerIO handlerIO;
-    @Mock private WorkerParameters defaultWorkerParameters = mock(WorkerParameters.class);
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Mock
+    private MetaDataClientFactory metaDataClientFactory;
+
+    @Mock
+    private MetaDataClient metaDataClient;
+
+    @Mock
+    private HandlerIO handlerIO;
+
+    @Mock
+    private WorkerParameters defaultWorkerParameters = mock(WorkerParameters.class);
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -82,7 +90,8 @@ public class MigrationUnitPrepareTest {
     public void should_prepare_Linked_units_files() throws Exception {
         //GIVEN
         given(metaDataClient.selectUnits(any(JsonNode.class))).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/migration/resultMetadata.json")));
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/migration/resultMetadata.json"))
+        );
 
         File jsonLineFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile("Units.jsonl")).willReturn(jsonLineFile);
@@ -101,16 +110,20 @@ public class MigrationUnitPrepareTest {
 
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
         try (InputStream is = new FileInputStream(jsonLineFile)) {
-            JsonLineGenericIterator<JsonLineModel> lineGenericIterator =
-                new JsonLineGenericIterator<>(is, TYPE_REFERENCE);
+            JsonLineGenericIterator<JsonLineModel> lineGenericIterator = new JsonLineGenericIterator<>(
+                is,
+                TYPE_REFERENCE
+            );
             List<String> unitIds = IteratorUtils.toList(lineGenericIterator)
                 .stream()
                 .map(JsonLineModel::getId)
                 .collect(Collectors.toList());
 
             assertThat(unitIds).containsExactly(
-                "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaaba", "aeaqaaaaaadf6mc4aathcak7tmtgdmyaaaba",
-                "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca", "aeaqaaaaaadf6mc4aathcak7tmtgdniaaaba"
+                "aeaqaaaaaadf6mc4aathcak7tmtgdnaaaaba",
+                "aeaqaaaaaadf6mc4aathcak7tmtgdmyaaaba",
+                "aeaqaaaaaadf6mc4aathcak7tmtgdayaaaca",
+                "aeaqaaaaaadf6mc4aathcak7tmtgdniaaaba"
             );
         }
     }

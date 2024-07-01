@@ -118,6 +118,7 @@ import static fr.gouv.vitam.common.model.StatusCode.OK;
 @ApplicationPath("webresources")
 @Tag(name = "Ingest")
 public class IngestInternalResource extends ApplicationStatusResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalResource.class);
 
     private static final String JSON = ".json";
@@ -147,13 +148,14 @@ public class IngestInternalResource extends ApplicationStatusResource {
         ProcessingManagementClientFactory.changeConfigurationUrl(configuration.getProcessingUrl());
         this.workspaceClientFactory = WorkspaceClientFactory.getInstance();
         this.processingManagementClientFactory = ProcessingManagementClientFactory.getInstance();
-
     }
 
     @VisibleForTesting
-    IngestInternalResource(WorkspaceClientFactory workspaceClientFactory,
+    IngestInternalResource(
+        WorkspaceClientFactory workspaceClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        LogbookOperationsClientFactory logbookOperationsClientFactory
+    ) {
         this.workspaceClientFactory = workspaceClientFactory;
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
@@ -217,8 +219,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
     @PUT
     @Path("/workspace/{id}/{objectName}")
-    public Response updateWorkspaceContainer(@PathParam("id") String id, @PathParam("objectName") String objectName,
-        InputStream objectStream) {
+    public Response updateWorkspaceContainer(
+        @PathParam("id") String id,
+        @PathParam("objectName") String objectName,
+        InputStream objectStream
+    ) {
         try (WorkspaceClient client = workspaceClientFactory.getClient()) {
             VitamThreadUtils.getVitamSession().checkValidRequestId();
             if (!client.isExistingContainer(id)) {
@@ -244,16 +249,24 @@ public class IngestInternalResource extends ApplicationStatusResource {
      */
     @POST
     @Path("/ingests")
-    @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP,
-        CommonMediaType.TAR, CommonMediaType.BZIP2})
-    public Response uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
+    @Consumes(
+        {
+            MediaType.APPLICATION_OCTET_STREAM,
+            CommonMediaType.ZIP,
+            CommonMediaType.XGZIP,
+            CommonMediaType.GZIP,
+            CommonMediaType.TAR,
+            CommonMediaType.BZIP2,
+        }
+    )
+    public Response uploadSipAsStream(
+        @HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
         @HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
         @HeaderParam(GlobalDataRest.X_ACTION_INIT) String xActionInit,
         @HeaderParam(GlobalDataRest.X_TYPE_PROCESS) LogbookTypeProcess logbookTypeProcess,
-        InputStream uploadedInputStream) {
-
-        ParametersChecker.checkParameter("context Id Request must not be null",
-            contextId);
+        InputStream uploadedInputStream
+    ) {
+        ParametersChecker.checkParameter("context Id Request must not be null", contextId);
         return ingestAsync(contentType, uploadedInputStream, contextId, xActionInit, logbookTypeProcess);
     }
 
@@ -269,14 +282,18 @@ public class IngestInternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
-            ParametersChecker.checkParameter("Action Id Request must not be null",
-                headers.getRequestHeader(GlobalDataRest.X_ACTION));
+            ParametersChecker.checkParameter(
+                "Action Id Request must not be null",
+                headers.getRequestHeader(GlobalDataRest.X_ACTION)
+            );
             final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
             GUID containerGUID = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
 
             // Execute the given action
-            RequestResponse<ItemStatus> updateResponse =
-                processingClient.updateOperationActionProcess(xAction, containerGUID.getId());
+            RequestResponse<ItemStatus> updateResponse = processingClient.updateOperationActionProcess(
+                xAction,
+                containerGUID.getId()
+            );
 
             if (!updateResponse.isOk()) {
                 return updateResponse.toResponse();
@@ -303,23 +320,27 @@ public class IngestInternalResource extends ApplicationStatusResource {
 
             if (isCompletedProcess(processState)) {
                 // Add last log
-                addFinalLogbookOperationEvent(containerGUID, logbookTypeProcess,
-                    fromStatusToStatusCode(stepExecutionStatus));
+                addFinalLogbookOperationEvent(
+                    containerGUID,
+                    logbookTypeProcess,
+                    fromStatusToStatusCode(stepExecutionStatus)
+                );
             }
             return updateResponse.toResponse();
         } catch (Exception e) {
-            return Response.serverError().entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(),
-                    INGEST_INTERNAL_MODULE))
+            return Response.serverError()
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), INGEST_INTERNAL_MODULE))
                 .build();
         }
     }
 
     private VitamError getErrorEntity(Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
 
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
+        return new VitamError(status.name())
+            .setHttpCode(status.getStatusCode())
             .setContext(INGEST)
             .setState("code_vitam")
             .setMessage(status.getReasonPhrase())
@@ -327,13 +348,18 @@ public class IngestInternalResource extends ApplicationStatusResource {
     }
 
     private InputStream getErrorStream(Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         try {
-            return JsonHandler.writeToInpustream(new VitamError(status.name())
-                .setHttpCode(status.getStatusCode()).setContext(INGEST)
-                .setState("code_vitam").setMessage(status.getReasonPhrase()).setDescription(aMessage));
+            return JsonHandler.writeToInpustream(
+                new VitamError(status.name())
+                    .setHttpCode(status.getStatusCode())
+                    .setContext(INGEST)
+                    .setState("code_vitam")
+                    .setMessage(status.getReasonPhrase())
+                    .setDescription(aMessage)
+            );
         } catch (InvalidParseOperationException e) {
             return new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes());
         }
@@ -363,7 +389,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
                 .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalStatus())
                 .header(GlobalDataRest.X_CONTEXT_ID, itemStatus.getLogbookTypeProcess())
                 .build();
-
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED).build();
@@ -395,12 +420,9 @@ public class IngestInternalResource extends ApplicationStatusResource {
         } catch (Exception e) {
             LOGGER.error(e);
             Status status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status, e.getMessage()))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
-
 
     /**
      * Interrupt the process of an operation identified by Id.
@@ -417,16 +439,12 @@ public class IngestInternalResource extends ApplicationStatusResource {
             SanityChecker.checkParameter(id);
             RequestResponse<ItemStatus> response = processManagementClient.cancelOperationProcessExecution(id);
             return response.toResponse();
-
         } catch (Exception e) {
             LOGGER.error(e);
             status = Status.INTERNAL_SERVER_ERROR;
-            return Response.status(status)
-                .entity(getErrorEntity(status, e.getMessage()))
-                .build();
+            return Response.status(status).entity(getErrorEntity(status, e.getMessage())).build();
         }
     }
-
 
     /**
      * Download object stored by Ingest operation (currently ATR and manifest)
@@ -480,28 +498,36 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     return Response.status(Status.METHOD_NOT_ALLOWED).build();
             }
 
-            final Response response = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                objectId, documentType, AccessLogUtils.getNoLogAccessLog());
+            final Response response = storageClient.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                objectId,
+                documentType,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             return new VitamAsyncInputStreamResponse(response, Status.OK, MediaType.APPLICATION_OCTET_STREAM_TYPE);
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
-            return Response.status(Status.BAD_REQUEST).entity(getErrorStream(Status.BAD_REQUEST,
-                e.getMessage())).build();
+            return Response.status(Status.BAD_REQUEST)
+                .entity(getErrorStream(Status.BAD_REQUEST, e.getMessage()))
+                .build();
         } catch (StorageNotFoundException e) {
             LOGGER.error("Storage error was thrown : ", e);
-            return Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND,
-                e.getMessage())).build();
+            return Response.status(Status.NOT_FOUND).entity(getErrorStream(Status.NOT_FOUND, e.getMessage())).build();
         } catch (StorageServerClientException | StorageUnavailableDataFromAsyncOfferClientException e) {
             LOGGER.error("Storage error was thrown : ", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(getErrorStream(Status.INTERNAL_SERVER_ERROR,
-                e.getMessage())).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity(getErrorStream(Status.INTERNAL_SERVER_ERROR, e.getMessage()))
+                .build();
         }
     }
 
-    private Response ingestAsync(String contentType,
-        InputStream uploadedInputStream, String contextId, String xActionInit,
-        LogbookTypeProcess logbookTypeProcess) {
-
+    private Response ingestAsync(
+        String contentType,
+        InputStream uploadedInputStream,
+        String contextId,
+        String xActionInit,
+        LogbookTypeProcess logbookTypeProcess
+    ) {
         LogbookOperationParameters parameters;
         final String containerId = VitamThreadUtils.getVitamSession().getRequestId();
         String guid;
@@ -519,8 +545,10 @@ public class IngestInternalResource extends ApplicationStatusResource {
             switch (ProcessAction.valueOf(xActionInit)) {
                 case INIT:
                     workspaceClient.checkStatus();
-                    try (ProcessingManagementClient processManagementClient = processingManagementClientFactory
-                        .getClient()) {
+                    try (
+                        ProcessingManagementClient processManagementClient =
+                            processingManagementClientFactory.getClient()
+                    ) {
                         // No need to backup operation context. In case of workspace crash, current ingests should be cleaned and ingests should be re-executed
                         // Initialize a new process
                         processManagementClient.initVitamProcess(guid, contextId);
@@ -533,7 +561,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
                         // Successful initialization
                         return Response.status(Status.ACCEPTED).build();
                     }
-
                 case START:
                     // Get MimeType
                     MediaType mediaType = CommonMediaType.valueOf(contentType);
@@ -542,20 +569,28 @@ public class IngestInternalResource extends ApplicationStatusResource {
                     prepareToStartProcess(uploadedInputStream, archiveMimeType, containerGUID);
 
                     parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
-                    parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        "Try to call processing...");
+                    parameters.putParameterValue(
+                        LogbookParameterName.outcomeDetailMessage,
+                        "Try to call processing..."
+                    );
                     return Response.status(Status.ACCEPTED).build();
-
                 default:
                     throw new BadRequestException(String.format("%s is not a correct ProcessAction.", xActionInit));
             }
         } catch (final ZipFilesNameNotAllowedException e) {
             LOGGER.error("Unzip error :", e);
             return Response.status(Status.NOT_ACCEPTABLE).build();
-        } catch (final ContentAddressableStorageException | VitamApplicationServerException | InternalServerException e) {
+        } catch (
+            final ContentAddressableStorageException | VitamApplicationServerException | InternalServerException e
+        ) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             return Response.status(Status.SERVICE_UNAVAILABLE).build();
-        } catch (IllegalArgumentException | BadRequestException | InvalidGuidOperationException | LogbookClientBadRequestException e) {
+        } catch (
+            IllegalArgumentException
+            | BadRequestException
+            | InvalidGuidOperationException
+            | LogbookClientBadRequestException e
+        ) {
             LOGGER.error("Unexpected error was thrown : " + e.getMessage(), e);
             return Response.status(Status.BAD_REQUEST).build();
         } catch (IngestInternalException e) {
@@ -591,9 +626,11 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @throws IngestInternalException
      * @throws ContentAddressableStorageException
      */
-    private void prepareToStartProcess(InputStream uploadedInputStream, String archiveMimeType,
-        final GUID containerGUID)
-        throws LogbookClientBadRequestException, IngestInternalException, ContentAddressableStorageException {
+    private void prepareToStartProcess(
+        InputStream uploadedInputStream,
+        String archiveMimeType,
+        final GUID containerGUID
+    ) throws LogbookClientBadRequestException, IngestInternalException, ContentAddressableStorageException {
         LOGGER.debug("Starting up the save file sip");
         ItemStatus stpUploadItemStatus = new ItemStatus(UPLOAD_SIP);
         try {
@@ -607,45 +644,65 @@ public class IngestInternalResource extends ApplicationStatusResource {
             throw e;
         } finally {
             try {
-                workspaceClientFactory.getClient().putObject(containerGUID.getId(), STP_UPLOAD_RESULT_JSON,
-                    JsonHandler.writeToInpustream(stpUploadItemStatus));
+                workspaceClientFactory
+                    .getClient()
+                    .putObject(
+                        containerGUID.getId(),
+                        STP_UPLOAD_RESULT_JSON,
+                        JsonHandler.writeToInpustream(stpUploadItemStatus)
+                    );
             } catch (InvalidParseOperationException e) {
                 throw new IngestInternalException(e);
             }
         }
     }
 
-
-    private void addFinalLogbookOperationEvent(final GUID containerGUID, LogbookTypeProcess logbookTypeProcess,
-        StatusCode statusCode)
-        throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
-        LogbookOperationParameters parameters = logbookInitialisation(containerGUID,
-            containerGUID, logbookTypeProcess);
+    private void addFinalLogbookOperationEvent(
+        final GUID containerGUID,
+        LogbookTypeProcess logbookTypeProcess,
+        StatusCode statusCode
+    ) throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
+        LogbookOperationParameters parameters = logbookInitialisation(containerGUID, containerGUID, logbookTypeProcess);
         parameters.putParameterValue(LogbookParameterName.eventType, INGEST_WORKFLOW);
-        callLogbookUpdate(parameters, statusCode,
-            INGEST_WORKFLOW, VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, statusCode));
-
+        callLogbookUpdate(
+            parameters,
+            statusCode,
+            INGEST_WORKFLOW,
+            VitamLogbookMessages.getCodeOp(INGEST_WORKFLOW, statusCode)
+        );
     }
 
-    private LogbookOperationParameters logbookInitialisation(final GUID eventIdentifier, final GUID containerGUID,
-        final LogbookTypeProcess logbookTypeProcess) {
+    private LogbookOperationParameters logbookInitialisation(
+        final GUID eventIdentifier,
+        final GUID containerGUID,
+        final LogbookTypeProcess logbookTypeProcess
+    ) {
         return LogbookParameterHelper.newLogbookOperationParameters(
-            GUIDFactory.newEventGUID(eventIdentifier), INGEST_INT_UPLOAD, containerGUID,
-            logbookTypeProcess, StatusCode.STARTED,
+            GUIDFactory.newEventGUID(eventIdentifier),
+            INGEST_INT_UPLOAD,
+            containerGUID,
+            logbookTypeProcess,
+            StatusCode.STARTED,
             eventIdentifier != null ? eventIdentifier.toString() : "outcomeDetailMessage",
-            eventIdentifier);
+            eventIdentifier
+        );
     }
 
-    private void callLogbookUpdate(LogbookOperationParameters parameters,
-        StatusCode logbookOutcome, String outcomeDetail, String outcomeDetailMessage)
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
+    private void callLogbookUpdate(
+        LogbookOperationParameters parameters,
+        StatusCode logbookOutcome,
+        String outcomeDetail,
+        String outcomeDetailMessage
+    ) throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
         if (parameters == null) {
             return;
         }
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
             parameters.setStatus(logbookOutcome);
-            parameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(outcomeDetail, logbookOutcome));
+            parameters.putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(outcomeDetail, logbookOutcome)
+            );
             parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
             logbookOperationsClient.update(parameters);
         }
@@ -659,10 +716,12 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @param archiveMimeType inputStream mimeType
      * @throws ContentAddressableStorageException
      */
-    private void pushSipStreamToWorkspace(final String containerName, final String archiveMimeType,
-        final InputStream uploadedInputStream, ItemStatus stpUploadItemStatus)
-        throws ContentAddressableStorageException {
-
+    private void pushSipStreamToWorkspace(
+        final String containerName,
+        final String archiveMimeType,
+        final InputStream uploadedInputStream,
+        ItemStatus stpUploadItemStatus
+    ) throws ContentAddressableStorageException {
         LOGGER.debug("Try to push stream to workspace...");
         // call workspace
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
@@ -693,7 +752,6 @@ public class IngestInternalResource extends ApplicationStatusResource {
         }
     }
 
-
     private boolean isCompletedProcess(ProcessState processState) {
         return (ProcessState.COMPLETED.equals(processState));
     }
@@ -712,7 +770,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
             try {
                 return processManagementClient.listOperationsDetails(query).toResponse();
             } catch (VitamClientException e) {
-                return Response.serverError().entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+                return Response.serverError()
+                    .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
                     .build();
             }
         }
@@ -730,7 +789,8 @@ public class IngestInternalResource extends ApplicationStatusResource {
         try {
             return processingClient.getWorkflowDefinitions().toResponse();
         } catch (VitamClientException e) {
-            return Response.serverError().entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
+            return Response.serverError()
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage(), null))
                 .build();
         }
     }
@@ -752,9 +812,7 @@ public class IngestInternalResource extends ApplicationStatusResource {
             return Response.status(Status.NOT_FOUND).build();
         } catch (VitamClientException e) {
             LOGGER.error("Error while retrieving workflow definitions : ", e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(e.getMessage())
-                .build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
 
@@ -767,12 +825,15 @@ public class IngestInternalResource extends ApplicationStatusResource {
      * @return VitamError
      */
     private VitamError getErrorEntity(Status status, String message, String code) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
         String aCode = (code != null) ? code : String.valueOf(status.getStatusCode());
-        return new VitamError(aCode).setHttpCode(status.getStatusCode())
+        return new VitamError(aCode)
+            .setHttpCode(status.getStatusCode())
             .setContext(ServiceName.INTERNAL_INGEST.getName())
-            .setState(status.name()).setMessage(status.getReasonPhrase()).setDescription(aMessage);
+            .setState(status.name())
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 }

@@ -41,7 +41,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface VitamAuthentication {
-
     /**
      * description of the VitamAuthentication annotation, initialized by default to Basic authentication. <br/>
      *

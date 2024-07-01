@@ -53,7 +53,6 @@ public class OfferPartialSyncRequest {
     @JsonProperty("targetOffer")
     private String targetOffer;
 
-
     @JsonProperty("itemsToSynchronize")
     private List<OfferPartialSyncItem> itemsToSynchronize;
 
@@ -95,8 +94,7 @@ public class OfferPartialSyncRequest {
         return itemsToSynchronize;
     }
 
-    public OfferPartialSyncRequest setItemsToSynchronize(
-        List<OfferPartialSyncItem> itemsToSynchronize) {
+    public OfferPartialSyncRequest setItemsToSynchronize(List<OfferPartialSyncItem> itemsToSynchronize) {
         this.itemsToSynchronize = itemsToSynchronize;
         return this;
     }

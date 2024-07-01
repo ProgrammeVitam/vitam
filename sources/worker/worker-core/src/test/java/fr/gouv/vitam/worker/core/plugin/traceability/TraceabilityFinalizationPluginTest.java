@@ -92,16 +92,21 @@ public class TraceabilityFinalizationPluginTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private TraceabilityReportService traceabilityReportService;
+
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
     @Mock
     private LogbookOperationsClient logbookClient;
 
@@ -122,8 +127,10 @@ public class TraceabilityFinalizationPluginTest {
 
     @Before
     public void setUp() throws Exception {
-        traceabilityFinalizationPlugin =
-            new TraceabilityFinalizationPlugin(traceabilityReportService, logbookOperationsClientFactory);
+        traceabilityFinalizationPlugin = new TraceabilityFinalizationPlugin(
+            traceabilityReportService,
+            logbookOperationsClientFactory
+        );
         lenient().when(logbookOperationsClientFactory.getClient()).thenReturn(logbookClient);
         handler = mock(HandlerIO.class);
         workerParameters = mock(WorkerParameters.class);
@@ -137,8 +144,9 @@ public class TraceabilityFinalizationPluginTest {
         when(workerParameters.getContainerName()).thenReturn(PROCESS_ID_KO);
 
         Mockito.doNothing().when(traceabilityReportService).storeReportToWorkspace(reportInfosCaptor.capture());
-        when(logbookClient.selectOperationById(any()))
-            .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_OK)));
+        when(logbookClient.selectOperationById(any())).thenReturn(
+            getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_OK))
+        );
         when(traceabilityReportService.isReportWrittenInWorkspace(anyString())).thenReturn(false);
         // When
         ItemStatus response = traceabilityFinalizationPlugin.execute(workerParameters, handler);
@@ -159,8 +167,9 @@ public class TraceabilityFinalizationPluginTest {
         // Given
         when(workerParameters.getContainerName()).thenReturn(PROCESS_ID_KO);
 
-        when(logbookClient.selectOperationById(any()))
-            .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_OK)));
+        when(logbookClient.selectOperationById(any())).thenReturn(
+            getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_OK))
+        );
         when(traceabilityReportService.isReportWrittenInWorkspace(anyString())).thenReturn(true);
         // When
         ItemStatus response = traceabilityFinalizationPlugin.execute(workerParameters, handler);
@@ -180,8 +189,9 @@ public class TraceabilityFinalizationPluginTest {
         when(workerParameters.getContainerName()).thenReturn(PROCESS_ID_KO);
 
         Mockito.doNothing().when(traceabilityReportService).storeReportToWorkspace(reportInfosCaptor.capture());
-        when(logbookClient.selectOperationById(any()))
-            .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_KO)));
+        when(logbookClient.selectOperationById(any())).thenReturn(
+            getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_KO))
+        );
         when(traceabilityReportService.isReportWrittenInWorkspace(anyString())).thenReturn(false);
 
         // When
@@ -198,8 +208,9 @@ public class TraceabilityFinalizationPluginTest {
         when(workerParameters.getContainerName()).thenReturn(PROCESS_ID_WARNING);
 
         Mockito.doNothing().when(traceabilityReportService).storeReportToWorkspace(reportInfosCaptor.capture());
-        when(logbookClient.selectOperationById(any()))
-            .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_WARNING)));
+        when(logbookClient.selectOperationById(any())).thenReturn(
+            getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_WARNING))
+        );
         when(traceabilityReportService.isReportWrittenInWorkspace(anyString())).thenReturn(false);
 
         // When
@@ -231,11 +242,12 @@ public class TraceabilityFinalizationPluginTest {
         // Given
         when(workerParameters.getContainerName()).thenReturn(PROCESS_ID_OK);
 
-        Mockito.doThrow(new ProcessingStatusException(StatusCode.FATAL, "traceability report exception")).when(
-                traceabilityReportService)
+        Mockito.doThrow(new ProcessingStatusException(StatusCode.FATAL, "traceability report exception"))
+            .when(traceabilityReportService)
             .storeReportToWorkspace(reportInfosCaptor.capture());
-        when(logbookClient.selectOperationById(any()))
-            .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_OK)));
+        when(logbookClient.selectOperationById(any())).thenReturn(
+            getFromInputStream(getClass().getResourceAsStream(JOP_RESULTS_OK))
+        );
         when(traceabilityReportService.isReportWrittenInWorkspace(anyString())).thenReturn(false);
 
         // When
@@ -244,5 +256,4 @@ public class TraceabilityFinalizationPluginTest {
         // Then
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
-
 }

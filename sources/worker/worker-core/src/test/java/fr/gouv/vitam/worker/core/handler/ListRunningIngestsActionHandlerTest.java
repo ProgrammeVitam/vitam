@@ -74,8 +74,9 @@ import static org.mockito.Mockito.when;
 public class ListRunningIngestsActionHandlerTest {
 
     private static final ProcessingManagementClient processManagementClient = mock(ProcessingManagementClient.class);
-    private static final ProcessingManagementClientFactory processManagementClientFactory =
-        mock(ProcessingManagementClientFactory.class);
+    private static final ProcessingManagementClientFactory processManagementClientFactory = mock(
+        ProcessingManagementClientFactory.class
+    );
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
     private List<ProcessDetail> list;
@@ -85,18 +86,20 @@ public class ListRunningIngestsActionHandlerTest {
     private List<IOParameter> out;
     private ProcessDetail pw = new ProcessDetail();
 
-    private ListRunningIngestsActionHandler plugin =
-        new ListRunningIngestsActionHandler(processManagementClientFactory);
+    private ListRunningIngestsActionHandler plugin = new ListRunningIngestsActionHandler(
+        processManagementClientFactory
+    );
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
-    private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectName("archiveUnit.json").setCurrentStep("currentStep")
-            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.UPDATE);
-
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+        .setUrlWorkspace("http://localhost:8083")
+        .setUrlMetadata("http://localhost:8083")
+        .setObjectName("archiveUnit.json")
+        .setCurrentStep("currentStep")
+        .setContainerName(guid.getId())
+        .setLogbookTypeProcess(LogbookTypeProcess.UPDATE);
 
     @Before
     public void setUp() throws Exception {
@@ -112,11 +115,23 @@ public class ListRunningIngestsActionHandlerTest {
         when(processManagementClientFactory.getClient()).thenReturn(processManagementClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        action = new HandlerIOImpl(workspaceClientFactory, mock(LogbookLifeCyclesClientFactory.class), guid.getId(),
-            "workerId", Lists.newArrayList());
+        action = new HandlerIOImpl(
+            workspaceClientFactory,
+            mock(LogbookLifeCyclesClientFactory.class),
+            guid.getId(),
+            "workerId",
+            Lists.newArrayList()
+        );
         out = new ArrayList<>();
-        out.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.WORKSPACE,
-            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON)));
+        out.add(
+            new IOParameter()
+                .setUri(
+                    new ProcessingUri(
+                        UriPrefix.WORKSPACE,
+                        UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON
+                    )
+                )
+        );
 
         pw.setOperationId(GUIDFactory.newOperationLogbookGUID(0).toString());
         pw.setGlobalState(ProcessState.RUNNING.toString());
@@ -130,18 +145,20 @@ public class ListRunningIngestsActionHandlerTest {
         action.partialClose();
     }
 
-
     @Test
     public void givenRunningProcessWhenExecuteThenReturnResponseOK() throws Exception {
         action.addOutIOParameters(out);
-        when(processManagementClient.listOperationsDetails(any()))
-            .thenReturn(new RequestResponseOK<ProcessDetail>().addAllResults(list));
+        when(processManagementClient.listOperationsDetails(any())).thenReturn(
+            new RequestResponseOK<ProcessDetail>().addAllResults(list)
+        );
         saveWorkspacePutObject(
-            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON);
+            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON
+        );
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         JsonNode listRunning = getSavedWorkspaceObject(
-            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON);
+            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON
+        );
         ProcessDetail process = null;
         int numberOfProcesses = 0;
         for (final JsonNode objNode : listRunning) {
@@ -164,14 +181,17 @@ public class ListRunningIngestsActionHandlerTest {
         list.add(pw);
         list.add(pw2);
 
-        when(processManagementClient.listOperationsDetails(any()))
-            .thenReturn(new RequestResponseOK<ProcessDetail>().addAllResults(list));
+        when(processManagementClient.listOperationsDetails(any())).thenReturn(
+            new RequestResponseOK<ProcessDetail>().addAllResults(list)
+        );
         saveWorkspacePutObject(
-            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON);
+            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON
+        );
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         JsonNode listRunning = getSavedWorkspaceObject(
-            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON);
+            UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.RUNNING_INGESTS_JSON
+        );
         int numberOfProcesses = 0;
         for (final JsonNode objNode : listRunning) {
             numberOfProcesses++;
@@ -179,32 +199,49 @@ public class ListRunningIngestsActionHandlerTest {
         assertEquals(2, numberOfProcesses);
     }
 
-
     private void saveWorkspacePutObject(String filename) throws ContentAddressableStorageServerException {
         doAnswer(invocation -> {
             InputStream inputStream = invocation.getArgument(2);
-            java.nio.file.Path file =
-                java.nio.file.Paths.get(System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" +
-                    action.getWorkerId() + "/" + filename.replaceAll("/", "_"));
+            java.nio.file.Path file = java.nio.file.Paths.get(
+                System.getProperty("vitam.tmp.folder") +
+                "/" +
+                action.getContainerName() +
+                "_" +
+                action.getWorkerId() +
+                "/" +
+                filename.replaceAll("/", "_")
+            );
             java.nio.file.Files.copy(inputStream, file);
             return null;
-        }).when(workspaceClient).putObject(org.mockito.ArgumentMatchers.anyString(),
-            org.mockito.ArgumentMatchers.eq(filename), org.mockito.ArgumentMatchers.any(InputStream.class));
+        })
+            .when(workspaceClient)
+            .putObject(
+                org.mockito.ArgumentMatchers.anyString(),
+                org.mockito.ArgumentMatchers.eq(filename),
+                org.mockito.ArgumentMatchers.any(InputStream.class)
+            );
     }
 
     private JsonNode getSavedWorkspaceObject(String filename) throws InvalidParseOperationException {
-        File objectNameFile = new File(System.getProperty("vitam.tmp.folder") + "/" + action.getContainerName() + "_" +
-            action.getWorkerId() + "/" + filename.replaceAll("/", "_"));
+        File objectNameFile = new File(
+            System.getProperty("vitam.tmp.folder") +
+            "/" +
+            action.getContainerName() +
+            "_" +
+            action.getWorkerId() +
+            "/" +
+            filename.replaceAll("/", "_")
+        );
         return JsonHandler.getFromFile(objectNameFile);
     }
 
     @Test
     public void givenProcessErrorWhenExecuteThenReturnResponseFATAL() throws Exception {
         action.addOutIOParameters(out);
-        when(processManagementClient.listOperationsDetails(any()))
-            .thenThrow(new VitamClientException("Process Management error"));
+        when(processManagementClient.listOperationsDetails(any())).thenThrow(
+            new VitamClientException("Process Management error")
+        );
         final ItemStatus response = plugin.execute(params, action);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
-
 }

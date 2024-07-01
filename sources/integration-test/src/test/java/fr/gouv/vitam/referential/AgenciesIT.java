@@ -70,24 +70,25 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Integration tests for the reconstruction services. <br/>
  */
 public class AgenciesIT extends VitamRuleRunner {
+
     private static final String AGENCY_PATH_1 = "referential/agencies_1.csv";
     private static final String AGENCY_PATH_2 = "referential/agencies_2.csv";
     private static final int TENANT_0 = 0;
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(
-            AgenciesIT.class,
-            mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                StorageMain.class,
-                DefaultOfferMain.class,
-                AdminManagementMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        AgenciesIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            AdminManagementMain.class
+        )
+    );
 
     @BeforeClass
     public static void beforeClass() throws Exception {
@@ -115,19 +116,23 @@ public class AgenciesIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void should_import_agencies() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_0));
 
         OffsetRepository offsetRepository;
 
-        MongoDbAccess mongoDbAccess =
-            new SimpleMongoDBAccess(mongoRule.getMongoClient(), mongoRule.getMongoDatabase().getName());
+        MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(
+            mongoRule.getMongoClient(),
+            mongoRule.getMongoDatabase().getName()
+        );
         offsetRepository = new OffsetRepository(mongoDbAccess);
 
-        offsetRepository
-            .createOrUpdateOffset(TENANT_0, VitamConfiguration.getDefaultStrategy(),
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(), 0L);
+        offsetRepository.createOrUpdateOffset(
+            TENANT_0,
+            VitamConfiguration.getDefaultStrategy(),
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+            0L
+        );
 
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             client.importAgenciesFile(PropertiesUtils.getResourceAsStream(AGENCY_PATH_1), "agencies_1.csv");
@@ -143,20 +148,23 @@ public class AgenciesIT extends VitamRuleRunner {
 
         // Then
         List<AgenciesModel> agencies = new ArrayList<>();
-        FunctionalAdminCollections.AGENCIES
-            .<Agencies>getVitamCollection()
+        FunctionalAdminCollections.AGENCIES.<Agencies>getVitamCollection()
             .getCollection()
             .find()
             .map(d -> new AgenciesModel(d.getIdentifier(), d.getName(), d.getDescription(), d.getTenantId()))
             .forEach((Consumer<AgenciesModel>) agencies::add);
 
-        assertThat(agencies).extracting(AgenciesModel::getIdentifier)
+        assertThat(agencies)
+            .extracting(AgenciesModel::getIdentifier)
             .containsOnly("AGG-00001", "AGG-00002", "AGG-00003", "AGG-00004", "AGG-00005", "AGG-00006");
-        assertThat(agencies).extracting(AgenciesModel::getName)
+        assertThat(agencies)
+            .extracting(AgenciesModel::getName)
             .containsOnly("agency 1", "agency 2", "agency 3", "agency 4", "agency 5", "agency 6");
-        assertThat(agencies).extracting(AgenciesModel::getDescription)
+        assertThat(agencies)
+            .extracting(AgenciesModel::getDescription)
             .containsOnly("BLOU---1", "BLOU---2", "BLOU---3", "BLOU---4", "BLOU---5", "BLOU---6");
-        assertThat(agencies).extracting(AgenciesModel::getTenant)
+        assertThat(agencies)
+            .extracting(AgenciesModel::getTenant)
             .containsOnly(TENANT_0, TENANT_0, TENANT_0, TENANT_0, TENANT_0, TENANT_0);
     }
 }

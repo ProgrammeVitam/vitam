@@ -57,7 +57,6 @@ public class LockManager<T> {
             @Override
             public void release() {
                 synchronized (entryLocks) {
-
                     if (alreadyUnlocked) {
                         return;
                     }

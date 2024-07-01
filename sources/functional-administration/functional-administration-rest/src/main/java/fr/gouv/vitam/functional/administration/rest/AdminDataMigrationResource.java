@@ -54,14 +54,18 @@ import javax.ws.rs.core.Response;
 @ApplicationPath("webresources")
 @Tag(name = "Functional-Administration")
 public class AdminDataMigrationResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminDataMigrationResource.class);
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
     private ProcessingManagementClientFactory processingManagementClientFactory;
     private WorkspaceClientFactory workspaceClientFactory;
 
     AdminDataMigrationResource() {
-        this(LogbookOperationsClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance(),
-            WorkspaceClientFactory.getInstance());
+        this(
+            LogbookOperationsClientFactory.getInstance(),
+            ProcessingManagementClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance()
+        );
     }
 
     /**
@@ -75,40 +79,37 @@ public class AdminDataMigrationResource {
     private AdminDataMigrationResource(
         LogbookOperationsClientFactory logbookOperationsClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory
+    ) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
     }
 
     private VitamError getErrorEntity(Response.Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
-            .setMessage(status.getReasonPhrase()).setDescription(aMessage);
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        return new VitamError(status.name())
+            .setHttpCode(status.getStatusCode())
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 
-
-    private void createOperation(GUID guid)
-        throws LogbookClientBadRequestException {
-
+    private void createOperation(GUID guid) throws LogbookClientBadRequestException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
-
-            final LogbookOperationParameters initParameter =
-                LogbookParameterHelper.newLogbookOperationParameters(
-                    guid,
-                    "DATA_MIGRATION",
-                    guid,
-                    LogbookTypeProcess.DATA_MIGRATION,
-                    StatusCode.STARTED,
-                    VitamLogbookMessages.getLabelOp("DATA_MIGRATION.STARTED") + " : " + guid,
-                    guid);
+            final LogbookOperationParameters initParameter = LogbookParameterHelper.newLogbookOperationParameters(
+                guid,
+                "DATA_MIGRATION",
+                guid,
+                LogbookTypeProcess.DATA_MIGRATION,
+                StatusCode.STARTED,
+                VitamLogbookMessages.getLabelOp("DATA_MIGRATION.STARTED") + " : " + guid,
+                guid
+            );
             client.create(initParameter);
         } catch (LogbookClientAlreadyExistsException | LogbookClientServerException e) {
             throw new VitamRuntimeException("Internal server error ", e);
         }
     }
-
-
 }

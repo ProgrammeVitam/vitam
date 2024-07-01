@@ -35,6 +35,7 @@ import static org.junit.Assert.assertEquals;
  * Test for StorageCapacityObjectResult
  */
 public class StorageCapacityResultTest {
+
     private static StorageCapacityResult storageCapacityResult;
     private static final Integer TENANT_ID = 0;
 
@@ -57,5 +58,4 @@ public class StorageCapacityResultTest {
     public void testGetUsableSpace() {
         assertEquals(1000, storageCapacityResult.getUsableSpace());
     }
-
 }

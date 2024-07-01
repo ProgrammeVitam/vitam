@@ -73,14 +73,12 @@ public class RequestAuthorizationValidatorTest {
 
     @Before
     public void before() throws ServletException {
-
         VitamConfiguration.setSecret("vitamsecret");
         VitamConfiguration.setRequestTimeAlertThrottlingDelay(60);
     }
 
     @Test
     public void testDoFilterOK() throws Exception {
-
         // Given
         setRequestHeaders(httpServletRequest);
         when(httpServletRequest.getRequestURI()).thenReturn("/containers/continerid");
@@ -94,10 +92,8 @@ public class RequestAuthorizationValidatorTest {
         verifyNoMoreInteractions(alertService);
     }
 
-
     @Test
     public void testDoFilterStatusOK() {
-
         // Given
         setRequestHeaders(httpServletRequest);
         when(httpServletRequest.getRequestURI()).thenReturn(VitamConfiguration.STATUS_URL);
@@ -113,13 +109,10 @@ public class RequestAuthorizationValidatorTest {
 
     @Test
     public void testDoFilterAdminStatusOK() throws Exception {
-
         // Given
         setRequestHeaders(httpServletRequest);
-        when(httpServletRequest.getHeader(GlobalDataRest.X_TIMESTAMP))
-            .thenReturn(null);
-        when(httpServletRequest.getHeader(GlobalDataRest.X_PLATFORM_ID))
-            .thenReturn(null);
+        when(httpServletRequest.getHeader(GlobalDataRest.X_TIMESTAMP)).thenReturn(null);
+        when(httpServletRequest.getHeader(GlobalDataRest.X_PLATFORM_ID)).thenReturn(null);
         when(httpServletRequest.getRequestURI()).thenReturn(VitamConfiguration.ADMIN_PATH);
         when(httpServletRequest.getMethod()).thenReturn(HttpMethod.GET);
 
@@ -133,7 +126,6 @@ public class RequestAuthorizationValidatorTest {
 
     @Test
     public void testDoFilterNotAcceptableNoHeaders() throws Exception {
-
         // Given no request headers
         when(httpServletRequest.getRequestURI()).thenReturn("/containers/continerid");
         when(httpServletRequest.getMethod()).thenReturn(HttpMethod.GET);
@@ -148,7 +140,6 @@ public class RequestAuthorizationValidatorTest {
 
     @Test
     public void testOldButNonExpiredRequestThenOK() {
-
         // Given
         setRequestHeaders(httpServletRequest);
         logicalClock.logicalSleep(50, ChronoUnit.SECONDS);
@@ -167,7 +158,6 @@ public class RequestAuthorizationValidatorTest {
 
     @Test
     public void testExpiredRequestThenUnauthorized() {
-
         // Given
         setRequestHeaders(httpServletRequest);
         logicalClock.logicalSleep(61, ChronoUnit.SECONDS);
@@ -185,7 +175,6 @@ public class RequestAuthorizationValidatorTest {
 
     @Test
     public void testMultipleTooManyExpiredRequestsThenLimitAlertsPerPeriod() {
-
         // Given
         setRequestHeaders(httpServletRequest);
         when(httpServletRequest.getRequestURI()).thenReturn("/containers/continerid");
@@ -208,11 +197,15 @@ public class RequestAuthorizationValidatorTest {
     }
 
     private void setRequestHeaders(HttpServletRequest httpServletRequest) {
-        Map<String, String> headersMap =
-            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, "/containers/continerid");
-        when(httpServletRequest.getHeader(GlobalDataRest.X_TIMESTAMP))
-            .thenReturn(headersMap.get(GlobalDataRest.X_TIMESTAMP));
-        when(this.httpServletRequest.getHeader(GlobalDataRest.X_PLATFORM_ID))
-            .thenReturn(headersMap.get(GlobalDataRest.X_PLATFORM_ID));
+        Map<String, String> headersMap = AuthorizationFilterHelper.getAuthorizationHeaders(
+            HttpMethod.GET,
+            "/containers/continerid"
+        );
+        when(httpServletRequest.getHeader(GlobalDataRest.X_TIMESTAMP)).thenReturn(
+            headersMap.get(GlobalDataRest.X_TIMESTAMP)
+        );
+        when(this.httpServletRequest.getHeader(GlobalDataRest.X_PLATFORM_ID)).thenReturn(
+            headersMap.get(GlobalDataRest.X_PLATFORM_ID)
+        );
     }
 }

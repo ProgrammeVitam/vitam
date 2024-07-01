@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 
 public class AsyncWorkspaceTransferTest {
 
-
     @Test
     public void whenConstructorThenOK() {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);

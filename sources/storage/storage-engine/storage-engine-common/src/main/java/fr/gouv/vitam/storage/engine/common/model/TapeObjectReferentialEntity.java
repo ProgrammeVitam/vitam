@@ -68,9 +68,16 @@ public class TapeObjectReferentialEntity {
         // Empty constructor for deserialization
     }
 
-    public TapeObjectReferentialEntity(TapeLibraryObjectReferentialId id, long size, String digestType,
-        String digest, String storageId, TapeLibraryObjectStorageLocation location, String lastObjectModifiedDate,
-        String lastUpdateDate) {
+    public TapeObjectReferentialEntity(
+        TapeLibraryObjectReferentialId id,
+        long size,
+        String digestType,
+        String digest,
+        String storageId,
+        TapeLibraryObjectStorageLocation location,
+        String lastObjectModifiedDate,
+        String lastUpdateDate
+    ) {
         ParametersChecker.checkParameter("Id is required", id);
         this.id = id;
         this.size = size;
@@ -86,8 +93,7 @@ public class TapeObjectReferentialEntity {
         return id;
     }
 
-    public TapeObjectReferentialEntity setId(
-        TapeLibraryObjectReferentialId id) {
+    public TapeObjectReferentialEntity setId(TapeLibraryObjectReferentialId id) {
         this.id = id;
         return this;
     }
@@ -132,8 +138,7 @@ public class TapeObjectReferentialEntity {
         return location;
     }
 
-    public TapeObjectReferentialEntity setLocation(
-        TapeLibraryObjectStorageLocation location) {
+    public TapeObjectReferentialEntity setLocation(TapeLibraryObjectStorageLocation location) {
         this.location = location;
         return this;
     }

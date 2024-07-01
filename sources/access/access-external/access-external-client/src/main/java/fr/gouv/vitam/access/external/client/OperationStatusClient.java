@@ -36,8 +36,6 @@ import fr.gouv.vitam.common.model.VitamAutoCloseable;
  * Used to expose method getting status of an operation
  */
 public interface OperationStatusClient extends VitamAutoCloseable {
-
-
     /**
      * Get vitam operation status
      *
@@ -46,7 +44,6 @@ public interface OperationStatusClient extends VitamAutoCloseable {
      * @return the status of the operation (HEAD only)
      * @throws VitamClientException
      */
-    RequestResponse<ItemStatus> getOperationProcessStatus(VitamContext vitamContext,
-        String id) throws VitamClientException;
-
+    RequestResponse<ItemStatus> getOperationProcessStatus(VitamContext vitamContext, String id)
+        throws VitamClientException;
 }

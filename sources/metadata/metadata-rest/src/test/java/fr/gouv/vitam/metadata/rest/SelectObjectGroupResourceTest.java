@@ -83,15 +83,15 @@ import static io.restassured.RestAssured.with;
 public class SelectObjectGroupResourceTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final String UNIT_DATA =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq\", " + "\"data\": \"data2\" }";
 
     private static final String OG_DATA2 =
         "{ \"_id\": \"aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab\"," + "\"data\": \"data2\" }";
-
 
     private static final String OBJECT_GROUP_ID = "aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaab";
     private static final String DATA_URI = "/metadata/v1";
@@ -100,15 +100,21 @@ public class SelectObjectGroupResourceTest {
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
-    private final static String HOST_NAME = "127.0.0.1";
+
+    private static final String HOST_NAME = "127.0.0.1";
     private static final Integer TENANT_ID = 0;
 
     private static MetadataMain application;
 
     private static final String BAD_QUERY_TEST =
-        "{ \"$or\" : " + "[ " + "   {\"$exists\" : \"#id\"}, " + "   {\"$missing\" : \"mavar2\"}, " +
-            "   {\"$badRquest\" : \"mavar3\"}, " +
-            "   {\"$or\" : [ " + "          {\"$in\" : { \"mavar4\" : [1, 2, \"maval1\"] }}, " + "]}";
+        "{ \"$or\" : " +
+        "[ " +
+        "   {\"$exists\" : \"#id\"}, " +
+        "   {\"$missing\" : \"mavar2\"}, " +
+        "   {\"$badRquest\" : \"mavar3\"}, " +
+        "   {\"$or\" : [ " +
+        "          {\"$in\" : { \"mavar4\" : [1, 2, \"maval1\"] }}, " +
+        "]}";
 
     private static final String BODY_TEST =
         "{\"$query\": {\"$eq\": {\"data\" : \"data2\" }}, \"$projection\": {}, \"$filter\": {}}";
@@ -117,39 +123,50 @@ public class SelectObjectGroupResourceTest {
     static final int tenantId = 0;
     static final List<Integer> tenantList = Collections.singletonList(tenantId);
     private static final MappingLoader mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
-    private static final ElasticsearchMetadataIndexManager indexManager = MetadataCollectionsTestUtils
-        .createTestIndexManager(tenantList, Collections.emptyMap(), mappingLoader);
+    private static final ElasticsearchMetadataIndexManager indexManager =
+        MetadataCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap(), mappingLoader);
 
     private static ElasticsearchAccessMetadata accessMetadata;
+
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Unit.class, ObjectGroup.class));
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(Unit.class, ObjectGroup.class)
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-
-        accessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes,
-            indexManager);
-        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), GUIDFactory.newGUID().getId(),
-            accessMetadata);
+        accessMetadata = new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager);
+        MetadataCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            GUIDFactory.newGUID().getId(),
+            accessMetadata
+        );
         junitHelper = JunitHelper.getInstance();
-
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode(HOST_NAME, MongoRule.getDataBasePort()));
-        final MetaDataConfiguration configuration =
-            new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
-                mappingLoader);
+        final MetaDataConfiguration configuration = new MetaDataConfiguration(
+            mongo_nodes,
+            MongoRule.VITAM_DB,
+            ElasticsearchRule.VITAM_CLUSTER,
+            esNodes,
+            mappingLoader
+        );
         configuration.setJettyConfig(JETTY_CONFIG);
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
         configuration.setContextPath("/metadata");
-        configuration.setIndexationConfiguration(new MetadataIndexationConfiguration()
-            .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                .setUnit(new CollectionConfiguration(1, 0))
-                .setObjectgroup(new CollectionConfiguration(1, 0))));
+        configuration.setIndexationConfiguration(
+            new MetadataIndexationConfiguration()
+                .setDefaultCollectionConfiguration(
+                    new DefaultCollectionConfiguration()
+                        .setUnit(new CollectionConfiguration(1, 0))
+                        .setObjectgroup(new CollectionConfiguration(1, 0))
+                )
+        );
 
         VitamConfiguration.setTenants(tenantList);
         serverPort = junitHelper.findAvailablePort();
@@ -169,7 +186,6 @@ public class SelectObjectGroupResourceTest {
 
     @AfterClass
     public static void tearDownAfterClass() {
-
         try {
             application.stop();
         } catch (Exception e) {
@@ -201,21 +217,33 @@ public class SelectObjectGroupResourceTest {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new BulkUnitInsertRequest(Collections.singletonList(
-                new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(UNIT_DATA))
-            ))).when()
-            .post("/units/bulk").then()
+            .body(
+                new BulkUnitInsertRequest(
+                    Collections.singletonList(
+                        new BulkUnitInsertEntry(Collections.emptySet(), JsonHandler.getFromString(UNIT_DATA))
+                    )
+                )
+            )
+            .when()
+            .post("/units/bulk")
+            .then()
             .statusCode(Status.CREATED.getStatusCode());
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(buildDSLWithOptionsRoot("aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq", OG_DATA2)).when()
-            .post(OBJECT_GROUPS_URI).then()
+            .body(buildDSLWithOptionsRoot("aeaqaaaaaeaaaaakaarp4akuuf2ldmyaaaaq", OG_DATA2))
+            .when()
+            .post(OBJECT_GROUPS_URI)
+            .then()
             .statusCode(Status.CREATED.getStatusCode());
 
-        given().contentType(ContentType.JSON)
+        given()
+            .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(BODY_TEST)).when().get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID).then()
+            .body(JsonHandler.getFromString(BODY_TEST))
+            .when()
+            .get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID)
+            .then()
             .statusCode(Status.OK.getStatusCode());
     }
 
@@ -227,13 +255,10 @@ public class SelectObjectGroupResourceTest {
             .get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
     }
-
 
     @Test
     public void getObjectGroupBadRequest() {
-
         given()
             .contentType(ContentType.JSON)
             .body(BAD_QUERY_TEST)
@@ -245,7 +270,6 @@ public class SelectObjectGroupResourceTest {
 
     @Test
     public void getObjectGroupEmptyRequestBadRequest() {
-
         given()
             .contentType(ContentType.JSON)
             .body("")
@@ -257,7 +281,6 @@ public class SelectObjectGroupResourceTest {
 
     @Test
     public void getObjectGroupEmptyQueryPreconditionFailed() {
-
         given()
             .contentType(ContentType.JSON)
             .body("")
@@ -271,9 +294,10 @@ public class SelectObjectGroupResourceTest {
     public void shouldReturnErrorRequestBadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions("lkvhvgvuyqvkvj")).when()
-            .get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID).then()
+            .body(buildDSLWithOptions("lkvhvgvuyqvkvj"))
+            .when()
+            .get(OBJECT_GROUPS_URI + "/" + OBJECT_GROUP_ID)
+            .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
-
 }

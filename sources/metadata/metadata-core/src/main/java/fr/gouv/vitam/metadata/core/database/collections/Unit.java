@@ -31,8 +31,6 @@ import com.mongodb.client.MongoCollection;
 import fr.gouv.vitam.common.LocalDateUtil;
 import org.bson.Document;
 
-import java.time.LocalDateTime;
-
 /**
  * Unit class:<br>
  *
@@ -120,29 +118,39 @@ public class Unit extends MetadataDocument<Unit> {
      */
     static final String END = ".Rules._end";
 
-
     @SuppressWarnings("javadoc")
     static final String STORAGERULES = STORAGERULE + RULE;
+
     @SuppressWarnings("javadoc")
     static final String STORAGEEND = STORAGERULE + END;
+
     @SuppressWarnings("javadoc")
     static final String APPRAISALRULES = APPRAISALRULE + RULE;
+
     @SuppressWarnings("javadoc")
     static final String APPRAISALEND = APPRAISALRULE + END;
+
     @SuppressWarnings("javadoc")
     static final String ACCESSRULES = ACCESSRULE + RULE;
+
     @SuppressWarnings("javadoc")
     static final String ACCESSEND = ACCESSRULE + END;
+
     @SuppressWarnings("javadoc")
     static final String DISSEMINATIONRULES = DISSEMINATIONRULE + RULE;
+
     @SuppressWarnings("javadoc")
     static final String DISSEMINATIONEND = DISSEMINATIONRULE + END;
+
     @SuppressWarnings("javadoc")
     static final String REUSERULES = REUSERULE + RULE;
+
     @SuppressWarnings("javadoc")
     static final String REUSEEND = REUSERULE + END;
+
     @SuppressWarnings("javadoc")
     static final String CLASSIFICATIONRULES = CLASSIFICATIONRULE + RULE;
+
     @SuppressWarnings("javadoc")
     static final String CLASSIFICATIONEND = CLASSIFICATIONRULE + END;
 
@@ -204,7 +212,6 @@ public class Unit extends MetadataDocument<Unit> {
 
         put(MINDEPTH, unitGraphModel.minDepth());
         put(MAXDEPTH, unitGraphModel.maxDepth());
-
 
         put(GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
     }

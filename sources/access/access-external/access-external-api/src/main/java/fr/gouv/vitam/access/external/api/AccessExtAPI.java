@@ -31,8 +31,7 @@ package fr.gouv.vitam.access.external.api;
  */
 public class AccessExtAPI {
 
-    private AccessExtAPI() {
-    }
+    private AccessExtAPI() {}
 
     /**
      * Accession register base uri
@@ -286,7 +285,6 @@ public class AccessExtAPI {
      * computedinheritedrules external Operations
      */
     public static final String COMPUTEDINHERITEDRULES = "computedInheritedRules";
-
 
     public static final int UNAVAILABLE_DATA_FROM_ASYNC_OFFER_STATUS_CODE = 460;
 }

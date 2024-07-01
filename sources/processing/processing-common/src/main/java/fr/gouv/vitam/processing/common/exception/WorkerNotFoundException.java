@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.processing.common.exception;
 
-
 /**
  * Worker not found exception throws by engine
  */
 public class WorkerNotFoundException extends ProcessingException {
+
     private static final long serialVersionUID = 8409273839705269630L;
 
     /**
@@ -47,5 +47,4 @@ public class WorkerNotFoundException extends ProcessingException {
     public WorkerNotFoundException(String message) {
         super(message);
     }
-
 }

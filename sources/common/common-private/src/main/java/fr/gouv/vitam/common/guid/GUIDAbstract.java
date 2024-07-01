@@ -37,6 +37,7 @@ import java.util.Arrays;
  * GUID Read only Abstract implementation *
  */
 abstract class GUIDAbstract implements GUID {
+
     /**
      * ARK header
      */
@@ -45,7 +46,8 @@ abstract class GUIDAbstract implements GUID {
     /**
      * real GUID
      */
-    @JsonIgnore final byte[] guid;
+    @JsonIgnore
+    final byte[] guid;
 
     /**
      * Internal constructor
@@ -65,14 +67,14 @@ abstract class GUIDAbstract implements GUID {
      * @throws InvalidGuidOperationException
      */
     @JsonIgnore
-    GUIDAbstract setBytes(final byte[] bytes, int size)
-        throws InvalidGuidOperationException {
+    GUIDAbstract setBytes(final byte[] bytes, int size) throws InvalidGuidOperationException {
         if (bytes == null) {
             throw new InvalidGuidOperationException("Empty argument");
         }
         if (bytes.length != size) {
             throw new InvalidGuidOperationException(
-                "Attempted to parse malformed GUID: (" + bytes.length + ") " + Arrays.toString(bytes));
+                "Attempted to parse malformed GUID: (" + bytes.length + ") " + Arrays.toString(bytes)
+            );
         }
         System.arraycopy(bytes, 0, guid, 0, size);
         return this;
@@ -99,8 +101,7 @@ abstract class GUIDAbstract implements GUID {
     @Override
     @JsonIgnore
     public String toArk() {
-        return new StringBuilder(ARK).append(getTenantId())
-            .append('/').append(toArkName()).toString();
+        return new StringBuilder(ARK).append(getTenantId()).append('/').append(toArkName()).toString();
     }
 
     @Override

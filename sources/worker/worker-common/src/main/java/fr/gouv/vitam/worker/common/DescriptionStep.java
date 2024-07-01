@@ -39,6 +39,7 @@ public class DescriptionStep {
 
     @JsonProperty("step")
     private Step step;
+
     @JsonProperty("workParams")
     private WorkerParameters workParams;
 
@@ -49,14 +50,12 @@ public class DescriptionStep {
      * @param workParams worker parameters
      */
     @JsonCreator
-    public DescriptionStep(@JsonProperty("step") Step step,
-        @JsonProperty("workParams") WorkerParameters workParams) {
+    public DescriptionStep(@JsonProperty("step") Step step, @JsonProperty("workParams") WorkerParameters workParams) {
         ParametersChecker.checkParameter("step is a mandatory parameter", step);
         ParametersChecker.checkParameter("workParams is a mandatory parameter", workParams);
         this.step = step;
         this.workParams = workParams;
     }
-
 
     /**
      * Get the step
@@ -93,5 +92,4 @@ public class DescriptionStep {
     public void setWorkParams(WorkerParameters workParams) {
         this.workParams = workParams;
     }
-
 }

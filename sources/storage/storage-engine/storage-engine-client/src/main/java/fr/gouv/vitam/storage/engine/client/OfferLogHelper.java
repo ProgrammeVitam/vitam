@@ -35,12 +35,26 @@ import java.util.Iterator;
 
 public final class OfferLogHelper {
 
-    public static Iterator<OfferLog> getListing(StorageClientFactory storageClientFactory, String strategy,
-        String offerId, DataCategory dataCategory, Long offset, Order order, int chunkSize, Integer limit) {
-
+    public static Iterator<OfferLog> getListing(
+        StorageClientFactory storageClientFactory,
+        String strategy,
+        String offerId,
+        DataCategory dataCategory,
+        Long offset,
+        Order order,
+        int chunkSize,
+        Integer limit
+    ) {
         int actualChunkSize = limit == null ? chunkSize : Math.min(chunkSize, limit);
         Iterator<OfferLog> offerLogIterator = new StorageClientOfferLogIterator(
-            storageClientFactory, strategy, offerId, order, dataCategory, actualChunkSize, offset);
+            storageClientFactory,
+            strategy,
+            offerId,
+            order,
+            dataCategory,
+            actualChunkSize,
+            offset
+        );
 
         if (limit != null) {
             offerLogIterator = IteratorUtils.boundedIterator(offerLogIterator, limit);

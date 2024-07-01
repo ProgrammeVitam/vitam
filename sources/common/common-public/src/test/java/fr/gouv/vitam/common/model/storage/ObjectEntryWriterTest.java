@@ -37,7 +37,6 @@ public class ObjectEntryWriterTest {
 
     @Test
     public void testEmptyWithEof() throws IOException {
-
         // Given
         ByteArrayOutputStream innerStream = new ByteArrayOutputStream();
 
@@ -52,7 +51,6 @@ public class ObjectEntryWriterTest {
 
     @Test
     public void testEmptyWithoutEof() throws IOException {
-
         // Given
         ByteArrayOutputStream innerStream = new ByteArrayOutputStream();
 
@@ -63,12 +61,10 @@ public class ObjectEntryWriterTest {
 
         // Then
         assertThat(innerStream.toInputStream()).hasContent("");
-
     }
 
     @Test
     public void testEntriesWithEof() throws IOException {
-
         // Given
         ByteArrayOutputStream innerStream = new ByteArrayOutputStream();
 
@@ -81,14 +77,12 @@ public class ObjectEntryWriterTest {
 
         // Then
         assertThat(innerStream.toInputStream()).hasContent(
-            "{\"objectId\":\"file1\",\"size\":10}\n" +
-                "{\"objectId\":\"file2\",\"size\":20}\n" +
-                "{}");
+            "{\"objectId\":\"file1\",\"size\":10}\n" + "{\"objectId\":\"file2\",\"size\":20}\n" + "{}"
+        );
     }
 
     @Test
     public void testEntriesWithoutEof() throws IOException {
-
         // Given
         ByteArrayOutputStream innerStream = new ByteArrayOutputStream();
 
@@ -101,7 +95,7 @@ public class ObjectEntryWriterTest {
 
         // Then
         assertThat(innerStream.toInputStream()).hasContent(
-            "{\"objectId\":\"file1\",\"size\":10}\n" +
-                "{\"objectId\":\"file2\",\"size\":20}");
+            "{\"objectId\":\"file1\",\"size\":10}\n" + "{\"objectId\":\"file2\",\"size\":20}"
+        );
     }
 }

@@ -40,20 +40,27 @@ public class ProcessingRetryAsyncException extends ProcessingException {
         this.accessRequestIdByContext = accessRequestIdByContext;
     }
 
-    public ProcessingRetryAsyncException(String message, Throwable cause,
-        Map<AccessRequestContext, List<String>> accessRequestIdByContext) {
+    public ProcessingRetryAsyncException(
+        String message,
+        Throwable cause,
+        Map<AccessRequestContext, List<String>> accessRequestIdByContext
+    ) {
         super(message, cause);
         this.accessRequestIdByContext = accessRequestIdByContext;
     }
 
-    public ProcessingRetryAsyncException(String message,
-        Map<AccessRequestContext, List<String>> accessRequestIdByContext) {
+    public ProcessingRetryAsyncException(
+        String message,
+        Map<AccessRequestContext, List<String>> accessRequestIdByContext
+    ) {
         super(message);
         this.accessRequestIdByContext = accessRequestIdByContext;
     }
 
-    public ProcessingRetryAsyncException(Throwable cause,
-        Map<AccessRequestContext, List<String>> accessRequestIdByContext) {
+    public ProcessingRetryAsyncException(
+        Throwable cause,
+        Map<AccessRequestContext, List<String>> accessRequestIdByContext
+    ) {
         super(cause);
         this.accessRequestIdByContext = accessRequestIdByContext;
     }

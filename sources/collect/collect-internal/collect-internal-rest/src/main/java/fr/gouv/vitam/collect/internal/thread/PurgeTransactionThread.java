@@ -61,17 +61,24 @@ public class PurgeTransactionThread implements Runnable {
 
     private final int threadPoolSize;
 
-    public PurgeTransactionThread(CollectInternalConfiguration collectInternalConfiguration,
-        TransactionService transactionService) {
+    public PurgeTransactionThread(
+        CollectInternalConfiguration collectInternalConfiguration,
+        TransactionService transactionService
+    ) {
         this.transactionService = transactionService;
         purgeTransactionDelayInMinutes = collectInternalConfiguration.getPurgeTransactionDelayInMinutes();
 
-        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance())
-            .scheduleAtFixedRate(this, collectInternalConfiguration.getPurgeTransactionThreadFrequency(),
-                collectInternalConfiguration.getPurgeTransactionThreadFrequency(), TimeUnit.MINUTES);
+        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance()).scheduleAtFixedRate(
+            this,
+            collectInternalConfiguration.getPurgeTransactionThreadFrequency(),
+            collectInternalConfiguration.getPurgeTransactionThreadFrequency(),
+            TimeUnit.MINUTES
+        );
 
-        threadPoolSize = Math.min(collectInternalConfiguration.getPurgeTransactionThreadPoolSize(),
-            VitamConfiguration.getTenants().size());
+        threadPoolSize = Math.min(
+            collectInternalConfiguration.getPurgeTransactionThreadPoolSize(),
+            VitamConfiguration.getTenants().size()
+        );
     }
 
     @Override
@@ -94,7 +101,6 @@ public class PurgeTransactionThread implements Runnable {
                 transactionService.deleteTransactionContent(transactionModel.getId());
             }
         }
-
     }
 
     private boolean isToDelete(String transactionDate, Integer delay) throws ParseException {
@@ -104,31 +110,33 @@ public class PurgeTransactionThread implements Runnable {
         return differenceInMinutes >= delay;
     }
 
-
     public void process() throws CollectInternalException {
         Thread.currentThread().setName(PurgeTransactionThread.class.getName());
         VitamThreadUtils.getVitamSession()
             .setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
-        ExecutorService executorService = ExecutorUtils.createScalableBatchExecutorService(
-            threadPoolSize);
+        ExecutorService executorService = ExecutorUtils.createScalableBatchExecutorService(threadPoolSize);
         List<CompletableFuture<Void>> completableFuturesList = new ArrayList<>();
         try {
             for (var entry : purgeTransactionDelayInMinutes.entrySet()) {
-                CompletableFuture<Void> traceabilityCompletableFuture = CompletableFuture.runAsync(() -> {
-                    VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
-                    try {
-                        deleteTransaction(entry.getKey(), entry.getValue());
-                    } catch (ParseException | CollectInternalException e) {
-                        LOGGER.error("Error when deleting transaction: {}", e);
-                    }
-                }, executorService);
+                CompletableFuture<Void> traceabilityCompletableFuture = CompletableFuture.runAsync(
+                    () -> {
+                        VitamThreadUtils.getVitamSession().setTenantId(entry.getKey());
+                        try {
+                            deleteTransaction(entry.getKey(), entry.getValue());
+                        } catch (ParseException | CollectInternalException e) {
+                            LOGGER.error("Error when deleting transaction: {}", e);
+                        }
+                    },
+                    executorService
+                );
 
                 completableFuturesList.add(traceabilityCompletableFuture);
             }
-            CompletableFuture<Void> combinedFuture =
-                CompletableFuture.allOf(completableFuturesList.toArray(new CompletableFuture[0]));
+            CompletableFuture<Void> combinedFuture = CompletableFuture.allOf(
+                completableFuturesList.toArray(new CompletableFuture[0])
+            );
             combinedFuture.join();
-        }finally {
+        } finally {
             executorService.shutdown();
         }
     }

@@ -76,10 +76,12 @@ public class InsertMultiQueryTest {
         assertTrue(insert.queries.isEmpty());
         try {
             insert.addQueries(
-                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
-                    .setRelativeDepthLimit(5));
-            insert.addQueries(new PathQuery("path1", "path2"),
-                new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
+                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA")).setRelativeDepthLimit(5)
+            );
+            insert.addQueries(
+                new PathQuery("path1", "path2"),
+                new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10)
+            );
             insert.addQueries(new PathQuery("path3"));
             assertEquals(4, insert.queries.size());
             insert.resetQueries();
@@ -146,5 +148,4 @@ public class InsertMultiQueryTest {
         insert.setFilter(filt1);
         assertEquals("{\"$mult\":\"true\"}", insert.getFilter().toString());
     }
-
 }

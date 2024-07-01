@@ -63,5 +63,4 @@ public class VitamThreadAccessException extends RuntimeException {
     public VitamThreadAccessException(String message, Throwable throwable) {
         super(message, throwable);
     }
-
 }

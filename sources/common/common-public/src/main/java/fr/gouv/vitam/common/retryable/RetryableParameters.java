@@ -36,6 +36,7 @@ import java.util.function.Consumer;
 import static fr.gouv.vitam.common.logging.VitamLogLevel.ERROR;
 
 public class RetryableParameters {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Retryable.class);
 
     private final int nbRetry;
@@ -45,8 +46,14 @@ public class RetryableParameters {
     private final TimeUnit timeUnit;
     private final Consumer<String> log;
 
-    public RetryableParameters(int nbRetry, int firstAttemptWaitingTime, int waitingTime, int randomRangeSleep,
-        TimeUnit timeUnit, VitamLogLevel level) {
+    public RetryableParameters(
+        int nbRetry,
+        int firstAttemptWaitingTime,
+        int waitingTime,
+        int randomRangeSleep,
+        TimeUnit timeUnit,
+        VitamLogLevel level
+    ) {
         this.nbRetry = nbRetry;
         this.firstAttemptWaitingTime = firstAttemptWaitingTime;
         this.waitingTime = waitingTime;
@@ -55,8 +62,13 @@ public class RetryableParameters {
         this.log = s -> LOGGER.log(level, s);
     }
 
-    public RetryableParameters(int nbRetry, int firstAttemptWaitingTime, int waitingTime, int randomRangeSleep,
-        TimeUnit timeUnit) {
+    public RetryableParameters(
+        int nbRetry,
+        int firstAttemptWaitingTime,
+        int waitingTime,
+        int randomRangeSleep,
+        TimeUnit timeUnit
+    ) {
         this.nbRetry = nbRetry;
         this.firstAttemptWaitingTime = firstAttemptWaitingTime;
         this.waitingTime = waitingTime;

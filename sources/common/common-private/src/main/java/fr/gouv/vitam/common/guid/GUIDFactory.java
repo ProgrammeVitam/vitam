@@ -40,6 +40,7 @@ import fr.gouv.vitam.common.ServerIdentityInterface;
  */
 
 public final class GUIDFactory {
+
     private static final ServerIdentityInterface serverIdentity = ServerIdentity.getInstance();
 
     /**
@@ -67,9 +68,12 @@ public final class GUIDFactory {
      * @return a new GUID
      */
     static final GUID newChildrenGUID(final GUID existingGUID) {
-        return new GUIDImplPrivate(GUIDObjectType.getChildrenType(existingGUID.getObjectId()),
-            existingGUID.getTenantId(), existingGUID.getPlatformId(),
-            existingGUID.isWorm());
+        return new GUIDImplPrivate(
+            GUIDObjectType.getChildrenType(existingGUID.getObjectId()),
+            existingGUID.getTenantId(),
+            existingGUID.getPlatformId(),
+            existingGUID.isWorm()
+        );
     }
 
     /**
@@ -81,8 +85,12 @@ public final class GUIDFactory {
      */
     public static final GUID newUnitGUID(final int tenantId) {
         final int type = GUIDObjectType.UNIT_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -94,8 +102,12 @@ public final class GUIDFactory {
      */
     public static final GUID newObjectGroupGUID(final int tenantId) {
         final int type = GUIDObjectType.OBJECTGROUP_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -106,8 +118,12 @@ public final class GUIDFactory {
      */
     public static final GUID newObjectGroupGUID(final GUID unitParentGUID) {
         final int type = GUIDObjectType.OBJECTGROUP_TYPE;
-        return new GUIDImplPrivate(type, unitParentGUID.getTenantId(),
-            serverIdentity.getGlobalPlatformId(), GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            unitParentGUID.getTenantId(),
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -119,8 +135,12 @@ public final class GUIDFactory {
      */
     public static final GUID newObjectGUID(final int tenantId) {
         final int type = GUIDObjectType.OBJECT_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -131,8 +151,12 @@ public final class GUIDFactory {
      */
     public static final GUID newObjectGUID(final GUID objectGroupParentGUID) {
         final int type = GUIDObjectType.OBJECT_TYPE;
-        return new GUIDImplPrivate(type, objectGroupParentGUID.getTenantId(),
-            serverIdentity.getGlobalPlatformId(), GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            objectGroupParentGUID.getTenantId(),
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -144,8 +168,12 @@ public final class GUIDFactory {
      */
     public static final GUID newOperationLogbookGUID(final int tenantId) {
         final int type = GUIDObjectType.OPERATION_LOGBOOK_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -157,8 +185,12 @@ public final class GUIDFactory {
      */
     public static final GUID newWriteLogbookGUID(final int tenantId) {
         final int type = GUIDObjectType.WRITE_LOGBOOK_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -170,9 +202,12 @@ public final class GUIDFactory {
      * @throws IllegalArgumentException if any of the argument are out of range
      */
     public static final GUID newStorageOperationGUID(final int tenantId, final boolean worm) {
-        return new GUIDImplPrivate(GUIDObjectType.STORAGE_OPERATION_TYPE, tenantId,
+        return new GUIDImplPrivate(
+            GUIDObjectType.STORAGE_OPERATION_TYPE,
+            tenantId,
             serverIdentity.getGlobalPlatformId(),
-            worm);
+            worm
+        );
     }
 
     /**
@@ -184,8 +219,12 @@ public final class GUIDFactory {
      */
     public static final GUID newEventGUID(final int tenantId) {
         final int type = GUIDObjectType.EVENT_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -197,8 +236,12 @@ public final class GUIDFactory {
      */
     public static final GUID newEventGUID(final GUID logbookGUID) {
         final int type = GUIDObjectType.EVENT_TYPE;
-        return new GUIDImplPrivate(type, logbookGUID.getTenantId(), serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            logbookGUID.getTenantId(),
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -210,8 +253,12 @@ public final class GUIDFactory {
      */
     public static final GUID newRequestIdGUID(final int tenantId) {
         final int type = GUIDObjectType.REQUESTID_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -223,8 +270,12 @@ public final class GUIDFactory {
      */
     public static final GUID newManifestGUID(final int tenantId) {
         final int type = GUIDObjectType.MANIFEST_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -236,8 +287,12 @@ public final class GUIDFactory {
      */
     public static final GUID newAccessionRegisterSummaryGUID(final int tenantId) {
         final int type = GUIDObjectType.ACCESSION_REGISTER_SUMMARY_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -249,8 +304,12 @@ public final class GUIDFactory {
      */
     public static final GUID newAccessionRegisterSymbolicGUID(final int tenantId) {
         final int type = GUIDObjectType.ACCESSION_REGISTER_SUMMARY_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -262,8 +321,12 @@ public final class GUIDFactory {
      */
     public static final GUID newContractGUID(final int tenantId) {
         final int type = GUIDObjectType.CONTRACT_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -275,10 +338,13 @@ public final class GUIDFactory {
      */
     public static final GUID newProfileGUID(final int tenantId) {
         final int type = GUIDObjectType.PROFILE_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
-
 
     /**
      * Create an ontology GUID
@@ -289,8 +355,12 @@ public final class GUIDFactory {
      */
     public static final GUID newOntologyGUID(final int tenantId) {
         final int type = GUIDObjectType.ONTOLOGY_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -301,8 +371,7 @@ public final class GUIDFactory {
      */
     public static final GUID newContextGUID() {
         final int type = GUIDObjectType.CONTEXT_TYPE;
-        return new GUIDImplPrivate(type, 0, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(type, 0, serverIdentity.getGlobalPlatformId(), GUIDObjectType.getDefaultWorm(type));
     }
 
     /**
@@ -313,8 +382,12 @@ public final class GUIDFactory {
      */
     public static final GUID newAgencyGUID(final int tenantId) {
         final int type = GUIDObjectType.AGENCY_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -325,8 +398,12 @@ public final class GUIDFactory {
      */
     public static final GUID newAccessionRegisterDetailGUID(int tenantId) {
         final int type = GUIDObjectType.ACCESSION_REGISTER_DETAIL_TYPE;
-        return new GUIDImplPrivate(type, tenantId, serverIdentity.getGlobalPlatformId(),
-            GUIDObjectType.getDefaultWorm(type));
+        return new GUIDImplPrivate(
+            type,
+            tenantId,
+            serverIdentity.getGlobalPlatformId(),
+            GUIDObjectType.getDefaultWorm(type)
+        );
     }
 
     /**
@@ -350,5 +427,4 @@ public final class GUIDFactory {
     public static final int getKeysizeBase32() {
         return GUIDImpl.KEYB32SIZE;
     }
-
 }

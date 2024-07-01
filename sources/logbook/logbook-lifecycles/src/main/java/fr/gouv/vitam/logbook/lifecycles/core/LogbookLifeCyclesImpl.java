@@ -76,8 +76,8 @@ import java.util.List;
  * Logbook LifeCycles implementation base class
  */
 public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesImpl.class);
 
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesImpl.class);
 
     private final LogbookDbAccess mongoDbAccess;
 
@@ -89,8 +89,6 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     public LogbookLifeCyclesImpl(LogbookDbAccess mongoDbAccess) {
         this.mongoDbAccess = mongoDbAccess;
     }
-
-
 
     @Override
     public void createUnit(String idOperation, String idLc, LogbookLifeCycleUnitParameters parameters)
@@ -108,8 +106,7 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
     @Override
     public void updateUnit(String idOperation, String idLc, LogbookLifeCycleUnitParameters parameters)
-        throws LogbookDatabaseException, IllegalArgumentException, LogbookNotFoundException,
-        LogbookAlreadyExistsException {
+        throws LogbookDatabaseException, IllegalArgumentException, LogbookNotFoundException, LogbookAlreadyExistsException {
         checkLifeCyclesUnitArgument(idOperation, idLc, parameters);
         updateUnit(idOperation, idLc, parameters, false);
     }
@@ -119,31 +116,35 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         throws LogbookNotFoundException, LogbookDatabaseException, LogbookAlreadyExistsException {
         checkLifeCyclesUnitArgument(idOperation, idLc, parameters);
         mongoDbAccess.updateLogbookLifeCycleUnit(idOperation, idLc, parameters, commit);
-
     }
 
     @Override
     public void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters)
-        throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException,
-        LogbookAlreadyExistsException {
+        throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException, LogbookAlreadyExistsException {
         checkLifeCyclesObjectGroupArgument(idOperation, idLc, parameters);
         mongoDbAccess.updateLogbookLifeCycleObjectGroup(idOperation, idLc, parameters);
     }
 
     @Override
-    public void updateObjectGroup(String idOperation, String idLc, LogbookLifeCycleObjectGroupParameters parameters,
-        boolean commit)
-        throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException,
-        LogbookAlreadyExistsException {
+    public void updateObjectGroup(
+        String idOperation,
+        String idLc,
+        LogbookLifeCycleObjectGroupParameters parameters,
+        boolean commit
+    )
+        throws LogbookNotFoundException, LogbookDatabaseException, IllegalArgumentException, LogbookAlreadyExistsException {
         checkLifeCyclesObjectGroupArgument(idOperation, idLc, parameters);
         mongoDbAccess.updateLogbookLifeCycleObjectGroup(idOperation, idLc, parameters, commit);
     }
 
     @Override
-    public LogbookLifeCycle<?> selectLifeCycleById(String lifecycleId, JsonNode queryDsl, boolean sliced,
-        LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException,
-        InvalidCreateOperationException {
+    public LogbookLifeCycle<?> selectLifeCycleById(
+        String lifecycleId,
+        JsonNode queryDsl,
+        boolean sliced,
+        LogbookCollections collection
+    )
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, VitamDBException, InvalidCreateOperationException {
         final SelectParserSingle parser = new SelectParserSingle(new LogbookVarNameAdapter());
         if (queryDsl != null) {
             parser.parse(queryDsl);
@@ -157,8 +158,13 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     public List<LogbookLifeCycle<?>> selectLifeCycles(JsonNode select, boolean sliced, LogbookCollections collection)
         throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException {
         final List<LogbookLifeCycle<?>> result = new ArrayList<>();
-        try (final MongoCursor<LogbookLifeCycle<?>> logbook =
-            mongoDbAccess.getLogbookLifeCycles(select, sliced, collection)) {
+        try (
+            final MongoCursor<LogbookLifeCycle<?>> logbook = mongoDbAccess.getLogbookLifeCycles(
+                select,
+                sliced,
+                collection
+            )
+        ) {
             if (!logbook.hasNext()) {
                 throw new LogbookNotFoundException("Logbook entry not found");
             }
@@ -185,10 +191,16 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         }
     }
 
-    private void checkLifeCyclesUnitArgument(String idOperation, String idLcUnit,
-        LogbookLifeCycleUnitParameters parameters) throws IllegalArgumentException {
-        ParametersChecker.checkParameter("idOperation or idLifeCycle should not be null or empty", idOperation,
-            idLcUnit);
+    private void checkLifeCyclesUnitArgument(
+        String idOperation,
+        String idLcUnit,
+        LogbookLifeCycleUnitParameters parameters
+    ) throws IllegalArgumentException {
+        ParametersChecker.checkParameter(
+            "idOperation or idLifeCycle should not be null or empty",
+            idOperation,
+            idLcUnit
+        );
 
         if (!parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOperation)) {
             LOGGER.error("incoherence entry for idOperation");
@@ -201,19 +213,26 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         }
     }
 
-
-    private void checkLifeCyclesObjectGroupArgument(String idOperation, String idLcObjectGroup,
-        LogbookLifeCycleObjectGroupParameters parameters) throws IllegalArgumentException {
-        ParametersChecker.checkParameter("idOperation or idLifeCycleObjectGroup should not be null or empty",
-            idOperation, idLcObjectGroup);
+    private void checkLifeCyclesObjectGroupArgument(
+        String idOperation,
+        String idLcObjectGroup,
+        LogbookLifeCycleObjectGroupParameters parameters
+    ) throws IllegalArgumentException {
+        ParametersChecker.checkParameter(
+            "idOperation or idLifeCycleObjectGroup should not be null or empty",
+            idOperation,
+            idLcObjectGroup
+        );
 
         if (!parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess).equals(idOperation)) {
             LOGGER.error("incoherence entry for idOperation");
             throw new IllegalArgumentException("incoherence entry for idOperation");
         }
 
-        if (!(idLcObjectGroup.equals(parameters.getParameterValue(LogbookParameterName.objectIdentifier)) ||
-            idLcObjectGroup.equals(parameters.getParameterValue(LogbookParameterName.lifeCycleIdentifier)))) {
+        if (
+            !(idLcObjectGroup.equals(parameters.getParameterValue(LogbookParameterName.objectIdentifier)) ||
+                idLcObjectGroup.equals(parameters.getParameterValue(LogbookParameterName.lifeCycleIdentifier)))
+        ) {
             LOGGER.error("incoherence entry for idLifeCyclesObjectGroup");
             throw new IllegalArgumentException("incoherence entry for idLifeCyclesObjectGroup");
         }
@@ -227,16 +246,22 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
             throw new IllegalArgumentException("No LifeCycle Logbook");
         }
         for (LogbookLifeCycleParameters logbookLifeCycleParameters : lifecycleArray) {
-            if (!logbookLifeCycleParameters.getParameterValue(LogbookParameterName.eventIdentifierProcess)
-                .equals(operationId)) {
+            if (
+                !logbookLifeCycleParameters
+                    .getParameterValue(LogbookParameterName.eventIdentifierProcess)
+                    .equals(operationId)
+            ) {
                 LOGGER.error("incoherence entry for operationId");
                 throw new IllegalArgumentException("incoherence entry for operationId");
             }
         }
         String objectIdentifier = lifecycleArray[0].getParameterValue(LogbookParameterName.objectIdentifier);
         for (LogbookLifeCycleParameters logbookLifeCycleParameters : lifecycleArray) {
-            if (!logbookLifeCycleParameters.getParameterValue(LogbookParameterName.objectIdentifier)
-                .equals(objectIdentifier)) {
+            if (
+                !logbookLifeCycleParameters
+                    .getParameterValue(LogbookParameterName.objectIdentifier)
+                    .equals(objectIdentifier)
+            ) {
                 LOGGER.error("incoherence entry for objectIdentifier");
                 throw new IllegalArgumentException("incoherence entry for objectIdentifier");
             }
@@ -245,9 +270,10 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         if (lifecycleArray instanceof LogbookLifeCycleUnitParameters[]) {
             mongoDbAccess.createLogbookLifeCycleUnit(operationId, (LogbookLifeCycleUnitParameters[]) lifecycleArray);
         } else {
-            mongoDbAccess
-                .createLogbookLifeCycleObjectGroup(operationId,
-                    (LogbookLifeCycleObjectGroupParameters[]) lifecycleArray);
+            mongoDbAccess.createLogbookLifeCycleObjectGroup(
+                operationId,
+                (LogbookLifeCycleObjectGroupParameters[]) lifecycleArray
+            );
         }
     }
 
@@ -259,8 +285,11 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
             throw new IllegalArgumentException("No LifeCycle Logbook");
         }
         for (LogbookLifeCycleParameters logbookLifeCycleParameters : lifecycleArray) {
-            if (!logbookLifeCycleParameters.getParameterValue(LogbookParameterName.eventIdentifierProcess)
-                .equals(operationId)) {
+            if (
+                !logbookLifeCycleParameters
+                    .getParameterValue(LogbookParameterName.eventIdentifierProcess)
+                    .equals(operationId)
+            ) {
                 LOGGER.error("incoherence entry for operationId");
                 throw new IllegalArgumentException("incoherence entry for operationId");
             }
@@ -272,14 +301,13 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         }
     }
 
-
     @Override
     public void commitUnit(String idOperation, String idLc)
         throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException {
-
         // 1- Find temporary unit lifeCycle
-        LogbookLifeCycleUnitInProcess logbookLifeCycleUnitInProcess =
-            mongoDbAccess.getLogbookLifeCycleUnitInProcess(idLc);
+        LogbookLifeCycleUnitInProcess logbookLifeCycleUnitInProcess = mongoDbAccess.getLogbookLifeCycleUnitInProcess(
+            idLc
+        );
         if (logbookLifeCycleUnitInProcess == null) {
             LOGGER.error("The temporary lifeCycle wasn't found");
             throw new LogbookNotFoundException("The temporary lifeCycle wasn't found");
@@ -297,7 +325,6 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
             mongoDbAccess.updateLogbookLifeCycleUnit(logbookLifeCycleUnitInProcess);
         }
     }
-
 
     @Override
     public void commitObjectGroup(String idOperation, String idLc)
@@ -324,7 +351,6 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         }
     }
 
-
     @Override
     public void rollBackUnitsByOperation(String idOperation) throws LogbookNotFoundException, LogbookDatabaseException {
         if (VitamConfiguration.isPurgeTemporaryLFC()) {
@@ -339,7 +365,6 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
             mongoDbAccess.rollBackObjectGroupLifeCyclesByOperation(idOperation);
         }
     }
-
 
     @Override
     public LifeCycleStatusCode getUnitLifeCycleStatus(String unitId)
@@ -359,7 +384,6 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         // Else, lifeCycle wasn't found
         return null;
     }
-
 
     @Override
     public LifeCycleStatusCode getObjectGroupLifeCycleStatus(String objectGroupId)
@@ -381,43 +405,55 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public void bulk(LogbookCollections collections, String idOp,
-        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels) throws DatabaseException {
+    public void bulk(
+        LogbookCollections collections,
+        String idOp,
+        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels
+    ) throws DatabaseException {
         mongoDbAccess.bulkInsert(idOp, collections, logbookLifeCycleModels);
     }
 
     @Override
-    public CloseableIterator<JsonNode> getRawUnitLifecyclesByLastPersistedDate(String startDate, String endDate,
-        int limit) {
+    public CloseableIterator<JsonNode> getRawUnitLifecyclesByLastPersistedDate(
+        String startDate,
+        String endDate,
+        int limit
+    ) {
         return getRawLifecyclesByLastPersistedDate(LogbookCollections.LIFECYCLE_UNIT, startDate, endDate, limit);
     }
 
     @Override
-    public CloseableIterator<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(String startDate, String endDate,
-        int limit) {
-        return getRawLifecyclesByLastPersistedDate(LogbookCollections.LIFECYCLE_OBJECTGROUP, startDate, endDate,
-            limit);
+    public CloseableIterator<JsonNode> getRawObjectGroupLifecyclesByLastPersistedDate(
+        String startDate,
+        String endDate,
+        int limit
+    ) {
+        return getRawLifecyclesByLastPersistedDate(LogbookCollections.LIFECYCLE_OBJECTGROUP, startDate, endDate, limit);
     }
 
-    private CloseableIterator<JsonNode> getRawLifecyclesByLastPersistedDate(LogbookCollections collection,
-        String startDate, String endDate, int limit) {
+    private CloseableIterator<JsonNode> getRawLifecyclesByLastPersistedDate(
+        LogbookCollections collection,
+        String startDate,
+        String endDate,
+        int limit
+    ) {
         VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection.getCollection());
         // Get new LFC entries last operation
         // Select operations greater OR equal to startDate to include last secured elements in next traceability
-        MongoCursor<Document> lifecycleIterator =
-            vitamMongoRepository.findDocuments(
-                    Filters.and(
-                        Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
-                        Filters.gte(LogbookDocument.LAST_PERSISTED_DATE, startDate),
-                        Filters.lte(LogbookDocument.LAST_PERSISTED_DATE, endDate))
-                    , VitamConfiguration.getBatchSize())
-                .sort(
-                    Sorts.ascending(LogbookDocument.LAST_PERSISTED_DATE)
-                )
-                .limit(limit).iterator();
+        MongoCursor<Document> lifecycleIterator = vitamMongoRepository
+            .findDocuments(
+                Filters.and(
+                    Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
+                    Filters.gte(LogbookDocument.LAST_PERSISTED_DATE, startDate),
+                    Filters.lte(LogbookDocument.LAST_PERSISTED_DATE, endDate)
+                ),
+                VitamConfiguration.getBatchSize()
+            )
+            .sort(Sorts.ascending(LogbookDocument.LAST_PERSISTED_DATE))
+            .limit(limit)
+            .iterator();
 
         return new CloseableIterator<>() {
-
             @Override
             public boolean hasNext() {
                 return lifecycleIterator.hasNext();
@@ -446,31 +482,40 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
 
     @Override
     public boolean checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(String startDate, String endDate) {
-        return checkNewLifecycleEntriesByLastPersistedDate(LogbookCollections.LIFECYCLE_OBJECTGROUP, startDate,
-            endDate);
+        return checkNewLifecycleEntriesByLastPersistedDate(
+            LogbookCollections.LIFECYCLE_OBJECTGROUP,
+            startDate,
+            endDate
+        );
     }
 
-    private boolean checkNewLifecycleEntriesByLastPersistedDate(LogbookCollections collection, String startDate,
-        String endDate) {
+    private boolean checkNewLifecycleEntriesByLastPersistedDate(
+        LogbookCollections collection,
+        String startDate,
+        String endDate
+    ) {
         VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection.getCollection());
 
         // Check if new LFC entries exist since last operation
         // /!\ Only check for operations strictly greater startDate to "ignore" last secured elements
-        Document firstLifecycle = vitamMongoRepository.findDocuments(
+        Document firstLifecycle = vitamMongoRepository
+            .findDocuments(
                 Filters.and(
                     Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId()),
                     Filters.gt(LogbookDocument.LAST_PERSISTED_DATE, startDate),
-                    Filters.lte(LogbookDocument.LAST_PERSISTED_DATE, endDate))
-                , VitamConfiguration.getBatchSize())
+                    Filters.lte(LogbookDocument.LAST_PERSISTED_DATE, endDate)
+                ),
+                VitamConfiguration.getBatchSize()
+            )
             .projection(Projections.include("_id"))
-            .limit(1).first();
+            .limit(1)
+            .first();
 
         return firstLifecycle != null;
     }
 
     @Override
-    public JsonNode getRawUnitLifeCycleById(String id)
-        throws LogbookNotFoundException, InvalidParseOperationException {
+    public JsonNode getRawUnitLifeCycleById(String id) throws LogbookNotFoundException, InvalidParseOperationException {
         return getRawLifecycleById(id, LogbookCollections.LIFECYCLE_UNIT);
     }
 
@@ -493,8 +538,10 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     }
 
     @Override
-    public void updateLogbookLifeCycleBulk(LogbookCollections logbookCollections,
-        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) {
+    public void updateLogbookLifeCycleBulk(
+        LogbookCollections logbookCollections,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
+    ) {
         mongoDbAccess.updateLogbookLifeCycleBulk(logbookCollections, logbookLifeCycleParametersBulk);
     }
 
@@ -502,29 +549,39 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
     public void deleteLifeCycleObjectGroups(List<String> objectGroupIds) throws DatabaseException {
         VitamMongoRepository repo = VitamRepositoryFactory.get()
             .getVitamMongoRepository(LogbookCollections.LIFECYCLE_OBJECTGROUP.getVitamCollection());
-        repo.remove(Filters.and(
-            Filters.in(VitamDocument.ID, objectGroupIds),
-            Filters.eq(VitamDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())));
+        repo.remove(
+            Filters.and(
+                Filters.in(VitamDocument.ID, objectGroupIds),
+                Filters.eq(VitamDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            )
+        );
     }
 
     @Override
     public void deleteLifeCycleUnits(List<String> unitsIdentifier) throws DatabaseException {
         VitamMongoRepository repo = VitamRepositoryFactory.get()
             .getVitamMongoRepository(LogbookCollections.LIFECYCLE_UNIT.getVitamCollection());
-        repo.remove(Filters.and(
-            Filters.in(VitamDocument.ID, unitsIdentifier),
-            Filters.eq(VitamDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())));
+        repo.remove(
+            Filters.and(
+                Filters.in(VitamDocument.ID, unitsIdentifier),
+                Filters.eq(VitamDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+            )
+        );
     }
 
     private JsonNode getRawLifecycleById(String id, LogbookCollections collection)
         throws InvalidParseOperationException, LogbookNotFoundException {
         VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection.getCollection());
 
-        Document document = vitamMongoRepository.findDocuments(
-            Filters.and(
-                Filters.eq(LogbookDocument.ID, id),
-                Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
-            ), 1).first();
+        Document document = vitamMongoRepository
+            .findDocuments(
+                Filters.and(
+                    Filters.eq(LogbookDocument.ID, id),
+                    Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+                ),
+                1
+            )
+            .first();
 
         if (document == null) {
             throw new LogbookNotFoundException("Could not find raw lifecycle by id " + id);
@@ -537,12 +594,17 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         throws InvalidParseOperationException, LogbookNotFoundException {
         VitamMongoRepository vitamMongoRepository = new VitamMongoRepository(collection.getCollection());
 
-        try (MongoCursor<Document> documents = vitamMongoRepository.findDocuments(
-            Filters.and(
-                Filters.in(LogbookDocument.ID, ids),
-                Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
-            ), ids.size()).iterator()) {
-
+        try (
+            MongoCursor<Document> documents = vitamMongoRepository
+                .findDocuments(
+                    Filters.and(
+                        Filters.in(LogbookDocument.ID, ids),
+                        Filters.eq(LogbookDocument.TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
+                    ),
+                    ids.size()
+                )
+                .iterator()
+        ) {
             List<JsonNode> results = new ArrayList<>();
             while (documents.hasNext()) {
                 results.add(BsonHelper.fromDocumentToJsonNode(documents.next()));
@@ -555,5 +617,3 @@ public class LogbookLifeCyclesImpl implements LogbookLifeCycles {
         }
     }
 }
-
-

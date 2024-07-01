@@ -30,6 +30,7 @@ package fr.gouv.vitam.worker.core.plugin.preservation.model;
  * ReportOutput
  */
 public class ReportOutput {
+
     private final String evType;
     private final String outcome;
     private final String outDetail;

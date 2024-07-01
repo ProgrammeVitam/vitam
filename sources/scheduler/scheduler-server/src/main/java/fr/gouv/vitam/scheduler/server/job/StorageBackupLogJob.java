@@ -50,10 +50,10 @@ public class StorageBackupLogJob implements Job {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageBackupLogJob.class);
 
-    final static String STORAGE_BACKUP_TYPE_PARAMETER = "StorageBackupType";
-    final static String STORAGE_SERVER_HOSTS_PARAMETER = "StorageServerHosts";
-    private final static String SERVER_SEPARATOR = ";";
-    private final static String PORT_SEPARATOR = ":";
+    static final String STORAGE_BACKUP_TYPE_PARAMETER = "StorageBackupType";
+    static final String STORAGE_SERVER_HOSTS_PARAMETER = "StorageServerHosts";
+    private static final String SERVER_SEPARATOR = ";";
+    private static final String PORT_SEPARATOR = ":";
     private final StorageClientFactory storageClientFactory;
 
     public StorageBackupLogJob() {
@@ -71,13 +71,16 @@ public class StorageBackupLogJob implements Job {
         VitamThreadUtils.getVitamSession().setTenantId(adminTenant);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(adminTenant));
         JobDataMap jobDataMap = context.getTrigger().getJobDataMap();
-        final String[] storageServerHosts =
-            jobDataMap.getString(STORAGE_SERVER_HOSTS_PARAMETER).split(SERVER_SEPARATOR);
+        final String[] storageServerHosts = jobDataMap
+            .getString(STORAGE_SERVER_HOSTS_PARAMETER)
+            .split(SERVER_SEPARATOR);
         boolean isError = false;
         for (String storageServerHost : storageServerHosts) {
             final String[] host = storageServerHost.split(PORT_SEPARATOR);
-            final ClientConfiguration clientConfiguration =
-                new ClientConfigurationImpl(host[0], Integer.parseInt(host[1]));
+            final ClientConfiguration clientConfiguration = new ClientConfigurationImpl(
+                host[0],
+                Integer.parseInt(host[1])
+            );
             StorageClientFactory.changeMode(clientConfiguration);
             try (StorageClient storageClient = storageClientFactory.getClient()) {
                 final String storageBackupType = jobDataMap.getString(STORAGE_BACKUP_TYPE_PARAMETER);
@@ -85,12 +88,14 @@ public class StorageBackupLogJob implements Job {
                     switch (storageBackupType) {
                         case "AccessLog":
                             LOGGER.info(
-                                "Storage " + storageBackupType + " backup started on instance " + storageServerHost);
+                                "Storage " + storageBackupType + " backup started on instance " + storageServerHost
+                            );
                             storageClient.storageAccessLogBackup(VitamConfiguration.getTenants());
                             break;
                         case "WriteLog":
                             LOGGER.info(
-                                "Storage " + storageBackupType + " backup started on instance " + storageServerHost);
+                                "Storage " + storageBackupType + " backup started on instance " + storageServerHost
+                            );
                             storageClient.storageLogBackup(VitamConfiguration.getTenants());
                             break;
                         default:
@@ -98,8 +103,12 @@ public class StorageBackupLogJob implements Job {
                     }
                     LOGGER.info("Storage " + storageBackupType + " backup finished on instance " + storageServerHost);
                 } catch (StorageServerClientException | InvalidParseOperationException e) {
-                    LOGGER.error("An error occurred while backup storage " + storageBackupType + " on instance " +
-                        storageServerHost);
+                    LOGGER.error(
+                        "An error occurred while backup storage " +
+                        storageBackupType +
+                        " on instance " +
+                        storageServerHost
+                    );
                     isError = true;
                 }
             }

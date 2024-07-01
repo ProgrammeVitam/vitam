@@ -138,6 +138,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * create manifest and put in on workspace
  */
 public class CreateManifest extends ActionHandler {
+
     static final int MANIFEST_XML_RANK = 0;
     static final int GUID_TO_INFO_RANK = 1;
     static final int BINARIES_RANK = 2;
@@ -154,7 +155,6 @@ public class CreateManifest extends ActionHandler {
 
     private final ObjectNode projection;
     private final ObjectMapper objectMapper;
-
 
     /**
      * constructor use for plugin instantiation
@@ -185,16 +185,19 @@ public class CreateManifest extends ActionHandler {
         File manifestFile = handlerIO.getNewLocalFile(handlerIO.getOutput(MANIFEST_XML_RANK).getPath());
         File report = handlerIO.getNewLocalFile(handlerIO.getOutput(REPORT).getPath());
 
-        try (MetaDataClient client = metaDataClientFactory.getClient();
+        try (
+            MetaDataClient client = metaDataClientFactory.getClient();
             OutputStream outputStream = new FileOutputStream(manifestFile);
             FileOutputStream fileOutputStream = new FileOutputStream(report);
             FileInputStream reportFile = new FileInputStream(report);
             BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream);
             LogbookLifeCyclesClient logbookLifeCyclesClient = logbookLifeCyclesClientFactory.getClient();
-            AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
-
-            ExportRequest exportRequest = JsonHandler
-                .getFromJsonNode(handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME), ExportRequest.class);
+            AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()
+        ) {
+            ExportRequest exportRequest = JsonHandler.getFromJsonNode(
+                handlerIO.getJsonFromWorkspace(EXPORT_QUERY_FILE_NAME),
+                ExportRequest.class
+            );
 
             // Get Wanted Seda Version
             Optional<SupportedSedaVersions> sedaVersionForExport =
@@ -221,7 +224,7 @@ public class CreateManifest extends ActionHandler {
                 case ArchiveTransfer:
                     buffOut.write(unprettyPrint(JsonHandler.createObjectNode()).getBytes(UTF_8)); // header empty
                     buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
-                    buffOut.write(unprettyPrint(reportHeader).getBytes(StandardCharsets.UTF_8));  // context
+                    buffOut.write(unprettyPrint(reportHeader).getBytes(StandardCharsets.UTF_8)); // context
                     buffOut.write(System.lineSeparator().getBytes(StandardCharsets.UTF_8));
                     manifestBuilder.validate(exportRequest.getExportType(), exportRequest.getExportRequestParameters());
                     break;
@@ -230,14 +233,17 @@ public class CreateManifest extends ActionHandler {
             }
 
             // Write manifest first line information
-            manifestBuilder.startDocument(param.getContainerName(), exportRequest.getExportType(),
-                exportRequest.getExportRequestParameters());
+            manifestBuilder.startDocument(
+                param.getContainerName(),
+                exportRequest.getExportType(),
+                exportRequest.getExportRequestParameters()
+            );
 
             ListMultimap<String, String> multimap = ArrayListMultimap.create();
             Set<String> originatingAgencies = new HashSet<>();
-            String originatingAgency =
-                VitamConfiguration.getDefaultOriginatingAgencyForExport(
-                    ParameterHelper.getTenantParameter());
+            String originatingAgency = VitamConfiguration.getDefaultOriginatingAgencyForExport(
+                ParameterHelper.getTenantParameter()
+            );
             Map<String, String> ogs = new HashMap<>();
 
             SelectParserMultiple parser = new SelectParserMultiple();
@@ -246,8 +252,10 @@ public class CreateManifest extends ActionHandler {
             SelectMultiQuery request = parser.getRequest();
             request.setProjection(projection);
 
-            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
-                .createUnitScrollSplitIterator(client, request);
+            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createUnitScrollSplitIterator(
+                client,
+                request
+            );
 
             for (JsonNode item : StreamSupport.stream(scrollRequest, false).collect(Collectors.toList())) {
                 prepareGraphCreation(multimap, originatingAgencies, ogs, item, sedaVersionToExport);
@@ -275,8 +283,8 @@ public class CreateManifest extends ActionHandler {
 
             Iterable<List<Entry<String, String>>> partitions = partition(ogs.entrySet(), MAX_ELEMENT_IN_QUERY);
             for (List<Entry<String, String>> partition : partitions) {
-
-                ListMultimap<String, String> unitsForObjectGroupId = partition.stream()
+                ListMultimap<String, String> unitsForObjectGroupId = partition
+                    .stream()
                     .collect(
                         ArrayListMultimap::create,
                         (map, entry) -> map.put(entry.getValue(), entry.getKey()),
@@ -292,8 +300,10 @@ public class CreateManifest extends ActionHandler {
                 for (JsonNode object : objects) {
                     String id = object.get(id()).textValue();
                     List<String> linkedUnits = unitsForObjectGroupId.get(id);
-                    JsonNode selectObjectGroupLifeCycleById =
-                        logbookLifeCyclesClient.selectObjectGroupLifeCycleById(id, new Select().getFinalSelect());
+                    JsonNode selectObjectGroupLifeCycleById = logbookLifeCyclesClient.selectObjectGroupLifeCycleById(
+                        id,
+                        new Select().getFinalSelect()
+                    );
 
                     AccessContractModel accessContract = getAccessContractModel(adminManagementClient);
 
@@ -301,15 +311,20 @@ public class CreateManifest extends ActionHandler {
 
                     List<QualifiersModel> qualifiersToRemove;
                     if (Boolean.FALSE.equals(accessContract.isEveryDataObjectVersion())) {
-                        qualifiersToRemove = objectGroup.getQualifiers().stream()
+                        qualifiersToRemove = objectGroup
+                            .getQualifiers()
+                            .stream()
                             .filter(
-                                qualifier -> !accessContract.getDataObjectVersion().contains(qualifier.getQualifier()))
+                                qualifier -> !accessContract.getDataObjectVersion().contains(qualifier.getQualifier())
+                            )
                             .collect(Collectors.toList());
                         objectGroup.getQualifiers().removeAll(qualifiersToRemove);
                     }
 
                     if (!dataObjectVersions.isEmpty()) {
-                        qualifiersToRemove = objectGroup.getQualifiers().stream()
+                        qualifiersToRemove = objectGroup
+                            .getQualifiers()
+                            .stream()
                             .filter(qualifier -> !dataObjectVersions.contains(qualifier.getQualifier()))
                             .collect(Collectors.toList());
                         objectGroup.getQualifiers().removeAll(qualifiersToRemove);
@@ -318,16 +333,20 @@ public class CreateManifest extends ActionHandler {
                     JsonNode currentObject = JsonHandler.toJsonNode(objectGroup);
 
                     Stream<LogbookLifeCycleObjectGroup> logbookLifeCycleObjectGroupStream =
-                        (exportRequest.isExportWithLogBookLFC()) ?
-                            RequestResponseOK.getFromJsonNode(selectObjectGroupLifeCycleById)
+                        (exportRequest.isExportWithLogBookLFC())
+                            ? RequestResponseOK.getFromJsonNode(selectObjectGroupLifeCycleById)
                                 .getResults()
                                 .stream()
-                                .map(LogbookLifeCycleObjectGroup::new) :
-                            Stream.empty();
+                                .map(LogbookLifeCycleObjectGroup::new)
+                            : Stream.empty();
 
-                    idBinaryWithFileName.putAll(manifestBuilder
-                        .writeGOT(currentObject, linkedUnits.get(linkedUnits.size() - 1),
-                            logbookLifeCycleObjectGroupStream));
+                    idBinaryWithFileName.putAll(
+                        manifestBuilder.writeGOT(
+                            currentObject,
+                            linkedUnits.get(linkedUnits.size() - 1),
+                            logbookLifeCycleObjectGroupStream
+                        )
+                    );
                     exportSize += computeSize(currentObject, dataObjectVersions);
                 }
             }
@@ -335,29 +354,38 @@ public class CreateManifest extends ActionHandler {
             SelectParserMultiple initialQueryParser = new SelectParserMultiple();
             initialQueryParser.parse(exportRequest.getDslRequest());
 
-            scrollRequest = new ScrollSpliterator<>(initialQueryParser.getRequest(),
+            scrollRequest = new ScrollSpliterator<>(
+                initialQueryParser.getRequest(),
                 query -> {
                     try {
                         JsonNode node = client.selectUnits(query.getFinalSelect());
                         return RequestResponseOK.getFromJsonNode(node);
-                    } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
-                             MetaDataClientServerException | InvalidParseOperationException e) {
+                    } catch (
+                        MetaDataExecutionException
+                        | MetaDataDocumentSizeException
+                        | MetaDataClientServerException
+                        | InvalidParseOperationException e
+                    ) {
                         throw new IllegalStateException(e);
                     }
-                }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
-                VitamConfiguration.getElasticSearchScrollLimit());
+                },
+                VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+                VitamConfiguration.getElasticSearchScrollLimit()
+            );
 
             manifestBuilder.startDescriptiveMetadata();
 
             Iterator<JsonNode> unitIterator = new SpliteratorIterator<>(scrollRequest);
             while (unitIterator.hasNext()) {
                 ArchiveUnitModel unit;
-                ArchiveUnitModel archiveUnitModel =
-                    objectMapper.treeToValue(unitIterator.next(), ArchiveUnitModel.class);
+                ArchiveUnitModel archiveUnitModel = objectMapper.treeToValue(
+                    unitIterator.next(),
+                    ArchiveUnitModel.class
+                );
 
-                final JsonNode response =
-                    exportWithLogBookLFC ? logbookLifeCyclesClient.selectUnitLifeCycleById(archiveUnitModel.getId(),
-                        select.getFinalSelect()) : null;
+                final JsonNode response = exportWithLogBookLFC
+                    ? logbookLifeCyclesClient.selectUnitLifeCycleById(archiveUnitModel.getId(), select.getFinalSelect())
+                    : null;
                 final LogbookLifeCycleUnit logbookLFC = Optional.ofNullable(response)
                     .map(r -> r.get(TAG_RESULTS))
                     .map(node -> node.get(0))
@@ -369,9 +397,7 @@ public class CreateManifest extends ActionHandler {
 
                 if (ArchiveTransfer.equals(exportRequest.getExportType())) {
                     List<String> opts = ListUtils.defaultIfNull(unit.getOpts(), new ArrayList<>());
-                    TransferStatus status = opts.isEmpty() ?
-                        TransferStatus.OK :
-                        TransferStatus.ALREADY_IN_TRANSFER;
+                    TransferStatus status = opts.isEmpty() ? TransferStatus.OK : TransferStatus.ALREADY_IN_TRANSFER;
                     opts.add(param.getContainerName());
                     ObjectNode updateMultiQuery = getUpdateQuery(opts);
 
@@ -406,11 +432,10 @@ public class CreateManifest extends ActionHandler {
                     break;
             }
 
-            String submissionAgencyIdentifier = exportRequest.getExportRequestParameters() != null ?
-                exportRequest.getExportRequestParameters().getSubmissionAgencyIdentifier() :
-                null;
-            manifestBuilder
-                .writeManagementMetadata(originatingAgency, submissionAgencyIdentifier);
+            String submissionAgencyIdentifier = exportRequest.getExportRequestParameters() != null
+                ? exportRequest.getExportRequestParameters().getSubmissionAgencyIdentifier()
+                : null;
+            manifestBuilder.writeManagementMetadata(originatingAgency, submissionAgencyIdentifier);
 
             manifestBuilder.endDataObjectPackage();
 
@@ -418,11 +443,14 @@ public class CreateManifest extends ActionHandler {
                 case ArchiveDeliveryRequestReply:
                 case ArchiveTransfer:
                     if (Strings.isNullOrEmpty(exportRequest.getExportRequestParameters().getTransferringAgency())) {
-                        exportRequest.getExportRequestParameters()
+                        exportRequest
+                            .getExportRequestParameters()
                             .setTransferringAgency(VitamConfiguration.getVitamDefaultTransferringAgency());
                     }
-                    manifestBuilder
-                        .writeFooter(exportRequest.getExportType(), exportRequest.getExportRequestParameters());
+                    manifestBuilder.writeFooter(
+                        exportRequest.getExportType(),
+                        exportRequest.getExportRequestParameters()
+                    );
                     break;
                 default:
                     break;
@@ -442,21 +470,33 @@ public class CreateManifest extends ActionHandler {
             itemStatus.increment(StatusCode.OK);
 
             if (ArchiveTransfer.equals(exportRequest.getExportType())) {
-                handlerIO
-                    .transferInputStreamToWorkspace(handlerIO.getContainerName() + JSONL_EXTENSION, reportFile, null,
-                        false);
+                handlerIO.transferInputStreamToWorkspace(
+                    handlerIO.getContainerName() + JSONL_EXTENSION,
+                    reportFile,
+                    null,
+                    false
+                );
             }
-
         } catch (ExportException e) {
             itemStatus.increment(StatusCode.KO);
             ObjectNode infoNode = JsonHandler.createObjectNode();
             infoNode.put(REASON_FIELD, e.getMessage());
             String evDetData = JsonHandler.unprettyPrint(infoNode);
             itemStatus.setEvDetailData(evDetData);
-        } catch (IOException | MetaDataExecutionException | InvalidCreateOperationException |
-                 MetaDataClientServerException | XMLStreamException | JAXBException | LogbookClientException |
-                 MetaDataDocumentSizeException | InvalidParseOperationException | InternalServerException |
-                 MetaDataNotFoundException | DatatypeConfigurationException e) {
+        } catch (
+            IOException
+            | MetaDataExecutionException
+            | InvalidCreateOperationException
+            | MetaDataClientServerException
+            | XMLStreamException
+            | JAXBException
+            | LogbookClientException
+            | MetaDataDocumentSizeException
+            | InvalidParseOperationException
+            | InternalServerException
+            | MetaDataNotFoundException
+            | DatatypeConfigurationException e
+        ) {
             throw new ProcessingException(e);
         }
         return new ItemStatus(PLUGIN_NAME).setItemsStatus(PLUGIN_NAME, itemStatus);
@@ -470,16 +510,22 @@ public class CreateManifest extends ActionHandler {
             Select accessContractSelect = new Select();
 
             try {
-                Query query =
-                    QueryHelper.eq(AccessContract.IDENTIFIER,
-                        VitamThreadUtils.getVitamSession().getContractId());
+                Query query = QueryHelper.eq(
+                    AccessContract.IDENTIFIER,
+                    VitamThreadUtils.getVitamSession().getContractId()
+                );
                 accessContractSelect.setQuery(query);
-                accessContractModel =
-                    ((RequestResponseOK<AccessContractModel>) adminManagementClient.findAccessContracts(
-                        accessContractSelect.getFinalSelect()))
-                        .getResults().get(0);
-            } catch (InvalidCreateOperationException | AdminManagementClientServerException |
-                     InvalidParseOperationException e) {
+                accessContractModel = ((RequestResponseOK<
+                            AccessContractModel
+                        >) adminManagementClient.findAccessContracts(
+                        accessContractSelect.getFinalSelect()
+                    )).getResults()
+                    .get(0);
+            } catch (
+                InvalidCreateOperationException
+                | AdminManagementClientServerException
+                | InvalidParseOperationException e
+            ) {
                 throw new ProcessingException(e.getMessage(), e.getCause());
             }
         }
@@ -489,26 +535,44 @@ public class CreateManifest extends ActionHandler {
     private void checkSize(ItemStatus itemStatus, long exportSize, long threshold, int tenant) throws ExportException {
         if (exportSize > threshold) {
             throw new ExportException(
-                String.format("export size exceeds threshold. \n Export Size = [%d]\n Threshold = [%d]", exportSize,
-                    threshold));
+                String.format(
+                    "export size exceeds threshold. \n Export Size = [%d]\n Threshold = [%d]",
+                    exportSize,
+                    threshold
+                )
+            );
         }
-        Optional<BinarySizeTenantThreshold> first = VitamConfiguration.getBinarySizeTenantThreshold().stream()
-            .filter(e -> e.getTenant() == tenant).findFirst();
+        Optional<BinarySizeTenantThreshold> first = VitamConfiguration.getBinarySizeTenantThreshold()
+            .stream()
+            .filter(e -> e.getTenant() == tenant)
+            .findFirst();
         if (first.isPresent()) {
             if (exportSize > first.get().getThreshold()) {
                 if (first.get().isAuthorized()) {
-                    updateItemStatus(itemStatus, exportSize, threshold,
-                        "export size exceeds tenant threshold.\n Export Size = [%d]\n Tenant Threshold = [%d]");
+                    updateItemStatus(
+                        itemStatus,
+                        exportSize,
+                        threshold,
+                        "export size exceeds tenant threshold.\n Export Size = [%d]\n Tenant Threshold = [%d]"
+                    );
                 } else {
-                    throw new ExportException(String
-                        .format("export size exceeds tenant threshold. \n Export Size = [%d]\n Tenant Threshold = [%d]",
-                            exportSize, threshold));
+                    throw new ExportException(
+                        String.format(
+                            "export size exceeds tenant threshold. \n Export Size = [%d]\n Tenant Threshold = [%d]",
+                            exportSize,
+                            threshold
+                        )
+                    );
                 }
             }
         } else {
             if (exportSize > VitamConfiguration.getBinarySizePlatformThreshold().getThreshold()) {
-                updateItemStatus(itemStatus, exportSize, threshold,
-                    "export size exceeds platform threshold.\n Export Size = [%d]\n Platform Threshold = [%d]");
+                updateItemStatus(
+                    itemStatus,
+                    exportSize,
+                    threshold,
+                    "export size exceeds platform threshold.\n Export Size = [%d]\n Platform Threshold = [%d]"
+                );
             }
         }
     }
@@ -525,8 +589,11 @@ public class CreateManifest extends ActionHandler {
         if (threshold != null) {
             return threshold;
         }
-        return VitamConfiguration.getBinarySizeTenantThreshold().stream()
-            .filter(e -> e.getTenant() == tenant).findFirst().map(BinarySizePlatformThreshold::getThreshold)
+        return VitamConfiguration.getBinarySizeTenantThreshold()
+            .stream()
+            .filter(e -> e.getTenant() == tenant)
+            .findFirst()
+            .map(BinarySizePlatformThreshold::getThreshold)
             .orElseGet(() -> VitamConfiguration.getBinarySizePlatformThreshold().getThreshold());
     }
 
@@ -539,14 +606,15 @@ public class CreateManifest extends ActionHandler {
         final AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
         Select select = new Select();
         try {
-            Query query =
-                QueryHelper.eq(AccessContract.IDENTIFIER, VitamThreadUtils.getVitamSession().getContractId());
+            Query query = QueryHelper.eq(AccessContract.IDENTIFIER, VitamThreadUtils.getVitamSession().getContractId());
             select.setQuery(query);
-            return
-                ((RequestResponseOK<AccessContractModel>) client.findAccessContracts(select.getFinalSelect()))
-                    .getResults().get(0);
-        } catch (InvalidCreateOperationException | AdminManagementClientServerException |
-                 InvalidParseOperationException e) {
+            return (
+                (RequestResponseOK<AccessContractModel>) client.findAccessContracts(select.getFinalSelect())
+            ).getResults()
+                .get(0);
+        } catch (
+            InvalidCreateOperationException | AdminManagementClientServerException | InvalidParseOperationException e
+        ) {
             throw new ProcessingException(e);
         }
     }
@@ -558,16 +626,16 @@ public class CreateManifest extends ActionHandler {
 
         Stream<QualifiersModel> stream = objectGroup.getQualifiers().stream();
         if (!accessContract.isEveryDataObjectVersion()) {
-            stream =
-                stream.filter(qualifier -> accessContract.getDataObjectVersion().contains(qualifier.getQualifier()));
+            stream = stream.filter(
+                qualifier -> accessContract.getDataObjectVersion().contains(qualifier.getQualifier())
+            );
         }
 
         if (!dataObjectVersionFilter.isEmpty()) {
             stream = stream.filter(qualifier -> dataObjectVersionFilter.contains(qualifier.getQualifier()));
         }
 
-        return stream.map(this::getLastVersion)
-            .map(VersionsModel::getSize).reduce(0L, Long::sum);
+        return stream.map(this::getLastVersion).map(VersionsModel::getSize).reduce(0L, Long::sum);
     }
 
     private VersionsModel getLastVersion(QualifiersModel qualifier) {
@@ -586,20 +654,31 @@ public class CreateManifest extends ActionHandler {
         return false;
     }
 
-    private void prepareGraphCreation(ListMultimap<String, String> multimap, Set<String> originatingAgencies,
-        Map<String, String> ogs, JsonNode unit, String sedaVersionToExport) throws ExportException {
+    private void prepareGraphCreation(
+        ListMultimap<String, String> multimap,
+        Set<String> originatingAgencies,
+        Map<String, String> ogs,
+        JsonNode unit,
+        String sedaVersionToExport
+    ) throws ExportException {
         String unitSedaVersion = unit.get(sedaVersion()).asText();
         if (!SupportedSedaVersions.isSedaVersionsCompatible(unitSedaVersion, sedaVersionToExport)) {
-            final String errorMsg = "Incompatible seda version to export (" + sedaVersionToExport + ") for unit : " +
+            final String errorMsg =
+                "Incompatible seda version to export (" +
+                sedaVersionToExport +
+                ") for unit : " +
                 unit.get(id()).asText();
             throw new ExportException(errorMsg);
         }
         createGraph(multimap, originatingAgencies, ogs, unit);
     }
 
-    private void createGraph(ListMultimap<String, String> multimap,
+    private void createGraph(
+        ListMultimap<String, String> multimap,
         Set<String> originatingAgencies,
-        Map<String, String> ogs, JsonNode unit) {
+        Map<String, String> ogs,
+        JsonNode unit
+    ) {
         String archiveUnitId = unit.get(id()).asText();
         ArrayNode nodes = (ArrayNode) unit.get(VitamFieldsHelper.unitups());
         for (JsonNode node : nodes) {
@@ -646,5 +725,4 @@ public class CreateManifest extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO: add check on file listUnit.json.
     }
-
 }

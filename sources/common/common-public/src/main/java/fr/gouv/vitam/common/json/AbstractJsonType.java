@@ -40,11 +40,10 @@ import java.io.File;
  * Any DTO class can use this class to extend from.
  */
 
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY,
-    property = "@class")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public abstract class AbstractJsonType {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(AbstractJsonType.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractJsonType.class);
 
     /**
      * Generates Json
@@ -86,8 +85,7 @@ public abstract class AbstractJsonType {
      * @throws InvalidParseOperationException if parse exception occurred when reading file in json object
      * @throws IllegalArgumentException if file null
      */
-    public static AbstractJsonType readJsonFile(File file)
-        throws InvalidParseOperationException {
+    public static AbstractJsonType readJsonFile(File file) throws InvalidParseOperationException {
         ParametersChecker.checkParameter("File", file);
         return JsonHandler.getFromFile(file, AbstractJsonType.class);
     }
@@ -98,8 +96,7 @@ public abstract class AbstractJsonType {
      * @throws InvalidParseOperationException if parse exception occurred when reading file in json object
      * @throws IllegalArgumentException if data null
      */
-    public static AbstractJsonType readJsonString(String data)
-        throws InvalidParseOperationException {
+    public static AbstractJsonType readJsonString(String data) throws InvalidParseOperationException {
         ParametersChecker.checkParameterNullOnly("data", data);
         return JsonHandler.getFromString(data, AbstractJsonType.class);
     }

@@ -73,7 +73,11 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
     private final CollectService collectService;
     private final TransactionService transactionService;
 
-    public CollectMetadataInternalResource(MetadataService metadataService, CollectService collectService, TransactionService transactionService) {
+    public CollectMetadataInternalResource(
+        MetadataService metadataService,
+        CollectService collectService,
+        TransactionService transactionService
+    ) {
         this.metadataService = metadataService;
         this.collectService = collectService;
         this.transactionService = transactionService;
@@ -95,13 +99,16 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
         }
     }
 
-
     @Path("/units/{unitId}/objects/{usage}/{version}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response uploadObjectGroup(@PathParam("unitId") String unitId, @PathParam("usage") String usageString,
-        @PathParam("version") Integer version, @Valid ObjectDto objectDto) {
+    public Response uploadObjectGroup(
+        @PathParam("unitId") String unitId,
+        @PathParam("usage") String usageString,
+        @PathParam("version") Integer version,
+        @Valid ObjectDto objectDto
+    ) {
         try {
             SanityChecker.checkParameter(unitId);
             SanityChecker.checkParameter(usageString);
@@ -109,12 +116,20 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
             SanityChecker.checkJsonAll(JsonHandler.toJsonNode(objectDto));
 
             DataObjectVersionType usage = CollectHelper.fetchUsage(usageString);
-            ParametersChecker.checkParameter("usage({}), unitId({}) or version({}) can't be null", unitId, usage,
-                version);
+            ParametersChecker.checkParameter(
+                "usage({}), unitId({}) or version({}) can't be null",
+                unitId,
+                usage,
+                version
+            );
 
             CollectUnitModel archiveUnitModel = collectService.getArchiveUnitModel(unitId);
-            ObjectDto savedObjectDto =
-                collectService.updateOrSaveObjectGroup(archiveUnitModel, usage, version, objectDto);
+            ObjectDto savedObjectDto = collectService.updateOrSaveObjectGroup(
+                archiveUnitModel,
+                usage,
+                version,
+                objectDto
+            );
 
             return CollectRequestResponse.toResponseOK(savedObjectDto);
         } catch (CollectInternalException e) {
@@ -130,7 +145,6 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getObjectById(@PathParam("gotId") String gotId) {
-
         try {
             SanityChecker.checkParameter(gotId);
             JsonNode objectGroup = metadataService.selectObjectGroupById(gotId);
@@ -148,8 +162,12 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response upload(@PathParam("unitId") String unitId, @PathParam("usage") String usageString,
-        @PathParam("version") Integer version, InputStream uploadedInputStream) throws CollectInternalException {
+    public Response upload(
+        @PathParam("unitId") String unitId,
+        @PathParam("usage") String usageString,
+        @PathParam("version") Integer version,
+        InputStream uploadedInputStream
+    ) throws CollectInternalException {
         try {
             SanityChecker.checkParameter(unitId);
             SanityChecker.checkParameter(usageString);
@@ -157,23 +175,28 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
             ParametersChecker.checkParameter("You must supply a file!", uploadedInputStream);
 
             DataObjectVersionType usage = CollectHelper.fetchUsage(usageString);
-            ParametersChecker.checkParameter("usage({}), unitId({}) or version({}) can't be null", unitId, usage,
-                version);
+            ParametersChecker.checkParameter(
+                "usage({}), unitId({}) or version({}) can't be null",
+                unitId,
+                usage,
+                version
+            );
 
             CollectUnitModel archiveUnitModel = collectService.getArchiveUnitModel(unitId);
 
-
-            if (archiveUnitModel == null){
+            if (archiveUnitModel == null) {
                 throw new CollectInternalException("UA not found");
             }
             if (archiveUnitModel.getOpi() != null && !archiveUnitModel.getOpi().isBlank()) {
-                TransactionModel uaTransaction =
-                    transactionService.findTransaction(archiveUnitModel.getOpi()).orElse(null);
-                if (uaTransaction == null){
+                TransactionModel uaTransaction = transactionService
+                    .findTransaction(archiveUnitModel.getOpi())
+                    .orElse(null);
+                if (uaTransaction == null) {
                     throw new CollectInternalException("Transaction Id not found");
                 } else {
-                    if(!uaTransaction.getStatus().equals(TransactionStatus.OPEN))
-                        throw new CollectInternalException("Invalid transaction status");
+                    if (!uaTransaction.getStatus().equals(TransactionStatus.OPEN)) throw new CollectInternalException(
+                        "Invalid transaction status"
+                    );
                 }
             } else {
                 throw new CollectInternalException("Operation Id not found");
@@ -191,22 +214,28 @@ public class CollectMetadataInternalResource extends ApplicationStatusResource {
             LOGGER.error("An error occurs when try to fetch data from database : {}", e);
             return CollectRequestResponse.toVitamError(INTERNAL_SERVER_ERROR, e.getLocalizedMessage());
         }
-
     }
 
     @Path("/units/{unitId}/objects/{usage}/{version}/binary")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    public Response download(@PathParam("unitId") String unitId, @PathParam("usage") String usageString,
-        @PathParam("version") Integer version) {
+    public Response download(
+        @PathParam("unitId") String unitId,
+        @PathParam("usage") String usageString,
+        @PathParam("version") Integer version
+    ) {
         try {
             SanityChecker.checkParameter(unitId);
             SanityChecker.checkParameter(usageString);
             SanityChecker.checkParameter(String.valueOf(version.intValue()));
 
             DataObjectVersionType usage = CollectHelper.fetchUsage(usageString);
-            ParametersChecker.checkParameter("usage({}), unitId({}) or version({}) can't be null", unitId, usage,
-                version);
+            ParametersChecker.checkParameter(
+                "usage({}), unitId({}) or version({}) can't be null",
+                unitId,
+                usage,
+                version
+            );
 
             CollectUnitModel archiveUnitModel = collectService.getArchiveUnitModel(unitId);
             collectService.getDbObjectGroup(archiveUnitModel);

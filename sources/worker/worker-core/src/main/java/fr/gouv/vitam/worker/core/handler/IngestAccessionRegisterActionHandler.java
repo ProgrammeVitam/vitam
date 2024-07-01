@@ -52,8 +52,10 @@ import java.util.List;
  * Accession Register Handler
  */
 public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegisterAction {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(IngestAccessionRegisterActionHandler.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        IngestAccessionRegisterActionHandler.class
+    );
     private static final String HANDLER_ID = "ACCESSION_REGISTRATION";
     private static final int SEDA_PARAMETERS_RANK = 0;
 
@@ -64,8 +66,10 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
         this(MetaDataClientFactory.getInstance(), AdminManagementClientFactory.getInstance());
     }
 
-    IngestAccessionRegisterActionHandler(MetaDataClientFactory metaDataClientFactory,
-        AdminManagementClientFactory adminManagementClientFactory) {
+    IngestAccessionRegisterActionHandler(
+        MetaDataClientFactory metaDataClientFactory,
+        AdminManagementClientFactory adminManagementClientFactory
+    ) {
         super(metaDataClientFactory, adminManagementClientFactory);
     }
 
@@ -76,17 +80,19 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
     }
 
     @Override
-    protected void prepareAccessionRegisterInformation(WorkerParameters params, HandlerIO handler,
-        AccessionRegisterInfo accessionRegisterInfo) throws ProcessingException, InvalidParseOperationException {
+    protected void prepareAccessionRegisterInformation(
+        WorkerParameters params,
+        HandlerIO handler,
+        AccessionRegisterInfo accessionRegisterInfo
+    ) throws ProcessingException, InvalidParseOperationException {
         checkMandatoryIOParameter(handler);
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Params: " + params);
         }
 
-
-        final JsonNode sedaParameters =
-            JsonHandler.getFromFile((File) handler.getInput(SEDA_PARAMETERS_RANK))
-                .get(SedaConstants.TAG_ARCHIVE_TRANSFER);
+        final JsonNode sedaParameters = JsonHandler.getFromFile((File) handler.getInput(SEDA_PARAMETERS_RANK)).get(
+            SedaConstants.TAG_ARCHIVE_TRANSFER
+        );
 
         if (sedaParameters == null) {
             throw new ProcessingException("No ArchiveTransfer found");
@@ -94,7 +100,6 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
 
         final JsonNode dataObjectNode = sedaParameters.get(SedaConstants.TAG_DATA_OBJECT_PACKAGE);
         if (dataObjectNode != null) {
-
             final JsonNode nodeSubmission = dataObjectNode.get(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
             if (nodeSubmission != null && !Strings.isNullOrEmpty(nodeSubmission.asText())) {
                 accessionRegisterInfo.setSubmissionAgency(nodeSubmission.asText());
@@ -107,10 +112,8 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
                 throw new ProcessingException("No " + SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER + " found");
             }
 
-            final JsonNode nodeAcquisitionInformation =
-                dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
-            if (nodeAcquisitionInformation != null &&
-                !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())) {
+            final JsonNode nodeAcquisitionInformation = dataObjectNode.get(SedaConstants.TAG_ACQUISITIONINFORMATION);
+            if (nodeAcquisitionInformation != null && !Strings.isNullOrEmpty(nodeAcquisitionInformation.asText())) {
                 accessionRegisterInfo.setAcquisitionInformation(nodeAcquisitionInformation.asText());
             }
 
@@ -141,14 +144,12 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
         if (!(comment instanceof NullNode || comment == null)) {
             List<String> resultedComments = new ArrayList<>();
             if (comment instanceof ArrayNode) {
-                resultedComments.addAll(JsonHandler.getFromJsonNode(comment, new TypeReference<>() {
-                }));
+                resultedComments.addAll(JsonHandler.getFromJsonNode(comment, new TypeReference<>() {}));
             } else if (!Strings.isNullOrEmpty(comment.asText())) {
                 resultedComments.add(comment.asText());
             }
             accessionRegisterInfo.setComment(resultedComments);
         }
-
     }
 
     @Override
@@ -167,5 +168,4 @@ public class IngestAccessionRegisterActionHandler extends AbstractAccessionRegis
     public static String getId() {
         return HANDLER_ID;
     }
-
 }

@@ -55,12 +55,14 @@ public class TextByLangDeserializer extends JsonDeserializer<TextByLang> {
 
         ArrayList<TextType> textTypes = new ArrayList<>();
 
-        node.fields().forEachRemaining(stringJsonNodeEntry -> {
-            TextType textType = new TextType();
-            textType.setLang(stringJsonNodeEntry.getKey());
-            textType.setValue(stringJsonNodeEntry.getValue().asText());
-            textTypes.add(textType);
-        });
+        node
+            .fields()
+            .forEachRemaining(stringJsonNodeEntry -> {
+                TextType textType = new TextType();
+                textType.setLang(stringJsonNodeEntry.getKey());
+                textType.setValue(stringJsonNodeEntry.getValue().asText());
+                textTypes.add(textType);
+            });
         return new TextByLang(textTypes);
     }
 }

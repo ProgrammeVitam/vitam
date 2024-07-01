@@ -98,8 +98,7 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
     }
 
     @VisibleForTesting
-    public CheckArchiveProfileActionHandler(
-        AdminManagementClientFactory adminManagementClientFactory) {
+    public CheckArchiveProfileActionHandler(AdminManagementClientFactory adminManagementClientFactory) {
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
@@ -145,38 +144,72 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
                 }
 
                 if (profile.getFormat().equals(ProfileFormat.XSD)) {
-                    isValid = ValidationXsdUtils.getInstance().checkFileXSD(handlerIO.getInputStreamFromWorkspace(
-                        IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE), tmpFile);
+                    isValid = ValidationXsdUtils.getInstance()
+                        .checkFileXSD(
+                            handlerIO.getInputStreamFromWorkspace(
+                                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+                            ),
+                            tmpFile
+                        );
                 }
 
                 if (profile.getFormat().equals(ProfileFormat.RNG)) {
-                    isValid = ValidationXsdUtils.getInstance().checkFileRNG(handlerIO.getInputStreamFromWorkspace(
-                        IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE), tmpFile);
+                    isValid = ValidationXsdUtils.getInstance()
+                        .checkFileRNG(
+                            handlerIO.getInputStreamFromWorkspace(
+                                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+                            ),
+                            tmpFile
+                        );
                 }
-
             } else {
                 throw new ProfileNotFoundException(profileIdentifier + NOT_FOUND);
             }
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(CAN_NOT_SEARCH_PROFILE, e);
-            return getItemStatus(itemStatus, SedaConstants.EV_DET_TECH_DATA,
-                CAN_NOT_SEARCH_PROFILE + " " + profileIdentifier, infoNode, StatusCode.KO);
+            return getItemStatus(
+                itemStatus,
+                SedaConstants.EV_DET_TECH_DATA,
+                CAN_NOT_SEARCH_PROFILE + " " + profileIdentifier,
+                infoNode,
+                StatusCode.KO
+            );
         } catch (ProfileNotFoundException e) {
             LOGGER.error(PROFILE_NOT_FOUND, e);
-            return getItemStatus(itemStatus, SedaConstants.EV_DET_TECH_DATA,
-                PROFILE_NOT_FOUND + " " + profileIdentifier, infoNode, StatusCode.KO);
+            return getItemStatus(
+                itemStatus,
+                SedaConstants.EV_DET_TECH_DATA,
+                PROFILE_NOT_FOUND + " " + profileIdentifier,
+                infoNode,
+                StatusCode.KO
+            );
         } catch (ProfilePathFileNotFoundException e) {
             LOGGER.error(PROFILE_PATH_NOT_FOUND, e);
-            return getItemStatus(itemStatus, SedaConstants.EV_DET_TECH_DATA,
-                PROFILE_PATH_NOT_FOUND + " " + profileIdentifier, infoNode, StatusCode.KO);
+            return getItemStatus(
+                itemStatus,
+                SedaConstants.EV_DET_TECH_DATA,
+                PROFILE_PATH_NOT_FOUND + " " + profileIdentifier,
+                infoNode,
+                StatusCode.KO
+            );
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error(CAN_NOT_GET_FILE_MANIFEST, e);
-            return getItemStatus(itemStatus, SedaConstants.EV_DET_TECH_DATA,
-                CAN_NOT_GET_FILE_MANIFEST + " manifest.xml", infoNode, StatusCode.FATAL);
+            return getItemStatus(
+                itemStatus,
+                SedaConstants.EV_DET_TECH_DATA,
+                CAN_NOT_GET_FILE_MANIFEST + " manifest.xml",
+                infoNode,
+                StatusCode.FATAL
+            );
         } catch (IOException | XMLStreamException e) {
             LOGGER.error(FILE_NOT_FOUND, e);
-            return getItemStatus(itemStatus, SedaConstants.EV_DET_TECH_DATA, FILE_NOT_FOUND + " " + profileIdentifier,
-                infoNode, StatusCode.KO);
+            return getItemStatus(
+                itemStatus,
+                SedaConstants.EV_DET_TECH_DATA,
+                FILE_NOT_FOUND + " " + profileIdentifier,
+                infoNode,
+                StatusCode.KO
+            );
         } catch (SAXException e) {
             LOGGER.error(VALIDATION_ERROR, e);
             infoNode.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
@@ -191,16 +224,31 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
         }
 
         if (isValid) {
-            return getItemStatus(itemStatus, SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier, infoNode,
-                StatusCode.OK);
+            return getItemStatus(
+                itemStatus,
+                SedaConstants.TAG_ARCHIVE_PROFILE,
+                profileIdentifier,
+                infoNode,
+                StatusCode.OK
+            );
         } else {
-            return getItemStatus(itemStatus, SedaConstants.TAG_ARCHIVE_PROFILE, profileIdentifier, infoNode,
-                StatusCode.KO);
+            return getItemStatus(
+                itemStatus,
+                SedaConstants.TAG_ARCHIVE_PROFILE,
+                profileIdentifier,
+                infoNode,
+                StatusCode.KO
+            );
         }
     }
 
-    private ItemStatus getItemStatus(ItemStatus itemStatus, String logbookField, String evTechDataMessage,
-        ObjectNode infoNode, StatusCode statusCode) {
+    private ItemStatus getItemStatus(
+        ItemStatus itemStatus,
+        String logbookField,
+        String evTechDataMessage,
+        ObjectNode infoNode,
+        StatusCode statusCode
+    ) {
         itemStatus.increment(statusCode);
         infoNode.put(logbookField, evTechDataMessage);
         String evdev = JsonHandler.unprettyPrint(infoNode);
@@ -216,7 +264,5 @@ public class CheckArchiveProfileActionHandler extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
-
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 }

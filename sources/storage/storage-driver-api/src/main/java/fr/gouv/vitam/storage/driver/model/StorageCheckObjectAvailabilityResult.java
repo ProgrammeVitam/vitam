@@ -38,8 +38,7 @@ public class StorageCheckObjectAvailabilityResult {
     private final boolean areObjectsAvailable;
 
     @JsonCreator
-    public StorageCheckObjectAvailabilityResult(
-        @JsonProperty("areObjectsAvailable") boolean areObjectsAvailable) {
+    public StorageCheckObjectAvailabilityResult(@JsonProperty("areObjectsAvailable") boolean areObjectsAvailable) {
         this.areObjectsAvailable = areObjectsAvailable;
     }
 

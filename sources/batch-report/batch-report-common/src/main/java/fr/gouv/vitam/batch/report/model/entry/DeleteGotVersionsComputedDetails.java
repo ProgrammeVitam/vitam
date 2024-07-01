@@ -46,7 +46,8 @@ public class DeleteGotVersionsComputedDetails {
     public DeleteGotVersionsComputedDetails(
         @JsonProperty("_id") String opc,
         @JsonProperty(TOTAL_SIZE) long totalSize,
-        @JsonProperty(TOTAL_OBJECTS) int totalObjects) {
+        @JsonProperty(TOTAL_OBJECTS) int totalObjects
+    ) {
         this.opc = opc;
         this.totalSize = totalSize;
         this.totalObjects = totalObjects;

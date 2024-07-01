@@ -79,24 +79,37 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
             TENANT_ID,
             processId,
             "0",
-            unPrettyQuery, null, "More than one unit matches selection criteria", StatusCode.KO,
+            unPrettyQuery,
+            null,
+            "More than one unit matches selection criteria",
+            StatusCode.KO,
             String.format("%s.%s", "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST", StatusCode.KO),
-            "More than one unit matches selection criteria");
+            "More than one unit matches selection criteria"
+        );
 
         bulkUpdateUnitMetadataEntryWARNING = new BulkUpdateUnitMetadataReportEntry(
             TENANT_ID,
             processId,
             "1",
-            unPrettyQuery, null, "No unit was matches selection criteria", StatusCode.WARNING,
+            unPrettyQuery,
+            null,
+            "No unit was matches selection criteria",
+            StatusCode.WARNING,
             String.format("%s.%s", "PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST", StatusCode.WARNING),
-            "No unit was matches selection criteria");
+            "No unit was matches selection criteria"
+        );
 
         bulkUpdateUnitMetadataEntryOK = new BulkUpdateUnitMetadataReportEntry(
             TENANT_ID,
             processId,
             "2",
-            unPrettyQuery, GUIDFactory.newGUID().getId(), "Update done", StatusCode.OK,
-            String.format("%s.%s", "BULK_ATOMIC_UPDATE_UNITS", StatusCode.OK), "All went good");
+            unPrettyQuery,
+            GUIDFactory.newGUID().getId(),
+            "Update done",
+            StatusCode.OK,
+            String.format("%s.%s", "BULK_ATOMIC_UPDATE_UNITS", StatusCode.OK),
+            "All went good"
+        );
     }
 
     @Test
@@ -106,18 +119,24 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
 
         // When
         Document report = bulkReportCollection
-            .find(and(eq(BulkUpdateUnitMetadataReportEntry.PROCESS_ID, processId),
-                eq(BulkUpdateUnitMetadataReportEntry.TENANT_ID, 0)))
+            .find(
+                and(
+                    eq(BulkUpdateUnitMetadataReportEntry.PROCESS_ID, processId),
+                    eq(BulkUpdateUnitMetadataReportEntry.TENANT_ID, 0)
+                )
+            )
             .first();
 
         // Then
         assertThat(report.get(BulkUpdateUnitMetadataReportEntry.PROCESS_ID)).isEqualTo(processId);
         assertThat(report.get(BulkUpdateUnitMetadataReportEntry.TENANT_ID)).isEqualTo(0);
         assertThat(report.get(BulkUpdateUnitMetadataReportEntry.UNIT_ID)).isNull();
-        assertThat(report.get(BulkUpdateUnitMetadataReportEntry.DETAIL_TYPE).toString())
-            .isEqualTo(BULK_UPDATE_UNIT.name());
-        assertThat(report.get(BulkUpdateUnitMetadataReportEntry.STATUS).toString())
-            .isEqualTo(bulkUpdateUnitMetadataEntryKO.getStatus().name());
+        assertThat(report.get(BulkUpdateUnitMetadataReportEntry.DETAIL_TYPE).toString()).isEqualTo(
+            BULK_UPDATE_UNIT.name()
+        );
+        assertThat(report.get(BulkUpdateUnitMetadataReportEntry.STATUS).toString()).isEqualTo(
+            bulkUpdateUnitMetadataEntryKO.getStatus().name()
+        );
     }
 
     @Test
@@ -139,12 +158,18 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
     @Test
     public void should_not_insert_duplicates_on_multiple_inserts() {
         // Given
-        populateDatabase(bulkUpdateUnitMetadataEntryKO, bulkUpdateUnitMetadataEntryWARNING,
-            bulkUpdateUnitMetadataEntryOK);
+        populateDatabase(
+            bulkUpdateUnitMetadataEntryKO,
+            bulkUpdateUnitMetadataEntryWARNING,
+            bulkUpdateUnitMetadataEntryOK
+        );
 
         // When
-        populateDatabase(bulkUpdateUnitMetadataEntryKO, bulkUpdateUnitMetadataEntryWARNING,
-            bulkUpdateUnitMetadataEntryOK);
+        populateDatabase(
+            bulkUpdateUnitMetadataEntryKO,
+            bulkUpdateUnitMetadataEntryWARNING,
+            bulkUpdateUnitMetadataEntryOK
+        );
 
         // Then
         MongoCursor<Document> iterator = repository.findCollectionByProcessIdTenant(processId, TENANT_ID);
@@ -159,8 +184,11 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
     @Test
     public void should_find_collection_by_processid_tenant_status() {
         // Given
-        populateDatabase(bulkUpdateUnitMetadataEntryKO, bulkUpdateUnitMetadataEntryWARNING,
-            bulkUpdateUnitMetadataEntryOK);
+        populateDatabase(
+            bulkUpdateUnitMetadataEntryKO,
+            bulkUpdateUnitMetadataEntryWARNING,
+            bulkUpdateUnitMetadataEntryOK
+        );
         // When
         MongoCursor<Document> iterator = repository.findCollectionByProcessIdTenant(processId, TENANT_ID);
 
@@ -176,13 +204,17 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
     @Test
     public void should_delete_report_by_id_and_tenant() {
         // Given
-        populateDatabase(bulkUpdateUnitMetadataEntryKO, bulkUpdateUnitMetadataEntryWARNING,
-            bulkUpdateUnitMetadataEntryOK);
+        populateDatabase(
+            bulkUpdateUnitMetadataEntryKO,
+            bulkUpdateUnitMetadataEntryWARNING,
+            bulkUpdateUnitMetadataEntryOK
+        );
         // When
         repository.deleteReportByIdAndTenant(processId, TENANT_ID);
         // Then
-        FindIterable<Document> iterable = bulkReportCollection
-            .find(and(eq("processId", processId), eq("tenantId", TENANT_ID)));
+        FindIterable<Document> iterable = bulkReportCollection.find(
+            and(eq("processId", processId), eq("tenantId", TENANT_ID))
+        );
         MongoCursor<Document> iterator = iterable.iterator();
         List<Document> documents = new ArrayList<>();
         while (iterator.hasNext()) {
@@ -197,5 +229,4 @@ public class BulkUpdateUnitMetadataReportRepositoryTest {
         reports.addAll(Arrays.asList(entries));
         repository.bulkAppendReport(reports);
     }
-
 }

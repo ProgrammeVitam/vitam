@@ -35,6 +35,5 @@ import java.util.concurrent.ExecutionException;
  * VitamElasticsearchReindex
  */
 public interface VitamElasticsearchReindex {
-
     void reindex(VitamCollection collections) throws ExecutionException, InterruptedException, DatabaseException;
 }

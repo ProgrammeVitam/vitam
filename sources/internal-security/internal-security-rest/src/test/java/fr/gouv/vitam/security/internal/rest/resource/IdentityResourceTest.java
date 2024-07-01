@@ -58,7 +58,7 @@ public class IdentityResourceTest {
     @Test
     public void should_read_certificate() throws Exception {
         // Given
-        byte[] bytes = new byte[] {1, 2};
+        byte[] bytes = new byte[] { 1, 2 };
         IdentityModel identityModel = new IdentityModel();
         identityModel.setContextId("contextId");
         given(identityService.findIdentity(bytes)).willReturn(of(identityModel));
@@ -73,14 +73,15 @@ public class IdentityResourceTest {
     @Test
     public void should_return_not_found_exception_when_certificate_is_missing() throws Exception {
         // Given
-        byte[] bytes = new byte[] {1, 2};
+        byte[] bytes = new byte[] { 1, 2 };
         IdentityModel identityModel = new IdentityModel();
         identityModel.setContextId("contextId");
         given(identityService.findIdentity(bytes)).willReturn(Optional.empty());
 
         // When / Then
-        assertThatThrownBy(() -> identityResource.findIdentityByCertificate(bytes))
-            .isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> identityResource.findIdentityByCertificate(bytes)).isInstanceOf(
+            NotFoundException.class
+        );
     }
 
     @Test

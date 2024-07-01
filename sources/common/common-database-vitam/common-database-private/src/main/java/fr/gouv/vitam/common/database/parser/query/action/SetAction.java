@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Set Action
  */
 public class SetAction extends fr.gouv.vitam.common.database.builder.query.action.SetAction {
+
     /**
      * For Parsing
      *
@@ -48,8 +49,7 @@ public class SetAction extends fr.gouv.vitam.common.database.builder.query.actio
         throws InvalidParseOperationException {
         super();
         currentUPDATEACTION = action;
-        currentObject =
-            ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
+        currentObject = ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
         adapter.setVarsValue((ObjectNode) currentObject, request);
         setReady(true);
     }

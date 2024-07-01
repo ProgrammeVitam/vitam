@@ -72,6 +72,7 @@ public class PrepareStorageStrategiesPluginTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -85,16 +86,13 @@ public class PrepareStorageStrategiesPluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         prepareStorageStrategiesPlugin = new PrepareStorageStrategiesPlugin(storageClientFactory);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         when(storageClient.getStorageStrategies()).thenReturn(loadStorageStrategiesMock());
     }
 
     @Test
-    public void shouldCreateStrategiesOutput() throws ProcessingException,
-        IOException, InvalidParseOperationException {
-
+    public void shouldCreateStrategiesOutput() throws ProcessingException, IOException, InvalidParseOperationException {
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
@@ -102,11 +100,13 @@ public class PrepareStorageStrategiesPluginTest {
         when(handler.getOutput(0)).thenReturn(new ProcessingUri(UriPrefix.WORKSPACE, "StorageInfo/strategies.json"));
 
         Map<String, File> files = new HashMap<>();
-        doAnswer((args) -> {
+        doAnswer(args -> {
             File file = temporaryFolder.newFile();
             files.put(args.getArgument(0), file);
             return file;
-        }).when(handler).getNewLocalFile(anyString());
+        })
+            .when(handler)
+            .getNewLocalFile(anyString());
 
         // When
         ItemStatus itemStatus = prepareStorageStrategiesPlugin.execute(workerParameters, handler);
@@ -115,12 +115,11 @@ public class PrepareStorageStrategiesPluginTest {
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
 
-
-        JsonNode strategies =
-            JsonHandler.getFromInputStream(new FileInputStream(files.get("StorageInfo/strategies.json")));
+        JsonNode strategies = JsonHandler.getFromInputStream(
+            new FileInputStream(files.get("StorageInfo/strategies.json"))
+        );
         assertThat(strategies).isNotNull();
-        List<StorageStrategy> strategiesFileResults = JsonHandler.getFromJsonNode(strategies, new TypeReference<>() {
-        });
+        List<StorageStrategy> strategiesFileResults = JsonHandler.getFromJsonNode(strategies, new TypeReference<>() {});
         assertThat(strategiesFileResults.size()).isEqualTo(1);
         assertThat(strategiesFileResults.get(0)).isNotNull();
         assertThat(strategiesFileResults.get(0).getId()).isEqualTo("default");
@@ -129,7 +128,6 @@ public class PrepareStorageStrategiesPluginTest {
 
     @Test
     public void shouldFailFromStrategyRetrievalException() throws ProcessingException, StorageServerClientException {
-
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
@@ -146,13 +144,13 @@ public class PrepareStorageStrategiesPluginTest {
 
     @Test
     public void shouldFailFromStrategyRetrievalKO() throws ProcessingException, StorageServerClientException {
-
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
         when(storageClient.getStorageStrategies()).thenReturn(
-            VitamCodeHelper.toVitamError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, "error", StorageStrategy.class));
+            VitamCodeHelper.toVitamError(VitamCode.STORAGE_TECHNICAL_INTERNAL_ERROR, "error", StorageStrategy.class)
+        );
 
         // When
         ItemStatus itemStatus = prepareStorageStrategiesPlugin.execute(workerParameters, handler);
@@ -175,5 +173,4 @@ public class PrepareStorageStrategiesPluginTest {
         defaultStrategy.setOffers(offers);
         return new RequestResponseOK<StorageStrategy>().addResult(defaultStrategy);
     }
-
 }

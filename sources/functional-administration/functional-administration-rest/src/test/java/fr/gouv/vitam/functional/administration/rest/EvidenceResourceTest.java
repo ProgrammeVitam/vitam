@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-
 import fr.gouv.vitam.common.database.builder.query.QueryHelper;
 import fr.gouv.vitam.common.database.builder.request.multiple.SelectMultiQuery;
 import fr.gouv.vitam.common.database.builder.request.single.Select;
@@ -75,17 +74,36 @@ import static org.mockito.Mockito.when;
 public class EvidenceResourceTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    @Mock ProcessingManagementClientFactory processingManagementClientFactory;
-    @Mock ProcessingManagementClient processingManagementClient;
-    @Mock WorkspaceClientFactory workspaceClientFactory;
-    @Mock WorkspaceClient workspaceClient;
-    @Mock LogbookOperationsClientFactory logbookOperationsClientFactory;
-    @Mock LogbookOperationsClient logbookOperationsClient;
-    @Mock MongoDbAccessAdminImpl mongoDbAccess;
-    @Mock DbRequestResult dbRequestResult;
-    @Mock VitamCounterService vitamCounterService;
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
+    @Mock
+    ProcessingManagementClientFactory processingManagementClientFactory;
+
+    @Mock
+    ProcessingManagementClient processingManagementClient;
+
+    @Mock
+    WorkspaceClientFactory workspaceClientFactory;
+
+    @Mock
+    WorkspaceClient workspaceClient;
+
+    @Mock
+    LogbookOperationsClientFactory logbookOperationsClientFactory;
+
+    @Mock
+    LogbookOperationsClient logbookOperationsClient;
+
+    @Mock
+    MongoDbAccessAdminImpl mongoDbAccess;
+
+    @Mock
+    DbRequestResult dbRequestResult;
+
+    @Mock
+    VitamCounterService vitamCounterService;
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -99,7 +117,8 @@ public class EvidenceResourceTest {
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
 
-        AccessContractModel accessContract = new AccessContractModel().setEveryOriginatingAgency(true)
+        AccessContractModel accessContract = new AccessContractModel()
+            .setEveryOriginatingAgency(true)
             .setEveryDataObjectVersion(true);
         accessContract.setIdentifier("fakeContract");
         when(dbRequestResult.getDocuments(any(), any())).thenReturn(Arrays.asList(accessContract));
@@ -107,9 +126,13 @@ public class EvidenceResourceTest {
 
         VitamThreadUtils.getVitamSession().setContractId("fakeContract");
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        evidenceResource =
-            new EvidenceResource(processingManagementClientFactory, logbookOperationsClientFactory,
-                workspaceClientFactory, mongoDbAccess, vitamCounterService);
+        evidenceResource = new EvidenceResource(
+            processingManagementClientFactory,
+            logbookOperationsClientFactory,
+            workspaceClientFactory,
+            mongoDbAccess,
+            vitamCounterService
+        );
         GUID guid = GUIDFactory.newEventGUID(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(guid);
     }
@@ -117,7 +140,6 @@ public class EvidenceResourceTest {
     @Test
     @RunWithCustomExecutor
     public void given_empty_query_when_audit_then_return_forbidden_request() throws Exception {
-
         Response audit = evidenceResource.audit(new Select().getFinalSelect());
         assertThat(audit.getStatus()).isEqualTo(Response.Status.FORBIDDEN.getStatusCode());
     }
@@ -125,15 +147,14 @@ public class EvidenceResourceTest {
     @Test
     @RunWithCustomExecutor
     public void given_good_query_then_return_ok_status() throws Exception {
-
         // given
         SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
 
         selectMultiQuery.setQuery(QueryHelper.eq("title", "test"));
 
-        when(processingManagementClient
-            .executeOperationProcess(anyString(), eq("EVIDENCE_AUDIT"), anyString()))
-            .thenReturn(new RequestResponseOK<ItemStatus>(new Select().getFinalSelect()).setHttpCode(200));
+        when(
+            processingManagementClient.executeOperationProcess(anyString(), eq("EVIDENCE_AUDIT"), anyString())
+        ).thenReturn(new RequestResponseOK<ItemStatus>(new Select().getFinalSelect()).setHttpCode(200));
         Response audit = evidenceResource.audit(selectMultiQuery.getFinalSelect());
 
         //then
@@ -147,18 +168,14 @@ public class EvidenceResourceTest {
 
         selectMultiQuery.setQuery(QueryHelper.eq("title", "test"));
 
-
-        willThrow(ContentAddressableStorageServerException.class).given(workspaceClient)
+        willThrow(ContentAddressableStorageServerException.class)
+            .given(workspaceClient)
             .putObject(anyString(), any(), any());
         Response audit = evidenceResource.audit(selectMultiQuery.getFinalSelect());
         assertThat(audit.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
 
-
         willThrow(LogbookClientAlreadyExistsException.class).given(logbookOperationsClient).create(any());
         audit = evidenceResource.audit(selectMultiQuery.getFinalSelect());
         assertThat(audit.getStatus()).isEqualTo(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
-
     }
-
 }

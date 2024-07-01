@@ -38,8 +38,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  */
 public class UpdateActionParserHelper extends UpdateActionHelper {
 
-    protected UpdateActionParserHelper() {
-    }
+    protected UpdateActionParserHelper() {}
 
     /**
      * @param data JsonNode

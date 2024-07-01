@@ -27,9 +27,9 @@
 package fr.gouv.vitam.collect.internal.core.helpers.handlers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import fr.gouv.vitam.collect.common.dto.ObjectDto;
 import fr.gouv.vitam.collect.internal.core.helpers.builders.DbQualifiersModelBuilder;
 import fr.gouv.vitam.collect.internal.core.helpers.builders.DbVersionsModelBuilder;
-import fr.gouv.vitam.collect.common.dto.ObjectDto;
 import fr.gouv.vitam.common.database.builder.query.VitamFieldsHelper;
 import fr.gouv.vitam.common.database.builder.query.action.SetAction;
 import fr.gouv.vitam.common.database.builder.query.action.UpdateActionHelper;
@@ -50,15 +50,22 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.json.JsonHandler.toJsonNode;
 
 public class QueryHandler {
+
     private QueryHandler() throws IllegalAccessException {
         throw new IllegalAccessException("Utility class!");
     }
 
-    public static UpdateMultiQuery getQualifiersAddMultiQuery(DbObjectGroupModel objectGroupModel,
-        DataObjectVersionType usage, int version, ObjectDto objectDto)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
-        DbQualifiersModel newQualifier = new DbQualifiersModelBuilder().withUsage(usage)
-            .withVersion(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage, version).withNbc(1).build();
+    public static UpdateMultiQuery getQualifiersAddMultiQuery(
+        DbObjectGroupModel objectGroupModel,
+        DataObjectVersionType usage,
+        int version,
+        ObjectDto objectDto
+    ) throws InvalidParseOperationException, InvalidCreateOperationException {
+        DbQualifiersModel newQualifier = new DbQualifiersModelBuilder()
+            .withUsage(usage)
+            .withVersion(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage, version)
+            .withNbc(1)
+            .build();
 
         objectGroupModel.getQualifiers().add(newQualifier);
 
@@ -68,18 +75,24 @@ public class QueryHandler {
 
         UpdateMultiQuery query = new UpdateMultiQuery();
         query.addHintFilter(OBJECTGROUPS.exactToken());
-        query.addActions(setQualifier,
-            UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), objectGroupModel.getNbc() + 1L));
+        query.addActions(
+            setQualifier,
+            UpdateActionHelper.set(VitamFieldsHelper.nbobjects(), objectGroupModel.getNbc() + 1L)
+        );
         return query;
     }
 
-    public static UpdateMultiQuery getQualifiersUpdateMultiQuery(DbQualifiersModel qualifierModelToUpdate,
-        DataObjectVersionType usage, int version, List<DbQualifiersModel> qualifiers, ObjectDto objectDto, int nbc)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+    public static UpdateMultiQuery getQualifiersUpdateMultiQuery(
+        DbQualifiersModel qualifierModelToUpdate,
+        DataObjectVersionType usage,
+        int version,
+        List<DbQualifiersModel> qualifiers,
+        ObjectDto objectDto,
+        int nbc
+    ) throws InvalidParseOperationException, InvalidCreateOperationException {
         int index = qualifiers.indexOf(qualifierModelToUpdate);
-        DbVersionsModel dbversion =
-            new DbVersionsModelBuilder().build(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage,
-                version);
+        DbVersionsModel dbversion = new DbVersionsModelBuilder()
+            .build(objectDto.getId(), objectDto.getFileInfo().getFileName(), usage, version);
 
         qualifierModelToUpdate.getVersions().add(dbversion);
         qualifierModelToUpdate.setNbc(qualifierModelToUpdate.getNbc() + 1);

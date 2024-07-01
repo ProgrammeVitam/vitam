@@ -74,8 +74,7 @@ public class ReclassificationEventDetails {
         return missingOrForbiddenUnits;
     }
 
-    public ReclassificationEventDetails setMissingOrForbiddenUnits(
-        Set<String> missingOrForbiddenUnits) {
+    public ReclassificationEventDetails setMissingOrForbiddenUnits(Set<String> missingOrForbiddenUnits) {
         this.missingOrForbiddenUnits = missingOrForbiddenUnits;
         return this;
     }
@@ -94,7 +93,8 @@ public class ReclassificationEventDetails {
     }
 
     public ReclassificationEventDetails setIllegalUnitTypeAttachments(
-        List<IllegalUnitTypeAttachment> illegalUnitTypeAttachments) {
+        List<IllegalUnitTypeAttachment> illegalUnitTypeAttachments
+    ) {
         this.illegalUnitTypeAttachments = illegalUnitTypeAttachments;
         return this;
     }
@@ -130,8 +130,7 @@ public class ReclassificationEventDetails {
         return unitsBlockedByHoldRules;
     }
 
-    public ReclassificationEventDetails setUnitsBlockedByHoldRules(
-        Set<String> unitsBlockedByHoldRules) {
+    public ReclassificationEventDetails setUnitsBlockedByHoldRules(Set<String> unitsBlockedByHoldRules) {
         this.unitsBlockedByHoldRules = unitsBlockedByHoldRules;
         return this;
     }

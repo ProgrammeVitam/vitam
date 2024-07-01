@@ -36,8 +36,10 @@ public class EvidenceAuditStatusCount {
 
     @JsonProperty("OK")
     private int nbOK;
+
     @JsonProperty("WARNING")
     private int nbWARNING;
+
     @JsonProperty("KO")
     private int nbKO;
 
@@ -85,5 +87,4 @@ public class EvidenceAuditStatusCount {
     public int getTotal() {
         return nbOK + nbWARNING + nbKO;
     }
-
 }

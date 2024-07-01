@@ -40,9 +40,7 @@ public class AuditLogbookOptions {
     /**
      * Constructor empty
      */
-    public AuditLogbookOptions() {
-
-    }
+    public AuditLogbookOptions() {}
 
     public AuditLogbookOptions(int amount, ChronoUnit unit, String type) {
         this.amount = amount;

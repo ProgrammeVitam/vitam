@@ -53,8 +53,13 @@ public class VitamCollectionHelper {
      * @param usingScore
      * @return VitamCollection
      */
-    public static <T> VitamCollection<T> getCollection(final Class<T> clasz, boolean multitenant, boolean usingScore,
-        String prefix, VitamDescriptionResolver vitamDescriptionResolver) {
+    public static <T> VitamCollection<T> getCollection(
+        final Class<T> clasz,
+        boolean multitenant,
+        boolean usingScore,
+        String prefix,
+        VitamDescriptionResolver vitamDescriptionResolver
+    ) {
         return new VitamCollection<>(clasz, multitenant, usingScore, prefix, vitamDescriptionResolver);
     }
 

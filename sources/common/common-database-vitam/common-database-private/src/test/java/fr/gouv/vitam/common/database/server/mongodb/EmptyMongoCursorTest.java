@@ -43,5 +43,4 @@ public class EmptyMongoCursorTest {
         assertNull(cursor.getServerCursor());
         cursor.close();
     }
-
 }

@@ -47,9 +47,14 @@ public class MetadataResult {
 
     private final DatabaseCursor hits;
 
-    public MetadataResult(JsonNode query, List<JsonNode> results, List<FacetResult> facetResults, long total,
+    public MetadataResult(
+        JsonNode query,
+        List<JsonNode> results,
+        List<FacetResult> facetResults,
+        long total,
         String scrollId,
-        DatabaseCursor hits) {
+        DatabaseCursor hits
+    ) {
         this.query = query;
         this.results = results;
         this.facetResults = facetResults;

@@ -92,15 +92,25 @@ public class IngestStep extends CommonStep {
     @When("^je télécharge le SIP")
     public void upload_this_sip() throws VitamException, IOException {
         try (InputStream inputStream = Files.newInputStream(world.getSipFile(), StandardOpenOption.READ)) {
-            RequestResponse response = world.getIngestClient()
+            RequestResponse response = world
+                .getIngestClient()
                 .ingest(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                    inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+                    inputStream,
+                    DEFAULT_WORKFLOW.name(),
+                    ProcessAction.RESUME.name()
+                );
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
             final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-            boolean process_timeout = vitamPoolingClient
-                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+            boolean process_timeout = vitamPoolingClient.wait(
+                world.getTenantId(),
+                operationId,
+                ProcessState.COMPLETED,
+                1800,
+                1_000L,
+                TimeUnit.MILLISECONDS
+            );
             if (!process_timeout) {
                 fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
             }
@@ -117,18 +127,27 @@ public class IngestStep extends CommonStep {
     @When("^je télécharge le plan")
     public void upload_this_plan() throws IOException, VitamException {
         try (InputStream inputStream = Files.newInputStream(world.getSipFile(), StandardOpenOption.READ)) {
-
-            RequestResponse<Void> response = world.getIngestClient()
+            RequestResponse<Void> response = world
+                .getIngestClient()
                 .ingest(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                    inputStream, FILING_SCHEME.name(), ProcessAction.RESUME.name());
+                    inputStream,
+                    FILING_SCHEME.name(),
+                    ProcessAction.RESUME.name()
+                );
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             world.setOperationId(operationId);
             final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-            boolean process_timeout = vitamPoolingClient
-                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 200, 1_000L, TimeUnit.MILLISECONDS);
+            boolean process_timeout = vitamPoolingClient.wait(
+                world.getTenantId(),
+                operationId,
+                ProcessState.COMPLETED,
+                200,
+                1_000L,
+                TimeUnit.MILLISECONDS
+            );
             if (!process_timeout) {
                 fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
             }
@@ -148,17 +167,27 @@ public class IngestStep extends CommonStep {
     @When("^je télécharge l'arbre")
     public void upload_this_tree() throws IOException, VitamException {
         try (InputStream inputStream = Files.newInputStream(world.getSipFile(), StandardOpenOption.READ)) {
-            RequestResponse response = world.getIngestClient()
+            RequestResponse response = world
+                .getIngestClient()
                 .ingest(
                     new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                    inputStream, HOLDING_SCHEME.name(), ProcessAction.RESUME.name());
+                    inputStream,
+                    HOLDING_SCHEME.name(),
+                    ProcessAction.RESUME.name()
+                );
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
 
             world.setOperationId(operationId);
             final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-            boolean process_timeout = vitamPoolingClient
-                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+            boolean process_timeout = vitamPoolingClient.wait(
+                world.getTenantId(),
+                operationId,
+                ProcessState.COMPLETED,
+                100,
+                1_000L,
+                TimeUnit.MILLISECONDS
+            );
             if (!process_timeout) {
                 fail("Sip processing not finished : operation (" + operationId + "). Timeout exceeded.");
             }
@@ -172,29 +201,47 @@ public class IngestStep extends CommonStep {
     @When("je construit le sip de rattachement avec le template")
     public void build_the_attachenment_by_systemid() throws IOException {
         world.setSipFile(
-            SipTool.copyAndModifyManifestInZip(world.getSipFile(), SipTool.REPLACEMENT_STRING, world.getUnitId(), null,
-                null));
+            SipTool.copyAndModifyManifestInZip(
+                world.getSipFile(),
+                SipTool.REPLACEMENT_STRING,
+                world.getUnitId(),
+                null,
+                null
+            )
+        );
         attachMode = true;
     }
 
-    @When("j'utilise le template et construit un sip de rattachement avec comme nom et valeur de métadonnée (.*) et (.*)$")
+    @When(
+        "j'utilise le template et construit un sip de rattachement avec comme nom et valeur de métadonnée (.*) et (.*)$"
+    )
     public void build_the_attachenment_by_key_value(String metadataName, String metadataValue) throws IOException {
         if (_ID.equals(metadataName) && ID.equals(metadataValue)) {
             metadataValue = world.getUnitId();
         }
-        world.setSipFile(SipTool
-            .copyAndModifyManifestInZip(world.getSipFile(), SipTool.REPLACEMENT_NAME, metadataName,
+        world.setSipFile(
+            SipTool.copyAndModifyManifestInZip(
+                world.getSipFile(),
+                SipTool.REPLACEMENT_NAME,
+                metadataName,
                 SipTool.REPLACEMENT_VALUE,
-                metadataValue));
+                metadataValue
+            )
+        );
         attachMode = true;
     }
-
 
     @When("je construit le SIP de rattachement au groupe d'objet existant avec le template")
     public void build_the_attachenment_to_existing_object_group() throws IOException {
         world.setSipFile(
-            SipTool.copyAndModifyManifestInZip(world.getSipFile(), SipTool.REPLACEMENT_STRING, world.getObjectGroupId(),
-                null, null));
+            SipTool.copyAndModifyManifestInZip(
+                world.getSipFile(),
+                SipTool.REPLACEMENT_STRING,
+                world.getObjectGroupId(),
+                null,
+                null
+            )
+        );
         attachMode = true;
     }
 
@@ -209,9 +256,16 @@ public class IngestStep extends CommonStep {
         if (!StringUtils.isNotBlank(World.getOperationId(fileName))) {
             try {
                 upload_this_sip();
-                LogbookEventOperation lastEvent =
-                    world.getLogbookService().checkFinalStatusLogbook(world.getAccessClient(), world.getTenantId(),
-                        world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), "OK");
+                LogbookEventOperation lastEvent = world
+                    .getLogbookService()
+                    .checkFinalStatusLogbook(
+                        world.getAccessClient(),
+                        world.getTenantId(),
+                        world.getContractId(),
+                        world.getApplicationSessionId(),
+                        world.getOperationId(),
+                        "OK"
+                    );
                 world.setLogbookEvent(lastEvent);
                 World.setOperationId(fileName, world.getOperationId());
             } catch (VitamException | IOException e) {
@@ -224,7 +278,6 @@ public class IngestStep extends CommonStep {
 
     @After
     public void afterScenario() throws IOException {
-
         if (world.getSipFile() != null && deleteSip) {
             try {
                 // if we have a real guid, that means we were handling a created file, if not, that means the sip was

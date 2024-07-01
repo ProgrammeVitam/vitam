@@ -58,8 +58,10 @@ public class BusinessApplication extends Application {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final StorageConfiguration
-                workspaceConfiguration = PropertiesUtils.readYaml(yamlIS, StorageConfiguration.class);
+            final StorageConfiguration workspaceConfiguration = PropertiesUtils.readYaml(
+                yamlIS,
+                StorageConfiguration.class
+            );
             commonBusinessApplication = new CommonBusinessApplication();
 
             singletons = new HashSet<>();
@@ -79,5 +81,4 @@ public class BusinessApplication extends Application {
     public Set<Object> getSingletons() {
         return singletons;
     }
-
 }

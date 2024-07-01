@@ -45,13 +45,10 @@ public class ExtendedFileOutputStream extends ProxyOutputStream {
 
     public ExtendedFileOutputStream(Path filepath, boolean fsyncOnClose) throws IOException {
         super(null);
-
         this.fileChannel = FileChannel.open(filepath, StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
         this.fsyncOnClose = fsyncOnClose;
 
-        super.out = new BufferedOutputStream(
-            Channels.newOutputStream(fileChannel)
-        );
+        super.out = new BufferedOutputStream(Channels.newOutputStream(fileChannel));
     }
 
     public void fsync() throws IOException {
@@ -62,18 +59,15 @@ public class ExtendedFileOutputStream extends ProxyOutputStream {
 
     @Override
     public void close() throws IOException {
-
         if (this.closed) {
             return;
         }
         this.closed = true;
 
         if (fsyncOnClose) {
-
             try {
                 fsync();
             } catch (IOException ex) {
-
                 // Try close quietly and rethrow initial exception
                 try {
                     super.close();

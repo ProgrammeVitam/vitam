@@ -47,30 +47,27 @@ public class PaginationHelperTest {
     static String sessionId;
 
     private static final String RESULT =
-        "{\"$query\":{}," +
-            "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":25}," +
-            "\"$results\":";
+        "{\"$query\":{}," + "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":25}," + "\"$results\":";
 
     private static final String OPERATION =
-
         "    \"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-            "    \"evType\": \"Process_SIP_unitary\"," +
-            "    \"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-            "    \"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "    \"evTypeProc\": \"INGEST\"," +
-            "    \"outcome\": \"STARTED\"," +
-            "    \"outDetail\": null," +
-            "    \"outMessg\": \"SIP entry : SIP.zip\"," +
-            "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
-            "    \"agIdApp\": null," +
-            "    \"agIdPers\": null," +
-            "    \"evIdAppSession\": null," +
-            "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "    \"agIdExt\": null," +
-            "    \"obId\": null," +
-            "    \"obIdReq\": null," +
-            "    \"obIdIn\": null," +
-            "    \"events\": []}";
+        "    \"evType\": \"Process_SIP_unitary\"," +
+        "    \"evDateTime\": \"2016-06-10T11:56:35.914\"," +
+        "    \"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "    \"evTypeProc\": \"INGEST\"," +
+        "    \"outcome\": \"STARTED\"," +
+        "    \"outDetail\": null," +
+        "    \"outMessg\": \"SIP entry : SIP.zip\"," +
+        "    \"agId\": {\"name\":\"ingest_1\",\"role\":\"ingest\",\"pid\":425367}," +
+        "    \"agIdApp\": null," +
+        "    \"agIdPers\": null," +
+        "    \"evIdAppSession\": null," +
+        "    \"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "    \"agIdExt\": null," +
+        "    \"obId\": null," +
+        "    \"obIdReq\": null," +
+        "    \"obIdIn\": null," +
+        "    \"events\": []}";
 
     @BeforeClass
     public static void setup() {
@@ -86,13 +83,10 @@ public class PaginationHelperTest {
         currentUser.getSession().stop();
         currentUser.login(token);
         sessionId = currentUser.getSession(true).getId().toString();
-
-
     }
 
     @Test
     public void givenSessionAlreadyExistsWhenPaginateResultThenReturnJsonNode() throws Exception {
-
         PaginationHelper.getInstance().setResult(sessionId, createResult());
         JsonNode result = PaginationHelper.getInstance().getResult(sessionId, new OffsetBasedPagination());
         assertEquals(result.get("$results").size(), 100);
@@ -100,12 +94,10 @@ public class PaginationHelperTest {
         assertEquals(result.get("$results").size(), 100);
     }
 
-
     @Test(expected = VitamException.class)
     public void givenSessionNotFoundWhenSetResultThenRaiseAnException() throws Exception {
         PaginationHelper.getInstance().setResult("SessionNotFound", createResult());
     }
-
 
     private JsonNode createResult() throws InvalidParseOperationException {
         String result = RESULT + "[";
@@ -120,5 +112,4 @@ public class PaginationHelperTest {
         result += "]}";
         return JsonHandler.getFromString(result);
     }
-
 }

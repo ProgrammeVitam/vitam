@@ -29,5 +29,5 @@ package fr.gouv.vitam.storage.offers.tape.simulator;
 public enum VirtualSlotState {
     EMPTY,
     LOADED,
-    BUSY
+    BUSY,
 }

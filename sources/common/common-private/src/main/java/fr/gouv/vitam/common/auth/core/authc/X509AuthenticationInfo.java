@@ -61,8 +61,12 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
      * @param grantedIssuers
      * @param realmName
      */
-    public X509AuthenticationInfo(Object principal, X509Certificate clientCertificate,
-        Set<X509Certificate> grantedIssuers, String realmName) {
+    public X509AuthenticationInfo(
+        Object principal,
+        X509Certificate clientCertificate,
+        Set<X509Certificate> grantedIssuers,
+        String realmName
+    ) {
         super(principal, null, realmName);
         this.clientCertificate = clientCertificate;
         if (clientCertificate != null) {
@@ -141,6 +145,5 @@ public class X509AuthenticationInfo extends SimpleAuthenticationInfo {
             trustAnchors.add(new TrustAnchor(eachCert, eachCert.getExtensionValue(NAME_CONSTRAINTS_ASN_1)));
         }
         return trustAnchors;
-
     }
 }

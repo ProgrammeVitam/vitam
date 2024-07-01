@@ -75,7 +75,6 @@ public class LogbookEventOperation extends LogbookEvent {
         this.agIdExt = agIdExt;
     }
 
-
     /**
      * @return the obIdReq
      */
@@ -106,15 +105,15 @@ public class LogbookEventOperation extends LogbookEvent {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         LogbookEventOperation that = (LogbookEventOperation) o;
-        return Objects.equals(evIdReq, that.evIdReq) &&
+        return (
+            Objects.equals(evIdReq, that.evIdReq) &&
             Objects.equals(agIdExt, that.agIdExt) &&
             Objects.equals(obIdReq, that.obIdReq) &&
-            Objects.equals(obIdIn, that.obIdIn);
+            Objects.equals(obIdIn, that.obIdIn)
+        );
     }
 
     @Override

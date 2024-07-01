@@ -93,21 +93,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class GriffinServiceTest {
-    private static final TypeReference<List<PreservationScenarioModel>> scenarioTypeRef = new TypeReference<>() {
-    };
-    private static final TypeReference<List<GriffinModel>> griffinTypeRef = new TypeReference<>() {
-    };
-    private static final TypeReference<List<FileFormatModel>> fileFormatTypeRef = new TypeReference<>() {
-    };
-    private static final TypeReference<List<GriffinModel>> valueTypeRef = new TypeReference<>() {
-    };
+
+    private static final TypeReference<List<PreservationScenarioModel>> scenarioTypeRef = new TypeReference<>() {};
+    private static final TypeReference<List<GriffinModel>> griffinTypeRef = new TypeReference<>() {};
+    private static final TypeReference<List<FileFormatModel>> fileFormatTypeRef = new TypeReference<>() {};
+    private static final TypeReference<List<GriffinModel>> valueTypeRef = new TypeReference<>() {};
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private FunctionalBackupService functionalBackupService;
@@ -128,8 +126,12 @@ public class GriffinServiceTest {
 
     @Before
     public void setUp() {
-        griffinService = new GriffinService(mongoDbAccess, functionalBackupService, logbookOperationsClientFactory,
-            preservationScenarioCollection);
+        griffinService = new GriffinService(
+            mongoDbAccess,
+            functionalBackupService,
+            logbookOperationsClientFactory,
+            preservationScenarioCollection
+        );
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         GUID guid = newGUID();
 
@@ -145,8 +147,8 @@ public class GriffinServiceTest {
 
         // Then
         assertThatThrownBy(() -> griffinService.importGriffin(Collections.singletonList(griffinModel)))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid griffin");
-
+            .isInstanceOf(ReferentialException.class)
+            .hasMessageContaining("Invalid griffin");
     }
 
     @Test
@@ -157,15 +159,16 @@ public class GriffinServiceTest {
 
         // Then
         assertThatThrownBy(() -> griffinService.importGriffin(Collections.singletonList(griffinModel)))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid griffin");
+            .isInstanceOf(ReferentialException.class)
+            .hasMessageContaining("Invalid griffin");
 
         //Given
         griffinModel.setName("");
 
         // Then
         assertThatThrownBy(() -> griffinService.importGriffin(Collections.singletonList(griffinModel)))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid griffin");
-
+            .isInstanceOf(ReferentialException.class)
+            .hasMessageContaining("Invalid griffin");
     }
 
     @Test
@@ -175,11 +178,10 @@ public class GriffinServiceTest {
         GriffinModel griffinModel1 = new GriffinModel("name", "id", "exName", "version");
         GriffinModel griffinModel2 = new GriffinModel("name", "id", "exName", "version");
 
-
         // Then
         assertThatThrownBy(() -> griffinService.importGriffin(Lists.newArrayList(griffinModel1, griffinModel2)))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Duplicate griffin");
-
+            .isInstanceOf(ReferentialException.class)
+            .hasMessageContaining("Duplicate griffin");
     }
 
     @Test
@@ -190,24 +192,26 @@ public class GriffinServiceTest {
 
         // Then
         assertThatThrownBy(() -> griffinService.importGriffin(Collections.singletonList(griffinModel)))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid griffin");
+            .isInstanceOf(ReferentialException.class)
+            .hasMessageContaining("Invalid griffin");
 
         //Given
         griffinModel.setIdentifier("");
 
         // Then
         assertThatThrownBy(() -> griffinService.importGriffin(Collections.singletonList(griffinModel)))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid griffin");
-
+            .isInstanceOf(ReferentialException.class)
+            .hasMessageContaining("Invalid griffin");
     }
 
     @Test
     @RunWithCustomExecutor
     public void shouldFailedValidateGriffinWhenDateIsNotCorrect() throws Exception {
         //Given
-        List<GriffinModel> listGriffins =
-            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile("KO_griffin_false_date.json"),
-                valueTypeRef);
+        List<GriffinModel> listGriffins = JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile("KO_griffin_false_date.json"),
+            valueTypeRef
+        );
         List<GriffinModel> allGriffinInDatabase = new ArrayList<>();
 
         DbRequestResult dbRequestResult = mock(DbRequestResult.class);
@@ -216,7 +220,8 @@ public class GriffinServiceTest {
         given(dbRequestResult.getDocuments(Griffin.class, GriffinModel.class)).willReturn(allGriffinInDatabase);
         given(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).willReturn(dbRequestResult);
         given(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class)).willReturn(
-            new ArrayList<>());
+            new ArrayList<>()
+        );
         given(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).willReturn(dbRequestResult);
 
         // When
@@ -236,15 +241,16 @@ public class GriffinServiceTest {
 
         // Then
         assertThatThrownBy(() -> griffinService.importGriffin(Collections.singletonList(griffinModel)))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid griffin");
+            .isInstanceOf(ReferentialException.class)
+            .hasMessageContaining("Invalid griffin");
 
         //Given
         griffinModel.setExecutableName("");
 
         // Then
         assertThatThrownBy(() -> griffinService.importGriffin(Collections.singletonList(griffinModel)))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid griffin");
-
+            .isInstanceOf(ReferentialException.class)
+            .hasMessageContaining("Invalid griffin");
     }
 
     @Test
@@ -255,22 +261,21 @@ public class GriffinServiceTest {
 
         // Then
         assertThatThrownBy(() -> griffinService.importGriffin(Collections.singletonList(griffinModel)))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid griffin");
+            .isInstanceOf(ReferentialException.class)
+            .hasMessageContaining("Invalid griffin");
 
         //Given
         griffinModel.setExecutableVersion("");
 
         // Then
         assertThatThrownBy(() -> griffinService.importGriffin(Collections.singletonList(griffinModel)))
-            .isInstanceOf(ReferentialException.class).hasMessageContaining("Invalid griffin");
-
+            .isInstanceOf(ReferentialException.class)
+            .hasMessageContaining("Invalid griffin");
     }
-
 
     @Test
     @RunWithCustomExecutor
     public void givenGriffinsInDataBaseShouldCollectInsertUpdateAndDeleteList() throws Exception {
-
         //Given
         List<GriffinModel> allGriffinInDatabase = new ArrayList<>();
         String modelString1 = "{\"#id\":\"Id1\",\"Name\":\"1\",\"Identifier\":\"IDENTIFIER1\"}";
@@ -296,8 +301,13 @@ public class GriffinServiceTest {
 
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
 
-        griffinService.classifyDataInInsertUpdateOrDeleteLists(listToImport, listToInsert, listToUpdate, listToDelete,
-            allGriffinInDatabase);
+        griffinService.classifyDataInInsertUpdateOrDeleteLists(
+            listToImport,
+            listToInsert,
+            listToUpdate,
+            listToDelete,
+            allGriffinInDatabase
+        );
 
         //Then
         assertThat(listToDelete.size()).isEqualTo(1);
@@ -313,12 +323,10 @@ public class GriffinServiceTest {
         DbRequestResult dbRequestResult = mock(DbRequestResult.class);
 
         String requestId = getVitamSession().getRequestId();
-        File griffinFile = PropertiesUtils.getResourceFile(
-            "griffin_logbook_operation.json");
+        File griffinFile = PropertiesUtils.getResourceFile("griffin_logbook_operation.json");
         JsonNode griffinOperation = JsonHandler.getFromFile(griffinFile);
 
-        File preservationScenarioFile = getResourceFile(
-            "preservation_scenario_logbook_operation.json");
+        File preservationScenarioFile = getResourceFile("preservation_scenario_logbook_operation.json");
         JsonNode preservationScenarioOperation = JsonHandler.getFromFile(preservationScenarioFile);
 
         List<FileFormatModel> listFormat = getFileFormatModels("fileformatModel.json");
@@ -342,8 +350,10 @@ public class GriffinServiceTest {
     @RunWithCustomExecutor
     public void shouldImportGriffin() throws Exception {
         //Given
-        List<GriffinModel> listToImport =
-            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile("griffins.json"), valueTypeRef);
+        List<GriffinModel> listToImport = JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile("griffins.json"),
+            valueTypeRef
+        );
 
         List<GriffinModel> allGriffinInDatabase = new ArrayList<>();
 
@@ -355,12 +365,12 @@ public class GriffinServiceTest {
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(GRIFFIN))).thenReturn(dbRequestResult);
 
         String requestId = getVitamSession().getRequestId();
-        File griffinFile = PropertiesUtils.getResourceFile(
-            "griffin_logbook_operation.json");
+        File griffinFile = PropertiesUtils.getResourceFile("griffin_logbook_operation.json");
         JsonNode griffinOperation = JsonHandler.getFromFile(griffinFile);
         when(logbookOperationsClient.selectOperationById(requestId)).thenReturn(griffinOperation);
-        when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class))
-            .thenReturn(new ArrayList<>());
+        when(dbRequestResult.getDocuments(PreservationScenario.class, PreservationScenarioModel.class)).thenReturn(
+            new ArrayList<>()
+        );
         when(mongoDbAccess.findDocuments(any(JsonNode.class), eq(PRESERVATION_SCENARIO))).thenReturn(dbRequestResult);
 
         RequestResponse<GriffinModel> requestResponse = griffinService.importGriffin(listToImport);
@@ -373,17 +383,22 @@ public class GriffinServiceTest {
 
         assertThat(total).isEqualTo(3);
 
-
         verify(logbookOperationsClient, times(1)).create(event1Captor.capture());
         verify(logbookOperationsClient, times(1)).update(event2Captor.capture());
 
-        assertThat(event1Captor.getValue().getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_GRIFFIN.STARTED");
-        assertThat(event2Captor.getValue().getParameterValue(LogbookParameterName.outcomeDetail))
-            .isEqualTo("STP_IMPORT_GRIFFIN.OK");
+        assertThat(event1Captor.getValue().getParameterValue(LogbookParameterName.outcomeDetail)).isEqualTo(
+            "STP_IMPORT_GRIFFIN.STARTED"
+        );
+        assertThat(event2Captor.getValue().getParameterValue(LogbookParameterName.outcomeDetail)).isEqualTo(
+            "STP_IMPORT_GRIFFIN.OK"
+        );
 
-        verify(functionalBackupService).saveCollectionAndSequence(getGUID(requestId), "STP_BACKUP_GRIFFIN", GRIFFIN,
-            requestId);
+        verify(functionalBackupService).saveCollectionAndSequence(
+            getGUID(requestId),
+            "STP_BACKUP_GRIFFIN",
+            GRIFFIN,
+            requestId
+        );
     }
 
     @Test

@@ -100,12 +100,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class LogBookLifeCycleObjectGroupTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
-    private final static TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<>() {
-    };
+    private static final TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<>() {};
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -144,15 +142,20 @@ public class LogBookLifeCycleObjectGroupTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        LogbookCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
 
         junitHelper = JunitHelper.getInstance();
         serverPort = junitHelper.findAvailablePort();
@@ -180,14 +183,16 @@ public class LogBookLifeCycleObjectGroupTest {
             logbookConf.setLifecycleTraceabilityMaxRenewalDelay(12);
             logbookConf.setLifecycleTraceabilityMaxRenewalDelayUnit(ChronoUnit.HOURS);
             logbookConf.setOperationTraceabilityThreadPoolSize(4);
-            logbookConf.setLogbookTenantIndexation(new LogbookIndexationConfiguration()
-                .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration().setLogbookoperation(
-                    new CollectionConfiguration(1, 0))));
+            logbookConf.setLogbookTenantIndexation(
+                new LogbookIndexationConfiguration()
+                    .setDefaultCollectionConfiguration(
+                        new DefaultCollectionConfiguration().setLogbookoperation(new CollectionConfiguration(1, 0))
+                    )
+            );
 
             File file = temporaryFolder.newFile();
             String configurationFile = file.getAbsolutePath();
             PropertiesUtils.writeYaml(file, logbookConf);
-
 
             application = new LogbookMain(configurationFile);
             application.start();
@@ -195,36 +200,42 @@ public class LogBookLifeCycleObjectGroupTest {
             RestAssured.port = serverPort;
             RestAssured.basePath = REST_URI;
             JunitHelper.unsetJettyPortSystemProperty();
-
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Logbook Application Server", e);
+            throw new IllegalStateException("Cannot start the Logbook Application Server", e);
         }
 
         final GUID eip = GUIDFactory.newWriteLogbookGUID(0);
         final GUID iop = GUIDFactory.newWriteLogbookGUID(0);
         final GUID ioL = GUIDFactory.newUnitGUID(0);
 
-        logbookLifeCyclesObjectGroupParametersStart =
-            LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
+        logbookLifeCyclesObjectGroupParametersStart = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.OK);
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifier,
-            eip.toString());
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            iop.toString());
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.objectIdentifier,
-            ioL.toString());
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.eventIdentifier,
+            eip.toString()
+        );
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            iop.toString()
+        );
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.objectIdentifier,
+            ioL.toString()
+        );
         /**
          * Bad request
          */
         logbookLifeCyclesObjectGroupParametersBAD = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
 
-        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(LogbookParameterName.eventIdentifier,
-            eip.toString());
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            iop.toString());
-
+        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(
+            LogbookParameterName.eventIdentifier,
+            eip.toString()
+        );
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            iop.toString()
+        );
 
         /**
          * update
@@ -236,12 +247,18 @@ public class LogBookLifeCycleObjectGroupTest {
         logbookLifeCyclesObjectGroupParametersUpdate =
             LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         logbookLifeCyclesObjectGroupParametersUpdate.setStatus(StatusCode.OK);
-        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.eventIdentifier,
-            eip2.toString());
-        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            iop2.toString());
-        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.objectIdentifier,
-            ioL2.toString());
+        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(
+            LogbookParameterName.eventIdentifier,
+            eip2.toString()
+        );
+        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            iop2.toString()
+        );
+        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(
+            LogbookParameterName.objectIdentifier,
+            ioL2.toString()
+        );
         /**
          *
          * update
@@ -249,11 +266,11 @@ public class LogBookLifeCycleObjectGroupTest {
 
         logbookLCObjectGroupParametersAppend = LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
         logbookLCObjectGroupParametersAppend.setStatus(StatusCode.OK);
-        logbookLCObjectGroupParametersAppend.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            iop.toString());
-        logbookLCObjectGroupParametersAppend.putParameterValue(LogbookParameterName.objectIdentifier,
-            ioL.toString());
-
+        logbookLCObjectGroupParametersAppend.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            iop.toString()
+        );
+        logbookLCObjectGroupParametersAppend.putParameterValue(LogbookParameterName.objectIdentifier, ioL.toString());
     }
 
     @AfterClass
@@ -280,32 +297,38 @@ public class LogBookLifeCycleObjectGroupTest {
 
         logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventType, "event");
         logbookLifeCyclesObjectGroupParametersStart.setTypeProcess(LogbookTypeProcess.INGEST);
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetail,
-            "outcomeDetail");
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            "outcomeDetailMessage");
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            "outcomeDetail"
+        );
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            "outcomeDetailMessage"
+        );
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString()
+        );
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
 
-        String objectId =
-            logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier);
-        String operationId = logbookLifeCyclesObjectGroupParametersStart
-            .getParameterValue(LogbookParameterName.eventIdentifierProcess);
+        String objectId = logbookLifeCyclesObjectGroupParametersStart.getParameterValue(
+            LogbookParameterName.objectIdentifier
+        );
+        String operationId = logbookLifeCyclesObjectGroupParametersStart.getParameterValue(
+            LogbookParameterName.eventIdentifierProcess
+        );
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
-            .post(LIFE_OBJECT_GROUP_ID_URI,
-                operationId,
-                objectId)
+            .post(LIFE_OBJECT_GROUP_ID_URI, operationId, objectId)
             .then()
             .statusCode(Status.CREATED.getStatusCode());
-
-
 
         // already exists
         given()
@@ -313,8 +336,7 @@ public class LogBookLifeCycleObjectGroupTest {
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
-            .post(LIFE_OBJECT_GROUP_ID_URI, operationId,
-                objectId)
+            .post(LIFE_OBJECT_GROUP_ID_URI, operationId, objectId)
             .then()
             .statusCode(Status.CONFLICT.getStatusCode());
 
@@ -324,26 +346,24 @@ public class LogBookLifeCycleObjectGroupTest {
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
-            .post(LIFE_OBJECT_GROUP_ID_URI, operationId,
-                "bad_id")
+            .post(LIFE_OBJECT_GROUP_ID_URI, operationId, "bad_id")
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
-
         // update ok
-        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            "ModifiedoutcomeDetailMessage");
+        logbookLifeCyclesObjectGroupParametersStart.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            "ModifiedoutcomeDetailMessage"
+        );
         logbookLifeCyclesObjectGroupParametersStart.setStatus(StatusCode.OK);
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
-            .put(LIFE_OBJECT_GROUP_ID_URI, operationId,
-                objectId)
+            .put(LIFE_OBJECT_GROUP_ID_URI, operationId, objectId)
             .then()
             .statusCode(Status.OK.getStatusCode());
-
 
         // Update illegal argument incoherence parameters ; response bad_request
         given()
@@ -351,25 +371,23 @@ public class LogBookLifeCycleObjectGroupTest {
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(logbookLifeCyclesObjectGroupParametersStart.toString())
             .when()
-            .put(LIFE_OBJECT_GROUP_ID_URI, operationId,
-                "bad_id")
+            .put(LIFE_OBJECT_GROUP_ID_URI, operationId, "bad_id")
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
-
         // Commit
-        given().contentType(ContentType.JSON)
+        given()
+            .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .when()
-            .put("/operations/" + operationId + "/objectgrouplifecycles/" +
-                objectId +
-                "/commit")
+            .put("/operations/" + operationId + "/objectgrouplifecycles/" + objectId + "/commit")
             .then()
             .statusCode(Status.OK.getStatusCode());
 
         // Test direct access
-        JsonNode jsonNode =
-            JsonHandler.getFromString("{\"$query\":{\"$eq\":{\"_id\":\"" + objectId + "\"}}},  {\"$projection\":{}}\"");
+        JsonNode jsonNode = JsonHandler.getFromString(
+            "{\"$query\":{\"$eq\":{\"_id\":\"" + objectId + "\"}}},  {\"$projection\":{}}\""
+        );
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, 0)
@@ -394,16 +412,21 @@ public class LogBookLifeCycleObjectGroupTest {
     public final void given_lifeCycleObjectGroup_Without_MandotoryParams_when_create_thenReturn_BAD_RESUEST() {
         final GUID guidTest = GUIDFactory.newWriteLogbookGUID(0);
 
-        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(LogbookParameterName.objectIdentifier,
-            guidTest.toString());
+        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(
+            LogbookParameterName.objectIdentifier,
+            guidTest.toString()
+        );
         given()
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesObjectGroupParametersBAD.toString())
             .when()
-            .post(LIFE_OBJECT_GROUP_ID_URI,
-                logbookLifeCyclesObjectGroupParametersStart
-                    .getParameterValue(LogbookParameterName.eventIdentifierProcess),
-                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier))
+            .post(
+                LIFE_OBJECT_GROUP_ID_URI,
+                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(
+                    LogbookParameterName.eventIdentifierProcess
+                ),
+                logbookLifeCyclesObjectGroupParametersStart.getParameterValue(LogbookParameterName.objectIdentifier)
+            )
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -413,46 +436,62 @@ public class LogBookLifeCycleObjectGroupTest {
         // update notFound
         logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.eventType, "event");
         logbookLifeCyclesObjectGroupParametersUpdate.setTypeProcess(LogbookTypeProcess.INGEST);
-        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.outcomeDetail,
-            "outcomeDetail");
-        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            "outcomeDetailMessage");
-        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
-
+        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            "outcomeDetail"
+        );
+        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            "outcomeDetailMessage"
+        );
+        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(
+            LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString()
+        );
+        logbookLifeCyclesObjectGroupParametersUpdate.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .body(logbookLifeCyclesObjectGroupParametersUpdate.toString())
             .when()
-            .put(LIFE_OBJECT_GROUP_ID_URI,
-                logbookLifeCyclesObjectGroupParametersUpdate
-                    .getParameterValue(LogbookParameterName.eventIdentifierProcess),
-                logbookLifeCyclesObjectGroupParametersUpdate.getParameterValue(LogbookParameterName.objectIdentifier))
+            .put(
+                LIFE_OBJECT_GROUP_ID_URI,
+                logbookLifeCyclesObjectGroupParametersUpdate.getParameterValue(
+                    LogbookParameterName.eventIdentifierProcess
+                ),
+                logbookLifeCyclesObjectGroupParametersUpdate.getParameterValue(LogbookParameterName.objectIdentifier)
+            )
             .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
-
     @Test
     public final void given_lifeCycleGO_Without_MandotoryParams_when_update_thenReturn_BAD_RESUEST() {
         final GUID guidTest = GUIDFactory.newWriteLogbookGUID(0);
-        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(LogbookParameterName.objectIdentifier,
-            guidTest.toString());
-        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            guidTest.toString());
+        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(
+            LogbookParameterName.objectIdentifier,
+            guidTest.toString()
+        );
+        logbookLifeCyclesObjectGroupParametersBAD.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            guidTest.toString()
+        );
 
         given()
             .contentType(ContentType.JSON)
             .body(logbookLifeCyclesObjectGroupParametersBAD.toString())
             .when()
-            .put(LIFE_OBJECT_GROUP_ID_URI,
-                logbookLifeCyclesObjectGroupParametersBAD
-                    .getParameterValue(LogbookParameterName.eventIdentifierProcess),
-                logbookLifeCyclesObjectGroupParametersBAD.getParameterValue(LogbookParameterName.objectIdentifier))
+            .put(
+                LIFE_OBJECT_GROUP_ID_URI,
+                logbookLifeCyclesObjectGroupParametersBAD.getParameterValue(
+                    LogbookParameterName.eventIdentifierProcess
+                ),
+                logbookLifeCyclesObjectGroupParametersBAD.getParameterValue(LogbookParameterName.objectIdentifier)
+            )
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -462,10 +501,16 @@ public class LogBookLifeCycleObjectGroupTest {
     public final void given_lifeCycleGO_bulk_raw_when_create_thenReturn_created()
         throws InvalidParseOperationException, FileNotFoundException {
         List<JsonNode> lfcGotList = new ArrayList<>();
-        lfcGotList.add(JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("lfc_got_raw_aebaaaaaaaef6ys5absnuala7t4lfmiaaabq.json")));
-        lfcGotList.add(JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("lfc_got_raw_aebaaaaaaageqltuabfg2ala73rnaqiaaaba.json")));
+        lfcGotList.add(
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream("lfc_got_raw_aebaaaaaaaef6ys5absnuala7t4lfmiaaabq.json")
+            )
+        );
+        lfcGotList.add(
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream("lfc_got_raw_aebaaaaaaageqltuabfg2ala73rnaqiaaaba.json")
+            )
+        );
 
         given()
             .contentType(ContentType.JSON)
@@ -485,8 +530,11 @@ public class LogBookLifeCycleObjectGroupTest {
             .then()
             .statusCode(Status.CREATED.getStatusCode());
 
-        lfcGotList.add(JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("lfc_got_raw_aebaaaaaaageqltuabfg2ala73rnaqiaaaba_diff.json")));
+        lfcGotList.add(
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream("lfc_got_raw_aebaaaaaaageqltuabfg2ala73rnaqiaaaba_diff.json")
+            )
+        );
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
@@ -499,10 +547,10 @@ public class LogBookLifeCycleObjectGroupTest {
 
     @Test
     public void testGetRawObjectGroupLifecycleById_OK() throws Exception {
-
         // Given
         JsonNode json = JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("lfc_got_raw_aebaaaaaaaef6ys5absnuala7t4lfmiaaabq.json"));
+            PropertiesUtils.getResourceAsStream("lfc_got_raw_aebaaaaaaaef6ys5absnuala7t4lfmiaaabq.json")
+        );
 
         given()
             .contentType(ContentType.JSON)
@@ -513,14 +561,15 @@ public class LogBookLifeCycleObjectGroupTest {
             .then()
             .statusCode(Status.CREATED.getStatusCode());
 
-
         // When / Then
         InputStream stream = given()
             .header(GlobalDataRest.X_TENANT_ID, tenantId)
             .get(OBJECT_GROUP_LIFECYCLES_RAW_BY_ID_URL + "aebaaaaaaaef6ys5absnuala7t4lfmiaaabq")
             .then()
             .statusCode(Status.OK.getStatusCode())
-            .extract().body().asInputStream();
+            .extract()
+            .body()
+            .asInputStream();
 
         RequestResponseOK response = JsonHandler.getFromInputStream(stream, RequestResponseOK.class);
 
@@ -532,7 +581,6 @@ public class LogBookLifeCycleObjectGroupTest {
 
     @Test
     public void testGetRawObjectGroupLifecycleById_NotFound() throws Exception {
-
         // Given : Empty DB
 
         // When / Then
@@ -543,11 +591,8 @@ public class LogBookLifeCycleObjectGroupTest {
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
-
     @Test
-    public final void testGetRawObjectGroupLifecyclesByLastPersistedDate()
-        throws Exception {
-
+    public final void testGetRawObjectGroupLifecyclesByLastPersistedDate() throws Exception {
         // Given :
         given()
             .contentType(ContentType.JSON)
@@ -580,8 +625,10 @@ public class LogBookLifeCycleObjectGroupTest {
         byte[] body = ByteStreams.toByteArray(response.extract().asInputStream());
         assertThat(body).hasSize((int) size);
 
-        JsonLineGenericIterator<JsonNode> jsonLineIterator =
-            new JsonLineGenericIterator<>(new ByteArrayInputStream(body), JSON_NODE_TYPE_REFERENCE);
+        JsonLineGenericIterator<JsonNode> jsonLineIterator = new JsonLineGenericIterator<>(
+            new ByteArrayInputStream(body),
+            JSON_NODE_TYPE_REFERENCE
+        );
         List<JsonNode> entries = IteratorUtils.toList(jsonLineIterator);
         assertThat(entries).hasSize(2);
         assertThat(entries.get(0).get("_id").asText()).isEqualTo("aebaaaaaaahdjrrgaaqiwaluna5ivriaaaaq");
@@ -589,9 +636,7 @@ public class LogBookLifeCycleObjectGroupTest {
     }
 
     @Test
-    public final void testGetRawObjectGroupLifecyclesByLastPersistedDateWithLimit()
-        throws Exception {
-
+    public final void testGetRawObjectGroupLifecyclesByLastPersistedDateWithLimit() throws Exception {
         // Given :
         given()
             .contentType(ContentType.JSON)
@@ -624,8 +669,10 @@ public class LogBookLifeCycleObjectGroupTest {
         byte[] body = ByteStreams.toByteArray(response.extract().asInputStream());
         assertThat(body).hasSize((int) size);
 
-        JsonLineGenericIterator<JsonNode> jsonLineIterator =
-            new JsonLineGenericIterator<>(new ByteArrayInputStream(body), JSON_NODE_TYPE_REFERENCE);
+        JsonLineGenericIterator<JsonNode> jsonLineIterator = new JsonLineGenericIterator<>(
+            new ByteArrayInputStream(body),
+            JSON_NODE_TYPE_REFERENCE
+        );
         List<JsonNode> entries = IteratorUtils.toList(jsonLineIterator);
         assertThat(entries).hasSize(1);
         assertThat(entries.get(0).get("_id").asText()).isEqualTo("aebaaaaaaahdjrrgaaqiwaluna5ivriaaaaq");
@@ -634,7 +681,6 @@ public class LogBookLifeCycleObjectGroupTest {
     @Test
     public final void testGetRawObjectGroupLifecyclesByLastPersistedDateWithLimitMatchingMultipleEntries()
         throws Exception {
-
         // Given :
         given()
             .contentType(ContentType.JSON)
@@ -667,21 +713,26 @@ public class LogBookLifeCycleObjectGroupTest {
         byte[] body = ByteStreams.toByteArray(response.extract().asInputStream());
         assertThat(body).hasSize((int) size);
 
-        JsonLineGenericIterator<JsonNode> jsonLineIterator =
-            new JsonLineGenericIterator<>(new ByteArrayInputStream(body),
-                JSON_NODE_TYPE_REFERENCE);
+        JsonLineGenericIterator<JsonNode> jsonLineIterator = new JsonLineGenericIterator<>(
+            new ByteArrayInputStream(body),
+            JSON_NODE_TYPE_REFERENCE
+        );
         List<JsonNode> entries = IteratorUtils.toList(jsonLineIterator);
         assertThat(entries).hasSize(6);
-        assertThat(entries).extracting(entry -> entry.get("_id").asText())
-            .containsExactlyInAnyOrder("aebaaaaaaahdjrrgaaqiwaluna5iwcyaaaaq", "aebaaaaaaahdjrrgaaqiwaluna5ivriaaaaq",
-                "aebaaaaaaahdjrrgaaqiwaluna5proaaaaaq", "aebaaaaaaahdjrrgaaqiwaluna5pruiaaaaq",
-                "aebaaaaaaahdjrrgaaqiwaluna5teuqaaaaq", "aebaaaaaaahdjrrgaaqiwaluna55thyaaaaq");
+        assertThat(entries)
+            .extracting(entry -> entry.get("_id").asText())
+            .containsExactlyInAnyOrder(
+                "aebaaaaaaahdjrrgaaqiwaluna5iwcyaaaaq",
+                "aebaaaaaaahdjrrgaaqiwaluna5ivriaaaaq",
+                "aebaaaaaaahdjrrgaaqiwaluna5proaaaaaq",
+                "aebaaaaaaahdjrrgaaqiwaluna5pruiaaaaq",
+                "aebaaaaaaahdjrrgaaqiwaluna5teuqaaaaq",
+                "aebaaaaaaahdjrrgaaqiwaluna55thyaaaaq"
+            );
     }
 
     @Test
-    public final void testGetRawObjectGroupLifecyclesByLastPersistedDateEmpty()
-        throws Exception {
-
+    public final void testGetRawObjectGroupLifecyclesByLastPersistedDateEmpty() throws Exception {
         // Given : no data
 
         // When

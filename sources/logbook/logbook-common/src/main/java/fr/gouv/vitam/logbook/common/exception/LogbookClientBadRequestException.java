@@ -30,6 +30,7 @@ package fr.gouv.vitam.logbook.common.exception;
  * Exception indicating a resource given as parameter is malformed.
  */
 public class LogbookClientBadRequestException extends LogbookClientException {
+
     private static final long serialVersionUID = -8214793089257198270L;
 
     /**

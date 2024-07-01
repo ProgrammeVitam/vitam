@@ -75,7 +75,6 @@ public interface Driver extends VitamAutoCloseable {
      */
     boolean removeOffer(String offer);
 
-
     /**
      * Add one offer to the Driver (from DriverManager)
      * The driver MUST provide a way to check the availability of the storage
@@ -100,7 +99,6 @@ public interface Driver extends VitamAutoCloseable {
      * @return True if the offer is declared in the driver
      */
     boolean hasOffer(String offerId);
-
 
     /**
      * The driver implementation MUST provide a constant name which SHOULD be

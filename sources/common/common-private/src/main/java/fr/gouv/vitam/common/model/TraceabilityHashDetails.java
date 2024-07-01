@@ -52,8 +52,12 @@ public class TraceabilityHashDetails {
         // Empty constructor for deserialization
     }
 
-    public TraceabilityHashDetails(String strategyId, Set<String> offerIds, String dbHash,
-        Map<String, String> offerHashes) {
+    public TraceabilityHashDetails(
+        String strategyId,
+        Set<String> offerIds,
+        String dbHash,
+        Map<String, String> offerHashes
+    ) {
         this.strategyId = strategyId;
         this.offerIds = offerIds;
         this.dbHash = dbHash;

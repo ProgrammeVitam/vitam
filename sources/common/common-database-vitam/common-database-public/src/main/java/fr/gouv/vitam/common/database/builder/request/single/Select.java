@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * SELECT for Single Mode Query
  */
 public class Select extends RequestSingle {
+
     /**
      * @return this Query
      */
@@ -90,8 +91,7 @@ public class Select extends RequestSingle {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select parseLimitFilter(final String filter)
-        throws InvalidParseOperationException {
+    public final Select parseLimitFilter(final String filter) throws InvalidParseOperationException {
         selectParseLimitFilter(filter);
         return this;
     }
@@ -101,8 +101,7 @@ public class Select extends RequestSingle {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select addOrderByAscFilter(final String... variableNames)
-        throws InvalidParseOperationException {
+    public final Select addOrderByAscFilter(final String... variableNames) throws InvalidParseOperationException {
         selectAddOrderByAscFilter(variableNames);
         return this;
     }
@@ -112,8 +111,7 @@ public class Select extends RequestSingle {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select addOrderByDescFilter(final String... variableNames)
-        throws InvalidParseOperationException {
+    public final Select addOrderByDescFilter(final String... variableNames) throws InvalidParseOperationException {
         selectAddOrderByDescFilter(variableNames);
         return this;
     }
@@ -123,8 +121,7 @@ public class Select extends RequestSingle {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select addOrderByFilter(final JsonNode filterContent)
-        throws InvalidParseOperationException {
+    public final Select addOrderByFilter(final JsonNode filterContent) throws InvalidParseOperationException {
         selectAddOrderByFilter(filterContent);
         return this;
     }
@@ -134,15 +131,13 @@ public class Select extends RequestSingle {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select parseOrderByFilter(final String filter)
-        throws InvalidParseOperationException {
+    public final Select parseOrderByFilter(final String filter) throws InvalidParseOperationException {
         selectParseOrderByFilter(filter);
         return this;
     }
 
     @Override
-    public final Select setFilter(final JsonNode filterContent)
-        throws InvalidParseOperationException {
+    public final Select setFilter(final JsonNode filterContent) throws InvalidParseOperationException {
         super.setFilter(filterContent);
         selectSetFilter(filterContent);
         return this;
@@ -153,8 +148,7 @@ public class Select extends RequestSingle {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select addUsedProjection(final String... variableNames)
-        throws InvalidParseOperationException {
+    public final Select addUsedProjection(final String... variableNames) throws InvalidParseOperationException {
         selectAddUsedProjection(variableNames);
         return this;
     }
@@ -164,8 +158,7 @@ public class Select extends RequestSingle {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select addUnusedProjection(final String... variableNames)
-        throws InvalidParseOperationException {
+    public final Select addUnusedProjection(final String... variableNames) throws InvalidParseOperationException {
         selectAddUnusedProjection(variableNames);
         return this;
     }
@@ -184,8 +177,7 @@ public class Select extends RequestSingle {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select parseProjection(final String projection)
-        throws InvalidParseOperationException {
+    public final Select parseProjection(final String projection) throws InvalidParseOperationException {
         selectParseProjection(projection);
         return this;
     }
@@ -195,8 +187,7 @@ public class Select extends RequestSingle {
      * @return this Query
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Select setProjection(final JsonNode projectionContent)
-        throws InvalidParseOperationException {
+    public final Select setProjection(final JsonNode projectionContent) throws InvalidParseOperationException {
         selectSetProjection(projectionContent);
         return this;
     }
@@ -221,9 +212,7 @@ public class Select extends RequestSingle {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("QUERY: ").append(super.toString())
-            .append("\n\tProjection: ").append(projection);
+        builder.append("QUERY: ").append(super.toString()).append("\n\tProjection: ").append(projection);
         return builder.toString();
     }
-
 }

@@ -30,6 +30,7 @@ package fr.gouv.vitam.processing.common.exception;
  * Define a Processing Exception to be thrown when a fatal error occurred
  */
 public class ProcessingInternalServerException extends ProcessingException {
+
     private static final long serialVersionUID = 3628145557462134442L;
 
     /**

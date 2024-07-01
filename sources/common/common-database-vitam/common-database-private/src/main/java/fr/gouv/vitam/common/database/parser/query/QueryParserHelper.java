@@ -45,8 +45,7 @@ import java.util.Map.Entry;
  */
 public class QueryParserHelper extends QueryHelper {
 
-    protected QueryParserHelper() {
-    }
+    protected QueryParserHelper() {}
 
     /**
      * @param array primary list of path in the future PathQuery
@@ -345,8 +344,7 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidCreateOperationException if could not create the query
      */
     public static final Query query(final String refCommand, final JsonNode command, final VarNameAdapter adapter)
-        throws InvalidParseOperationException,
-        InvalidCreateOperationException {
+        throws InvalidParseOperationException, InvalidCreateOperationException {
         final QUERY query = getRequestId(refCommand);
         switch (query) {
             case FLT:
@@ -481,14 +479,11 @@ public class QueryParserHelper extends QueryHelper {
             case GEOINTERSECTS:
             case GEOWITHIN:
             case NEAR:
-                throw new InvalidParseOperationException(
-                    "Unimplemented command: " + refCommand);
+                throw new InvalidParseOperationException("Unimplemented command: " + refCommand);
             case PATH:
-                throw new InvalidParseOperationException(
-                    "Invalid position for command: " + refCommand);
+                throw new InvalidParseOperationException("Invalid position for command: " + refCommand);
             default:
-                throw new InvalidParseOperationException(
-                    "Invalid command: " + refCommand);
+                throw new InvalidParseOperationException("Invalid command: " + refCommand);
         }
         if (dslQuery != null) {
             dslQuery.setFullText(dslQuery.isFullText() || isCommandAsFullText(query));
@@ -503,19 +498,16 @@ public class QueryParserHelper extends QueryHelper {
      * @return the QUERY
      * @throws InvalidParseOperationException if queryroot could not parse to JSON
      */
-    public static final QUERY getRequestId(final String queryroot)
-        throws InvalidParseOperationException {
+    public static final QUERY getRequestId(final String queryroot) throws InvalidParseOperationException {
         if (!queryroot.startsWith(BuilderToken.DEFAULT_PREFIX)) {
-            throw new InvalidParseOperationException(
-                "Incorrect request $command: " + queryroot);
+            throw new InvalidParseOperationException("Incorrect request $command: " + queryroot);
         }
         final String command = queryroot.substring(1).toUpperCase();
         QUERY query;
         try {
             query = QUERY.valueOf(command);
         } catch (final IllegalArgumentException e) {
-            throw new InvalidParseOperationException(
-                "Invalid request command: " + command, e);
+            throw new InvalidParseOperationException("Invalid request command: " + command, e);
         }
         return query;
     }
@@ -530,10 +522,11 @@ public class QueryParserHelper extends QueryHelper {
      * @throws InvalidParseOperationException if could not parse to JSON
      * @throws InvalidCreateOperationException if could not create the query
      */
-    public static final Query[] analyzeArrayCommand(final QUERY query, final JsonNode commands,
-        final VarNameAdapter adapter)
-        throws InvalidParseOperationException,
-        InvalidCreateOperationException {
+    public static final Query[] analyzeArrayCommand(
+        final QUERY query,
+        final JsonNode commands,
+        final VarNameAdapter adapter
+    ) throws InvalidParseOperationException, InvalidCreateOperationException {
         if (commands == null) {
             throw new InvalidParseOperationException("Not correctly parsed: " + query);
         }
@@ -544,10 +537,8 @@ public class QueryParserHelper extends QueryHelper {
             // multiple elements in array
             for (final JsonNode subcommand : commands) {
                 // one item
-                final Entry<String, JsonNode> requestItem =
-                    JsonHandler.checkUnicity(query.exactToken(), subcommand);
-                final Query subquery =
-                    query(requestItem.getKey(), requestItem.getValue(), adapter);
+                final Entry<String, JsonNode> requestItem = JsonHandler.checkUnicity(query.exactToken(), subcommand);
+                final Query subquery = query(requestItem.getKey(), requestItem.getValue(), adapter);
                 if (subquery == null) {
                     // NOP
                     continue;
@@ -562,8 +553,7 @@ public class QueryParserHelper extends QueryHelper {
                 queries = newQueries;
             }
         } else {
-            throw new InvalidParseOperationException(
-                "Boolean operator needs an array of expression: " + commands);
+            throw new InvalidParseOperationException("Boolean operator needs an array of expression: " + commands);
         }
         if (query == QUERY.NOT) {
             if (queries.length == 1) {

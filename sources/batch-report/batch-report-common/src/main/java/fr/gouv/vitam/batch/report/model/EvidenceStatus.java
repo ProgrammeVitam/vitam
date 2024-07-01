@@ -33,5 +33,5 @@ public enum EvidenceStatus {
     OK,
     FATAL,
     KO,
-    WARN
+    WARN,
 }

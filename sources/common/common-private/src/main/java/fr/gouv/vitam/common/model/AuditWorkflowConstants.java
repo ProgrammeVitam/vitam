@@ -31,7 +31,5 @@ package fr.gouv.vitam.common.model;
  */
 public class AuditWorkflowConstants {
 
-    private AuditWorkflowConstants() {
-    }
-
+    private AuditWorkflowConstants() {}
 }

@@ -32,6 +32,7 @@ import com.mongodb.client.MongoClient;
  * simple implementation on MongoDbAccess
  */
 public class SimpleMongoDBAccess extends MongoDbAccess {
+
     /**
      * @param mongoClient MongoClient
      * @param dbname MongoDB database name
@@ -40,5 +41,4 @@ public class SimpleMongoDBAccess extends MongoDbAccess {
     public SimpleMongoDBAccess(MongoClient mongoClient, String dbname) {
         super(mongoClient, dbname);
     }
-
 }

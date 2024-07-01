@@ -56,10 +56,10 @@ import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
 import fr.gouv.vitam.metadata.api.exception.MetaDataDocumentSizeException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -103,6 +103,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class BulkAtomicUpdateProcessTest {
+
     private static final int TENANT_ID = 0;
 
     private static final String CONTAINER_NAME = "aebaaaaaaaag3r7cabf4aak2izdlnwiaaaop";
@@ -118,8 +119,9 @@ public class BulkAtomicUpdateProcessTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -155,7 +157,6 @@ public class BulkAtomicUpdateProcessTest {
     private AdminManagementClient adminManagementClient;
     private BatchReportClient batchReportClient;
 
-
     private InputStream unit;
     private RequestResponse<JsonNode> unitResponse;
     private JsonNode lfcResponse;
@@ -188,18 +189,21 @@ public class BulkAtomicUpdateProcessTest {
     public void givingUnitListWhenMassUpdateThenReturnOK() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        JsonNode originalQuery1 =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
-        JsonNode originalQuery2 =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
-        final WorkerParameters params =
-            newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
-                .setProcessId(operationId)
-                .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
+        JsonNode originalQuery1 = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1)
+        );
+        JsonNode originalQuery2 = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2)
+        );
+        final WorkerParameters params = newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
+            .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
+            .setProcessId(operationId)
+            .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -211,12 +215,15 @@ public class BulkAtomicUpdateProcessTest {
         given(metadataClient.atomicUpdateBulk(any())).willReturn(globalResponse);
         when(metadataClient.getUnitByIdRaw(any())).thenReturn(unitResponse);
         when(lfcClient.getRawUnitLifeCycleById(any())).thenReturn(lfcResponse);
-        when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName()))
-            .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
-        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
-            .thenReturn(getStoredInfoResult());
-        when(adminManagementClient.findOntologies(any()))
-            .thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
+        when(
+            workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName())
+        ).thenReturn(Response.status(Response.Status.OK).entity(unit).build());
+        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).thenReturn(
+            getStoredInfoResult()
+        );
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode())
+        );
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
 
@@ -229,8 +236,9 @@ public class BulkAtomicUpdateProcessTest {
         assertThat(itemStatuses.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(itemStatuses.get(1).getGlobalStatus()).isEqualTo(StatusCode.OK);
 
-        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
-            ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor = ArgumentCaptor.forClass(
+            ReportBody.class
+        );
         verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
         assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
@@ -250,18 +258,21 @@ public class BulkAtomicUpdateProcessTest {
     public void should_an_update_ok_contains_error_produce_a_ko_item_status() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        JsonNode originalQuery1 =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
-        JsonNode originalQuery2 =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
-        final WorkerParameters params =
-            newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
-                .setProcessId(operationId)
-                .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
+        JsonNode originalQuery1 = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1)
+        );
+        JsonNode originalQuery2 = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2)
+        );
+        final WorkerParameters params = newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
+            .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
+            .setProcessId(operationId)
+            .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -273,12 +284,15 @@ public class BulkAtomicUpdateProcessTest {
         given(metadataClient.atomicUpdateBulk(any())).willReturn(globalResponse);
         when(metadataClient.getUnitByIdRaw(any())).thenReturn(unitResponse);
         when(lfcClient.getRawUnitLifeCycleById(any())).thenReturn(lfcResponse);
-        when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName()))
-            .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
-        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
-            .thenReturn(getStoredInfoResult());
-        when(adminManagementClient.findOntologies(any()))
-            .thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
+        when(
+            workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName())
+        ).thenReturn(Response.status(Response.Status.OK).entity(unit).build());
+        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).thenReturn(
+            getStoredInfoResult()
+        );
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode())
+        );
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
 
@@ -291,8 +305,9 @@ public class BulkAtomicUpdateProcessTest {
         assertThat(itemStatuses.get(0).getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(itemStatuses.get(1).getGlobalStatus()).isEqualTo(StatusCode.KO);
 
-        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
-            ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor = ArgumentCaptor.forClass(
+            ReportBody.class
+        );
         verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
         assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
@@ -310,18 +325,21 @@ public class BulkAtomicUpdateProcessTest {
     public void should_an_update_contain_a_warning_produce_an_exception() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        JsonNode originalQuery1 =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
-        JsonNode originalQuery2 =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
-        final WorkerParameters params =
-            newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
-                .setProcessId(operationId)
-                .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
+        JsonNode originalQuery1 = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1)
+        );
+        JsonNode originalQuery2 = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2)
+        );
+        final WorkerParameters params = newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
+            .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
+            .setProcessId(operationId)
+            .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -333,21 +351,24 @@ public class BulkAtomicUpdateProcessTest {
         given(metadataClient.atomicUpdateBulk(any())).willReturn(globalResponse);
         when(metadataClient.getUnitByIdRaw(any())).thenReturn(unitResponse);
         when(lfcClient.getRawUnitLifeCycleById(any())).thenReturn(lfcResponse);
-        when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName()))
-            .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
-        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
-            .thenReturn(getStoredInfoResult());
-        when(adminManagementClient.findOntologies(any()))
-            .thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
+        when(
+            workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName())
+        ).thenReturn(Response.status(Response.Status.OK).entity(unit).build());
+        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).thenReturn(
+            getStoredInfoResult()
+        );
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode())
+        );
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
 
         File reportFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(any())).willReturn(reportFile);
 
-        assertThatThrownBy(() -> bulkAtomicUpdateProcess.executeList(params, handlerIO))
-            .isInstanceOf(VitamRuntimeException.class);
-
+        assertThatThrownBy(() -> bulkAtomicUpdateProcess.executeList(params, handlerIO)).isInstanceOf(
+            VitamRuntimeException.class
+        );
     }
 
     @Test
@@ -355,18 +376,21 @@ public class BulkAtomicUpdateProcessTest {
     public void should_an_update_error_produce_a_fatal_item_status() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        JsonNode originalQuery1 =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
-        JsonNode originalQuery2 =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
-        final WorkerParameters params =
-            newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
-                .setProcessId(operationId)
-                .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
+        JsonNode originalQuery1 = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1)
+        );
+        JsonNode originalQuery2 = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2)
+        );
+        final WorkerParameters params = newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
+            .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
+            .setProcessId(operationId)
+            .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -376,20 +400,24 @@ public class BulkAtomicUpdateProcessTest {
         given(metadataClient.atomicUpdateBulk(any())).willReturn(new VitamError("ERROR"));
         when(metadataClient.getUnitByIdRaw(any())).thenReturn(unitResponse);
         when(lfcClient.getRawUnitLifeCycleById(any())).thenReturn(lfcResponse);
-        when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName()))
-            .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
-        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
-            .thenReturn(getStoredInfoResult());
-        when(adminManagementClient.findOntologies(any()))
-            .thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
+        when(
+            workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName())
+        ).thenReturn(Response.status(Response.Status.OK).entity(unit).build());
+        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).thenReturn(
+            getStoredInfoResult()
+        );
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode())
+        );
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
 
         File reportFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(any())).willReturn(reportFile);
 
-        assertThatThrownBy(() -> bulkAtomicUpdateProcess.executeList(params, handlerIO))
-            .isInstanceOf(ProcessingException.class);
+        assertThatThrownBy(() -> bulkAtomicUpdateProcess.executeList(params, handlerIO)).isInstanceOf(
+            ProcessingException.class
+        );
     }
 
     @Test
@@ -397,18 +425,21 @@ public class BulkAtomicUpdateProcessTest {
     public void should_an_update_exception_produce_a_fatal_item_status() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        JsonNode originalQuery1 =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
-        JsonNode originalQuery2 =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
-        final WorkerParameters params =
-            newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
-                .setProcessId(operationId)
-                .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
+        JsonNode originalQuery1 = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1)
+        );
+        JsonNode originalQuery2 = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2)
+        );
+        final WorkerParameters params = newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
+            .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
+            .setProcessId(operationId)
+            .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
@@ -418,20 +449,24 @@ public class BulkAtomicUpdateProcessTest {
         given(metadataClient.atomicUpdateBulk(any())).willThrow(new MetaDataDocumentSizeException("too big"));
         when(metadataClient.getUnitByIdRaw(any())).thenReturn(unitResponse);
         when(lfcClient.getRawUnitLifeCycleById(any())).thenReturn(lfcResponse);
-        when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName()))
-            .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
-        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
-            .thenReturn(getStoredInfoResult());
-        when(adminManagementClient.findOntologies(any()))
-            .thenReturn(ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
+        when(
+            workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName())
+        ).thenReturn(Response.status(Response.Status.OK).entity(unit).build());
+        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).thenReturn(
+            getStoredInfoResult()
+        );
+        when(adminManagementClient.findOntologies(any())).thenReturn(
+            ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode())
+        );
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
 
         File reportFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(any())).willReturn(reportFile);
 
-        assertThatThrownBy(() -> bulkAtomicUpdateProcess.executeList(params, handlerIO))
-            .isInstanceOf(ProcessingException.class);
+        assertThatThrownBy(() -> bulkAtomicUpdateProcess.executeList(params, handlerIO)).isInstanceOf(
+            ProcessingException.class
+        );
     }
 
     @Test
@@ -439,36 +474,42 @@ public class BulkAtomicUpdateProcessTest {
     public void should_a_storage_error_produce_a_fatal_item_status() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        JsonNode originalQuery1 =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
-        JsonNode originalQuery2 =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2));
-        final WorkerParameters params =
-            newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
-                .setProcessId(operationId)
-                .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
+        JsonNode originalQuery1 = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1)
+        );
+        JsonNode originalQuery2 = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE2)
+        );
+        final WorkerParameters params = newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
+            .setObjectMetadataList(Lists.newArrayList(originalQuery1, originalQuery2))
+            .setProcessId(operationId)
+            .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         willDoNothing().given(batchReportClient).appendReportEntries(any());
 
-        JsonNode query =
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json"));
+        JsonNode query = JsonHandler.getFromInputStream(
+            getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json")
+        );
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(query);
         String workerId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
 
         RequestResponseOK<JsonNode> globalResponse = createMetadataResponseOK(UNIT1_GUID, UNIT2_GUID);
 
         given(handlerIO.getWorkerId()).willReturn(workerId);
-        doThrow(new ProcessingException("exception")).when(handlerIO)
+        doThrow(new ProcessingException("exception"))
+            .when(handlerIO)
             .transferInputStreamToWorkspace(anyString(), any(), any(), anyBoolean());
         given(metadataClient.atomicUpdateBulk(any())).willReturn(globalResponse);
         given(metadataClient.getUnitByIdRaw(any())).willReturn(unitResponse);
-        given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
-            .willReturn(getStoredInfoResult());
+        given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).willReturn(
+            getStoredInfoResult()
+        );
         given(lfcClient.getRawUnitLifeCycleById(any())).willReturn(lfcResponse);
 
         // When
@@ -477,11 +518,13 @@ public class BulkAtomicUpdateProcessTest {
         // Then
         assertThat(itemStatuses).isNotNull();
         assertThat(itemStatuses).hasSize(2);
-        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus)
+        assertThat(itemStatuses)
+            .extracting(ItemStatus::getGlobalStatus)
             .containsOnly(StatusCode.FATAL, StatusCode.FATAL);
 
-        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
-            ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor = ArgumentCaptor.forClass(
+            ReportBody.class
+        );
         verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
         assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
@@ -504,8 +547,9 @@ public class BulkAtomicUpdateProcessTest {
         String processId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
 
         // New ArrayList, otherwise the originQuery parameter is skipped by Lists.newArrayList()
-        JsonNode originalQuery =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
+        JsonNode originalQuery = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1)
+        );
         WorkerParameters params = newWorkerParameters()
             .setWorkerGUID(GUIDFactory.newGUID().getId())
             .setContainerName(processId)
@@ -515,7 +559,6 @@ public class BulkAtomicUpdateProcessTest {
             .setObjectMetadataList(Collections.singletonList(originalQuery))
             .setProcessId(processId)
             .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
-
 
         RequestResponseOK<JsonNode> globalResponse = new RequestResponseOK<>();
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
@@ -538,8 +581,9 @@ public class BulkAtomicUpdateProcessTest {
 
         given(handlerIO.getWorkerId()).willReturn(processId);
         given(handlerIO.getContainerName()).willReturn(processId);
-        given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
-            .willReturn(getStoredInfoResult());
+        given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).willReturn(
+            getStoredInfoResult()
+        );
 
         LogbookLifecycle lfc = new LogbookLifecycle();
         LogbookEvent event = new LogbookEvent();
@@ -559,8 +603,9 @@ public class BulkAtomicUpdateProcessTest {
         assertThat(itemStatuses.size()).isEqualTo(1);
         assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(StatusCode.OK);
 
-        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
-            ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor = ArgumentCaptor.forClass(
+            ReportBody.class
+        );
         verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
         assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
@@ -571,7 +616,6 @@ public class BulkAtomicUpdateProcessTest {
         assertThat(reportBodyArgument.getEntries().get(0).getDetailId()).isEqualTo("0");
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void should_not_save_in_mongo_and_store_lfc_when_no_change() throws Exception {
@@ -580,8 +624,9 @@ public class BulkAtomicUpdateProcessTest {
         String processId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
 
         // New ArrayList, otherwise the originQuery parameter is skipped by Lists.newArrayList()
-        JsonNode originalQuery =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1));
+        JsonNode originalQuery = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(ORIGINAL_QUERY_FILE1)
+        );
         WorkerParameters params = newWorkerParameters()
             .setWorkerGUID(GUIDFactory.newGUID().getId())
             .setContainerName(processId)
@@ -591,7 +636,6 @@ public class BulkAtomicUpdateProcessTest {
             .setObjectMetadataList(Collections.singletonList(originalQuery))
             .setProcessId(processId)
             .setLogbookTypeProcess(LogbookTypeProcess.BULK_UPDATE);
-
 
         RequestResponseOK<JsonNode> globalResponse = new RequestResponseOK<>();
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
@@ -629,8 +673,9 @@ public class BulkAtomicUpdateProcessTest {
         assertThat(itemStatuses.size()).isEqualTo(1);
         assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(StatusCode.WARNING);
 
-        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor =
-            ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<BulkUpdateUnitMetadataReportEntry>> reportArgumentCaptor = ArgumentCaptor.forClass(
+            ReportBody.class
+        );
         verify(batchReportClient).appendReportEntries(reportArgumentCaptor.capture());
         assertThat(reportArgumentCaptor.getAllValues().size()).isEqualTo(1);
         ReportBody<BulkUpdateUnitMetadataReportEntry> reportBodyArgument = reportArgumentCaptor.getValue();
@@ -658,9 +703,17 @@ public class BulkAtomicUpdateProcessTest {
         RequestResponseOK<JsonNode> globalResponse = new RequestResponseOK<>();
         for (String unitId : unitIds) {
             RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
-            responseOK.addResult(JsonHandler.toJsonNode(
-                new UpdateUnit(unitId, StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE, "update ok",
-                    "-    Title : monSIP 5\n+    Title : nouveauSIP 6\n-    #version : 3\n+    #version : 4")));
+            responseOK.addResult(
+                JsonHandler.toJsonNode(
+                    new UpdateUnit(
+                        unitId,
+                        StatusCode.OK,
+                        UpdateUnitKey.UNIT_METADATA_UPDATE,
+                        "update ok",
+                        "-    Title : monSIP 5\n+    Title : nouveauSIP 6\n-    #version : 3\n+    #version : 4"
+                    )
+                )
+            );
             responseOK.setHttpCode(OK.getStatusCode());
 
             globalResponse.addResult(JsonHandler.toJsonNode(responseOK));
@@ -674,9 +727,17 @@ public class BulkAtomicUpdateProcessTest {
         RequestResponseOK<JsonNode> globalResponse = new RequestResponseOK<>();
         for (String unitId : unitIds) {
             RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
-            responseOK.addResult(JsonHandler.toJsonNode(
-                new UpdateUnit(unitId, StatusCode.WARNING, UpdateUnitKey.UNIT_METADATA_UPDATE, "update warning",
-                    "-    Title : monSIP 5\n+    Title : nouveauSIP 6\n-    #version : 3\n+    #version : 4")));
+            responseOK.addResult(
+                JsonHandler.toJsonNode(
+                    new UpdateUnit(
+                        unitId,
+                        StatusCode.WARNING,
+                        UpdateUnitKey.UNIT_METADATA_UPDATE,
+                        "update warning",
+                        "-    Title : monSIP 5\n+    Title : nouveauSIP 6\n-    #version : 3\n+    #version : 4"
+                    )
+                )
+            );
             responseOK.setHttpCode(OK.getStatusCode());
 
             globalResponse.addResult(JsonHandler.toJsonNode(responseOK));
@@ -700,5 +761,4 @@ public class BulkAtomicUpdateProcessTest {
         globalResponse.setHttpCode(OK.getStatusCode());
         return globalResponse;
     }
-
 }

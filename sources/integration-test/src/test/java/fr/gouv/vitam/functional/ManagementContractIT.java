@@ -80,6 +80,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * ManagementContract
  */
 public class ManagementContractIT extends VitamRuleRunner {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ManagementContractIT.class);
     private static final Integer TENANT_ID = 0;
     private static final String FILE_MANAGEMENT_CONTRACT_ARK_OK =
@@ -90,34 +91,34 @@ public class ManagementContractIT extends VitamRuleRunner {
     private static final String FILE_MANAGEMENT_CONTRACT_STORAGE_OK =
         "/functional-admin/management-contract/management_contract_storage_ok.json";
 
-
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(ManagementContractIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                WorkspaceMain.class,
-                StorageMain.class,
-                LogbookMain.class,
-                MetadataMain.class,
-                AccessInternalMain.class,
-                AdminManagementMain.class,
-                IngestInternalMain.class,
-                ProcessManagementMain.class,
-                WorkerMain.class
-
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        ManagementContractIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            WorkspaceMain.class,
+            StorageMain.class,
+            LogbookMain.class,
+            MetadataMain.class,
+            AccessInternalMain.class,
+            AdminManagementMain.class,
+            IngestInternalMain.class,
+            ProcessManagementMain.class,
+            WorkerMain.class
+        )
+    );
 
     private static LogbookElasticsearchAccess esClient;
-
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
 
         // ES client
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
         esClient = new LogbookElasticsearchAccess(ElasticsearchRule.getClusterName(), esNodes, logbookIndexManager);
 
         StorageClientFactory storageClientFactory = StorageClientFactory.getInstance();
@@ -133,7 +134,6 @@ public class ManagementContractIT extends VitamRuleRunner {
         VitamClientFactory.resetConnections();
     }
 
-
     @Before
     public void setUpBefore() throws Exception {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(0));
@@ -148,13 +148,16 @@ public class ManagementContractIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         InputStream contract = getClass().getResourceAsStream(FILE_MANAGEMENT_CONTRACT_ARK_OK);
         // When
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
-                .getClient()) {
+        try (
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()
+        ) {
             Response.Status status = client.importManagementContracts(
-                getFromStringAsTypeReference(JsonHandler.getFromInputStream(contract).toString(),
-                    new TypeReference<List<ManagementContractModel>>() {
-                    }));
+                getFromStringAsTypeReference(
+                    JsonHandler.getFromInputStream(contract).toString(),
+                    new TypeReference<List<ManagementContractModel>>() {}
+                )
+            );
             Select select = new Select();
             select.setQuery(QueryHelper.eq("evType", "STP_IMPORT_MANAGEMENT_CONTRACT"));
             final JsonNode result = logbookOperationsClient.selectOperation(select.getFinalSelect());
@@ -175,9 +178,11 @@ public class ManagementContractIT extends VitamRuleRunner {
         // When
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
             Response.Status status = client.importManagementContracts(
-                getFromStringAsTypeReference(JsonHandler.getFromInputStream(contract).toString(),
-                    new TypeReference<List<ManagementContractModel>>() {
-                    }));
+                getFromStringAsTypeReference(
+                    JsonHandler.getFromInputStream(contract).toString(),
+                    new TypeReference<List<ManagementContractModel>>() {}
+                )
+            );
         }
     }
 
@@ -189,13 +194,16 @@ public class ManagementContractIT extends VitamRuleRunner {
         InputStream contract = getClass().getResourceAsStream(FILE_MANAGEMENT_CONTRACT_STORAGE_OK);
 
         // When
-        try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
-            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance()
-                .getClient()) {
+        try (
+            AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient();
+            LogbookOperationsClient logbookOperationsClient = LogbookOperationsClientFactory.getInstance().getClient()
+        ) {
             Response.Status status = client.importManagementContracts(
-                getFromStringAsTypeReference(JsonHandler.getFromInputStream(contract).toString(),
-                    new TypeReference<List<ManagementContractModel>>() {
-                    }));
+                getFromStringAsTypeReference(
+                    JsonHandler.getFromInputStream(contract).toString(),
+                    new TypeReference<List<ManagementContractModel>>() {}
+                )
+            );
             Select select = new Select();
             select.setQuery(QueryHelper.eq("evType", "STP_IMPORT_MANAGEMENT_CONTRACT"));
             final JsonNode result = logbookOperationsClient.selectOperation(select.getFinalSelect());

@@ -63,10 +63,10 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
 
-
 @Path("/collect-external/v1")
 @Tag(name = "Collect-External")
 public class CollectMetadataExternalResource extends ApplicationStatusResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CollectMetadataExternalResource.class);
 
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
@@ -105,20 +105,27 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
         }
     }
 
-
     @Path("/units/{unitId}/objects/{usage}/{version}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = TRANSACTION_OBJECT_UPSERT, description = "Upload un groupe d'objet")
-    public Response createObjectGroup(@PathParam("unitId") String unitId, @PathParam("usage") String usageString,
-        @PathParam("version") Integer version, ObjectDto objectDto) {
+    public Response createObjectGroup(
+        @PathParam("unitId") String unitId,
+        @PathParam("usage") String usageString,
+        @PathParam("version") Integer version,
+        ObjectDto objectDto
+    ) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(unitId);
             SanityChecker.checkParameter(usageString);
             ParametersChecker.checkParameter("You must supply object data !", objectDto);
-            RequestResponse<JsonNode> response =
-                client.addObjectGroup(unitId, version, JsonHandler.toJsonNode(objectDto), usageString);
+            RequestResponse<JsonNode> response = client.addObjectGroup(
+                unitId,
+                version,
+                JsonHandler.toJsonNode(objectDto),
+                usageString
+            );
             return Response.status(Response.Status.OK).entity(response).build();
         } catch (final VitamClientException e) {
             LOGGER.error(ERROR_WHEN_CREATING_AN_OBJECT_GROUP_UNIT_BY_ID, e);
@@ -152,17 +159,29 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = TRANSACTION_BINARY_UPSERT, description = "Crée ou met à jour un binaire d'un usage/version")
-    public Response upload(@PathParam("unitId") String unitId, @PathParam("usage") String usageString,
-        @PathParam("version") Integer version, InputStream uploadedInputStream) {
+    public Response upload(
+        @PathParam("unitId") String unitId,
+        @PathParam("usage") String usageString,
+        @PathParam("version") Integer version,
+        InputStream uploadedInputStream
+    ) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(unitId);
             SanityChecker.checkParameter(usageString);
             SanityChecker.checkParameter(String.valueOf(version.intValue()));
-            ParametersChecker.checkParameter("usage({}), unitId({}) or version({}) can't be null", unitId, usageString,
-                version);
+            ParametersChecker.checkParameter(
+                "usage({}), unitId({}) or version({}) can't be null",
+                unitId,
+                usageString,
+                version
+            );
             ParametersChecker.checkParameter("You must supply a file!", uploadedInputStream);
-            RequestResponse<JsonNode> requestResponse =
-                client.addBinary(unitId, version, uploadedInputStream, usageString);
+            RequestResponse<JsonNode> requestResponse = client.addBinary(
+                unitId,
+                version,
+                uploadedInputStream,
+                usageString
+            );
             return Response.status(Response.Status.OK).entity(requestResponse).build();
         } catch (final VitamClientException e) {
             LOGGER.error("Error when adding binary    ", e);
@@ -176,15 +195,25 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
     @Path("/units/{unitId}/objects/{usage}/{version}/binary")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = TRANSACTION_BINARY_READ, description = "Télécharge un usage/version du binaire d'un groupe d'objets")
-    public Response download(@PathParam("unitId") String unitId, @PathParam("usage") String usageString,
-        @PathParam("version") Integer version) {
+    @Secured(
+        permission = TRANSACTION_BINARY_READ,
+        description = "Télécharge un usage/version du binaire d'un groupe d'objets"
+    )
+    public Response download(
+        @PathParam("unitId") String unitId,
+        @PathParam("usage") String usageString,
+        @PathParam("version") Integer version
+    ) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(unitId);
             SanityChecker.checkParameter(usageString);
             SanityChecker.checkParameter(String.valueOf(version.intValue()));
-            ParametersChecker.checkParameter("usage({}), unitId({}) or version({}) can't be null", unitId, usageString,
-                version);
+            ParametersChecker.checkParameter(
+                "usage({}), unitId({}) or version({}) can't be null",
+                unitId,
+                usageString,
+                version
+            );
             return client.getObjectStreamByUnitId(unitId, usageString, version);
         } catch (final VitamClientException e) {
             LOGGER.error("Error when downloading object ", e);
@@ -194,5 +223,4 @@ public class CollectMetadataExternalResource extends ApplicationStatusResource {
             return Response.status(PRECONDITION_FAILED).build();
         }
     }
-    
 }

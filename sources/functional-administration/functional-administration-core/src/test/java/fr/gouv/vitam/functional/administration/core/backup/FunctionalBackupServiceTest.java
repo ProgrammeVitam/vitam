@@ -80,9 +80,9 @@ import static org.mockito.BDDMockito.willThrow;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
-
 @RunWithCustomExecutor
 public class FunctionalBackupServiceTest {
+
     public static final String DOC1_TENANT0 =
         "{\"_id\":\"aeaaaaaaaadw44zlabowqalanjdt5laaaaaq\",\"_tenant\":0,\"Name\":\"A\",\"Identifier\":\"ID-008\"}";
     public static final String DOC2_TENANT1 =
@@ -93,9 +93,9 @@ public class FunctionalBackupServiceTest {
         "{\"_id\":\"aeaaaaaaaadw44zlabowqalanjdt5oaaaaaq\",\"Counter\":10,\"Name\":\"BACKUP_A\",\"_tenant\":0}";
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
+
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Agencies.class));
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Agencies.class));
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -113,22 +113,27 @@ public class FunctionalBackupServiceTest {
     private BackupLogbookManager backupLogbookManager;
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @InjectMocks
     private FunctionalBackupService functionalBackupService;
 
-
     @BeforeClass
     public static void beforeClass() throws Exception {
-        ElasticsearchFunctionalAdminIndexManager indexManager = FunctionalAdminCollectionsTestUtils
-            .createTestIndexManager();
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+        ElasticsearchFunctionalAdminIndexManager indexManager =
+            FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(
+                ElasticsearchRule.VITAM_CLUSTER,
                 Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())),
-                indexManager),
-            Lists.newArrayList(FunctionalAdminCollections.AGENCIES));
+                indexManager
+            ),
+            Lists.newArrayList(FunctionalAdminCollections.AGENCIES)
+        );
     }
 
     @Before
@@ -136,21 +141,23 @@ public class FunctionalBackupServiceTest {
         FunctionalAdminCollections.AGENCIES.getCollection().insertOne(new Agencies(DOC1_TENANT0));
         FunctionalAdminCollections.AGENCIES.getCollection().insertOne(new Agencies(DOC2_TENANT1));
 
-        VitamSequence vitamSequence =
-            new VitamSequence(Document.parse(SEQUENCE_DOC));
-        given(vitamCounterService.getSequenceDocument(any(), eq(SequenceType.AGENCIES_SEQUENCE)))
-            .willReturn(vitamSequence);
+        VitamSequence vitamSequence = new VitamSequence(Document.parse(SEQUENCE_DOC));
+        given(vitamCounterService.getSequenceDocument(any(), eq(SequenceType.AGENCIES_SEQUENCE))).willReturn(
+            vitamSequence
+        );
 
-        VitamSequence vitamBackupSequence =
-            new VitamSequence(Document.parse(BACKUP_SEQUENCE_DOC));
-        given(vitamCounterService.getNextBackupSequenceDocument(any(), eq(SequenceType.AGENCIES_SEQUENCE)))
-            .willReturn(vitamBackupSequence);
+        VitamSequence vitamBackupSequence = new VitamSequence(Document.parse(BACKUP_SEQUENCE_DOC));
+        given(vitamCounterService.getNextBackupSequenceDocument(any(), eq(SequenceType.AGENCIES_SEQUENCE))).willReturn(
+            vitamBackupSequence
+        );
     }
 
     @AfterClass
     public static void afterClass() {
-        FunctionalAdminCollectionsTestUtils.afterTestClass(Lists.newArrayList(FunctionalAdminCollections.AGENCIES),
-            true);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(
+            Lists.newArrayList(FunctionalAdminCollections.AGENCIES),
+            true
+        );
     }
 
     @After
@@ -167,27 +174,36 @@ public class FunctionalBackupServiceTest {
 
         List<String> savedDocCapture = new ArrayList<>();
         doAnswer(invocation -> {
-            savedDocCapture
-                .add(IOUtils.toString(((InputStream) invocation.getArguments()[0]), StandardCharsets.UTF_8));
+            savedDocCapture.add(IOUtils.toString(((InputStream) invocation.getArguments()[0]), StandardCharsets.UTF_8));
             return null;
-        }).when(backupService).backup(any(), any(), anyString());
+        })
+            .when(backupService)
+            .backup(any(), any(), anyString());
 
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         // When
         GUID guid = newEventGUID(0);
-        functionalBackupService.saveCollectionAndSequence(guid, "STP_TEST",
-            agencies, guid.toString());
+        functionalBackupService.saveCollectionAndSequence(guid, "STP_TEST", agencies, guid.toString());
         //Then
 
         ArgumentCaptor<String> hashArgCaptor = ArgumentCaptor.forClass(String.class);
-        verify(backupLogbookManager)
-            .logEventSuccess(eq(guid), eq("STP_TEST"), hashArgCaptor.capture(), eq("0_" + PREFIX + "Agencies_10.json"),
-                any());
+        verify(backupLogbookManager).logEventSuccess(
+            eq(guid),
+            eq("STP_TEST"),
+            hashArgCaptor.capture(),
+            eq("0_" + PREFIX + "Agencies_10.json"),
+            any()
+        );
 
         String expectedDump =
-            "{\"collection\":[" + DOC1_TENANT0 + "],\"sequence\":" + SEQUENCE_DOC + ",\"backup_sequence\":" +
-                BACKUP_SEQUENCE_DOC + "}";
+            "{\"collection\":[" +
+            DOC1_TENANT0 +
+            "],\"sequence\":" +
+            SEQUENCE_DOC +
+            ",\"backup_sequence\":" +
+            BACKUP_SEQUENCE_DOC +
+            "}";
         String expectedDigest = new Digest(VitamConfiguration.getDefaultDigestType()).update(expectedDump).digestHex();
 
         assertThat(savedDocCapture).hasSize(1);
@@ -205,8 +221,9 @@ public class FunctionalBackupServiceTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         // When / then
-        assertThatThrownBy(() -> functionalBackupService
-            .saveCollectionAndSequence(guid, "STP_TEST", agencies, guid.toString()))
+        assertThatThrownBy(
+            () -> functionalBackupService.saveCollectionAndSequence(guid, "STP_TEST", agencies, guid.toString())
+        )
             .isInstanceOf(FunctionalBackupServiceException.class)
             .withFailMessage("Error Message");
         verify(backupLogbookManager).logError(guid, "STP_TEST", "Error Message");

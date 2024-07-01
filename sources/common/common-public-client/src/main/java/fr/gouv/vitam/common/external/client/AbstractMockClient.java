@@ -58,10 +58,7 @@ public class AbstractMockClient implements MockOrRestClient {
     }
 
     @Override
-    public void checkStatus(MultivaluedHashMap<String, Object> headers)
-        throws VitamApplicationServerException {
-
-    }
+    public void checkStatus(MultivaluedHashMap<String, Object> headers) throws VitamApplicationServerException {}
 
     @Override
     public void close() {
@@ -87,6 +84,7 @@ public class AbstractMockClient implements MockOrRestClient {
      * Fake Inbound Response for Mock client support
      */
     public static class FakeInboundResponse extends Response {
+
         private final Response response;
 
         /**
@@ -95,8 +93,12 @@ public class AbstractMockClient implements MockOrRestClient {
          * @param mediaType
          * @param headers
          */
-        public FakeInboundResponse(Status status, Object entity, MediaType mediaType,
-            MultivaluedHashMap<String, Object> headers) {
+        public FakeInboundResponse(
+            Status status,
+            Object entity,
+            MediaType mediaType,
+            MultivaluedHashMap<String, Object> headers
+        ) {
             final ResponseBuilder builder = Response.status(status);
             if (entity != null) {
                 builder.entity(entity);

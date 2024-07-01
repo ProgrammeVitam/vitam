@@ -51,6 +51,7 @@ import java.util.Arrays;
  * This class supports Helpers on streams.
  */
 public class StreamUtils {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StreamUtils.class);
     private static final int BUFFER_SIZE = 8192;
 
@@ -69,8 +70,10 @@ public class StreamUtils {
      * @throws IOException
      */
     public static final long copy(InputStream inputStream, OutputStream outputStream) throws IOException {
-        try (final ReadableByteChannel inputChannel = Channels.newChannel(inputStream);
-            final WritableByteChannel outputChannel = Channels.newChannel(outputStream)) {
+        try (
+            final ReadableByteChannel inputChannel = Channels.newChannel(inputStream);
+            final WritableByteChannel outputChannel = Channels.newChannel(outputStream)
+        ) {
             final ByteBuffer buffer = ByteBuffer.allocateDirect(VitamConfiguration.getChunkSize());
             try {
                 long length = 0;
@@ -126,6 +129,7 @@ public class StreamUtils {
     }
 
     private static class RemainingReadOnCloseInputStream extends InputStream {
+
         private final InputStream source;
 
         private RemainingReadOnCloseInputStream(InputStream inputStream) {
@@ -176,7 +180,6 @@ public class StreamUtils {
         public int read() throws IOException {
             return source.read();
         }
-
     }
 
     /**

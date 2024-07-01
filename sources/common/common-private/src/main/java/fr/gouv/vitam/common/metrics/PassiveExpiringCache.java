@@ -47,7 +47,6 @@ public final class PassiveExpiringCache<K, V> {
     private final Map<K, Pair<Instant, V>> cacheMap;
 
     public PassiveExpiringCache(long cacheDuration, TimeUnit cacheDurationUnit) {
-
         this.cacheValidityDuration = Duration.of(cacheDuration, cacheDurationUnit.toChronoUnit());
 
         // Access to cache is synchronized

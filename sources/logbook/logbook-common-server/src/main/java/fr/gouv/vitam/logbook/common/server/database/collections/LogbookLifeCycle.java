@@ -43,13 +43,13 @@ import java.util.Map;
  * @param <T> template
  */
 public class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
+
     private static final long serialVersionUID = 105654500015427902L;
 
     /**
      * Constructor
      */
-    public LogbookLifeCycle() {
-    }
+    public LogbookLifeCycle() {}
 
     /**
      * Constructor from LogbookLifeCycleParameters
@@ -67,7 +67,6 @@ public class LogbookLifeCycle<T> extends VitamDocument<LogbookLifeCycle<T>> {
         append(LogbookDocument.EVENTS, Collections.emptyList());
         checkId();
     }
-
 
     /**
      * Constructor for Codec

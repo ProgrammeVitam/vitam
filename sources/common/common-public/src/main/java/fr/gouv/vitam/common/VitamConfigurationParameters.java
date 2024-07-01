@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.model.dip.BinarySizeTenantThreshold;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * This class contains Vitam Data
  */
@@ -113,7 +112,6 @@ public class VitamConfigurationParameters {
      * So this is a vitam limitation.
      */
     private Integer textMaxLength;
-
 
     private Integer textContentMaxLength;
 
@@ -403,7 +401,6 @@ public class VitamConfigurationParameters {
 
     private List<EliminationReportConfiguration> eliminationReportExtraFields;
 
-
     /**
      * VitamData empty constructor for YAMLFactory
      */
@@ -411,14 +408,12 @@ public class VitamConfigurationParameters {
         // empty
     }
 
-
     /**
      * Must return the value of a 'secret' attribute
      *
      * @return the secret value
      */
     public String getSecret() {
-
         if (Strings.isNullOrEmpty(secret)) {
             return "";
         }
@@ -436,8 +431,6 @@ public class VitamConfigurationParameters {
         return this;
     }
 
-
-
     /**
      * Must return the value of a 'filterActivation' attribute
      *
@@ -447,7 +440,6 @@ public class VitamConfigurationParameters {
         return filterActivation;
     }
 
-
     /**
      * @param filterActivation the filterActivation to set
      * @return this
@@ -456,8 +448,6 @@ public class VitamConfigurationParameters {
         this.filterActivation = filterActivation;
         return this;
     }
-
-
 
     /**
      * Getter for vitamConfigFolderDefault;
@@ -536,14 +526,12 @@ public class VitamConfigurationParameters {
         return asyncWorkspaceQueueSize;
     }
 
-
     /**
      * Sets the size of the queue of async workspace
      */
     public void setAsyncWorkspaceQueueSize(int queueSize) {
         asyncWorkspaceQueueSize = queueSize;
     }
-
 
     /**
      * Getter for recvBufferSize;
@@ -810,8 +798,7 @@ public class VitamConfigurationParameters {
         return requestTimeAlertThrottlingDelay;
     }
 
-    public VitamConfigurationParameters setRequestTimeAlertThrottlingDelay(
-        Integer requestTimeAlertThrottlingDelay) {
+    public VitamConfigurationParameters setRequestTimeAlertThrottlingDelay(Integer requestTimeAlertThrottlingDelay) {
         this.requestTimeAlertThrottlingDelay = requestTimeAlertThrottlingDelay;
         return this;
     }
@@ -857,8 +844,6 @@ public class VitamConfigurationParameters {
     public void setWaitingDelay(Integer waitingDelay) {
         this.waitingDelay = waitingDelay;
     }
-
-
 
     /**
      * Getter for forceChunkModeInputStream;
@@ -936,7 +921,6 @@ public class VitamConfigurationParameters {
         return vitamCleanPeriod;
     }
 
-
     /**
      * Getter for exportScore;
      */
@@ -951,8 +935,6 @@ public class VitamConfigurationParameters {
         this.exportScore = exportScore;
     }
 
-
-
     /**
      * Getter for distributeurBatchSize;
      */
@@ -966,7 +948,6 @@ public class VitamConfigurationParameters {
     public void setDistributeurBatchSize(Integer distributeurBatchSize) {
         this.distributeurBatchSize = distributeurBatchSize;
     }
-
 
     /**
      * Getter for worker bulk size
@@ -986,7 +967,6 @@ public class VitamConfigurationParameters {
         this.workerBulkSize = workerBulkSize;
     }
 
-
     /**
      * Getter for storeGraphElementsPerFile
      *
@@ -1004,7 +984,6 @@ public class VitamConfigurationParameters {
     public void setStoreGraphElementsPerFile(Integer storeGraphElementsPerFile) {
         this.storeGraphElementsPerFile = storeGraphElementsPerFile;
     }
-
 
     /**
      * Get store graph overlap delay
@@ -1058,7 +1037,6 @@ public class VitamConfigurationParameters {
         this.deleteIncompleteReconstructedUnitDelay = deleteIncompleteReconstructedUnitDelay;
     }
 
-
     /**
      * Get optimistic lock retry number
      *
@@ -1094,7 +1072,6 @@ public class VitamConfigurationParameters {
     public void setOptimisticLockSleepTime(Integer optimisticLockSleepTime) {
         this.optimisticLockSleepTime = optimisticLockSleepTime;
     }
-
 
     /**
      * Getter
@@ -1147,7 +1124,6 @@ public class VitamConfigurationParameters {
     public void setRestoreBulkSize(int restoreBulkSize) {
         this.restoreBulkSize = restoreBulkSize;
     }
-
 
     /**
      * Getter for maxElasticsearchBulk;
@@ -1250,7 +1226,8 @@ public class VitamConfigurationParameters {
     }
 
     public VitamConfigurationParameters setBulkAtomicUpdateThreadPoolQueueSize(
-        Integer bulkAtomicUpdateThreadPoolQueueSize) {
+        Integer bulkAtomicUpdateThreadPoolQueueSize
+    ) {
         this.bulkAtomicUpdateThreadPoolQueueSize = bulkAtomicUpdateThreadPoolQueueSize;
         return this;
     }
@@ -1299,7 +1276,6 @@ public class VitamConfigurationParameters {
     public void setMaxCacheEntries(int maxCacheEntries) {
         this.maxCacheEntries = maxCacheEntries;
     }
-
 
     /**
      * Setter for expireCacheEntriesDelay
@@ -1353,7 +1329,6 @@ public class VitamConfigurationParameters {
         this.tenants = tenants;
     }
 
-
     /**
      * Getter for defaultOriginatingAgencyForExport
      *
@@ -1377,7 +1352,6 @@ public class VitamConfigurationParameters {
     public void setVitamDefaultTransferringAgency(String vitamDefaultTransferringAgency) {
         this.vitamDefaultTransferringAgency = vitamDefaultTransferringAgency;
     }
-
 
     public Map<String, String> getVitamDefaultCodeListVersion() {
         return vitamDefaultCodeListVersion;
@@ -1426,7 +1400,8 @@ public class VitamConfigurationParameters {
      * Max guid to store in logbook operation in evDetData
      */
     public void setReclassificationMaxGuildListSizeInLogbookOperation(
-        Integer reclassificationMaxGuildListSizeInLogbookOperation) {
+        Integer reclassificationMaxGuildListSizeInLogbookOperation
+    ) {
         this.reclassificationMaxGuildListSizeInLogbookOperation = reclassificationMaxGuildListSizeInLogbookOperation;
     }
 
@@ -1437,7 +1412,6 @@ public class VitamConfigurationParameters {
     public void setClassificationLevel(ClassificationLevel classificationLevel) {
         this.classificationLevel = classificationLevel;
     }
-
 
     /**
      * Get environmentName
@@ -1472,7 +1446,6 @@ public class VitamConfigurationParameters {
     public void setOperationMaxSizeForExternal(Long operationMaxSizeForExternal) {
         this.operationMaxSizeForExternal = operationMaxSizeForExternal;
     }
-
 
     /**
      * Getter
@@ -1537,7 +1510,8 @@ public class VitamConfigurationParameters {
     }
 
     public void setElasticSearchTimeoutWaitRequestInMilliseconds(
-        Integer elasticSearchTimeoutWaitRequestInMilliseconds) {
+        Integer elasticSearchTimeoutWaitRequestInMilliseconds
+    ) {
         this.elasticSearchTimeoutWaitRequestInMilliseconds = elasticSearchTimeoutWaitRequestInMilliseconds;
     }
 
@@ -1548,7 +1522,6 @@ public class VitamConfigurationParameters {
     public void setElasticSearchScrollLimit(Integer elasticSearchScrollLimit) {
         this.elasticSearchScrollLimit = elasticSearchScrollLimit;
     }
-
 
     public Integer getHttpClientRetry() {
         return httpClientRetry;
@@ -1626,8 +1599,7 @@ public class VitamConfigurationParameters {
         return eliminationReportExtraFields;
     }
 
-    public void setEliminationReportExtraFields(
-        List<EliminationReportConfiguration> eliminationReportExtraFields) {
+    public void setEliminationReportExtraFields(List<EliminationReportConfiguration> eliminationReportExtraFields) {
         this.eliminationReportExtraFields = eliminationReportExtraFields;
     }
 }

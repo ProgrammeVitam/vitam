@@ -47,8 +47,13 @@ public class StoragePutRequest extends StorageObjectRequest {
      * @param digestAlgorithm the object digestAlgorithm
      * @param dataStream data stream of the object to put in offer
      */
-    public StoragePutRequest(Integer tenantId, String type, String guid, String digestAlgorithm,
-        InputStream dataStream) {
+    public StoragePutRequest(
+        Integer tenantId,
+        String type,
+        String guid,
+        String digestAlgorithm,
+        InputStream dataStream
+    ) {
         super(tenantId, type, guid);
         this.digestAlgorithm = digestAlgorithm;
         this.dataStream = dataStream;
@@ -84,5 +89,4 @@ public class StoragePutRequest extends StorageObjectRequest {
     public String toString() {
         return "DigestAlgo: " + digestAlgorithm + " DataStream:" + (dataStream != null) + " " + super.toString();
     }
-
 }

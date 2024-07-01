@@ -83,14 +83,16 @@ public class DeleteGotVersionsStoragePlugin extends ActionHandler {
         List<JsonNode> objectGroupToDeleteReportEntriesNodes = param.getObjectMetadataList();
         for (int i = 0; i < objectGroupToDeleteReportEntriesNodes.size(); i++) {
             try {
-                List<ObjectGroupToDeleteReportEntry> objectGroupToDeleteReportEntries =
-                    getFromJsonNode(objectGroupToDeleteReportEntriesNodes.get(i), new TypeReference<>() {
-                    });
+                List<ObjectGroupToDeleteReportEntry> objectGroupToDeleteReportEntries = getFromJsonNode(
+                    objectGroupToDeleteReportEntriesNodes.get(i),
+                    new TypeReference<>() {}
+                );
                 itemStatuses.add(processDeleteGotVersionsStorage(objectGroupToDeleteReportEntries));
             } catch (InvalidParseOperationException e) {
-                final String errorMsg =
-                    String.format("No objectGroupToDelete entries found for Object group %s in distirubution file.",
-                        gotIds.get(i));
+                final String errorMsg = String.format(
+                    "No objectGroupToDelete entries found for Object group %s in distirubution file.",
+                    gotIds.get(i)
+                );
                 ObjectNode error = createObjectNode().put("error", errorMsg);
                 itemStatuses.add(buildItemStatus(PLUGIN_NAME, FATAL, error));
             }
@@ -99,25 +101,27 @@ public class DeleteGotVersionsStoragePlugin extends ActionHandler {
     }
 
     private ItemStatus processDeleteGotVersionsStorage(
-        List<ObjectGroupToDeleteReportEntry> objectGroupToDeleteReportEntries) {
+        List<ObjectGroupToDeleteReportEntry> objectGroupToDeleteReportEntries
+    ) {
         StatusCode statusCode = OK;
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-
             if (objectGroupToDeleteReportEntries.stream().anyMatch(elmt -> elmt.getStatus().equals(WARNING))) {
                 statusCode = WARNING;
             }
 
-            List<VersionsModelCustomized> versionsToDelete =
-                objectGroupToDeleteReportEntries.stream().filter(elmt -> elmt.getStatus().equals(OK))
-                    .map(ObjectGroupToDeleteReportEntry::getDeletedVersions).flatMap(Collection::stream)
-                    .collect(Collectors.toList());
+            List<VersionsModelCustomized> versionsToDelete = objectGroupToDeleteReportEntries
+                .stream()
+                .filter(elmt -> elmt.getStatus().equals(OK))
+                .map(ObjectGroupToDeleteReportEntry::getDeletedVersions)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
 
             if (versionsToDelete.isEmpty()) {
                 return buildItemStatus(PLUGIN_NAME, WARNING);
             }
 
             for (VersionsModelCustomized versionToDelete : versionsToDelete) {
-                if(!versionToDelete.getDataObjectVersion().startsWith(PHYSICAL_MASTER)){
+                if (!versionToDelete.getDataObjectVersion().startsWith(PHYSICAL_MASTER)) {
                     storageClient.delete(versionToDelete.getStrategyId(), DataCategory.OBJECT, versionToDelete.getId());
                 }
             }

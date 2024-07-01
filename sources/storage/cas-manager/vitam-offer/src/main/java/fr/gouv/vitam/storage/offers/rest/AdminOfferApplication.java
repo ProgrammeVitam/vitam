@@ -41,6 +41,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class AdminOfferApplication extends ConfigurationApplication {
+
     private Set<Object> singletons;
 
     public AdminOfferApplication() {
@@ -52,8 +53,10 @@ public class AdminOfferApplication extends ConfigurationApplication {
         singletons.add(new GenericExceptionMapper());
         singletons.add(new AdminStatusResource(new VitamServiceRegistry()));
 
-        if (StorageProvider.TAPE_LIBRARY.getValue()
-            .equalsIgnoreCase(offerCommonApplication.getStorageConfiguration().getProvider())) {
+        if (
+            StorageProvider.TAPE_LIBRARY.getValue()
+                .equalsIgnoreCase(offerCommonApplication.getStorageConfiguration().getProvider())
+        ) {
             singletons.add(new AdminTapeResource());
             singletons.add(new TapeCatalogResource());
         }

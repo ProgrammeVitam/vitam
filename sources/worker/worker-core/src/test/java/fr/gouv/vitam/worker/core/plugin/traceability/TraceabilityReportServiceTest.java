@@ -86,6 +86,7 @@ public class TraceabilityReportServiceTest {
 
     @Mock
     private StorageClientFactory storageClientFactory;
+
     @Mock
     private StorageClient storageClient;
 
@@ -105,8 +106,17 @@ public class TraceabilityReportServiceTest {
     @Test
     public void should_append_audit_report_entries() throws Exception {
         // Given
-        TraceabilityReportEntry auditReportEntry = new TraceabilityReportEntry("OP_ID",
-            "STORAGE", "KO", "Operation is KO", TraceabilityError.FILE_NOT_FOUND, null, null, null, null);
+        TraceabilityReportEntry auditReportEntry = new TraceabilityReportEntry(
+            "OP_ID",
+            "STORAGE",
+            "KO",
+            "Operation is KO",
+            TraceabilityError.FILE_NOT_FOUND,
+            null,
+            null,
+            null,
+            null
+        );
 
         List<TraceabilityReportEntry> reports = new ArrayList<>();
         reports.add(auditReportEntry);
@@ -117,8 +127,9 @@ public class TraceabilityReportServiceTest {
         // Then
         assertThatCode(appendPreservation).doesNotThrowAnyException();
 
-        ArgumentCaptor<ReportBody<TraceabilityReportEntry>> reportBodyArgumentCaptor =
-            ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<TraceabilityReportEntry>> reportBodyArgumentCaptor = ArgumentCaptor.forClass(
+            ReportBody.class
+        );
         verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
         assertThat(reportBodyArgumentCaptor.getValue().getProcessId()).isEqualTo(PROCESS_ID);
         assertThat(reportBodyArgumentCaptor.getValue().getEntries()).isEqualTo(reports);
@@ -127,7 +138,6 @@ public class TraceabilityReportServiceTest {
 
     @Test
     public void should_check_report_existence_in_workspace_does_not_throw_any_exception() throws Exception {
-
         // Given / When
         ThrowingCallable checkReportExistence = () -> traceabilityReportService.isReportWrittenInWorkspace(PROCESS_ID);
 
@@ -138,11 +148,23 @@ public class TraceabilityReportServiceTest {
 
     @Test
     public void should_store_to_workspace_does_not_throw_any_exception() throws Exception {
-
-        OperationSummary operationSummary = new OperationSummary(TENANT_ID, PROCESS_ID, "", "", "", "",
-            JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
-        ReportSummary reportSummary = new ReportSummary(null, null, ReportType.TRACEABILITY, new ReportResults(),
-            JsonHandler.createObjectNode());
+        OperationSummary operationSummary = new OperationSummary(
+            TENANT_ID,
+            PROCESS_ID,
+            "",
+            "",
+            "",
+            "",
+            JsonHandler.createObjectNode(),
+            JsonHandler.createObjectNode()
+        );
+        ReportSummary reportSummary = new ReportSummary(
+            null,
+            null,
+            ReportType.TRACEABILITY,
+            new ReportResults(),
+            JsonHandler.createObjectNode()
+        );
         JsonNode context = JsonHandler.createObjectNode();
 
         Report reportInfo = new Report(operationSummary, reportSummary, context);
@@ -157,23 +179,24 @@ public class TraceabilityReportServiceTest {
 
     @Test
     public void should_store_file_to_offers() throws Exception {
-
         // Given / When
         ThrowingCallable exportReport = () -> traceabilityReportService.storeReportToOffers(PROCESS_ID);
 
         // Then
         assertThatCode(exportReport).doesNotThrowAnyException();
         ArgumentCaptor<ObjectDescription> descriptionArgumentCaptor = ArgumentCaptor.forClass(ObjectDescription.class);
-        verify(storageClient)
-            .storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.REPORT),
-                eq(PROCESS_ID + JSONL_EXTENSION), descriptionArgumentCaptor.capture());
+        verify(storageClient).storeFileFromWorkspace(
+            eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.REPORT),
+            eq(PROCESS_ID + JSONL_EXTENSION),
+            descriptionArgumentCaptor.capture()
+        );
         assertThat(descriptionArgumentCaptor.getValue().getWorkspaceContainerGUID()).isEqualTo(PROCESS_ID);
         assertThat(descriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(WORKSPACE_REPORT_URI);
     }
 
     @Test
     public void should_delete_does_not_throw_any_exception() throws Exception {
-
         // Given / When
         ThrowingCallable exportReport = () -> traceabilityReportService.cleanupReport(PROCESS_ID);
 

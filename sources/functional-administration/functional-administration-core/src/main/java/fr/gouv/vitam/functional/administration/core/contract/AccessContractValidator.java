@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.core.contract;
 
-
 import fr.gouv.vitam.common.model.administration.AccessContractModel;
 
 import java.util.Optional;
@@ -58,9 +57,6 @@ import java.util.Optional;
  */
 @FunctionalInterface
 public interface AccessContractValidator extends GenericContractValidator<AccessContractModel> {
-
-
-
     /**
      * Validate a contract object
      *

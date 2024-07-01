@@ -63,8 +63,7 @@ public class LevelTypeSerializer extends StdSerializer<LevelType> {
      * @throws IOException
      */
     @Override
-    public void serialize(LevelType levelType, JsonGenerator jgen, SerializerProvider provider)
-        throws IOException {
+    public void serialize(LevelType levelType, JsonGenerator jgen, SerializerProvider provider) throws IOException {
         jgen.writeString(levelType.value());
     }
 }

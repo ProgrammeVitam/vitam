@@ -59,7 +59,6 @@ public class BasicFileStorage {
         Path filePath = getFilePath(containerName, storageId);
 
         try (ExtendedFileOutputStream outputStream = new ExtendedFileOutputStream(filePath, true)) {
-
             ExactSizeInputStream exactSizeInputStream = new ExactSizeInputStream(inputStream, size);
 
             IOUtils.copy(exactSizeInputStream, outputStream);
@@ -98,8 +97,7 @@ public class BasicFileStorage {
         if (!Files.exists(containerPath)) {
             return Stream.empty();
         }
-        return Files.list(containerPath)
-            .map(path -> path.toFile().getName());
+        return Files.list(containerPath).map(path -> path.toFile().getName());
     }
 
     private Path getFilePath(String containerName, String storageId) {

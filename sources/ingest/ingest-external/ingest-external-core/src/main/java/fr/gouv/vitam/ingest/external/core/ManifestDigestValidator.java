@@ -40,10 +40,11 @@ public class ManifestDigestValidator {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ManifestDigestValidator.class);
 
-    public void checkManifestDigest(InputStream manifestInputStream, String manifestDigestAlgo,
-        String manifestDigestValue)
-        throws ManifestDigestValidationException, IOException {
-
+    public void checkManifestDigest(
+        InputStream manifestInputStream,
+        String manifestDigestAlgo,
+        String manifestDigestValue
+    ) throws ManifestDigestValidationException, IOException {
         if (manifestDigestAlgo == null && manifestDigestValue == null) {
             LOGGER.debug("No manifest log check required");
             return;
@@ -69,8 +70,15 @@ public class ManifestDigestValidator {
         if (digest.digestHex().equals(manifestDigestValue)) {
             LOGGER.debug("Manifest digest validation succeeded");
         } else {
-            throw new ManifestDigestValidationException("Manifest digest validation failed. Expected digest is '"
-                + manifestDigestValue + "', actual digest '" + digest.digestHex() + "' (" + digestType.getName() + ")");
+            throw new ManifestDigestValidationException(
+                "Manifest digest validation failed. Expected digest is '" +
+                manifestDigestValue +
+                "', actual digest '" +
+                digest.digestHex() +
+                "' (" +
+                digestType.getName() +
+                ")"
+            );
         }
     }
 }

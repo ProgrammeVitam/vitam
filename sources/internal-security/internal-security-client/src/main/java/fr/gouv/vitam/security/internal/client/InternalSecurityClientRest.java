@@ -60,10 +60,15 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
     @Override
     public Optional<IdentityModel> findIdentity(byte[] certificate)
         throws VitamClientInternalException, InternalSecurityException {
-        try (Response response = make(
-            VitamRequestBuilder.get().withPath("/identity/")
-                .withBody(certificate, "Certificate not found")
-                .withContentType(APPLICATION_OCTET_STREAM_TYPE).withJsonAccept())) {
+        try (
+            Response response = make(
+                VitamRequestBuilder.get()
+                    .withPath("/identity/")
+                    .withBody(certificate, "Certificate not found")
+                    .withContentType(APPLICATION_OCTET_STREAM_TYPE)
+                    .withJsonAccept()
+            )
+        ) {
             check(response);
             return Optional.of(response.readEntity(IdentityModel.class));
         } catch (IdentityNotFoundException e) {
@@ -73,24 +78,31 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
 
     @Override
     public void checkIdentityExpiration() throws VitamClientInternalException, InternalSecurityException {
-        try (Response response = make(
-            VitamRequestBuilder.get().withPath("/identity/check-expiration").withJsonAccept())) {
+        try (
+            Response response = make(VitamRequestBuilder.get().withPath("/identity/check-expiration").withJsonAccept())
+        ) {
             check(response);
         }
     }
 
     @Override
     public void checkPersonalCertificateExpiration() throws VitamClientInternalException, InternalSecurityException {
-        try (Response response = make(
-            VitamRequestBuilder.get().withPath("/personalCertificate/check-expiration").withJsonAccept())) {
+        try (
+            Response response = make(
+                VitamRequestBuilder.get().withPath("/personalCertificate/check-expiration").withJsonAccept()
+            )
+        ) {
             check(response);
         }
     }
 
     @Override
     public boolean contextIsUsed(String contextId) throws VitamClientInternalException, InternalSecurityException {
-        try (Response response = make(
-            VitamRequestBuilder.get().withPath("/identity/context/" + contextId).withJsonAccept())) {
+        try (
+            Response response = make(
+                VitamRequestBuilder.get().withPath("/identity/context/" + contextId).withJsonAccept()
+            )
+        ) {
             check(response);
             return response.readEntity(Boolean.class);
         }
@@ -99,9 +111,13 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
     @Override
     public IsPersonalCertificateRequiredModel isPersonalCertificateRequiredByPermission(String permission)
         throws VitamClientInternalException, InternalSecurityException {
-        try (Response response = make(
-            VitamRequestBuilder.get().withPath("/personalCertificate/permission-check/" + permission)
-                .withJsonAccept())) {
+        try (
+            Response response = make(
+                VitamRequestBuilder.get()
+                    .withPath("/personalCertificate/permission-check/" + permission)
+                    .withJsonAccept()
+            )
+        ) {
             check(response);
             return response.readEntity(IsPersonalCertificateRequiredModel.class);
         }
@@ -110,11 +126,15 @@ public class InternalSecurityClientRest extends DefaultClient implements Interna
     @Override
     public void checkPersonalCertificate(byte[] certificate, String permission)
         throws VitamClientInternalException, InternalSecurityException {
-        try (Response response = make(VitamRequestBuilder.get()
-            .withPath("/personalCertificate/personal-certificate-check/" + permission)
-            .withBody(certificate, "Certificate not found")
-            .withContentType(APPLICATION_OCTET_STREAM_TYPE)
-            .withJsonAccept())) {
+        try (
+            Response response = make(
+                VitamRequestBuilder.get()
+                    .withPath("/personalCertificate/personal-certificate-check/" + permission)
+                    .withBody(certificate, "Certificate not found")
+                    .withContentType(APPLICATION_OCTET_STREAM_TYPE)
+                    .withJsonAccept()
+            )
+        ) {
             check(response);
         } catch (IllegalArgumentException e) {
             throw new InternalSecurityException(e);

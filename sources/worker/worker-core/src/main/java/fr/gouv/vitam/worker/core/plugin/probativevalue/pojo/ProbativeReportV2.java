@@ -35,6 +35,7 @@ import fr.gouv.vitam.batch.report.model.ReportSummary;
 import java.util.List;
 
 public class ProbativeReportV2 {
+
     private final int reportVersion = 2;
 
     private final OperationSummary operationSummary;
@@ -47,7 +48,8 @@ public class ProbativeReportV2 {
         @JsonProperty("operationSummary") OperationSummary operationSummary,
         @JsonProperty("reportSummary") ReportSummary reportSummary,
         @JsonProperty("context") JsonNode context,
-        @JsonProperty("reportEntries") List<ProbativeReportEntry> reportEntries) {
+        @JsonProperty("reportEntries") List<ProbativeReportEntry> reportEntries
+    ) {
         this.operationSummary = operationSummary;
         this.reportSummary = reportSummary;
         this.context = context;

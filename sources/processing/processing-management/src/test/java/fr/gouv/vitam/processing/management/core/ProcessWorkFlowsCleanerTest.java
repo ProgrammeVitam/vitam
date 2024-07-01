@@ -58,8 +58,9 @@ import static org.mockito.Mockito.when;
 public class ProcessWorkFlowsCleanerTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final int tenant = VitamConfiguration.getAdminTenant();
 
@@ -75,8 +76,7 @@ public class ProcessWorkFlowsCleanerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testCleaner()
-        throws Exception {
+    public void testCleaner() throws Exception {
         //GIVEN
         ConcurrentHashMap<Integer, Map<String, ProcessWorkflow>> map = new ConcurrentHashMap<>();
         map.put(0, new ConcurrentHashMap<>());
@@ -100,7 +100,6 @@ public class ProcessWorkFlowsCleanerTest {
         map.get(0).get("id2_tenant_0").setState(ProcessState.COMPLETED);
         map.get(0).get("id2_tenant_0").setProcessCompletedDate(LocalDateUtil.now().minusHours(1).plusMinutes(50));
 
-
         when(serverConfiguration.getProcessingCleanerPeriod()).thenReturn(2);
         when(processManagement.getConfiguration()).thenReturn(serverConfiguration);
         when(processManagement.getWorkFlowList()).thenReturn(map);
@@ -110,16 +109,21 @@ public class ProcessWorkFlowsCleanerTest {
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         // THEN
-        ProcessWorkFlowsCleaner processWorkFlowsCleaner =
-            new ProcessWorkFlowsCleaner(processManagement, processDataManagement, workspaceClientFactory
-                , TimeUnit.HOURS);
+        ProcessWorkFlowsCleaner processWorkFlowsCleaner = new ProcessWorkFlowsCleaner(
+            processManagement,
+            processDataManagement,
+            workspaceClientFactory,
+            TimeUnit.HOURS
+        );
         processWorkFlowsCleaner.run();
 
         assertThat(map.get(0).size()).isEqualTo(2);
         assertThat(map.get(1).size()).isEqualTo(2);
 
-        verify(processDataManagement, times(2))
-            .removeOperationContainer(any(ProcessWorkflow.class), eq(workspaceClientFactory));
+        verify(processDataManagement, times(2)).removeOperationContainer(
+            any(ProcessWorkflow.class),
+            eq(workspaceClientFactory)
+        );
         verify(processDataManagement).removeProcessWorkflow(anyString(), eq("id3_tenant_1"));
         verify(processDataManagement).removeProcessWorkflow(anyString(), eq("id3_tenant_0"));
     }

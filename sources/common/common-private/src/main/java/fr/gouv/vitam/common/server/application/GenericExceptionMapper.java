@@ -54,6 +54,7 @@ import javax.ws.rs.ext.ExceptionMapper;
  * Generic Exception Mapper for Jetty Server
  */
 public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GenericExceptionMapper.class);
     private static final String URI_HOST_PORT_PATTERN = "(https|http)://[a-zA-Z0-9.\\-_]+(:[0-9]+)?/";
 
@@ -66,7 +67,8 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
         } else {
             description = description.replaceAll(URI_HOST_PORT_PATTERN, "");
         }
-        vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
+        vitamError
+            .setContext(ServerIdentity.getInstance().getJsonIdentity())
             .setMessage(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getMessage())
             .setDescription(description)
             .setState(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.name())
@@ -91,8 +93,9 @@ public class GenericExceptionMapper implements ExceptionMapper<Throwable> {
             vitamError.setMessage(description).setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
         }
         LOGGER.error(vitamError.toString(), exception);
-        return Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
+        return Response.status(vitamError.getHttpCode())
+            .entity(vitamError)
+            .type(MediaType.APPLICATION_JSON_TYPE)
             .build();
     }
-
 }

@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Setregex Action
  */
 public class SetregexAction extends fr.gouv.vitam.common.database.builder.query.action.SetregexAction {
+
     /**
      * parsing
      *
@@ -48,8 +49,7 @@ public class SetregexAction extends fr.gouv.vitam.common.database.builder.query.
         throws InvalidParseOperationException {
         super();
         currentUPDATEACTION = action;
-        currentObject =
-            ((ObjectNode) currentObject).putObject(BuilderToken.UPDATEACTION.SETREGEX.exactToken());
+        currentObject = ((ObjectNode) currentObject).putObject(BuilderToken.UPDATEACTION.SETREGEX.exactToken());
         adapter.setVarsValue((ObjectNode) currentObject, request);
         setReady(true);
     }

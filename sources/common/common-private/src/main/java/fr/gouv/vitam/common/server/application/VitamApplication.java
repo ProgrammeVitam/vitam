@@ -74,5 +74,4 @@ public interface VitamApplication<A extends VitamApplication<A, C>, C extends Vi
      * @throws VitamApplicationServerException
      */
     void run() throws VitamApplicationServerException;
-
 }

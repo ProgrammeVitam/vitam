@@ -71,8 +71,10 @@ import static org.mockito.Mockito.when;
 public class FinalizeUnitLifecycleTraceabilityActionPluginTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -101,27 +103,29 @@ public class FinalizeUnitLifecycleTraceabilityActionPluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
         String objectId = "objectId";
-        handlerIO =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-                "FinalizeUnitLifecycleTraceabilityActionPluginTest", "workerId",
-                Lists.newArrayList(objectId));
+        handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "FinalizeUnitLifecycleTraceabilityActionPluginTest",
+            "workerId",
+            Lists.newArrayList(objectId)
+        );
         handlerIO.setCurrentObjectId(objectId);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenTraceabilityZipInWorkspaceThenCopyFileToOffers() throws Exception {
-
         // Given
         doReturn(false).when(workspaceClient).isExistingObject(anyString(), eq(TRACEABILITY_EVENT_FILE_NAME));
 
-        FinalizeUnitLifecycleTraceabilityActionPlugin instance =
-            new FinalizeUnitLifecycleTraceabilityActionPlugin(storageClientFactory);
+        FinalizeUnitLifecycleTraceabilityActionPlugin instance = new FinalizeUnitLifecycleTraceabilityActionPlugin(
+            storageClientFactory
+        );
 
         // When
         ItemStatus itemStatus = instance.execute(params, handlerIO);
@@ -134,15 +138,23 @@ public class FinalizeUnitLifecycleTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenNoTraceabilityZipInWorkspaceThenNothingToDo() throws Exception {
-
         // Given
         doReturn(true).when(workspaceClient).isExistingObject(anyString(), eq(TRACEABILITY_EVENT_FILE_NAME));
-        doReturn(Response.status(Response.Status.OK).entity(
-            PropertiesUtils.getResourceAsStream("FinalizeUnitLifecycleTraceabilityActionPlugin/traceabilityEvent.json")
-        ).build()).when(workspaceClient).getObject(any(), eq(TRACEABILITY_EVENT_FILE_NAME));
+        doReturn(
+            Response.status(Response.Status.OK)
+                .entity(
+                    PropertiesUtils.getResourceAsStream(
+                        "FinalizeUnitLifecycleTraceabilityActionPlugin/traceabilityEvent.json"
+                    )
+                )
+                .build()
+        )
+            .when(workspaceClient)
+            .getObject(any(), eq(TRACEABILITY_EVENT_FILE_NAME));
 
-        FinalizeUnitLifecycleTraceabilityActionPlugin instance =
-            new FinalizeUnitLifecycleTraceabilityActionPlugin(storageClientFactory);
+        FinalizeUnitLifecycleTraceabilityActionPlugin instance = new FinalizeUnitLifecycleTraceabilityActionPlugin(
+            storageClientFactory
+        );
 
         // When
         ItemStatus itemStatus = instance.execute(params, handlerIO);
@@ -152,16 +164,25 @@ public class FinalizeUnitLifecycleTraceabilityActionPluginTest {
         assertThat(itemStatus.getMasterData()).containsOnlyKeys(LogbookParameterName.eventDetailData.name());
         JsonAssert.assertJsonEquals(
             JsonHandler.getFromString(
-                (String) itemStatus.getMasterData().get(LogbookParameterName.eventDetailData.name())),
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
-                "FinalizeUnitLifecycleTraceabilityActionPlugin/traceabilityEvent.json"))
+                (String) itemStatus.getMasterData().get(LogbookParameterName.eventDetailData.name())
+            ),
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(
+                    "FinalizeUnitLifecycleTraceabilityActionPlugin/traceabilityEvent.json"
+                )
+            )
         );
-        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor =
-            ArgumentCaptor.forClass(ObjectDescription.class);
-        verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()),
-            eq(DataCategory.LOGBOOK), eq("0_LogbookUnitLifecycles_20191218_051956.zip"),
-            objectDescriptionArgumentCaptor.capture());
+        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor = ArgumentCaptor.forClass(
+            ObjectDescription.class
+        );
+        verify(storageClient).storeFileFromWorkspace(
+            eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.LOGBOOK),
+            eq("0_LogbookUnitLifecycles_20191218_051956.zip"),
+            objectDescriptionArgumentCaptor.capture()
+        );
         assertThat(objectDescriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(
-            TRACEABILITY_ZIP_FILE_NAME);
+            TRACEABILITY_ZIP_FILE_NAME
+        );
     }
 }

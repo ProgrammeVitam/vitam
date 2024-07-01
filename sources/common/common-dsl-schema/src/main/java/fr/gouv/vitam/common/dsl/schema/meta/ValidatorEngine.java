@@ -75,20 +75,19 @@ public class ValidatorEngine {
         validate(rootType, document, null);
 
         if (!errors.isEmpty()) {
-
             StringBuilder builder = new StringBuilder();
             for (ValidationErrorMessage error : errors) {
                 builder.append(error.toString());
                 builder.append("\n");
             }
             throw new ValidationException(
-                VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INVALID_DSL, builder.toString()));
+                VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INVALID_DSL, builder.toString())
+            );
         }
     }
 
     protected void validate(Format propertyFormat, JsonNode node, Consumer<String> fieldReport) {
-        if (propertyFormat.getName() == null)
-            throw new IllegalStateException();
+        if (propertyFormat.getName() == null) throw new IllegalStateException();
         LOGGER.debug("DSL Parsing: " + propertyFormat + " --- on: " + node);
         ParametersChecker.checkParameterDefault("property", propertyFormat);
         ParametersChecker.checkParameterDefault("node", node);
@@ -100,7 +99,7 @@ public class ValidatorEngine {
         if (fieldReport == null && node.isObject()) {
             // No need to report. We do local check.
             fields = new HashSet<>();
-            for (Iterator<String> it = node.fieldNames(); it.hasNext(); ) {
+            for (Iterator<String> it = node.fieldNames(); it.hasNext();) {
                 fields.add(it.next());
             }
             localFieldReport = fields::remove;
@@ -145,13 +144,20 @@ public class ValidatorEngine {
 
     private void checkSize(Format format, JsonNode node) {
         if (node.size() < format.getMin()) {
-            reportError(format, node, ValidationErrorMessage.Code.ELEMENT_TOO_SHORT,
-                node.size() + " < " + format.getMin());
+            reportError(
+                format,
+                node,
+                ValidationErrorMessage.Code.ELEMENT_TOO_SHORT,
+                node.size() + " < " + format.getMin()
+            );
         }
         if (node.size() > format.getMax()) {
-            reportError(format, node, ValidationErrorMessage.Code.ELEMENT_TOO_LONG,
-                node.size() + " > " + format.getMax());
+            reportError(
+                format,
+                node,
+                ValidationErrorMessage.Code.ELEMENT_TOO_LONG,
+                node.size() + " > " + format.getMax()
+            );
         }
     }
-
 }

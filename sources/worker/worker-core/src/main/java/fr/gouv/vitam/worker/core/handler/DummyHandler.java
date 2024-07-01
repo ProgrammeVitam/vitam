@@ -35,6 +35,7 @@ import fr.gouv.vitam.worker.common.HandlerIO;
  * Dummy Handler (for test purpose)
  */
 public class DummyHandler extends ActionHandler {
+
     private static final String HANDLER_ID = "DummyHandler";
 
     /**
@@ -61,5 +62,4 @@ public class DummyHandler extends ActionHandler {
         // Nothing to do . It is a dummy handler
 
     }
-
 }

@@ -77,12 +77,12 @@ import static org.mockito.Mockito.verify;
 @RunWithCustomExecutor
 public class ReclassificationDistributionServiceTest {
 
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
-    };
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {};
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
@@ -95,8 +95,10 @@ public class ReclassificationDistributionServiceTest {
 
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
+
     @Mock
     private WorkspaceClient workspaceClient;
+
     @Mock
     private MetaDataImpl metaData;
 
@@ -117,7 +119,6 @@ public class ReclassificationDistributionServiceTest {
 
     @Test
     public void testExportReclassificationChildNodes() throws Exception {
-
         // Given
         String unitsToUpdateJsonLineFileName = "UnitsToUpdate.jsonl";
         String objectGroupsToUpdateJsonLineFileName = "ObjectGroupsToUpdate.jsonl";
@@ -129,29 +130,42 @@ public class ReclassificationDistributionServiceTest {
             JsonHandler.createObjectNode().put("#id", "id3-2").put("#object", "og3"),
             JsonHandler.createObjectNode().put("#id", "id4").put("#object", "og4")
         );
-        MetadataResult results =
-            new MetadataResult(JsonHandler.createObjectNode(), resultList, Collections.emptyList(), resultList.size(),
-                null, new DatabaseCursor(resultList.size(), 0, 0));
+        MetadataResult results = new MetadataResult(
+            JsonHandler.createObjectNode(),
+            resultList,
+            Collections.emptyList(),
+            resultList.size(),
+            null,
+            new DatabaseCursor(resultList.size(), 0, 0)
+        );
 
         doReturn(results).when(metaData).selectUnitsByQuery(any());
 
         Map<String, File> savedFiles = new HashMap<>();
-        doAnswer((args) -> {
+        doAnswer(args -> {
             File file = this.folder.newFile();
             FileUtils.copyInputStreamToFile(args.getArgument(2), file);
             savedFiles.put(args.getArgument(1), file);
             return null;
-        }).when(workspaceClient).putObject(eq(operationId), anyString(), any(InputStream.class));
+        })
+            .when(workspaceClient)
+            .putObject(eq(operationId), anyString(), any(InputStream.class));
 
         // When
         Set<String> ids = new HashSet<>(Arrays.asList("id1", "id2", "id3"));
-        instance
-            .exportReclassificationChildNodes(ids, unitsToUpdateJsonLineFileName, objectGroupsToUpdateJsonLineFileName);
+        instance.exportReclassificationChildNodes(
+            ids,
+            unitsToUpdateJsonLineFileName,
+            objectGroupsToUpdateJsonLineFileName
+        );
 
         // Then
         verify(workspaceClient).putObject(eq(operationId), eq(unitsToUpdateJsonLineFileName), any(InputStream.class));
-        verify(workspaceClient)
-            .putObject(eq(operationId), eq(objectGroupsToUpdateJsonLineFileName), any(InputStream.class));
+        verify(workspaceClient).putObject(
+            eq(operationId),
+            eq(objectGroupsToUpdateJsonLineFileName),
+            any(InputStream.class)
+        );
 
         List<String> unitIds = readDistributionFile(savedFiles.get(unitsToUpdateJsonLineFileName));
         List<String> objectGroupIds = readDistributionFile(savedFiles.get(objectGroupsToUpdateJsonLineFileName));
@@ -161,13 +175,14 @@ public class ReclassificationDistributionServiceTest {
     }
 
     private List<String> readDistributionFile(File file) throws IOException {
-        try (InputStream is = new FileInputStream(file);
-            JsonLineGenericIterator<JsonLineModel> jsonLineGenericIterator = new JsonLineGenericIterator<>(is,
-                TYPE_REFERENCE)) {
-            return jsonLineGenericIterator
-                .stream()
-                .map(JsonLineModel::getId)
-                .collect(Collectors.toList());
+        try (
+            InputStream is = new FileInputStream(file);
+            JsonLineGenericIterator<JsonLineModel> jsonLineGenericIterator = new JsonLineGenericIterator<>(
+                is,
+                TYPE_REFERENCE
+            )
+        ) {
+            return jsonLineGenericIterator.stream().map(JsonLineModel::getId).collect(Collectors.toList());
         }
     }
 }

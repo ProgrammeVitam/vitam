@@ -89,15 +89,12 @@ public class GlobalDatas {
      * @param size limit
      * @throws InvalidParseOperationException if the sanity check is in error
      */
-    protected static final void sanityCheck(String arg, int size)
-        throws InvalidParseOperationException {
+    protected static final void sanityCheck(String arg, int size) throws InvalidParseOperationException {
         if (arg == null) {
-            throw new InvalidParseOperationException(
-                "String is null but must not");
+            throw new InvalidParseOperationException("String is null but must not");
         }
         if (arg.length() > size) {
-            throw new InvalidParseOperationException(
-                "String exceeds sanity check of " + size);
+            throw new InvalidParseOperationException("String exceeds sanity check of " + size);
         }
     }
 
@@ -107,8 +104,7 @@ public class GlobalDatas {
      * @param arg argument
      * @throws InvalidParseOperationException if the sanity check is in error
      */
-    public static final void sanityValueCheck(String arg)
-        throws InvalidParseOperationException {
+    public static final void sanityValueCheck(String arg) throws InvalidParseOperationException {
         sanityCheck(arg, limitValue);
     }
 
@@ -118,8 +114,7 @@ public class GlobalDatas {
      * @param arg argument as List
      * @throws InvalidParseOperationException if the sanity check is in error
      */
-    public static final void sanityValueCheck(List<?> arg)
-        throws InvalidParseOperationException {
+    public static final void sanityValueCheck(List<?> arg) throws InvalidParseOperationException {
         for (Object value : arg) {
             sanityCheck(value.toString(), limitValue);
         }
@@ -131,12 +126,10 @@ public class GlobalDatas {
      * @param arg argument
      * @throws InvalidParseOperationException if the sanity check is in error
      */
-    public static final void sanityParameterCheck(String arg)
-        throws InvalidParseOperationException {
+    public static final void sanityParameterCheck(String arg) throws InvalidParseOperationException {
         sanityCheck(arg, limitParameter);
         if (arg.charAt(0) == '_') {
-            throw new InvalidParseOperationException(
-                "Variable name form is not allowed: " + arg);
+            throw new InvalidParseOperationException("Variable name form is not allowed: " + arg);
         }
     }
 
@@ -159,8 +152,7 @@ public class GlobalDatas {
      */
     public static final ObjectNode getDate(final Date date) {
         ParametersChecker.checkParameter("Date cannot be null", date);
-        return JsonHandler.createObjectNode().put(Query.DATE,
-            LocalDateUtil.fromDate(date).toString());
+        return JsonHandler.createObjectNode().put(Query.DATE, LocalDateUtil.fromDate(date).toString());
     }
 
     /**
@@ -168,8 +160,7 @@ public class GlobalDatas {
      * @return the JsonNode for Value
      * @throws InvalidCreateOperationException when object is not json
      */
-    public static final JsonNode getValueJsonNode(final Object value)
-        throws InvalidCreateOperationException {
+    public static final JsonNode getValueJsonNode(final Object value) throws InvalidCreateOperationException {
         final ObjectNode node = JsonHandler.createObjectNode();
         if (value == null) {
             return node.nullNode();
@@ -205,8 +196,7 @@ public class GlobalDatas {
      * @throws InvalidParseOperationException if the sanity check is in error
      * @throws IllegalArgumentException if arg is null
      */
-    public static final void sanityVariableNameCheck(String arg)
-        throws InvalidParseOperationException {
+    public static final void sanityVariableNameCheck(String arg) throws InvalidParseOperationException {
         ParametersChecker.checkParameter("Arg cannot be null", arg);
         if (arg.charAt(0) == '#') {
             throw new InvalidParseOperationException("Variable name cannot be a protected one (starting with '#'");

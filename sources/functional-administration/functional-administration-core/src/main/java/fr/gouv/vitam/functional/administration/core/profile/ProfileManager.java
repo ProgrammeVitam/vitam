@@ -111,23 +111,23 @@ public class ProfileManager {
         validators.put(createCheckDuplicateInDatabaseValidator(), DUPLICATE_IN_DATABASE);
     }
 
-    public boolean validateProfile(ProfileModel profile,
-        VitamError error) {
-
+    public boolean validateProfile(ProfileModel profile, VitamError error) {
         for (ProfileValidator validator : validators.keySet()) {
             Optional<RejectionCause> result = validator.validate(profile);
             if (result.isPresent()) {
                 // there is a validation error on this profile
                 /* profile is valid, add it to the list to persist */
-                error.addToErrors(getVitamError(result.get().getReason()).setDescription(result.get().getReason())
-                    .setMessage(validators.get(validator)));
+                error.addToErrors(
+                    getVitamError(result.get().getReason())
+                        .setDescription(result.get().getReason())
+                        .setMessage(validators.get(validator))
+                );
                 // once a validation error is detected on a profile, jump to next profile
                 return false;
             }
         }
         return true;
     }
-
 
     /**
      * Validate if the profile file is valide
@@ -139,9 +139,7 @@ public class ProfileManager {
      * @param error
      * @return boolean true/false
      */
-    public boolean validateProfileFile(ProfileModel profileModel, File file, VitamError error)
-        throws Exception {
-
+    public boolean validateProfileFile(ProfileModel profileModel, File file, VitamError error) throws Exception {
         if (null == profileModel) {
             error.addToErrors(getVitamError("Profile metadata not found for the corresponding inputstream"));
             return false;
@@ -156,7 +154,6 @@ public class ProfileManager {
                 error.addToErrors(getVitamError("Profile format not supported"));
                 return false;
         }
-
     }
 
     /**
@@ -167,7 +164,6 @@ public class ProfileManager {
      * @return boolean true/false
      */
     public boolean validateXSD(File file, VitamError error) throws Exception {
-
         // Check xml valid
         try {
             SchemaFactory.newInstance(ValidationXsdUtils.HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1).newSchema(file);
@@ -176,13 +172,11 @@ public class ProfileManager {
             return false;
         }
 
-
         return checkTag(file, "xsd", "schema", error);
     }
 
     private boolean checkTag(File file, String prefix, String element, VitamError error)
         throws FileNotFoundException, XMLStreamException {
-
         final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         final XMLEventReader eventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(file));
         while (eventReader.hasNext()) {
@@ -205,8 +199,11 @@ public class ProfileManager {
     }
 
     private VitamError getVitamError(String error) {
-        return new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem()).setMessage(PROFILE_SERVICE_ERROR)
-            .setState("ko").setContext(FUNCTIONAL_MODULE_PROFILE).setDescription(error);
+        return new VitamError(VitamCode.PROFILE_VALIDATION_ERROR.getItem())
+            .setMessage(PROFILE_SERVICE_ERROR)
+            .setState("ko")
+            .setContext(FUNCTIONAL_MODULE_PROFILE)
+            .setDescription(error);
     }
 
     /**
@@ -220,7 +217,6 @@ public class ProfileManager {
      * @return boolean true/false
      */
     public boolean validateRNG(File file, VitamError error) throws Exception {
-
         try {
             System.setProperty(ValidationXsdUtils.RNG_PROPERTY_KEY, ValidationXsdUtils.RNG_FACTORY);
             SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI).newSchema(file);
@@ -230,7 +226,6 @@ public class ProfileManager {
         }
 
         return checkTag(file, "rng", "grammar", error);
-
     }
 
     /**
@@ -241,23 +236,30 @@ public class ProfileManager {
      * @param errorsDetails
      * @param eventTypeKO
      */
-    public void logValidationError(String eventType, String objectId, String errorsDetails,
-        String eventTypeKO) throws VitamException {
+    public void logValidationError(String eventType, String objectId, String errorsDetails, String eventTypeKO)
+        throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.KO,
-                VitamLogbookMessages.getFromFullCodeKey(eventTypeKO), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.KO,
+            VitamLogbookMessages.getFromFullCodeKey(eventTypeKO),
+            eip
+        );
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventTypeKO);
         logbookMessageError(objectId, errorsDetails, logbookParameters, eventTypeKO);
 
         logbookClient.update(logbookParameters);
-
     }
 
-    private void logbookMessageError(String objectId, String errorsDetails,
-        LogbookOperationParameters logbookParameters) {
+    private void logbookMessageError(
+        String objectId,
+        String errorsDetails,
+        LogbookOperationParameters logbookParameters
+    ) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
@@ -274,8 +276,12 @@ public class ProfileManager {
         }
     }
 
-    private void logbookMessageError(String objectId, String errorsDetails,
-        LogbookOperationParameters logbookParameters, String eventTypeKO) {
+    private void logbookMessageError(
+        String objectId,
+        String errorsDetails,
+        LogbookOperationParameters logbookParameters,
+        String eventTypeKO
+    ) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
@@ -325,10 +331,15 @@ public class ProfileManager {
     public void logFatalError(String eventType, String objectId, String errorsDetails) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.FATAL,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.FATAL,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL),
+            eip
+        );
 
         logbookMessageError(objectId, errorsDetails, logbookParameters);
 
@@ -341,14 +352,18 @@ public class ProfileManager {
      * @throws VitamException
      */
     public void logStarted(String eventType, String objectId) throws VitamException {
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eip,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED),
+            eip
+        );
 
         logbookMessageError(objectId, null, logbookParameters);
         logbookClient.create(logbookParameters);
-
     }
 
     /**
@@ -358,10 +373,15 @@ public class ProfileManager {
      */
     public void logSuccess(String eventType, String objectId, String message) throws VitamException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.OK,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK),
+            eip
+        );
 
         if (null != objectId && !objectId.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, objectId);
@@ -383,16 +403,19 @@ public class ProfileManager {
         return profile -> {
             List<String> missingParams = new ArrayList<>();
 
-            if (profile.getFormat() == null ||
-                (!profile.getFormat().equals(ProfileFormat.RNG) && !profile.getFormat().equals(ProfileFormat.XSD))) {
+            if (
+                profile.getFormat() == null ||
+                (!profile.getFormat().equals(ProfileFormat.RNG) && !profile.getFormat().equals(ProfileFormat.XSD))
+            ) {
                 missingParams.add(Profile.FORMAT);
             }
             if (profile.getName() == null || profile.getName().length() == 0) {
                 missingParams.add(Profile.NAME);
             }
 
-            return (missingParams.isEmpty()) ? Optional.empty() :
-                Optional.of(RejectionCause.rejectSeveralMandatoryMissing(missingParams));
+            return (missingParams.isEmpty())
+                ? Optional.empty()
+                : Optional.of(RejectionCause.rejectSeveralMandatoryMissing(missingParams));
         };
     }
 
@@ -405,21 +428,19 @@ public class ProfileManager {
         return profile -> {
             RejectionCause rejection = null;
 
-
             String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
             if (profile.getStatus() == null) {
                 profile.setStatus(ProfileStatus.INACTIVE);
             }
 
-
-            if (!profile.getStatus().equals(ProfileStatus.ACTIVE) &&
-                !profile.getStatus().equals(ProfileStatus.INACTIVE)) {
+            if (
+                !profile.getStatus().equals(ProfileStatus.ACTIVE) && !profile.getStatus().equals(ProfileStatus.INACTIVE)
+            ) {
                 LOGGER.error("Error profile status not valide (must be ACTIVE or INACTIVE");
-                rejection =
-                    RejectionCause.rejectMandatoryMissing("Status " + profile.getStatus() +
-                        " not valide must be ACTIVE or INACTIVE");
+                rejection = RejectionCause.rejectMandatoryMissing(
+                    "Status " + profile.getStatus() + " not valide must be ACTIVE or INACTIVE"
+                );
             }
-
 
             try {
                 if (profile.getCreationdate() == null || profile.getCreationdate().trim().isEmpty()) {
@@ -427,7 +448,6 @@ public class ProfileManager {
                 } else {
                     profile.setCreationdate(LocalDateUtil.getFormattedDateForMongo(profile.getCreationdate()));
                 }
-
             } catch (Exception e) {
                 LOGGER.error(PARSE_PROFILE_DATE_ERROR, e);
                 rejection = RejectionCause.rejectMandatoryMissing("Creationdate");
@@ -437,18 +457,15 @@ public class ProfileManager {
                     profile.setActivationdate(now);
                 } else {
                     profile.setActivationdate(LocalDateUtil.getFormattedDateForMongo(profile.getActivationdate()));
-
                 }
             } catch (Exception e) {
                 LOGGER.error(PARSE_PROFILE_DATE_ERROR, e);
                 rejection = RejectionCause.rejectMandatoryMissing("ActivationDate");
             }
             try {
-
                 if (profile.getDeactivationdate() == null || profile.getDeactivationdate().trim().isEmpty()) {
                     profile.setDeactivationdate(null);
                 } else {
-
                     profile.setDeactivationdate(LocalDateUtil.getFormattedDateForMongo(profile.getDeactivationdate()));
                 }
             } catch (Exception e) {
@@ -470,13 +487,11 @@ public class ProfileManager {
     public ProfileValidator checkEmptyIdentifierSlaveModeValidator() {
         return profileModel -> {
             if (profileModel.getIdentifier() == null || profileModel.getIdentifier().isEmpty()) {
-                return Optional.of(ProfileValidator.RejectionCause.rejectMandatoryMissing(
-                    AccessContract.IDENTIFIER));
+                return Optional.of(ProfileValidator.RejectionCause.rejectMandatoryMissing(AccessContract.IDENTIFIER));
             }
             return Optional.empty();
         };
     }
-
 
     /**
      * Check if the profile identifier already exists in database
@@ -494,9 +509,6 @@ public class ProfileManager {
                 }
             }
             return Optional.empty();
-
         };
     }
-
 }
-

@@ -68,8 +68,7 @@ public class GraphRelation {
      * @param parentOriginatingAgency
      * @param depth
      */
-    public GraphRelation(String unit, String parent, String parentOriginatingAgency,
-        Integer depth) {
+    public GraphRelation(String unit, String parent, String parentOriginatingAgency, Integer depth) {
         this.unit = unit;
         this.parent = parent;
         this.parentOriginatingAgency = parentOriginatingAgency;
@@ -84,7 +83,6 @@ public class GraphRelation {
     public String getUnit() {
         return unit;
     }
-
 
     /**
      * Set unit
@@ -158,8 +156,10 @@ public class GraphRelation {
     public boolean equals(Object obj) {
         if (obj instanceof GraphRelation) {
             GraphRelation graphRelation = (GraphRelation) obj;
-            return Objects.equals(getUnit(), graphRelation.getUnit()) &&
-                Objects.equals(getParent(), graphRelation.getParent());
+            return (
+                Objects.equals(getUnit(), graphRelation.getUnit()) &&
+                Objects.equals(getParent(), graphRelation.getParent())
+            );
         }
         return false;
     }

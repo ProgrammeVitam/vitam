@@ -50,21 +50,26 @@ public class SipHelper {
     public static ExportRequestParameters buildExportRequestParameters(TransactionModel transactionModel) {
         ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
         exportRequestParameters.setMessageRequestIdentifier(GUIDFactory.newGUID().getId());
-        exportRequestParameters
-            .setArchivalAgencyIdentifier(transactionModel.getManifestContext().getArchivalAgencyIdentifier());
+        exportRequestParameters.setArchivalAgencyIdentifier(
+            transactionModel.getManifestContext().getArchivalAgencyIdentifier()
+        );
         exportRequestParameters.setRequesterIdentifier(COLLECT_REQUESTER_IDENTIFIER);
         exportRequestParameters.setComment(transactionModel.getManifestContext().getComment());
-        exportRequestParameters.setArchivalAgreement((transactionModel.getManifestContext() != null ?
-            transactionModel.getManifestContext().getArchivalAgreement() :
-            null));
-        exportRequestParameters
-            .setTransferringAgency(transactionModel.getManifestContext().getTransferringAgencyIdentifier());
+        exportRequestParameters.setArchivalAgreement(
+            (transactionModel.getManifestContext() != null
+                    ? transactionModel.getManifestContext().getArchivalAgreement()
+                    : null)
+        );
+        exportRequestParameters.setTransferringAgency(
+            transactionModel.getManifestContext().getTransferringAgencyIdentifier()
+        );
         return exportRequestParameters;
     }
 
-    public static ExportRequest buildExportRequest(TransactionModel transactionModel,
-        ExportRequestParameters exportRequestParameters)
-        throws InvalidCreateOperationException {
+    public static ExportRequest buildExportRequest(
+        TransactionModel transactionModel,
+        ExportRequestParameters exportRequestParameters
+    ) throws InvalidCreateOperationException {
         SelectMultiQuery exportSelect = new SelectMultiQuery();
         exportSelect.setQuery(QueryHelper.eq(VitamFieldsHelper.initialOperation(), transactionModel.getId()));
         exportSelect.setScrollFilter(SCROLL_ACTIVATE_KEYWORD, DEFAULT_SCROLL_TIMEOUT, 10000);

@@ -44,8 +44,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class PurgeAccessionRegisterPreparationHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(PurgeAccessionRegisterPreparationHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        PurgeAccessionRegisterPreparationHandler.class
+    );
 
     private final String actionId;
     private final PurgeReportService purgeReportService;
@@ -63,32 +64,28 @@ public class PurgeAccessionRegisterPreparationHandler extends ActionHandler {
      * Test only constructor
      */
     @VisibleForTesting
-    protected PurgeAccessionRegisterPreparationHandler(
-        String actionId, PurgeReportService purgeReportService) {
+    protected PurgeAccessionRegisterPreparationHandler(String actionId, PurgeReportService purgeReportService) {
         this.actionId = actionId;
         this.purgeReportService = purgeReportService;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             exportAccessionRegister(param.getContainerName());
 
             LOGGER.info("Purge accession register preparation succeeded");
             return buildItemStatus(actionId, StatusCode.OK, null);
-
         } catch (ProcessingStatusException e) {
             LOGGER.error(
-                String.format("Purge accession register preparation failed with status [%s]", e.getStatusCode()), e);
+                String.format("Purge accession register preparation failed with status [%s]", e.getStatusCode()),
+                e
+            );
             return buildItemStatus(actionId, e.getStatusCode(), e.getEventDetails());
         }
     }
 
     private void exportAccessionRegister(String processId) throws ProcessingStatusException {
-
         purgeReportService.exportAccessionRegisters(processId);
     }
 

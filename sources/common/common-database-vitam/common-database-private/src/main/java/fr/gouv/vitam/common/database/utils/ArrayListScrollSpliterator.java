@@ -62,8 +62,12 @@ public class ArrayListScrollSpliterator<T> extends AbstractSpliterator<List<T>> 
      * @param scrollTimeout scroll timeout
      * @param limit the limit
      */
-    public ArrayListScrollSpliterator(SelectMultiQuery query,
-        Function<SelectMultiQuery, RequestResponse<List<T>>> repository, int scrollTimeout, int limit) {
+    public ArrayListScrollSpliterator(
+        SelectMultiQuery query,
+        Function<SelectMultiQuery, RequestResponse<List<T>>> repository,
+        int scrollTimeout,
+        int limit
+    ) {
         super(Long.MAX_VALUE, DISTINCT | SIZED | NONNULL);
         this.query = query;
         this.repository = repository;
@@ -111,5 +115,4 @@ public class ArrayListScrollSpliterator<T> extends AbstractSpliterator<List<T>> 
         results = requestResponse.getResults().iterator();
         scrollId = hits.getScrollId();
     }
-
 }

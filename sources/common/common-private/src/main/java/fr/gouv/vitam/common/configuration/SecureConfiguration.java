@@ -39,9 +39,7 @@ public class SecureConfiguration {
     /**
      * Empty ClientConfiguration constructor for YAMLFactory
      */
-    public SecureConfiguration() {
-
-    }
+    public SecureConfiguration() {}
 
     public List<String> getTenants() {
         return tenants;

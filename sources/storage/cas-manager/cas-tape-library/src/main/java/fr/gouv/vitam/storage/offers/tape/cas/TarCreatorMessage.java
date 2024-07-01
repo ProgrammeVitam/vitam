@@ -26,5 +26,4 @@
  */
 package fr.gouv.vitam.storage.offers.tape.cas;
 
-public abstract class TarCreatorMessage {
-}
+public abstract class TarCreatorMessage {}

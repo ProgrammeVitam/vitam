@@ -37,12 +37,9 @@ public class HandlerNotFoundExceptionTest {
 
     @Test
     public void testConstructor() {
-        HandlerNotFoundException exception =
-            new HandlerNotFoundException(ERROR, new Exception());
-        assertEquals(EXCEPTION + ": " + ERROR,
-            exception.toString());
+        HandlerNotFoundException exception = new HandlerNotFoundException(ERROR, new Exception());
+        assertEquals(EXCEPTION + ": " + ERROR, exception.toString());
         exception = new HandlerNotFoundException(ERROR);
         assertEquals(ERROR, exception.getMessage());
     }
-
 }

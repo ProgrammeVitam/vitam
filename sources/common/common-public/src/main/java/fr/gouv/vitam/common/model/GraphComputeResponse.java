@@ -43,9 +43,8 @@ public class GraphComputeResponse {
         /**
          * Compute graph for Unit and there ObjectGroup
          */
-        UNIT_OBJECTGROUP
+        UNIT_OBJECTGROUP,
     }
-
 
     private Integer unitCount = 0;
     private Integer gotCount = 0;
@@ -55,8 +54,7 @@ public class GraphComputeResponse {
     /**
      * Default constructor
      */
-    public GraphComputeResponse() {
-    }
+    public GraphComputeResponse() {}
 
     /**
      * Constructor
@@ -68,7 +66,6 @@ public class GraphComputeResponse {
         this.unitCount = unitCount;
         this.gotCount = gotCount;
     }
-
 
     /**
      * Increment unit of got count
@@ -86,7 +83,7 @@ public class GraphComputeResponse {
                 gotCount = gotCount + count;
                 break;
             default:
-                // Nothing
+            // Nothing
         }
 
         return this;
@@ -104,7 +101,6 @@ public class GraphComputeResponse {
 
         return this;
     }
-
 
     /**
      * Getter
@@ -133,7 +129,6 @@ public class GraphComputeResponse {
      */
     public Integer getGotCount() {
         return gotCount;
-
     }
 
     /**

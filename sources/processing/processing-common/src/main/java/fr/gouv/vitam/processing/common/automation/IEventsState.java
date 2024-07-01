@@ -110,7 +110,6 @@ public interface IEventsState {
      */
     boolean isStepByStep();
 
-
     /**
      * @return The LogbookTypeProcess
      */

@@ -29,6 +29,7 @@ package fr.gouv.vitam.processing.common.async;
 import java.util.Objects;
 
 public class AccessRequestContext {
+
     // mandatory
     private final String strategyId;
     // optional
@@ -54,10 +55,8 @@ public class AccessRequestContext {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         AccessRequestContext that = (AccessRequestContext) o;
         return Objects.equals(strategyId, that.strategyId) && Objects.equals(offerId, that.offerId);
     }

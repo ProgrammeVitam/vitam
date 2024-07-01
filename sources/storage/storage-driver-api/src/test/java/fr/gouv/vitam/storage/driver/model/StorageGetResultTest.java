@@ -38,6 +38,7 @@ import static org.junit.Assert.assertEquals;
  * Test for StorageGetObjectResult
  */
 public class StorageGetResultTest {
+
     private static ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
     private static StorageGetResult storageGetResult;
     private static final Integer TENANT_ID = 0;
@@ -66,5 +67,4 @@ public class StorageGetResultTest {
     public void testGetResultStream() {
         assertEquals(BYTES, storageGetResult.getObject().getEntity());
     }
-
 }

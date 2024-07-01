@@ -68,8 +68,9 @@ public class TraceabilityLFCJobTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -101,13 +102,13 @@ public class TraceabilityLFCJobTest {
     @RunWithCustomExecutor
     public void testTraceabilityLFCOKThenSuccess() throws Exception {
         // Given
-        doReturn(new RequestResponseOK<String>().addAllResults(List.of("opId"))).when(logbookOperationsClient)
+        doReturn(new RequestResponseOK<String>().addAllResults(List.of("opId")))
+            .when(logbookOperationsClient)
             .traceabilityLfcUnit();
 
         doReturn(new LifecycleTraceabilityStatus(true, false, "", false))
-            .when(logbookOperationsClient).checkLifecycleTraceabilityWorkflowStatus(anyString());
-
-
+            .when(logbookOperationsClient)
+            .checkLifecycleTraceabilityWorkflowStatus(anyString());
 
         // When
         callTraceabilityLFC.execute(context);
@@ -123,19 +124,20 @@ public class TraceabilityLFCJobTest {
     @RunWithCustomExecutor
     public void testTraceabilityLFCFatalThenOK() throws Exception {
         // Given
-        doReturn(new RequestResponseOK<String>().addAllResults(List.of("opId"))).when(logbookOperationsClient)
+        doReturn(new RequestResponseOK<String>().addAllResults(List.of("opId")))
+            .when(logbookOperationsClient)
             .traceabilityLfcUnit();
 
-        doAnswer(
-            (args) -> {
-                assertThat(Thread.currentThread()).isInstanceOf(VitamThreadFactory.VitamThread.class);
-                Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-                if (tenantId == 2) {
-                    return new LifecycleTraceabilityStatus(false, true, "PAUSE.FATAL", false);
-                }
-                return new LifecycleTraceabilityStatus(true, false, "", false);
+        doAnswer(args -> {
+            assertThat(Thread.currentThread()).isInstanceOf(VitamThreadFactory.VitamThread.class);
+            Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
+            if (tenantId == 2) {
+                return new LifecycleTraceabilityStatus(false, true, "PAUSE.FATAL", false);
             }
-        ).when(logbookOperationsClient).checkLifecycleTraceabilityWorkflowStatus(anyString());
+            return new LifecycleTraceabilityStatus(true, false, "", false);
+        })
+            .when(logbookOperationsClient)
+            .checkLifecycleTraceabilityWorkflowStatus(anyString());
 
         // When
         callTraceabilityLFC.execute(context);

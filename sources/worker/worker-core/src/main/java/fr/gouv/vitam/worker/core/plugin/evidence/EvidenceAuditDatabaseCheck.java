@@ -64,6 +64,7 @@ import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
  * EvidenceAuditDatabaseCheck class
  */
 public class EvidenceAuditDatabaseCheck extends ActionHandler {
+
     private static final String EVIDENCE_AUDIT_CHECK_DATABASE = "EVIDENCE_AUDIT_CHECK_DATABASE";
     private static final String METADA_TYPE = "metadaType";
     private static final String DATA = "data";
@@ -84,8 +85,7 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException {
         ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE);
         String objectToAuditId = param.getObjectName();
 
@@ -97,14 +97,16 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
             MetadataType metadataType = MetadataType.valueOf(objectIdToAudit.get(METADA_TYPE).textValue());
 
             List<StorageStrategy> storageStrategies = loadStorageStrategies(handlerIO);
-            EvidenceAuditParameters parameters =
-                evidenceService.evidenceAuditsChecks(objectToAuditId, metadataType, storageStrategies);
+            EvidenceAuditParameters parameters = evidenceService.evidenceAuditsChecks(
+                objectToAuditId,
+                metadataType,
+                storageStrategies
+            );
 
             File newLocalFile = handlerIO.getNewLocalFile(objectToAuditId + ".tmp");
             JsonHandler.writeAsFile(parameters, newLocalFile);
 
-            handlerIO.transferFileToWorkspace(DATA + "/" + objectToAuditId,
-                newLocalFile, true, false);
+            handlerIO.transferFileToWorkspace(DATA + "/" + objectToAuditId, newLocalFile, true, false);
 
             if (parameters.getEvidenceStatus().equals(EvidenceStatus.FATAL)) {
                 itemStatus.increment(StatusCode.FATAL);
@@ -112,52 +114,61 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
                 infoNode.put("Message", "Fatal Technical error " + parameters.getAuditMessage());
                 itemStatus.setEvDetailData(unprettyPrint(infoNode));
                 evidenceAuditReportService.cleanupReport(param.getContainerName());
-                return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE,
-                    itemStatus);
+                return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(
+                    EVIDENCE_AUDIT_CHECK_DATABASE,
+                    itemStatus
+                );
             }
-            if (parameters.getEvidenceStatus().equals(EvidenceStatus.KO) ||
-                parameters.getEvidenceStatus().equals(EvidenceStatus.WARN)) {
-
+            if (
+                parameters.getEvidenceStatus().equals(EvidenceStatus.KO) ||
+                parameters.getEvidenceStatus().equals(EvidenceStatus.WARN)
+            ) {
                 EvidenceAuditReportLine evidenceAuditReportLine = null;
                 evidenceAuditReportLine = new EvidenceAuditReportLine(objectToAuditId);
                 evidenceAuditReportLine.setEvidenceStatus(parameters.getEvidenceStatus());
                 evidenceAuditReportLine.setMessage(parameters.getAuditMessage());
                 evidenceAuditReportLine.setStrategyId(parameters.getMdOptimisticStorageInfo().getStrategy());
                 JsonHandler.writeAsFile(evidenceAuditReportLine, file);
-                handlerIO.transferFileToWorkspace(REPORTS + "/" + objectToAuditId + ".report.json",
-                    file, true, false);
-                if (!param.getWorkflowIdentifier().equals("RECTIFICATION_AUDIT"))
-                    addReportEntry(param.getContainerName(),
-                        createEvidenceReportEntry(parameters, evidenceAuditReportLine));
+                handlerIO.transferFileToWorkspace(REPORTS + "/" + objectToAuditId + ".report.json", file, true, false);
+                if (!param.getWorkflowIdentifier().equals("RECTIFICATION_AUDIT")) addReportEntry(
+                    param.getContainerName(),
+                    createEvidenceReportEntry(parameters, evidenceAuditReportLine)
+                );
             }
 
             itemStatus.increment(StatusCode.OK);
-            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE)
-                .setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
-
+            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(
+                EVIDENCE_AUDIT_CHECK_DATABASE,
+                itemStatus
+            );
         } catch (VitamException | IOException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
-            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE)
-                .setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
+            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(
+                EVIDENCE_AUDIT_CHECK_DATABASE,
+                itemStatus
+            );
         } catch (ProcessingStatusException e) {
             LOGGER.error(e);
             itemStatus.increment(e.getStatusCode());
-            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE)
-                .setItemsStatus(EVIDENCE_AUDIT_CHECK_DATABASE, itemStatus);
+            return new ItemStatus(EVIDENCE_AUDIT_CHECK_DATABASE).setItemsStatus(
+                EVIDENCE_AUDIT_CHECK_DATABASE,
+                itemStatus
+            );
         }
     }
 
-    private void addReportEntry(String processId, EvidenceAuditReportEntry entry)
-        throws ProcessingStatusException {
+    private void addReportEntry(String processId, EvidenceAuditReportEntry entry) throws ProcessingStatusException {
         evidenceAuditReportService.appendEntries(processId, Arrays.asList(entry));
     }
 
-    private EvidenceAuditReportEntry createEvidenceReportEntry(EvidenceAuditParameters parameters,
-        EvidenceAuditReportLine evidenceAuditReportLine) {
-
-        ArrayList<EvidenceAuditReportObject> ListvidEvidenceAuditBatchReport =
-            createEvidenceBatchFromEvidenceWorker(evidenceAuditReportLine);
+    private EvidenceAuditReportEntry createEvidenceReportEntry(
+        EvidenceAuditParameters parameters,
+        EvidenceAuditReportLine evidenceAuditReportLine
+    ) {
+        ArrayList<EvidenceAuditReportObject> ListvidEvidenceAuditBatchReport = createEvidenceBatchFromEvidenceWorker(
+            evidenceAuditReportLine
+        );
 
         return new EvidenceAuditReportEntry(
             parameters.getId(),
@@ -168,19 +179,28 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
             evidenceAuditReportLine.getSecuredHash(),
             evidenceAuditReportLine.getStrategyId(),
             evidenceAuditReportLine.getOffersHashes(),
-            parameters.getAuditMessage());
+            parameters.getAuditMessage()
+        );
     }
 
     private ArrayList<EvidenceAuditReportObject> createEvidenceBatchFromEvidenceWorker(
-        EvidenceAuditReportLine evidenceAuditReportLine) {
+        EvidenceAuditReportLine evidenceAuditReportLine
+    ) {
         ArrayList<EvidenceAuditReportObject> list = new ArrayList<>();
 
         if (evidenceAuditReportLine.getObjectsReports() != null) {
-            for (fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObject objects : evidenceAuditReportLine
-                .getObjectsReports()) {
-                list.add(new EvidenceAuditReportObject(objects.getIdentifier(), objects.getEvidenceStatus().name(),
-                    objects.getMessage(), objects.getObjectType(), objects.getSecuredHash(), objects.getStrategyId(),
-                    objects.getOffersHashes()));
+            for (fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportObject objects : evidenceAuditReportLine.getObjectsReports()) {
+                list.add(
+                    new EvidenceAuditReportObject(
+                        objects.getIdentifier(),
+                        objects.getEvidenceStatus().name(),
+                        objects.getMessage(),
+                        objects.getObjectType(),
+                        objects.getSecuredHash(),
+                        objects.getStrategyId(),
+                        objects.getOffersHashes()
+                    )
+                );
             }
             return list;
         }
@@ -189,12 +209,12 @@ public class EvidenceAuditDatabaseCheck extends ActionHandler {
 
     private List<StorageStrategy> loadStorageStrategies(HandlerIO handler) throws AuditException {
         try {
-            return JsonHandler.getFromFileAsTypeReference((File) handler.getInput(STRATEGIES_IN_RANK),
-                new TypeReference<List<StorageStrategy>>() {
-                });
+            return JsonHandler.getFromFileAsTypeReference(
+                (File) handler.getInput(STRATEGIES_IN_RANK),
+                new TypeReference<List<StorageStrategy>>() {}
+            );
         } catch (InvalidParseOperationException e) {
             throw new AuditException(StatusCode.FATAL, "Could not load storage strategies datas", e);
         }
     }
-
 }

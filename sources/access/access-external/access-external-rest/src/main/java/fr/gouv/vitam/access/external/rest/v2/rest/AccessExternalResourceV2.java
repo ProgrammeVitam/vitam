@@ -76,14 +76,18 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
      *
      * @param secureEndpointRegistry endpoint list registry
      */
-    public AccessExternalResourceV2(SecureEndpointRegistry secureEndpointRegistry,
-        AccessExternalConfiguration configuration) {
+    public AccessExternalResourceV2(
+        SecureEndpointRegistry secureEndpointRegistry,
+        AccessExternalConfiguration configuration
+    ) {
         this(secureEndpointRegistry, AccessInternalClientFactory.getInstance(), configuration);
     }
 
-    public AccessExternalResourceV2(SecureEndpointRegistry secureEndpointRegistry,
+    public AccessExternalResourceV2(
+        SecureEndpointRegistry secureEndpointRegistry,
         AccessInternalClientFactory accessInternalClientFactory,
-        AccessExternalConfiguration configuration) {
+        AccessExternalConfiguration configuration
+    ) {
         this.secureEndpointRegistry = secureEndpointRegistry;
         this.accessInternalClientFactory = accessInternalClientFactory;
         this.configuration = configuration;
@@ -98,16 +102,14 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
     @Path("/")
     @OPTIONS
     @Produces(MediaType.APPLICATION_JSON)
-    @Unsecured()
+    @Unsecured
     public Response listResourceEndpoints() {
-
         String resourcePath = AccessExternalResourceV2.class.getAnnotation(Path.class).value();
 
         List<EndpointInfo> securedEndpointList = this.secureEndpointRegistry.getEndPointsByResourcePath(resourcePath);
 
         return Response.status(Status.OK).entity(securedEndpointList).build();
     }
-
 
     /**
      * Get a DIP by dip request (dsl query + other export options)
@@ -126,9 +128,13 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
             // Validate DSL query & seda Version
             SelectMultipleSchemaValidator validator = new SelectMultipleSchemaValidator();
             validator.validate(dipRequest.getDslRequest());
-            if (dipRequest.getSedaVersion() != null && !SupportedSedaVersions.isSedaVersionValid(dipRequest.getSedaVersion())) {
+            if (
+                dipRequest.getSedaVersion() != null &&
+                !SupportedSedaVersions.isSedaVersionValid(dipRequest.getSedaVersion())
+            ) {
                 return Response.status(Status.PRECONDITION_FAILED)
-                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, "The Seda version is invalid!")).build();
+                    .entity(getErrorEntity(Status.PRECONDITION_FAILED, "The Seda version is invalid!"))
+                    .build();
             }
 
             RequestResponse<JsonNode> response = client.exportByUsageFilter(ExportRequest.from(dipRequest));
@@ -140,21 +146,26 @@ public class AccessExternalResourceV2 extends ApplicationStatusResource {
         } catch (final AccessInternalClientServerException e) {
             LOGGER.error(PREDICATES_FAILED_EXCEPTION, e);
             return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage())).build();
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED, e.getLocalizedMessage()))
+                .build();
         } catch (final Exception e) {
             LOGGER.error("Technical Exception ", e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage())).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getLocalizedMessage()))
+                .build();
         }
     }
 
     @Deprecated
     private VitamError<JsonNode> getErrorEntity(Status status, String message) {
-        String aMessage =
-            (message != null && !message.trim().isEmpty()) ? message
-                : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError<JsonNode>(status.name()).setHttpCode(status.getStatusCode())
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        return new VitamError<JsonNode>(status.name())
+            .setHttpCode(status.getStatusCode())
             .setContext(ACCESS_EXTERNAL_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(aMessage);
+            .setState(CODE_VITAM)
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 }

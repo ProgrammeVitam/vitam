@@ -55,6 +55,7 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.ARCHIVAL_TR
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class SaveAtrPlugin extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(SaveAtrPlugin.class);
     public static final String PLUGIN_NAME = "SAVE_ARCHIVAL_TRANSFER_REPLY";
 
@@ -77,18 +78,27 @@ public class SaveAtrPlugin extends ActionHandler {
 
             ObjectDescription description = getDescription(messageIdentifier, handler.getContainerName());
 
-            StoredInfoResult storedInfo =
-                storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), description.getType(),
-                    description.getObjectName(), description);
+            StoredInfoResult storedInfo = storageClient.storeFileFromWorkspace(
+                VitamConfiguration.getDefaultStrategy(),
+                description.getType(),
+                description.getObjectName(),
+                description
+            );
 
             handler.addOutputResult(0, atr);
 
-            return buildItemStatus(PLUGIN_NAME, OK,
-                Collections.singletonMap(messageIdentifier, BinaryEventData.from(storedInfo)));
+            return buildItemStatus(
+                PLUGIN_NAME,
+                OK,
+                Collections.singletonMap(messageIdentifier, BinaryEventData.from(storedInfo))
+            );
         } catch (StorageAlreadyExistsClientException e) {
             LOGGER.warn(e);
-            return buildItemStatus(PLUGIN_NAME, WARNING,
-                EventDetails.of(e.getMessage(), "ATR already exists but it will continue."));
+            return buildItemStatus(
+                PLUGIN_NAME,
+                WARNING,
+                EventDetails.of(e.getMessage(), "ATR already exists but it will continue.")
+            );
         } catch (StorageNotFoundClientException | StorageServerClientException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(e.getMessage()));

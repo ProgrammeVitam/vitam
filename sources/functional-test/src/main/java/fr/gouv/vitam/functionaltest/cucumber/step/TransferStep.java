@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.java.After;
 import cucumber.api.java.en.Then;
@@ -78,7 +77,6 @@ public class TransferStep extends CommonStep {
 
     @When("^je lance un transfert$")
     public void transfer() throws VitamException {
-
         cleanTempFile();
 
         VitamContext vitamContext = new VitamContext(world.getTenantId());
@@ -96,8 +94,14 @@ public class TransferStep extends CommonStep {
         world.setOperationId(operationId);
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        boolean processTimeout = vitamPoolingClient.wait(
+            world.getTenantId(),
+            operationId,
+            ProcessState.COMPLETED,
+            100,
+            1_000L,
+            TimeUnit.MILLISECONDS
+        );
 
         if (!processTimeout) {
             fail("Transfer processing not finished. Timeout exceeded.");
@@ -108,7 +112,6 @@ public class TransferStep extends CommonStep {
 
     @When("^je télécharge le sip du transfert$")
     public void downloadSipTransfer() throws Exception {
-
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         vitamContext.setAccessContract(world.getContractId());
@@ -127,13 +130,11 @@ public class TransferStep extends CommonStep {
 
     @Then("^le transfert contient (\\d+) unités archivistiques$")
     public void checkSipTransferUnitCount(int nbUnits) throws Exception {
-
         try (ZipFile zipFile = new ZipFile(world.getTransferFile().toFile())) {
             // Check manifest
             ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
             try (InputStream is = zipFile.getInputStream(manifest)) {
-                int cpt =
-                    countElements(is, "ArchiveTransfer/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
+                int cpt = countElements(is, "ArchiveTransfer/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
                 assertThat(cpt).isEqualTo(nbUnits);
             }
         }
@@ -141,7 +142,6 @@ public class TransferStep extends CommonStep {
 
     @Then("^le transfert contient (\\d+) groupes d'objets$")
     public void checkSipTransferObjectGroupCount(int nbObjectGroups) throws Exception {
-
         try (ZipFile zipFile = new ZipFile(world.getTransferFile().toFile())) {
             // Check manifest
             ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
@@ -154,18 +154,17 @@ public class TransferStep extends CommonStep {
 
     @Then("^le transfert contient (\\d+) objets dont (\\d+) sont binaires$")
     public void checkSipTransferObjectCount(int nbObjects, int nbBinaryObjects) throws Exception {
-
         try (ZipFile zipFile = new ZipFile(world.getTransferFile().toFile())) {
             // Check manifest
             ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
             try (InputStream is = zipFile.getInputStream(manifest)) {
-                int cpt =
-                    countElements(is, "ArchiveTransfer/DataObjectPackage/DataObjectGroup/BinaryDataObject");
+                int cpt = countElements(is, "ArchiveTransfer/DataObjectPackage/DataObjectGroup/BinaryDataObject");
                 assertThat(cpt).isEqualTo(nbObjects);
             }
 
             List<ZipArchiveEntry> entries = EnumerationUtils.toList(zipFile.getEntries());
-            long binaryFiles = entries.stream()
+            long binaryFiles = entries
+                .stream()
                 .filter((ZipArchiveEntry entry) -> entry.getName().startsWith("Content/"))
                 .count();
 
@@ -176,19 +175,27 @@ public class TransferStep extends CommonStep {
     @When("^j'upload le sip du transfert")
     public void upload_this_sip_transfer() throws VitamException, IOException {
         try (InputStream inputStream = Files.newInputStream(world.getTransferFile(), StandardOpenOption.READ)) {
-            VitamContext vitamContext =
-                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId());
-            RequestResponse response = world.getIngestClient()
-                .ingest(vitamContext,
-                    inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
+            VitamContext vitamContext = new VitamContext(world.getTenantId()).setApplicationSessionId(
+                world.getApplicationSessionId()
+            );
+            RequestResponse response = world
+                .getIngestClient()
+                .ingest(vitamContext, inputStream, DEFAULT_WORKFLOW.name(), ProcessAction.RESUME.name());
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
             final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-            boolean process_timeout = vitamPoolingClient
-                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+            boolean process_timeout = vitamPoolingClient.wait(
+                world.getTenantId(),
+                operationId,
+                ProcessState.COMPLETED,
+                1800,
+                1_000L,
+                TimeUnit.MILLISECONDS
+            );
             if (!process_timeout) {
-                Assertions
-                    .fail("Sip transfer processing not finished : operation (" + operationId + "). Timeout exceeded.");
+                Assertions.fail(
+                    "Sip transfer processing not finished : operation (" + operationId + "). Timeout exceeded."
+                );
             }
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }
@@ -197,25 +204,28 @@ public class TransferStep extends CommonStep {
     @When("^je receptionne l'ATR du versement d'un transfert")
     public void transfer_reply() throws VitamException, IOException {
         try (InputStream inputStream = Files.newInputStream(world.getAtrFile(), StandardOpenOption.READ)) {
-            VitamContext vitamContext =
-                new VitamContext(world.getTenantId())
-                    .setApplicationSessionId(world.getApplicationSessionId())
-                    .setAccessContract(world.getContractId());
+            VitamContext vitamContext = new VitamContext(world.getTenantId())
+                .setApplicationSessionId(world.getApplicationSessionId())
+                .setAccessContract(world.getContractId());
 
-            RequestResponse response = world.getAccessClient().transferReply(
-                vitamContext,
-                inputStream);
+            RequestResponse response = world.getAccessClient().transferReply(vitamContext, inputStream);
             assertThat(response.isOk()).isTrue();
 
             final String operationId = response.getHeaderString(GlobalDataRest.X_REQUEST_ID);
             world.setOperationId(operationId);
             final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-            boolean process_timeout = vitamPoolingClient
-                .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 1800, 1_000L, TimeUnit.MILLISECONDS);
+            boolean process_timeout = vitamPoolingClient.wait(
+                world.getTenantId(),
+                operationId,
+                ProcessState.COMPLETED,
+                1800,
+                1_000L,
+                TimeUnit.MILLISECONDS
+            );
             if (!process_timeout) {
-                Assertions
-                    .fail("Sip transfer reply processing not finished : operation (" + operationId +
-                        "). Timeout exceeded.");
+                Assertions.fail(
+                    "Sip transfer reply processing not finished : operation (" + operationId + "). Timeout exceeded."
+                );
             }
             assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
         }

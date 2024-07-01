@@ -30,6 +30,7 @@ package fr.gouv.vitam.processing.common.exception;
  * Define a Processing Exception to be thrown when there is a line break or spaces where should not be
  */
 public class ProcessingMalformedDataException extends ProcessingException {
+
     private static final long serialVersionUID = -8063612650088096556L;
 
     /**
@@ -53,5 +54,4 @@ public class ProcessingMalformedDataException extends ProcessingException {
     public ProcessingMalformedDataException(String message) {
         super(message);
     }
-
 }

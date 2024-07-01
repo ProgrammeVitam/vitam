@@ -47,8 +47,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class ComputeInheritedRulesFinalizationPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ComputeInheritedRulesFinalizationPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ComputeInheritedRulesFinalizationPlugin.class
+    );
 
     private static final String COMPUTE_INHERITED_RULES_FINALIZATION = "COMPUTE_INHERITED_RULES_FINALIZATION";
 
@@ -65,8 +66,7 @@ public class ComputeInheritedRulesFinalizationPlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         cleanupBatchReport(handler);
 
         LOGGER.info("Computed inherited rules finalization succeeded");

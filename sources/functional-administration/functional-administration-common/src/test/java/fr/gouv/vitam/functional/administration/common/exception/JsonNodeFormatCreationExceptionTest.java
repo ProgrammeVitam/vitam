@@ -32,6 +32,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class JsonNodeFormatCreationExceptionTest {
+
     @Test
     public final void testFileFormatException() {
         assertEquals("", new JsonNodeFormatCreationException("").getMessage());
@@ -39,5 +40,4 @@ public class JsonNodeFormatCreationExceptionTest {
         assertNotNull(new JsonNodeFormatCreationException(new Exception()).getCause());
         assertNotNull(new JsonNodeFormatCreationException("test", new Exception()).getCause());
     }
-
 }

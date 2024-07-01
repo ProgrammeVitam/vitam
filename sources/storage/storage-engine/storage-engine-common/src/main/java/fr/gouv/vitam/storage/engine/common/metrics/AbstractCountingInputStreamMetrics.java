@@ -33,6 +33,7 @@ import org.apache.commons.io.input.CountingInputStream;
 import java.io.InputStream;
 
 abstract class AbstractCountingInputStreamMetrics extends CountingInputStream {
+
     protected final String tenant;
     protected final String strategy;
     protected final String offerId;
@@ -40,10 +41,15 @@ abstract class AbstractCountingInputStreamMetrics extends CountingInputStream {
     protected final String dataCategory;
     private boolean first = true;
 
-    public AbstractCountingInputStreamMetrics(Integer tenant, String strategy, String offerId, String origin,
-        DataCategory dataCategory, InputStream inputStream) {
+    public AbstractCountingInputStreamMetrics(
+        Integer tenant,
+        String strategy,
+        String offerId,
+        String origin,
+        DataCategory dataCategory,
+        InputStream inputStream
+    ) {
         super(inputStream);
-
         this.tenant = tenant != null ? String.valueOf(tenant) : "unknown_tenant";
         this.strategy = strategy != null ? strategy : "unknown_strategy";
         this.offerId = offerId != null ? offerId : "unknown_offer";

@@ -42,6 +42,7 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeDriveCommandService;
 import java.util.List;
 
 public class MtTapeLibraryService implements TapeDriveCommandService {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MtTapeLibraryService.class);
 
     public static final String F = "-f";
@@ -67,11 +68,13 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
 
     @Override
     public TapeDriveSpec status() throws TapeCommandException {
-
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), STATUS);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
+        LOGGER.debug(
+            "Execute script : {},timeout: {}, args : {}",
+            tapeDriveConf.getMtPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
-            args);
+            args
+        );
         Output output =
             this.processExecutor.execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
         return parseTapeDriveState(output);
@@ -95,28 +98,36 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
 
         if (output.getExitCode() != 0) {
             throw new TapeCommandException(
-                "Could not move tape " + position + " entries " + (isBackward ? "backward" : "forward")
-                    + " in device " + tapeDriveConf.getDevice(), output);
+                "Could not move tape " +
+                position +
+                " entries " +
+                (isBackward ? "backward" : "forward") +
+                " in device " +
+                tapeDriveConf.getDevice(),
+                output
+            );
         }
     }
 
     private List<String> buildMoveForwardArgs(int position) {
-        List<String> args =
-            Lists.newArrayList(F, tapeDriveConf.getDevice(), FSF, String.valueOf(position));
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
+        List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), FSF, String.valueOf(position));
+        LOGGER.debug(
+            "Execute script : {},timeout: {}, args : {}",
+            tapeDriveConf.getMtPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
-            args);
+            args
+        );
         return args;
     }
 
-
     private List<String> buildMoveBackwardArgs(int position) {
-
-        List<String> args =
-            Lists.newArrayList(F, tapeDriveConf.getDevice(), BSFM, String.valueOf(position + 1));
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
+        List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), BSFM, String.valueOf(position + 1));
+        LOGGER.debug(
+            "Execute script : {},timeout: {}, args : {}",
+            tapeDriveConf.getMtPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
-            args);
+            args
+        );
         return args;
     }
 
@@ -137,15 +148,20 @@ public class MtTapeLibraryService implements TapeDriveCommandService {
 
     private void execute(String option) throws TapeCommandException {
         List<String> args = Lists.newArrayList(F, tapeDriveConf.getDevice(), option);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeDriveConf.getMtPath(),
+        LOGGER.debug(
+            "Execute script : {},timeout: {}, args : {}",
+            tapeDriveConf.getMtPath(),
             tapeDriveConf.getTimeoutInMilliseconds(),
-            args);
+            args
+        );
         Output output =
             this.processExecutor.execute(tapeDriveConf.getMtPath(), tapeDriveConf.getTimeoutInMilliseconds(), args);
 
         if (output.getExitCode() != 0) {
             throw new TapeCommandException(
-                "Could not execute command " + option + " on device " + tapeDriveConf.getDevice(), output);
+                "Could not execute command " + option + " on device " + tapeDriveConf.getDevice(),
+                output
+            );
         }
     }
 

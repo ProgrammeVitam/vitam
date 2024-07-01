@@ -55,8 +55,12 @@ public class TransferReplyUnitModel {
         // Empty constructor for deserialization
     }
 
-    public TransferReplyUnitModel(String processId, int tenant, String creationDateTime,
-        TransferReplyUnitReportEntry metadata) {
+    public TransferReplyUnitModel(
+        String processId,
+        int tenant,
+        String creationDateTime,
+        TransferReplyUnitReportEntry metadata
+    ) {
         this.processId = processId;
         this.creationDateTime = creationDateTime;
         this.metadata = metadata;
@@ -97,21 +101,24 @@ public class TransferReplyUnitModel {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this)
-            return true;
+        if (o == this) return true;
         if (!(o instanceof TransferReplyUnitModel)) {
             return false;
         }
         TransferReplyUnitModel transferReplyUnitModel = (TransferReplyUnitModel) o;
 
-        return Objects.equals(getTenant(), transferReplyUnitModel.getTenant())
-            && Objects.equals(getProcessId(), transferReplyUnitModel.getProcessId())
-            && Objects.equals(getMetadataId(this), getMetadataId(transferReplyUnitModel));
+        return (
+            Objects.equals(getTenant(), transferReplyUnitModel.getTenant()) &&
+            Objects.equals(getProcessId(), transferReplyUnitModel.getProcessId()) &&
+            Objects.equals(getMetadataId(this), getMetadataId(transferReplyUnitModel))
+        );
     }
 
     private static String getMetadataId(TransferReplyUnitModel transferReplyUnitReportEntry) {
-        if (transferReplyUnitReportEntry.getMetadata() == null
-            || StringUtils.isEmpty(transferReplyUnitReportEntry.getMetadata().getId())) {
+        if (
+            transferReplyUnitReportEntry.getMetadata() == null ||
+            StringUtils.isEmpty(transferReplyUnitReportEntry.getMetadata().getId())
+        ) {
             throw new IllegalArgumentException("Invalid metadata");
         }
 

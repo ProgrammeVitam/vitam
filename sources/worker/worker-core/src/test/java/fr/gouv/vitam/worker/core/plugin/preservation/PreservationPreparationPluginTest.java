@@ -82,8 +82,7 @@ import static org.mockito.Mockito.when;
 
 public class PreservationPreparationPluginTest {
 
-    private static final TypeReference<List<String>> LIST_TYPE_REFERENCE = new TypeReference<>() {
-    };
+    private static final TypeReference<List<String>> LIST_TYPE_REFERENCE = new TypeReference<>() {};
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -113,19 +112,17 @@ public class PreservationPreparationPluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         when(metaDataClientFactory.getClient()).thenReturn(metaDataClient);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        preservationPreparationPlugin =
-            new PreservationPreparationPlugin(adminManagementClientFactory, metaDataClientFactory,
-                workspaceClientFactory);
+        preservationPreparationPlugin = new PreservationPreparationPlugin(
+            adminManagementClientFactory,
+            metaDataClientFactory,
+            workspaceClientFactory
+        );
 
-
-        List<GriffinModel> list = getFromStringAsTypeReference(griffinIds,
-            new TypeReference<List<GriffinModel>>() {
-            });
+        List<GriffinModel> list = getFromStringAsTypeReference(griffinIds, new TypeReference<List<GriffinModel>>() {});
         RequestResponseOK<GriffinModel> griffinRequestResponseOK = new RequestResponseOK<>();
         griffinRequestResponseOK.addAllResults(list);
 
@@ -136,31 +133,39 @@ public class PreservationPreparationPluginTest {
 
         when(adminManagementClient.findPreservationByID("id")).thenReturn(objectRequestResponseOK);
         when(adminManagementClient.findGriffin(any())).thenReturn(griffinRequestResponseOK);
-        when(metaDataClient.selectUnits(any()))
-            .thenReturn(getFromInputStream(getClass().getResourceAsStream("/preservation/resultRequest.json")));
+        when(metaDataClient.selectUnits(any())).thenReturn(
+            getFromInputStream(getClass().getResourceAsStream("/preservation/resultRequest.json"))
+        );
 
         when(metaDataClient.selectObjectGroups(any())).thenReturn(
-            getFromInputStream(getClass().getResourceAsStream("/preservation/objectGroupResult.json")));
+            getFromInputStream(getClass().getResourceAsStream("/preservation/objectGroupResult.json"))
+        );
     }
 
     @Test
     public void shouldCreateJsonLFile() throws Exception {
-
         // Given
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
-        PreservationRequest preservationRequest =
-            new PreservationRequest(new Select().getFinalSelect(), "id", "BinaryMaster", LAST, "BinaryMaster");
+        PreservationRequest preservationRequest = new PreservationRequest(
+            new Select().getFinalSelect(),
+            "id",
+            "BinaryMaster",
+            LAST,
+            "BinaryMaster"
+        );
 
         when(handler.getJsonFromWorkspace("preservationRequest")).thenReturn(toJsonNode(preservationRequest));
 
         Map<String, File> files = new HashMap<>();
-        doAnswer((args) -> {
+        doAnswer(args -> {
             File file = temporaryFolder.newFile();
             files.put(args.getArgument(0), file);
             return file;
-        }).when(handler).getNewLocalFile(anyString());
+        })
+            .when(handler)
+            .getNewLocalFile(anyString());
 
         // When
         ItemStatus itemStatus = preservationPreparationPlugin.execute(workerParameters, handler);
@@ -169,8 +174,10 @@ public class PreservationPreparationPluginTest {
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
 
-        List<String> lines =
-            IOUtils.readLines(new FileInputStream(files.get("object_groups_to_preserve.jsonl")), "UTF-8");
+        List<String> lines = IOUtils.readLines(
+            new FileInputStream(files.get("object_groups_to_preserve.jsonl")),
+            "UTF-8"
+        );
         assertThat(lines.size()).isEqualTo(5);
         JsonLineModel firstLine = JsonHandler.getFromString(lines.get(0), JsonLineModel.class);
         assertThat(firstLine.getParams().get("sourceStrategy").asText()).isEqualTo("default-fake");
@@ -183,17 +190,24 @@ public class PreservationPreparationPluginTest {
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
         ObjectNode finalSelect = new Select().getFinalSelect();
-        PreservationRequest preservationRequest =
-            new PreservationRequest(finalSelect, "id", "BinaryMaster", LAST, "BinaryMaster");
+        PreservationRequest preservationRequest = new PreservationRequest(
+            finalSelect,
+            "id",
+            "BinaryMaster",
+            LAST,
+            "BinaryMaster"
+        );
 
         when(handler.getJsonFromWorkspace("preservationRequest")).thenReturn(toJsonNode(preservationRequest));
 
         Map<String, File> files = new HashMap<>();
-        doAnswer((args) -> {
+        doAnswer(args -> {
             File file = temporaryFolder.newFile();
             files.put(args.getArgument(0), file);
             return file;
-        }).when(handler).getNewLocalFile(anyString());
+        })
+            .when(handler)
+            .getNewLocalFile(anyString());
 
         // When
         ItemStatus itemStatus = preservationPreparationPlugin.execute(workerParameters, handler);
@@ -201,11 +215,13 @@ public class PreservationPreparationPluginTest {
         // Then
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
-        assertThat(itemStatus.getEvDetailData())
-            .isEqualTo(
-                JsonHandler.unprettyPrint(createObjectNode().put("query", JsonHandler.unprettyPrint(finalSelect))));
-        List<String> lines =
-            IOUtils.readLines(new FileInputStream(files.get("object_groups_to_preserve.jsonl")), "UTF-8");
+        assertThat(itemStatus.getEvDetailData()).isEqualTo(
+            JsonHandler.unprettyPrint(createObjectNode().put("query", JsonHandler.unprettyPrint(finalSelect)))
+        );
+        List<String> lines = IOUtils.readLines(
+            new FileInputStream(files.get("object_groups_to_preserve.jsonl")),
+            "UTF-8"
+        );
         assertThat(lines.size()).isEqualTo(5);
         JsonLineModel firstLine = JsonHandler.getFromString(lines.get(0), JsonLineModel.class);
         assertThat(firstLine.getParams().get("sourceStrategy").asText()).isEqualTo("default-fake");
@@ -215,19 +231,23 @@ public class PreservationPreparationPluginTest {
     public void should_make_explicit_precondition_failed_when_griffin_id_is_not_find() throws Exception {
         // Given
         when(adminManagementClient.findGriffin(any())).thenThrow(
-            new AdminManagementClientServerException("Internal Server Error"));
+            new AdminManagementClientServerException("Internal Server Error")
+        );
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
-        PreservationRequest preservationRequest =
-            new PreservationRequest(new Select().getFinalSelect(), "id", "BinaryMaster", LAST, "BinaryMaster");
+        PreservationRequest preservationRequest = new PreservationRequest(
+            new Select().getFinalSelect(),
+            "id",
+            "BinaryMaster",
+            LAST,
+            "BinaryMaster"
+        );
         when(handler.getJsonFromWorkspace("preservationRequest")).thenReturn(toJsonNode(preservationRequest));
         // When
         // Then
         ItemStatus itemStatus = preservationPreparationPlugin.execute(workerParameters, handler);
         String expectedEventDetailData = "{\"error\":\"Preconditions Failed :  Internal Server Error\"}";
         assertThat(itemStatus.getData("eventDetailData").toString()).isEqualTo(expectedEventDetailData);
-
-
     }
 
     @Test
@@ -236,41 +256,54 @@ public class PreservationPreparationPluginTest {
         HandlerIO handler = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
 
-        when(handler.getJsonFromWorkspace("preservationRequest")).thenReturn(toJsonNode(
-            new PreservationRequest(new Select().getFinalSelect(), "id", "BinaryMaster", LAST, "BinaryMaster")));
+        when(handler.getJsonFromWorkspace("preservationRequest")).thenReturn(
+            toJsonNode(
+                new PreservationRequest(new Select().getFinalSelect(), "id", "BinaryMaster", LAST, "BinaryMaster")
+            )
+        );
 
         Map<String, File> files = new HashMap<>();
-        doAnswer((args) -> {
+        doAnswer(args -> {
             File file = temporaryFolder.newFile();
             files.put(args.getArgument(0), file);
             return file;
-        }).when(handler).getNewLocalFile(anyString());
+        })
+            .when(handler)
+            .getNewLocalFile(anyString());
 
         // When
         preservationPreparationPlugin.execute(workerParameters, handler);
 
         // Then
-        assertThat(getFromJsonNode(getLines(files).get(4).getParams().get("unitsForExtractionAU"),
-            LIST_TYPE_REFERENCE)).isEqualTo(
-            Arrays.asList("aeaqaaaaaabba3ylaakt2alhphdv2lyaaabq", "aeaqaaaaaabba3ylaakt2alhphdv2kiaaabq",
-                "aeaqaaaaaabba3ylaakt2alhphdv2laaaaaq"));
+        assertThat(
+            getFromJsonNode(getLines(files).get(4).getParams().get("unitsForExtractionAU"), LIST_TYPE_REFERENCE)
+        ).isEqualTo(
+            Arrays.asList(
+                "aeaqaaaaaabba3ylaakt2alhphdv2lyaaabq",
+                "aeaqaaaaaabba3ylaakt2alhphdv2kiaaabq",
+                "aeaqaaaaaabba3ylaakt2alhphdv2laaaaaq"
+            )
+        );
     }
 
     private List<JsonLineModel> getLines(Map<String, File> files) throws IOException {
-        return IOUtils.readLines(new FileInputStream(files.get("object_groups_to_preserve.jsonl")), "UTF-8").stream()
+        return IOUtils.readLines(new FileInputStream(files.get("object_groups_to_preserve.jsonl")), "UTF-8")
+            .stream()
             .map(l -> {
                 try {
                     return JsonHandler.getFromString(l, JsonLineModel.class);
                 } catch (InvalidParseOperationException e) {
                     throw new VitamRuntimeException(e);
                 }
-            }).collect(Collectors.toList());
+            })
+            .collect(Collectors.toList());
     }
 
     private static final String scenarioText =
         "{\"#id\":\"aeaaaaaaaabba3ylabltwalhpdqlsqiaaaaq\",\"#tenant\":0,\"#version\":0,\"Name\":\"Tranformation en pdf\",\"Identifier\":\"id\",\"Description\":\"Ce sc\\u00E9nario permet de transformer un grand nombre de formats (bureautique et image) en PDF.\",\"CreationDate\":\"2018-11-16T15:55:30.721\",\"LastUpdate\":\"2018-12-04T11:00:52.661\",\"ActionList\":[\"GENERATE\"],\"GriffinByFormat\":[{\"FormatList\":[\"fmt/45\",\"x-fmt/400\",\"fmt/127\",\"fmt/128\",\"fmt/129\",\"x-fmt/203\",\"x-fmt/401\",\"fmt/126\",\"fmt/808\",\"fmt/809\",\"x-fmt/360\",\"fmt/969\",\"x-fmt/17\",\"x-fmt/18\",\"fmt/163\",\"x-fmt/94\",\"fmt/280\",\"fmt/52\",\"fmt/281\",\"x-fmt/359\",\"fmt/50\",\"x-fmt/10\",\"fmt/53\",\"fmt/233\",\"x-fmt/9\",\"fmt/355\",\"fmt/59\",\"fmt/598\",\"fmt/631\",\"x-fmt/8\",\"fmt/61\",\"fmt/949\",\"fmt/138\",\"fmt/215\",\"fmt/139\",\"fmt/810\",\"fmt/811\",\"fmt/812\",\"fmt/136\",\"fmt/412\",\"x-fmt/111\",\"fmt/137\",\"fmt/214\",\"x-fmt/271\",\"x-fmt/394\",\"fmt/39\",\"x-fmt/393\",\"x-fmt/272\",\"fmt/813\",\"fmt/814\",\"fmt/815\",\"fmt/290\",\"fmt/295\",\"fmt/130\",\"fmt/296\",\"fmt/297\",\"x-fmt/84\",\"fmt/291\",\"fmt/40\",\"x-fmt/41\",\"fmt/292\",\"x-fmt/44\",\"fmt/293\",\"fmt/294\",\"x-fmt/87\"],\"GriffinIdentifier\":\"GRI-000003\",\"Timeout\":0,\"MaxSize\":10000000,\"Debug\":true,\"ActionDetail\":[{\"ValuesPreservation\":{\"Extension\":\"pdf\",\"Args\":[\"-f\",\"pdf\",\"-e\",\"SelectedPdfVersion=1\"]},\"Type\":\"GENERATE\",\"Values\":{\"Extension\":\"pdf\",\"Args\":[\"-f\",\"pdf\",\"-e\",\"SelectedPdfVersion=1\"]}},{\"ValuesPreservation\":{\"Args\":[\"-strict\"]},\"Type\":\"ANALYSE\",\"Values\":{\"Args\":[\"-strict\"]}}]},{\"FormatList\":[\"fmt/567\",\"fmt/645\",\"fmt/44\",\"fmt/568\",\"fmt/43\",\"fmt/42\",\"fmt/387\",\"fmt/388\",\"fmt/367\",\"fmt/566\",\"fmt/408\",\"fmt/12\",\"fmt/11\",\"fmt/112\",\"fmt/156\",\"fmt/399\",\"x-fmt/398\",\"x-fmt/178\",\"fmt/13\",\"x-fmt/392\",\"x-fmt/391\",\"fmt/935\",\"x-fmt/390\",\"fmt/152\",\"fmt/153\",\"fmt/154\",\"fmt/155\",\"fmt/353\",\"fmt/41\"],\"GriffinIdentifier\":\"GRI-000001\",\"Timeout\":0,\"MaxSize\":10000000,\"Debug\":true,\"ActionDetail\":[{}]}]}";
 
-    private static final String griffinIds = "[\n" +
+    private static final String griffinIds =
+        "[\n" +
         "  {\n" +
         "    \"Identifier\": \"GRI-000003\",\n" +
         "    \"Name\": \"Griffon ImageMagick\",\n" +
@@ -289,5 +322,4 @@ public class PreservationPreparationPluginTest {
         "    \"ExecutableName\": \"griffin-jhove\",\n" +
         "    \"ExecutableVersion\": \"V1.0.0\"\n" +
         "  }]";
-
 }

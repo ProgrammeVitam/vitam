@@ -72,12 +72,12 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
     private static final String CONTAINER_NAME = "myContainer";
     private static final String FOLDER_NAME = "myFolder";
     static WorkspaceClientFactory factory = WorkspaceClientFactory.getInstance();
-    private final static ExpectedResults mock = mock(ExpectedResults.class);
+    private static final ExpectedResults mock = mock(ExpectedResults.class);
 
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
-        new VitamServerTestRunner(WorkspaceClientFolderTest.class, factory);
-
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        WorkspaceClientFolderTest.class,
+        factory
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -108,40 +108,48 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
         @Path("{containerName}/folders/{folderName}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response create(@PathParam("containerName") String containerName,
-            @PathParam("folderName") String folderName) {
+        public Response create(
+            @PathParam("containerName") String containerName,
+            @PathParam("folderName") String folderName
+        ) {
             return expectedResponse.post();
         }
 
         @DELETE
         @Path("{containerName}/folders/{folderName}")
-        public Response delete(@PathParam("containerName") String containerName,
-            @PathParam("folderName") String folderName) {
+        public Response delete(
+            @PathParam("containerName") String containerName,
+            @PathParam("folderName") String folderName
+        ) {
             return expectedResponse.delete();
         }
 
         @HEAD
         @Path("{containerName}/folders/{folderName}")
-        public Response isExistingFolder(@PathParam("containerName") String containerName,
-            @PathParam("folderName") String folderName) {
-
+        public Response isExistingFolder(
+            @PathParam("containerName") String containerName,
+            @PathParam("folderName") String folderName
+        ) {
             return expectedResponse.head();
         }
 
         @GET
         @Path("{containerName}/folders/{folderName}")
-        public Response getListUriDigitalObjectFromFolder(@PathParam("containerName") String containerName,
-            @PathParam("folderName") String folderName) {
+        public Response getListUriDigitalObjectFromFolder(
+            @PathParam("containerName") String containerName,
+            @PathParam("folderName") String folderName
+        ) {
             return expectedResponse.get();
         }
 
         @GET
         @Path("{containerName}/folders/{folderName}/filesWithParams")
-        public Response getFilesWithParamsFromFolder(@PathParam("containerName") String containerName,
-            @PathParam("folderName") String folderName) {
+        public Response getFilesWithParamsFromFolder(
+            @PathParam("containerName") String containerName,
+            @PathParam("folderName") String folderName
+        ) {
             return expectedResponse.get();
         }
-
     }
 
     // create
@@ -159,7 +167,6 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
     public void givenServerErrorWhenCreateFolderThenRaiseAnException() throws Exception {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         client.createFolder(CONTAINER_NAME, FOLDER_NAME);
-
     }
 
     @Test
@@ -241,33 +248,38 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
     public void given_FolderAlreadyExists_When_FindingUriObjects_Then_ReturnList()
         throws ContentAddressableStorageServerException, InvalidParseOperationException, InvalidFormatException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(Collections.<URI>emptyList()).build());
-        final List<URI> uris =
-            JsonHandler.getFromStringAsTypeReference(
-                client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
-                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
-                });
+        final List<URI> uris = JsonHandler.getFromStringAsTypeReference(
+            client
+                .getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
+                .toJsonNode()
+                .get("$results")
+                .get(0)
+                .toString(),
+            new TypeReference<List<URI>>() {}
+        );
         assertTrue(uris.isEmpty());
     }
 
     @Test
     public void given_FolderExists_When_FindingUriObjects_Then_ReturnURIList()
-        throws ContentAddressableStorageServerException, InvalidParseOperationException, URISyntaxException,
-        InvalidFormatException {
+        throws ContentAddressableStorageServerException, InvalidParseOperationException, URISyntaxException, InvalidFormatException {
         List<URI> uriListWorkspaceOK = new ArrayList<>();
         uriListWorkspaceOK.add(new URI("content/file1.pdf"));
         uriListWorkspaceOK.add(new URI("content/file2.pdf"));
-        when(mock.get()).thenReturn(
-            Response.status(Status.OK).entity(uriListWorkspaceOK).build());
-        final List<URI> uris =
-            JsonHandler.getFromStringAsTypeReference(
-                client.getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
-                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
-                });
+        when(mock.get()).thenReturn(Response.status(Status.OK).entity(uriListWorkspaceOK).build());
+        final List<URI> uris = JsonHandler.getFromStringAsTypeReference(
+            client
+                .getListUriDigitalObjectFromFolder(CONTAINER_NAME, FOLDER_NAME)
+                .toJsonNode()
+                .get("$results")
+                .get(0)
+                .toString(),
+            new TypeReference<List<URI>>() {}
+        );
         assertTrue(!uris.isEmpty());
         for (final URI uriWorkspace : uris) {
             assertTrue(uriWorkspace.toString().contains("content/"));
         }
-
     }
 
     @Test
@@ -277,11 +289,15 @@ public class WorkspaceClientFolderTest extends ResteasyTestApplication {
         fileParamsMapResults.put("content/file1.pdf", new FileParams(256L));
         fileParamsMapResults.put("content/file2.pdf", new FileParams(512L));
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(fileParamsMapResults).build());
-        final Map<String, FileParams> fileParamsMap =
-            JsonHandler.getFromStringAsTypeReference(client.getFilesWithParamsFromFolder(CONTAINER_NAME, FOLDER_NAME)
-                .toJsonNode().get("$results").get(0).toString(), new TypeReference<>() {
-            });
+        final Map<String, FileParams> fileParamsMap = JsonHandler.getFromStringAsTypeReference(
+            client
+                .getFilesWithParamsFromFolder(CONTAINER_NAME, FOLDER_NAME)
+                .toJsonNode()
+                .get("$results")
+                .get(0)
+                .toString(),
+            new TypeReference<>() {}
+        );
         assertTrue(!fileParamsMap.isEmpty());
     }
-
 }

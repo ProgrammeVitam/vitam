@@ -64,7 +64,6 @@ public class LRUQueue<T> {
      * @throws IllegalArgumentException if entry already exists
      */
     public void add(T entry, long timestamp) throws IllegalArgumentException {
-
         ParametersChecker.checkParameter("Null entry", entry);
 
         if (this.lastAccessTimestamp.containsKey(entry)) {
@@ -84,7 +83,6 @@ public class LRUQueue<T> {
      * @return {@code true} is entry has been updated, {@code false} if entry was not found.
      */
     public boolean update(T entry, long timestamp) {
-
         ParametersChecker.checkParameter("Null entry", entry);
 
         if (!this.lastAccessTimestamp.containsKey(entry)) {
@@ -117,7 +115,6 @@ public class LRUQueue<T> {
      * @return {@code true} is the entry was removed, {@code false} otherwise.
      */
     public boolean remove(T entry) {
-
         if (!lastAccessTimestamp.containsKey(entry)) {
             return false;
         }
@@ -134,11 +131,9 @@ public class LRUQueue<T> {
      * @return An iterator over the elements of the queue.
      */
     public Iterator<T> iterator() {
-
         Iterator<T> queueIterator = this.entries.iterator();
 
         return new Iterator<>() {
-
             private T lastEntry;
 
             @Override

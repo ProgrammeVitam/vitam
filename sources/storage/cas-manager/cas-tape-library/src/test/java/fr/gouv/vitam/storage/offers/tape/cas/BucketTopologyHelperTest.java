@@ -50,46 +50,60 @@ public class BucketTopologyHelperTest {
 
     @Test
     public void testInitialization() throws Exception {
-
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-duplicate-tenants.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-empty-tenant.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-missing-tenants.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-null-tenant.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-reserved-backup-bucket.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-empty-buckets.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-negative-tar-buffering-timeout.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-null-buckets.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-duplicate-folder.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-default.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-empty-folders.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-invalid-folder.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-keep-forever-in-cache.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-non-empty-default.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-null-folders.conf"))
-            .isInstanceOf(Exception.class);
-        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-reserved-backup-db-file-bucket.conf"))
-            .isInstanceOf(Exception.class);
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-duplicate-tenants.conf")).isInstanceOf(
+            Exception.class
+        );
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-empty-tenant.conf")).isInstanceOf(
+            Exception.class
+        );
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-missing-tenants.conf")).isInstanceOf(
+            Exception.class
+        );
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-conf-null-tenant.conf")).isInstanceOf(
+            Exception.class
+        );
+        assertThatThrownBy(
+            () -> loadTopology("topology-test-bad-bucket-conf-reserved-backup-bucket.conf")
+        ).isInstanceOf(Exception.class);
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-empty-buckets.conf")).isInstanceOf(
+            Exception.class
+        );
+        assertThatThrownBy(
+            () -> loadTopology("topology-test-bad-bucket-negative-tar-buffering-timeout.conf")
+        ).isInstanceOf(Exception.class);
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-bucket-null-buckets.conf")).isInstanceOf(
+            Exception.class
+        );
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-duplicate-folder.conf")).isInstanceOf(
+            Exception.class
+        );
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-default.conf")).isInstanceOf(
+            Exception.class
+        );
+        assertThatThrownBy(
+            () -> loadTopology("topology-test-bad-file-buckets-missing-empty-folders.conf")
+        ).isInstanceOf(Exception.class);
+        assertThatThrownBy(
+            () -> loadTopology("topology-test-bad-file-buckets-missing-invalid-folder.conf")
+        ).isInstanceOf(Exception.class);
+        assertThatThrownBy(
+            () -> loadTopology("topology-test-bad-file-buckets-missing-keep-forever-in-cache.conf")
+        ).isInstanceOf(Exception.class);
+        assertThatThrownBy(
+            () -> loadTopology("topology-test-bad-file-buckets-missing-non-empty-default.conf")
+        ).isInstanceOf(Exception.class);
+        assertThatThrownBy(() -> loadTopology("topology-test-bad-file-buckets-missing-null-folders.conf")).isInstanceOf(
+            Exception.class
+        );
+        assertThatThrownBy(
+            () -> loadTopology("topology-test-bad-file-buckets-reserved-backup-db-file-bucket.conf")
+        ).isInstanceOf(Exception.class);
 
         loadTopology("topology-test.conf");
     }
 
     @Test
     public void getFileBucketFromContainerName() throws Exception {
-
         // Given
         BucketTopologyHelper bucketTopologyHelper = loadTopology("topology-test.conf");
 
@@ -101,7 +115,6 @@ public class BucketTopologyHelperTest {
 
     @Test
     public void getFileBucketFromContainerNameWithExplicitFileBucketConf() throws Exception {
-
         // Given
         BucketTopologyHelper bucketTopologyHelper = loadTopology("topology-test-explicit-file-buckets.conf");
 
@@ -113,7 +126,6 @@ public class BucketTopologyHelperTest {
 
     @Test
     public void getBucketFromFileBucket() throws Exception {
-
         // Given
         BucketTopologyHelper bucketTopologyHelper = loadTopology("topology-test.conf");
 
@@ -125,37 +137,50 @@ public class BucketTopologyHelperTest {
 
     @Test
     public void listFileBuckets() throws Exception {
-
         // Given
         BucketTopologyHelper bucketTopologyHelper = loadTopology("topology-test.conf");
 
         // When / Then
         assertThat(bucketTopologyHelper.listFileBuckets()).containsExactlyInAnyOrder(
-            "test-metadata", "test-objects", "test-default",
-            "admin-metadata", "admin-objects", "admin-default",
-            "prod-metadata", "prod-objects", "prod-default");
+            "test-metadata",
+            "test-objects",
+            "test-default",
+            "admin-metadata",
+            "admin-objects",
+            "admin-default",
+            "prod-metadata",
+            "prod-objects",
+            "prod-default"
+        );
     }
 
     @Test
     public void listContainerNames() throws Exception {
-
         // Given
         BucketTopologyHelper bucketTopologyHelper = loadTopology("topology-test.conf");
 
         // When / Then
         assertThat(bucketTopologyHelper.listContainerNames("admin-metadata")).containsExactlyInAnyOrder(
-            "1_unit", "1_objectGroup");
+            "1_unit",
+            "1_objectGroup"
+        );
         assertThat(bucketTopologyHelper.listContainerNames("prod-default")).isEqualTo(
             Streams.concat(
                 Arrays.stream(DataCategory.values())
                     .filter(
-                        dataCategory -> !Arrays.asList(DataCategory.UNIT, DataCategory.OBJECTGROUP, DataCategory.OBJECT)
-                            .contains(dataCategory))
+                        dataCategory ->
+                            !Arrays.asList(DataCategory.UNIT, DataCategory.OBJECTGROUP, DataCategory.OBJECT).contains(
+                                dataCategory
+                            )
+                    )
                     .map(dataCategory -> "2_" + dataCategory.getFolder()),
                 Arrays.stream(DataCategory.values())
                     .filter(
-                        dataCategory -> !Arrays.asList(DataCategory.UNIT, DataCategory.OBJECTGROUP, DataCategory.OBJECT)
-                            .contains(dataCategory))
+                        dataCategory ->
+                            !Arrays.asList(DataCategory.UNIT, DataCategory.OBJECTGROUP, DataCategory.OBJECT).contains(
+                                dataCategory
+                            )
+                    )
                     .map(dataCategory -> "3_" + dataCategory.getFolder())
             ).collect(Collectors.toSet())
         );
@@ -163,7 +188,6 @@ public class BucketTopologyHelperTest {
 
     @Test
     public void getTarBufferingTimeoutInMinutes() throws Exception {
-
         // Given
         BucketTopologyHelper bucketTopologyHelper = loadTopology("topology-test.conf");
 
@@ -174,15 +198,16 @@ public class BucketTopologyHelperTest {
     }
 
     private BucketTopologyHelper loadTopology(String s) throws java.io.IOException {
-        TapeLibraryTopologyConfiguration configuration = PropertiesUtils.readYaml(PropertiesUtils
-            .getResourcePath(s), TapeLibraryTopologyConfiguration.class);
+        TapeLibraryTopologyConfiguration configuration = PropertiesUtils.readYaml(
+            PropertiesUtils.getResourcePath(s),
+            TapeLibraryTopologyConfiguration.class
+        );
 
         return new BucketTopologyHelper(configuration);
     }
 
     @Test
     public void isValidFileBucketId() throws Exception {
-
         // Given
         BucketTopologyHelper bucketTopologyHelper = loadTopology("topology-test.conf");
 
@@ -196,7 +221,6 @@ public class BucketTopologyHelperTest {
 
     @Test
     public void keepFileBucketIdForeverInCache() throws Exception {
-
         // Given
         BucketTopologyHelper bucketTopologyHelper = loadTopology("topology-test.conf");
 

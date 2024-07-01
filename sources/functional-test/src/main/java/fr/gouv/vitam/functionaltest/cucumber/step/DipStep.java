@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -95,10 +94,22 @@ public class DipStep extends CommonStep {
     private static final String EXPECTED_MANIFEST_START_WITH_SEDA_VERSION =
         "<?xml version=\"1.0\" ?><ArchiveDeliveryRequestReply xmlns:xlink=\"http://www.w3.org/1999/xlink\" xmlns:pr=\"info:lc/xmlns/premis-v2\" xmlns=\"%s\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"%s %s\"";
 
-    private static final List<String> IGNORED_UNIT_FIELDS =
-        List.of("id", "ArchiveUnitRefId", "DataObjectReference", "Event", "SignedObjectId");
-    private static final List<String> IGNORED_GOT_FIELDS =
-        List.of("id", "DataObjectVersion", "DataObjectGroupId", "Uri", "DataObjectProfile", "Filename", "LogBook");
+    private static final List<String> IGNORED_UNIT_FIELDS = List.of(
+        "id",
+        "ArchiveUnitRefId",
+        "DataObjectReference",
+        "Event",
+        "SignedObjectId"
+    );
+    private static final List<String> IGNORED_GOT_FIELDS = List.of(
+        "id",
+        "DataObjectVersion",
+        "DataObjectGroupId",
+        "Uri",
+        "DataObjectProfile",
+        "Filename",
+        "LogBook"
+    );
 
     public DipStep(World world) {
         super(world);
@@ -165,8 +176,10 @@ public class DipStep extends CommonStep {
             // Check manifest
             ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
             try (InputStream is = zipFile.getInputStream(manifest)) {
-                int cpt =
-                    countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
+                int cpt = countElements(
+                    is,
+                    "ArchiveDeliveryRequestReply/DataObjectPackage/DescriptiveMetadata/ArchiveUnit"
+                );
                 assertThat(cpt).isEqualTo(nbUnits);
             }
         }
@@ -190,14 +203,18 @@ public class DipStep extends CommonStep {
             // Check manifest
             ZipArchiveEntry manifest = zipFile.getEntry("manifest.xml");
             try (InputStream is = zipFile.getInputStream(manifest)) {
-                int cpt =
-                    countElements(is, "ArchiveDeliveryRequestReply/DataObjectPackage/DataObjectGroup/BinaryDataObject");
+                int cpt = countElements(
+                    is,
+                    "ArchiveDeliveryRequestReply/DataObjectPackage/DataObjectGroup/BinaryDataObject"
+                );
                 assertThat(cpt).isEqualTo(nbObjects);
             }
 
             List<ZipArchiveEntry> entries = Collections.list(zipFile.getEntries());
-            long binaryFiles =
-                entries.stream().filter((ZipArchiveEntry entry) -> entry.getName().startsWith("Content/")).count();
+            long binaryFiles = entries
+                .stream()
+                .filter((ZipArchiveEntry entry) -> entry.getName().startsWith("Content/"))
+                .count();
 
             assertThat(binaryFiles).isEqualTo(nbBinaryObjects);
         }
@@ -205,7 +222,6 @@ public class DipStep extends CommonStep {
 
     @Then("^le dip utilise la version SEDA \"([^\"]*)\"$")
     public void checkDipSedaVerion(String sedaVersion) throws Exception {
-
         // Get manifest from DIP
         try (ZipFile zipFile = new ZipFile(world.getDipFile().toFile())) {
             String manifest;
@@ -221,8 +237,13 @@ public class DipStep extends CommonStep {
             // Then
             assertThat(supportedSedaVersion.isPresent()).isTrue();
             assertThat(manifest).contains(
-                String.format(EXPECTED_MANIFEST_START_WITH_SEDA_VERSION, supportedSedaVersion.get().getNamespaceURI(),
-                    supportedSedaVersion.get().getNamespaceURI(), supportedSedaVersion.get().getSedaValidatorXSD()));
+                String.format(
+                    EXPECTED_MANIFEST_START_WITH_SEDA_VERSION,
+                    supportedSedaVersion.get().getNamespaceURI(),
+                    supportedSedaVersion.get().getNamespaceURI(),
+                    supportedSedaVersion.get().getSedaValidatorXSD()
+                )
+            );
         }
     }
 
@@ -239,15 +260,12 @@ public class DipStep extends CommonStep {
         final JsonNode units = sip.at("/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
         final JsonNode unitsDip = dip.at("/DataObjectPackage/DescriptiveMetadata/ArchiveUnit");
 
-
         final ArrayNode SipGotsFiltred = filterGots(gots);
         final ArrayNode DipGotsFiltred = filterGots(gotsDip);
-
 
         purgeIgnoredFields(SipGotsFiltred, IGNORED_GOT_FIELDS);
         purgeIgnoredFields(DipGotsFiltred, IGNORED_GOT_FIELDS);
         assertEqualsGotsJson(SipGotsFiltred, DipGotsFiltred);
-
 
         purgeIgnoredFields(units, IGNORED_UNIT_FIELDS);
         purgeIgnoredFields(unitsDip, IGNORED_UNIT_FIELDS);
@@ -258,8 +276,11 @@ public class DipStep extends CommonStep {
         final List<UnitModel> listExpectedUnits = sortUnitJson(expectedUnits);
         final List<UnitModel> listRealUnits = sortUnitJson(value);
 
-        JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(listExpectedUnits), JsonHandler.toJsonNode(listRealUnits),
-            JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+        JsonAssert.assertJsonEquals(
+            JsonHandler.toJsonNode(listExpectedUnits),
+            JsonHandler.toJsonNode(listRealUnits),
+            JsonAssert.when(Option.IGNORING_ARRAY_ORDER)
+        );
     }
 
     private void assertEqualsGotsJson(JsonNode expectedGots, JsonNode value) {
@@ -314,23 +335,24 @@ public class DipStep extends CommonStep {
         throw new IllegalStateException("Unknown type " + jsonNode);
     }
 
-
     private boolean filterNode(Node node) {
         return node.getNodeName().equalsIgnoreCase("BinaryDataObject");
     }
 
     private Node getChildNode(Node node, String childNodeName) {
         for (var k = 0; k < node.getChildNodes().getLength(); k++) {
-            if (node.getChildNodes().item(k).getNodeName().equalsIgnoreCase(childNodeName))
-                return node.getChildNodes().item(k);
+            if (node.getChildNodes().item(k).getNodeName().equalsIgnoreCase(childNodeName)) return node
+                .getChildNodes()
+                .item(k);
         }
         return null;
     }
 
     private String transform(Source manifest) throws FileNotFoundException, TransformerException {
         TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer =
-            transformerFactory.newTransformer(new StreamSource(PropertiesUtils.getResourceAsStream("transform.xsl")));
+        Transformer transformer = transformerFactory.newTransformer(
+            new StreamSource(PropertiesUtils.getResourceAsStream("transform.xsl"))
+        );
 
         StringWriter writer = new StringWriter();
         StreamResult streamResult = new StreamResult(writer);
@@ -404,9 +426,14 @@ public class DipStep extends CommonStep {
         world.setOperationId(operationId);
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout =
-            vitamPoolingClient.wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L,
-                TimeUnit.MILLISECONDS);
+        boolean processTimeout = vitamPoolingClient.wait(
+            world.getTenantId(),
+            operationId,
+            ProcessState.COMPLETED,
+            100,
+            1_000L,
+            TimeUnit.MILLISECONDS
+        );
 
         if (!processTimeout) {
             fail("dip processing not finished. Timeout exceeded.");
@@ -416,8 +443,11 @@ public class DipStep extends CommonStep {
     }
 
     private static List<UnitModel> sortUnitJson(JsonNode expectedUnits) throws InvalidParseOperationException {
-        final List<UnitModel> listExpectedUnits =
-            JsonHandler.getFromJsonNode(expectedUnits, TreeList.class, UnitModel.class);
+        final List<UnitModel> listExpectedUnits = JsonHandler.getFromJsonNode(
+            expectedUnits,
+            TreeList.class,
+            UnitModel.class
+        );
         listExpectedUnits.sort(UNIT_MODEL_COMPARATOR);
         return listExpectedUnits;
     }

@@ -61,57 +61,56 @@ public class ProjectInternalResourceTest extends CollectInternalResourceBaseTest
     private static final int TENANT = 0;
 
     public static final String QUERY_SEARCH = "{ \"$query\" : \"search\" }";
-    public static final String QUERY_INIT = "{ "
-        + "\"ArchivalAgencyIdentifier\": \"Identifier0\","
-        + "\"TransferringAgencyIdentifier\": \"Identifier3\","
-        + "\"OriginatingAgencyIdentifier\": \"FRAN_NP_009915\","
-        + "\"SubmissionAgencyIdentifier\": \"FRAN_NP_005061\","
-        + "\"MessageIdentifier\": \"20220302-000005\","
-        + "\"Name\": \"This is my Name\","
-        + "\"LegalStatus\": \"Archive privée\","
-        + "\"AcquisitionInformation\": \"Versement\","
-        + "\"ArchivalAgreement\":\"IC-00001\","
-        + "\"Comment\": \"Versement du service producteur : Cabinet de Michel Mercier\","
-        + "\"UnitUp\": \"aeaqaaaaaahgnz5dabg42amava5kfoqaaaba\"}";
+    public static final String QUERY_INIT =
+        "{ " +
+        "\"ArchivalAgencyIdentifier\": \"Identifier0\"," +
+        "\"TransferringAgencyIdentifier\": \"Identifier3\"," +
+        "\"OriginatingAgencyIdentifier\": \"FRAN_NP_009915\"," +
+        "\"SubmissionAgencyIdentifier\": \"FRAN_NP_005061\"," +
+        "\"MessageIdentifier\": \"20220302-000005\"," +
+        "\"Name\": \"This is my Name\"," +
+        "\"LegalStatus\": \"Archive privée\"," +
+        "\"AcquisitionInformation\": \"Versement\"," +
+        "\"ArchivalAgreement\":\"IC-00001\"," +
+        "\"Comment\": \"Versement du service producteur : Cabinet de Michel Mercier\"," +
+        "\"UnitUp\": \"aeaqaaaaaahgnz5dabg42amava5kfoqaaaba\"}";
 
+    public static final String QUERY_UA_BY_ID =
+        "{ " +
+        "\"$roots\": []," +
+        "\"$query\": [" +
+        "{ " +
+        "    \"$match\": {" +
+        "   \"Title\": \"Saint\"" +
+        " }" +
+        "}" +
+        "]," +
+        "\"$filter\": {}," +
+        "\"$projection\": {}" +
+        "}";
 
-    public static final String QUERY_UA_BY_ID = "{ "
-        + "\"$roots\": [],"
-        + "\"$query\": ["
-        + "{ "
-        + "    \"$match\": {"
-        + "   \"Title\": \"Saint\""
-        + " }"
-        + "}"
-        + "],"
-        + "\"$filter\": {},"
-        + "\"$projection\": {}"
-        + "}";
+    public static final String EMPTY_QUERY =
+        "{ " + "\"$roots\": []," + "\"$query\": []," + "\"$filter\": {}," + "\"$projection\": {}" + "}";
 
-    public static final String EMPTY_QUERY = "{ "
-        + "\"$roots\": [],"
-        + "\"$query\": [],"
-        + "\"$filter\": {},"
-        + "\"$projection\": {}"
-        + "}";
+    public static final String ROOT_QUERY =
+        "{ " +
+        "\"$roots\": [{\"root\": \"root\"}]," +
+        "\"$query\": []," +
+        "\"$filter\": {}," +
+        "\"$projection\": {}" +
+        "}";
 
-    public static final String ROOT_QUERY = "{ "
-        + "\"$roots\": [{\"root\": \"root\"}],"
-        + "\"$query\": [],"
-        + "\"$filter\": {},"
-        + "\"$projection\": {}"
-        + "}";
-
-    public static final String QUERY_INIT_TRANSACTION = "{ "
-        + "\"Name\": \"Versement des objets binaires\", "
-        + "\"ArchivalAgreement\": \"IC-000001\","
-        + "\"MessageIdentifier\": \"Transaction de test\","
-        + "\"ArchivalAgencyIdentifier\": \"ArchivalAgencyIdentifier5\","
-        + "\"TransferringAgencyIdentifier\": \"TransferingAgencyIdentifier5\","
-        + "\"OriginatingAgencyIdentifier\": \"FRAN_NP_009913\","
-        + "\"SubmissionAgencyIdentifier\": \"FRAN_NP_005761\","
-        + "\"ArchiveProfile\": \"ArchiveProfile5\","
-        + "\"Comment\": \"Commentaire\"}";
+    public static final String QUERY_INIT_TRANSACTION =
+        "{ " +
+        "\"Name\": \"Versement des objets binaires\", " +
+        "\"ArchivalAgreement\": \"IC-000001\"," +
+        "\"MessageIdentifier\": \"Transaction de test\"," +
+        "\"ArchivalAgencyIdentifier\": \"ArchivalAgencyIdentifier5\"," +
+        "\"TransferringAgencyIdentifier\": \"TransferingAgencyIdentifier5\"," +
+        "\"OriginatingAgencyIdentifier\": \"FRAN_NP_009913\"," +
+        "\"SubmissionAgencyIdentifier\": \"FRAN_NP_005761\"," +
+        "\"ArchiveProfile\": \"ArchiveProfile5\"," +
+        "\"Comment\": \"Commentaire\"}";
     public static final String PROJECTS = "/projects";
 
     @Test
@@ -462,7 +461,6 @@ public class ProjectInternalResourceTest extends CollectInternalResourceBaseTest
             .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
-
     @Test
     public void getAllTransactions() throws Exception {
         when(transactionService.findTransactionsByProjectId("1")).thenReturn(List.of(new TransactionDto()));
@@ -537,7 +535,6 @@ public class ProjectInternalResourceTest extends CollectInternalResourceBaseTest
             .post(PROJECTS + "/1/transactions")
             .then()
             .statusCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
     }
 
     @Test
@@ -568,6 +565,5 @@ public class ProjectInternalResourceTest extends CollectInternalResourceBaseTest
             .post(PROJECTS + "/1/transactions")
             .then()
             .statusCode(Response.Status.BAD_REQUEST.getStatusCode());
-
     }
 }

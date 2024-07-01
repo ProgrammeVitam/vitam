@@ -44,14 +44,14 @@ public final class MetadataReconstructionMetrics {
     private static final String TENANT_LABEL = "tenant";
     private static final String COLLECTION_LABEL = "collection";
     private static final String STRATEGY_LABEL = "strategy";
-    private final static AtomicBoolean isInitialized = new AtomicBoolean(false);
+    private static final AtomicBoolean isInitialized = new AtomicBoolean(false);
 
-    private MetadataReconstructionMetrics() {
-    }
+    private MetadataReconstructionMetrics() {}
 
-    public static synchronized void initialize(List<String> storageStrategies,
-        MetadataReconstructionMetricsCache reconstructionMetricsCache) {
-
+    public static synchronized void initialize(
+        List<String> storageStrategies,
+        MetadataReconstructionMetricsCache reconstructionMetricsCache
+    ) {
         if (isInitialized.get()) {
             return;
         }
@@ -73,20 +73,26 @@ public final class MetadataReconstructionMetrics {
         isInitialized.set(true);
     }
 
-    private static Map<List<String>, Double> collectDocumentReconstructionMetrics(List<String> storageStrategies,
-        MetadataReconstructionMetricsCache reconstructionMetricsCache) {
-
+    private static Map<List<String>, Double> collectDocumentReconstructionMetrics(
+        List<String> storageStrategies,
+        MetadataReconstructionMetricsCache reconstructionMetricsCache
+    ) {
         Map<List<String>, Double> metricsByLabelValues = new HashMap<>();
 
-        List<MetadataCollections> metadataCollections =
-            List.of(MetadataCollections.UNIT, MetadataCollections.OBJECTGROUP);
+        List<MetadataCollections> metadataCollections = List.of(
+            MetadataCollections.UNIT,
+            MetadataCollections.OBJECTGROUP
+        );
 
         for (MetadataCollections metadataCollection : metadataCollections) {
             for (Integer tenant : VitamConfiguration.getTenants()) {
                 for (String storageStrategy : storageStrategies) {
-
-                    Duration durationSinceLastReconstruction = reconstructionMetricsCache.
-                        getDocumentReconstructionLatency(metadataCollection, tenant, storageStrategy);
+                    Duration durationSinceLastReconstruction =
+                        reconstructionMetricsCache.getDocumentReconstructionLatency(
+                            metadataCollection,
+                            tenant,
+                            storageStrategy
+                        );
 
                     List<String> labelValues = List.of(
                         Integer.toString(tenant),
@@ -97,23 +103,24 @@ public final class MetadataReconstructionMetrics {
                     metricsByLabelValues.put(labelValues, getReconstructionLatency(durationSinceLastReconstruction));
                 }
             }
-
         }
         return metricsByLabelValues;
     }
 
     private static Map<List<String>, Double> collectGraphReconstructionMetrics(
-        MetadataReconstructionMetricsCache reconstructionMetricsCache) {
-
+        MetadataReconstructionMetricsCache reconstructionMetricsCache
+    ) {
         Map<List<String>, Double> metricsByLabelValues = new HashMap<>();
 
-        List<MetadataCollections> metadataCollections =
-            List.of(MetadataCollections.UNIT, MetadataCollections.OBJECTGROUP);
+        List<MetadataCollections> metadataCollections = List.of(
+            MetadataCollections.UNIT,
+            MetadataCollections.OBJECTGROUP
+        );
 
         for (MetadataCollections metadataCollection : metadataCollections) {
-
-            Duration durationSinceLastReconstruction = reconstructionMetricsCache.
-                getGraphReconstructionLatency(metadataCollection);
+            Duration durationSinceLastReconstruction = reconstructionMetricsCache.getGraphReconstructionLatency(
+                metadataCollection
+            );
 
             List<String> labelValues = List.of(metadataCollection.getName().toLowerCase());
 
@@ -123,7 +130,6 @@ public final class MetadataReconstructionMetrics {
     }
 
     private static double getReconstructionLatency(Duration durationSinceLastReconstruction) {
-
         // Returns :
         //   - Actual latency (in seconds) when available (eg. 100 seconds)
         //   - +∞ (positive infinity) when no latency information is available for current metadata instance (reconstruction is KO, server just restarted, reconstruction happened on other instances...)
@@ -134,8 +140,8 @@ public final class MetadataReconstructionMetrics {
         //   - `max (min by (tenant, strategy) (vitam_metadata_reconstruction_metadata_latency_seconds))`: Global aggregated document reconstruction latency
         //   - `min by (vitam_metadata_reconstruction_graph_latency_seconds)`: Graph reconstruction latency (across metadata instances)
 
-        return durationSinceLastReconstruction == null ?
-            Double.POSITIVE_INFINITY :
-            Math.max(0.0, durationSinceLastReconstruction.toSeconds());
+        return durationSinceLastReconstruction == null
+            ? Double.POSITIVE_INFINITY
+            : Math.max(0.0, durationSinceLastReconstruction.toSeconds());
     }
 }

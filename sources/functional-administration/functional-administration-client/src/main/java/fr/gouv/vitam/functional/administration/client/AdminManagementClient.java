@@ -74,7 +74,6 @@ import java.util.List;
  * AdminManagementClient interface
  */
 public interface AdminManagementClient extends MockOrRestClient {
-
     /**
      * @param stream as InputStream;
      * @return Response
@@ -91,7 +90,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     Status importFormat(InputStream stream, String filename) throws ReferentialException, DatabaseConflictException;
 
-
     /**
      * @param id as String
      * @return JsonNode
@@ -99,7 +97,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException when json exception occurs
      */
     JsonNode getFormatByID(String id) throws ReferentialException, InvalidParseOperationException;
-
 
     /**
      * @param query as JsonNode
@@ -109,8 +106,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws IOException when io data exception occurs
      */
     RequestResponse<FileFormatModel> getFormats(JsonNode query)
-        throws ReferentialException, InvalidParseOperationException,
-        IOException;
+        throws ReferentialException, InvalidParseOperationException, IOException;
 
     /**
      * Check if rule file is well formated
@@ -142,8 +138,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws DatabaseConflictException when Database conflict exception occurs
      * @throws AdminManagementClientServerException
      */
-    Status importRulesFile(InputStream stream, String filename)
-        throws ReferentialException, DatabaseConflictException;
+    Status importRulesFile(InputStream stream, String filename) throws ReferentialException, DatabaseConflictException;
 
     /**
      * Import agencies for a given tenant
@@ -155,8 +150,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws DatabaseConflictException when Database conflict exception occurs
      * @throws AdminManagementClientServerException
      */
-    Status importAgenciesFile(InputStream stream, String filename)
-        throws ReferentialException;
+    Status importAgenciesFile(InputStream stream, String filename) throws ReferentialException;
 
     /**
      * @param id The agency identifier
@@ -202,15 +196,15 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws AdminManagementClientServerException when admin management resources not found
      */
     JsonNode getRules(JsonNode query)
-        throws FileRulesException, InvalidParseOperationException,
-        IOException, AdminManagementClientServerException;
+        throws FileRulesException, InvalidParseOperationException, IOException, AdminManagementClientServerException;
 
     /**
      * @param register AccessionRegisterDetail
      * @throws AdminManagementClientServerException when
      */
-    RequestResponse<AccessionRegisterDetailModel> createOrUpdateAccessionRegister(AccessionRegisterDetailModel register)
-        throws AdminManagementClientServerException;
+    RequestResponse<AccessionRegisterDetailModel> createOrUpdateAccessionRegister(
+        AccessionRegisterDetailModel register
+    ) throws AdminManagementClientServerException;
 
     /**
      * Get the accession register summary matching the given query
@@ -263,7 +257,6 @@ public interface AdminManagementClient extends MockOrRestClient {
     Status importIngestContracts(List<IngestContractModel> ingestContractModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException;
 
-
     /**
      * Import a set of access contracts after passing the validation steps If all the contracts are valid, they are
      * stored in the collection and indexed The input is invalid in the following situations : </BR>
@@ -284,7 +277,6 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     Status importAccessContracts(List<AccessContractModel> accessContractModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException;
-
 
     /**
      * Import a set of management contracts after passing the validation steps If all the contracts are valid, they are
@@ -307,7 +299,6 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     Status importManagementContracts(List<ManagementContractModel> managementContractModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException;
-
 
     /**
      * Update AccessContract to mongo
@@ -334,7 +325,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<IngestContractModel> updateIngestContract(String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
-
 
     /**
      * Update ManagementContract to mongo
@@ -364,7 +354,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<AccessContractModel> findAccessContracts(JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException;
-
 
     /**
      * @param documentId
@@ -411,7 +400,6 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<ManagementContractModel> findManagementContracts(JsonNode queryDsl)
         throws InvalidParseOperationException, AdminManagementClientServerException;
 
-
     /**
      * @param documentId
      * @return The server response as vitam RequestResponse
@@ -421,7 +409,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<ManagementContractModel> findManagementContractsByID(String documentId)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
-
 
     /**
      * Import a set of profile If all the profiles are valid, they will be stored in the collection and indexed The
@@ -452,7 +439,6 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<ProfileModel> importProfileFile(String profileMetadataId, InputStream stream)
         throws ReferentialException, DatabaseConflictException;
 
-
     /**
      * Download the profile file according to profileMetadataId
      *
@@ -460,9 +446,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return Response
      */
     Response downloadProfileFile(String profileMetadataId)
-        throws AdminManagementClientServerException,
-        ProfileNotFoundException;
-
+        throws AdminManagementClientServerException, ProfileNotFoundException;
 
     /**
      * Find profiles according to the given query string (we can also use this method to find profile by identifier)
@@ -486,7 +470,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<ProfileModel> findProfilesByID(String id)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
-
 
     /**
      * Update a profile
@@ -599,7 +582,6 @@ public interface AdminManagementClient extends MockOrRestClient {
     Status importSecurityProfiles(List<SecurityProfileModel> securityProfileModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException;
 
-
     /**
      * Updates a security context
      *
@@ -642,7 +624,6 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse<SecurityProfileModel> findSecurityProfileByIdentifier(String identifier)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
 
-
     /**
      * launch a reindexation process with options
      *
@@ -661,8 +642,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return the server response
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<ReindexationResult> switchIndexes(JsonNode options)
-        throws AdminManagementClientServerException;
+    RequestResponse<ReindexationResult> switchIndexes(JsonNode options) throws AdminManagementClientServerException;
 
     /**
      * launch a traceability audit for the unit
@@ -671,8 +651,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @return the server response
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<JsonNode> evidenceAudit(JsonNode queryDsl)
-        throws AdminManagementClientServerException;
+    RequestResponse<JsonNode> evidenceAudit(JsonNode queryDsl) throws AdminManagementClientServerException;
 
     /**
      * Launch rectification Audit
@@ -691,8 +670,6 @@ public interface AdminManagementClient extends MockOrRestClient {
      */
     RequestResponse<JsonNode> exportProbativeValue(ProbativeValueRequest probativeValueRequest)
         throws AdminManagementClientServerException;
-
-
 
     /**
      * Import a set of archive unit profile metadata. </BR>
@@ -771,7 +748,6 @@ public interface AdminManagementClient extends MockOrRestClient {
     RequestResponse importOntologies(boolean forceUpdate, List<OntologyModel> ontologyModelList)
         throws InvalidParseOperationException, AdminManagementClientServerException;
 
-
     /**
      * Find ontologies according to the given json query (we can also use this method to find ontology by identifier)
      *
@@ -780,8 +756,7 @@ public interface AdminManagementClient extends MockOrRestClient {
      * @throws InvalidParseOperationException
      * @throws AdminManagementClientServerException
      */
-    RequestResponse<OntologyModel> findOntologies(JsonNode query)
-        throws InvalidParseOperationException;
+    RequestResponse<OntologyModel> findOntologies(JsonNode query) throws InvalidParseOperationException;
 
     /**
      * Find the ontology by technical id (id generated by the database)
@@ -836,8 +811,8 @@ public interface AdminManagementClient extends MockOrRestClient {
         throws AdminManagementClientServerException;
 
     RequestResponse<PreservationScenarioModel> importPreservationScenarios(
-        List<PreservationScenarioModel> preservationScenarioModels)
-        throws AdminManagementClientServerException;
+        List<PreservationScenarioModel> preservationScenarioModels
+    ) throws AdminManagementClientServerException;
 
     RequestResponse<GriffinModel> findGriffinByID(String id)
         throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException;
@@ -850,7 +825,6 @@ public interface AdminManagementClient extends MockOrRestClient {
 
     RequestResponse<GriffinModel> findGriffin(JsonNode dslQuery)
         throws AdminManagementClientServerException, InvalidParseOperationException, ReferentialNotFoundException;
-
 
     /**
      * Create external logbook operation entry <br>
@@ -865,13 +839,10 @@ public interface AdminManagementClient extends MockOrRestClient {
     Status createExternalOperation(LogbookOperationParameters logbookOperationparams)
         throws AdminManagementClientServerException, BadRequestException, LogbookClientAlreadyExistsException;
 
-
     RequestResponse<JsonNode> findJobs() throws AdminManagementClientServerException;
-
 
     void reconstructCollection(String collection) throws AdminManagementClientServerException;
 
-    void reconstructAccessionRegister(List<ReconstructionRequestItem> reconstructionItems) throws
-        AdminManagementClientServerException;
+    void reconstructAccessionRegister(List<ReconstructionRequestItem> reconstructionItems)
+        throws AdminManagementClientServerException;
 }
-

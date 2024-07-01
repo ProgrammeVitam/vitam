@@ -41,20 +41,22 @@ import java.util.Set;
 @Path("/home")
 public class SimpleJerseyMetricsResource {
 
-    static final public Set<String> expectedNames = new HashSet<>(Arrays.asList(
-        "/home/:PUT:*:*:timer",
-        "/home/:GET:*:*:timer",
-        "/home/:POST:*:*:meter",
-        "/home/:HEAD:*:*:timer",
-        "/home/:DELETE:*:*:timer",
-        "/home/:DELETE:*:*:meter",
-        "/home/:PUT:*:*:meter",
-        "/home/:GET:*:*:meter",
-        "/home/:OPTIONS:*:*:meter",
-        "/home/:POST:*:*:timer",
-        "/home/:OPTIONS:*:*:timer",
-        "/home/:HEAD:*:*:meter"
-    ));
+    public static final Set<String> expectedNames = new HashSet<>(
+        Arrays.asList(
+            "/home/:PUT:*:*:timer",
+            "/home/:GET:*:*:timer",
+            "/home/:POST:*:*:meter",
+            "/home/:HEAD:*:*:timer",
+            "/home/:DELETE:*:*:timer",
+            "/home/:DELETE:*:*:meter",
+            "/home/:PUT:*:*:meter",
+            "/home/:GET:*:*:meter",
+            "/home/:OPTIONS:*:*:meter",
+            "/home/:POST:*:*:timer",
+            "/home/:OPTIONS:*:*:timer",
+            "/home/:HEAD:*:*:meter"
+        )
+    );
 
     @GET
     public Response simpleGet() {

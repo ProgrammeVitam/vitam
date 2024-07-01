@@ -99,6 +99,7 @@ import static org.mockito.Mockito.when;
  * Test class for internal Security
  */
 public class InternalSecurityFilterTest {
+
     public static final String BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
     public static final String END_CERT = "-----END CERTIFICATE-----";
 
@@ -115,12 +116,12 @@ public class InternalSecurityFilterTest {
     private UriInfo uriInfo;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Before
     public void setUp() throws Exception {
-
         generateX509Certificate();
 
         x509CertificateToPem();
@@ -161,21 +162,21 @@ public class InternalSecurityFilterTest {
             new Date(System.currentTimeMillis() - 10000),
             new Date(System.currentTimeMillis() + 24L * 3600 * 1000),
             new X500Name("CN=" + dn),
-            SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
+            SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded())
+        );
 
         builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
         builder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
         builder.addExtension(Extension.extendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_clientAuth));
 
-        AlgorithmIdentifier signatureAlgorithmId =
-            new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
+        AlgorithmIdentifier signatureAlgorithmId = new DefaultSignatureAlgorithmIdentifierFinder()
+            .find("SHA256withRSA");
         AlgorithmIdentifier digestAlgorithmId = new DefaultDigestAlgorithmIdentifierFinder().find(signatureAlgorithmId);
         AsymmetricKeyParameter privateKey = PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded());
 
-
-        X509CertificateHolder
-            holder =
-            builder.build(new BcRSAContentSignerBuilder(signatureAlgorithmId, digestAlgorithmId).build(privateKey));
+        X509CertificateHolder holder = builder.build(
+            new BcRSAContentSignerBuilder(signatureAlgorithmId, digestAlgorithmId).build(privateKey)
+        );
         Certificate certificate = holder.toASN1Structure();
 
         try (InputStream is = new ByteArrayInputStream(certificate.getEncoded())) {
@@ -203,16 +204,17 @@ public class InternalSecurityFilterTest {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
 
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(null);
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(null);
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
         when(httpServletRequest.getHeader(GlobalDataRest.X_SSL_CLIENT_CERT)).thenReturn(
-            URLEncoder.encode(pem, StandardCharsets.UTF_8));
+            URLEncoder.encode(pem, StandardCharsets.UTF_8)
+        );
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/otherUri");
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null)
+        );
         assertThatThrownBy(() -> internalSecurityFilter.filter(containerRequestContext))
             .isInstanceOf(VitamSecurityException.class)
             .hasMessageContaining("Request do not contain any X509Certificate");
@@ -228,16 +230,15 @@ public class InternalSecurityFilterTest {
     public void whenCertificateInTheHeaderWithAllowedHeaderCertThenOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(true);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(null);
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(null);
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
-        when(httpServletRequest.getHeader(GlobalDataRest.X_SSL_CLIENT_CERT)).thenReturn(
-            pem.replaceAll("\\n", " "));
+        when(httpServletRequest.getHeader(GlobalDataRest.X_SSL_CLIENT_CERT)).thenReturn(pem.replaceAll("\\n", " "));
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/otherUri");
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null)
+        );
         assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 
@@ -251,18 +252,19 @@ public class InternalSecurityFilterTest {
     public void whenContextInactivatedThenException() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(new X509Certificate[] {cert});
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/otherUri");
 
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.INACTIVE, true, null, null));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.INACTIVE, true, null, null)
+        );
         internalSecurityFilter.filter(containerRequestContext);
     }
-
 
     /**
      * When status uri then verify only certificate
@@ -274,14 +276,16 @@ public class InternalSecurityFilterTest {
     public void whenStatusUriThenOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(new X509Certificate[] {cert});
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn(VitamConfiguration.STATUS_URL);
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, null, null));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, true, null, null)
+        );
         assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 
@@ -295,14 +299,16 @@ public class InternalSecurityFilterTest {
     public void whenTenantUriThenOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(new X509Certificate[] {cert});
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn(VitamConfiguration.TENANTS_URL);
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, null, null));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, true, null, null)
+        );
         assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 
@@ -316,14 +322,16 @@ public class InternalSecurityFilterTest {
     public void whenOtherUriCheckTenantKO() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(new X509Certificate[] {cert});
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/otherUri");
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, null, null));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, true, null, null)
+        );
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -337,14 +345,16 @@ public class InternalSecurityFilterTest {
     public void whenOtherUriCheckTenantOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(new X509Certificate[] {cert});
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/otherUri");
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null)
+        );
         assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
 
@@ -358,15 +368,17 @@ public class InternalSecurityFilterTest {
     public void whenEnableControlAndAccessExternalThenCheckNotValidContractKO() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(new X509Certificate[] {cert});
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
         when(httpServletRequest.getHeader(GlobalDataRest.X_ACCESS_CONTRAT_ID)).thenReturn("NotValideAccessContract");
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/access-external/");
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null)
+        );
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -380,19 +392,19 @@ public class InternalSecurityFilterTest {
     public void whenEnableControlAndAccessExternalThenCheckContractOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(new X509Certificate[] {cert});
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
         when(httpServletRequest.getHeader(GlobalDataRest.X_ACCESS_CONTRAT_ID)).thenReturn("fakeAccessContract");
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/access-external/");
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, true, "fakeAccessContract", null)
+        );
         assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
-
-
 
     /**
      * When context enable control is false and contract in the header not exists in the context then OK
@@ -404,19 +416,19 @@ public class InternalSecurityFilterTest {
     public void whenNotEnableControlAndAccessExternalThenCheckNotValidContractOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(new X509Certificate[] {cert});
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
         when(httpServletRequest.getHeader(GlobalDataRest.X_ACCESS_CONTRAT_ID)).thenReturn("NotValideAccessContract");
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/access-external/");
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.ACTIVE, false, "fakeAccessContract", null));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, false, "fakeAccessContract", null)
+        );
         assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
-
-
 
     /**
      * When context enable control is true and not ingest contract in the context then KO
@@ -428,14 +440,16 @@ public class InternalSecurityFilterTest {
     public void whenEnableControlAndIngestExternalThenCheckEmptyContractFail() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(new X509Certificate[] {cert});
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/ingest-external/");
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, "notIngestContract", null));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, true, "notIngestContract", null)
+        );
         internalSecurityFilter.filter(containerRequestContext);
     }
 
@@ -449,18 +463,18 @@ public class InternalSecurityFilterTest {
     public void whenEnableControlAndIngestExternalThenCheckContractOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(new X509Certificate[] {cert});
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/ingest-external/");
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.ACTIVE, true, null, "fakeIngestContract"));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, true, null, "fakeIngestContract")
+        );
         assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
-
-
 
     /**
      * When context enable control is false and ingest contracts is empty in the context then OK
@@ -472,17 +486,18 @@ public class InternalSecurityFilterTest {
     public void whenNotEnableControlAndIngestExternalThenCheckEmptyContractOK() throws Exception {
         InternalSecurityFilter internalSecurityFilter = initializeFilter(false);
         // Needs mock subject for login call
-        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate"))
-            .thenReturn(new X509Certificate[] {cert});
+        when(httpServletRequest.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(
+            new X509Certificate[] { cert }
+        );
         when(httpServletRequest.getHeader(GlobalDataRest.X_TENANT_ID)).thenReturn(TENANT_ID.toString());
 
         when(internalSecurityClient.findIdentity(any())).thenReturn(getIdentityModel(cert));
         when(uriInfo.getPath()).thenReturn("/ingest-external/");
-        when(adminManagementClient.findContextById(anyString()))
-            .thenReturn(getTestContext(ContextStatus.ACTIVE, false, "notIngestContract", null));
+        when(adminManagementClient.findContextById(anyString())).thenReturn(
+            getTestContext(ContextStatus.ACTIVE, false, "notIngestContract", null)
+        );
         assertThatCode(() -> internalSecurityFilter.filter(containerRequestContext)).doesNotThrowAnyException();
     }
-
 
     /**
      * Get Fake Context Model for test
@@ -493,9 +508,12 @@ public class InternalSecurityFilterTest {
      * @param ingestContract
      * @return
      */
-    private RequestResponse<ContextModel> getTestContext(ContextStatus status, boolean enableControl,
+    private RequestResponse<ContextModel> getTestContext(
+        ContextStatus status,
+        boolean enableControl,
         String accessContract,
-        String ingestContract) {
+        String ingestContract
+    ) {
         ContextModel contextModel = new ContextModel();
         contextModel.setId("fakeId");
         contextModel.setIdentifier("fakeIdentifier");
@@ -505,19 +523,22 @@ public class InternalSecurityFilterTest {
         if (null != accessContract) {
             if (null == ingestContract) {
                 contextModel.setPermissions(
-                    Lists.newArrayList(new PermissionModel(TENANT_ID, Sets.newHashSet(accessContract), null)));
+                    Lists.newArrayList(new PermissionModel(TENANT_ID, Sets.newHashSet(accessContract), null))
+                );
             } else {
                 contextModel.setPermissions(
-                    Lists.newArrayList(new PermissionModel(TENANT_ID, Sets.newHashSet(accessContract),
-                        Sets.newHashSet(ingestContract))));
+                    Lists.newArrayList(
+                        new PermissionModel(TENANT_ID, Sets.newHashSet(accessContract), Sets.newHashSet(ingestContract))
+                    )
+                );
             }
         } else if (null != ingestContract) {
             contextModel.setPermissions(
-                Lists.newArrayList(new PermissionModel(TENANT_ID, null, Sets.newHashSet(ingestContract))));
+                Lists.newArrayList(new PermissionModel(TENANT_ID, null, Sets.newHashSet(ingestContract)))
+            );
         }
 
         return new RequestResponseOK<ContextModel>().addResult(contextModel);
-
     }
 
     /**
@@ -544,7 +565,11 @@ public class InternalSecurityFilterTest {
 
         when(internalSecurityClientFactory.getClient()).thenReturn(internalSecurityClient);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
-        return new InternalSecurityFilter(httpServletRequest, internalSecurityClientFactory,
-            adminManagementClientFactory, allowSslClientHeader);
+        return new InternalSecurityFilter(
+            httpServletRequest,
+            internalSecurityClientFactory,
+            adminManagementClientFactory,
+            allowSslClientHeader
+        );
     }
 }

@@ -56,15 +56,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DeleteGotVersionsReportRepositoryTest {
 
-    private final static String DELETE_GOT_VERSIONS_REPORT =
+    private static final String DELETE_GOT_VERSIONS_REPORT =
         "DELETE_GOT_VERSIONS_REPORT" + GUIDFactory.newGUID().getId();
 
     public static final String DELETE_GOT_VERSIONS_REPORT_JSON = "deleteGotVersionsReport.json";
     public static final String PROCESS_ID_VALUE = "aeeaaaaaacgqyd36abmc4aly7crq7syaaaaq";
 
     @Rule
-    public MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), DELETE_GOT_VERSIONS_REPORT);
+    public MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(),
+        DELETE_GOT_VERSIONS_REPORT
+    );
 
     private DeleteGotVersionsReportRepository repository;
 
@@ -78,21 +80,22 @@ public class DeleteGotVersionsReportRepositoryTest {
     }
 
     @Test
-    public void should_bulk_append_reports()
-        throws Exception {
+    public void should_bulk_append_reports() throws Exception {
         // Given
         List<DeleteGotVersionsReportEntry> deleteGotVersionsReportEntries = getDocuments(
-            DELETE_GOT_VERSIONS_REPORT_JSON);
+            DELETE_GOT_VERSIONS_REPORT_JSON
+        );
 
         // When
         repository.bulkAppendReport(deleteGotVersionsReportEntries);
 
         // Then
         assertThat(deleteGotVersionsReportCollection.countDocuments()).isEqualTo(2);
-        Document firstDocument =
-            deleteGotVersionsReportCollection.find(and(eq(PROCESS_ID, PROCESS_ID_VALUE),
-                eq(TENANT, 0))).first();
-        assertThat(firstDocument).isNotNull()
+        Document firstDocument = deleteGotVersionsReportCollection
+            .find(and(eq(PROCESS_ID, PROCESS_ID_VALUE), eq(TENANT, 0)))
+            .first();
+        assertThat(firstDocument)
+            .isNotNull()
             .containsEntry("processId", PROCESS_ID_VALUE)
             .containsEntry("_tenant", 0)
             .containsEntry(DETAIL_TYPE, DELETE_GOT_VERSIONS.toString())
@@ -101,14 +104,16 @@ public class DeleteGotVersionsReportRepositoryTest {
         Object objectGroupGlobal = firstDocument.get(OBJECT_GROUP_GLOBAL);
         JsonNode objectGroupGlobalNode = JsonHandler.toJsonNode(objectGroupGlobal);
         JsonNode expected = JsonHandler.getFromString(
-            "[{\"status\":\"WARNING\",\"outCome\":\"Qualifier with this specific version 53 is inexistant!\"}]");
+            "[{\"status\":\"WARNING\",\"outCome\":\"Qualifier with this specific version 53 is inexistant!\"}]"
+        );
         assertThat(objectGroupGlobalNode).isNotNull().isEqualTo(expected);
     }
 
     private List<DeleteGotVersionsReportEntry> getDocuments(String filename)
         throws InvalidParseOperationException, FileNotFoundException {
-        return JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(filename),
-            new TypeReference<>() {
-            });
+        return JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile(filename),
+            new TypeReference<>() {}
+        );
     }
 }

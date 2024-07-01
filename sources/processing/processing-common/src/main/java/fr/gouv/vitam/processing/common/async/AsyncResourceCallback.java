@@ -31,7 +31,6 @@ package fr.gouv.vitam.processing.common.async;
  */
 @FunctionalInterface
 public interface AsyncResourceCallback {
-
     /**
      * Notify the origin workflow distribution thread when async resource monitoring is finished (async resources are ready, need to be recreated or workflow has been interrupted).
      * Callback should NOT throw any exception, nor block calling thread.

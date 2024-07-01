@@ -74,72 +74,68 @@ public class UpdateMultipleSchemaValidatorTest {
     public void testUpdateMultipleSchemaValidatorWithNoThreshold()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateMultipleSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_no_threshold.json"));
+        JsonNode updateQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("update_multiple_with_no_threshold.json")
+        );
         dslValidator.validate(updateQuery);
     }
-
 
     @Test
     public void testUpdateMultipleSchemaValidatorWithSingleQueryException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateMultipleSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_single_query.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("update_multiple_with_single_query.json")
+        );
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateMultipleSchemaValidatorWithInvalidThresholdException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateMultipleSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_invalid_threshold.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("update_multiple_with_invalid_threshold.json")
+        );
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateMultipleSchemaValidatorWithFilterException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateMultipleSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_filter.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_filter.json"));
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateMultipleSchemaValidatorWithProjectionException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateMultipleSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("update_multiple_with_projection.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("update_multiple_with_projection.json")
+        );
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateMultipleSchemaValidatorRegexPatternWithoutUpdatePatternException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateMultipleSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile(
-                "update_multiple_regex_pattern_without_controlPattern.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("update_multiple_regex_pattern_without_controlPattern.json")
+        );
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
     public void testUpdateMultipleSchemaValidatorRegexPatternWithoutControlPatternException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateMultipleSchemaValidator();
-        JsonNode updateQuery =
-            JsonHandler.getFromFile(
-                PropertiesUtils.findFile("update_multiple_regex_pattern_without_updatePattern.json"));
-        assertThatThrownBy(() -> dslValidator.validate(updateQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode updateQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("update_multiple_regex_pattern_without_updatePattern.json")
+        );
+        assertThatThrownBy(() -> dslValidator.validate(updateQuery)).hasMessageContaining("Dsl query is not valid");
     }
 
     @Test
@@ -147,7 +143,6 @@ public class UpdateMultipleSchemaValidatorTest {
         // All test case for the class fr.gouv.vitam.common.InternalActionKeysRetriever must be valid,
         // so if changes are made in the DSL of update-mass-query-dsl-schema.json it must be change also
         // in the InternalActionKeysRetriever class.
-
 
         // Given
         DslValidator dslValidator = new UpdateMultipleSchemaValidator();
@@ -163,8 +158,8 @@ public class UpdateMultipleSchemaValidatorTest {
         );
 
         // When
-        ThrowingCallable testInternalKeysRetrieverTestFiles = () -> testFiles.forEach(
-            node -> {
+        ThrowingCallable testInternalKeysRetrieverTestFiles = () ->
+            testFiles.forEach(node -> {
                 try {
                     dslValidator.validate(node);
                 } catch (ValidationException e) {

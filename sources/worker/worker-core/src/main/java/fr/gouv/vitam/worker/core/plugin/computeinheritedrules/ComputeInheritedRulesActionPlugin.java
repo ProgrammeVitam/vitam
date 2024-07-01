@@ -94,6 +94,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
 import static java.util.function.Predicate.not;
 
 public class ComputeInheritedRulesActionPlugin extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ComputeInheritedRulesActionPlugin.class);
 
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_ACTION_PLUGIN";
@@ -136,8 +137,10 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             SelectMultiQuery select = new SelectMultiQuery();
-            InQuery query =
-                QueryHelper.in(VitamFieldsHelper.id(), workerParameters.getObjectNameList().toArray(new String[0]));
+            InQuery query = QueryHelper.in(
+                VitamFieldsHelper.id(),
+                workerParameters.getObjectNameList().toArray(new String[0])
+            );
             select.setQuery(query);
 
             JsonNode response = metaDataClient.selectUnitsWithInheritedRules(select.getFinalSelect());
@@ -146,30 +149,43 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
             List<JsonNode> archiveWithInheritedRules = requestResponseOK.getResults();
 
             String tenantId = VitamThreadUtils.getVitamSession().getTenantId().toString();
-            boolean isApiIndexable =
-                isIndexable(tenantId, VitamConfiguration.getIndexInheritedRulesWithAPIV2OutputByTenant());
-            boolean isRuleIndexable =
-                isIndexable(tenantId, VitamConfiguration.getIndexInheritedRulesWithRulesIdByTenant());
+            boolean isApiIndexable = isIndexable(
+                tenantId,
+                VitamConfiguration.getIndexInheritedRulesWithAPIV2OutputByTenant()
+            );
+            boolean isRuleIndexable = isIndexable(
+                tenantId,
+                VitamConfiguration.getIndexInheritedRulesWithRulesIdByTenant()
+            );
 
             for (JsonNode archiveUnit : archiveWithInheritedRules) {
-                UnitInheritedRulesResponseModel unitInheritedResponseModel =
-                    JsonHandler.getFromJsonNode(archiveUnit.get(INHERITED_RULES),
-                        UnitInheritedRulesResponseModel.class);
+                UnitInheritedRulesResponseModel unitInheritedResponseModel = JsonHandler.getFromJsonNode(
+                    archiveUnit.get(INHERITED_RULES),
+                    UnitInheritedRulesResponseModel.class
+                );
                 String unitId = archiveUnit.get(VitamFieldsHelper.id()).textValue();
 
                 //TODO Switch POJO to metadata-common
-                Map<String, InheritedRule> inheritedRulesWithAllOption = unitInheritedResponseModel.getRuleCategories()
+                Map<String, InheritedRule> inheritedRulesWithAllOption = unitInheritedResponseModel
+                    .getRuleCategories()
                     .entrySet()
                     .stream()
-                    .map(entry -> mapToCategoriesWithEndDateAndProperties(entry.getKey(), entry.getValue(),
-                        isRuleIndexable))
+                    .map(
+                        entry ->
+                            mapToCategoriesWithEndDateAndProperties(entry.getKey(), entry.getValue(), isRuleIndexable)
+                    )
                     .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
 
-                Map<String, Object> globalInheritedProperties = unitInheritedResponseModel.getGlobalProperties()
+                Map<String, Object> globalInheritedProperties = unitInheritedResponseModel
+                    .getGlobalProperties()
                     .stream()
-                    .collect(Collectors.toMap(InheritedPropertyResponseModel::getPropertyName,
-                        InheritedPropertyResponseModel::getPropertyValue,
-                        PROPERTY_MERGER));
+                    .collect(
+                        Collectors.toMap(
+                            InheritedPropertyResponseModel::getPropertyName,
+                            InheritedPropertyResponseModel::getPropertyValue,
+                            PROPERTY_MERGER
+                        )
+                    );
 
                 JsonNode inheritedRulesAPIOutput = isApiIndexable
                     ? JsonHandler.toJsonNode(unitInheritedResponseModel)
@@ -216,32 +232,43 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
         return indexByTenants.contains(tenant);
     }
 
-    private Entry<String, InheritedRule> mapToCategoriesWithEndDateAndProperties(String category,
-        InheritedRuleCategoryResponseModel categoryResponseModel, boolean isRuleIndexable) {
-        LocalDate maxEndDate = categoryResponseModel.getRules()
+    private Entry<String, InheritedRule> mapToCategoriesWithEndDateAndProperties(
+        String category,
+        InheritedRuleCategoryResponseModel categoryResponseModel,
+        boolean isRuleIndexable
+    ) {
+        LocalDate maxEndDate = categoryResponseModel
+            .getRules()
             .stream()
             .filter(rule -> rule.getEndDate() != null)
             .map(rule -> parseToLocalDate(rule.getEndDate()))
             .max(LocalDate::compareTo)
             .orElse(null);
 
-        Map<String, LocalDate> ruleIdToRuleMaxEndDate = categoryResponseModel.getRules()
+        Map<String, LocalDate> ruleIdToRuleMaxEndDate = categoryResponseModel
+            .getRules()
             .stream()
             .filter(rule -> rule.getEndDate() != null)
             .collect(
-                Collectors.toMap(InheritedRuleResponseModel::getRuleId, rule -> parseToLocalDate(rule.getEndDate()),
-                    DATE_MERGER));
+                Collectors.toMap(
+                    InheritedRuleResponseModel::getRuleId,
+                    rule -> parseToLocalDate(rule.getEndDate()),
+                    DATE_MERGER
+                )
+            );
 
-        Map<String, PropertyValue> propertyNameToPropertyValue =
-            mapInheritedPropertyResponseModelToPropertiesNameValue(categoryResponseModel.getProperties());
+        Map<String, PropertyValue> propertyNameToPropertyValue = mapInheritedPropertyResponseModelToPropertiesNameValue(
+            categoryResponseModel.getProperties()
+        );
 
-        Set<String> inheritedRuleIds = categoryResponseModel.getRules().stream()
+        Set<String> inheritedRuleIds = categoryResponseModel
+            .getRules()
+            .stream()
             .filter(not(this::isRuleLocallyDefined))
             .map(InheritedRuleResponseModel::getRuleId)
             .collect(Collectors.toSet());
 
-        boolean hasLocalRules = categoryResponseModel.getRules().stream()
-            .anyMatch(this::isRuleLocallyDefined);
+        boolean hasLocalRules = categoryResponseModel.getRules().stream().anyMatch(this::isRuleLocallyDefined);
         boolean hasInheritedRules = !inheritedRuleIds.isEmpty();
 
         RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin;
@@ -259,53 +286,93 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
             }
         }
 
-        return getInheritedRuleByCategory(category, isRuleIndexable, maxEndDate, ruleIdToRuleMaxEndDate,
+        return getInheritedRuleByCategory(
+            category,
+            isRuleIndexable,
+            maxEndDate,
+            ruleIdToRuleMaxEndDate,
             propertyNameToPropertyValue,
-            ruleCategoryInheritanceOrigin, inheritedRuleIds);
+            ruleCategoryInheritanceOrigin,
+            inheritedRuleIds
+        );
     }
 
     private boolean isRuleLocallyDefined(InheritedRuleResponseModel rule) {
         // Locally defined rules have a single path containing only the unitId. i.e. "paths": [["currentUnitGuid"]]
-        return rule.getPaths().size() == 1 &&
-            rule.getPaths().get(0).size() == 1;
+        return rule.getPaths().size() == 1 && rule.getPaths().get(0).size() == 1;
     }
 
-    private Entry<String, InheritedRule> getInheritedRuleByCategory(String category, boolean isRuleIndexable,
+    private Entry<String, InheritedRule> getInheritedRuleByCategory(
+        String category,
+        boolean isRuleIndexable,
         LocalDate maxEndDateByCategory,
         Map<String, LocalDate> computedInheritedRules,
         Map<String, PropertyValue> propertyNameToPropertyValue,
-        RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin, Set<String> inheritedRuleIds) {
-
+        RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin,
+        Set<String> inheritedRuleIds
+    ) {
         Properties properties = new Properties(propertyNameToPropertyValue);
-        Map<String, LocalDate> ruleIdToRule = isRuleIndexable
-            ? computedInheritedRules
-            : null;
+        Map<String, LocalDate> ruleIdToRule = isRuleIndexable ? computedInheritedRules : null;
 
-        List<ComputedInheritedRuleModel> rules =
-            ruleIdToRule == null ? Collections.emptyList() : ruleIdToRule.entrySet().stream()
+        List<ComputedInheritedRuleModel> rules = ruleIdToRule == null
+            ? Collections.emptyList()
+            : ruleIdToRule
+                .entrySet()
+                .stream()
                 .map(entry -> new ComputedInheritedRuleModel(entry.getKey(), entry.getValue().toString()))
                 .collect(Collectors.toList());
 
         switch (category) {
             case CLASSIFICATION_RULE:
-                return new SimpleImmutableEntry<>(category,
-                    new ClassificationRule(maxEndDateByCategory, properties, ruleIdToRule, rules,
-                        ruleCategoryInheritanceOrigin, inheritedRuleIds));
+                return new SimpleImmutableEntry<>(
+                    category,
+                    new ClassificationRule(
+                        maxEndDateByCategory,
+                        properties,
+                        ruleIdToRule,
+                        rules,
+                        ruleCategoryInheritanceOrigin,
+                        inheritedRuleIds
+                    )
+                );
             case STORAGE_RULE:
-                return new SimpleImmutableEntry<>(category,
-                    new StorageRule(maxEndDateByCategory, properties, ruleIdToRule, rules,
-                        ruleCategoryInheritanceOrigin, inheritedRuleIds));
+                return new SimpleImmutableEntry<>(
+                    category,
+                    new StorageRule(
+                        maxEndDateByCategory,
+                        properties,
+                        ruleIdToRule,
+                        rules,
+                        ruleCategoryInheritanceOrigin,
+                        inheritedRuleIds
+                    )
+                );
             case APPRAISAL_RULE:
-                return new SimpleImmutableEntry<>(category,
-                    new AppraisalRule(maxEndDateByCategory, properties, ruleIdToRule, rules,
-                        ruleCategoryInheritanceOrigin, inheritedRuleIds));
+                return new SimpleImmutableEntry<>(
+                    category,
+                    new AppraisalRule(
+                        maxEndDateByCategory,
+                        properties,
+                        ruleIdToRule,
+                        rules,
+                        ruleCategoryInheritanceOrigin,
+                        inheritedRuleIds
+                    )
+                );
             case DISSEMINATION_RULE:
             case ACCESS_RULE:
             case REUSE_RULE:
             case HOLD_RULE:
-                return new SimpleImmutableEntry<>(category,
-                    new InheritedRule(maxEndDateByCategory, ruleIdToRule, rules,
-                        ruleCategoryInheritanceOrigin, inheritedRuleIds));
+                return new SimpleImmutableEntry<>(
+                    category,
+                    new InheritedRule(
+                        maxEndDateByCategory,
+                        ruleIdToRule,
+                        rules,
+                        ruleCategoryInheritanceOrigin,
+                        inheritedRuleIds
+                    )
+                );
             default:
                 throw new VitamRuntimeException(String.format("Category rule cannot be of type '%s'.", category));
         }
@@ -320,22 +387,34 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     }
 
     private Map<String, PropertyValue> mapInheritedPropertyResponseModelToPropertiesNameValue(
-        List<InheritedPropertyResponseModel> properties) {
-        return properties.stream()
-            .collect(Collectors.toMap(InheritedPropertyResponseModel::getPropertyName,
-                property -> new PropertyValue(property.getPropertyValue()), PropertyValue::new));
+        List<InheritedPropertyResponseModel> properties
+    ) {
+        return properties
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    InheritedPropertyResponseModel::getPropertyName,
+                    property -> new PropertyValue(property.getPropertyValue()),
+                    PropertyValue::new
+                )
+            );
     }
 
-    private ComputedInheritedRules getComputedInheritedRules(Map<String, InheritedRule> inheritedRules,
-        JsonNode inheritedRulesAPIOutput, Map<String, Object> globalInheritedProperties, boolean isApiIndexable) {
-        String dateFormatted = Instant.now()
-            .atZone(ZoneId.systemDefault())
-            .toLocalDate()
-            .format(DATE_TIME_FORMATTER);
+    private ComputedInheritedRules getComputedInheritedRules(
+        Map<String, InheritedRule> inheritedRules,
+        JsonNode inheritedRulesAPIOutput,
+        Map<String, Object> globalInheritedProperties,
+        boolean isApiIndexable
+    ) {
+        String dateFormatted = Instant.now().atZone(ZoneId.systemDefault()).toLocalDate().format(DATE_TIME_FORMATTER);
 
         if (isApiIndexable) {
-            return new ComputedInheritedRules(inheritedRules, inheritedRulesAPIOutput, globalInheritedProperties,
-                dateFormatted);
+            return new ComputedInheritedRules(
+                inheritedRules,
+                inheritedRulesAPIOutput,
+                globalInheritedProperties,
+                dateFormatted
+            );
         }
         return new ComputedInheritedRules(inheritedRules, dateFormatted, globalInheritedProperties);
     }
@@ -348,5 +427,4 @@ public class ComputeInheritedRulesActionPlugin extends ActionHandler {
     public static String getId() {
         return PLUGIN_NAME;
     }
-
 }

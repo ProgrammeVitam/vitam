@@ -32,15 +32,12 @@ import static org.junit.Assert.assertEquals;
 
 public class WorkerFamilyNotFoundExceptionTest {
 
-
     private static final String ERROR = "ERROR";
     private static final String EXCEPTION = "fr.gouv.vitam.processing.common.exception.WorkerFamilyNotFoundException";
 
     @Test
     public void testConstructor() {
-        assertEquals(EXCEPTION + ": " + ERROR,
-            new WorkerFamilyNotFoundException(ERROR, new Exception()).toString());
+        assertEquals(EXCEPTION + ": " + ERROR, new WorkerFamilyNotFoundException(ERROR, new Exception()).toString());
         assertEquals(ERROR, new WorkerFamilyNotFoundException(ERROR).getMessage());
     }
-
 }

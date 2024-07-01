@@ -38,7 +38,6 @@ import fr.gouv.vitam.worker.common.DescriptionStep;
  * Worker Client interface
  */
 public interface WorkerClient extends MockOrRestClient {
-
     /**
      * add a step to the worker
      *
@@ -50,5 +49,4 @@ public interface WorkerClient extends MockOrRestClient {
      */
     ItemStatus submitStep(DescriptionStep step)
         throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException;
-
 }

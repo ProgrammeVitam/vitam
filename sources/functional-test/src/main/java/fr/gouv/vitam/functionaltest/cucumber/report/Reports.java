@@ -81,9 +81,7 @@ public class Reports {
      * @return number of OK Test By TagName
      */
     public long numberOfTestOKByTagName(String tagName) {
-        return reports.stream().
-            filter(report -> report.getTags().contains(tagName) && report.isOK())
-            .count();
+        return reports.stream().filter(report -> report.getTags().contains(tagName) && report.isOK()).count();
     }
 
     /**
@@ -91,23 +89,21 @@ public class Reports {
      * @return number of KO Test By TagName
      */
     public long numberOfTestKOByTagName(String tagName) {
-        return reports.stream().
-            filter(report -> report.getTags().contains(tagName) && !report.isOK())
-            .count();
+        return reports.stream().filter(report -> report.getTags().contains(tagName) && !report.isOK()).count();
     }
 
     /**
      * @return List of TagInfo
      */
     public List<TagInfo> getTags() {
-        return reports.stream()
+        return reports
+            .stream()
             .map(report -> report.getTags())
             .flatMap(List::stream)
             .collect(Collectors.toSet())
             .stream()
             .map(tagName -> new TagInfo(tagName, numberOfTestOKByTagName(tagName), numberOfTestKOByTagName(tagName)))
             .collect(Collectors.toList());
-
     }
 
     /**
@@ -145,6 +141,4 @@ public class Reports {
     public LocalDateTime getStart() {
         return start;
     }
-
-
 }

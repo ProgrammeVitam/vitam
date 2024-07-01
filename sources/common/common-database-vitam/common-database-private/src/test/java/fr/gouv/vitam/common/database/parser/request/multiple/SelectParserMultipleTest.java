@@ -88,6 +88,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class SelectParserMultipleTest {
+
     private static JsonNode exampleBothEsMd;
 
     private static JsonNode exampleMd;
@@ -97,45 +98,57 @@ public class SelectParserMultipleTest {
     @BeforeClass
     public static void init() throws InvalidParseOperationException {
         VitamLoggerFactory.setLogLevel(VitamLogLevel.INFO);
-        exampleBothEsMd =
-            JsonHandler.getFromString("{\"$roots\":[\"id0\"],\"$query\":[{\"$path\":[\"id1\",\"id2\"]}," +
-                "{\"$and\":[{\"$exists\":\"mavar1\"},{\"$missing\":\"mavar2\"},{\"$isNull\":\"mavar3\"}," +
-                "{\"$or\":[{\"$in\":{\"mavar4\":[1,2,\"maval1\"]}},{\"$nin\":{\"mavar5\":[\"maval2\",true]}}]}]}," +
-                "{\"$not\":[{\"$size\":{\"mavar5\":5}},{\"$gt\":{\"mavar6\":7}},{\"$lte\":{\"mavar7\":8}}],\"$exactdepth\":4}," +
-                "{\"$not\":[{\"$eq\":{\"mavar8\":5}},{\"$ne\":{\"mavar9\":\"ab\"}}," +
-                "{\"$range\":{\"mavar10\":{\"$gte\":12,\"$lte\":20}}}],\"$depth\":10}," +
-                "{\"$match_phrase\":{\"mavar11\":\"ceci est une phrase\"},\"$depth\":0}," +
-                "{\"$match_phrase_prefix\":{\"mavar11\":\"ceci est une phrase\",\"$max_expansions\":10},\"$depth\":0}," +
-                "{\"$flt\":{\"$fields\":[\"mavar12\",\"mavar13\"],\"$like\":\"ceci est une phrase\"},\"$depth\":1}," +
-                "{\"$and\":[{\"$search\":{\"mavar13\":\"ceci est une phrase\"}},{\"$regex\":{\"mavar14\":\"^start?aa.*\"}}]}," +
-                "{\"$and\":[{\"$term\":{\"mavar14\":\"motMajuscule\",\"mavar15\":\"simplemot\"}}]}," +
-                "{\"$and\":[{\"$term\":{\"mavar16\":\"motMajuscule\",\"mavar17\":\"simplemot\"}}," +
-                "{\"$or\":[{\"$eq\":{\"mavar19\":\"abcd\"}},{\"$match\":{\"mavar18\":\"quelques mots\"}}]}]}," +
-                "{\"$regex\":{\"mavar14\":\"^start?aa.*\"}}],\"$filter\":{\"$offset\":100,\"$limit\":1000," +
-                "\"$hint\":[\"cache\"],\"$orderby\":{\"maclef1\":1,\"maclef2\":-1,\"maclef3\":1}}," +
-                "\"$projection\":{\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}," +
-                "\"$facets\":[{\"$name\":\"mafacet\", \"$terms\":{\"$field\":\"mavar1\",\"$size\":5,\"$order\":\"ASC\"}}," +
-                "{" +
-                "    \"$name\": \"filters_facet\"," +
-                "    \"$filters\": {" +
-                "        \"$query_filters\": [" +
-                "            {\"$name\": \"StorageRules\", \"$query\": {\"$exists\": \"#management.StorageRule.Rules.Rule\"}}," +
-                "            {\"$name\": \"AccessRules\",\"$query\": {\"$exists\": \"#management.AccessRule.Rules.Rule\"}}" +
-                "        ]" +
-                "    }" +
-                "}" +
-                "]}");
+        exampleBothEsMd = JsonHandler.getFromString(
+            "{\"$roots\":[\"id0\"],\"$query\":[{\"$path\":[\"id1\",\"id2\"]}," +
+            "{\"$and\":[{\"$exists\":\"mavar1\"},{\"$missing\":\"mavar2\"},{\"$isNull\":\"mavar3\"}," +
+            "{\"$or\":[{\"$in\":{\"mavar4\":[1,2,\"maval1\"]}},{\"$nin\":{\"mavar5\":[\"maval2\",true]}}]}]}," +
+            "{\"$not\":[{\"$size\":{\"mavar5\":5}},{\"$gt\":{\"mavar6\":7}},{\"$lte\":{\"mavar7\":8}}],\"$exactdepth\":4}," +
+            "{\"$not\":[{\"$eq\":{\"mavar8\":5}},{\"$ne\":{\"mavar9\":\"ab\"}}," +
+            "{\"$range\":{\"mavar10\":{\"$gte\":12,\"$lte\":20}}}],\"$depth\":10}," +
+            "{\"$match_phrase\":{\"mavar11\":\"ceci est une phrase\"},\"$depth\":0}," +
+            "{\"$match_phrase_prefix\":{\"mavar11\":\"ceci est une phrase\",\"$max_expansions\":10},\"$depth\":0}," +
+            "{\"$flt\":{\"$fields\":[\"mavar12\",\"mavar13\"],\"$like\":\"ceci est une phrase\"},\"$depth\":1}," +
+            "{\"$and\":[{\"$search\":{\"mavar13\":\"ceci est une phrase\"}},{\"$regex\":{\"mavar14\":\"^start?aa.*\"}}]}," +
+            "{\"$and\":[{\"$term\":{\"mavar14\":\"motMajuscule\",\"mavar15\":\"simplemot\"}}]}," +
+            "{\"$and\":[{\"$term\":{\"mavar16\":\"motMajuscule\",\"mavar17\":\"simplemot\"}}," +
+            "{\"$or\":[{\"$eq\":{\"mavar19\":\"abcd\"}},{\"$match\":{\"mavar18\":\"quelques mots\"}}]}]}," +
+            "{\"$regex\":{\"mavar14\":\"^start?aa.*\"}}],\"$filter\":{\"$offset\":100,\"$limit\":1000," +
+            "\"$hint\":[\"cache\"],\"$orderby\":{\"maclef1\":1,\"maclef2\":-1,\"maclef3\":1}}," +
+            "\"$projection\":{\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}," +
+            "\"$facets\":[{\"$name\":\"mafacet\", \"$terms\":{\"$field\":\"mavar1\",\"$size\":5,\"$order\":\"ASC\"}}," +
+            "{" +
+            "    \"$name\": \"filters_facet\"," +
+            "    \"$filters\": {" +
+            "        \"$query_filters\": [" +
+            "            {\"$name\": \"StorageRules\", \"$query\": {\"$exists\": \"#management.StorageRule.Rules.Rule\"}}," +
+            "            {\"$name\": \"AccessRules\",\"$query\": {\"$exists\": \"#management.AccessRule.Rules.Rule\"}}" +
+            "        ]" +
+            "    }" +
+            "}" +
+            "]}"
+        );
 
-        exampleMd = JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-            "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
+        exampleMd = JsonHandler.getFromString(
+            "{ $roots : [ 'id0' ], $query : [ " +
+            "{ $path : [ 'id1', 'id2'] }," +
+            "{ $and : [ " +
+            "{$exists : 'mavar1'}, " +
+            "{$missing : 'mavar2'}, " +
+            "{$isNull : 'mavar3'}, " +
             "{ $or : [ " +
-            "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-            "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
-            "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, " +
+            "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " +
+            "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
+            "{ $not : [ " +
+            "{ $size : { 'mavar5' : 5 } }, " +
+            "{ $gt : { 'mavar6' : 7 } }, " +
+            "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
+            "{ $not : [ " +
+            "{ $eq : { 'mavar8' : 5 } }, " +
             "{ $ne : { 'mavar9' : 'ab' } }, " +
             "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
             "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
-            "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " +
+            "{ $regex : { 'mavar14' : '^start?aa.*' } } " +
+            "], " +
             "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], $track_total_hits: true, " +
             "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
             "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }," +
@@ -149,53 +162,54 @@ public class SelectParserMultipleTest {
             "        ]\n" +
             "    }" +
             "}" +
-            "] }");
+            "] }"
+        );
 
         nestedSearchQuery = JsonHandler.getFromString(
             "{\n" +
-                "  \"$query\": [\n" +
-                "    {\n" +
-                "      \"$and\": [\n" +
-                "        {\n" +
-                "          \"$match\": {\n" +
-                "            \"FileInfo.FileName\": \"Monfichier\"\n" +
-                "          }\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"$subobject\": {\n" +
-                "            \"#qualifiers.versions\": {\n" +
-                "              \"$and\": [\n" +
-                "                {\n" +
-                "                  \"$eq\": {\n" +
-                "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
-                "                  }\n" +
-                "                },\n" +
-                "                {\n" +
-                "                  \"$lte\": {\n" +
-                "                    \"version.size\": 20000\n" +
-                "                  }\n" +
-                "                }\n" +
-                "              ]\n" +
-                "            }\n" +
-                "          }\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  ],\n" +
-                "  \"$projection\": {},\n" +
-                "  \"$filters\": {},\n" +
-                "\"$facets\": [\n" +
-                "  {\n" +
-                "    \"$name\": \"facet_testl\",\n" +
-                "    \"$terms\": {\n" +
-                "      \"$subobject\": \"#qualifiers.versions\",\n" +
-                "      \"$field\": \"#qualifiers.versions.FormatIdentification.FormatLitteral\",\n" +
-                "      \"$size\": 5,\n" +
-                "      \"$order\": \"ASC\"        \n" +
-                "    }\n" +
-                "  }\n" +
-                "]" +
-                "}"
+            "  \"$query\": [\n" +
+            "    {\n" +
+            "      \"$and\": [\n" +
+            "        {\n" +
+            "          \"$match\": {\n" +
+            "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+            "          }\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"$subobject\": {\n" +
+            "            \"#qualifiers.versions\": {\n" +
+            "              \"$and\": [\n" +
+            "                {\n" +
+            "                  \"$eq\": {\n" +
+            "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+            "                  }\n" +
+            "                },\n" +
+            "                {\n" +
+            "                  \"$lte\": {\n" +
+            "                    \"version.size\": 20000\n" +
+            "                  }\n" +
+            "                }\n" +
+            "              ]\n" +
+            "            }\n" +
+            "          }\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"$projection\": {},\n" +
+            "  \"$filters\": {},\n" +
+            "\"$facets\": [\n" +
+            "  {\n" +
+            "    \"$name\": \"facet_testl\",\n" +
+            "    \"$terms\": {\n" +
+            "      \"$subobject\": \"#qualifiers.versions\",\n" +
+            "      \"$field\": \"#qualifiers.versions.FormatIdentification.FormatLitteral\",\n" +
+            "      \"$size\": 5,\n" +
+            "      \"$order\": \"ASC\"        \n" +
+            "    }\n" +
+            "  }\n" +
+            "]" +
+            "}"
         );
     }
 
@@ -231,8 +245,17 @@ public class SelectParserMultipleTest {
         try {
             request1.parse(nestedSearchQuery.deepCopy());
             assertNotNull(request1);
-            assertTrue(request1.getRequest().getFacets().get(0).getCurrentFacet()
-                .get("$terms").get("$subobject").asText().equals("#qualifiers.versions"));
+            assertTrue(
+                request1
+                    .getRequest()
+                    .getFacets()
+                    .get(0)
+                    .getCurrentFacet()
+                    .get("$terms")
+                    .get("$subobject")
+                    .asText()
+                    .equals("#qualifiers.versions")
+            );
         } catch (Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -244,11 +267,9 @@ public class SelectParserMultipleTest {
         try {
             final SelectParserMultiple request1 = new SelectParserMultiple();
             request1.parse(exampleBothEsMd.deepCopy());
-            assertTrue("Should refuse the request since ES is not allowed",
-                request1.hasFullTextQuery());
+            assertTrue("Should refuse the request since ES is not allowed", request1.hasFullTextQuery());
             request1.parse(exampleMd.deepCopy());
-            assertFalse("Should accept the request since ES is not allowed",
-                request1.hasFullTextQuery());
+            assertFalse("Should accept the request since ES is not allowed", request1.hasFullTextQuery());
         } catch (final Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -257,42 +278,41 @@ public class SelectParserMultipleTest {
             final SelectParserMultiple request1 = new SelectParserMultiple();
             request1.parse(exampleBothEsMd.deepCopy());
             assertNotNull(request1);
-            assertTrue("Should refuse the request since ES is not allowed",
-                request1.hasFullTextQuery());
+            assertTrue("Should refuse the request since ES is not allowed", request1.hasFullTextQuery());
             final SelectMultiQuery select = new SelectMultiQuery();
             select.addRoots("id0");
             select.addQueries(path("id1", "id2"));
             select.addQueries(
-                and().add(exists("mavar1"), missing("mavar2"), isNull("mavar3"),
-                    or().add(in("mavar4", 1, 2).add("maval1"),
-                        nin("mavar5", "maval2").add(true))));
+                and()
+                    .add(
+                        exists("mavar1"),
+                        missing("mavar2"),
+                        isNull("mavar3"),
+                        or().add(in("mavar4", 1, 2).add("maval1"), nin("mavar5", "maval2").add(true))
+                    )
+            );
+            select.addQueries(not().add(size("mavar5", 5), gt("mavar6", 7), lte("mavar7", 8)).setExactDepthLimit(4));
             select.addQueries(
-                not().add(size("mavar5", 5), gt("mavar6", 7), lte("mavar7", 8))
-                    .setExactDepthLimit(4));
-            select.addQueries(not()
-                .add(eq("mavar8", 5), ne("mavar9", "ab"),
-                    range("mavar10", 12, true, 20, true))
-                .setDepthLimit(10));
-            select.addQueries(matchPhrase("mavar11", "ceci est une phrase")
-                .setRelativeDepthLimit(0));
-            select.addQueries(matchPhrasePrefix("mavar11", "ceci est une phrase")
-                .setMatchMaxExpansions(10)
-                .setDepthLimit(0));
-            select.addQueries(flt("ceci est une phrase", "mavar12", "mavar13")
-                .setRelativeDepthLimit(1));
-            select.addQueries(and().add(search("mavar13", "ceci est une phrase"),
-                regex("mavar14", "^start?aa.*")));
+                not().add(eq("mavar8", 5), ne("mavar9", "ab"), range("mavar10", 12, true, 20, true)).setDepthLimit(10)
+            );
+            select.addQueries(matchPhrase("mavar11", "ceci est une phrase").setRelativeDepthLimit(0));
+            select.addQueries(
+                matchPhrasePrefix("mavar11", "ceci est une phrase").setMatchMaxExpansions(10).setDepthLimit(0)
+            );
+            select.addQueries(flt("ceci est une phrase", "mavar12", "mavar13").setRelativeDepthLimit(1));
+            select.addQueries(and().add(search("mavar13", "ceci est une phrase"), regex("mavar14", "^start?aa.*")));
 
-            select.addQueries(and()
-                .add(term("mavar14", "motMajuscule").add("mavar15", "simplemot")));
+            select.addQueries(and().add(term("mavar14", "motMajuscule").add("mavar15", "simplemot")));
             select.addQueries(
-                and().add(term("mavar16", "motMajuscule").add("mavar17", "simplemot"),
-                    or().add(eq("mavar19", "abcd"),
-                        match("mavar18", "quelques mots"))));
+                and()
+                    .add(
+                        term("mavar16", "motMajuscule").add("mavar17", "simplemot"),
+                        or().add(eq("mavar19", "abcd"), match("mavar18", "quelques mots"))
+                    )
+            );
             select.addQueries(regex("mavar14", "^start?aa.*"));
             select.setLimitFilter(100, 1000).addHintFilter(FILTERARGS.CACHE.exactToken());
-            select.addOrderByAscFilter("maclef1")
-                .addOrderByDescFilter("maclef2").addOrderByAscFilter("maclef3");
+            select.addOrderByAscFilter("maclef1").addOrderByDescFilter("maclef2").addOrderByAscFilter("maclef3");
             select.addUsedProjection("#dua", "#all").setUsageProjection("abcdef1234");
             select.addFacets(terms("mafacet", "mavar1", 5, FacetOrder.ASC));
             Map<String, Query> filterQueries = new HashMap<>();
@@ -309,23 +329,28 @@ public class SelectParserMultipleTest {
                     System.err.println(query1.get(i));
                     System.err.println(query2.get(i));
                 }
-                assertTrue("TypeRequest should be equal",
-                    query1.get(i).toString().equals(query2.get(i).toString()));
+                assertTrue("TypeRequest should be equal", query1.get(i).toString().equals(query2.get(i).toString()));
             }
-            assertTrue("Projection should be equal",
-                request1.getRequest().getProjection().toString()
-                    .equals(request2.getRequest().getProjection().toString()));
-            assertTrue("OrderBy should be equal",
-                request1.getRequest().getFilter().toString()
-                    .equals(request2.getRequest().getFilter().toString()));
+            assertTrue(
+                "Projection should be equal",
+                request1
+                    .getRequest()
+                    .getProjection()
+                    .toString()
+                    .equals(request2.getRequest().getProjection().toString())
+            );
+            assertTrue(
+                "OrderBy should be equal",
+                request1.getRequest().getFilter().toString().equals(request2.getRequest().getFilter().toString())
+            );
             assertEquals(request1.getLastDepth(), request2.getLastDepth());
             assertEquals(request1.hasFullTextQuery(), request2.hasFullTextQuery());
-            assertEquals(request1.getRequest().getRoots().toString(),
-                request2.getRequest().getRoots().toString());
-            assertEquals(request1.getRequest().getFinalSelect().toString(),
-                request2.getRequest().getFinalSelect().toString());
-            assertTrue("Command should be equal",
-                request1.toString().equals(request2.toString()));
+            assertEquals(request1.getRequest().getRoots().toString(), request2.getRequest().getRoots().toString());
+            assertEquals(
+                request1.getRequest().getFinalSelect().toString(),
+                request2.getRequest().getFinalSelect().toString()
+            );
+            assertTrue("Command should be equal", request1.toString().equals(request2.toString()));
         } catch (final Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -339,54 +364,58 @@ public class SelectParserMultipleTest {
         try {
             // empty
             request.filterParse(select.getFilter());
-            assertNull("Hint should be null",
-                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
-            assertNotNull("Limit should not be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.LIMIT.exactToken()));
-            assertNull("Offset should be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.OFFSET.exactToken()));
-            assertNull("OrderBy should be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.ORDERBY.exactToken()));
+            assertNull("Hint should be null", request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
+            assertNotNull(
+                "Limit should not be null",
+                request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken())
+            );
+            assertNull("Offset should be null", request.getRequest().getFilter().get(SELECTFILTER.OFFSET.exactToken()));
+            assertNull(
+                "OrderBy should be null",
+                request.getRequest().getFilter().get(SELECTFILTER.ORDERBY.exactToken())
+            );
             // hint set
             select.addHintFilter(FILTERARGS.CACHE.exactToken());
             request.filterParse(select.getFilter());
-            assertEquals("Hint should be True", FILTERARGS.CACHE.exactToken(),
-                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken())
-                    .get(0).asText());
+            assertEquals(
+                "Hint should be True",
+                FILTERARGS.CACHE.exactToken(),
+                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()).get(0).asText()
+            );
             // hint reset
             select.resetHintFilter();
             request.filterParse(select.getFilter());
-            assertNull("Hint should be null",
-                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
+            assertNull("Hint should be null", request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
             // limit set
             select.setLimitFilter(0, 1000);
             request.filterParse(select.getFilter());
-            assertEquals(1000,
-                request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken())
-                    .asLong());
-            assertNull("Offset should be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.OFFSET.exactToken()));
+            assertEquals(1000, request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken()).asLong());
+            assertNull("Offset should be null", request.getRequest().getFilter().get(SELECTFILTER.OFFSET.exactToken()));
             // offset set
             select.setLimitFilter(100, 0);
             request.filterParse(select.getFilter());
-            assertEquals(100,
-                request.getRequest().getFilter().get(SELECTFILTER.OFFSET.exactToken())
-                    .asLong());
-            assertEquals(GlobalDatas.LIMIT_LOAD,
-                request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken())
-                    .asLong());
+            assertEquals(100, request.getRequest().getFilter().get(SELECTFILTER.OFFSET.exactToken()).asLong());
+            assertEquals(
+                GlobalDatas.LIMIT_LOAD,
+                request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken()).asLong()
+            );
             // orderBy set through array
             select.addOrderByAscFilter("var1", "var2").addOrderByDescFilter("var3");
             request.filterParse(select.getFilter());
-            assertNotNull("OrderBy should not be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.ORDERBY.exactToken()));
+            assertNotNull(
+                "OrderBy should not be null",
+                request.getRequest().getFilter().get(SELECTFILTER.ORDERBY.exactToken())
+            );
             // check both
-            assertEquals(3, request.getRequest().getFilter()
-                .get(SELECTFILTER.ORDERBY.exactToken()).size());
-            for (final Iterator<Entry<String, JsonNode>> iterator =
-                 request.getRequest().getFilter()
-                     .get(SELECTFILTER.ORDERBY.exactToken()).fields(); iterator
-                     .hasNext(); ) {
+            assertEquals(3, request.getRequest().getFilter().get(SELECTFILTER.ORDERBY.exactToken()).size());
+            for (
+                final Iterator<Entry<String, JsonNode>> iterator = request
+                    .getRequest()
+                    .getFilter()
+                    .get(SELECTFILTER.ORDERBY.exactToken())
+                    .fields();
+                iterator.hasNext();
+            ) {
                 final Entry<String, JsonNode> entry = iterator.next();
                 if (entry.getKey().equals("var1")) {
                     assertEquals(1, entry.getValue().asInt());
@@ -401,8 +430,10 @@ public class SelectParserMultipleTest {
             // orderBy set through composite
             select.resetOrderByFilter();
             request.filterParse(select.getFilter());
-            assertNull("OrderBy should be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.ORDERBY.exactToken()));
+            assertNull(
+                "OrderBy should be null",
+                request.getRequest().getFilter().get(SELECTFILTER.ORDERBY.exactToken())
+            );
         } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -416,54 +447,58 @@ public class SelectParserMultipleTest {
         try {
             // empty
             request.filterParse(select.getFilter());
-            assertNull("Hint should be null",
-                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
-            assertNotNull("Limit should not be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.LIMIT.exactToken()));
-            assertNull("Offset should be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.OFFSET.exactToken()));
-            assertNull("OrderBy should be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.ORDERBY.exactToken()));
+            assertNull("Hint should be null", request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
+            assertNotNull(
+                "Limit should not be null",
+                request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken())
+            );
+            assertNull("Offset should be null", request.getRequest().getFilter().get(SELECTFILTER.OFFSET.exactToken()));
+            assertNull(
+                "OrderBy should be null",
+                request.getRequest().getFilter().get(SELECTFILTER.ORDERBY.exactToken())
+            );
             // hint set
             select.addHintFilter(FILTERARGS.CACHE.exactToken());
             request.filterParse(select.getFilter());
-            assertEquals("Hint should be True", FILTERARGS.CACHE.exactToken(),
-                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken())
-                    .get(0).asText());
+            assertEquals(
+                "Hint should be True",
+                FILTERARGS.CACHE.exactToken(),
+                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()).get(0).asText()
+            );
             // hint reset
             select.resetHintFilter();
             request.filterParse(select.getFilter());
-            assertNull("Hint should be null",
-                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
+            assertNull("Hint should be null", request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
             // limit set
             select.setLimitFilter(0, 1000);
             request.filterParse(select.getFilter());
-            assertEquals(1000,
-                request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken())
-                    .asLong());
-            assertNull("Offset should be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.OFFSET.exactToken()));
+            assertEquals(1000, request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken()).asLong());
+            assertNull("Offset should be null", request.getRequest().getFilter().get(SELECTFILTER.OFFSET.exactToken()));
             // offset set
             select.setLimitFilter(100, 0);
             request.filterParse(select.getFilter());
-            assertEquals(100,
-                request.getRequest().getFilter().get(SELECTFILTER.OFFSET.exactToken())
-                    .asLong());
-            assertEquals(GlobalDatas.LIMIT_LOAD,
-                request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken())
-                    .asLong());
+            assertEquals(100, request.getRequest().getFilter().get(SELECTFILTER.OFFSET.exactToken()).asLong());
+            assertEquals(
+                GlobalDatas.LIMIT_LOAD,
+                request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken()).asLong()
+            );
             // orderBy set through array
             select.addOrderByAscFilter("var1", "var2").addOrderByDescFilter("var3");
             request.filterParse(select.getFilter());
-            assertNotNull("OrderBy should not be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.ORDERBY.exactToken()));
+            assertNotNull(
+                "OrderBy should not be null",
+                request.getRequest().getFilter().get(SELECTFILTER.ORDERBY.exactToken())
+            );
             // check both
-            assertEquals(3, request.getRequest().getFilter()
-                .get(SELECTFILTER.ORDERBY.exactToken()).size());
-            for (final Iterator<Entry<String, JsonNode>> iterator =
-                 request.getRequest().getFilter()
-                     .get(SELECTFILTER.ORDERBY.exactToken()).fields(); iterator
-                     .hasNext(); ) {
+            assertEquals(3, request.getRequest().getFilter().get(SELECTFILTER.ORDERBY.exactToken()).size());
+            for (
+                final Iterator<Entry<String, JsonNode>> iterator = request
+                    .getRequest()
+                    .getFilter()
+                    .get(SELECTFILTER.ORDERBY.exactToken())
+                    .fields();
+                iterator.hasNext();
+            ) {
                 final Entry<String, JsonNode> entry = iterator.next();
                 if (entry.getKey().equals("var1")) {
                     assertEquals(1, entry.getValue().asInt());
@@ -478,8 +513,10 @@ public class SelectParserMultipleTest {
             // orderBy set through composite
             select.resetOrderByFilter();
             request.filterParse(select.getFilter());
-            assertNull("OrderBy should be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.ORDERBY.exactToken()));
+            assertNull(
+                "OrderBy should be null",
+                request.getRequest().getFilter().get(SELECTFILTER.ORDERBY.exactToken())
+            );
         } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -491,7 +528,6 @@ public class SelectParserMultipleTest {
         ArrayNode facetsArray = JsonHandler.createArrayNode();
         final SelectParserMultiple request = new SelectParserMultiple();
         try {
-
             // empty rootNode
             request.facetsParse(facetsArray);
             assertEquals("Facets should be empty", 0, request.getRequest().getFacets().size());
@@ -560,7 +596,6 @@ public class SelectParserMultipleTest {
                 facetsArray.add(fakeFacet);
                 request.facetsParse(facetsArray);
             }).isInstanceOf(InvalidParseOperationException.class);
-
         } catch (final InvalidParseOperationException | InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -587,7 +622,6 @@ public class SelectParserMultipleTest {
 
     @Test
     public void testParseQueryWithTrackTotalHits() throws InvalidParseOperationException {
-
         SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
         selectMultiQuery.trackTotalHits(true);
 
@@ -599,7 +633,6 @@ public class SelectParserMultipleTest {
 
     @Test
     public void testParseQueryWithoutTrackTotalHits() throws InvalidParseOperationException {
-
         SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
 
         final SelectParserMultiple request = new SelectParserMultiple();
@@ -615,7 +648,10 @@ public class SelectParserMultipleTest {
         select.addQueries(and().add(term("var01", "value1"), gte("var02", 3)).setDepthLimit(10));
         select.addQueries(and().add(term("var11", "value2"), gte("var12", 4)));
         select.addQueries(and().add(term("var13", "value2"), gte("var14", 4)).setExactDepthLimit(12));
-        select.addOrderByAscFilter("var1").addOrderByDescFilter("var2").addUsedProjection("var3")
+        select
+            .addOrderByAscFilter("var1")
+            .addOrderByDescFilter("var2")
+            .addUsedProjection("var3")
             .addUnusedProjection("var4");
         select.addRoots("id1", "id2");
         select.addHintFilter(FILTERARGS.UNITS.exactToken(), FILTERARGS.NOCACHE.exactToken());
@@ -626,13 +662,14 @@ public class SelectParserMultipleTest {
 
         assertEquals(
             "{\"$roots\":[\"id2\",\"id1\"],\"$query\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}}," +
-                "{\"$gte\":{\"var02\":3}}]},{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}," +
-                "{\"$and\":[{\"$term\":{\"var13\":\"value2\"}},{\"$gte\":{\"var14\":4}}]}]," +
-                "\"$filter\":{\"$orderby\":{\"var1\":1,\"var2\":-1},\"$hint\":[\"units\",\"nocache\"]}," +
-                "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}},\"$facets\":[{\"$name\":\"myFacet\"," +
-                "\"$terms\":{\"$field\":\"#id\",\"$size\":5,\"$order\":\"ASC\"}},{\"$name\":\"myFacet2\"," +
-                "\"$terms\":{\"$field\":\"Name\",\"$size\":1,\"$order\":\"DESC\"}}]}",
-            request.getRootNode().toString());
+            "{\"$gte\":{\"var02\":3}}]},{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}," +
+            "{\"$and\":[{\"$term\":{\"var13\":\"value2\"}},{\"$gte\":{\"var14\":4}}]}]," +
+            "\"$filter\":{\"$orderby\":{\"var1\":1,\"var2\":-1},\"$hint\":[\"units\",\"nocache\"]}," +
+            "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}},\"$facets\":[{\"$name\":\"myFacet\"," +
+            "\"$terms\":{\"$field\":\"#id\",\"$size\":5,\"$order\":\"ASC\"}},{\"$name\":\"myFacet2\"," +
+            "\"$terms\":{\"$field\":\"Name\",\"$size\":1,\"$order\":\"DESC\"}}]}",
+            request.getRootNode().toString()
+        );
     }
 
     @Test
@@ -646,7 +683,8 @@ public class SelectParserMultipleTest {
     @Test
     public void testWrongParseSelect() throws InvalidParseOperationException, InvalidCreateOperationException {
         final SelectParserMultiple request = new SelectParserMultiple();
-        String s = "{\"$roots\":[]," +
+        String s =
+            "{\"$roots\":[]," +
             "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"_id\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
             "{\"$eq\":{\"var5\":\"value\"}}]}," +
             "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
@@ -659,11 +697,11 @@ public class SelectParserMultipleTest {
             // OK
         }
         s = "{\"$roots\":[]," +
-            "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
-            "{\"$eq\":{\"var5\":\"value\"}}]}," +
-            "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
-            "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
-            "\"$projection\":{\"$fields\":{\"_id\":1,\"var4\":0}}}";
+        "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
+        "{\"$eq\":{\"var5\":\"value\"}}]}," +
+        "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
+        "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"var1\":1,\"var2\":-1}}," +
+        "\"$projection\":{\"$fields\":{\"_id\":1,\"var4\":0}}}";
         try {
             request.parse(JsonHandler.getFromString(s));
             fail("Should fail");
@@ -671,23 +709,11 @@ public class SelectParserMultipleTest {
             // OK
         }
         s = "{\"$roots\":[]," +
-            "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
-            "{\"$eq\":{\"var5\":\"value\"}}]}," +
-            "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
-            "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"_id\":1,\"var2\":-1}}," +
-            "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}}";
-        try {
-            request.parse(JsonHandler.getFromString(s));
-            fail("Should fail");
-        } catch (final InvalidParseOperationException e) {
-            // OK
-        }
-
-        s = "{\"$roots\":[]," +
-            "\"$query\":[{\"$eq\":{\"var5\":\"value\"}}]," +
-            "\"$filter\":{\"$limit\":10000}," +
-            "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}," +
-            "\"$facets\":[{\"$name\":\"myFacet\"]}";
+        "\"$query\":[{\"$and\":[{\"$and\":[{\"$term\":{\"var01\":\"value1\"}},{\"$gte\":{\"var02\":3}}]}," +
+        "{\"$eq\":{\"var5\":\"value\"}}]}," +
+        "{\"$and\":[{\"$term\":{\"var11\":\"value2\"}},{\"$gte\":{\"var12\":4}}]}]," +
+        "\"$filter\":{\"$limit\":10000,\"$orderby\":{\"_id\":1,\"var2\":-1}}," +
+        "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}}";
         try {
             request.parse(JsonHandler.getFromString(s));
             fail("Should fail");
@@ -696,10 +722,10 @@ public class SelectParserMultipleTest {
         }
 
         s = "{\"$roots\":[]," +
-            "\"$query\":[{\"$eq\":{\"var5\":\"value\"}}]," +
-            "\"$filter\":{\"$limit\":10000}," +
-            "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}," +
-            "\"$facets\":[{\"$name\":\"mafacet\", \"$terms\":{\"$field\":\"mavar1\"}}]}";
+        "\"$query\":[{\"$eq\":{\"var5\":\"value\"}}]," +
+        "\"$filter\":{\"$limit\":10000}," +
+        "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}," +
+        "\"$facets\":[{\"$name\":\"myFacet\"]}";
         try {
             request.parse(JsonHandler.getFromString(s));
             fail("Should fail");
@@ -708,10 +734,10 @@ public class SelectParserMultipleTest {
         }
 
         s = "{\"$roots\":[]," +
-            "\"$query\":[{\"$eq\":{\"var5\":\"value\"}}]," +
-            "\"$filter\":{\"$limit\":10000}," +
-            "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}," +
-            "\"$facets\":[{\"$name\":\"mafacet\", \"$terms\":{\"$field\":\"mavar1\",\"$order\":\"ASC\"}}]}";
+        "\"$query\":[{\"$eq\":{\"var5\":\"value\"}}]," +
+        "\"$filter\":{\"$limit\":10000}," +
+        "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}," +
+        "\"$facets\":[{\"$name\":\"mafacet\", \"$terms\":{\"$field\":\"mavar1\"}}]}";
         try {
             request.parse(JsonHandler.getFromString(s));
             fail("Should fail");
@@ -720,10 +746,22 @@ public class SelectParserMultipleTest {
         }
 
         s = "{\"$roots\":[]," +
-            "\"$query\":[{\"$eq\":{\"var5\":\"value\"}}]," +
-            "\"$filter\":{\"$limit\":10000}," +
-            "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}," +
-            "\"$facets\":[{\"$name\":\"mafacet\", \"$terms\":{\"$field\":\"mavar1\",\"$size\":1}}]}";
+        "\"$query\":[{\"$eq\":{\"var5\":\"value\"}}]," +
+        "\"$filter\":{\"$limit\":10000}," +
+        "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}," +
+        "\"$facets\":[{\"$name\":\"mafacet\", \"$terms\":{\"$field\":\"mavar1\",\"$order\":\"ASC\"}}]}";
+        try {
+            request.parse(JsonHandler.getFromString(s));
+            fail("Should fail");
+        } catch (final InvalidParseOperationException e) {
+            // OK
+        }
+
+        s = "{\"$roots\":[]," +
+        "\"$query\":[{\"$eq\":{\"var5\":\"value\"}}]," +
+        "\"$filter\":{\"$limit\":10000}," +
+        "\"$projection\":{\"$fields\":{\"var3\":1,\"var4\":0}}," +
+        "\"$facets\":[{\"$name\":\"mafacet\", \"$terms\":{\"$field\":\"mavar1\",\"$size\":1}}]}";
         try {
             request.parse(JsonHandler.getFromString(s));
             fail("Should fail");

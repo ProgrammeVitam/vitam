@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.offers.tape.cas;
 import com.google.common.base.Objects;
 
 public class ArchiveCacheEntry {
+
     private final String fileBucketId;
     private final String tarId;
 
@@ -47,13 +48,12 @@ public class ArchiveCacheEntry {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ArchiveCacheEntry archiveCacheEntry = (ArchiveCacheEntry) o;
-        return Objects.equal(fileBucketId, archiveCacheEntry.fileBucketId) &&
-            Objects.equal(tarId, archiveCacheEntry.tarId);
+        return (
+            Objects.equal(fileBucketId, archiveCacheEntry.fileBucketId) && Objects.equal(tarId, archiveCacheEntry.tarId)
+        );
     }
 
     @Override

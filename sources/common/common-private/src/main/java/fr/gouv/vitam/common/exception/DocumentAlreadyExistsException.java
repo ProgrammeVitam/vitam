@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.exception;
 
 public class DocumentAlreadyExistsException extends DatabaseException {
+
     public DocumentAlreadyExistsException(String message) {
         super(message);
     }

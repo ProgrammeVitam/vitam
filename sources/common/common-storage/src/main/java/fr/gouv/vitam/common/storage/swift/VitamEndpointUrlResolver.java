@@ -59,8 +59,7 @@ public class VitamEndpointUrlResolver implements EndpointURLResolver {
      * @param configuration can be a mock or new instance of StorageConfiguration
      */
     @VisibleForTesting
-    VitamEndpointUrlResolver(DefaultEndpointURLResolver resolver,
-        StorageConfiguration configuration) {
+    VitamEndpointUrlResolver(DefaultEndpointURLResolver resolver, StorageConfiguration configuration) {
         this.resolver = resolver;
         this.configuration = configuration;
     }
@@ -89,5 +88,4 @@ public class VitamEndpointUrlResolver implements EndpointURLResolver {
         }
         return result;
     }
-
 }

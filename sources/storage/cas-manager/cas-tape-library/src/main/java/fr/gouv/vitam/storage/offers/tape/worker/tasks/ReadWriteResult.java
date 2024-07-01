@@ -32,13 +32,13 @@ import fr.gouv.vitam.storage.engine.common.model.TapeCatalog;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 
 public class ReadWriteResult {
+
     private StatusCode status;
     private QueueState orderState;
     private TapeCatalog currentTape;
     private ReadWriteErrorCode code;
 
-    public ReadWriteResult() {
-    }
+    public ReadWriteResult() {}
 
     public ReadWriteResult(StatusCode status, QueueState state, TapeCatalog currentTape) {
         this.status = status;

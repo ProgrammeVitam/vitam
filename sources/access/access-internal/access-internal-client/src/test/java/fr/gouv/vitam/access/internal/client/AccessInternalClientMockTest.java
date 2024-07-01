@@ -49,27 +49,24 @@ public class AccessInternalClientMockTest {
 
     final String queryDsql =
         "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
-            " \"$filter\": { \"$orderby\": \"#id\" }, " +
-            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
-            " }";
+        " \"$filter\": { \"$orderby\": \"#id\" }, " +
+        " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
+        " }";
     final String ID = "identifier1";
 
     @Test
     public void givenMockConfExist_WhenCreateMockedClient_ThenReturnOK() {
         AccessInternalClientFactory.changeMode(null);
 
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
     }
 
     @Test
-    public void givenMockExists_whenSelectUnit_ThenReturnOK()
-        throws Exception {
+    public void givenMockExists_whenSelectUnit_ThenReturnOK() throws Exception {
         AccessInternalClientFactory.changeMode(null);
 
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
@@ -77,12 +74,10 @@ public class AccessInternalClientMockTest {
     }
 
     @Test
-    public void givenMockExists_whenSelectUnitById_ThenReturnOK()
-        throws Exception {
+    public void givenMockExists_whenSelectUnitById_ThenReturnOK() throws Exception {
         AccessInternalClientFactory.changeMode(null);
 
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
@@ -90,12 +85,10 @@ public class AccessInternalClientMockTest {
     }
 
     @Test
-    public void givenMockExists_whenUpdateUnitById_ThenReturnOK()
-        throws Exception {
+    public void givenMockExists_whenUpdateUnitById_ThenReturnOK() throws Exception {
         AccessInternalClientFactory.changeMode(null);
 
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
@@ -103,12 +96,10 @@ public class AccessInternalClientMockTest {
     }
 
     @Test
-    public void givenMockExistsWhenSelectObjectByIdThenReturnOK()
-        throws Exception {
+    public void givenMockExistsWhenSelectObjectByIdThenReturnOK() throws Exception {
         AccessInternalClientFactory.changeMode(null);
 
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
@@ -119,8 +110,7 @@ public class AccessInternalClientMockTest {
     public void givenMockExistsWhenGetObjectAsFileThenReturnOK() throws Exception {
         AccessInternalClientFactory.changeMode(null);
 
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
         final InputStream stream = client.getObject(ID, "usage", 1, "unitId").readEntity(InputStream.class);
         final InputStream stream2 = StreamUtils.toInputStream(AccessInternalClientMock.MOCK_GET_FILE_CONTENT);
@@ -132,32 +122,30 @@ public class AccessInternalClientMockTest {
     public void givenMockExistsWhenDownloadTraceabilityFileThenReturnOK() throws Exception {
         AccessInternalClientFactory.changeMode(null);
 
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
         assertNotNull(client);
         final Response response = client.downloadTraceabilityFile("OP_ID");
         assertNotNull(response);
     }
 
     @Test
-    public void givenMockExists_whenSelectUnitsWithInheritedRules_ThenReturnOK()
-        throws Exception {
+    public void givenMockExists_whenSelectUnitsWithInheritedRules_ThenReturnOK() throws Exception {
         AccessInternalClientFactory.changeMode(null);
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
 
         final JsonNode queryJson = JsonHandler.getFromString(queryDsql);
-        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson))
-            .isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> client.selectUnitsWithInheritedRules(queryJson)).isInstanceOf(
+            UnsupportedOperationException.class
+        );
     }
 
     @Test
     public void givenMockExists_whenStartEliminationAnalysis_ThenReturnOK() {
         AccessInternalClientFactory.changeMode(null);
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
 
-        assertThatThrownBy(() -> client.startEliminationAnalysis(mock(EliminationRequestBody.class)))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> client.startEliminationAnalysis(mock(EliminationRequestBody.class))).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 }

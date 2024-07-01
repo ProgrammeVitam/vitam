@@ -32,6 +32,7 @@ public class ObjectEntry {
 
     @JsonProperty("objectId")
     private String objectId;
+
     @JsonProperty("size")
     private long size;
 

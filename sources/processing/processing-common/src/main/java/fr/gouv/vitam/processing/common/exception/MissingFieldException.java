@@ -33,7 +33,6 @@ public class MissingFieldException extends ProcessingException {
 
     private static final long serialVersionUID = 2020555531318906531L;
 
-
     /**
      * @param message associated message
      * @param cause associated cause
@@ -42,7 +41,6 @@ public class MissingFieldException extends ProcessingException {
         super(message, cause);
     }
 
-
     /**
      * @param message of exception
      */
@@ -50,12 +48,10 @@ public class MissingFieldException extends ProcessingException {
         super(message);
     }
 
-
     /**
      * @param cause associated cause
      */
     public MissingFieldException(Throwable cause) {
         super(cause);
     }
-
 }

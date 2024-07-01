@@ -42,5 +42,4 @@ public class FormatIdentifierNotFoundExceptionTest {
         assertNotNull(new FormatIdentifierNotFoundException(exception));
         assertNotNull(new FormatIdentifierNotFoundException(MESSAGE, exception));
     }
-
 }

@@ -68,8 +68,9 @@ import static org.mockito.Mockito.verify;
 public class PutBinaryOnWorkspaceTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -104,10 +105,15 @@ public class PutBinaryOnWorkspaceTest {
 
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
-        ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT),
-            eq(AccessLogUtils.getNoLogAccessLog())))
-            .willReturn(new ServerResponse(entity, 200, new Headers<>()));
+        ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] { 1, 2, 3, 4 });
+        given(
+            storageClient.getContainerAsync(
+                eq("other_strategy"),
+                eq(guid),
+                eq(DataCategory.OBJECT),
+                eq(AccessLogUtils.getNoLogAccessLog())
+            )
+        ).willReturn(new ServerResponse(entity, 200, new Headers<>()));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
 
@@ -116,8 +122,12 @@ public class PutBinaryOnWorkspaceTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        verify(handlerIO)
-            .transferInputStreamToWorkspace("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq", entity, null, false);
+        verify(handlerIO).transferInputStreamToWorkspace(
+            "Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq",
+            entity,
+            null,
+            false
+        );
     }
 
     @Test
@@ -130,9 +140,15 @@ public class PutBinaryOnWorkspaceTest {
 
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
-        ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT),
-            eq(AccessLogUtils.getNoLogAccessLog())))
+        ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] { 1, 2, 3, 4 });
+        given(
+            storageClient.getContainerAsync(
+                eq("other_strategy"),
+                eq(guid),
+                eq(DataCategory.OBJECT),
+                eq(AccessLogUtils.getNoLogAccessLog())
+            )
+        )
             .willThrow(new StorageServerClientException("transfer failed"))
             .willReturn(new ServerResponse(entity, 200, new Headers<>()));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
@@ -143,8 +159,12 @@ public class PutBinaryOnWorkspaceTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        verify(handlerIO)
-            .transferInputStreamToWorkspace("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq", entity, null, false);
+        verify(handlerIO).transferInputStreamToWorkspace(
+            "Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq",
+            entity,
+            null,
+            false
+        );
     }
 
     @Test
@@ -157,10 +177,15 @@ public class PutBinaryOnWorkspaceTest {
 
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
-        ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] {1, 2, 3, 4});
-        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT),
-            eq(AccessLogUtils.getNoLogAccessLog())))
-            .willThrow(new StorageServerClientException("transfer failed"));
+        ByteArrayInputStream entity = new ByteArrayInputStream(new byte[] { 1, 2, 3, 4 });
+        given(
+            storageClient.getContainerAsync(
+                eq("other_strategy"),
+                eq(guid),
+                eq(DataCategory.OBJECT),
+                eq(AccessLogUtils.getNoLogAccessLog())
+            )
+        ).willThrow(new StorageServerClientException("transfer failed"));
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
 
@@ -169,11 +194,18 @@ public class PutBinaryOnWorkspaceTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
-        verify(handlerIO, never())
-            .transferInputStreamToWorkspace("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq", entity, null, false);
-        verify(storageClient, times(3)).
-            getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT),
-                eq(AccessLogUtils.getNoLogAccessLog()));
+        verify(handlerIO, never()).transferInputStreamToWorkspace(
+            "Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq",
+            entity,
+            null,
+            false
+        );
+        verify(storageClient, times(3)).getContainerAsync(
+            eq("other_strategy"),
+            eq(guid),
+            eq(DataCategory.OBJECT),
+            eq(AccessLogUtils.getNoLogAccessLog())
+        );
     }
 
     @Test
@@ -186,16 +218,26 @@ public class PutBinaryOnWorkspaceTest {
 
         // Given
         String guid = "aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq";
-        given(storageClient.getContainerAsync(eq("other_strategy"), eq(guid), eq(DataCategory.OBJECT),
-            eq(AccessLogUtils.getNoLogAccessLog())))
-            .willAnswer(
-                (args) -> new ServerResponse(new ByteArrayInputStream(new byte[] {1, 2, 3, 4}), 200, new Headers<>()));
+        given(
+            storageClient.getContainerAsync(
+                eq("other_strategy"),
+                eq(guid),
+                eq(DataCategory.OBJECT),
+                eq(AccessLogUtils.getNoLogAccessLog())
+            )
+        ).willAnswer(
+            args -> new ServerResponse(new ByteArrayInputStream(new byte[] { 1, 2, 3, 4 }), 200, new Headers<>())
+        );
 
         willThrow(new ProcessingException("transfer failed"))
             .willDoNothing()
             .given(handlerIO)
-            .transferInputStreamToWorkspace(eq("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"), any(), eq(null),
-                eq(false));
+            .transferInputStreamToWorkspace(
+                eq("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"),
+                any(),
+                eq(null),
+                eq(false)
+            );
 
         DefaultWorkerParameters param = WorkerParametersFactory.newWorkerParameters();
         param.setObjectName(guid);
@@ -205,9 +247,11 @@ public class PutBinaryOnWorkspaceTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        verify(handlerIO, times(2))
-            .transferInputStreamToWorkspace(eq("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"), any(), eq(null),
-                eq(false));
+        verify(handlerIO, times(2)).transferInputStreamToWorkspace(
+            eq("Content/aeaaaaaaaaasqm2gaak5wak7uvv55tqaaaaq"),
+            any(),
+            eq(null),
+            eq(false)
+        );
     }
-
 }

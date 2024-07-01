@@ -67,12 +67,13 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
     private static final String BASE_URI = "/ingest-ext/v1";
     private static final String INGEST_EXTERNAL_CLIENT_CONF_NOKEY = "standard-client-secure_nokey.conf";
 
-
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
-        new VitamServerTestRunner(DefaultSslHeaderClientTest.class, false, false, false, true);
-
-
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        DefaultSslHeaderClientTest.class,
+        false,
+        false,
+        false,
+        true
+    );
 
     @Override
     public Set<Object> getResources() {
@@ -82,7 +83,6 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
     private static String pem = null;
     private static String pemExpired = null;
     private static String pemNotGranted = null;
-
 
     @Path(BASE_URI)
     @javax.ws.rs.ApplicationPath("webresources")
@@ -100,7 +100,6 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
         sw.write(END_CERT);
         return sw.toString().replaceAll("\n", " ");
     }
-
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -148,8 +147,10 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
     static final SecureClientConfiguration changeConfigurationFile(String configurationPath) {
         SecureClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                SecureClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                SecureClientConfigurationImpl.class
+            );
         } catch (final IOException e) {
             throw new IllegalStateException("Configuration cannot be read: " + configurationPath, e);
         }
@@ -164,21 +165,20 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOKEY);
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
-        final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
-
-                @Override
-                public DefaultClient getClient() {
-                    return new DefaultClient(this);
-                }
-
-            };
+        final VitamClientFactory<DefaultClient> factory = new VitamClientFactory<DefaultClient>(
+            configuration,
+            BASE_URI
+        ) {
+            @Override
+            public DefaultClient getClient() {
+                return new DefaultClient(this);
+            }
+        };
         try (final DefaultClient client = factory.getClient()) {
             client.checkStatus();
             LOGGER.error("THIS SHOULD RAIZED AN EXCEPTION");
             fail("THIS SHOULD NOT RAIZED EXCEPTION");
-        } catch (final VitamException e) {
-        } finally {
+        } catch (final VitamException e) {} finally {
             try {
                 factory.shutdown();
             } catch (Exception e) {
@@ -186,8 +186,6 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
             }
         }
     }
-
-
 
     /**
      * Test passing certificate a valid role in the header and assert that ok
@@ -197,16 +195,16 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOKEY);
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
-        final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
-                @Override
-                public DefaultClient getClient() {
-                    return new DefaultClient(this);
-                }
-
-            };
+        final VitamClientFactory<DefaultClient> factory = new VitamClientFactory<DefaultClient>(
+            configuration,
+            BASE_URI
+        ) {
+            @Override
+            public DefaultClient getClient() {
+                return new DefaultClient(this);
+            }
+        };
         try (final DefaultClient client = factory.getClient()) {
-
             MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             List<Object> objectList = new ArrayList<>();
             objectList.add(pem);
@@ -223,10 +221,7 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
-
     }
-
-
 
     /**
      * Test passing certificate expired in the header and assert that throw exception
@@ -236,17 +231,16 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOKEY);
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
-        final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
-
-                @Override
-                public DefaultClient getClient() {
-                    return new DefaultClient(this);
-                }
-
-            };
+        final VitamClientFactory<DefaultClient> factory = new VitamClientFactory<DefaultClient>(
+            configuration,
+            BASE_URI
+        ) {
+            @Override
+            public DefaultClient getClient() {
+                return new DefaultClient(this);
+            }
+        };
         try (final DefaultClient client = factory.getClient()) {
-
             MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             List<Object> objectList = new ArrayList<>();
             objectList.add(pemExpired);
@@ -254,15 +248,13 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
             headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
             client.checkStatus(headers);
             fail("SHould Raized an exception");
-        } catch (final VitamException e) {
-        } finally {
+        } catch (final VitamException e) {} finally {
             try {
                 factory.shutdown();
             } catch (Exception e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
-
     }
 
     /**
@@ -273,17 +265,16 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOKEY);
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
-        final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
-
-                @Override
-                public DefaultClient getClient() {
-                    return new DefaultClient(this);
-                }
-
-            };
+        final VitamClientFactory<DefaultClient> factory = new VitamClientFactory<DefaultClient>(
+            configuration,
+            BASE_URI
+        ) {
+            @Override
+            public DefaultClient getClient() {
+                return new DefaultClient(this);
+            }
+        };
         try (final DefaultClient client = factory.getClient()) {
-
             MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
             List<Object> objectList = new ArrayList<>();
             objectList.add(pemNotGranted);
@@ -291,8 +282,7 @@ public class DefaultSslHeaderClientTest extends ResteasyTestApplication {
             headers.put(GlobalDataRest.X_SSL_CLIENT_CERT, objectList);
             client.checkStatus(headers);
             fail("SHould Raized an exception");
-        } catch (final VitamException e) {
-        } finally {
+        } catch (final VitamException e) {} finally {
             try {
                 factory.shutdown();
             } catch (Exception e) {

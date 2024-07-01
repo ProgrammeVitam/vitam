@@ -35,24 +35,35 @@ import java.util.List;
  * AuditObjectGroup
  */
 public class AuditObjectGroup {
+
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("opi")
     private String opi;
+
     @JsonProperty("sp")
     private String sp;
+
     @JsonProperty("unitUps")
     private List<String> unitUps;
+
     @JsonProperty("objects")
     private List<AuditObject> objects;
+
     @JsonProperty("storage")
     private StorageRacineModel storage;
 
-    public AuditObjectGroup() {
-    }
+    public AuditObjectGroup() {}
 
-    public AuditObjectGroup(String id, String opi, String sp, List<String> unitUps, List<AuditObject> objects,
-        StorageRacineModel storage) {
+    public AuditObjectGroup(
+        String id,
+        String opi,
+        String sp,
+        List<String> unitUps,
+        List<AuditObject> objects,
+        StorageRacineModel storage
+    ) {
         this.id = id;
         this.opi = opi;
         this.sp = sp;

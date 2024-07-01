@@ -29,6 +29,7 @@ package fr.gouv.vitam.storage.engine.server.exception;
 import fr.gouv.vitam.common.exception.VitamRuntimeException;
 
 public class RuntimeStorageException extends VitamRuntimeException {
+
     public RuntimeStorageException(String message, Throwable cause) {
         super(message, cause);
     }

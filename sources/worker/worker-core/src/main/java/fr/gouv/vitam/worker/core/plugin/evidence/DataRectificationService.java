@@ -67,15 +67,17 @@ import static fr.gouv.vitam.worker.core.plugin.evidence.DataRectificationHelper.
  */
 public class DataRectificationService {
 
-    final private StorageClientFactory storageClientFactory;
-    final private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-    private final static String OBJECT_CORRECTIVE_AUDIT = "OBJECT_CORRECTIVE_AUDIT";
-    private final static String UNIT_CORRECTIVE_AUDIT = "UNIT_CORRECTIVE_AUDIT";
-    private final static String OBJECT_GROUP_CORRECTIVE_AUDIT = "OBJECT_GROUP_CORRECTIVE_AUDIT";
+    private final StorageClientFactory storageClientFactory;
+    private final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+    private static final String OBJECT_CORRECTIVE_AUDIT = "OBJECT_CORRECTIVE_AUDIT";
+    private static final String UNIT_CORRECTIVE_AUDIT = "UNIT_CORRECTIVE_AUDIT";
+    private static final String OBJECT_GROUP_CORRECTIVE_AUDIT = "OBJECT_GROUP_CORRECTIVE_AUDIT";
 
     @VisibleForTesting
-    DataRectificationService(StorageClientFactory storageClientFactory,
-        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
+    DataRectificationService(
+        StorageClientFactory storageClientFactory,
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory
+    ) {
         this.storageClientFactory = storageClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
     }
@@ -85,9 +87,7 @@ public class DataRectificationService {
     }
 
     public Optional<IdentifierType> correctUnits(EvidenceAuditReportLine line, String containerName)
-        throws InvalidParseOperationException, StorageServerClientException, LogbookClientNotFoundException,
-        LogbookClientServerException, LogbookClientBadRequestException, InvalidGuidOperationException,
-        StorageUnavailableDataFromAsyncOfferClientException {
+        throws InvalidParseOperationException, StorageServerClientException, LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException, InvalidGuidOperationException, StorageUnavailableDataFromAsyncOfferClientException {
         String securedHash = line.getSecuredHash();
         List<String> goodOffers = new ArrayList<>();
         List<String> badOffers = new ArrayList<>();
@@ -95,33 +95,47 @@ public class DataRectificationService {
         if (!canDoCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
             return Optional.empty();
         }
-        String message =
-            String.format("offer '%s'  has been corrected from offer %s ", badOffers.get(0), goodOffers.get(0));
-        storageClientFactory.getClient()
-            .copyObjectFromOfferToOffer(line.getIdentifier() + ".json", DataCategory.UNIT, goodOffers.get(0),
-                badOffers.get(0), line.getStrategyId());
+        String message = String.format(
+            "offer '%s'  has been corrected from offer %s ",
+            badOffers.get(0),
+            goodOffers.get(0)
+        );
+        storageClientFactory
+            .getClient()
+            .copyObjectFromOfferToOffer(
+                line.getIdentifier() + ".json",
+                DataCategory.UNIT,
+                goodOffers.get(0),
+                badOffers.get(0),
+                line.getStrategyId()
+            );
         updateLifecycleUnit(containerName, line.getIdentifier(), UNIT_CORRECTIVE_AUDIT, message);
 
         return Optional.of(new IdentifierType(line.getIdentifier(), DataCategory.UNIT.name()));
     }
 
     public List<IdentifierType> correctObjectGroups(EvidenceAuditReportLine line, String containerName)
-        throws InvalidParseOperationException, StorageServerClientException, LogbookClientNotFoundException,
-        LogbookClientServerException, LogbookClientBadRequestException, InvalidGuidOperationException,
-        StorageUnavailableDataFromAsyncOfferClientException {
-
+        throws InvalidParseOperationException, StorageServerClientException, LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException, InvalidGuidOperationException, StorageUnavailableDataFromAsyncOfferClientException {
         String securedHash = line.getSecuredHash();
         List<IdentifierType> listCorrections = new ArrayList<>();
         List<String> goodOffers = new ArrayList<>();
         List<String> badOffers = new ArrayList<>();
 
-
         if (canDoCorrection(line.getOffersHashes(), securedHash, goodOffers, badOffers)) {
-            String message =
-                String.format("offer '%s'  has been corrected from offer %s ", badOffers.get(0), goodOffers.get(0));
-            storageClientFactory.getClient()
-                .copyObjectFromOfferToOffer(line.getIdentifier() + ".json", DataCategory.OBJECTGROUP,
-                    goodOffers.get(0), badOffers.get(0), line.getStrategyId());
+            String message = String.format(
+                "offer '%s'  has been corrected from offer %s ",
+                badOffers.get(0),
+                goodOffers.get(0)
+            );
+            storageClientFactory
+                .getClient()
+                .copyObjectFromOfferToOffer(
+                    line.getIdentifier() + ".json",
+                    DataCategory.OBJECTGROUP,
+                    goodOffers.get(0),
+                    badOffers.get(0),
+                    line.getStrategyId()
+                );
 
             updateLifecycleObject(containerName, line.getIdentifier(), OBJECT_GROUP_CORRECTIVE_AUDIT, message);
 
@@ -139,39 +153,45 @@ public class DataRectificationService {
             if (!canDoCorrection(object.getOffersHashes(), securedHash, goodOffers, badOffers)) {
                 continue;
             }
-            String message =
-                String.format("offer '%s'  has been corrected from offer %s  for object id %s ", badOffers.get(0),
-                    goodOffers.get(0), object.getIdentifier());
-            storageClientFactory.getClient()
-                .copyObjectFromOfferToOffer(object.getIdentifier(), DataCategory.OBJECT, goodOffers.get(0),
-                    badOffers.get(0), object.getStrategyId());
+            String message = String.format(
+                "offer '%s'  has been corrected from offer %s  for object id %s ",
+                badOffers.get(0),
+                goodOffers.get(0),
+                object.getIdentifier()
+            );
+            storageClientFactory
+                .getClient()
+                .copyObjectFromOfferToOffer(
+                    object.getIdentifier(),
+                    DataCategory.OBJECT,
+                    goodOffers.get(0),
+                    badOffers.get(0),
+                    object.getStrategyId()
+                );
 
-            updateLifecycleObject(containerName, line.getIdentifier(), OBJECT_CORRECTIVE_AUDIT,
-                message);
+            updateLifecycleObject(containerName, line.getIdentifier(), OBJECT_CORRECTIVE_AUDIT, message);
 
             listCorrections.add(new IdentifierType(line.getIdentifier(), DataCategory.OBJECT.name()));
-
         }
         return listCorrections;
     }
 
-
     private void updateLifecycleObject(String containerName, String identifier, String detail, String message)
-
-        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
-        InvalidGuidOperationException {
-
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException, InvalidGuidOperationException {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
 
         final GUID updateGuid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         StatusCode logbookOutcome = StatusCode.OK;
-        LogbookLifeCycleObjectGroupParameters parameters =
-            newLogbookLifeCycleObjectGroupParameters(updateGuid,
-                VitamLogbookMessages.getEventTypeLfc(detail),
-                GUIDReader.getGUID(containerName), eventTypeProcess, logbookOutcome,
-                VitamLogbookMessages.getOutcomeDetailLfc(detail, logbookOutcome),
-                VitamLogbookMessages.getCodeLfc(detail, logbookOutcome),
-                GUIDReader.getGUID(identifier));
+        LogbookLifeCycleObjectGroupParameters parameters = newLogbookLifeCycleObjectGroupParameters(
+            updateGuid,
+            VitamLogbookMessages.getEventTypeLfc(detail),
+            GUIDReader.getGUID(containerName),
+            eventTypeProcess,
+            logbookOutcome,
+            VitamLogbookMessages.getOutcomeDetailLfc(detail, logbookOutcome),
+            VitamLogbookMessages.getCodeLfc(detail, logbookOutcome),
+            GUIDReader.getGUID(identifier)
+        );
 
         final ObjectNode object = JsonHandler.createObjectNode();
         object.put("Information", message);
@@ -181,27 +201,25 @@ public class DataRectificationService {
         parameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
 
         logbookLifeCyclesClientFactory.getClient().update(parameters, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-
     }
 
-
-    private void updateLifecycleUnit(String containerName, String identifier, String detail, String message) throws
-        LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException,
-        InvalidGuidOperationException {
+    private void updateLifecycleUnit(String containerName, String identifier, String detail, String message)
+        throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException, InvalidGuidOperationException {
         final LogbookTypeProcess eventTypeProcess = LogbookTypeProcess.UPDATE;
 
         final GUID updateGuid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
 
         StatusCode logbookOutcome = StatusCode.OK;
-        LogbookLifeCycleUnitParameters parameters =
-            newLogbookLifeCycleUnitParameters(updateGuid,
-                VitamLogbookMessages.getEventTypeLfc(detail),
-                GUIDReader.getGUID(containerName),
-                eventTypeProcess, logbookOutcome,
-                VitamLogbookMessages.getOutcomeDetailLfc(detail, logbookOutcome),
-                VitamLogbookMessages.getCodeLfc(detail, logbookOutcome),
-                GUIDReader.getGUID(identifier)
-            );
+        LogbookLifeCycleUnitParameters parameters = newLogbookLifeCycleUnitParameters(
+            updateGuid,
+            VitamLogbookMessages.getEventTypeLfc(detail),
+            GUIDReader.getGUID(containerName),
+            eventTypeProcess,
+            logbookOutcome,
+            VitamLogbookMessages.getOutcomeDetailLfc(detail, logbookOutcome),
+            VitamLogbookMessages.getCodeLfc(detail, logbookOutcome),
+            GUIDReader.getGUID(identifier)
+        );
 
         final ObjectNode object = JsonHandler.createObjectNode();
 
@@ -212,9 +230,5 @@ public class DataRectificationService {
         parameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
 
         logbookLifeCyclesClientFactory.getClient().update(parameters, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED);
-
     }
-
-
-
 }

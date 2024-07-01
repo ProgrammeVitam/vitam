@@ -50,13 +50,13 @@ import java.util.Map;
  * CheckSizeActionPlugin Plugin.<br>
  */
 public class CheckObjectSizeActionPlugin extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckObjectSizeActionPlugin.class);
 
     public static final String CHECK_OBJECT_SIZE = "CHECK_SIZE";
     private static final int OG_OUT_RANK = 0;
 
-    public CheckObjectSizeActionPlugin() {
-    }
+    public CheckObjectSizeActionPlugin() {}
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) throws ProcessingException {
@@ -68,7 +68,8 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
         try {
             // Get objectGroup
             final JsonNode jsonOG = handlerIO.getJsonFromWorkspace(
-                IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName());
+                IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + params.getObjectName()
+            );
 
             handlerIO.addOutputResult(OG_OUT_RANK, jsonOG, true, false);
 
@@ -82,8 +83,11 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
                         for (final JsonNode version : versionsArray) {
                             if (version.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                                 final String objectId = version.get(SedaConstants.PREFIX_ID).asText();
-                                String checkSizeEvDetDetails =
-                                    checkIsSizeIncorrect(binaryObjects.get(objectId), version, itemStatus);
+                                String checkSizeEvDetDetails = checkIsSizeIncorrect(
+                                    binaryObjects.get(objectId),
+                                    version,
+                                    itemStatus
+                                );
                                 if (checkSizeEvDetDetails != null) {
                                     itemStatus.getSubTaskStatus().get(objectId).setEvDetailData(checkSizeEvDetDetails);
                                 }
@@ -105,18 +109,20 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
         return new ItemStatus(CHECK_OBJECT_SIZE).setItemsStatus(CHECK_OBJECT_SIZE, itemStatus);
     }
 
-    private String checkIsSizeIncorrect(DataObjectInfo dataObjectInfo, JsonNode version,
-        ItemStatus itemStatus) {
+    private String checkIsSizeIncorrect(DataObjectInfo dataObjectInfo, JsonNode version, ItemStatus itemStatus) {
         final ItemStatus subTaskItemStatus = new ItemStatus(CHECK_OBJECT_SIZE);
         String eventDetailData = null;
-        if (version.get(SedaConstants.PREFIX_WORK) != null &&
-            !JsonHandler.isNullOrEmpty(version.get(SedaConstants.PREFIX_WORK)
-                .get(IngestWorkflowConstants.DIFF_SIZE_JSON))) {
+        if (
+            version.get(SedaConstants.PREFIX_WORK) != null &&
+            !JsonHandler.isNullOrEmpty(
+                version.get(SedaConstants.PREFIX_WORK).get(IngestWorkflowConstants.DIFF_SIZE_JSON)
+            )
+        ) {
             ObjectNode workNode = (ObjectNode) version.get(SedaConstants.PREFIX_WORK);
             // Check diffSizeJson
             if (workNode.get(IngestWorkflowConstants.DIFF_SIZE_JSON).size() > 0) {
-                JsonNode wrappingDiffJsonObject =
-                    JsonHandler.createObjectNode().set("diff", workNode.get(IngestWorkflowConstants.DIFF_SIZE_JSON));
+                JsonNode wrappingDiffJsonObject = JsonHandler.createObjectNode()
+                    .set("diff", workNode.get(IngestWorkflowConstants.DIFF_SIZE_JSON));
                 eventDetailData = JsonHandler.unprettyPrint(wrappingDiffJsonObject);
             }
             // Check if Size is incorrect
@@ -156,11 +162,13 @@ public class CheckObjectSizeActionPlugin extends ActionHandler {
             LOGGER.debug(version.toString());
             for (final JsonNode jsonBinaryObject : version) {
                 if (jsonBinaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
-                    binaryObjects.put(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText(),
+                    binaryObjects.put(
+                        jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText(),
                         new DataObjectInfo()
                             .setSize(jsonBinaryObject.get(SedaConstants.TAG_SIZE).asLong())
                             .setId(jsonBinaryObject.get(SedaConstants.PREFIX_ID).asText())
-                            .setUri(jsonBinaryObject.get(SedaConstants.TAG_URI).asText()));
+                            .setUri(jsonBinaryObject.get(SedaConstants.TAG_URI).asText())
+                    );
                 }
             }
         }

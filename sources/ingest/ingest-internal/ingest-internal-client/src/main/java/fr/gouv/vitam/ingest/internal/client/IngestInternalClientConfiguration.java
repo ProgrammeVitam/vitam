@@ -50,5 +50,4 @@ public class IngestInternalClientConfiguration extends ClientConfigurationImpl {
     public IngestInternalClientConfiguration(String serverHost, int serverPort) {
         super(serverHost, serverPort);
     }
-
 }

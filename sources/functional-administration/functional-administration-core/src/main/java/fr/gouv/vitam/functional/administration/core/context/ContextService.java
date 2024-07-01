@@ -43,7 +43,6 @@ import java.util.List;
  * ContextService Interface declaring methods associated to contexts
  */
 public interface ContextService extends VitamAutoCloseable {
-
     /**
      * Create a list of contexts
      *
@@ -96,6 +95,5 @@ public interface ContextService extends VitamAutoCloseable {
     boolean securityProfileIsUsedInContexts(String securityProfileId)
         throws InvalidCreateOperationException, ReferentialException, InvalidParseOperationException;
 
-    void setSecurityProfileService(
-        SecurityProfileService securityProfileService);
+    void setSecurityProfileService(SecurityProfileService securityProfileService);
 }

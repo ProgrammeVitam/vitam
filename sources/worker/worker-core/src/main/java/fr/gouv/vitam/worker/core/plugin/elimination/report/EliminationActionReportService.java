@@ -41,10 +41,11 @@ public class EliminationActionReportService extends CommonReportService<Eliminat
     }
 
     @VisibleForTesting
-    public EliminationActionReportService(BatchReportClientFactory reportFactory,
+    public EliminationActionReportService(
+        BatchReportClientFactory reportFactory,
         WorkspaceClientFactory workspaceClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         super(ReportType.ELIMINATION_ACTION_UNIT, reportFactory, workspaceClientFactory, storageClientFactory);
     }
 }
-

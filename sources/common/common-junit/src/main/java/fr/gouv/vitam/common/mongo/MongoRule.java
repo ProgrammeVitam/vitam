@@ -47,6 +47,7 @@ import java.util.Set;
  * Launch a single instance of Mongo database, drop collection after each test
  */
 public class MongoRule extends ExternalResource {
+
     public static final String VITAM_DB = "vitam-test";
     public static final String MONGO_HOST = "localhost";
     public static final String VITAM_SEQUENCE = "VitamSequence";
@@ -65,9 +66,11 @@ public class MongoRule extends ExternalResource {
         this(VITAM_DB, mongoClientSettingsBuilder, collectionsToBePurged);
     }
 
-    public MongoRule(String dbName, MongoClientSettings.Builder mongoClientSettingsBuilder,
-        String... collectionsToBePurged) {
-
+    public MongoRule(
+        String dbName,
+        MongoClientSettings.Builder mongoClientSettingsBuilder,
+        String... collectionsToBePurged
+    ) {
         if (null != collectionsToBePurged) {
             this.collectionsToBePurged = Sets.newHashSet(collectionsToBePurged);
         } else {
@@ -75,7 +78,8 @@ public class MongoRule extends ExternalResource {
         }
 
         mongoClientSettingsBuilder.applyToClusterSettings(
-            builder -> builder.hosts(List.of(new ServerAddress(MONGO_HOST, dataBasePort))));
+            builder -> builder.hosts(List.of(new ServerAddress(MONGO_HOST, dataBasePort)))
+        );
 
         this.mongoClient = MongoClients.create(mongoClientSettingsBuilder.build());
         this.dbName = dbName;
@@ -95,8 +99,10 @@ public class MongoRule extends ExternalResource {
     private void purge(String database, Collection<String> collectionsToBePurged) {
         for (String collectionName : collectionsToBePurged) {
             if (VITAM_SEQUENCE.equals(collectionName)) {
-                mongoClient.getDatabase(database).getCollection(collectionName).updateMany(Filters.exists(ID),
-                    Updates.set(COUNTER, 0));
+                mongoClient
+                    .getDatabase(database)
+                    .getCollection(collectionName)
+                    .updateMany(Filters.exists(ID), Updates.set(COUNTER, 0));
                 continue;
             }
             mongoClient.getDatabase(database).getCollection(collectionName).deleteMany(new Document());
@@ -144,7 +150,6 @@ public class MongoRule extends ExternalResource {
     public void handleAfter(Set<String> collections) {
         purge(dbName, collections);
     }
-
 
     public void close() {
         mongoClient.close();

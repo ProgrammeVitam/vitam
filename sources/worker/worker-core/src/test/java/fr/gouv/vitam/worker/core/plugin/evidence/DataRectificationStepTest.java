@@ -66,10 +66,10 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 public class DataRectificationStepTest {
 
-    public static final String OBJECTGROUP_REPORT_EVIDENCE_AUDIT = "{\n" +
+    public static final String OBJECTGROUP_REPORT_EVIDENCE_AUDIT =
+        "{\n" +
         "  \"identifier\" : \"aebaaaaaaackemvrabfuealm66lqsjqaaaaq\",\n" +
         "  \"status\" : \"KO\",\n" +
         "  \"message\" : \"Traceability audit KO  Database check failure Errors are :  [ \\\"There is an  error on the audit of the  linked  object\\\" ]\",\n" +
@@ -92,7 +92,8 @@ public class DataRectificationStepTest {
         "    \"default-bis\" : \"6bb18b91044ef4c92ec47e558ebdfc822a02c8c9d768de6653e7f353f6e2f0b00cb3d53b05dde3080f66b9601b020c03ae2e48c7629e9f7ccf59c23b2d18ecb8\"\n" +
         "  }\n" +
         "}";
-    public static final String UNIT_REPORT_EVIDENCE_AUDIT = "{\n" +
+    public static final String UNIT_REPORT_EVIDENCE_AUDIT =
+        "{\n" +
         "  \"identifier\" : \"aebaaaaaaackemvrabfuealm66lqsjqaaaaq\",\n" +
         "  \"status\" : \"KO\",\n" +
         "  \"message\" : \"Traceability audit KO  Database check failure Errors are :  [ \\\"There is an  error on the audit of the  linked  object\\\" ]\",\n" +
@@ -113,19 +114,34 @@ public class DataRectificationStepTest {
     private static final String OBJECT_NAME = "test";
     private static final String ALTER = "alter/test";
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-    @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
-    @Mock public HandlerIO handlerIO;
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    @Mock WorkerParameters defaultWorkerParameters;
-    @Mock private DataRectificationService dataRectificationService;
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+
+    @Mock
+    public HandlerIO handlerIO;
+
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
+    @Mock
+    WorkerParameters defaultWorkerParameters;
+
+    @Mock
+    private DataRectificationService dataRectificationService;
+
     private DataRectificationStep dataRectificationStep;
+
     @Mock
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
     @Mock
     private StorageClientFactory storageClientFactory;
+
     private JsonNode rawObjectGroup1;
 
     private MetaDataClient metaDataClient;
@@ -137,7 +153,6 @@ public class DataRectificationStepTest {
 
     @Before
     public void setUp() throws Exception {
-
         metaDataClient = mock(MetaDataClient.class);
         storageClient = mock(StorageClient.class);
         logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
@@ -152,9 +167,11 @@ public class DataRectificationStepTest {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
         dataRectificationService = new DataRectificationService(storageClientFactory, logbookLifeCyclesClientFactory);
-        dataRectificationStep =
-            new DataRectificationStep(dataRectificationService, storeMetaDataObjectGroupActionPlugin,
-                storeMetaDataUnitActionPlugin);
+        dataRectificationStep = new DataRectificationStep(
+            dataRectificationService,
+            storeMetaDataObjectGroupActionPlugin,
+            storeMetaDataUnitActionPlugin
+        );
 
         if (Thread.currentThread() instanceof VitamThreadFactory.VitamThread) {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT);
@@ -166,7 +183,6 @@ public class DataRectificationStepTest {
     @Test
     @RunWithCustomExecutor
     public void should_rectificate_objectGroup_step() throws Exception {
-
         // Given
         when(defaultWorkerParameters.getObjectName()).thenReturn(OBJECT_NAME);
         when(defaultWorkerParameters.getContainerName()).thenReturn(CONTAINER_NAME);
@@ -180,19 +196,17 @@ public class DataRectificationStepTest {
 
         rawObjectGroup1 = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(GUID_OG1));
 
-        doReturn(
-            new RequestResponseOK<JsonNode>().addResult(rawObjectGroup1)
-        ).when(metaDataClient).getObjectGroupsByIdsRaw(eq(Arrays.asList(GUID_OG1)));
+        doReturn(new RequestResponseOK<JsonNode>().addResult(rawObjectGroup1))
+            .when(metaDataClient)
+            .getObjectGroupsByIdsRaw(eq(Arrays.asList(GUID_OG1)));
         // When
-        ItemStatus execute =
-            dataRectificationStep.execute(defaultWorkerParameters, handlerIO);
+        ItemStatus execute = dataRectificationStep.execute(defaultWorkerParameters, handlerIO);
         // Then
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(handlerIO.getNewLocalFile("test")).isFile().exists();
         JsonNode result = JsonHandler.getFromFile(handlerIO.getNewLocalFile("test"));
         assertThat(result.get(0).get("Id").asText()).isEqualTo("aebaaaaaaackemvrabfuealm66lqsjqaaaaq");
         assertThat(result.get(0).get("Type").asText()).isEqualTo("OBJECT");
-
     }
 
     @Test
@@ -211,19 +225,17 @@ public class DataRectificationStepTest {
 
         rawObjectGroup1 = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(GUID_OG1));
 
-        doReturn(
-            new RequestResponseOK<JsonNode>().addResult(rawObjectGroup1)
-        ).when(metaDataClient).getObjectGroupsByIdsRaw(eq(Arrays.asList(GUID_OG1)));
+        doReturn(new RequestResponseOK<JsonNode>().addResult(rawObjectGroup1))
+            .when(metaDataClient)
+            .getObjectGroupsByIdsRaw(eq(Arrays.asList(GUID_OG1)));
 
         // When
-        ItemStatus execute =
-            dataRectificationStep.execute(defaultWorkerParameters, handlerIO);
+        ItemStatus execute = dataRectificationStep.execute(defaultWorkerParameters, handlerIO);
 
         // Then
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
         JsonNode result = JsonHandler.getFromFile(handlerIO.getNewLocalFile("test"));
         assertThat(result.get(0).get("Id").asText()).isEqualTo("aebaaaaaaackemvrabfuealm66lqsjqaaaaq");
         assertThat(result.get(0).get("Type").asText()).isEqualTo("UNIT");
-
     }
 }

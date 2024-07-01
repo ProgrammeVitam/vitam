@@ -73,7 +73,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 public class TapeDriveWorkerManagerTest {
 
     private static final int FULL_CARTRIDGE_THRESHOLD = 2_000_000;
@@ -122,7 +121,6 @@ public class TapeDriveWorkerManagerTest {
 
     @Before
     public void setUp() throws Exception {
-
         Set<Map.Entry<Integer, TapeDriveService>> drives = Set.of(
             Map.entry(0, driveService0),
             Map.entry(1, driveService1)
@@ -140,89 +138,216 @@ public class TapeDriveWorkerManagerTest {
         doReturn(tapeDriveCommandService1).when(driveService1).getDriveCommandService();
 
         tapeDriveWorkerManager = new TapeDriveWorkerManager(
-            queueRepository, archiveReferentialRepository, accessRequestManager, tapeLibraryPool, driveTape,
-            "", false, archiveCacheStorage, tapeCatalogService, FULL_CARTRIDGE_THRESHOLD);
+            queueRepository,
+            archiveReferentialRepository,
+            accessRequestManager,
+            tapeLibraryPool,
+            driveTape,
+            "",
+            false,
+            archiveCacheStorage,
+            tapeCatalogService,
+            FULL_CARTRIDGE_THRESHOLD
+        );
 
         inputTarDir = temporaryFolder.newFolder("inputTars");
     }
 
     @After
-    public void tearDown() {
-    }
+    public void tearDown() {}
 
     @Test
     public void test_constructor() {
-
-        assertThatCode(() ->
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
-                accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage, tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
+        assertThatCode(
+            () ->
+                new TapeDriveWorkerManager(
+                    mock(QueueRepository.class),
+                    mock(ArchiveReferentialRepository.class),
+                    accessRequestManager,
+                    mock(TapeLibraryPool.class),
+                    mock(Map.class),
+                    inputTarDir.getAbsolutePath(),
+                    false,
+                    archiveCacheStorage,
+                    tapeCatalogService,
+                    FULL_CARTRIDGE_THRESHOLD
+                )
         ).doesNotThrowAnyException();
 
-        assertThatThrownBy(() ->
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
-                accessRequestManager, mock(TapeLibraryPool.class), null, inputTarDir.getAbsolutePath(), false,
-                archiveCacheStorage, tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
+        assertThatThrownBy(
+            () ->
+                new TapeDriveWorkerManager(
+                    mock(QueueRepository.class),
+                    mock(ArchiveReferentialRepository.class),
+                    accessRequestManager,
+                    mock(TapeLibraryPool.class),
+                    null,
+                    inputTarDir.getAbsolutePath(),
+                    false,
+                    archiveCacheStorage,
+                    tapeCatalogService,
+                    FULL_CARTRIDGE_THRESHOLD
+                )
         ).isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() ->
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
-                accessRequestManager, null, mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
+        assertThatThrownBy(
+            () ->
+                new TapeDriveWorkerManager(
+                    mock(QueueRepository.class),
+                    mock(ArchiveReferentialRepository.class),
+                    accessRequestManager,
+                    null,
+                    mock(Map.class),
+                    inputTarDir.getAbsolutePath(),
+                    false,
+                    archiveCacheStorage,
+                    tapeCatalogService,
+                    FULL_CARTRIDGE_THRESHOLD
+                )
         ).isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() ->
-            new TapeDriveWorkerManager(mock(QueueRepository.class), null, accessRequestManager,
-                mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
+        assertThatThrownBy(
+            () ->
+                new TapeDriveWorkerManager(
+                    mock(QueueRepository.class),
+                    null,
+                    accessRequestManager,
+                    mock(TapeLibraryPool.class),
+                    mock(Map.class),
+                    inputTarDir.getAbsolutePath(),
+                    false,
+                    archiveCacheStorage,
+                    tapeCatalogService,
+                    FULL_CARTRIDGE_THRESHOLD
+                )
         ).isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() ->
-            new TapeDriveWorkerManager(null, mock(ArchiveReferentialRepository.class), accessRequestManager,
-                mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
+        assertThatThrownBy(
+            () ->
+                new TapeDriveWorkerManager(
+                    null,
+                    mock(ArchiveReferentialRepository.class),
+                    accessRequestManager,
+                    mock(TapeLibraryPool.class),
+                    mock(Map.class),
+                    inputTarDir.getAbsolutePath(),
+                    false,
+                    archiveCacheStorage,
+                    tapeCatalogService,
+                    FULL_CARTRIDGE_THRESHOLD
+                )
         ).isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() ->
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class), null,
-                mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
+        assertThatThrownBy(
+            () ->
+                new TapeDriveWorkerManager(
+                    mock(QueueRepository.class),
+                    mock(ArchiveReferentialRepository.class),
+                    null,
+                    mock(TapeLibraryPool.class),
+                    mock(Map.class),
+                    inputTarDir.getAbsolutePath(),
+                    false,
+                    archiveCacheStorage,
+                    tapeCatalogService,
+                    FULL_CARTRIDGE_THRESHOLD
+                )
         ).isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() ->
-            new TapeDriveWorkerManager(mock(QueueRepository.class), null, accessRequestManager,
-                mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(), false, archiveCacheStorage,
-                tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
+        assertThatThrownBy(
+            () ->
+                new TapeDriveWorkerManager(
+                    mock(QueueRepository.class),
+                    null,
+                    accessRequestManager,
+                    mock(TapeLibraryPool.class),
+                    mock(Map.class),
+                    inputTarDir.getAbsolutePath(),
+                    false,
+                    archiveCacheStorage,
+                    tapeCatalogService,
+                    FULL_CARTRIDGE_THRESHOLD
+                )
         ).isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() ->
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
-                accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
-                false, null, tapeCatalogService, FULL_CARTRIDGE_THRESHOLD)
+        assertThatThrownBy(
+            () ->
+                new TapeDriveWorkerManager(
+                    mock(QueueRepository.class),
+                    mock(ArchiveReferentialRepository.class),
+                    accessRequestManager,
+                    mock(TapeLibraryPool.class),
+                    mock(Map.class),
+                    inputTarDir.getAbsolutePath(),
+                    false,
+                    null,
+                    tapeCatalogService,
+                    FULL_CARTRIDGE_THRESHOLD
+                )
         ).isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() ->
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
-                accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage, null, FULL_CARTRIDGE_THRESHOLD)
+        assertThatThrownBy(
+            () ->
+                new TapeDriveWorkerManager(
+                    mock(QueueRepository.class),
+                    mock(ArchiveReferentialRepository.class),
+                    accessRequestManager,
+                    mock(TapeLibraryPool.class),
+                    mock(Map.class),
+                    inputTarDir.getAbsolutePath(),
+                    false,
+                    archiveCacheStorage,
+                    null,
+                    FULL_CARTRIDGE_THRESHOLD
+                )
         ).isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() ->
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
-                accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage, tapeCatalogService, null)
+        assertThatThrownBy(
+            () ->
+                new TapeDriveWorkerManager(
+                    mock(QueueRepository.class),
+                    mock(ArchiveReferentialRepository.class),
+                    accessRequestManager,
+                    mock(TapeLibraryPool.class),
+                    mock(Map.class),
+                    inputTarDir.getAbsolutePath(),
+                    false,
+                    archiveCacheStorage,
+                    tapeCatalogService,
+                    null
+                )
         ).isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() ->
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
-                accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage, tapeCatalogService, 0)
+        assertThatThrownBy(
+            () ->
+                new TapeDriveWorkerManager(
+                    mock(QueueRepository.class),
+                    mock(ArchiveReferentialRepository.class),
+                    accessRequestManager,
+                    mock(TapeLibraryPool.class),
+                    mock(Map.class),
+                    inputTarDir.getAbsolutePath(),
+                    false,
+                    archiveCacheStorage,
+                    tapeCatalogService,
+                    0
+                )
         ).isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() ->
-            new TapeDriveWorkerManager(mock(QueueRepository.class), mock(ArchiveReferentialRepository.class),
-                accessRequestManager, mock(TapeLibraryPool.class), mock(Map.class), inputTarDir.getAbsolutePath(),
-                false, archiveCacheStorage, tapeCatalogService, 1_000_000_001)
+        assertThatThrownBy(
+            () ->
+                new TapeDriveWorkerManager(
+                    mock(QueueRepository.class),
+                    mock(ArchiveReferentialRepository.class),
+                    accessRequestManager,
+                    mock(TapeLibraryPool.class),
+                    mock(Map.class),
+                    inputTarDir.getAbsolutePath(),
+                    false,
+                    archiveCacheStorage,
+                    tapeCatalogService,
+                    1_000_000_001
+                )
         ).isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -236,13 +361,11 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.WRITE);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.WRITE);
 
         WriteOrder writeOrder = mock(WriteOrder.class);
         when(writeOrder.isWriteOrder()).thenReturn(true);
-        when(queueRepository.receive(any(), eq(QueueMessageType.WriteOrder))).thenReturn(Optional.of(
-            writeOrder));
+        when(queueRepository.receive(any(), eq(QueueMessageType.WriteOrder))).thenReturn(Optional.of(writeOrder));
         // Test consume write order
         Optional<? extends ReadWriteOrder> order = tapeDriveWorkerManager.consume(driveWorker);
         // Get write order => not found
@@ -262,8 +385,7 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.WRITE);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.WRITE);
 
         ReadOrder readOrder = mock(ReadOrder.class);
         when(readOrder.isWriteOrder()).thenReturn(false);
@@ -282,7 +404,6 @@ public class TapeDriveWorkerManagerTest {
         assertThat(order.get().isWriteOrder()).isFalse();
     }
 
-
     @Test
     public void test_consume_produce_current_tape_not_null_not_empty_priority_write_return_write_order_excluding_active_buckets()
         throws QueueException {
@@ -290,8 +411,7 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.WRITE);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.WRITE);
 
         WriteOrder writeOrder = mock(WriteOrder.class);
         when(writeOrder.isWriteOrder()).thenReturn(true);
@@ -320,8 +440,7 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.WRITE);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.WRITE);
 
         WriteOrder writeOrder = mock(WriteOrder.class);
         when(writeOrder.isWriteOrder()).thenReturn(true);
@@ -330,7 +449,6 @@ public class TapeDriveWorkerManagerTest {
             .thenReturn(Optional.empty());
 
         when(queueRepository.receive(eq(QueueMessageType.WriteOrder))).thenReturn(Optional.of(writeOrder));
-
 
         when(queueRepository.receive(any(), eq(QueueMessageType.ReadOrder))).thenReturn(Optional.empty());
 
@@ -346,7 +464,6 @@ public class TapeDriveWorkerManagerTest {
         assertThat(order.get().isWriteOrder()).isTrue();
     }
 
-
     @Test
     public void test_consume_produce_current_tape_not_null_not_empty_priority_write_return_read_order_excluding_active_buckets()
         throws QueueException {
@@ -354,8 +471,7 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.WRITE);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.WRITE);
 
         ReadOrder readOrder = mock(ReadOrder.class);
         when(readOrder.isWriteOrder()).thenReturn(false);
@@ -365,8 +481,8 @@ public class TapeDriveWorkerManagerTest {
 
         when(queueRepository.receive(eq(QueueMessageType.WriteOrder))).thenReturn(Optional.empty());
 
-
-        when(queueRepository.receive(any(), eq(QueueMessageType.ReadOrder))).thenReturn(Optional.empty())
+        when(queueRepository.receive(any(), eq(QueueMessageType.ReadOrder)))
+            .thenReturn(Optional.empty())
             .thenReturn(Optional.of(readOrder));
 
         // Test consume write order
@@ -388,8 +504,7 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.WRITE);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.WRITE);
 
         ReadOrder readOrder = mock(ReadOrder.class);
         when(readOrder.isWriteOrder()).thenReturn(false);
@@ -399,7 +514,6 @@ public class TapeDriveWorkerManagerTest {
             .thenReturn(Optional.empty());
 
         when(queueRepository.receive(eq(QueueMessageType.WriteOrder))).thenReturn(Optional.empty());
-
 
         when(queueRepository.receive(any(), eq(QueueMessageType.ReadOrder)))
             .thenReturn(Optional.empty())
@@ -418,8 +532,6 @@ public class TapeDriveWorkerManagerTest {
         assertThat(order).isNotPresent();
     }
 
-
-
     @Test
     public void test_consume_produce_current_tape_not_null_not_empty_priority_write_not_found_orders()
         throws QueueException {
@@ -427,15 +539,13 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.WRITE);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.WRITE);
 
         when(queueRepository.receive(any(), eq(QueueMessageType.WriteOrder)))
             .thenReturn(Optional.empty())
             .thenReturn(Optional.empty());
 
         when(queueRepository.receive(eq(QueueMessageType.WriteOrder))).thenReturn(Optional.empty());
-
 
         when(queueRepository.receive(any(), eq(QueueMessageType.ReadOrder)))
             .thenReturn(Optional.empty())
@@ -454,8 +564,6 @@ public class TapeDriveWorkerManagerTest {
         assertThat(order).isNotPresent();
     }
 
-
-
     // ===================================
     // =    Read priority
     // ===================================
@@ -466,13 +574,11 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.READ);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.READ);
 
         ReadOrder readOrder = mock(ReadOrder.class);
         when(readOrder.isWriteOrder()).thenReturn(false);
-        when(queueRepository.receive(any(), eq(QueueMessageType.ReadOrder))).thenReturn(Optional.of(
-            readOrder));
+        when(queueRepository.receive(any(), eq(QueueMessageType.ReadOrder))).thenReturn(Optional.of(readOrder));
         // Test consume write order
         Optional<? extends ReadWriteOrder> order = tapeDriveWorkerManager.consume(driveWorker);
         // Get write order => not found
@@ -492,8 +598,7 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.READ);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.READ);
 
         WriteOrder writeOrder = mock(WriteOrder.class);
         when(writeOrder.isWriteOrder()).thenReturn(true);
@@ -512,7 +617,6 @@ public class TapeDriveWorkerManagerTest {
         assertThat(order.get().isWriteOrder()).isTrue();
     }
 
-
     @Test
     public void test_consume_produce_current_tape_not_null_not_empty_priority_read_return_read_order_excluding_active_buckets()
         throws QueueException {
@@ -520,8 +624,7 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.READ);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.READ);
 
         ReadOrder readOrder = mock(ReadOrder.class);
         when(readOrder.isWriteOrder()).thenReturn(false);
@@ -550,16 +653,13 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.READ);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.READ);
 
         ReadOrder readOrder = mock(ReadOrder.class);
         when(readOrder.isWriteOrder()).thenReturn(false);
-        when(queueRepository.receive(any(), eq(QueueMessageType.WriteOrder)))
-            .thenReturn(Optional.empty());
+        when(queueRepository.receive(any(), eq(QueueMessageType.WriteOrder))).thenReturn(Optional.empty());
 
         when(queueRepository.receive(eq(QueueMessageType.ReadOrder))).thenReturn(Optional.of(readOrder));
-
 
         when(queueRepository.receive(any(), eq(QueueMessageType.ReadOrder)))
             .thenReturn(Optional.empty())
@@ -576,8 +676,6 @@ public class TapeDriveWorkerManagerTest {
         assertThat(order).isNotPresent();
     }
 
-
-
     @Test
     public void test_consume_produce_current_tape_not_null_not_empty_priority_read_return_write_order_excluding_active_buckets()
         throws QueueException {
@@ -585,8 +683,7 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.READ);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.READ);
 
         WriteOrder writeOrder = mock(WriteOrder.class);
         when(writeOrder.isWriteOrder()).thenReturn(true);
@@ -595,7 +692,6 @@ public class TapeDriveWorkerManagerTest {
             .thenReturn(Optional.empty());
 
         when(queueRepository.receive(eq(QueueMessageType.ReadOrder))).thenReturn(Optional.empty());
-
 
         when(queueRepository.receive(any(), eq(QueueMessageType.WriteOrder)))
             .thenReturn(Optional.empty())
@@ -613,7 +709,6 @@ public class TapeDriveWorkerManagerTest {
         assertThat(order.get().isWriteOrder()).isTrue();
     }
 
-
     @Test
     public void test_consume_produce_current_tape_not_null_not_empty_priority_read_return_any_next_write_order()
         throws QueueException {
@@ -621,8 +716,7 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.READ);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.READ);
 
         WriteOrder writeOrder = mock(WriteOrder.class);
         when(writeOrder.isWriteOrder()).thenReturn(true);
@@ -632,7 +726,6 @@ public class TapeDriveWorkerManagerTest {
             .thenReturn(Optional.empty());
 
         when(queueRepository.receive(eq(QueueMessageType.ReadOrder))).thenReturn(Optional.empty());
-
 
         when(queueRepository.receive(any(), eq(QueueMessageType.ReadOrder)))
             .thenReturn(Optional.empty())
@@ -652,8 +745,6 @@ public class TapeDriveWorkerManagerTest {
         assertThat(order.get().isWriteOrder()).isTrue();
     }
 
-
-
     @Test
     public void test_consume_produce_current_tape_not_null_not_empty_priority_read_not_found_orders()
         throws QueueException {
@@ -661,15 +752,13 @@ public class TapeDriveWorkerManagerTest {
         TapeCatalog tapeCatalog = mock(TapeCatalog.class);
         when(driveWorker.getCurrentTape()).thenReturn(tapeCatalog);
         when(driveWorker.getIndex()).thenReturn(1);
-        when(driveWorker.getPriority())
-            .thenReturn(ReadWritePriority.READ);
+        when(driveWorker.getPriority()).thenReturn(ReadWritePriority.READ);
 
         when(queueRepository.receive(any(), eq(QueueMessageType.WriteOrder)))
             .thenReturn(Optional.empty())
             .thenReturn(Optional.empty());
 
         when(queueRepository.receive(eq(QueueMessageType.WriteOrder))).thenReturn(Optional.empty());
-
 
         when(queueRepository.receive(any(), eq(QueueMessageType.ReadOrder)))
             .thenReturn(Optional.empty())
@@ -690,7 +779,6 @@ public class TapeDriveWorkerManagerTest {
 
     @Test
     public void test_drive_initialization_on_bootstrap() throws Exception {
-
         CountDownLatch countDownLatch = new CountDownLatch(2);
 
         doAnswer(args -> {
@@ -698,17 +786,22 @@ public class TapeDriveWorkerManagerTest {
             TapeDriveState tapeDriveState = new TapeDriveState();
             tapeDriveState.addToDriveStatuses(TapeDriveStatus.DR_OPEN);
             return tapeDriveState;
-        }).when(tapeDriveCommandService0).status();
+        })
+            .when(tapeDriveCommandService0)
+            .status();
 
         doAnswer(args -> {
             countDownLatch.await();
             TapeDriveState tapeDriveState = new TapeDriveState();
             tapeDriveState.addToDriveStatuses(TapeDriveStatus.DR_OPEN);
             return tapeDriveState;
-        }).when(tapeDriveCommandService1).status();
+        })
+            .when(tapeDriveCommandService1)
+            .status();
 
-        CompletableFuture<Void> initializationCompletableFuture =
-            CompletableFuture.runAsync(() -> tapeDriveWorkerManager.initializeOnBootstrap());
+        CompletableFuture<Void> initializationCompletableFuture = CompletableFuture.runAsync(
+            () -> tapeDriveWorkerManager.initializeOnBootstrap()
+        );
 
         Thread.sleep(2000);
         assertThat(initializationCompletableFuture).isNotCompleted();
@@ -716,12 +809,10 @@ public class TapeDriveWorkerManagerTest {
         countDownLatch.countDown();
         countDownLatch.countDown();
 
-        assertThatCode(() -> initializationCompletableFuture.get(5, TimeUnit.SECONDS))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> initializationCompletableFuture.get(5, TimeUnit.SECONDS)).doesNotThrowAnyException();
 
         verify(tapeDriveCommandService0).status();
         verify(tapeDriveCommandService1).status();
     }
-
     // TODO: 28/03/19 test shutdown
 }

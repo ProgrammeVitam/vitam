@@ -41,7 +41,6 @@ import java.util.Map;
 @JsonSerialize(using = WorkerParametersSerializer.class)
 @JsonDeserialize(using = WorkerParametersDeserializer.class)
 public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
-
     /**
      * Put parameterValue on mapParameters with parameterName key <br />
      * <br />
@@ -247,7 +246,6 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      */
     WorkerParameters setProcessId(String processId);
 
-
     /**
      * Get the url of metadata resource parameter
      *
@@ -296,7 +294,6 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      */
     WorkerParameters setLogbookTypeProcess(LogbookTypeProcess logbookTypeProcess);
 
-
     /**
      * @return workflowIdentifier
      */
@@ -337,5 +334,4 @@ public interface WorkerParameters extends VitamParameter<WorkerParameterName> {
      * @return workflowStatusKo
      */
     String getWorkflowStatusKo();
-
 }

@@ -94,7 +94,6 @@ public class StorageDriverException extends Exception {
         return driverInfo;
     }
 
-
     public boolean isShouldRetry() {
         return shouldRetry;
     }

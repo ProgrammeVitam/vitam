@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.exception;
  * Exception when the client is disconnected
  */
 public class VitamApplicationServerDisconnectException extends VitamApplicationServerException {
+
     private static final long serialVersionUID = -279805848461758749L;
 
     /**
@@ -53,5 +54,4 @@ public class VitamApplicationServerDisconnectException extends VitamApplicationS
     public VitamApplicationServerDisconnectException(String message, Throwable throwable) {
         super(message, throwable);
     }
-
 }

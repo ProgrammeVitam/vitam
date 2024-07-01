@@ -64,21 +64,16 @@ public class PhysicalDimensionsMapper {
         } else {
             return null;
         }
-
     }
 
     private MeasurementWeightType mapMeasurementWeightType(MeasurementModel measurementModel) {
         final MeasurementWeightType measurementWeightType = new MeasurementWeightType();
         if (measurementModel != null) {
             measurementWeightType.setValue(measurementModel.getDValue());
-            measurementWeightType
-                .setUnit(MeasurementWeightUnitsType.fromValue(measurementModel.getUnit()));
+            measurementWeightType.setUnit(MeasurementWeightUnitsType.fromValue(measurementModel.getUnit()));
             return measurementWeightType;
         } else {
             return null;
         }
     }
-
-
-
 }

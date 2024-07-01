@@ -73,7 +73,8 @@ public class StoreExportsTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @RunWithCustomExecutor
     @Test
@@ -108,11 +109,13 @@ public class StoreExportsTest {
         verify(workspaceClient).createContainer(DIP_CONTAINER);
         verify(workspaceClient).createFolder(DIP_CONTAINER, "2");
 
-        ArgumentCaptor<CompressInformation> compressInformationArgumentCaptor =
-            ArgumentCaptor.forClass(CompressInformation.class);
+        ArgumentCaptor<CompressInformation> compressInformationArgumentCaptor = ArgumentCaptor.forClass(
+            CompressInformation.class
+        );
         verify(workspaceClient).compress(eq(requestId), compressInformationArgumentCaptor.capture());
-        assertThat(compressInformationArgumentCaptor.getValue().getFiles())
-            .isEqualTo(Arrays.asList(SEDA_FILE, StoreExports.CONTENT));
+        assertThat(compressInformationArgumentCaptor.getValue().getFiles()).isEqualTo(
+            Arrays.asList(SEDA_FILE, StoreExports.CONTENT)
+        );
         assertThat(compressInformationArgumentCaptor.getValue().getOutputFile()).isEqualTo("2/" + requestId);
         assertThat(compressInformationArgumentCaptor.getValue().getOutputContainer()).isEqualTo(DIP_CONTAINER);
         verifyZeroInteractions(storageClient);
@@ -143,7 +146,6 @@ public class StoreExportsTest {
         doReturn(true).when(workspaceClient).isExistingObject(requestId, SEDA_FILE);
         doReturn(true).when(handlerIO).isExistingFileInWorkspace(requestId + JSONL_EXTENSION);
 
-
         StoreExports storeExports = new StoreExports(storageClientFactory);
 
         // When
@@ -153,23 +155,30 @@ public class StoreExportsTest {
         verify(workspaceClient).createContainer(TRANSFER_CONTAINER);
         verify(workspaceClient).createFolder(TRANSFER_CONTAINER, "2");
 
-        ArgumentCaptor<CompressInformation> compressInformationArgumentCaptor =
-            ArgumentCaptor.forClass(CompressInformation.class);
+        ArgumentCaptor<CompressInformation> compressInformationArgumentCaptor = ArgumentCaptor.forClass(
+            CompressInformation.class
+        );
         verify(workspaceClient).compress(eq(requestId), compressInformationArgumentCaptor.capture());
-        assertThat(compressInformationArgumentCaptor.getValue().getFiles())
-            .isEqualTo(Arrays.asList(SEDA_FILE, StoreExports.CONTENT));
+        assertThat(compressInformationArgumentCaptor.getValue().getFiles()).isEqualTo(
+            Arrays.asList(SEDA_FILE, StoreExports.CONTENT)
+        );
         assertThat(compressInformationArgumentCaptor.getValue().getOutputFile()).isEqualTo("2/" + requestId);
         assertThat(compressInformationArgumentCaptor.getValue().getOutputContainer()).isEqualTo(TRANSFER_CONTAINER);
 
-
-        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor =
-            ArgumentCaptor.forClass(ObjectDescription.class);
+        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor = ArgumentCaptor.forClass(
+            ObjectDescription.class
+        );
         String reportName = VitamThreadUtils.getVitamSession().getRequestId() + ".jsonl";
-        verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(REPORT),
-            eq(reportName), objectDescriptionArgumentCaptor.capture());
+        verify(storageClient).storeFileFromWorkspace(
+            eq(VitamConfiguration.getDefaultStrategy()),
+            eq(REPORT),
+            eq(reportName),
+            objectDescriptionArgumentCaptor.capture()
+        );
         ObjectDescription description = objectDescriptionArgumentCaptor.getValue();
         assertThat(description.getWorkspaceContainerGUID()).isEqualTo(
-            VitamThreadUtils.getVitamSession().getRequestId());
+            VitamThreadUtils.getVitamSession().getRequestId()
+        );
         assertThat(description.getWorkspaceObjectURI()).isEqualTo(reportName);
     }
 
@@ -197,7 +206,11 @@ public class StoreExportsTest {
 
         doReturn(true).when(handlerIO).isExistingFileInWorkspace(requestId + JSONL_EXTENSION);
         doReturn(true).when(workspaceClient).isExistingObject(Mockito.any(), Mockito.any());
-        doReturn("e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804").when(workspaceClient).computeObjectDigest(Mockito.any(), Mockito.any(), Mockito.any());
+        doReturn(
+            "e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804"
+        )
+            .when(workspaceClient)
+            .computeObjectDigest(Mockito.any(), Mockito.any(), Mockito.any());
 
         StoreExports storeExports = new StoreExports(storageClientFactory);
 
@@ -209,8 +222,9 @@ public class StoreExportsTest {
         Map<String, ItemStatus> imap = itemStatus.getItemsStatus();
         assertNotNull(imap);
         assertFalse(imap.isEmpty());
-        assertEquals("{\"SystemMessageDigest\":\"e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804\",\"SystemAlgorithm\":\"SHA-512\"}", imap.get(TRANSFER_DIP).getEvDetailData());
-
-
+        assertEquals(
+            "{\"SystemMessageDigest\":\"e726e114f302c871b64569a00acb3a19badb7ee8ce4aef72cc2a043ace4905b8e8fca6f4771f8d6f67e221a53a4bbe170501af318c8f2c026cc8ea60f66fa804\",\"SystemAlgorithm\":\"SHA-512\"}",
+            imap.get(TRANSFER_DIP).getEvDetailData()
+        );
     }
 }

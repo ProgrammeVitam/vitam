@@ -71,7 +71,6 @@ public class LogbookParametersFactory {
         // do nothing
     }
 
-
     /**
      * Get a new Empty LogbookOperationParameters object. <br>
      * Use in internal assignment. Not recommended in general usage.
@@ -79,8 +78,7 @@ public class LogbookParametersFactory {
      * @return the LogbookOperationParameters
      */
     public static LogbookOperationParameters newLogbookOperationParameters() {
-        return new LogbookOperationParameters(
-            initLogbookOperationMandatoriesParameters(null));
+        return new LogbookOperationParameters(initLogbookOperationMandatoriesParameters(null));
     }
 
     /**
@@ -95,7 +93,8 @@ public class LogbookParametersFactory {
      * @return the new Set of parameter names
      */
     private static Set<LogbookParameterName> initLogbookOperationMandatoriesParameters(
-        Set<LogbookParameterName> mandatoryFieldsToAdd) {
+        Set<LogbookParameterName> mandatoryFieldsToAdd
+    ) {
         final Set<LogbookParameterName> mandatory = new HashSet<>(genericMandatoryOperation);
         if (mandatoryFieldsToAdd != null) {
             mandatory.addAll(mandatoryFieldsToAdd);

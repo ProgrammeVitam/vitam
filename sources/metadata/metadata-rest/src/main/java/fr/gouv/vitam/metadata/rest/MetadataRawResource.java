@@ -101,22 +101,25 @@ public class MetadataRawResource {
         try {
             final Integer tenant = ParameterHelper.getTenantParameter();
             JsonNode document = metadataRepositoryService.getDocumentById(collection, id, tenant);
-            RequestResponse<JsonNode> responseOK =
-                new RequestResponseOK<JsonNode>().addResult(document).setHttpCode(Status.OK.getStatusCode());
+            RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
+                .addResult(document)
+                .setHttpCode(Status.OK.getStatusCode());
             return Response.status(Status.OK).entity(responseOK).build();
         } catch (MetaDataNotFoundException e) {
-            return VitamCodeHelper.toVitamError(VitamCode.METADATA_NOT_FOUND, String
-                    .format("Could not find document of type %s", collection.getName()))
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.METADATA_NOT_FOUND,
+                String.format("Could not find document of type %s", collection.getName())
+            ).toResponse();
         } catch (DatabaseException e) {
-            return VitamCodeHelper.toVitamError(VitamCode.METADATA_REPOSITORY_DATABASE_ERROR, String
-                    .format("Technical error while trying to find document of type %s",
-                        collection.getName()))
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.METADATA_REPOSITORY_DATABASE_ERROR,
+                String.format("Technical error while trying to find document of type %s", collection.getName())
+            ).toResponse();
         } catch (InvalidParseOperationException e) {
-            return VitamCodeHelper.toVitamError(VitamCode.METADATA_REPOSITORY_DATABASE_ERROR, String
-                    .format("Technical error while trying to parse document of type %s", collection.getName()))
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.METADATA_REPOSITORY_DATABASE_ERROR,
+                String.format("Technical error while trying to parse document of type %s", collection.getName())
+            ).toResponse();
         }
     }
 
@@ -151,14 +154,15 @@ public class MetadataRawResource {
             final Integer tenant = ParameterHelper.getTenantParameter();
             List<String> ids = JsonHandler.getFromJsonNode(idsJson, List.class);
             List<JsonNode> documents = metadataRepositoryService.getDocumentsByIds(collection, ids, tenant);
-            RequestResponse<JsonNode> responseOK =
-                new RequestResponseOK<JsonNode>().addAllResults(documents).setHttpCode(Status.OK.getStatusCode());
+            RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
+                .addAllResults(documents)
+                .setHttpCode(Status.OK.getStatusCode());
             return Response.status(Status.OK).entity(responseOK).build();
         } catch (InvalidParseOperationException e) {
-            return VitamCodeHelper.toVitamError(VitamCode.METADATA_REPOSITORY_DATABASE_ERROR, String
-                    .format("Technical error while trying to parse document of type %s", collection.getName()))
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.METADATA_REPOSITORY_DATABASE_ERROR,
+                String.format("Technical error while trying to parse document of type %s", collection.getName())
+            ).toResponse();
         }
     }
-
 }

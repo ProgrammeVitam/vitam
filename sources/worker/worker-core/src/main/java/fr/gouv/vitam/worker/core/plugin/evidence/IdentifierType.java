@@ -30,6 +30,7 @@ package fr.gouv.vitam.worker.core.plugin.evidence;
  * IdentifierType class
  */
 public class IdentifierType {
+
     private String id;
     private String type;
 

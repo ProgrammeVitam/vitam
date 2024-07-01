@@ -57,11 +57,11 @@ public class AsyncWorkspaceTransfer {
     public void transfer(WorkspaceQueue workspaceQueue) throws WorkerspaceQueueException {
         if (null == runner) {
             throw new WorkerspaceQueueException(
-                "Workspace batch runner is not started, call startTransfer to start it");
+                "Workspace batch runner is not started, call startTransfer to start it"
+            );
         }
         this.runner.transfer(workspaceQueue);
     }
-
 
     public void startTransfer(int queueSize) throws WorkerspaceQueueException {
         if (null == runner) {

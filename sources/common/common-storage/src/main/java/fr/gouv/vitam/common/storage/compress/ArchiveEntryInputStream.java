@@ -36,6 +36,7 @@ import java.io.InputStream;
  * proper.
  */
 public class ArchiveEntryInputStream extends InputStream {
+
     InputStream inputStream;
     boolean closed = false;
 
@@ -100,5 +101,4 @@ public class ArchiveEntryInputStream extends InputStream {
     public void setClosed(boolean isclosed) {
         closed = isclosed;
     }
-
 }

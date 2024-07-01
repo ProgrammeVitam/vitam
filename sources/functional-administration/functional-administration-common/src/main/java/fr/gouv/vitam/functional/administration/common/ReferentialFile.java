@@ -46,8 +46,6 @@ import java.io.InputStream;
  * @param <E> Type of Referential
  */
 public interface ReferentialFile<E> {
-
-
     /**
      * importFile : import reference file to database
      *
@@ -60,8 +58,7 @@ public interface ReferentialFile<E> {
      * @throws InvalidCreateOperationException
      */
     void importFile(InputStream file, String filename)
-        throws VitamException, IOException,
-        InvalidCreateOperationException, IllegalPathException;
+        throws VitamException, IOException, InvalidCreateOperationException, IllegalPathException;
 
     /**
      * find document based on a given Id
@@ -81,5 +78,4 @@ public interface ReferentialFile<E> {
      * @throws ReferentialException when error occurs
      */
     RequestResponseOK<E> findDocuments(JsonNode select) throws FileFormatNotFoundException, ReferentialException;
-
 }

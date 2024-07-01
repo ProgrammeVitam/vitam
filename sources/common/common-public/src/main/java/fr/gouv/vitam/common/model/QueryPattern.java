@@ -45,8 +45,7 @@ public class QueryPattern {
     /**
      * Constructor.
      */
-    public QueryPattern() {
-    }
+    public QueryPattern() {}
 
     /**
      * getTarget

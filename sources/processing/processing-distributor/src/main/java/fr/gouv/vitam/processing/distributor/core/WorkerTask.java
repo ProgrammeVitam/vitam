@@ -57,6 +57,7 @@ import java.util.function.Supplier;
 
 // Task simulating a call to a worker
 public class WorkerTask implements Supplier<WorkerTaskResult> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerTask.class);
 
     private final DescriptionStep descriptionStep;
@@ -70,8 +71,15 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
     private final WorkerClientFactory workerClientFactory;
     private final Histogram.Timer taskWaitingTimeDuration;
 
-    public WorkerTask(DescriptionStep descriptionStep, int tenantId, String requestId, String contractId,
-        String contextId, String applicationId, WorkerClientFactory workerClientFactory) {
+    public WorkerTask(
+        DescriptionStep descriptionStep,
+        int tenantId,
+        String requestId,
+        String contractId,
+        String contextId,
+        String applicationId,
+        WorkerClientFactory workerClientFactory
+    ) {
         ParametersChecker.checkParameter("Params are required", descriptionStep, requestId);
         this.descriptionStep = descriptionStep;
         this.tenantId = tenantId;
@@ -83,11 +91,11 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
         this.workerClientFactory = workerClientFactory;
 
         // Add metrics compute duration of waiting time before execution of the task
-        taskWaitingTimeDuration = CommonProcessingMetrics.WORKER_TASKS_IDLE_DURATION_IN_QUEUE
-            .labels(getStep().getWorkerGroupId(),
-                descriptionStep.getWorkParams().getLogbookTypeProcess().name(),
-                descriptionStep.getStep().getStepName())
-            .startTimer();
+        taskWaitingTimeDuration = CommonProcessingMetrics.WORKER_TASKS_IDLE_DURATION_IN_QUEUE.labels(
+            getStep().getWorkerGroupId(),
+            descriptionStep.getWorkParams().getLogbookTypeProcess().name(),
+            descriptionStep.getStep().getStepName()
+        ).startTimer();
     }
 
     @Override
@@ -104,14 +112,18 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
 
         final WorkerBean workerBean = WorkerInformation.getWorkerThreadLocal().get().getWorkerBean();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("Start executing of task number :" + descriptionStep.getStep().getStepName() + " on worker: " +
-                workerBean.getWorkerId());
+            LOGGER.debug(
+                "Start executing of task number :" +
+                descriptionStep.getStep().getStepName() +
+                " on worker: " +
+                workerBean.getWorkerId()
+            );
         }
         try {
-
             final WorkerClientConfiguration configuration = new WorkerClientConfiguration(
                 workerBean.getConfiguration().getServerHost(),
-                workerBean.getConfiguration().getServerPort());
+                workerBean.getConfiguration().getServerPort()
+            );
 
             /*
              * FIXME : Bug #8729 - Updating a static client configuration can cause :
@@ -124,11 +136,9 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
                 workerClient = WorkerClientFactory.getInstance(configuration).getClient();
             } else {
                 workerClient = workerClientFactory.getClient();
-
             }
 
             try {
-
                 switch (getStep().getPauseOrCancelAction()) {
                     case ACTION_RUN:
                     case ACTION_RECOVER:
@@ -139,18 +149,23 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
                         // Fail fast : if workflow is being paused or canceled, no need to execute it
                         return WorkerTaskResult.ofPausedOrCanceledTask(this);
                     case ACTION_COMPLETE:
-                        throw new WorkerExecutorException(workerBean.getWorkerId(),
-                            "Step id: " + getStep().getId() + " and name :" + getStep().getStepName() +
-                                " already completed");
+                        throw new WorkerExecutorException(
+                            workerBean.getWorkerId(),
+                            "Step id: " +
+                            getStep().getId() +
+                            " and name :" +
+                            getStep().getStepName() +
+                            " already completed"
+                        );
                     default:
-                        throw new WorkerExecutorException(workerBean.getWorkerId(),
-                            "The default case should not be handled");
+                        throw new WorkerExecutorException(
+                            workerBean.getWorkerId(),
+                            "The default case should not be handled"
+                        );
                 }
-
             } catch (WorkerNotFoundClientException | WorkerServerClientException e) {
                 checkWorkerAvailability(workerBean, workerClient, e);
                 throw new WorkerExecutorException(workerBean.getWorkerId(), e);
-
             } finally {
                 workerClient.close();
             }
@@ -160,21 +175,28 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
             throw new WorkerExecutorException(workerBean.getWorkerId(), e);
         } finally {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER
-                    .debug("End executing of task number :" + descriptionStep.getStep().getStepName() + " on worker: " +
-                        workerBean.getWorkerId());
+                LOGGER.debug(
+                    "End executing of task number :" +
+                    descriptionStep.getStep().getStepName() +
+                    " on worker: " +
+                    workerBean.getWorkerId()
+                );
             }
         }
     }
 
     private void checkWorkerAvailability(WorkerBean workerBean, WorkerClient workerClient, WorkerClientException e) {
         // check status
-        for (int numberCallCheckStatus = 0;
-             numberCallCheckStatus < GlobalDataRest.STATUS_CHECK_RETRY; numberCallCheckStatus++) {
-
-            boolean checkStatus =
-                checkStatusWorker(workerClient, workerBean.getConfiguration().getServerHost(),
-                    workerBean.getConfiguration().getServerPort());
+        for (
+            int numberCallCheckStatus = 0;
+            numberCallCheckStatus < GlobalDataRest.STATUS_CHECK_RETRY;
+            numberCallCheckStatus++
+        ) {
+            boolean checkStatus = checkStatusWorker(
+                workerClient,
+                workerBean.getConfiguration().getServerHost(),
+                workerBean.getConfiguration().getServerPort()
+            );
             if (checkStatus) {
                 return;
             }
@@ -191,12 +213,12 @@ public class WorkerTask implements Supplier<WorkerTaskResult> {
     private WorkerTaskResult callWorker(WorkerBean workerBean, WorkerClient workerClient)
         throws WorkerNotFoundClientException, WorkerServerClientException {
         // Add metrics
-        Histogram.Timer workerTaskTimer = CommonProcessingMetrics.WORKER_TASKS_EXECUTION_DURATION_HISTOGRAM
-            .labels(workerBean.getFamily(),
-                workerBean.getName(),
-                descriptionStep.getWorkParams().getLogbookTypeProcess().name(),
-                descriptionStep.getStep().getStepName())
-            .startTimer();
+        Histogram.Timer workerTaskTimer = CommonProcessingMetrics.WORKER_TASKS_EXECUTION_DURATION_HISTOGRAM.labels(
+            workerBean.getFamily(),
+            workerBean.getName(),
+            descriptionStep.getWorkParams().getLogbookTypeProcess().name(),
+            descriptionStep.getStep().getStepName()
+        ).startTimer();
         try {
             ItemStatus itemStatus = workerClient.submitStep(descriptionStep);
             return WorkerTaskResult.ofProceededTask(this, itemStatus);

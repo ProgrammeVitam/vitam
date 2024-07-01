@@ -34,7 +34,6 @@ import java.util.Collection;
  * LogbookLifeCycleModel interface
  */
 public interface LogbookLifeCycleModel {
-
     /**
      * getLogbookLifeCycleParameters
      *

@@ -48,12 +48,10 @@ public class BinarySizePlatformThreshold {
         }
     }
 
-
     private long limit;
     private SizeUnit sizeUnit;
 
-    public BinarySizePlatformThreshold() {
-    }
+    public BinarySizePlatformThreshold() {}
 
     public BinarySizePlatformThreshold(long limit, SizeUnit sizeUnit) {
         this.limit = limit;

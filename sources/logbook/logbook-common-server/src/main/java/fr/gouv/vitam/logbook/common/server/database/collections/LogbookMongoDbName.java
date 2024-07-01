@@ -97,7 +97,6 @@ public enum LogbookMongoDbName {
      */
     eventIdentifierRequest("evIdReq", LogbookParameterName.eventIdentifierRequest),
 
-
     /**
      * agencies details
      */
@@ -162,7 +161,6 @@ public enum LogbookMongoDbName {
                 return LogbookMongoDbName.agentIdentifierApplication;
             case "evIdAppSession":
                 return LogbookMongoDbName.agentIdentifierApplicationSession;
-
             case "agIdExt":
                 return LogbookMongoDbName.agIdExt;
             case "rightsStatementIdentifier":

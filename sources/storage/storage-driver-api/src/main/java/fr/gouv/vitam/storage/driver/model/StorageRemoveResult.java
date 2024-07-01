@@ -42,8 +42,7 @@ public class StorageRemoveResult extends StorageObjectResult {
      * @param guid
      * @param objectDeleted true if the object has been deleted
      */
-    public StorageRemoveResult(Integer tenantId, String type, String guid,
-        boolean objectDeleted) {
+    public StorageRemoveResult(Integer tenantId, String type, String guid, boolean objectDeleted) {
         super(tenantId, type, guid);
         this.objectDeleted = objectDeleted;
     }
@@ -54,5 +53,4 @@ public class StorageRemoveResult extends StorageObjectResult {
     public boolean isObjectDeleted() {
         return objectDeleted;
     }
-
 }

@@ -68,20 +68,38 @@ public class RestoreOfferBackupService {
      * @param order the search order
      * @return list of offerLogs by bulkSize
      */
-    public List<OfferLog> getListing(String strategy, String offerId, DataCategory category, Long offset,
-        int limit, Order order) throws StorageException {
+    public List<OfferLog> getListing(
+        String strategy,
+        String offerId,
+        DataCategory category,
+        Long offset,
+        int limit,
+        Order order
+    ) throws StorageException {
+        LOGGER.debug(
+            String.format(
+                "[Offer synchronization]: Retrieve listing of {%s} dataCategory from {%s} offer, with {%s} Vitam strategy from {%s} offset with {%s} limit",
+                category.name(),
+                offerId,
+                strategy,
+                offset,
+                limit
+            )
+        );
 
-        LOGGER.debug(String.format(
-            "[Offer synchronization]: Retrieve listing of {%s} dataCategory from {%s} offer, with {%s} Vitam strategy from {%s} offset with {%s} limit",
-            category.name(), offerId, strategy, offset, limit));
-
-        RequestResponse<OfferLog> result =
-            distribution.getOfferLogsByOfferId(strategy, offerId, category, offset, limit, order);
+        RequestResponse<OfferLog> result = distribution.getOfferLogsByOfferId(
+            strategy,
+            offerId,
+            category,
+            offset,
+            limit,
+            order
+        );
 
         if (!result.isOk()) {
             throw new StorageException(
-                String.format("ERROR: VitamError has been returned when using storage service: {%s}",
-                    result.toString()));
+                String.format("ERROR: VitamError has been returned when using storage service: {%s}", result.toString())
+            );
         }
 
         return ((RequestResponseOK<OfferLog>) result).getResults();

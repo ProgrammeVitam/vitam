@@ -68,9 +68,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 public class IndexObjectGroupActionPluginTest {
-
 
     private static final String OBJECT_GROUP = "IndexObjectGroupActionPlugin/objectGroup.json";
     private static final String EXISTING_OBJECT_GROUP_IN_DB =
@@ -78,7 +76,6 @@ public class IndexObjectGroupActionPluginTest {
     private static final String EXISTING_OBJECT_GROUP = "IndexObjectGroupActionPlugin/existing_objectGroup.json";
     private WorkspaceClient workspaceClient;
     private WorkspaceClientFactory workspaceClientFactory;
-
 
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
@@ -105,14 +102,17 @@ public class IndexObjectGroupActionPluginTest {
         when(metaDataClientFactory.getClient()).thenReturn(metadataClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-            "IndexObjectGroupActionPluginTest", "workerId",
-            newArrayList("objectName.json"));
+        handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "IndexObjectGroupActionPluginTest",
+            "workerId",
+            newArrayList("objectName.json")
+        );
 
         handlerIO.setCurrentObjectId("objectName.json");
         in = new ArrayList<>();
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "unitId")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "unitId")));
         handlerIO.addInIOParameters(in);
     }
 
@@ -122,18 +122,18 @@ public class IndexObjectGroupActionPluginTest {
     }
 
     @Test
-    public void givenWorkspaceExistWhenExecuteThenReturnResponseOK()
-        throws Exception {
+    public void givenWorkspaceExistWhenExecuteThenReturnResponseOK() throws Exception {
         when(metadataClient.insertObjectGroup(any())).thenReturn(JsonHandler.createObjectNode());
         handlerIO.getInput().clear();
         handlerIO.getInput().add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP)));
         plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("IndexObjectGroupActionPluginTest");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName("IndexObjectGroupActionPluginTest");
         final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -146,27 +146,34 @@ public class IndexObjectGroupActionPluginTest {
     }
 
     @Test
-    public void givenExistingObjectGroupWhenAddingNewObjectThenOK()
-        throws Exception {
+    public void givenExistingObjectGroupWhenAddingNewObjectThenOK() throws Exception {
         doNothing().when(metadataClient).updateObjectGroupById(any(), any());
-        when(metadataClient.getObjectGroupByIdRaw(any())).thenReturn(new RequestResponseOK<JsonNode>().addResult(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP_IN_DB))));
+        when(metadataClient.getObjectGroupByIdRaw(any())).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP_IN_DB))
+            )
+        );
         handlerIO.getInput().clear();
-        handlerIO.getInput().add(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP)));
+        handlerIO
+            .getInput()
+            .add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP)));
         plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("IndexObjectGroupActionPluginTest");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName("IndexObjectGroupActionPluginTest");
         final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
 
         ArgumentCaptor<JsonNode> queryArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
-        verify(metadataClient).updateObjectGroupById(queryArgumentCaptor.capture(), eq("aebaaaaaaacyojsgaay5ialsckziacaaaaaq"));
+        verify(metadataClient).updateObjectGroupById(
+            queryArgumentCaptor.capture(),
+            eq("aebaaaaaaacyojsgaay5ialsckziacaaaaaq")
+        );
 
         String indexedObjectGroup = JsonHandler.unprettyPrint(queryArgumentCaptor.getValue());
         assertThat(indexedObjectGroup).contains(("aeaaaaaaaahdmfuhaar36ambrctkscaaaaaq"));
@@ -175,58 +182,62 @@ public class IndexObjectGroupActionPluginTest {
     }
 
     @Test
-    public void givenMetadataBadRequestWhenExecuteOnExistingGotThenReturnResponseKO()
-        throws Exception {
+    public void givenMetadataBadRequestWhenExecuteOnExistingGotThenReturnResponseKO() throws Exception {
         doThrow(new InvalidParseOperationException("")).when(metadataClient).updateObjectGroupById(any(), any());
-        when(metadataClient.getObjectGroupByIdRaw(any())).thenReturn(new RequestResponseOK<JsonNode>().addResult(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP_IN_DB))));
+        when(metadataClient.getObjectGroupByIdRaw(any())).thenReturn(
+            new RequestResponseOK<JsonNode>().addResult(
+                JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP_IN_DB))
+            )
+        );
         handlerIO.getInput().clear();
-        handlerIO.getInput().add(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP)));
+        handlerIO
+            .getInput()
+            .add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(EXISTING_OBJECT_GROUP)));
         plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("IndexObjectGroupActionPluginTest");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName("IndexObjectGroupActionPluginTest");
         final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
 
         assertEquals(StatusCode.KO, response.getGlobalStatus());
     }
 
     @Test
-    public void testMetadataException()
-        throws Exception {
+    public void testMetadataException() throws Exception {
         when(metadataClient.insertObjectGroups(any())).thenThrow(new MetaDataExecutionException(""));
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP)));
         plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("IndexObjectGroupActionPluginTest");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName("IndexObjectGroupActionPluginTest");
         final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
 
     @Test
-    public void testMetadataParseException()
-        throws Exception {
+    public void testMetadataParseException() throws Exception {
         when(metadataClient.insertObjectGroups(any())).thenThrow(new InvalidParseOperationException(""));
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(OBJECT_GROUP)));
         plugin = new IndexObjectGroupActionPlugin(metaDataClientFactory);
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep")
-                .setContainerName("IndexObjectGroupActionPluginTest");
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName("IndexObjectGroupActionPluginTest");
         final ItemStatus response = plugin.executeList(params, handlerIO).get(0);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }

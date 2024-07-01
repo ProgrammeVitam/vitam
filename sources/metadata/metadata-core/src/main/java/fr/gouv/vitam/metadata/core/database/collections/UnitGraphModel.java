@@ -99,9 +99,7 @@ public class UnitGraphModel {
         graph.add(createGraphRelation(id, parent.id));
         graph.addAll(parent.graph);
 
-        maxDepth = uds.keys().stream()
-            .max(Comparator.naturalOrder())
-            .orElse(0) + 1;
+        maxDepth = uds.keys().stream().max(Comparator.naturalOrder()).orElse(0) + 1;
     }
 
     public String id() {
@@ -125,11 +123,11 @@ public class UnitGraphModel {
     }
 
     public Map<String, Collection<String>> unitDepths() {
-        return uds.asMap().entrySet()
+        return uds
+            .asMap()
+            .entrySet()
             .stream()
-            .collect(Collectors.toMap(
-                i -> Integer.toString(i.getKey()),
-                Map.Entry::getValue));
+            .collect(Collectors.toMap(i -> Integer.toString(i.getKey()), Map.Entry::getValue));
     }
 
     public int minDepth() {
@@ -143,5 +141,4 @@ public class UnitGraphModel {
     public Set<String> graph() {
         return graph;
     }
-
 }

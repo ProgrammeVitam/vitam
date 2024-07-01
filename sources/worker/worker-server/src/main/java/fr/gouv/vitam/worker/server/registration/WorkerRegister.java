@@ -40,6 +40,7 @@ import fr.gouv.vitam.worker.server.rest.WorkerConfiguration;
  * Worker register task : register the current worker server to the processing server.
  */
 public class WorkerRegister implements Runnable {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerRegister.class);
 
     /**
@@ -52,8 +53,10 @@ public class WorkerRegister implements Runnable {
     private final ProcessingManagementClientFactory processingManagementClientFactory;
 
     @VisibleForTesting
-    public WorkerRegister(WorkerConfiguration configuration,
-        ProcessingManagementClientFactory processingManagementClientFactory) {
+    public WorkerRegister(
+        WorkerConfiguration configuration,
+        ProcessingManagementClientFactory processingManagementClientFactory
+    ) {
         this.configuration = configuration;
         this.processingManagementClientFactory = processingManagementClientFactory;
     }
@@ -63,19 +66,33 @@ public class WorkerRegister implements Runnable {
         LOGGER.debug("WorkerRegister run : begin");
 
         final WorkerRemoteConfiguration remoteConfiguration = new WorkerRemoteConfiguration(
-            configuration.getRegisterServerHost(), configuration.getRegisterServerPort());
+            configuration.getRegisterServerHost(),
+            configuration.getRegisterServerPort()
+        );
 
-        final WorkerBean workerBean =
-            new WorkerBean(ServerIdentity.getInstance().getName(), configuration.getWorkerFamily(),
-                configuration.getCapacity(), "active", remoteConfiguration);
+        final WorkerBean workerBean = new WorkerBean(
+            ServerIdentity.getInstance().getName(),
+            configuration.getWorkerFamily(),
+            configuration.getCapacity(),
+            "active",
+            remoteConfiguration
+        );
 
         try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
-            processingClient.registerWorker(configuration.getWorkerFamily(),
-                String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()), workerBean);
+            processingClient.registerWorker(
+                configuration.getWorkerFamily(),
+                String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()),
+                workerBean
+            );
         } catch (final Exception e) {
             LOGGER.error(
-                "WorkerRegister failed (" + configuration.getProcessingUrl() + ").Retry in " +
-                    configuration.getRegisterDelay() + " seconds", e);
+                "WorkerRegister failed (" +
+                configuration.getProcessingUrl() +
+                ").Retry in " +
+                configuration.getRegisterDelay() +
+                " seconds",
+                e
+            );
         }
 
         LOGGER.debug("WorkerRegister run : end");

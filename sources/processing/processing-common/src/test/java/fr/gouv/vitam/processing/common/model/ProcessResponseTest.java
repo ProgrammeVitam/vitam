@@ -54,8 +54,9 @@ public class ProcessResponseTest {
         list.add(processResponse.setStatus(StatusCode.WARNING));
         assertEquals(StatusCode.WARNING, processResponse.getGlobalProcessStatusCode(list));
 
-        assertFalse(processResponse.setOutcomeMessages("id", OutcomeMessage.CHECK_CONFORMITY_KO).getOutcomeMessages()
-            .isEmpty());
+        assertFalse(
+            processResponse.setOutcomeMessages("id", OutcomeMessage.CHECK_CONFORMITY_KO).getOutcomeMessages().isEmpty()
+        );
 
         assertEquals(0, new ProcessResponse().getErrorNumber());
         final ArrayList<String> detailMessages = new ArrayList<>();
@@ -75,8 +76,10 @@ public class ProcessResponseTest {
         processResponse.setMessageIdentifier(TEST);
         assertEquals(TEST, processResponse.getMessageIdentifier());
         assertEquals("", new ProcessResponse().getMessageIdentifier());
-        assertEquals("id KO : 1\n" + ". Nombre total d'erreurs : 1", ProcessResponse
-            .getGlobalProcessOutcomeMessage(processResponses));
+        assertEquals(
+            "id KO : 1\n" + ". Nombre total d'erreurs : 1",
+            ProcessResponse.getGlobalProcessOutcomeMessage(processResponses)
+        );
         assertEquals(TEST, ProcessResponse.getMessageIdentifierFromResponse(processResponses));
 
         processResponse.setProcessId(TEST);

@@ -33,8 +33,7 @@ public class AuditReferentialOptions {
     @JsonProperty("collectionName")
     private String collectionName;
 
-    public AuditReferentialOptions() {
-    }
+    public AuditReferentialOptions() {}
 
     public AuditReferentialOptions(String collectionName) {
         this.collectionName = collectionName;

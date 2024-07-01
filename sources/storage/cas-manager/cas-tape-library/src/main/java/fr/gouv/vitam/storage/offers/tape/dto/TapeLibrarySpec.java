@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.offers.tape.dto;
 import java.util.List;
 
 public interface TapeLibrarySpec {
-
     String getDevice();
 
     int getDriveCount();

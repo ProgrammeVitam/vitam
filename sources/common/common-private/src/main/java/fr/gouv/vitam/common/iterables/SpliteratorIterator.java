@@ -55,7 +55,6 @@ public class SpliteratorIterator<T> implements Iterator<T> {
 
     @Override
     public T next() {
-
         if (!hasNext()) {
             throw new NoSuchElementException();
         }

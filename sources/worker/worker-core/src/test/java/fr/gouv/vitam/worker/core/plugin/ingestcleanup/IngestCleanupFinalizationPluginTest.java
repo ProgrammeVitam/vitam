@@ -67,8 +67,9 @@ import static org.mockito.Mockito.verify;
 public class IngestCleanupFinalizationPluginTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -78,6 +79,7 @@ public class IngestCleanupFinalizationPluginTest {
 
     @Mock
     private StorageClientFactory storageClientFactory;
+
     @Mock
     private StorageClient storageClient;
 
@@ -95,20 +97,17 @@ public class IngestCleanupFinalizationPluginTest {
         doReturn(storageClient).when(storageClientFactory).getClient();
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
-        doAnswer((args) -> tempFolder.newFile(args.getArgument(0)))
-            .when(handlerIO).getNewLocalFile(anyString());
-        doReturn(VitamThreadUtils.getVitamSession().getRequestId())
-            .when(handlerIO).getContainerName();
-
+        doAnswer(args -> tempFolder.newFile(args.getArgument(0))).when(handlerIO).getNewLocalFile(anyString());
+        doReturn(VitamThreadUtils.getVitamSession().getRequestId()).when(handlerIO).getContainerName();
     }
 
     @Test
     @RunWithCustomExecutor
     public void testNonExistingReportData() throws Exception {
-
         // Given
         doThrow(new ContentAddressableStorageNotFoundException(""))
-            .when(handlerIO).getInputStreamFromWorkspace(CleanupReportManager.CLEANUP_REPORT_BACKUP_FILE_NAME);
+            .when(handlerIO)
+            .getInputStreamFromWorkspace(CleanupReportManager.CLEANUP_REPORT_BACKUP_FILE_NAME);
 
         // When
         ItemStatus itemStatus = instance.execute(params, handlerIO);
@@ -120,10 +119,10 @@ public class IngestCleanupFinalizationPluginTest {
     @Test
     @RunWithCustomExecutor
     public void testReportExport() throws Exception {
-
         // Given
         doReturn(PropertiesUtils.getResourceAsStream("IngestCleanup/Finalization/reportData.json"))
-            .when(handlerIO).getInputStreamFromWorkspace(CleanupReportManager.CLEANUP_REPORT_BACKUP_FILE_NAME);
+            .when(handlerIO)
+            .getInputStreamFromWorkspace(CleanupReportManager.CLEANUP_REPORT_BACKUP_FILE_NAME);
 
         // When
         ItemStatus itemStatus = instance.execute(params, handlerIO);
@@ -133,16 +132,26 @@ public class IngestCleanupFinalizationPluginTest {
 
         String reportFileName = VitamThreadUtils.getVitamSession().getRequestId() + ".jsonl";
         ArgumentCaptor<File> fileArgumentCaptor = ArgumentCaptor.forClass(File.class);
-        verify(handlerIO)
-            .transferFileToWorkspace(eq(reportFileName), fileArgumentCaptor.capture(), eq(true), eq(false));
+        verify(handlerIO).transferFileToWorkspace(
+            eq(reportFileName),
+            fileArgumentCaptor.capture(),
+            eq(true),
+            eq(false)
+        );
 
-        assertJsonlReportsEqualUnordered(fileArgumentCaptor.getValue(),
-            PropertiesUtils.getResourceFile("IngestCleanup/Finalization/expectedReport.jsonl"), 1);
+        assertJsonlReportsEqualUnordered(
+            fileArgumentCaptor.getValue(),
+            PropertiesUtils.getResourceFile("IngestCleanup/Finalization/expectedReport.jsonl"),
+            1
+        );
 
         ArgumentCaptor<ObjectDescription> descriptionArgumentCaptor = ArgumentCaptor.forClass(ObjectDescription.class);
-        verify(storageClient)
-            .storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.REPORT),
-                eq(reportFileName), descriptionArgumentCaptor.capture());
+        verify(storageClient).storeFileFromWorkspace(
+            eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.REPORT),
+            eq(reportFileName),
+            descriptionArgumentCaptor.capture()
+        );
         assertThat(descriptionArgumentCaptor.getValue())
             .extracting(ObjectDescription::getWorkspaceContainerGUID, ObjectDescription::getWorkspaceObjectURI)
             .containsExactly(VitamThreadUtils.getVitamSession().getRequestId(), reportFileName);

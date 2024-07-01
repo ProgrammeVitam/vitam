@@ -126,7 +126,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-
 public class ProcessDistributorImplTest {
 
     private static final String FAKE_REQUEST_ID = "FakeRequestId";
@@ -136,16 +135,20 @@ public class ProcessDistributorImplTest {
     private static final String FILE_WITH_GUIDS = "file_with_guids.jsonl";
     private static final String FILE_GUIDS_INVALID = "file_guids_invalid.jsonl";
     private static final String FILE_EMPTY_GUIDS = "file_empty_guids.jsonl";
-    private final static String operationId = "FakeOperationId";
+    private static final String operationId = "FakeOperationId";
     private static final Integer TENANT = 0;
     private static final String FAKE_UUID = "c938e5c2-66fe-443f-8e93-96ee86d13b6a";
     private final WorkerClientFactory workerClientFactory = mock(WorkerClientFactory.class);
     private final WorkerClient workerClient = mock(WorkerClient.class);
+
     @Rule
     public TempFolderRule testFolder = new TempFolderRule();
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     private ProcessDataManagement processDataManagement;
     private AsyncResourcesMonitor asyncResourcesMonitor;
     private AsyncResourceCleaner asyncResourceCleaner;
@@ -171,10 +174,13 @@ public class ProcessDistributorImplTest {
 
     @Before
     public void setUp() throws Exception {
-
-        final WorkerBean workerBean =
-            new WorkerBean("DefaultWorker", "DefaultWorker", 2, "status",
-                new WorkerRemoteConfiguration("localhost", 8999));
+        final WorkerBean workerBean = new WorkerBean(
+            "DefaultWorker",
+            "DefaultWorker",
+            2,
+            "status",
+            new WorkerRemoteConfiguration("localhost", 8999)
+        );
         workerBean.setWorkerId("FakeWorkerId");
 
         workerManager = new WorkerManager(workerClientFactory);
@@ -203,29 +209,33 @@ public class ProcessDistributorImplTest {
             .setMaxDistributionInMemoryBufferSize(100_000)
             .setMaxDistributionOnDiskBufferSize(100_000_000);
 
-        processDistributor = new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, asyncResourceCleaner,
-            serverConfiguration, processDataManagement, workspaceClientFactory, metaDataClientFactory,
-            workerClientFactory);
+        processDistributor = new ProcessDistributorImpl(
+            workerManager,
+            asyncResourcesMonitor,
+            asyncResourceCleaner,
+            serverConfiguration,
+            processDataManagement,
+            workspaceClientFactory,
+            metaDataClientFactory,
+            workerClientFactory
+        );
 
         if (Thread.currentThread() instanceof VitamThreadFactory.VitamThread) {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT);
             VitamThreadUtils.getVitamSession().setRequestId(FAKE_REQUEST_ID);
             VitamThreadUtils.getVitamSession().setContextId(FAKE_CONTEXT_ID);
         }
-
     }
-
 
     ItemStatus getMockedItemStatus(StatusCode statusCode) {
         return getMockedItemStatus(statusCode, 1);
     }
 
     ItemStatus getMockedItemStatus(StatusCode statusCode, int times) {
-        return new ItemStatus("StepId")
-            .setItemsStatus("ItemId",
-                new ItemStatus("ItemId")
-                    .setMessage("message")
-                    .increment(statusCode, times));
+        return new ItemStatus("StepId").setItemsStatus(
+            "ItemId",
+            new ItemStatus("ItemId").setMessage("message").increment(statusCode, times)
+        );
     }
 
     /**
@@ -233,7 +243,6 @@ public class ProcessDistributorImplTest {
      */
     @Test
     public void testConstructor() {
-
         ServerConfiguration configuration = new ServerConfiguration()
             .setMaxDistributionInMemoryBufferSize(100_000)
             .setMaxDistributionOnDiskBufferSize(100_000_000);
@@ -262,65 +271,128 @@ public class ProcessDistributorImplTest {
         }
 
         try {
-            new ProcessDistributorImpl(null, asyncResourcesMonitor, asyncResourceCleaner, configuration,
-                processDataManagement, workspaceClientFactory, metaDataClientFactory, workerClientFactory);
-            fail("Should throw an exception");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-
-        try {
-            new ProcessDistributorImpl(workerManager, null, asyncResourceCleaner, configuration,
-                processDataManagement, workspaceClientFactory, metaDataClientFactory, workerClientFactory);
-            fail("Should throw an exception");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-
-        try {
-            new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, null, configuration,
-                processDataManagement, workspaceClientFactory, metaDataClientFactory, workerClientFactory);
-            fail("Should throw an exception");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-
-        try {
-            new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, asyncResourceCleaner, null,
-                processDataManagement, workspaceClientFactory, metaDataClientFactory, workerClientFactory);
-            fail("Should throw an exception");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-
-        try {
-            new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, asyncResourceCleaner,
-                configuration, null, workspaceClientFactory, metaDataClientFactory, workerClientFactory);
-            fail("Should throw an exception");
-        } catch (Exception e) {
-            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-        }
-
-        try {
-            new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, asyncResourceCleaner, configuration,
+            new ProcessDistributorImpl(
+                null,
+                asyncResourcesMonitor,
+                asyncResourceCleaner,
+                configuration,
                 processDataManagement,
-                null, metaDataClientFactory, workerClientFactory);
+                workspaceClientFactory,
+                metaDataClientFactory,
+                workerClientFactory
+            );
             fail("Should throw an exception");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, asyncResourceCleaner, configuration,
-                processDataManagement, workspaceClientFactory, null, workerClientFactory);
+            new ProcessDistributorImpl(
+                workerManager,
+                null,
+                asyncResourceCleaner,
+                configuration,
+                processDataManagement,
+                workspaceClientFactory,
+                metaDataClientFactory,
+                workerClientFactory
+            );
             fail("Should throw an exception");
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
         }
 
         try {
-            new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, asyncResourceCleaner, configuration,
-                processDataManagement, workspaceClientFactory, metaDataClientFactory, null);
+            new ProcessDistributorImpl(
+                workerManager,
+                asyncResourcesMonitor,
+                null,
+                configuration,
+                processDataManagement,
+                workspaceClientFactory,
+                metaDataClientFactory,
+                workerClientFactory
+            );
+            fail("Should throw an exception");
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+
+        try {
+            new ProcessDistributorImpl(
+                workerManager,
+                asyncResourcesMonitor,
+                asyncResourceCleaner,
+                null,
+                processDataManagement,
+                workspaceClientFactory,
+                metaDataClientFactory,
+                workerClientFactory
+            );
+            fail("Should throw an exception");
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+
+        try {
+            new ProcessDistributorImpl(
+                workerManager,
+                asyncResourcesMonitor,
+                asyncResourceCleaner,
+                configuration,
+                null,
+                workspaceClientFactory,
+                metaDataClientFactory,
+                workerClientFactory
+            );
+            fail("Should throw an exception");
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+
+        try {
+            new ProcessDistributorImpl(
+                workerManager,
+                asyncResourcesMonitor,
+                asyncResourceCleaner,
+                configuration,
+                processDataManagement,
+                null,
+                metaDataClientFactory,
+                workerClientFactory
+            );
+            fail("Should throw an exception");
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+
+        try {
+            new ProcessDistributorImpl(
+                workerManager,
+                asyncResourcesMonitor,
+                asyncResourceCleaner,
+                configuration,
+                processDataManagement,
+                workspaceClientFactory,
+                null,
+                workerClientFactory
+            );
+            fail("Should throw an exception");
+        } catch (Exception e) {
+            SysErrLogger.FAKE_LOGGER.ignoreLog(e);
+        }
+
+        try {
+            new ProcessDistributorImpl(
+                workerManager,
+                asyncResourcesMonitor,
+                asyncResourceCleaner,
+                configuration,
+                processDataManagement,
+                workspaceClientFactory,
+                metaDataClientFactory,
+                null
+            );
         } catch (Exception e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             fail("Should not throw an exception");
@@ -328,13 +400,10 @@ public class ProcessDistributorImplTest {
     }
 
     private ProcessStep getStep(DistributionKind distributionKind, String distributorElement) {
-        return getStep(distributionKind, distributorElement,
-            null);
+        return getStep(distributionKind, distributorElement, null);
     }
 
-    private ProcessStep getStep(DistributionKind distributionKind,
-        String distributorElement, Integer bulkSize) {
-
+    private ProcessStep getStep(DistributionKind distributionKind, String distributorElement, Integer bulkSize) {
         final Distribution distribution = new Distribution();
         distribution.setKind(distributionKind);
         distribution.setElement(distributorElement);
@@ -354,13 +423,19 @@ public class ProcessDistributorImplTest {
     @Test
     @RunWithCustomExecutor
     public void whenDistributeRequiredParametersThenOK() {
-        final ProcessDistributor processDistributor =
-            new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, asyncResourceCleaner, serverConfiguration,
-                processDataManagement, workspaceClientFactory, metaDataClientFactory, workerClientFactory);
+        final ProcessDistributor processDistributor = new ProcessDistributorImpl(
+            workerManager,
+            asyncResourcesMonitor,
+            asyncResourceCleaner,
+            serverConfiguration,
+            processDataManagement,
+            workspaceClientFactory,
+            metaDataClientFactory,
+            workerClientFactory
+        );
 
         try {
-            processDistributor
-                .distribute(null, getStep(DistributionKind.REF, "manifest.xml"), operationId);
+            processDistributor.distribute(null, getStep(DistributionKind.REF, "manifest.xml"), operationId);
 
             fail("Should throw an exception");
         } catch (Exception e) {
@@ -368,8 +443,7 @@ public class ProcessDistributorImplTest {
         }
 
         try {
-            processDistributor
-                .distribute(workerParameters, null, operationId);
+            processDistributor.distribute(workerParameters, null, operationId);
 
             fail("Should throw an exception");
         } catch (Exception e) {
@@ -377,8 +451,7 @@ public class ProcessDistributorImplTest {
         }
 
         try {
-            processDistributor
-                .distribute(workerParameters, getStep(DistributionKind.REF, "manifest.xml"), null);
+            processDistributor.distribute(workerParameters, getStep(DistributionKind.REF, "manifest.xml"), null);
 
             fail("Should throw an exception");
         } catch (Exception e) {
@@ -386,13 +459,19 @@ public class ProcessDistributorImplTest {
         }
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void whenDistributeManifestThenOK() {
-        final ProcessDistributor processDistributor =
-            new ProcessDistributorImpl(workerManager, asyncResourcesMonitor, asyncResourceCleaner, serverConfiguration,
-                processDataManagement, workspaceClientFactory, metaDataClientFactory, workerClientFactory);
+        final ProcessDistributor processDistributor = new ProcessDistributorImpl(
+            workerManager,
+            asyncResourcesMonitor,
+            asyncResourceCleaner,
+            serverConfiguration,
+            processDataManagement,
+            workspaceClientFactory,
+            metaDataClientFactory,
+            workerClientFactory
+        );
 
         ProcessStep step = getStep(DistributionKind.REF, "manifest.xml");
         ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
@@ -401,7 +480,6 @@ public class ProcessDistributorImplTest {
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
         assertThat(step.getPauseOrCancelAction()).isEqualTo(PauseOrCancelAction.ACTION_COMPLETE);
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -417,8 +495,9 @@ public class ProcessDistributorImplTest {
     @RunWithCustomExecutor
     public void givenWorkspaceDownWhenDistributeManifestThenFATAL()
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        when(workspaceClient.getObject(anyString(), anyString(), anyLong(), anyLong()))
-            .thenThrow(new ContentAddressableStorageNotFoundException(""));
+        when(workspaceClient.getObject(anyString(), anyString(), anyLong(), anyLong())).thenThrow(
+            new ContentAddressableStorageNotFoundException("")
+        );
         ProcessStep step = getStep(DistributionKind.LIST_IN_JSONL_FILE, "manifest.xml");
         ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
         assertNotNull(itemStatus);
@@ -429,15 +508,13 @@ public class ProcessDistributorImplTest {
     @RunWithCustomExecutor
     public void giveWorkerItemStatusResponseFatalWhenDistributeManifestThenFATAL()
         throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException {
-        when(workerClient.submitStep(any()))
-            .thenAnswer(invocation -> getMockedItemStatus(StatusCode.FATAL));
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> getMockedItemStatus(StatusCode.FATAL));
         ProcessStep step = getStep(DistributionKind.REF, "manifest.xml");
         ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
         assertNotNull(itemStatus);
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
         assertThat(step.getPauseOrCancelAction()).isEqualTo(PauseOrCancelAction.ACTION_RUN);
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -457,8 +534,10 @@ public class ProcessDistributorImplTest {
         assertNotNull(imap);
         assertFalse(imap.isEmpty());
         // All object status are OK
-        assertEquals((int) imap.get("ItemId").getStatusMeter()
-            .get(StatusCode.OK.getStatusLevel()), numberOfObjectInIngestLevelStack);
+        assertEquals(
+            (int) imap.get("ItemId").getStatusMeter().get(StatusCode.OK.getStatusLevel()),
+            numberOfObjectInIngestLevelStack
+        );
     }
 
     @Test
@@ -475,7 +554,6 @@ public class ProcessDistributorImplTest {
 
         assertEquals(StatusCode.OK, itemStatus.getGlobalStatus());
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -531,11 +609,9 @@ public class ProcessDistributorImplTest {
         assertEquals(1, (int) imap.get("ItemId").getStatusMeter().get(StatusCode.WARNING.getStatusLevel()));
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void whenDistributeDistributionKindListWithLevelFATAL() throws Exception {
-
         final File fileContracts = PropertiesUtils.getResourceFile("ingestLevelStack.json");
 
         givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
@@ -567,8 +643,6 @@ public class ProcessDistributorImplTest {
     @Test
     @RunWithCustomExecutor
     public void whenDistributeKindFullLargeFileOK() throws Exception {
-
-
         File file = PropertiesUtils.getResourceFile(FILE_FULL_GUIDS);
         givenWorkspaceClientReturnsFileContent(file, "FakeOperationId", FILE_FULL_GUIDS);
 
@@ -590,7 +664,6 @@ public class ProcessDistributorImplTest {
     @RunWithCustomExecutor
     public void whenDistributeOnStreamWithUnavailableAsyncResourcesThenAwaitResourceAvailableAndContinue()
         throws Exception {
-
         // Given
         File file = PropertiesUtils.getResourceFile(FILE_FULL_GUIDS);
         givenWorkspaceClientReturnsFileContent(file, "FakeOperationId", FILE_FULL_GUIDS);
@@ -613,40 +686,44 @@ public class ProcessDistributorImplTest {
         AtomicBoolean bulk2Ready = new AtomicBoolean(false);
         AtomicBoolean bulk5Ready = new AtomicBoolean(false);
 
-        when(workerClient.submitStep(any()))
-            .thenAnswer(invocation -> {
-                DescriptionStep descriptionStep = invocation.getArgument(0);
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
+            DescriptionStep descriptionStep = invocation.getArgument(0);
 
-                int bulkId = bulks.indexOf(descriptionStep.getWorkParams().getObjectNameList());
+            int bulkId = bulks.indexOf(descriptionStep.getWorkParams().getObjectNameList());
 
-                if (bulkId == 0 && !bulk0Ready.get()) {
-                    throw new ProcessingRetryAsyncException(Map.of(
-                        new AccessRequestContext("strategy1"), List.of("accessRequest1", "accessRequest2"),
-                        new AccessRequestContext("strategy2"), List.of("accessRequest3")
-                    ));
-                }
+            if (bulkId == 0 && !bulk0Ready.get()) {
+                throw new ProcessingRetryAsyncException(
+                    Map.of(
+                        new AccessRequestContext("strategy1"),
+                        List.of("accessRequest1", "accessRequest2"),
+                        new AccessRequestContext("strategy2"),
+                        List.of("accessRequest3")
+                    )
+                );
+            }
 
-                if (bulkId == 2 && !bulk2Ready.get()) {
-                    throw new ProcessingRetryAsyncException(Map.of(
-                        new AccessRequestContext("strategy1"), List.of("accessRequest4")
-                    ));
-                }
+            if (bulkId == 2 && !bulk2Ready.get()) {
+                throw new ProcessingRetryAsyncException(
+                    Map.of(new AccessRequestContext("strategy1"), List.of("accessRequest4"))
+                );
+            }
 
-                if (bulkId == 5 && !bulk5Ready.get()) {
-                    throw new ProcessingRetryAsyncException(Map.of(
-                        new AccessRequestContext("strategy3"), List.of("accessRequest5", "accessRequest6")
-                    ));
-                }
+            if (bulkId == 5 && !bulk5Ready.get()) {
+                throw new ProcessingRetryAsyncException(
+                    Map.of(new AccessRequestContext("strategy3"), List.of("accessRequest5", "accessRequest6"))
+                );
+            }
 
-                return getMockedItemStatus(StatusCode.OK, descriptionStep.getWorkParams().getObjectNameList().size());
-            });
+            return getMockedItemStatus(StatusCode.OK, descriptionStep.getWorkParams().getObjectNameList().size());
+        });
 
         ProcessStep step = getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_FULL_GUIDS, 2);
 
         // When
-        CompletableFuture<ItemStatus> itemStatusCompletableFuture =
-            CompletableFuture.supplyAsync(() -> processDistributor.distribute(workerParameters, step, operationId),
-                VitamThreadPoolExecutor.getDefaultExecutor());
+        CompletableFuture<ItemStatus> itemStatusCompletableFuture = CompletableFuture.supplyAsync(
+            () -> processDistributor.distribute(workerParameters, step, operationId),
+            VitamThreadPoolExecutor.getDefaultExecutor()
+        );
 
         Thread.sleep(3000);
 
@@ -656,15 +733,25 @@ public class ProcessDistributorImplTest {
         }
         verify(workerClient, times(1)).submitStep(any());
 
-        ArgumentCaptor<AsyncResourceCallback> callback0ArgumentCaptor =
-            ArgumentCaptor.forClass(AsyncResourceCallback.class);
+        ArgumentCaptor<AsyncResourceCallback> callback0ArgumentCaptor = ArgumentCaptor.forClass(
+            AsyncResourceCallback.class
+        );
         verify(asyncResourcesMonitor, times(1)).watchAsyncResourcesForBulk(
-            eq(Map.of(
-                "accessRequest1", new AccessRequestContext("strategy1"),
-                "accessRequest2", new AccessRequestContext("strategy1"),
-                "accessRequest3", new AccessRequestContext("strategy2")
-            )), eq(VitamThreadUtils.getVitamSession().getRequestId()), anyString(), any(),
-            callback0ArgumentCaptor.capture());
+            eq(
+                Map.of(
+                    "accessRequest1",
+                    new AccessRequestContext("strategy1"),
+                    "accessRequest2",
+                    new AccessRequestContext("strategy1"),
+                    "accessRequest3",
+                    new AccessRequestContext("strategy2")
+                )
+            ),
+            eq(VitamThreadUtils.getVitamSession().getRequestId()),
+            anyString(),
+            any(),
+            callback0ArgumentCaptor.capture()
+        );
 
         // When : bulk0 ready
         bulk0Ready.set(true);
@@ -676,17 +763,27 @@ public class ProcessDistributorImplTest {
         // Expected re-execution of bulk0 + execution of bulk1 & bulk2 (unavailable async resources)
         verify(workerClient, times(1 + 3)).submitStep(any());
 
-        ArgumentCaptor<AsyncResourceCallback> callback2ArgumentCaptor =
-            ArgumentCaptor.forClass(AsyncResourceCallback.class);
+        ArgumentCaptor<AsyncResourceCallback> callback2ArgumentCaptor = ArgumentCaptor.forClass(
+            AsyncResourceCallback.class
+        );
         verify(asyncResourcesMonitor, times(1)).watchAsyncResourcesForBulk(
-            eq(Map.of("accessRequest4", new AccessRequestContext("strategy1")
-            )), eq(VitamThreadUtils.getVitamSession().getRequestId()), anyString(), any(),
-            callback2ArgumentCaptor.capture());
+            eq(Map.of("accessRequest4", new AccessRequestContext("strategy1"))),
+            eq(VitamThreadUtils.getVitamSession().getRequestId()),
+            anyString(),
+            any(),
+            callback2ArgumentCaptor.capture()
+        );
 
-        verify(asyncResourceCleaner).markAsyncResourcesForRemoval(Map.of(
-            "accessRequest1", new AccessRequestContext("strategy1"),
-            "accessRequest2", new AccessRequestContext("strategy1"),
-            "accessRequest3", new AccessRequestContext("strategy2")));
+        verify(asyncResourceCleaner).markAsyncResourcesForRemoval(
+            Map.of(
+                "accessRequest1",
+                new AccessRequestContext("strategy1"),
+                "accessRequest2",
+                new AccessRequestContext("strategy1"),
+                "accessRequest3",
+                new AccessRequestContext("strategy2")
+            )
+        );
         verifyNoMoreInteractions(asyncResourceCleaner);
 
         // When : Bulk2 ready
@@ -699,16 +796,27 @@ public class ProcessDistributorImplTest {
         // Expected re-execution of bulk2 + execution of bulk3, bulk4 & bulk5 (unavailable async resources)
         verify(workerClient, times(1 + 3 + 4)).submitStep(any());
 
-        ArgumentCaptor<AsyncResourceCallback> callback5ArgumentCaptor =
-            ArgumentCaptor.forClass(AsyncResourceCallback.class);
-        verify(asyncResourcesMonitor, times(1)).watchAsyncResourcesForBulk(eq(Map.of(
-                "accessRequest5", new AccessRequestContext("strategy3"),
-                "accessRequest6", new AccessRequestContext("strategy3")
-            )), eq(VitamThreadUtils.getVitamSession().getRequestId()), anyString(), any(),
-            callback5ArgumentCaptor.capture());
+        ArgumentCaptor<AsyncResourceCallback> callback5ArgumentCaptor = ArgumentCaptor.forClass(
+            AsyncResourceCallback.class
+        );
+        verify(asyncResourcesMonitor, times(1)).watchAsyncResourcesForBulk(
+            eq(
+                Map.of(
+                    "accessRequest5",
+                    new AccessRequestContext("strategy3"),
+                    "accessRequest6",
+                    new AccessRequestContext("strategy3")
+                )
+            ),
+            eq(VitamThreadUtils.getVitamSession().getRequestId()),
+            anyString(),
+            any(),
+            callback5ArgumentCaptor.capture()
+        );
 
         verify(asyncResourceCleaner).markAsyncResourcesForRemoval(
-            Map.of("accessRequest4", new AccessRequestContext("strategy1")));
+            Map.of("accessRequest4", new AccessRequestContext("strategy1"))
+        );
         verifyNoMoreInteractions(asyncResourceCleaner);
 
         // When : Bulk6 ready
@@ -724,9 +832,14 @@ public class ProcessDistributorImplTest {
         verifyNoMoreInteractions(workerClient);
         verifyNoMoreInteractions(asyncResourcesMonitor);
 
-        verify(asyncResourceCleaner).markAsyncResourcesForRemoval(Map.of(
-            "accessRequest5", new AccessRequestContext("strategy3"),
-            "accessRequest6", new AccessRequestContext("strategy3")));
+        verify(asyncResourceCleaner).markAsyncResourcesForRemoval(
+            Map.of(
+                "accessRequest5",
+                new AccessRequestContext("strategy3"),
+                "accessRequest6",
+                new AccessRequestContext("strategy3")
+            )
+        );
         verifyNoMoreInteractions(asyncResourceCleaner);
 
         ItemStatus itemStatus = itemStatusCompletableFuture.get();
@@ -745,7 +858,6 @@ public class ProcessDistributorImplTest {
     @RunWithCustomExecutor
     public void whenDistributeOnStreamWithUnavailableAsyncResourcesAndWorkflowPausedThenAwaitResourceAvailableInterrupted()
         throws Exception {
-
         // Given
         File file = PropertiesUtils.getResourceFile(FILE_FULL_GUIDS);
         givenWorkspaceClientReturnsFileContent(file, "FakeOperationId", FILE_FULL_GUIDS);
@@ -764,28 +876,32 @@ public class ProcessDistributorImplTest {
             List.of("aeaqaaaaaafwjo6paalh2aldxmeilcqaaabq", "aeaqaaaaaafwjo6paalh2aldxmeildiaaaaq")
         );
 
-        when(workerClient.submitStep(any()))
-            .thenAnswer(invocation -> {
-                DescriptionStep descriptionStep = invocation.getArgument(0);
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
+            DescriptionStep descriptionStep = invocation.getArgument(0);
 
-                int bulkId = bulks.indexOf(descriptionStep.getWorkParams().getObjectNameList());
+            int bulkId = bulks.indexOf(descriptionStep.getWorkParams().getObjectNameList());
 
-                if (bulkId == 1) {
-                    throw new ProcessingRetryAsyncException(Map.of(
-                        new AccessRequestContext("strategy1"), List.of("accessRequest1", "accessRequest2"),
-                        new AccessRequestContext("strategy2"), List.of("accessRequest3")
-                    ));
-                }
+            if (bulkId == 1) {
+                throw new ProcessingRetryAsyncException(
+                    Map.of(
+                        new AccessRequestContext("strategy1"),
+                        List.of("accessRequest1", "accessRequest2"),
+                        new AccessRequestContext("strategy2"),
+                        List.of("accessRequest3")
+                    )
+                );
+            }
 
-                return getMockedItemStatus(StatusCode.OK, descriptionStep.getWorkParams().getObjectNameList().size());
-            });
+            return getMockedItemStatus(StatusCode.OK, descriptionStep.getWorkParams().getObjectNameList().size());
+        });
 
         ProcessStep step = getStep(DistributionKind.LIST_IN_JSONL_FILE, FILE_FULL_GUIDS, 2);
 
         // When
-        CompletableFuture<ItemStatus> itemStatusCompletableFuture =
-            CompletableFuture.supplyAsync(() -> processDistributor.distribute(workerParameters, step, operationId),
-                VitamThreadPoolExecutor.getDefaultExecutor());
+        CompletableFuture<ItemStatus> itemStatusCompletableFuture = CompletableFuture.supplyAsync(
+            () -> processDistributor.distribute(workerParameters, step, operationId),
+            VitamThreadPoolExecutor.getDefaultExecutor()
+        );
 
         Thread.sleep(3000);
 
@@ -795,15 +911,25 @@ public class ProcessDistributorImplTest {
         }
         verify(workerClient, times(3)).submitStep(any());
 
-        ArgumentCaptor<AsyncResourceCallback> callback0ArgumentCaptor =
-            ArgumentCaptor.forClass(AsyncResourceCallback.class);
+        ArgumentCaptor<AsyncResourceCallback> callback0ArgumentCaptor = ArgumentCaptor.forClass(
+            AsyncResourceCallback.class
+        );
         verify(asyncResourcesMonitor, times(1)).watchAsyncResourcesForBulk(
-            eq(Map.of(
-                "accessRequest1", new AccessRequestContext("strategy1"),
-                "accessRequest2", new AccessRequestContext("strategy1"),
-                "accessRequest3", new AccessRequestContext("strategy2")
-            )), eq(VitamThreadUtils.getVitamSession().getRequestId()), anyString(), any(),
-            callback0ArgumentCaptor.capture());
+            eq(
+                Map.of(
+                    "accessRequest1",
+                    new AccessRequestContext("strategy1"),
+                    "accessRequest2",
+                    new AccessRequestContext("strategy1"),
+                    "accessRequest3",
+                    new AccessRequestContext("strategy2")
+                )
+            ),
+            eq(VitamThreadUtils.getVitamSession().getRequestId()),
+            anyString(),
+            any(),
+            callback0ArgumentCaptor.capture()
+        );
 
         // When : Step paused
         step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
@@ -818,10 +944,16 @@ public class ProcessDistributorImplTest {
         verify(workerClient, times(3)).close();
 
         // Ensure access requests cleanup
-        verify(asyncResourceCleaner).markAsyncResourcesForRemoval(Map.of(
-            "accessRequest1", new AccessRequestContext("strategy1"),
-            "accessRequest2", new AccessRequestContext("strategy1"),
-            "accessRequest3", new AccessRequestContext("strategy2")));
+        verify(asyncResourceCleaner).markAsyncResourcesForRemoval(
+            Map.of(
+                "accessRequest1",
+                new AccessRequestContext("strategy1"),
+                "accessRequest2",
+                new AccessRequestContext("strategy1"),
+                "accessRequest3",
+                new AccessRequestContext("strategy2")
+            )
+        );
         verifyNoMoreInteractions(asyncResourceCleaner);
 
         verifyNoMoreInteractions(workerClient);
@@ -834,47 +966,41 @@ public class ProcessDistributorImplTest {
         assertThat(itemStatus.getStatusMeter().get(StatusCode.OK.ordinal())).isEqualTo(3);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void shouldDistributeOnStream() throws Exception {
-
         AtomicInteger actualLevel = new AtomicInteger(0);
 
         File file = createRandomDataSetInfo();
 
         givenWorkspaceClientReturnsFileContent(file, "FakeOperationId", file.getAbsolutePath());
 
-        when(workerClient.submitStep(any()))
-            .thenAnswer(invocation -> {
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
+            Map<WorkerParameterName, String> mapParameters =
+                ((DescriptionStep) invocation.getArguments()[0]).getWorkParams().getMapParameters();
 
-                Map<WorkerParameterName, String> mapParameters =
-                    ((DescriptionStep) invocation.getArguments()[0])
-                        .getWorkParams().getMapParameters();
+            JsonNode objectMetadataList = JsonHandler.getFromString(
+                mapParameters.get(WorkerParameterName.objectMetadataList)
+            );
 
-                JsonNode objectMetadataList =
-                    JsonHandler.getFromString(mapParameters.get(WorkerParameterName.objectMetadataList));
+            String level = objectMetadataList.get(0).get("distributionNumber").textValue();
 
-                String level = objectMetadataList.get(0).get("distributionNumber").textValue();
+            synchronized (this) {
+                if (!String.valueOf(actualLevel.get()).equals(level)) {
+                    int newLevel = actualLevel.incrementAndGet();
 
-                synchronized (this) {
-
-                    if (!String.valueOf(actualLevel.get()).equals(level)) {
-
-                        int newLevel = actualLevel.incrementAndGet();
-
-                        assertThat(level).isEqualTo(String.valueOf(newLevel));
-                    }
+                    assertThat(level).isEqualTo(String.valueOf(newLevel));
                 }
+            }
 
-                return getMockedItemStatus(StatusCode.OK);
+            return getMockedItemStatus(StatusCode.OK);
+        });
 
-            });
-
-
-        ItemStatus itemStatus = processDistributor
-            .distribute(workerParameters, getStep(DistributionKind.LIST_IN_JSONL_FILE, file.getAbsolutePath()),
-                operationId);
+        ItemStatus itemStatus = processDistributor.distribute(
+            workerParameters,
+            getStep(DistributionKind.LIST_IN_JSONL_FILE, file.getAbsolutePath()),
+            operationId
+        );
 
         verify(workerClient, times(750)).submitStep(any());
 
@@ -887,13 +1013,11 @@ public class ProcessDistributorImplTest {
         assertThat(item).isNotNull();
 
         assertThat(item).isNotEmpty();
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void whenDistributeOnStreamPauseThenResumeWithIndexOffsetOK() throws Exception {
-
         CountDownLatch countDownLatch = new CountDownLatch(1);
         AtomicReference<DistributorIndex> distributorIndex = new AtomicReference<>();
 
@@ -903,18 +1027,21 @@ public class ProcessDistributorImplTest {
 
         givenWorkspaceClientReturnsFileContent(file, "FakeOperationId", file.getAbsolutePath());
 
-        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, FAKE_UUID))))
-            .thenAnswer(invocation -> {
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, FAKE_UUID)))).thenAnswer(
+            invocation -> {
                 step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
                 countDownLatch.countDown();
                 return getMockedItemStatus(StatusCode.OK);
-            });
+            }
+        );
 
         doAnswer(invocation -> {
             DistributorIndex myDistributorIndex = invocation.getArgument(1);
             distributorIndex.set(myDistributorIndex);
             return myDistributorIndex;
-        }).when(processDataManagement).persistDistributorIndex(eq(operationId), any(DistributorIndex.class));
+        })
+            .when(processDataManagement)
+            .persistDistributorIndex(eq(operationId), any(DistributorIndex.class));
 
         ItemStatus is = processDistributor.distribute(workerParameters, step, operationId);
 
@@ -929,8 +1056,9 @@ public class ProcessDistributorImplTest {
 
         doReturn(Optional.of(distributorIndex.get())).when(processDataManagement).getDistributorIndex(eq(operationId));
 
-        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, FAKE_UUID))))
-            .thenAnswer(invocation -> getMockedItemStatus(StatusCode.OK));
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, FAKE_UUID)))).thenAnswer(
+            invocation -> getMockedItemStatus(StatusCode.OK)
+        );
 
         // simulate resume action
         step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_RECOVER);
@@ -946,18 +1074,16 @@ public class ProcessDistributorImplTest {
     }
 
     private File createRandomDataSetInfo() throws IOException {
-
         File file = testFolder.newFile();
 
         try (PrintWriter writer = new PrintWriter(new FileOutputStream(file))) {
             int line = 0;
             for (int distributionLevel = 1; distributionLevel <= 100; distributionLevel++) {
-
                 int nbEntriesPerLevel = distributionLevel % 2 == 0 ? 5 : 10;
 
                 for (int entry = 0; entry < nbEntriesPerLevel; entry++) {
-
-                    writer.append("{ \"id\": \"")
+                    writer
+                        .append("{ \"id\": \"")
                         .append((++line == 375) ? FAKE_UUID : String.valueOf(UUID.randomUUID()))
                         .append("\", \"distribGroup\": ")
                         .append(String.valueOf(distributionLevel))
@@ -966,14 +1092,12 @@ public class ProcessDistributorImplTest {
                         .append("\"}}");
                     writer.append("\n");
                 }
-
             }
             writer.flush();
         }
 
         return file;
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -985,8 +1109,14 @@ public class ProcessDistributorImplTest {
         step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_RECOVER);
 
         String NOLEVEL = "_no_level";
-        DistributorIndex distributorIndex =
-            new DistributorIndex(NOLEVEL, 7, new ItemStatus(), FAKE_REQUEST_ID, step.getId(), new ArrayList<>());
+        DistributorIndex distributorIndex = new DistributorIndex(
+            NOLEVEL,
+            7,
+            new ItemStatus(),
+            FAKE_REQUEST_ID,
+            step.getId(),
+            new ArrayList<>()
+        );
 
         when(processDataManagement.getDistributorIndex(operationId)).thenReturn(Optional.of(distributorIndex));
 
@@ -1002,27 +1132,30 @@ public class ProcessDistributorImplTest {
     private void givenWorkspaceClientReturnsFileContent(File file, String containerName, String objectId)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         when(workspaceClient.getObject(containerName, objectId)).thenAnswer(
-            (args) -> Response.ok(Files.newInputStream(file.toPath())).status(Response.Status.OK).build());
-        when(workspaceClient.getObject(eq(containerName), eq(objectId), anyLong(), anyLong())).thenAnswer(
-            (args) -> {
-                long startOffset = args.getArgument(2);
-                Long maxSize = args.getArgument(3);
-                long actualMaxSize = maxSize == null ? Long.MAX_VALUE : maxSize;
+            args -> Response.ok(Files.newInputStream(file.toPath())).status(Response.Status.OK).build()
+        );
+        when(workspaceClient.getObject(eq(containerName), eq(objectId), anyLong(), anyLong())).thenAnswer(args -> {
+            long startOffset = args.getArgument(2);
+            Long maxSize = args.getArgument(3);
+            long actualMaxSize = maxSize == null ? Long.MAX_VALUE : maxSize;
 
-                BoundedInputStream inputStream = new BoundedInputStream(
-                    Channels.newInputStream(
-                        Files.newByteChannel(file.toPath())
-                            .position(startOffset))
-                    , actualMaxSize);
+            BoundedInputStream inputStream = new BoundedInputStream(
+                Channels.newInputStream(Files.newByteChannel(file.toPath()).position(startOffset)),
+                actualMaxSize
+            );
 
-                long actualSize = Math.min(file.length() - startOffset, actualMaxSize);
+            long actualSize = Math.min(file.length() - startOffset, actualMaxSize);
 
-                MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
-                headers.add(X_CHUNK_LENGTH, actualSize);
-                headers.add(X_CONTENT_LENGTH, file.length());
-                return new AbstractMockClient.FakeInboundResponse(Response.Status.OK,
-                    new BufferedInputStream(inputStream), null, headers);
-            });
+            MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
+            headers.add(X_CHUNK_LENGTH, actualSize);
+            headers.add(X_CONTENT_LENGTH, file.length());
+            return new AbstractMockClient.FakeInboundResponse(
+                Response.Status.OK,
+                new BufferedInputStream(inputStream),
+                null,
+                headers
+            );
+        });
     }
 
     @Test
@@ -1041,7 +1174,6 @@ public class ProcessDistributorImplTest {
     @Test
     @RunWithCustomExecutor
     public void whenDistributeKindEmptyLargeFileThenWarning() throws Exception {
-
         File file = PropertiesUtils.getResourceFile(FILE_EMPTY_GUIDS);
         givenWorkspaceClientReturnsFileContent(file, operationId, FILE_EMPTY_GUIDS);
 
@@ -1064,12 +1196,10 @@ public class ProcessDistributorImplTest {
         File chainedFile = PropertiesUtils.getResourceFile(list_elements);
         givenWorkspaceClientReturnsFileContent(chainedFile, operationId, list_elements);
 
-
         ProcessStep step = getStep(DistributionKind.LIST_IN_FILE, list_elements, 5);
 
         // When
         ItemStatus itemStatus = processDistributor.distribute(workerParameters, step, operationId);
-
 
         // Then
         assertNotNull(itemStatus);
@@ -1099,33 +1229,38 @@ public class ProcessDistributorImplTest {
         AtomicBoolean bulk0Ready = new AtomicBoolean(false);
         AtomicBoolean bulk2Ready = new AtomicBoolean(false);
 
-        when(workerClient.submitStep(any()))
-            .thenAnswer(invocation -> {
-                DescriptionStep descriptionStep = invocation.getArgument(0);
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
+            DescriptionStep descriptionStep = invocation.getArgument(0);
 
-                int bulkId = bulks.indexOf(descriptionStep.getWorkParams().getObjectNameList());
+            int bulkId = bulks.indexOf(descriptionStep.getWorkParams().getObjectNameList());
 
-                if (bulkId == 0 && !bulk0Ready.get()) {
-                    throw new ProcessingRetryAsyncException(Map.of(
-                        new AccessRequestContext("strategy1"), List.of("accessRequest1", "accessRequest2"),
-                        new AccessRequestContext("strategy1", "offer1"), List.of("accessRequest3"),
-                        new AccessRequestContext("strategy2"), List.of("accessRequest4")
-                    ));
-                }
+            if (bulkId == 0 && !bulk0Ready.get()) {
+                throw new ProcessingRetryAsyncException(
+                    Map.of(
+                        new AccessRequestContext("strategy1"),
+                        List.of("accessRequest1", "accessRequest2"),
+                        new AccessRequestContext("strategy1", "offer1"),
+                        List.of("accessRequest3"),
+                        new AccessRequestContext("strategy2"),
+                        List.of("accessRequest4")
+                    )
+                );
+            }
 
-                if (bulkId == 2 && !bulk2Ready.get()) {
-                    throw new ProcessingRetryAsyncException(Map.of(
-                        new AccessRequestContext("strategy1"), List.of("accessRequest5")
-                    ));
-                }
+            if (bulkId == 2 && !bulk2Ready.get()) {
+                throw new ProcessingRetryAsyncException(
+                    Map.of(new AccessRequestContext("strategy1"), List.of("accessRequest5"))
+                );
+            }
 
-                return getMockedItemStatus(StatusCode.OK, descriptionStep.getWorkParams().getObjectNameList().size());
-            });
+            return getMockedItemStatus(StatusCode.OK, descriptionStep.getWorkParams().getObjectNameList().size());
+        });
 
         // When
-        CompletableFuture<ItemStatus> itemStatusCompletableFuture =
-            CompletableFuture.supplyAsync(() -> processDistributor.distribute(workerParameters, step, operationId),
-                VitamThreadPoolExecutor.getDefaultExecutor());
+        CompletableFuture<ItemStatus> itemStatusCompletableFuture = CompletableFuture.supplyAsync(
+            () -> processDistributor.distribute(workerParameters, step, operationId),
+            VitamThreadPoolExecutor.getDefaultExecutor()
+        );
 
         Thread.sleep(3000);
 
@@ -1136,23 +1271,38 @@ public class ProcessDistributorImplTest {
 
         verify(workerClient, times(4)).submitStep(any());
 
-        ArgumentCaptor<AsyncResourceCallback> callback0ArgumentCaptor =
-            ArgumentCaptor.forClass(AsyncResourceCallback.class);
+        ArgumentCaptor<AsyncResourceCallback> callback0ArgumentCaptor = ArgumentCaptor.forClass(
+            AsyncResourceCallback.class
+        );
         verify(asyncResourcesMonitor, times(1)).watchAsyncResourcesForBulk(
-            eq(Map.of(
-                "accessRequest1", new AccessRequestContext("strategy1"),
-                "accessRequest2", new AccessRequestContext("strategy1"),
-                "accessRequest3", new AccessRequestContext("strategy1", "offer1"),
-                "accessRequest4", new AccessRequestContext("strategy2")
-            )), eq(VitamThreadUtils.getVitamSession().getRequestId()), anyString(), any(),
-            callback0ArgumentCaptor.capture());
+            eq(
+                Map.of(
+                    "accessRequest1",
+                    new AccessRequestContext("strategy1"),
+                    "accessRequest2",
+                    new AccessRequestContext("strategy1"),
+                    "accessRequest3",
+                    new AccessRequestContext("strategy1", "offer1"),
+                    "accessRequest4",
+                    new AccessRequestContext("strategy2")
+                )
+            ),
+            eq(VitamThreadUtils.getVitamSession().getRequestId()),
+            anyString(),
+            any(),
+            callback0ArgumentCaptor.capture()
+        );
 
-        ArgumentCaptor<AsyncResourceCallback> callback2ArgumentCaptor =
-            ArgumentCaptor.forClass(AsyncResourceCallback.class);
+        ArgumentCaptor<AsyncResourceCallback> callback2ArgumentCaptor = ArgumentCaptor.forClass(
+            AsyncResourceCallback.class
+        );
         verify(asyncResourcesMonitor, times(1)).watchAsyncResourcesForBulk(
-            eq(Map.of("accessRequest5", new AccessRequestContext("strategy1")
-            )), eq(VitamThreadUtils.getVitamSession().getRequestId()), anyString(), any(),
-            callback2ArgumentCaptor.capture());
+            eq(Map.of("accessRequest5", new AccessRequestContext("strategy1"))),
+            eq(VitamThreadUtils.getVitamSession().getRequestId()),
+            anyString(),
+            any(),
+            callback2ArgumentCaptor.capture()
+        );
 
         // When : bulk0 ready
         bulk0Ready.set(true);
@@ -1165,12 +1315,18 @@ public class ProcessDistributorImplTest {
         }
         // Expected re-execution of bulk0
         verify(workerClient, times(4 + 1)).submitStep(any());
-        verify(asyncResourceCleaner).markAsyncResourcesForRemoval(Map.of(
-            "accessRequest1", new AccessRequestContext("strategy1"),
-            "accessRequest2", new AccessRequestContext("strategy1"),
-            "accessRequest3", new AccessRequestContext("strategy1", "offer1"),
-            "accessRequest4", new AccessRequestContext("strategy2")
-        ));
+        verify(asyncResourceCleaner).markAsyncResourcesForRemoval(
+            Map.of(
+                "accessRequest1",
+                new AccessRequestContext("strategy1"),
+                "accessRequest2",
+                new AccessRequestContext("strategy1"),
+                "accessRequest3",
+                new AccessRequestContext("strategy1", "offer1"),
+                "accessRequest4",
+                new AccessRequestContext("strategy2")
+            )
+        );
         verifyNoMoreInteractions(asyncResourceCleaner);
 
         // When : Bulk2 ready
@@ -1184,7 +1340,8 @@ public class ProcessDistributorImplTest {
         verify(workerClient, times(4 + 1 + 1)).submitStep(any());
         verify(workerClient, times(4 + 1 + 1)).close();
         verify(asyncResourceCleaner).markAsyncResourcesForRemoval(
-            Map.of("accessRequest5", new AccessRequestContext("strategy1")));
+            Map.of("accessRequest5", new AccessRequestContext("strategy1"))
+        );
         verifyNoMoreInteractions(asyncResourceCleaner);
 
         verifyNoMoreInteractions(workerClient);
@@ -1222,32 +1379,36 @@ public class ProcessDistributorImplTest {
             List.of("f5cd0edd-ccd5-4275-b86a-e4ea77687ae1")
         );
 
-        when(workerClient.submitStep(any()))
-            .thenAnswer(invocation -> {
-                DescriptionStep descriptionStep = invocation.getArgument(0);
+        when(workerClient.submitStep(any())).thenAnswer(invocation -> {
+            DescriptionStep descriptionStep = invocation.getArgument(0);
 
-                int bulkId = bulks.indexOf(descriptionStep.getWorkParams().getObjectNameList());
+            int bulkId = bulks.indexOf(descriptionStep.getWorkParams().getObjectNameList());
 
-                if (bulkId == 0) {
-                    throw new ProcessingRetryAsyncException(Map.of(
-                        new AccessRequestContext("strategy1"), List.of("accessRequest1", "accessRequest2"),
-                        new AccessRequestContext("strategy1", "offer1"), List.of("accessRequest3")
-                    ));
-                }
+            if (bulkId == 0) {
+                throw new ProcessingRetryAsyncException(
+                    Map.of(
+                        new AccessRequestContext("strategy1"),
+                        List.of("accessRequest1", "accessRequest2"),
+                        new AccessRequestContext("strategy1", "offer1"),
+                        List.of("accessRequest3")
+                    )
+                );
+            }
 
-                if (bulkId == 2) {
-                    throw new ProcessingRetryAsyncException(Map.of(
-                        new AccessRequestContext("strategy1"), List.of("accessRequest4")
-                    ));
-                }
+            if (bulkId == 2) {
+                throw new ProcessingRetryAsyncException(
+                    Map.of(new AccessRequestContext("strategy1"), List.of("accessRequest4"))
+                );
+            }
 
-                return getMockedItemStatus(StatusCode.OK, descriptionStep.getWorkParams().getObjectNameList().size());
-            });
+            return getMockedItemStatus(StatusCode.OK, descriptionStep.getWorkParams().getObjectNameList().size());
+        });
 
         // When
-        CompletableFuture<ItemStatus> itemStatusCompletableFuture =
-            CompletableFuture.supplyAsync(() -> processDistributor.distribute(workerParameters, step, operationId),
-                VitamThreadPoolExecutor.getDefaultExecutor());
+        CompletableFuture<ItemStatus> itemStatusCompletableFuture = CompletableFuture.supplyAsync(
+            () -> processDistributor.distribute(workerParameters, step, operationId),
+            VitamThreadPoolExecutor.getDefaultExecutor()
+        );
 
         Thread.sleep(3000);
 
@@ -1258,22 +1419,36 @@ public class ProcessDistributorImplTest {
 
         verify(workerClient, times(4)).submitStep(any());
 
-        ArgumentCaptor<AsyncResourceCallback> callback0ArgumentCaptor =
-            ArgumentCaptor.forClass(AsyncResourceCallback.class);
+        ArgumentCaptor<AsyncResourceCallback> callback0ArgumentCaptor = ArgumentCaptor.forClass(
+            AsyncResourceCallback.class
+        );
         verify(asyncResourcesMonitor, times(1)).watchAsyncResourcesForBulk(
-            eq(Map.of(
-                "accessRequest1", new AccessRequestContext("strategy1"),
-                "accessRequest2", new AccessRequestContext("strategy1"),
-                "accessRequest3", new AccessRequestContext("strategy1", "offer1")
-            )), eq(VitamThreadUtils.getVitamSession().getRequestId()), anyString(), any(),
-            callback0ArgumentCaptor.capture());
+            eq(
+                Map.of(
+                    "accessRequest1",
+                    new AccessRequestContext("strategy1"),
+                    "accessRequest2",
+                    new AccessRequestContext("strategy1"),
+                    "accessRequest3",
+                    new AccessRequestContext("strategy1", "offer1")
+                )
+            ),
+            eq(VitamThreadUtils.getVitamSession().getRequestId()),
+            anyString(),
+            any(),
+            callback0ArgumentCaptor.capture()
+        );
 
-        ArgumentCaptor<AsyncResourceCallback> callback2ArgumentCaptor =
-            ArgumentCaptor.forClass(AsyncResourceCallback.class);
+        ArgumentCaptor<AsyncResourceCallback> callback2ArgumentCaptor = ArgumentCaptor.forClass(
+            AsyncResourceCallback.class
+        );
         verify(asyncResourcesMonitor, times(1)).watchAsyncResourcesForBulk(
-            eq(Map.of("accessRequest4", new AccessRequestContext("strategy1")
-            )), eq(VitamThreadUtils.getVitamSession().getRequestId()), anyString(), any(),
-            callback2ArgumentCaptor.capture());
+            eq(Map.of("accessRequest4", new AccessRequestContext("strategy1"))),
+            eq(VitamThreadUtils.getVitamSession().getRequestId()),
+            anyString(),
+            any(),
+            callback2ArgumentCaptor.capture()
+        );
 
         // When : Step paused
         step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
@@ -1289,12 +1464,19 @@ public class ProcessDistributorImplTest {
         verify(workerClient, times(4)).close();
 
         // Ensure access requests cleanup
-        verify(asyncResourceCleaner).markAsyncResourcesForRemoval(Map.of(
-            "accessRequest1", new AccessRequestContext("strategy1"),
-            "accessRequest2", new AccessRequestContext("strategy1"),
-            "accessRequest3", new AccessRequestContext("strategy1", "offer1")));
         verify(asyncResourceCleaner).markAsyncResourcesForRemoval(
-            Map.of("accessRequest4", new AccessRequestContext("strategy1")));
+            Map.of(
+                "accessRequest1",
+                new AccessRequestContext("strategy1"),
+                "accessRequest2",
+                new AccessRequestContext("strategy1"),
+                "accessRequest3",
+                new AccessRequestContext("strategy1", "offer1")
+            )
+        );
+        verify(asyncResourceCleaner).markAsyncResourcesForRemoval(
+            Map.of("accessRequest4", new AccessRequestContext("strategy1"))
+        );
         verifyNoMoreInteractions(asyncResourceCleaner);
 
         verifyNoMoreInteractions(workerClient);
@@ -1338,17 +1520,19 @@ public class ProcessDistributorImplTest {
         Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
         givenWorkspaceClientReturnsFileContent(fileContracts, any(), any());
 
-        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "p" + JSON_EXTENSION))))
-            .thenAnswer(invocation -> {
-                step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
-                return getMockedItemStatus(StatusCode.OK);
-            });
+        when(
+            workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "p" + JSON_EXTENSION)))
+        ).thenAnswer(invocation -> {
+            step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
+            return getMockedItemStatus(StatusCode.OK);
+        });
 
         final ItemStatus is = processDistributor.distribute(workerParameters, step, operationId);
 
         assertThat(is).isNotNull();
-        assertThat(is.getStatusMeter().get(StatusCode.OK.getStatusLevel()))
-            .isLessThan(VitamConfiguration.getRestoreBulkSize()); // statusCode OK
+        assertThat(is.getStatusMeter().get(StatusCode.OK.getStatusLevel())).isLessThan(
+            VitamConfiguration.getRestoreBulkSize()
+        ); // statusCode OK
         // Why 26, because to execute in the file ingestLevelStack we have
         // "level_0" : [], Execute 0
         // "level_1" : [ "a" ], Execute 1
@@ -1359,7 +1543,6 @@ public class ProcessDistributorImplTest {
         assertThat(is.getStatusMeter().stream().mapToInt(o -> o).sum()).isBetween(10, 26);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void whenDistributePauseAndWorkerTaskExceptionThenPauseOK() throws Exception {
@@ -1368,13 +1551,15 @@ public class ProcessDistributorImplTest {
         givenWorkspaceClientReturnsFileContent(resourceFile, any(), any());
         Step step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS);
 
-        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d" + JSON_EXTENSION))))
-            .thenThrow(new WorkerServerClientException("Exception While Executing d"));
-        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "p" + JSON_EXTENSION))))
-            .thenAnswer(invocation -> {
-                step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
-                return getMockedItemStatus(StatusCode.OK);
-            });
+        when(
+            workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d" + JSON_EXTENSION)))
+        ).thenThrow(new WorkerServerClientException("Exception While Executing d"));
+        when(
+            workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "p" + JSON_EXTENSION)))
+        ).thenAnswer(invocation -> {
+            step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
+            return getMockedItemStatus(StatusCode.OK);
+        });
 
         final ItemStatus is = processDistributor.distribute(workerParameters, step, operationId);
 
@@ -1395,16 +1580,16 @@ public class ProcessDistributorImplTest {
     @Test
     @RunWithCustomExecutor
     public void whenDistributeCancelOK() throws Exception {
-
         final File ingestLevelStack = PropertiesUtils.getResourceFile("ingestLevelStack.json");
         ProcessStep step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS, 1);
         givenWorkspaceClientReturnsFileContent(ingestLevelStack, any(), any());
 
-        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d" + JSON_EXTENSION))))
-            .thenAnswer(invocation -> {
-                step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_CANCEL);
-                return getMockedItemStatus(StatusCode.OK);
-            });
+        when(
+            workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d" + JSON_EXTENSION)))
+        ).thenAnswer(invocation -> {
+            step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_CANCEL);
+            return getMockedItemStatus(StatusCode.OK);
+        });
 
         ItemStatus is = processDistributor.distribute(workerParameters, step, operationId);
         assertThat(is).isNotNull();
@@ -1427,7 +1612,6 @@ public class ProcessDistributorImplTest {
     @Test
     @RunWithCustomExecutor
     public void whenDistributeOnListPauseThenResumeWithIndexOffsetOK() throws Exception {
-
         final File ingestLevelStack = PropertiesUtils.getResourceFile("ingestLevelStack.json");
         ProcessStep step = getStep(DistributionKind.LIST_ORDERING_IN_FILE, ProcessDistributor.ELEMENT_UNITS, 1);
         givenWorkspaceClientReturnsFileContent(ingestLevelStack, any(), any());
@@ -1435,18 +1619,21 @@ public class ProcessDistributorImplTest {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         AtomicReference<DistributorIndex> distributorIndex = new AtomicReference<>();
 
-        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "hh" + JSON_EXTENSION))))
-            .thenAnswer(invocation -> {
-                step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
-                countDownLatch.countDown();
-                return getMockedItemStatus(StatusCode.OK);
-            });
+        when(
+            workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "hh" + JSON_EXTENSION)))
+        ).thenAnswer(invocation -> {
+            step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_PAUSE);
+            countDownLatch.countDown();
+            return getMockedItemStatus(StatusCode.OK);
+        });
 
         doAnswer(invocation -> {
             DistributorIndex myDistributorIndex = invocation.getArgument(1);
             distributorIndex.set(myDistributorIndex);
             return myDistributorIndex;
-        }).when(processDataManagement).persistDistributorIndex(eq(operationId), any(DistributorIndex.class));
+        })
+            .when(processDataManagement)
+            .persistDistributorIndex(eq(operationId), any(DistributorIndex.class));
 
         // we run the step
         processDistributor.distribute(workerParameters, step, operationId);
@@ -1455,8 +1642,9 @@ public class ProcessDistributorImplTest {
 
         doReturn(Optional.of(distributorIndex.get())).when(processDataManagement).getDistributorIndex(eq(operationId));
 
-        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d"))))
-            .thenAnswer(invocation -> getMockedItemStatus(StatusCode.OK));
+        when(workerClient.submitStep(argThat(stepDescription -> matcher(stepDescription, "d")))).thenAnswer(
+            invocation -> getMockedItemStatus(StatusCode.OK)
+        );
 
         // simulate resume action
         step.setPauseOrCancelAction(PauseOrCancelAction.ACTION_RECOVER);
@@ -1471,9 +1659,10 @@ public class ProcessDistributorImplTest {
     }
 
     private boolean matcher(DescriptionStep descriptionStep, String elementName) {
-        if (Objects.nonNull(descriptionStep))
-            return descriptionStep.getWorkParams().getObjectNameList().contains(elementName);
-        else
-            return false;
+        if (Objects.nonNull(descriptionStep)) return descriptionStep
+            .getWorkParams()
+            .getObjectNameList()
+            .contains(elementName);
+        else return false;
     }
 }

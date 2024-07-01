@@ -30,9 +30,8 @@ package fr.gouv.vitam.common.server;
  * Vitam Server Interface
  */
 public interface VitamServerInterface {
-
-    final public static String BUSINESS_CONNECTOR_NAME = "business";
-    final public static String ADMIN_CONNECTOR_NAME = "admin";
+    public static final String BUSINESS_CONNECTOR_NAME = "business";
+    public static final String ADMIN_CONNECTOR_NAME = "admin";
 
     /**
      * @return the associated port
@@ -45,5 +44,4 @@ public interface VitamServerInterface {
      * @return the port number of the named connector @admin if exists else return -1
      */
     int getAdminPort();
-
 }

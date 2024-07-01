@@ -40,6 +40,7 @@ import java.util.concurrent.Callable;
  * @param <V> Value
  */
 abstract class AbstractLruCache<K, V> implements InterfaceLruCache<K, V> {
+
     private long ttl;
 
     /**

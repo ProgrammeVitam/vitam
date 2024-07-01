@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.storage.filesystem.v2;
 
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.digest.Digest;
 import fr.gouv.vitam.common.digest.DigestType;
@@ -70,7 +69,6 @@ public class HashFileSystemHelper {
         this.rootPath = rootPath;
     }
 
-
     // High level functions for the directory structure
 
     /**
@@ -93,7 +91,8 @@ public class HashFileSystemHelper {
     public List<String> splitObjectId(String objectId) throws ContentAddressableStorageServerException {
         if (objectId.matches(SEPARATOR)) {
             throw new ContentAddressableStorageServerException(
-                "objectId " + objectId + " contains " + SEPARATOR + " character which is forbidden ");
+                "objectId " + objectId + " contains " + SEPARATOR + " character which is forbidden "
+            );
         }
         Digest d = new Digest(DigestType.SHA256);
         String digest = d.update(objectId.getBytes()).digestHex();
@@ -125,13 +124,10 @@ public class HashFileSystemHelper {
         }
         // Add the objectId name at the end
         subDirectoriesComponentList.add(objectId);
-        String[] subDirectoriesComponentArray =
-            subDirectoriesComponentList.toArray(new String[0]);
+        String[] subDirectoriesComponentArray = subDirectoriesComponentList.toArray(new String[0]);
 
         return fs.getPath(getPathContainer(container).toString(), subDirectoriesComponentArray);
     }
-
-
 
     // Manage Container
 
@@ -141,8 +137,7 @@ public class HashFileSystemHelper {
      * @param container : relative path that will be appended at the end of the rootPath
      * @throws ContentAddressableStorageServerException : on I/O Errors
      */
-    public void createContainer(String container)
-        throws ContentAddressableStorageServerException {
+    public void createContainer(String container) throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter("Container can't be null", container);
         createDirectories(getPathContainer(container));
     }
@@ -164,8 +159,7 @@ public class HashFileSystemHelper {
      * @param path
      * @throws ContentAddressableStorageServerException
      */
-    public void createDirectories(Path path)
-        throws ContentAddressableStorageServerException {
+    public void createDirectories(Path path) throws ContentAddressableStorageServerException {
         if (path.toFile().isDirectory()) {
             return;
         }

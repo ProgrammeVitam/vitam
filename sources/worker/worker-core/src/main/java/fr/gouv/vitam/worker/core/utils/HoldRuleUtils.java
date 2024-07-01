@@ -57,14 +57,14 @@ public final class HoldRuleUtils {
 
     public static InheritedRuleCategoryResponseModel parseHoldRuleCategory(JsonNode unit)
         throws ProcessingStatusException {
-
         try {
             JsonNode inheritedRules = unit.get(MetadataRuleService.INHERITED_RULES);
 
-            UnitInheritedRulesResponseModel unitInheritedRulesResponseModel =
-                JsonHandler.getFromJsonNode(inheritedRules, UnitInheritedRulesResponseModel.class);
+            UnitInheritedRulesResponseModel unitInheritedRulesResponseModel = JsonHandler.getFromJsonNode(
+                inheritedRules,
+                UnitInheritedRulesResponseModel.class
+            );
             return unitInheritedRulesResponseModel.getRuleCategories().get(VitamConstants.TAG_RULE_HOLD);
-
         } catch (InvalidParseOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not parse unit information", e);
         }
@@ -73,14 +73,15 @@ public final class HoldRuleUtils {
     public static Set<InheritedRuleResponseModel> listActiveHoldRules(
         String unitId,
         List<InheritedRuleResponseModel> holdRules,
-        LocalDate expirationDate) {
-
+        LocalDate expirationDate
+    ) {
         if (holdRules.isEmpty()) {
             LOGGER.debug("No hold rules found for unit " + unitId);
             return Collections.emptySet();
         }
 
-        Set<InheritedRuleResponseModel> activeHoldRules = holdRules.stream()
+        Set<InheritedRuleResponseModel> activeHoldRules = holdRules
+            .stream()
             .filter(holdRule -> {
                 LocalDate endDate = LocalDateUtil.parseDate(holdRule.getEndDate());
                 return (endDate == null || expirationDate.isBefore(endDate));

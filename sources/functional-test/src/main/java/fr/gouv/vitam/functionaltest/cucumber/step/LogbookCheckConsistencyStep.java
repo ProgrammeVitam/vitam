@@ -82,10 +82,8 @@ public class LogbookCheckConsistencyStep extends CommonStep {
         throws StorageException, StorageServerClientException, InvalidParseOperationException {
         assertThat(result).as("Le rapport du test de cohérence des journaux n'est pas disponible").isNotNull();
         String resultAsString = JsonHandler.prettyPrint(JsonHandler.toJsonNode(result));
-        assertThat(result.getCheckErrors()).as(
-                "Le rapport du test de cohérence des journaux contient une ou plusieurs erreurs : " + resultAsString)
+        assertThat(result.getCheckErrors())
+            .as("Le rapport du test de cohérence des journaux contient une ou plusieurs erreurs : " + resultAsString)
             .isNullOrEmpty();
     }
-
 }
-

@@ -54,37 +54,43 @@ public final class LogbookCollectionsTestUtils {
     @VisibleForTesting
     public static ElasticsearchLogbookIndexManager createTestIndexManager(
         List<Integer> dedicatedTenants,
-        Map<String, List<Integer>> tenantGroups) {
-
+        Map<String, List<Integer>> tenantGroups
+    ) {
         List<Integer> allTenants = Streams.concat(
             dedicatedTenants.stream(),
             tenantGroups.values().stream().flatMap(Collection::stream)
         ).collect(Collectors.toList());
 
-        List<GroupedTenantConfiguration> tenantGroupConfiguration =
-            tenantGroups.entrySet().stream()
-                .map(entry -> new GroupedTenantConfiguration()
-                    .setName(entry.getKey())
-                    .setTenants(entry.getValue().stream().map(Object::toString).collect(Collectors.joining(",")))
-                )
-                .collect(Collectors.toList());
+        List<GroupedTenantConfiguration> tenantGroupConfiguration = tenantGroups
+            .entrySet()
+            .stream()
+            .map(
+                entry ->
+                    new GroupedTenantConfiguration()
+                        .setName(entry.getKey())
+                        .setTenants(entry.getValue().stream().map(Object::toString).collect(Collectors.joining(",")))
+            )
+            .collect(Collectors.toList());
 
         LogbookConfiguration logbookConfiguration = new LogbookConfiguration()
-            .setLogbookTenantIndexation(new LogbookIndexationConfiguration()
-                .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                    .setLogbookoperation(new CollectionConfiguration(1, 0)))
-                .setGroupedTenantConfiguration(tenantGroupConfiguration)
+            .setLogbookTenantIndexation(
+                new LogbookIndexationConfiguration()
+                    .setDefaultCollectionConfiguration(
+                        new DefaultCollectionConfiguration().setLogbookoperation(new CollectionConfiguration(1, 0))
+                    )
+                    .setGroupedTenantConfiguration(tenantGroupConfiguration)
             );
         return new ElasticsearchLogbookIndexManager(logbookConfiguration, allTenants);
     }
 
     @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, String prefix,
-        final LogbookElasticsearchAccess esClient) {
-
+    public static void beforeTestClass(
+        final MongoDatabase db,
+        String prefix,
+        final LogbookElasticsearchAccess esClient
+    ) {
         for (LogbookCollections collection : LogbookCollections.values()) {
-            collection.getVitamCollection()
-                .setName(prefix + collection.getClasz().getSimpleName());
+            collection.getVitamCollection().setName(prefix + collection.getClasz().getSimpleName());
             collection.initialize(db, false);
             if (collection == LogbookCollections.OPERATION) {
                 collection.initialize(esClient);
@@ -100,7 +106,6 @@ public final class LogbookCollectionsTestUtils {
     public static void afterTestClass(ElasticsearchLogbookIndexManager indexManager, boolean deleteEsIndexes) {
         try {
             for (LogbookCollections collection : LogbookCollections.values()) {
-
                 if (null != collection.getVitamCollection().getCollection()) {
                     collection.getVitamCollection().getCollection().deleteMany(new Document());
                 }
@@ -108,11 +113,17 @@ public final class LogbookCollectionsTestUtils {
                 if (collection == LogbookCollections.OPERATION && null != collection.getEsClient()) {
                     for (Integer tenant : indexManager.getDedicatedTenants()) {
                         if (deleteEsIndexes) {
-                            collection.getEsClient().deleteIndexByAliasForTesting(
-                                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
+                            collection
+                                .getEsClient()
+                                .deleteIndexByAliasForTesting(
+                                    indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant)
+                                );
                         } else {
-                            collection.getEsClient().purgeIndexForTesting(
-                                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
+                            collection
+                                .getEsClient()
+                                .purgeIndexForTesting(
+                                    indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant)
+                                );
                         }
                     }
 
@@ -120,11 +131,17 @@ public final class LogbookCollectionsTestUtils {
                         // Select first tenant
                         Integer tenant = indexManager.getTenantGroupTenants(tenantGroupName).iterator().next();
                         if (deleteEsIndexes) {
-                            collection.getEsClient().deleteIndexByAliasForTesting(
-                                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
+                            collection
+                                .getEsClient()
+                                .deleteIndexByAliasForTesting(
+                                    indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant)
+                                );
                         } else {
-                            collection.getEsClient().purgeIndexForTesting(
-                                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
+                            collection
+                                .getEsClient()
+                                .purgeIndexForTesting(
+                                    indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant)
+                                );
                         }
                     }
                 }

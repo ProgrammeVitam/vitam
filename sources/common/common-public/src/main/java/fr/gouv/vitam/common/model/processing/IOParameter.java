@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.model.processing;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.ParametersChecker;
 
@@ -34,10 +33,13 @@ import fr.gouv.vitam.common.ParametersChecker;
  * IOParameter for action or step
  */
 public class IOParameter {
+
     @JsonProperty("name")
     private String name;
+
     @JsonProperty("uri")
     private ProcessingUri uri;
+
     @JsonProperty("optional")
     private boolean optional;
 

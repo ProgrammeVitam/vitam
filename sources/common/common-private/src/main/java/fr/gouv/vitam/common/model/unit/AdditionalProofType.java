@@ -31,7 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 public class AdditionalProofType {
-    
+
     @JsonProperty("AdditionalProofInformation")
     public List<String> additionalProofInformation;
 

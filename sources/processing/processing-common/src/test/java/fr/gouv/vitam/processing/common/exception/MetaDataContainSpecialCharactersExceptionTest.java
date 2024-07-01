@@ -38,12 +38,12 @@ public class MetaDataContainSpecialCharactersExceptionTest {
 
     @Test
     public void testConstructor() {
-        MetaDataContainSpecialCharactersException exception =
-            new MetaDataContainSpecialCharactersException(ERROR, new Exception());
-        assertEquals(EXCEPTION + ": " + ERROR,
-            exception.toString());
+        MetaDataContainSpecialCharactersException exception = new MetaDataContainSpecialCharactersException(
+            ERROR,
+            new Exception()
+        );
+        assertEquals(EXCEPTION + ": " + ERROR, exception.toString());
         exception = new MetaDataContainSpecialCharactersException(ERROR);
         assertEquals(ERROR, exception.getMessage());
     }
-
 }

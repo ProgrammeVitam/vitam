@@ -48,5 +48,4 @@ public class PaginationParameters {
      * Max limit for loading result
      */
     public static final int MAXIMUM_OFFSET = 1000000;
-
 }

@@ -35,24 +35,30 @@ public class InterfaceLruCacheEntryTest {
 
     @Test
     public void testReset() {
-        final StrongReferenceCacheEntry<String> strongReferenceCacheEntry0 =
-            new StrongReferenceCacheEntry<>("ttl must be positive", 4176L);
+        final StrongReferenceCacheEntry<String> strongReferenceCacheEntry0 = new StrongReferenceCacheEntry<>(
+            "ttl must be positive",
+            4176L
+        );
         final boolean boolean0 = strongReferenceCacheEntry0.resetTime(2357L);
         assertTrue(boolean0);
     }
 
     @Test
     public void testStillValid() {
-        final StrongReferenceCacheEntry<Object> strongReferenceCacheEntry0 =
-            new StrongReferenceCacheEntry<>("ttl must be positive", 1L);
+        final StrongReferenceCacheEntry<Object> strongReferenceCacheEntry0 = new StrongReferenceCacheEntry<>(
+            "ttl must be positive",
+            1L
+        );
         final boolean boolean0 = strongReferenceCacheEntry0.isStillValid(4176L);
         assertTrue(boolean0);
     }
 
     @Test
     public void testValue() {
-        final StrongReferenceCacheEntry<String> strongReferenceCacheEntry0 =
-            new StrongReferenceCacheEntry<>("ttl must be positive", 4176L);
+        final StrongReferenceCacheEntry<String> strongReferenceCacheEntry0 = new StrongReferenceCacheEntry<>(
+            "ttl must be positive",
+            4176L
+        );
         final String string0 = strongReferenceCacheEntry0.getValue();
         assertEquals("ttl must be positive", string0);
     }

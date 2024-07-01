@@ -51,13 +51,10 @@ public class ProcessMonitoringImplTest {
         processMonitoring.findOneProcessWorkflow("UNKNOWN_PROCESS_ID", TENANT_ID);
     }
 
-
-
     @Test(expected = WorkflowNotFoundException.class)
     public void processMonitoringGetWorkflowStatusKnownThenWorkFlowNotFound() throws Exception {
         final ProcessMonitoringImpl processMonitoring = ProcessMonitoringImpl.getInstance();
         // assertNotNull(processMonitoring.initOrderedWorkflow(new WorkFlow(), "containerName"));
         assertNotNull(processMonitoring.findOneProcessWorkflow("EXISTING_PROCESS_ID", TENANT_ID));
     }
-
 }

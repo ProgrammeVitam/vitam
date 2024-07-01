@@ -85,8 +85,7 @@ public class ReconstructionResource {
      */
     private static final String RECONSTRUCTION_JSON_MONDATORY_PARAMETERS_MSG =
         "the Json input of reconstruction's parameters is mondatory.";
-    private static final String RECONSTRUCTION_COLLECTION_MONDATORY_MSG =
-        "the collection to reconstruct is mondatory.";
+    private static final String RECONSTRUCTION_COLLECTION_MONDATORY_MSG = "the collection to reconstruct is mondatory.";
     private static final String RECONSTRUCTION_EXCEPTION_MSG =
         "ERROR: Exception has been thrown when reconstructing Vitam collections: ";
 
@@ -103,29 +102,39 @@ public class ReconstructionResource {
      * @param reconstructionFactory
      * @param ontologyLoader
      */
-    public ReconstructionResource(AdminManagementConfiguration configuration,
-        VitamRepositoryProvider reconstructionFactory, OntologyLoader ontologyLoader,
-        ElasticsearchFunctionalAdminIndexManager indexManager) {
+    public ReconstructionResource(
+        AdminManagementConfiguration configuration,
+        VitamRepositoryProvider reconstructionFactory,
+        OntologyLoader ontologyLoader,
+        ElasticsearchFunctionalAdminIndexManager indexManager
+    ) {
         DbConfigurationImpl adminConfiguration;
         if (configuration.isDbAuthentication()) {
-            adminConfiguration =
-                new DbConfigurationImpl(configuration.getMongoDbNodes(), configuration.getDbName(),
-                    true, configuration.getDbUserName(), configuration.getDbPassword());
+            adminConfiguration = new DbConfigurationImpl(
+                configuration.getMongoDbNodes(),
+                configuration.getDbName(),
+                true,
+                configuration.getDbUserName(),
+                configuration.getDbPassword()
+            );
         } else {
-            adminConfiguration =
-                new DbConfigurationImpl(configuration.getMongoDbNodes(),
-                    configuration.getDbName());
+            adminConfiguration = new DbConfigurationImpl(configuration.getMongoDbNodes(), configuration.getDbName());
         }
         this.mongoAccess = MongoDbAccessAdminFactory.create(adminConfiguration, ontologyLoader, indexManager);
 
         FunctionalAdministrationReconstructionMetricsCache reconstructionMetricsCache =
             new FunctionalAdministrationReconstructionMetricsCache(
-                    configuration.getReconstructionMetricsCacheDurationInMinutes(), TimeUnit.MINUTES);
+                configuration.getReconstructionMetricsCacheDurationInMinutes(),
+                TimeUnit.MINUTES
+            );
         FunctionalAdministrationReconstructionMetrics.initialize(reconstructionMetricsCache);
 
-        this.reconstructionService =
-            new ReconstructionServiceImpl(reconstructionFactory, new OffsetRepository(mongoAccess), indexManager,
-                reconstructionMetricsCache);
+        this.reconstructionService = new ReconstructionServiceImpl(
+            reconstructionFactory,
+            new OffsetRepository(mongoAccess),
+            indexManager,
+            reconstructionMetricsCache
+        );
     }
 
     /**
@@ -140,22 +149,35 @@ public class ReconstructionResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response reconstructCollections(@Context HttpHeaders headers,
-        @Valid List<ReconstructionItem> reconstructionItems) {
+    public Response reconstructCollections(
+        @Context HttpHeaders headers,
+        @Valid List<ReconstructionItem> reconstructionItems
+    ) {
         ParametersChecker.checkParameter(RECONSTRUCTION_JSON_MONDATORY_PARAMETERS_MSG, reconstructionItems);
 
         if (!reconstructionItems.isEmpty()) {
-            LOGGER.debug(String
-                .format("Starting reconstruction Vitam service with the json parameters : (%s)", reconstructionItems));
+            LOGGER.debug(
+                String.format(
+                    "Starting reconstruction Vitam service with the json parameters : (%s)",
+                    reconstructionItems
+                )
+            );
 
             // reconstruction of list of collection on a given list of tenants
             reconstructionItems.forEach(r -> {
-                LOGGER.debug(String.format("Starting reconstruction for the collection {%s} on the tenants : (%s)",
-                    r.getCollection(), r.getTenants()));
+                LOGGER.debug(
+                    String.format(
+                        "Starting reconstruction for the collection {%s} on the tenants : (%s)",
+                        r.getCollection(),
+                        r.getTenants()
+                    )
+                );
                 try {
                     // reconstruction of the given collection on the given list of tenants
-                    reconstructionService.reconstruct(FunctionalAdminCollections.getFromValue(r.getCollection()),
-                        r.getTenants().toArray(Integer[]::new));
+                    reconstructionService.reconstruct(
+                        FunctionalAdminCollections.getFromValue(r.getCollection()),
+                        r.getTenants().toArray(Integer[]::new)
+                    );
                 } catch (DatabaseException e) {
                     LOGGER.error(RECONSTRUCTION_EXCEPTION_MSG, e);
                 }
@@ -171,10 +193,8 @@ public class ReconstructionResource {
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response reconstructCollection(@Context HttpHeaders headers, @PathParam("collection") String collection) {
-
         ParametersChecker.checkParameter(RECONSTRUCTION_COLLECTION_MONDATORY_MSG, collection);
-        LOGGER.debug(String
-            .format("Starting reconstruction Vitam service to reconstruct : (%s)", collection));
+        LOGGER.debug(String.format("Starting reconstruction Vitam service to reconstruct : (%s)", collection));
 
         try {
             // reconstruction of the given collection on the configured list of tenants
@@ -202,13 +222,22 @@ public class ReconstructionResource {
 
         List<ReconstructionResponseItem> responses = new ArrayList<>();
         if (!reconstructionItems.isEmpty()) {
-            LOGGER.debug(String
-                .format("Starting reconstruction Vitam service with the json parameters : (%s)", reconstructionItems));
+            LOGGER.debug(
+                String.format(
+                    "Starting reconstruction Vitam service with the json parameters : (%s)",
+                    reconstructionItems
+                )
+            );
 
             reconstructionItems.forEach(item -> {
-                LOGGER.debug(String.format(
-                    "Starting reconstruction for the collection {%s} on the tenant (%s) with (%s) elements",
-                    item.getCollection(), item.getTenant(), item.getLimit()));
+                LOGGER.debug(
+                    String.format(
+                        "Starting reconstruction for the collection {%s} on the tenant (%s) with (%s) elements",
+                        item.getCollection(),
+                        item.getTenant(),
+                        item.getLimit()
+                    )
+                );
                 try {
                     responses.add(reconstructionService.reconstructAccessionRegister(item));
                 } catch (IllegalArgumentException e) {

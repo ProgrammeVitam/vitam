@@ -43,7 +43,6 @@ public class LogbookConfigurationValidator {
     public static final String TENANT_GROUP_NAME_PATTERN = "^[a-z][a-z0-9]{1,63}$";
 
     public static void validateConfiguration(LogbookConfiguration logbookConfiguration) {
-
         if (logbookConfiguration == null) {
             throw new IllegalStateException("Invalid configuration. Null config");
         }
@@ -52,8 +51,8 @@ public class LogbookConfigurationValidator {
     }
 
     private static void validateElasticsearchIndexationConfiguration(
-        LogbookIndexationConfiguration indexationConfiguration) {
-
+        LogbookIndexationConfiguration indexationConfiguration
+    ) {
         if (indexationConfiguration == null) {
             throw new IllegalStateException("Invalid configuration. Missing ES tenant indexation");
         }
@@ -67,71 +66,72 @@ public class LogbookConfigurationValidator {
         validateCollectionConfiguration(indexationConfiguration);
     }
 
-    private static void validateDefaultConfig(
-        LogbookIndexationConfiguration config)
-        throws IllegalStateException {
-
+    private static void validateDefaultConfig(LogbookIndexationConfiguration config) throws IllegalStateException {
         if (config.getDefaultCollectionConfiguration() == null) {
             throw new IllegalStateException("Invalid configuration. Missing default configuration");
         }
 
-        CollectionConfigurationUtils.validate(
-            config.getDefaultCollectionConfiguration().getLogbookoperation(), false);
+        CollectionConfigurationUtils.validate(config.getDefaultCollectionConfiguration().getLogbookoperation(), false);
     }
 
-    private static void validateTenantGroupNames(
-        LogbookIndexationConfiguration indexationConfiguration) {
-
+    private static void validateTenantGroupNames(LogbookIndexationConfiguration indexationConfiguration) {
         if (CollectionUtils.isEmpty(indexationConfiguration.getGroupedTenantConfiguration())) {
             return;
         }
 
         Set<Object> tenantGroupNames = new HashSet<>();
 
-        indexationConfiguration.getGroupedTenantConfiguration().stream()
+        indexationConfiguration
+            .getGroupedTenantConfiguration()
+            .stream()
             .map(GroupedTenantConfiguration::getName)
-            .forEach(
-                name -> {
-
-                    if (name == null) {
-                        throw new IllegalStateException("Invalid configuration. Missing tenant group name");
-                    }
-
-                    if (!name.matches(TENANT_GROUP_NAME_PATTERN)) {
-                        throw new IllegalStateException(
-                            "Invalid configuration. Tenant group name '" + name + "' does not match regex " +
-                                TENANT_GROUP_NAME_PATTERN);
-                    }
-
-                    if (!tenantGroupNames.add(name)) {
-                        throw new IllegalStateException("Invalid configuration. Duplicate tenant group name " + name);
-                    }
+            .forEach(name -> {
+                if (name == null) {
+                    throw new IllegalStateException("Invalid configuration. Missing tenant group name");
                 }
-            );
+
+                if (!name.matches(TENANT_GROUP_NAME_PATTERN)) {
+                    throw new IllegalStateException(
+                        "Invalid configuration. Tenant group name '" +
+                        name +
+                        "' does not match regex " +
+                        TENANT_GROUP_NAME_PATTERN
+                    );
+                }
+
+                if (!tenantGroupNames.add(name)) {
+                    throw new IllegalStateException("Invalid configuration. Duplicate tenant group name " + name);
+                }
+            });
     }
 
-    private static void validateTenantRanges(
-        LogbookIndexationConfiguration indexationConfiguration) {
+    private static void validateTenantRanges(LogbookIndexationConfiguration indexationConfiguration) {
         List<String> tenantRangeStrings = new ArrayList<>();
 
         if (CollectionUtils.isNotEmpty(indexationConfiguration.getGroupedTenantConfiguration())) {
-            indexationConfiguration.getGroupedTenantConfiguration().stream()
+            indexationConfiguration
+                .getGroupedTenantConfiguration()
+                .stream()
                 .map(GroupedTenantConfiguration::getTenants)
                 .forEach(tenantRangeStrings::add);
         }
 
         if (CollectionUtils.isNotEmpty(indexationConfiguration.getDedicatedTenantConfiguration())) {
-            indexationConfiguration.getDedicatedTenantConfiguration().stream()
+            indexationConfiguration
+                .getDedicatedTenantConfiguration()
+                .stream()
                 .map(DedicatedTenantConfiguration::getTenants)
                 .forEach(tenantRangeStrings::add);
         }
 
         if (tenantRangeStrings.contains(null)) {
             throw new IllegalStateException(
-                "Invalid configuration. Missing tenants from dedicated tenant or grouped tenant configuration");
+                "Invalid configuration. Missing tenants from dedicated tenant or grouped tenant configuration"
+            );
         }
 
-        List<TenantRange> tenantRanges = tenantRangeStrings.stream()
+        List<TenantRange> tenantRanges = tenantRangeStrings
+            .stream()
             .flatMap(tenantRangeString -> TenantRangeParser.parseTenantRanges(tenantRangeString).stream())
             .collect(Collectors.toList());
 
@@ -140,31 +140,29 @@ public class LogbookConfigurationValidator {
             for (int j = i + 1; j < tenantRanges.size(); j++) {
                 if (TenantRangeParser.doRangesIntersect(tenantRanges.get(i), tenantRanges.get(j))) {
                     throw new IllegalStateException(
-                        "Invalid configuration. Overlapping tenant ranges " + tenantRanges.get(i) + " and " +
-                            tenantRanges.get(j));
+                        "Invalid configuration. Overlapping tenant ranges " +
+                        tenantRanges.get(i) +
+                        " and " +
+                        tenantRanges.get(j)
+                    );
                 }
             }
         }
     }
 
-    private static void validateCollectionConfiguration(
-        LogbookIndexationConfiguration indexationConfiguration) {
+    private static void validateCollectionConfiguration(LogbookIndexationConfiguration indexationConfiguration) {
         if (CollectionUtils.isNotEmpty(indexationConfiguration.getDedicatedTenantConfiguration())) {
-            for (DedicatedTenantConfiguration dedicatedTenantConfiguration : indexationConfiguration
-                .getDedicatedTenantConfiguration()) {
+            for (DedicatedTenantConfiguration dedicatedTenantConfiguration : indexationConfiguration.getDedicatedTenantConfiguration()) {
                 if (dedicatedTenantConfiguration.getLogbookoperation() != null) {
-                    CollectionConfigurationUtils.validate(
-                        dedicatedTenantConfiguration.getLogbookoperation(), true);
+                    CollectionConfigurationUtils.validate(dedicatedTenantConfiguration.getLogbookoperation(), true);
                 }
             }
         }
 
         if (CollectionUtils.isNotEmpty(indexationConfiguration.getGroupedTenantConfiguration())) {
-            for (GroupedTenantConfiguration groupedTenantConfiguration : indexationConfiguration
-                .getGroupedTenantConfiguration()) {
+            for (GroupedTenantConfiguration groupedTenantConfiguration : indexationConfiguration.getGroupedTenantConfiguration()) {
                 if (groupedTenantConfiguration.getLogbookoperation() != null) {
-                    CollectionConfigurationUtils.validate(
-                        groupedTenantConfiguration.getLogbookoperation(), true);
+                    CollectionConfigurationUtils.validate(groupedTenantConfiguration.getLogbookoperation(), true);
                 }
             }
         }

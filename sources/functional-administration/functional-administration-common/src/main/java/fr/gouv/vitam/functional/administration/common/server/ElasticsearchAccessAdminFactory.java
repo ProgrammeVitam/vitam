@@ -40,7 +40,9 @@ import java.util.List;
  */
 public final class ElasticsearchAccessAdminFactory {
 
-    private ElasticsearchAccessAdminFactory() {     /* Empty */ }
+    private ElasticsearchAccessAdminFactory() {
+        /* Empty */
+    }
 
     /**
      * Creation of one ElasticsearchDbAcess
@@ -51,12 +53,13 @@ public final class ElasticsearchAccessAdminFactory {
      * @throws VitamException if elasticsearch list nodes is empty
      * @throws IllegalArgumentException if argument is null
      */
-    public static final ElasticsearchAccessFunctionalAdmin create(AdminManagementConfiguration configuration,
-        ElasticsearchFunctionalAdminIndexManager indexManager) {
+    public static final ElasticsearchAccessFunctionalAdmin create(
+        AdminManagementConfiguration configuration,
+        ElasticsearchFunctionalAdminIndexManager indexManager
+    ) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
         return create(configuration.getClusterName(), configuration.getElasticsearchNodes(), indexManager);
     }
-
 
     /**
      * Creation of one ElasticsearchDbAcess
@@ -68,12 +71,18 @@ public final class ElasticsearchAccessAdminFactory {
      * @throws VitamException if elasticsearch list nodes is empty
      * @throws IllegalArgumentException if argument is null
      */
-    public static ElasticsearchAccessFunctionalAdmin create(String clusterName, List<ElasticsearchNode> nodes,
-        ElasticsearchFunctionalAdminIndexManager indexManager) {
+    public static ElasticsearchAccessFunctionalAdmin create(
+        String clusterName,
+        List<ElasticsearchNode> nodes,
+        ElasticsearchFunctionalAdminIndexManager indexManager
+    ) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", clusterName, nodes);
         try {
-            ElasticsearchAccessFunctionalAdmin elasticsearchAccess =
-                new ElasticsearchAccessFunctionalAdmin(clusterName, nodes, indexManager);
+            ElasticsearchAccessFunctionalAdmin elasticsearchAccess = new ElasticsearchAccessFunctionalAdmin(
+                clusterName,
+                nodes,
+                indexManager
+            );
 
             Arrays.stream(FunctionalAdminCollections.values())
                 .filter(collection -> collection != FunctionalAdminCollections.VITAM_SEQUENCE)
@@ -83,5 +92,4 @@ public final class ElasticsearchAccessAdminFactory {
             throw new IllegalArgumentException(e);
         }
     }
-
 }

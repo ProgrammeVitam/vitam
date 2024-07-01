@@ -33,17 +33,13 @@ import static org.junit.Assert.assertEquals;
 public class StepAlreadyExecutedExceptionTest {
 
     private static final String ERROR = "ERROR";
-    private static final String EXCEPTION =
-        "fr.gouv.vitam.processing.common.exception.StepAlreadyExecutedException";
+    private static final String EXCEPTION = "fr.gouv.vitam.processing.common.exception.StepAlreadyExecutedException";
 
     @Test
     public void testConstructor() {
-        StepAlreadyExecutedException exception =
-            new StepAlreadyExecutedException(ERROR, new Exception());
-        assertEquals(EXCEPTION + ": " + ERROR,
-            exception.toString());
+        StepAlreadyExecutedException exception = new StepAlreadyExecutedException(ERROR, new Exception());
+        assertEquals(EXCEPTION + ": " + ERROR, exception.toString());
         exception = new StepAlreadyExecutedException(ERROR);
         assertEquals(ERROR, exception.getMessage());
     }
-
 }

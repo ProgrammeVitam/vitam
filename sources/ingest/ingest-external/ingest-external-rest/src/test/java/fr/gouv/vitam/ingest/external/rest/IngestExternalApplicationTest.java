@@ -46,8 +46,10 @@ public class IngestExternalApplicationTest {
     private final JunitHelper junitHelper = JunitHelper.getInstance();
     private int portAvailable;
     private static IngestExternalConfiguration realIngest;
+
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     private String configurationFile;
 
     @Before

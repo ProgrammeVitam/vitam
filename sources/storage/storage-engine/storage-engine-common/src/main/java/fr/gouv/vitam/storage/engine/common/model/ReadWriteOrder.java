@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.engine.common.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public interface ReadWriteOrder {
-
     String getId();
 
     @JsonIgnore

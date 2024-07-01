@@ -47,18 +47,22 @@ import static fr.gouv.vitam.common.json.JsonHandler.createObjectNode;
  * ScrollSpliteratorHelper class
  */
 public class ScrollSpliteratorHelper {
+
     /***
      * Create  units  ScrollSpliterator from a query that can iterate millions  of units
      * @param client metadataClient
      * @param selectMultiQuery query
      * @return the ScrollSpliterator
      */
-    public static ScrollSpliterator<JsonNode> createUnitScrollSplitIterator(final MetaDataClient client,
-        final SelectMultiQuery selectMultiQuery) {
-        return createUnitScrollSplitIterator(client, selectMultiQuery,
-            VitamConfiguration.getElasticSearchScrollLimit());
-
-
+    public static ScrollSpliterator<JsonNode> createUnitScrollSplitIterator(
+        final MetaDataClient client,
+        final SelectMultiQuery selectMultiQuery
+    ) {
+        return createUnitScrollSplitIterator(
+            client,
+            selectMultiQuery,
+            VitamConfiguration.getElasticSearchScrollLimit()
+        );
     }
 
     /***
@@ -68,18 +72,29 @@ public class ScrollSpliteratorHelper {
      * @param bachSize bachSize
      * @return the ScrollSpliterator
      */
-    public static ScrollSpliterator<JsonNode> createUnitScrollSplitIterator(final MetaDataClient client,
-        final SelectMultiQuery selectMultiQuery, int bachSize) {
-
-        return new ScrollSpliterator<>(selectMultiQuery,
+    public static ScrollSpliterator<JsonNode> createUnitScrollSplitIterator(
+        final MetaDataClient client,
+        final SelectMultiQuery selectMultiQuery,
+        int bachSize
+    ) {
+        return new ScrollSpliterator<>(
+            selectMultiQuery,
             query -> {
                 try {
                     JsonNode jsonNode = client.selectUnits(query.getFinalSelect());
                     return RequestResponseOK.getFromJsonNode(jsonNode);
-                } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
+                } catch (
+                    MetaDataExecutionException
+                    | MetaDataDocumentSizeException
+                    | MetaDataClientServerException
+                    | InvalidParseOperationException e
+                ) {
                     throw new IllegalStateException(e);
                 }
-            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), bachSize);
+            },
+            VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+            bachSize
+        );
     }
 
     /***
@@ -89,18 +104,29 @@ public class ScrollSpliteratorHelper {
      * @param bachSize bachSize
      * @return the ScrollSpliterator
      */
-    public static ScrollSpliterator<JsonNode> createObjectGroupScrollSplitIterator(final MetaDataClient client,
-        final SelectMultiQuery selectMultiQuery, int bachSize) {
-        return new ScrollSpliterator<>(selectMultiQuery,
+    public static ScrollSpliterator<JsonNode> createObjectGroupScrollSplitIterator(
+        final MetaDataClient client,
+        final SelectMultiQuery selectMultiQuery,
+        int bachSize
+    ) {
+        return new ScrollSpliterator<>(
+            selectMultiQuery,
             query -> {
                 try {
                     JsonNode jsonNode = client.selectObjectGroups(query.getFinalSelect());
                     return RequestResponseOK.getFromJsonNode(jsonNode);
-                } catch (MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException e) {
+                } catch (
+                    MetaDataExecutionException
+                    | MetaDataDocumentSizeException
+                    | MetaDataClientServerException
+                    | InvalidParseOperationException e
+                ) {
                     throw new IllegalStateException(e);
                 }
-            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(), bachSize);
-
+            },
+            VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+            bachSize
+        );
     }
 
     /***
@@ -109,24 +135,39 @@ public class ScrollSpliteratorHelper {
      * @param selectMultiQuery query
      * @return the ScrollSpliterator
      */
-    public static ScrollSpliterator<JsonNode> createObjectGroupScrollSplitIterator(final MetaDataClient client,
-        final SelectMultiQuery selectMultiQuery) {
-        return createObjectGroupScrollSplitIterator(client, selectMultiQuery,
-            VitamConfiguration.getElasticSearchScrollLimit());
+    public static ScrollSpliterator<JsonNode> createObjectGroupScrollSplitIterator(
+        final MetaDataClient client,
+        final SelectMultiQuery selectMultiQuery
+    ) {
+        return createObjectGroupScrollSplitIterator(
+            client,
+            selectMultiQuery,
+            VitamConfiguration.getElasticSearchScrollLimit()
+        );
     }
 
-    public static ScrollSpliterator<JsonNode> getUnitWithInheritedRulesScrollSpliterator(SelectMultiQuery request,
-        MetaDataClient client) {
-        return new ScrollSpliterator<>(request,
+    public static ScrollSpliterator<JsonNode> getUnitWithInheritedRulesScrollSpliterator(
+        SelectMultiQuery request,
+        MetaDataClient client
+    ) {
+        return new ScrollSpliterator<>(
+            request,
             query -> {
                 try {
                     JsonNode jsonNode = client.selectUnitsWithInheritedRules(query.getFinalSelect());
                     return RequestResponseOK.getFromJsonNode(jsonNode);
-                } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException e) {
+                } catch (
+                    InvalidParseOperationException
+                    | MetaDataExecutionException
+                    | MetaDataDocumentSizeException
+                    | MetaDataClientServerException e
+                ) {
                     throw new IllegalStateException(e);
                 }
-            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
-            VitamConfiguration.getElasticSearchScrollLimit());
+            },
+            VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+            VitamConfiguration.getElasticSearchScrollLimit()
+        );
     }
 
     /**

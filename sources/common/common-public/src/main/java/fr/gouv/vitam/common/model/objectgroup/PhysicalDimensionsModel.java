@@ -35,22 +35,31 @@ import java.util.Map;
  * PhysicalDimensions for physical Object
  */
 public class PhysicalDimensionsModel {
+
     @JsonProperty("Width")
     private MeasurementModel width;
+
     @JsonProperty("Height")
     private MeasurementModel height;
+
     @JsonProperty("Depth")
     private MeasurementModel depth;
+
     @JsonProperty("Shape")
     private String shape;
+
     @JsonProperty("Diameter")
     private MeasurementModel diameter;
+
     @JsonProperty("Length")
     private MeasurementModel length;
+
     @JsonProperty("Thickness")
     private MeasurementModel thickness;
+
     @JsonProperty("Weight")
     private MeasurementModel weight;
+
     @JsonProperty("NumberOfPage")
     private Integer numberOfPage;
 

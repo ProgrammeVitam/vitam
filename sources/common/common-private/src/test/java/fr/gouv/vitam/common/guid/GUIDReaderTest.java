@@ -36,8 +36,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 public class GUIDReaderTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(GUIDReaderTest.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GUIDReaderTest.class);
     private static final String BASE16 = "01010000000127bdb6760056700154f67df7e6000001";
     private static final String BASE32 = "aeaqaaaaaet33ntwablhaaku6z67pzqaaaaq";
     private static final String BASE64 = "AQEAAAABJ722dgBWcAFU9n335gAAAQ";
@@ -117,12 +117,11 @@ public class GUIDReaderTest {
             // Ignore
         }
         try {
-            final byte[] ba = {1, 2};
+            final byte[] ba = { 1, 2 };
             GUIDReader.getGUID(ba);
             fail(ResourcesPublicUtilTest.SHOULD_HAVE_AN_EXCEPTION);
         } catch (final InvalidGuidOperationException e) { // NOSONAR
             // Ignore
         }
     }
-
 }

@@ -33,13 +33,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Objects;
 
 public class ProbativeValueRequest {
+
     private final JsonNode dslQuery;
     private final String usage;
     private final String version;
 
     @JsonCreator
-    public ProbativeValueRequest(@JsonProperty("dslQuery") JsonNode dslQuery, @JsonProperty("usage") String usage,
-        @JsonProperty("version") String version) {
+    public ProbativeValueRequest(
+        @JsonProperty("dslQuery") JsonNode dslQuery,
+        @JsonProperty("usage") String usage,
+        @JsonProperty("version") String version
+    ) {
         this.dslQuery = Objects.requireNonNull(dslQuery);
         this.usage = Objects.requireNonNull(usage);
         this.version = Objects.requireNonNull(version);

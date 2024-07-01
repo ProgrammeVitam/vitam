@@ -45,7 +45,8 @@ public class ProbativeOperation {
         @JsonProperty("evIdAppSession") String evIdAppSession,
         @JsonProperty("rightsStatementIdentifier") String rightsStatementIdentifier,
         @JsonProperty("agIdApp") String agIdApp,
-        @JsonProperty("evDateTime") String evDateTime) {
+        @JsonProperty("evDateTime") String evDateTime
+    ) {
         this.id = id;
         this.evType = evType;
         this.evIdAppSession = evIdAppSession;

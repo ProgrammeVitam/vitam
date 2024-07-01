@@ -48,5 +48,4 @@ public class BatchReportConfiguration extends DbConfigurationImpl {
     public void setWorkspaceUrl(String workspaceUrl) {
         this.workspaceUrl = workspaceUrl;
     }
-
 }

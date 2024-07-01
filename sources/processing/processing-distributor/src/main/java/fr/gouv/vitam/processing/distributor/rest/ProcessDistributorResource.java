@@ -54,6 +54,7 @@ import java.io.IOException;
 @Path("/processing/v1/worker_family")
 @Tag(name = "Processing")
 public class ProcessDistributorResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProcessDistributorResource.class);
 
     private final IWorkerManager workerManager;
@@ -82,22 +83,24 @@ public class ProcessDistributorResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response registerWorker(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        @PathParam("id_worker") String idWorker, WorkerBean workerInformation) {
+    public Response registerWorker(
+        @Context HttpHeaders headers,
+        @PathParam("id_family") String idFamily,
+        @PathParam("id_worker") String idWorker,
+        WorkerBean workerInformation
+    ) {
         try {
             String asString = JsonHandler.unprettyPrint(workerInformation);
             SanityChecker.checkJsonAll(asString);
             GlobalDatasParser.sanityRequestCheck(asString);
-            workerManager
-                .registerWorker(idFamily, idWorker, workerInformation);
-
+            workerManager.registerWorker(idFamily, idWorker, workerInformation);
         } catch (ProcessingBadRequestException | InvalidParseOperationException | IllegalArgumentException exc) {
             LOGGER.error(exc);
-            return Response.status(Status.BAD_REQUEST).entity("{\"error\":\"" + exc.getMessage() + "\"}")
-                .build();
+            return Response.status(Status.BAD_REQUEST).entity("{\"error\":\"" + exc.getMessage() + "\"}").build();
         } catch (Exception e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("{\"error\":\"" + e.getMessage() + "\"}")
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity("{\"error\":\"" + e.getMessage() + "\"}")
                 .build();
         }
         return Response.status(Status.OK).entity("{\"success\" :\"Worker " + idWorker + " created \"}").build();
@@ -114,17 +117,20 @@ public class ProcessDistributorResource {
     @Path("/{id_family}/workers/{id_worker}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    public Response unregisterWorker(@Context HttpHeaders headers, @PathParam("id_family") String idFamily,
-        @PathParam("id_worker") String idWorker) {
+    public Response unregisterWorker(
+        @Context HttpHeaders headers,
+        @PathParam("id_family") String idFamily,
+        @PathParam("id_worker") String idWorker
+    ) {
         try {
             workerManager.unregisterWorker(idFamily, idWorker);
         } catch (WorkerFamilyNotFoundException exc) {
             LOGGER.error(exc);
-            return Response.status(Status.NOT_FOUND).entity("{\"error\":\"" + exc.getMessage() + "\"}")
-                .build();
+            return Response.status(Status.NOT_FOUND).entity("{\"error\":\"" + exc.getMessage() + "\"}").build();
         } catch (IOException e) {
             LOGGER.error(e);
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("{\"error\":\"" + e.getMessage() + "\"}")
+            return Response.status(Status.INTERNAL_SERVER_ERROR)
+                .entity("{\"error\":\"" + e.getMessage() + "\"}")
                 .build();
         }
         return Response.status(Status.OK).entity("{\"success\" :\"Worker " + idWorker + " deleted \"}").build();

@@ -35,7 +35,6 @@ import javax.xml.bind.annotation.XmlType;
 
 import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE;
 
-
 /**
  * Model for  LocationGroup defined in sead.xsd
  */
@@ -67,8 +66,7 @@ public class LocationGroupModel {
     @XmlElement(name = "Country", namespace = UNIFIED_NAMESPACE)
     private String country;
 
-    public LocationGroupModel() {
-    }
+    public LocationGroupModel() {}
 
     public String getGeogname() {
         return geogname;

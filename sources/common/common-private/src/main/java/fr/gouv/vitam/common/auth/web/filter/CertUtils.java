@@ -75,15 +75,14 @@ public class CertUtils {
         final HttpServletRequest httpRequest = (HttpServletRequest) request;
         String pem = httpRequest.getHeader(GlobalDataRest.X_SSL_CLIENT_CERT);
         if (null != pem && !NULL_HTTPD_HEADER.equals(pem)) {
-
             if (!useHeader) {
-                alertService.createAlert("SEVERE. Illegal access with " + GlobalDataRest.X_SSL_CLIENT_CERT
-                    + " header. Forged header attack?");
+                alertService.createAlert(
+                    "SEVERE. Illegal access with " + GlobalDataRest.X_SSL_CLIENT_CERT + " header. Forged header attack?"
+                );
                 return null;
             }
 
             try {
-
                 if (hasNginxSignature(pem)) {
                     pem = extractNginxEncodedCertificateAsPEM(pem);
                 } else {
@@ -93,7 +92,7 @@ public class CertUtils {
                 final InputStream pemStream = new ByteArrayInputStream(pem.getBytes());
                 final CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 final X509Certificate cert = (X509Certificate) cf.generateCertificate(pemStream);
-                return new X509Certificate[] {cert};
+                return new X509Certificate[] { cert };
             } catch (Exception ce) {
                 alertService.createAlert("Could not read certificate" + ce.getMessage());
                 throw new ShiroException(ce);
@@ -116,7 +115,6 @@ public class CertUtils {
     }
 
     private static String extractHttpdEncodedCertificateAsPEM(String pem) {
-
         // Apache httpd header: RequestHeader set X-SSL-CLIENT-CERT "%{SSL_CLIENT_CERT}s"
         // Expected format : PEM certificate (base64 charset + spacing)
         // Ex: "-----BEGIN CERTIFICATE----- MIIGfzCCBGegAwIBAgIBCDANBgkqhkiG9w0BAQsFADB7MQswCQYDVQQGEwJmcjEM s5pz...N7zg= -----END CERTIFICATE-----"

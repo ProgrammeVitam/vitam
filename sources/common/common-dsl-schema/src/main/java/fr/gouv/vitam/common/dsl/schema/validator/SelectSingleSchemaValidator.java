@@ -53,10 +53,14 @@ public class SelectSingleSchemaValidator implements DslValidator {
      * @throws IOException thrown when the schema file is not found or invalid
      */
     public SelectSingleSchemaValidator() throws IOException {
-        LOGGER.debug("Loading schema {} from {}", DslSchema.SELECT_SINGLE.name(),
-            DslSchema.SELECT_SINGLE.getFilename());
-        try (final InputStream schemaSource =
-            PropertiesUtils.getResourceAsStream(DslSchema.SELECT_SINGLE.getFilename())) {
+        LOGGER.debug(
+            "Loading schema {} from {}",
+            DslSchema.SELECT_SINGLE.name(),
+            DslSchema.SELECT_SINGLE.getFilename()
+        );
+        try (
+            final InputStream schemaSource = PropertiesUtils.getResourceAsStream(DslSchema.SELECT_SINGLE.getFilename())
+        ) {
             schema = Schema.getSchema().loadTypes(schemaSource).build();
         }
     }

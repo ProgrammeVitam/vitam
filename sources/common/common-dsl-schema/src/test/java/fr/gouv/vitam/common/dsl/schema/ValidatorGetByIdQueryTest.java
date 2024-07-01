@@ -46,6 +46,7 @@ import static org.junit.Assert.fail;
  * Tests of get by id query schema for Metadata, Masterdata and logbook DSL query
  */
 public class ValidatorGetByIdQueryTest {
+
     private static final String GET_BY_ID_QUERY_DSL_SCHEMA_JSON = "get-by-id-query-dsl-schema.json";
 
     private Schema loadSchema(File dslSource) throws IOException {
@@ -62,10 +63,8 @@ public class ValidatorGetByIdQueryTest {
     @Test
     public void should_not_retrieve_errors_when_get_by_id_complete_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_complete.json"));
-        final Schema schema =
-            loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_complete.json"));
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -76,10 +75,10 @@ public class ValidatorGetByIdQueryTest {
     @Test
     public void should_not_retrieve_errors_when_get_by_id_empty_projection_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_empty_projection.json"));
-        final Schema schema =
-            loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("get_by_id_empty_projection.json")
+        );
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -91,34 +90,28 @@ public class ValidatorGetByIdQueryTest {
     @Test
     public void should_retrieve_errors_when_get_by_id_no_projection_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_no_projection.json"));
-        final Schema schema =
-            loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageMatching(".*Validating \\$projection: .* ~ MANDATORY.*");
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_no_projection.json"));
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageMatching(
+            ".*Validating \\$projection: .* ~ MANDATORY.*"
+        );
     }
 
     @Test
-    public void should_retrieve_errors_when_get_by_id_query_dsl()
-        throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_query.json"));
-        final Schema schema =
-            loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageContaining("INVALID_JSON_FIELD: $query ~ found json: {} ~ path: []");
+    public void should_retrieve_errors_when_get_by_id_query_dsl() throws IOException, InvalidParseOperationException {
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_query.json"));
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageContaining(
+            "INVALID_JSON_FIELD: $query ~ found json: {} ~ path: []"
+        );
     }
 
     @Test
     public void should_retrieve_errors_when_unknown_key_is_present_in_get_by_id() throws Exception {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_unknown_key.json"));
-        final Schema schema =
-            loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("get_by_id_unknown_key.json"));
+        final Schema schema = loadSchema(PropertiesUtils.getResourceFile(GET_BY_ID_QUERY_DSL_SCHEMA_JSON));
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("INVALID_JSON_FIELD: $unknownKey ~ found json: \\\"novalidation\\\" ~ path: []")
             .hasMessageContaining("INVALID_JSON_FIELD: $unknown2 ~ found json: {} ~ path: []");
-
     }
 }

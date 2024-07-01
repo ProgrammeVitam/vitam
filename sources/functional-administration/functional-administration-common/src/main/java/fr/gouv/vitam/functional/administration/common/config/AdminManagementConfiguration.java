@@ -54,6 +54,7 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
 
     @JsonProperty("ruleAuditThreadPoolSize")
     private Integer ruleAuditThreadPoolSize;
+
     private int reconstructionMetricsCacheDurationInMinutes = 15;
 
     // constructor
@@ -72,24 +73,36 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
      * @param clusterName the cluster name
      * @param elasticsearchNodes the list of Elasticsearch nodes
      */
-    public AdminManagementConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, String clusterName,
-        List<ElasticsearchNode> elasticsearchNodes) {
+    public AdminManagementConfiguration(
+        List<MongoDbNode> mongoDbNodes,
+        String dbName,
+        String clusterName,
+        List<ElasticsearchNode> elasticsearchNodes
+    ) {
         super(mongoDbNodes, dbName);
         this.clusterName = clusterName;
         this.elasticsearchNodes = elasticsearchNodes;
     }
 
     @VisibleForTesting
-    public AdminManagementConfiguration(List<MongoDbNode> mongoDbNodes, String dbName, boolean dbAuthentication,
-        String dbUserName, String dbPassword,
-        FunctionalAdminIndexationConfiguration indexationConfiguration) {
+    public AdminManagementConfiguration(
+        List<MongoDbNode> mongoDbNodes,
+        String dbName,
+        boolean dbAuthentication,
+        String dbUserName,
+        String dbPassword,
+        FunctionalAdminIndexationConfiguration indexationConfiguration
+    ) {
         super(mongoDbNodes, dbName, dbAuthentication, dbUserName, dbPassword);
         this.indexationConfiguration = indexationConfiguration;
     }
 
     @VisibleForTesting
-    public AdminManagementConfiguration(List<MongoDbNode> mongoDbNodes, String dbName,
-        FunctionalAdminIndexationConfiguration indexationConfiguration) {
+    public AdminManagementConfiguration(
+        List<MongoDbNode> mongoDbNodes,
+        String dbName,
+        FunctionalAdminIndexationConfiguration indexationConfiguration
+    ) {
         super(mongoDbNodes, dbName);
         this.indexationConfiguration = indexationConfiguration;
     }
@@ -164,9 +177,7 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     /**
      * Setter for listEnableExternalIdentifiers;
      */
-    public void setListEnableExternalIdentifiers(
-        Map<Integer, List<String>> listEnableExternalIdentifiers) {
-
+    public void setListEnableExternalIdentifiers(Map<Integer, List<String>> listEnableExternalIdentifiers) {
         this.listEnableExternalIdentifiers = listEnableExternalIdentifiers;
     }
 
@@ -182,7 +193,8 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
      * @return AdminManagementConfiguration
      */
     public AdminManagementConfiguration setListMinimumRuleDuration(
-        Map<Integer, Map<String, String>> listMinimumRuleDuration) {
+        Map<Integer, Map<String, String>> listMinimumRuleDuration
+    ) {
         this.listMinimumRuleDuration = listMinimumRuleDuration;
         return this;
     }
@@ -192,7 +204,8 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     }
 
     public AdminManagementConfiguration setIndexationConfiguration(
-        FunctionalAdminIndexationConfiguration indexationConfiguration) {
+        FunctionalAdminIndexationConfiguration indexationConfiguration
+    ) {
         this.indexationConfiguration = indexationConfiguration;
         return this;
     }
@@ -202,7 +215,8 @@ public class AdminManagementConfiguration extends DbConfigurationImpl {
     }
 
     public AdminManagementConfiguration setAccessionRegisterSymbolicThreadPoolSize(
-        Integer accessionRegisterSymbolicThreadPoolSize) {
+        Integer accessionRegisterSymbolicThreadPoolSize
+    ) {
         this.accessionRegisterSymbolicThreadPoolSize = accessionRegisterSymbolicThreadPoolSize;
         return this;
     }

@@ -48,11 +48,11 @@ import java.io.IOException;
 import static fr.gouv.vitam.common.model.VitamConstants.JSON_EXTENSION;
 import static fr.gouv.vitam.worker.core.plugin.migration.MigrationUnitPrepare.MIGRATION_UNITS_LIST_IDS;
 
-
 /**
  * MigrationFinalize class
  */
 public class MigrationFinalize extends ActionHandler {
+
     private static final String MIGRATION_FINALIZE = "MIGRATION_FINALIZE";
     private final BackupService backupService;
 
@@ -68,9 +68,7 @@ public class MigrationFinalize extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException {
         ItemStatus itemStatus = new ItemStatus(MIGRATION_FINALIZE);
 
         String reportFileName = handlerIO.getContainerName() + JSON_EXTENSION;
@@ -84,9 +82,7 @@ public class MigrationFinalize extends ActionHandler {
         return new ItemStatus(MIGRATION_FINALIZE).setItemsStatus(MIGRATION_FINALIZE, itemStatus);
     }
 
-    private void saveReportToWorkspace(HandlerIO handlerIO, String reportFileName)
-        throws ProcessingException {
-
+    private void saveReportToWorkspace(HandlerIO handlerIO, String reportFileName) throws ProcessingException {
         if (handlerIO.isExistingFileInWorkspace(reportFileName)) {
             // Report already exists (idempotency)
             return;
@@ -95,13 +91,22 @@ public class MigrationFinalize extends ActionHandler {
         try {
             ObjectNode reportJson = JsonHandler.createObjectNode();
             if (handlerIO.isExistingFileInWorkspace(REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + JSON_EXTENSION)) {
-                reportJson.set("units", JsonHandler.getFromInputStream(handlerIO
-                    .getInputStreamFromWorkspace(REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + JSON_EXTENSION)));
+                reportJson.set(
+                    "units",
+                    JsonHandler.getFromInputStream(
+                        handlerIO.getInputStreamFromWorkspace(REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + JSON_EXTENSION)
+                    )
+                );
             } else {
                 reportJson.set("units", JsonHandler.createArrayNode());
             }
             HandlerUtils.save(handlerIO, reportJson, reportFileName);
-        } catch (IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | InvalidParseOperationException e) {
+        } catch (
+            IOException
+            | ContentAddressableStorageNotFoundException
+            | ContentAddressableStorageServerException
+            | InvalidParseOperationException e
+        ) {
             throw new ProcessingException(e);
         }
     }
@@ -115,7 +120,5 @@ public class MigrationFinalize extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-
-    }
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 }

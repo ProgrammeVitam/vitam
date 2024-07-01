@@ -58,8 +58,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class JsonHandlerTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(JsonHandlerTest.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(JsonHandlerTest.class);
 
     @Test
     public final void testGetFactory() {
@@ -69,6 +69,7 @@ public class JsonHandlerTest {
     }
 
     private static class TestClass {
+
         String a;
 
         @JsonGetter("a")
@@ -89,11 +90,9 @@ public class JsonHandlerTest {
     }
 
     @Test
-
     public final void testIsvalidJsonString() throws InvalidParseOperationException, FileNotFoundException {
         JsonHandler.validate("{}");
         JsonHandler.validate("{\"tzs\":\"ee\"}");
-
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -143,26 +142,43 @@ public class JsonHandlerTest {
         assertEquals("a", JsonHandler.checkLaxUnicity("check", node4).getKey());
         assertEquals(1, JsonHandler.getMapFromString(node4.toString()).size());
         assertEquals(1, JsonHandler.getMapStringFromString(node4.toString()).size());
-        assertEquals(2, JsonHandler
-            .getMapFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream()).size());
-        assertEquals(0, JsonHandler
-            .getMapFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTestEmptyJsonInputStream()).size());
+        assertEquals(
+            2,
+            JsonHandler.getMapFromInputStream(
+                ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream()
+            ).size()
+        );
+        assertEquals(
+            0,
+            JsonHandler.getMapFromInputStream(
+                ResourcesPublicUtilTest.getInstance().getJsonTestEmptyJsonInputStream()
+            ).size()
+        );
         try {
             JsonHandler.getMapFromInputStream(null);
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // OK
         }
-        final Map<String, Object> map =
-            JsonHandler.getMapFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream());
+        final Map<String, Object> map = JsonHandler.getMapFromInputStream(
+            ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream()
+        );
         assertEquals("val1", map.get("a"));
-        assertNotNull(JsonHandler
-            .getFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream(), JsonNode.class));
-        assertEquals("val2",
-            JsonHandler
-                .getFromInputStream(ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream(), JsonNode.class)
-                .get("b").asText());
-
+        assertNotNull(
+            JsonHandler.getFromInputStream(
+                ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream(),
+                JsonNode.class
+            )
+        );
+        assertEquals(
+            "val2",
+            JsonHandler.getFromInputStream(
+                ResourcesPublicUtilTest.getInstance().getJsonTest3JsonInputStream(),
+                JsonNode.class
+            )
+                .get("b")
+                .asText()
+        );
 
         final ArrayNode array = (ArrayNode) JsonHandler.getFromString("['0', '1', '2', '3', '4' , '5']");
         final ArrayNode subArray = JsonHandler.getSubArrayNode(array, 3, 2);
@@ -212,195 +228,192 @@ public class JsonHandlerTest {
         try {
             JsonHandler.getFromBytes(null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.getFromFile(null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.getFromString(null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.getFromString(null, TestClass.class);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.getFromStringLowerCamelCase(null, TestClass.class);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.getFromString("{}", null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
 
         try {
             JsonHandler.getFromStringAsTypeReference("{}", null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException | InvalidFormatException e) {// NOSONAR
+        } catch (final InvalidParseOperationException | InvalidFormatException e) { // NOSONAR
             // Ignore
         }
 
         try {
             JsonHandler.getFromStringLowerCamelCase("{}", null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.getFromFile(null, TestClass.class);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.getFromFile(new File(""), null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.getFromFileAsTypeReference(new File(""), null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.getFromFileLowerCamelCase(null, TestClass.class);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.getFromFileLowerCamelCase(new File(""), null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.writeAsString(null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.writeAsFile(null, new File(""));
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.writeAsFile(new File(""), null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.toJsonNode(null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         assertEquals("{}", JsonHandler.prettyPrint(null));
         try {
             JsonHandler.checkUnicity("", null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.checkLaxUnicity("", null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
-            JsonHandler.checkUnicity("title",
-                JsonHandler.getFromString("{ 'a' : 'val','b' : { 'c' : 'val2' } }"));
+            JsonHandler.checkUnicity("title", JsonHandler.getFromString("{ 'a' : 'val','b' : { 'c' : 'val2' } }"));
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
-            JsonHandler.checkLaxUnicity("title",
-                JsonHandler.getFromString("{ 'a' : 'val','b' : { 'c' : 'val2' } }"));
+            JsonHandler.checkLaxUnicity("title", JsonHandler.getFromString("{ 'a' : 'val','b' : { 'c' : 'val2' } }"));
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
-            JsonHandler.checkUnicity("title",
-                JsonHandler.getFromString("{ }"));
+            JsonHandler.checkUnicity("title", JsonHandler.getFromString("{ }"));
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
-            JsonHandler.checkLaxUnicity("title",
-                JsonHandler.getFromString("{  }"));
+            JsonHandler.checkLaxUnicity("title", JsonHandler.getFromString("{  }"));
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         final JsonNode node = JsonHandler.createObjectNode().numberNode(2.0);
         try {
             JsonHandler.checkUnicity("title", node);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             assertNotNull(JsonHandler.checkLaxUnicity("title", node));
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             fail(ResourcesPublicUtilTest.SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         try {
             assertEquals(0, JsonHandler.getMapFromString(null).size());
-        } catch (final InvalidParseOperationException e1) {// NOSONAR
+        } catch (final InvalidParseOperationException e1) { // NOSONAR
             fail(ResourcesPublicUtilTest.SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         try {
             assertEquals(0, JsonHandler.getMapStringFromString(null).size());
-        } catch (final InvalidParseOperationException e1) {// NOSONAR
+        } catch (final InvalidParseOperationException e1) { // NOSONAR
             fail(ResourcesPublicUtilTest.SHOULD_NOT_RAIZED_AN_EXCEPTION);
         }
         try {
             JsonHandler.getMapFromString("{");
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
             JsonHandler.getMapStringFromString("{");
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
-
 
         try {
             JsonHandler.getMapFromInputStream(new ByteArrayInputStream("{".getBytes(StandardCharsets.UTF_8)));
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
         try {
-            JsonHandler.getFromInputStream(new ByteArrayInputStream("{".getBytes(StandardCharsets.UTF_8)),
-                JsonNode.class);
+            JsonHandler.getFromInputStream(
+                new ByteArrayInputStream("{".getBytes(StandardCharsets.UTF_8)),
+                JsonNode.class
+            );
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_AN_EXCEPTION);
-        } catch (final InvalidParseOperationException e) {// NOSONAR
+        } catch (final InvalidParseOperationException e) { // NOSONAR
             // Ignore
         }
 
@@ -459,39 +472,37 @@ public class JsonHandlerTest {
     @Test
     public void testParseStrict() throws Exception {
         JsonNode jsonNode = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("strict_test_pojo_ok.json"));
-        TestPojo value = JsonHandler.getFromStrictJsonNode(jsonNode, new TypeReference<>() {
-        });
+        TestPojo value = JsonHandler.getFromStrictJsonNode(jsonNode, new TypeReference<>() {});
         assertThat(value.field1).isEqualTo("val1");
         assertThat(value.field2).isEqualTo(true);
     }
 
     @Test
     public void testParseStrictKoUnknownField() throws Exception {
-        JsonNode jsonNode = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(
-            "strict_test_pojo_ko_unknown_field.json"));
+        JsonNode jsonNode = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("strict_test_pojo_ko_unknown_field.json")
+        );
 
-        assertThatThrownBy(() -> JsonHandler.getFromStrictJsonNode(jsonNode, new TypeReference<TestPojo>() {
-        }))
+        assertThatThrownBy(() -> JsonHandler.getFromStrictJsonNode(jsonNode, new TypeReference<TestPojo>() {}))
             .isInstanceOf(InvalidParseOperationException.class)
             .hasMessageContaining("Unrecognized field \"unknown\"");
     }
 
     @Test
     public void testParseStrictKoUnknownArray() throws Exception {
-        JsonNode jsonNode = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(
-            "strict_test_pojo_ko_array.json"));
+        JsonNode jsonNode = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("strict_test_pojo_ko_array.json"));
 
-        assertThatThrownBy(() -> JsonHandler.getFromStrictJsonNode(jsonNode, new TypeReference<TestPojo>() {
-        }))
+        assertThatThrownBy(() -> JsonHandler.getFromStrictJsonNode(jsonNode, new TypeReference<TestPojo>() {}))
             .isInstanceOf(InvalidParseOperationException.class)
             .hasMessageContaining("Cannot deserialize value of type `java.lang.String` from Array value");
     }
 
     private static class TestPojo {
+
         @JsonProperty("field1")
         private String field1;
+
         @JsonProperty("field2")
         private boolean field2;
     }
-
 }

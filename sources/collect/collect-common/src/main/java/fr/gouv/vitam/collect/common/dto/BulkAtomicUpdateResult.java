@@ -29,10 +29,13 @@ package fr.gouv.vitam.collect.common.dto;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class BulkAtomicUpdateResult {
+
     @JsonProperty("status")
     private BulkAtomicUpdateStatus status;
+
     @JsonProperty("updatedUnitId")
     private String updatedUnitId;
+
     @JsonProperty("errorDetails")
     private String errorDetails;
 

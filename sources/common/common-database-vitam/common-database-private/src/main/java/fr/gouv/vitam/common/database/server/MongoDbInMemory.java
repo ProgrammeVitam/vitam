@@ -103,7 +103,6 @@ public class MongoDbInMemory {
 
     private static final SerializerProvider EMPTY_SERIALIZER_FOR_OBJECT_NODE = null;
 
-
     private final JsonNode originalDocument;
     private final DynamicParserTokens parserTokens;
 
@@ -214,8 +213,11 @@ public class MongoDbInMemory {
     public JsonNode getUpdateJsonForRule(RuleActions ruleActions, Map<String, DurationData> bindRuleToDuration)
         throws InvalidParseOperationException, RuleUpdateException {
         if (ruleActions != null) {
-            final ObjectNode initialMgt =
-                (ObjectNode) getOrCreateEmptyNodeByName(updatedDocument, MANAGEMENT_KEY, false);
+            final ObjectNode initialMgt = (ObjectNode) getOrCreateEmptyNodeByName(
+                updatedDocument,
+                MANAGEMENT_KEY,
+                false
+            );
 
             applyAddRuleAction(ruleActions.getAdd(), initialMgt, bindRuleToDuration);
             applyUpdateRuleAction(ruleActions.getUpdate(), initialMgt, bindRuleToDuration);
@@ -229,11 +231,12 @@ public class MongoDbInMemory {
         return updatedDocument;
     }
 
-    private void applyAddRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions,
-        final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration)
-        throws RuleUpdateException, InvalidParseOperationException {
-        if (ruleActions == null || ruleActions.isEmpty())
-            return;
+    private void applyAddRuleAction(
+        final List<Map<String, RuleCategoryAction>> ruleActions,
+        final ObjectNode initialMgt,
+        Map<String, DurationData> bindRuleToDuration
+    ) throws RuleUpdateException, InvalidParseOperationException {
+        if (ruleActions == null || ruleActions.isEmpty()) return;
 
         for (Map<String, RuleCategoryAction> item : ruleActions) {
             for (Entry<String, RuleCategoryAction> entry : item.entrySet()) {
@@ -249,8 +252,11 @@ public class MongoDbInMemory {
 
                 // add rules
                 if (!ruleCategoryAction.getRules().isEmpty()) {
-                    ArrayNode initialRules =
-                        (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
+                    ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(
+                        initialRuleCategory,
+                        RULES_KEY,
+                        true
+                    );
                     for (RuleAction ruleAction : ruleCategoryAction.getRules()) {
                         if (!hasRuleDefined(ruleAction.getRule(), initialRules)) {
                             JsonNode newRule = getJsonNodeFromRuleAction(category, ruleAction, bindRuleToDuration);
@@ -275,10 +281,12 @@ public class MongoDbInMemory {
         return false;
     }
 
-    private void applyUpdateRuleAction(final List<Map<String, RuleCategoryAction>> ruleActions,
-        final ObjectNode initialMgt, Map<String, DurationData> bindRuleToDuration) throws RuleUpdateException {
-        if (ruleActions == null || ruleActions.isEmpty())
-            return;
+    private void applyUpdateRuleAction(
+        final List<Map<String, RuleCategoryAction>> ruleActions,
+        final ObjectNode initialMgt,
+        Map<String, DurationData> bindRuleToDuration
+    ) throws RuleUpdateException {
+        if (ruleActions == null || ruleActions.isEmpty()) return;
 
         for (Map<String, RuleCategoryAction> item : ruleActions) {
             for (Entry<String, RuleCategoryAction> entry : item.entrySet()) {
@@ -292,16 +300,25 @@ public class MongoDbInMemory {
                 handleInheritanceProperties(initialRuleCategory, ruleCategoryAction);
 
                 if (!ruleCategoryAction.getRules().isEmpty()) {
-                    Map<String, RuleAction> rulesToUpdate = ruleCategoryAction.getRules().stream()
+                    Map<String, RuleAction> rulesToUpdate = ruleCategoryAction
+                        .getRules()
+                        .stream()
                         .collect(Collectors.toMap(RuleAction::getOldRule, Function.identity()));
-                    ArrayNode initialRules =
-                        (ArrayNode) getOrCreateEmptyNodeByName(initialRuleCategory, RULES_KEY, true);
+                    ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(
+                        initialRuleCategory,
+                        RULES_KEY,
+                        true
+                    );
                     for (JsonNode initialRule : initialRules) {
                         ObjectNode node = (ObjectNode) initialRule;
                         String actualRule = node.get(RuleModel.RULE).asText();
                         if (rulesToUpdate.containsKey(actualRule)) {
-                            updateJsonNodeUsingRuleAction(category, node, rulesToUpdate.get(actualRule),
-                                bindRuleToDuration);
+                            updateJsonNodeUsingRuleAction(
+                                category,
+                                node,
+                                rulesToUpdate.get(actualRule),
+                                bindRuleToDuration
+                            );
                         }
                     }
                     initialRuleCategory.set(RULES_KEY, initialRules);
@@ -312,15 +329,17 @@ public class MongoDbInMemory {
         }
     }
 
-    private void applyDeleteRuleAction(List<Map<String, RuleCategoryActionDeletion>> ruleActions,
-        ObjectNode initialMgt) {
-        ruleActions.stream()
+    private void applyDeleteRuleAction(
+        List<Map<String, RuleCategoryActionDeletion>> ruleActions,
+        ObjectNode initialMgt
+    ) {
+        ruleActions
+            .stream()
             .flatMap(categoryItems -> categoryItems.entrySet().stream())
             .forEach(categoryItem -> deletionRule(initialMgt, categoryItem.getKey(), categoryItem.getValue()));
     }
 
     private void deletionRule(ObjectNode initialMgt, String categoryName, RuleCategoryActionDeletion category) {
-
         AtomicBoolean updatedInheritance = new AtomicBoolean(false);
         ObjectNode initialRuleCategory = (ObjectNode) getOrCreateEmptyNodeByName(initialMgt, categoryName, false);
         ObjectNode inheritance = (ObjectNode) initialRuleCategory.get(INHERITANCE);
@@ -341,18 +360,19 @@ public class MongoDbInMemory {
         ObjectNode initialCategory = (ObjectNode) categoryAsJsonNode;
 
         if (Objects.nonNull(category.getRules())) {
-            category.getRules().ifPresent(rules -> {
-                List<String> rulesToDelete =
-                    rules.stream().map(RuleAction::getRule).collect(Collectors.toList());
-                ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialCategory, RULES_KEY, true);
-                ArrayNode filteredRules = JsonHandler.createArrayNode();
-                initialRules.forEach(node -> {
-                    if (!rulesToDelete.contains(node.get(RuleModel.RULE).asText())) {
-                        filteredRules.add(node);
-                    }
+            category
+                .getRules()
+                .ifPresent(rules -> {
+                    List<String> rulesToDelete = rules.stream().map(RuleAction::getRule).collect(Collectors.toList());
+                    ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(initialCategory, RULES_KEY, true);
+                    ArrayNode filteredRules = JsonHandler.createArrayNode();
+                    initialRules.forEach(node -> {
+                        if (!rulesToDelete.contains(node.get(RuleModel.RULE).asText())) {
+                            filteredRules.add(node);
+                        }
+                    });
+                    initialCategory.set(RULES_KEY, filteredRules);
                 });
-                initialCategory.set(RULES_KEY, filteredRules);
-            });
         }
 
         if (inheritance == null) {
@@ -365,15 +385,18 @@ public class MongoDbInMemory {
             inheritance.put(PREVENT_INHERITANCE, category.getPreventInheritance().get());
         }
 
-        if(CollectionUtils.isNotEmpty(category.getPreventRulesIdToRemove())) {
-            if(CollectionUtils.isNotEmpty(category.getPreventRulesId())) {
-                LOGGER.error("Invalid request. Cannot set both PreventRulesIdToRemove & PreventRulesId. " +
-                    JsonHandler.unprettyPrint(category));
-                throw new IllegalStateException("Invalid request. Cannot set both PreventRulesIdToRemove & PreventRulesId.");
+        if (CollectionUtils.isNotEmpty(category.getPreventRulesIdToRemove())) {
+            if (CollectionUtils.isNotEmpty(category.getPreventRulesId())) {
+                LOGGER.error(
+                    "Invalid request. Cannot set both PreventRulesIdToRemove & PreventRulesId. " +
+                    JsonHandler.unprettyPrint(category)
+                );
+                throw new IllegalStateException(
+                    "Invalid request. Cannot set both PreventRulesIdToRemove & PreventRulesId."
+                );
             }
 
-            List<String> preventRulesToDelete =
-                new ArrayList<>(category.getPreventRulesIdToRemove());
+            List<String> preventRulesToDelete = new ArrayList<>(category.getPreventRulesIdToRemove());
             ArrayNode initialRules = (ArrayNode) getOrCreateEmptyNodeByName(inheritance, PREVENT_RULES_ID, true);
             ArrayNode filteredRules = JsonHandler.createArrayNode();
             initialRules.forEach(node -> {
@@ -405,8 +428,9 @@ public class MongoDbInMemory {
         }
 
         JsonNode inheritanceAsJsonNode = initialCategory.path(INHERITANCE);
-        if (inheritanceAsJsonNode.isMissingNode() || inheritanceAsJsonNode.isNull() ||
-            !inheritanceAsJsonNode.isObject()) {
+        if (
+            inheritanceAsJsonNode.isMissingNode() || inheritanceAsJsonNode.isNull() || !inheritanceAsJsonNode.isObject()
+        ) {
             return;
         }
 
@@ -414,7 +438,10 @@ public class MongoDbInMemory {
         if (Objects.nonNull(category.getPreventInheritance())) {
             initialInheritance.remove(SedaConstants.TAG_RULE_PREVENT_INHERITANCE);
         }
-        if (Objects.nonNull(category.getPreventRulesId()) && CollectionUtils.isEmpty(category.getPreventRulesIdToRemove())) {
+        if (
+            Objects.nonNull(category.getPreventRulesId()) &&
+            CollectionUtils.isEmpty(category.getPreventRulesIdToRemove())
+        ) {
             initialInheritance.remove(PREVENT_RULES_ID);
         }
 
@@ -428,9 +455,9 @@ public class MongoDbInMemory {
     }
 
     private JsonNode getOrCreateEmptyNodeByName(JsonNode parent, String fieldName, boolean acceptArray) {
-        return parent.hasNonNull(fieldName) ?
-            parent.get(fieldName) :
-            (acceptArray ? JsonHandler.createArrayNode() : JsonHandler.createObjectNode());
+        return parent.hasNonNull(fieldName)
+            ? parent.get(fieldName)
+            : (acceptArray ? JsonHandler.createArrayNode() : JsonHandler.createObjectNode());
     }
 
     private Boolean shouldDeleteAUP(RuleActions ruleActions) {
@@ -439,7 +466,6 @@ public class MongoDbInMemory {
     }
 
     private void updateArchiveUnitProfile(RuleActions ruleActions) {
-
         if (shouldDeleteAUP(ruleActions)) {
             ((ObjectNode) updatedDocument).remove(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE);
             return;
@@ -447,24 +473,31 @@ public class MongoDbInMemory {
 
         ManagementMetadataAction newMetadata = ruleActions.getAddOrUpdateMetadata();
         if (newMetadata != null && StringUtils.isNotBlank(newMetadata.getArchiveUnitProfile())) {
-            ((ObjectNode) updatedDocument)
-                .put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, newMetadata.getArchiveUnitProfile());
+            ((ObjectNode) updatedDocument).put(
+                    SedaConstants.TAG_ARCHIVE_UNIT_PROFILE,
+                    newMetadata.getArchiveUnitProfile()
+                );
         }
     }
 
-    private void handleFinalAction(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction,
-        String category) {
+    private void handleFinalAction(
+        ObjectNode initialRuleCategory,
+        RuleCategoryAction ruleCategoryAction,
+        String category
+    ) {
         if (SedaConstants.TAG_RULE_APPRAISAL.equals(category) || SedaConstants.TAG_RULE_STORAGE.equals(category)) {
             String finalAction = ruleCategoryAction.getFinalAction();
             if (finalAction != null) {
                 initialRuleCategory.put(FINAL_ACTION_KEY, finalAction);
             }
         }
-
     }
 
-    private void handleClassificationProperties(ObjectNode initialRuleCategory,
-        RuleCategoryAction ruleCategoryAction, String category) {
+    private void handleClassificationProperties(
+        ObjectNode initialRuleCategory,
+        RuleCategoryAction ruleCategoryAction,
+        String category
+    ) {
         if (!SedaConstants.TAG_RULE_CLASSIFICATION.equals(category)) {
             return;
         }
@@ -481,8 +514,10 @@ public class MongoDbInMemory {
 
         String classificationReassessingDate = ruleCategoryAction.getClassificationReassessingDate();
         if (classificationReassessingDate != null) {
-            initialRuleCategory
-                .put(SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE, classificationReassessingDate);
+            initialRuleCategory.put(
+                SedaConstants.TAG_RULE_CLASSIFICATION_REASSESSING_DATE,
+                classificationReassessingDate
+            );
         }
 
         String classificationAudience = ruleCategoryAction.getClassificationAudience();
@@ -492,22 +527,24 @@ public class MongoDbInMemory {
 
         Boolean needReassessingAuthorization = ruleCategoryAction.getNeedReassessingAuthorization();
         if (needReassessingAuthorization != null) {
-            initialRuleCategory.put(SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION,
-                needReassessingAuthorization);
+            initialRuleCategory.put(
+                SedaConstants.TAG_RULE_CLASSIFICATION_NEED_REASSESSING_AUTHORIZATION,
+                needReassessingAuthorization
+            );
         }
-
     }
 
-    private void handleAddPreventRulesProperties(ObjectNode initialRuleCategory,
-        RuleCategoryAction ruleCategoryAction) throws InvalidParseOperationException {
-
+    private void handleAddPreventRulesProperties(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction)
+        throws InvalidParseOperationException {
         if (CollectionUtils.isEmpty(ruleCategoryAction.getPreventRulesIdToAdd())) {
             return;
         }
 
         if (CollectionUtils.isNotEmpty(ruleCategoryAction.getPreventRulesId())) {
-            LOGGER.error("Invalid request. Cannot set both PreventRulesIdToAdd & PreventRulesId. " +
-                JsonHandler.unprettyPrint(ruleCategoryAction));
+            LOGGER.error(
+                "Invalid request. Cannot set both PreventRulesIdToAdd & PreventRulesId. " +
+                JsonHandler.unprettyPrint(ruleCategoryAction)
+            );
             throw new IllegalStateException("Invalid request. Cannot set both PreventRulesIdToAdd & PreventRulesId.");
         }
 
@@ -517,17 +554,14 @@ public class MongoDbInMemory {
         }
 
         Set<String> preventRuleIds = ruleCategoryAction.getPreventRulesIdToAdd();
-        JsonNode initialRules =
-            getOrCreateEmptyNodeByName(inheritance, PREVENT_RULES_ID, true);
-        preventRuleIds.addAll(JsonHandler.getFromJsonNode(initialRules, new TypeReference<List<String>>() {
-        }));
+        JsonNode initialRules = getOrCreateEmptyNodeByName(inheritance, PREVENT_RULES_ID, true);
+        preventRuleIds.addAll(JsonHandler.getFromJsonNode(initialRules, new TypeReference<List<String>>() {}));
         inheritance.set(PREVENT_RULES_ID, preventRulesToNode(preventRuleIds));
 
         initialRuleCategory.set(INHERITANCE, inheritance);
     }
 
-    private void handleInheritanceProperties(ObjectNode initialRuleCategory,
-        RuleCategoryAction ruleCategoryAction) {
+    private void handleInheritanceProperties(ObjectNode initialRuleCategory, RuleCategoryAction ruleCategoryAction) {
         boolean updatedInheritance = false;
         ObjectNode inheritance = (ObjectNode) initialRuleCategory.get(INHERITANCE);
 
@@ -552,7 +586,6 @@ public class MongoDbInMemory {
         if (updatedInheritance) {
             initialRuleCategory.set(INHERITANCE, inheritance);
         }
-
     }
 
     private ArrayNode preventRulesToNode(Set<String> preventRuleIdsToAdd) {
@@ -563,9 +596,11 @@ public class MongoDbInMemory {
         }
     }
 
-    private JsonNode getJsonNodeFromRuleAction(String category, RuleAction ruleAction,
-        Map<String, DurationData> bindRuleToDuration) throws RuleUpdateException {
-
+    private JsonNode getJsonNodeFromRuleAction(
+        String category,
+        RuleAction ruleAction,
+        Map<String, DurationData> bindRuleToDuration
+    ) throws RuleUpdateException {
         ObjectNode newRule = JsonHandler.createObjectNode();
         String ruleId = ruleAction.getRule();
         newRule.put(RuleModel.RULE, ruleId);
@@ -577,8 +612,12 @@ public class MongoDbInMemory {
         return newRule;
     }
 
-    private void updateJsonNodeUsingRuleAction(String category, ObjectNode unitRule, RuleAction ruleAction,
-        Map<String, DurationData> bindRuleToDuration) throws RuleUpdateException {
+    private void updateJsonNodeUsingRuleAction(
+        String category,
+        ObjectNode unitRule,
+        RuleAction ruleAction,
+        Map<String, DurationData> bindRuleToDuration
+    ) throws RuleUpdateException {
         if (ruleAction.getRule() != null) {
             unitRule.put(RuleModel.RULE, ruleAction.getRule());
         }
@@ -634,7 +673,6 @@ public class MongoDbInMemory {
 
     private void ensureStartDateIsBeforeHoldEndDate(ObjectNode unitRule) throws RuleUpdateException {
         if (unitRule.has(RuleModel.START_DATE) && unitRule.has(RuleModel.HOLD_END_DATE)) {
-
             String startDate = unitRule.get(RuleModel.START_DATE).asText();
             String holdEndDate = unitRule.get(RuleModel.HOLD_END_DATE).asText();
 
@@ -642,8 +680,10 @@ public class MongoDbInMemory {
             LocalDate localHoldEndDate = LocalDate.parse(holdEndDate, DATE_TIME_FORMATTER);
 
             if (localHoldEndDate.isBefore(localStartDate)) {
-                throw new RuleUpdateException(RuleUpdateErrorCode.HOLD_END_DATE_BEFORE_START_DATE,
-                    "HoldEndDate (" + holdEndDate + ") cannot be before StartDate (" + startDate + ")");
+                throw new RuleUpdateException(
+                    RuleUpdateErrorCode.HOLD_END_DATE_BEFORE_START_DATE,
+                    "HoldEndDate (" + holdEndDate + ") cannot be before StartDate (" + startDate + ")"
+                );
             }
         }
     }
@@ -652,22 +692,24 @@ public class MongoDbInMemory {
         if (unitRule.has(RuleModel.HOLD_END_DATE)) {
             throw new RuleUpdateException(
                 RuleUpdateErrorCode.HOLD_END_DATE_ONLY_ALLOWED_FOR_HOLD_RULE_WITH_UNDEFINED_DURATION,
-                String.format("HoldEndDate (%s) cannot be defined for rule %s",
-                    unitRule.get(RuleModel.HOLD_END_DATE).asText(), unitRule.get(RuleModel.RULE).asText()));
+                String.format(
+                    "HoldEndDate (%s) cannot be defined for rule %s",
+                    unitRule.get(RuleModel.HOLD_END_DATE).asText(),
+                    unitRule.get(RuleModel.RULE).asText()
+                )
+            );
         }
     }
 
-    private void computeEndDate(ObjectNode unitRule, String ruleCategory,
-        Map<String, DurationData> bindRuleToDuration) throws RuleUpdateException {
-
+    private void computeEndDate(ObjectNode unitRule, String ruleCategory, Map<String, DurationData> bindRuleToDuration)
+        throws RuleUpdateException {
         String ruleId = unitRule.get(RuleModel.RULE).asText();
         boolean isHoldRuleWithUndefinedDuration =
             RuleType.HoldRule.isNameEquals(ruleCategory) &&
-                bindRuleToDuration.containsKey(ruleId) &&
-                bindRuleToDuration.get(ruleId).getDurationUnit() == null;
+            bindRuleToDuration.containsKey(ruleId) &&
+            bindRuleToDuration.get(ruleId).getDurationUnit() == null;
 
         if (isHoldRuleWithUndefinedDuration) {
-
             if (unitRule.has(RuleModel.HOLD_END_DATE)) {
                 String holdEndDate = unitRule.get(RuleModel.HOLD_END_DATE).asText();
                 unitRule.put(RuleModel.END_DATE, holdEndDate);
@@ -684,8 +726,11 @@ public class MongoDbInMemory {
 
         DurationData durationData = bindRuleToDuration.get(ruleId);
 
-        if (durationData == null || unitRule.path(RuleModel.START_DATE).isNull() ||
-            unitRule.path(RuleModel.START_DATE).isMissingNode()) {
+        if (
+            durationData == null ||
+            unitRule.path(RuleModel.START_DATE).isNull() ||
+            unitRule.path(RuleModel.START_DATE).isMissingNode()
+        ) {
             return;
         }
 
@@ -720,15 +765,15 @@ public class MongoDbInMemory {
         JsonNode actionValue = element.getValue();
 
         if (!actionValue.isNumber()) {
-            throw new InvalidParseOperationException("[ INC" + ACTION_ARGUMENT + actionValue +
-                COULD_NOT_CONVERTED + fieldName);
+            throw new InvalidParseOperationException(
+                "[ INC" + ACTION_ARGUMENT + actionValue + COULD_NOT_CONVERTED + fieldName
+            );
         }
 
         String[] fieldNamePath = fieldName.split("[.]");
         String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
 
-        final ObjectNode parentNode =
-            (ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
+        final ObjectNode parentNode = (ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
         if (parentNode != null) {
             if (nodeValue.getClass().equals(Integer.class)) {
                 parentNode.put(lastNodeName, element.getValue().intValue() + nodeValue.intValue());
@@ -739,11 +784,15 @@ public class MongoDbInMemory {
             } else if (nodeValue.getClass().equals(Double.class)) {
                 parentNode.put(lastNodeName, element.getValue().doubleValue() + nodeValue.doubleValue());
             } else if (nodeValue.getClass().equals(BigDecimal.class)) {
-                parentNode.put(lastNodeName,
-                    element.getValue().decimalValue().add(BigDecimal.valueOf(nodeValue.doubleValue())));
+                parentNode.put(
+                    lastNodeName,
+                    element.getValue().decimalValue().add(BigDecimal.valueOf(nodeValue.doubleValue()))
+                );
             } else if (nodeValue.getClass().equals(BigInteger.class)) {
-                parentNode.put(lastNodeName,
-                    element.getValue().bigIntegerValue().add(BigInteger.valueOf(nodeValue.intValue())));
+                parentNode.put(
+                    lastNodeName,
+                    element.getValue().bigIntegerValue().add(BigInteger.valueOf(nodeValue.intValue()))
+                );
             }
         }
         updatedFields.add(fieldName);
@@ -790,11 +839,9 @@ public class MongoDbInMemory {
         }
         JsonNode jsonNode = parentObjectNode.get(lastFieldName);
 
-
         Pattern pattern = Pattern.compile(queryPattern.getControlPattern());
 
         if (jsonNode.isTextual()) {
-
             // Update text field
             String stringToSearch = jsonNode.asText();
             String newString = replaceAll(pattern, stringToSearch, queryPattern.getUpdatePattern());
@@ -802,9 +849,7 @@ public class MongoDbInMemory {
                 parentObjectNode.put(lastFieldName, newString);
                 updatedFields.add(fieldName);
             }
-
         } else if (jsonNode.isArray()) {
-
             // Update array field
             ArrayNode arrayNode = (ArrayNode) jsonNode;
             for (int i = 0; i < arrayNode.size(); i++) {
@@ -833,14 +878,14 @@ public class MongoDbInMemory {
 
         JsonNode actionValue = element.getValue();
         if (!actionValue.isNumber()) {
-            throw new InvalidParseOperationException("[ MIN" + ACTION_ARGUMENT + actionValue +
-                COULD_NOT_CONVERTED + fieldName);
+            throw new InvalidParseOperationException(
+                "[ MIN" + ACTION_ARGUMENT + actionValue + COULD_NOT_CONVERTED + fieldName
+            );
         }
 
         String[] fieldNamePath = fieldName.split("[.]");
         String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
-        final ObjectNode parentNode =
-            (ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
+        final ObjectNode parentNode = (ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
         if (parentNode != null) {
             if (nodeValue.getClass().equals(Integer.class)) {
                 parentNode.put(lastNodeName, Math.min(element.getValue().intValue(), nodeValue.intValue()));
@@ -851,11 +896,15 @@ public class MongoDbInMemory {
             } else if (nodeValue.getClass().equals(Double.class)) {
                 parentNode.put(lastNodeName, Math.min(element.getValue().doubleValue(), nodeValue.doubleValue()));
             } else if (nodeValue.getClass().equals(BigDecimal.class)) {
-                parentNode.put(lastNodeName,
-                    element.getValue().decimalValue().min(BigDecimal.valueOf(nodeValue.doubleValue())));
+                parentNode.put(
+                    lastNodeName,
+                    element.getValue().decimalValue().min(BigDecimal.valueOf(nodeValue.doubleValue()))
+                );
             } else if (nodeValue.getClass().equals(BigInteger.class)) {
-                parentNode.put(lastNodeName,
-                    element.getValue().bigIntegerValue().min(BigInteger.valueOf(nodeValue.intValue())));
+                parentNode.put(
+                    lastNodeName,
+                    element.getValue().bigIntegerValue().min(BigInteger.valueOf(nodeValue.intValue()))
+                );
             }
         }
         updatedFields.add(fieldName);
@@ -869,14 +918,14 @@ public class MongoDbInMemory {
 
         JsonNode actionValue = element.getValue();
         if (!actionValue.isNumber()) {
-            throw new InvalidParseOperationException("[ MAX" + ACTION_ARGUMENT + actionValue +
-                COULD_NOT_CONVERTED + fieldName);
+            throw new InvalidParseOperationException(
+                "[ MAX" + ACTION_ARGUMENT + actionValue + COULD_NOT_CONVERTED + fieldName
+            );
         }
 
         String[] fieldNamePath = fieldName.split("[.]");
         String lastNodeName = fieldNamePath[fieldNamePath.length - 1];
-        final ObjectNode parentNode =
-            (ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
+        final ObjectNode parentNode = (ObjectNode) JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
         if (parentNode != null) {
             if (nodeValue.getClass().equals(Integer.class)) {
                 parentNode.put(lastNodeName, Math.max(element.getValue().intValue(), nodeValue.intValue()));
@@ -887,11 +936,15 @@ public class MongoDbInMemory {
             } else if (nodeValue.getClass().equals(Double.class)) {
                 parentNode.put(lastNodeName, Math.max(element.getValue().doubleValue(), nodeValue.doubleValue()));
             } else if (nodeValue.getClass().equals(BigDecimal.class)) {
-                parentNode.put(lastNodeName,
-                    element.getValue().decimalValue().max(BigDecimal.valueOf(nodeValue.doubleValue())));
+                parentNode.put(
+                    lastNodeName,
+                    element.getValue().decimalValue().max(BigDecimal.valueOf(nodeValue.doubleValue()))
+                );
             } else if (nodeValue.getClass().equals(BigInteger.class)) {
-                parentNode.put(lastNodeName,
-                    element.getValue().bigIntegerValue().max(BigInteger.valueOf(nodeValue.intValue())));
+                parentNode.put(
+                    lastNodeName,
+                    element.getValue().bigIntegerValue().max(BigInteger.valueOf(nodeValue.intValue()))
+                );
             }
         }
         updatedFields.add(fieldName);
@@ -904,7 +957,8 @@ public class MongoDbInMemory {
         JsonNode value = JsonHandler.getNodeByPath(updatedDocument, fieldName, false);
         if (value == null) {
             throw new InvalidParseOperationException(
-                "[" + "RENAME" + "]Can't rename field " + fieldName + " because it doesn't exist");
+                "[" + "RENAME" + "]Can't rename field " + fieldName + " because it doesn't exist"
+            );
         }
 
         JsonNode parent = JsonHandler.getParentNodeByPath(updatedDocument, fieldName, false);
@@ -924,8 +978,9 @@ public class MongoDbInMemory {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
         if (!(element.getValue() instanceof ArrayNode)) {
-            throw new InvalidParseOperationException("[ PUSH" + ACTION_ARGUMENT + element.getValue() +
-                EXPECTED_VALUE + fieldName);
+            throw new InvalidParseOperationException(
+                "[ PUSH" + ACTION_ARGUMENT + element.getValue() + EXPECTED_VALUE + fieldName
+            );
         }
         final ArrayNode array = (ArrayNode) element.getValue();
         ArrayNode node = (ArrayNode) getArrayValue(req.name(), fieldName);
@@ -941,8 +996,9 @@ public class MongoDbInMemory {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
         if (!(element.getValue() instanceof ArrayNode)) {
-            throw new InvalidParseOperationException("[ PULL" + ACTION_ARGUMENT + element.getValue() +
-                EXPECTED_VALUE + fieldName);
+            throw new InvalidParseOperationException(
+                "[ PULL" + ACTION_ARGUMENT + element.getValue() + EXPECTED_VALUE + fieldName
+            );
         }
         final ArrayNode array = (ArrayNode) element.getValue();
         ArrayNode node = (ArrayNode) getArrayValue(req.name(), fieldName);
@@ -974,8 +1030,9 @@ public class MongoDbInMemory {
         final Entry<String, JsonNode> element = JsonHandler.checkUnicity(req.exactToken(), content);
         final String fieldName = element.getKey();
         if (!(element.getValue() instanceof ArrayNode)) {
-            throw new InvalidParseOperationException("[ ADD" + ACTION_ARGUMENT + element.getValue() +
-                EXPECTED_VALUE + fieldName);
+            throw new InvalidParseOperationException(
+                "[ ADD" + ACTION_ARGUMENT + element.getValue() + EXPECTED_VALUE + fieldName
+            );
         }
         final ArrayNode array = (ArrayNode) element.getValue();
 
@@ -1007,8 +1064,9 @@ public class MongoDbInMemory {
 
         JsonNode actionValue = element.getValue();
         if (!actionValue.isNumber()) {
-            throw new InvalidParseOperationException("[" + req.name() + ACTION_ARGUMENT + actionValue +
-                COULD_NOT_CONVERTED + fieldName);
+            throw new InvalidParseOperationException(
+                "[" + req.name() + ACTION_ARGUMENT + actionValue + COULD_NOT_CONVERTED + fieldName
+            );
         }
 
         int numberOfPop = Math.abs(actionValue.asInt());
@@ -1019,7 +1077,8 @@ public class MongoDbInMemory {
 
         if (numberOfPop > node.size()) {
             throw new InvalidParseOperationException(
-                "Cannot pop " + numberOfPop + "items from the field '" + fieldName + "' because it has less items");
+                "Cannot pop " + numberOfPop + "items from the field '" + fieldName + "' because it has less items"
+            );
         }
         if (actionValue.asInt() < 0) {
             for (int i = 0; i < numberOfPop; i++) {
@@ -1037,8 +1096,14 @@ public class MongoDbInMemory {
         throws InvalidParseOperationException {
         JsonNode node = JsonHandler.getNodeByPath(updatedDocument, fieldName, false);
         if (node == null || !node.isNumber()) {
-            String message = "This field '" + fieldName + "' is not a number, cannot do '" + actionName +
-                "' action: " + node + " or unknow fieldName";
+            String message =
+                "This field '" +
+                fieldName +
+                "' is not a number, cannot do '" +
+                actionName +
+                "' action: " +
+                node +
+                " or unknow fieldName";
             LOGGER.error(message);
             throw new InvalidParseOperationException(message);
         }
@@ -1055,8 +1120,7 @@ public class MongoDbInMemory {
             return updatedDocument.get(fieldName);
         }
         if (!node.isArray()) {
-            String message =
-                "This field '" + fieldName + "' is not an array, cannot do '" + actionName + "' action";
+            String message = "This field '" + fieldName + "' is not an array, cannot do '" + actionName + "' action";
             LOGGER.error(message);
             throw new InvalidParseOperationException(message);
         }

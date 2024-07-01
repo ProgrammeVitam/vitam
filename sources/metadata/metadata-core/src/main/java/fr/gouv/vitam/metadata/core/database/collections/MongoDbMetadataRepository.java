@@ -61,6 +61,7 @@ import static fr.gouv.vitam.common.parameter.ParameterHelper.getTenantParameter;
 import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.ATOMIC_VERSION;
 
 public class MongoDbMetadataRepository<T extends VitamDocument<T>> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbMetadataRepository.class);
 
     private final Supplier<MongoCollection<T>> mongoCollectionSupplier;
@@ -89,20 +90,25 @@ public class MongoDbMetadataRepository<T extends VitamDocument<T>> {
     public void insert(List<T> metadataDocuments) throws MetaDataExecutionException {
         BulkWriteOptions options = new BulkWriteOptions().ordered(false);
         try {
-            List<InsertOneModel<T>> collect = metadataDocuments.stream()
+            List<InsertOneModel<T>> collect = metadataDocuments
+                .stream()
                 .map(metadataDocument -> {
                     metadataDocument.append(VERSION, 0);
                     metadataDocument.append(ATOMIC_VERSION, 0);
                     metadataDocument.append(TENANT_ID, getTenantParameter());
                     return new InsertOneModel<>(metadataDocument);
-                }).collect(Collectors.toList());
+                })
+                .collect(Collectors.toList());
             mongoCollectionSupplier.get().bulkWrite(collect, options);
         } catch (MongoBulkWriteException e) {
             boolean hasBlockerErrors = false;
             for (BulkWriteError bulkWriteError : e.getWriteErrors()) {
                 if (bulkWriteError.getCategory() == ErrorCategory.DUPLICATE_KEY) {
-                    LOGGER.info("Document already exists " + metadataDocuments.get(bulkWriteError.getIndex()).getId() +
-                        ". Ignoring quietly (idempotency)");
+                    LOGGER.info(
+                        "Document already exists " +
+                        metadataDocuments.get(bulkWriteError.getIndex()).getId() +
+                        ". Ignoring quietly (idempotency)"
+                    );
                 } else {
                     hasBlockerErrors = true;
                     LOGGER.error("An error occurred during metadata insert " + bulkWriteError);
@@ -119,7 +125,8 @@ public class MongoDbMetadataRepository<T extends VitamDocument<T>> {
     public void delete(List<T> metadataDocuments) throws MetaDataExecutionException {
         BulkWriteOptions options = new BulkWriteOptions().ordered(false);
         try {
-            List<DeleteOneModel<T>> toDeleteModels = metadataDocuments.stream()
+            List<DeleteOneModel<T>> toDeleteModels = metadataDocuments
+                .stream()
                 .map((Function<T, DeleteOneModel<T>>) DeleteOneModel::new)
                 .collect(Collectors.toList());
             mongoCollectionSupplier.get().bulkWrite(toDeleteModels, options);
@@ -131,10 +138,16 @@ public class MongoDbMetadataRepository<T extends VitamDocument<T>> {
     public void update(Map<String, Bson> updates) throws MetaDataExecutionException {
         BulkWriteOptions options = new BulkWriteOptions().ordered(false);
         try {
-            List<UpdateOneModel<T>> collect = updates.entrySet()
+            List<UpdateOneModel<T>> collect = updates
+                .entrySet()
                 .stream()
-                .map(item -> new UpdateOneModel<T>(and(eq(ID, item.getKey()), eq(TENANT_ID, getTenantParameter())),
-                    item.getValue()))
+                .map(
+                    item ->
+                        new UpdateOneModel<T>(
+                            and(eq(ID, item.getKey()), eq(TENANT_ID, getTenantParameter())),
+                            item.getValue()
+                        )
+                )
                 .collect(Collectors.toList());
             mongoCollectionSupplier.get().bulkWrite(collect, options);
         } catch (MongoException | IllegalArgumentException e) {

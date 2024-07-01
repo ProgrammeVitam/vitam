@@ -68,15 +68,13 @@ public class FormatImportReport {
     @JsonProperty("Warnings")
     private List<String> warnings = new ArrayList<>();
 
-    public FormatImportReport() {
-    }
+    public FormatImportReport() {}
 
     public FunctionalOperationModel getOperation() {
         return operation;
     }
 
-    public FormatImportReport setOperation(
-        FunctionalOperationModel operation) {
+    public FormatImportReport setOperation(FunctionalOperationModel operation) {
         this.operation = operation;
         return this;
     }
@@ -146,8 +144,7 @@ public class FormatImportReport {
         return updatedPuids;
     }
 
-    public void addUpdatedPuids(
-        String puid, List<String> diffs) {
+    public void addUpdatedPuids(String puid, List<String> diffs) {
         this.updatedPuids.put(puid, diffs);
     }
 

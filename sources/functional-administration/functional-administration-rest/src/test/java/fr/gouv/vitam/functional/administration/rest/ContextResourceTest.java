@@ -89,8 +89,7 @@ public class ContextResourceTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -110,12 +109,13 @@ public class ContextResourceTest {
     private static File adminConfigFile;
     private static AdminManagementMain application;
 
-    private static final ElasticsearchFunctionalAdminIndexManager indexManager
-        = FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -127,12 +127,15 @@ public class ContextResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
 
         File tmpFolder = tempFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
@@ -140,10 +143,11 @@ public class ContextResourceTest {
 
         LogbookOperationsClientFactory.changeMode(null);
 
-
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+        final AdminManagementConfiguration realAdminConfig = PropertiesUtils.readYaml(
+            adminConfig,
+            AdminManagementConfiguration.class
+        );
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
@@ -154,10 +158,11 @@ public class ContextResourceTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
-        mongoDbAccess =
-            MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
-                    indexManager);
+        mongoDbAccess = MongoDbAccessAdminFactory.create(
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+            Collections::emptyList,
+            indexManager
+        );
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -170,20 +175,20 @@ public class ContextResourceTest {
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the AdminManagement Application Server", e);
+            throw new IllegalStateException("Cannot start the AdminManagement Application Server", e);
         }
 
-
-
         // Mock workspace API
-        workspaceWireMock.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(
-                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
-        workspaceWireMock.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(
-                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
-
+        workspaceWireMock.stubFor(
+            WireMock.post(urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
+        workspaceWireMock.stubFor(
+            WireMock.delete(urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
         // Create security profile
     }
 
@@ -191,11 +196,15 @@ public class ContextResourceTest {
         // Create initial security context
         File securityProfileFile = PropertiesUtils.getResourceFile("security_profile_ok.json");
         JsonNode secProfileJson = JsonHandler.getFromFile(securityProfileFile);
-        given().contentType(ContentType.JSON).body(secProfileJson)
+        given()
+            .contentType(ContentType.JSON)
+            .body(secProfileJson)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post(SecurityProfileResource.SECURITY_PROFILE_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(SecurityProfileResource.SECURITY_PROFILE_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
     }
 
     @Before
@@ -241,20 +250,26 @@ public class ContextResourceTest {
         MetaDataClientFactory.changeMode(null);
 
         // transform to json
-        given().contentType(ContentType.JSON).body(json)
+        given()
+            .contentType(ContentType.JSON)
+            .body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
-            .when().post(ContextResource.CONTEXTS_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(ContextResource.CONTEXTS_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         // we try to update an unexisting id
-        given().contentType(ContentType.JSON).body(JsonHandler.createArrayNode())
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.createArrayNode())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
-            .when().put(ContextResource.UPDATE_CONTEXT_URI + "/wrongId")
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .when()
+            .put(ContextResource.UPDATE_CONTEXT_URI + "/wrongId")
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -268,11 +283,14 @@ public class ContextResourceTest {
         MetaDataClientFactory.changeMode(null);
 
         // transform to json
-        given().contentType(ContentType.JSON).body(json)
+        given()
+            .contentType(ContentType.JSON)
+            .body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
-            .when().post(ContextResource.CONTEXTS_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(ContextResource.CONTEXTS_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 }

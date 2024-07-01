@@ -43,11 +43,11 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.GenericReportGenerationHandler;
 
-
 public class TransferReplyReportGenerationHandler extends GenericReportGenerationHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(TransferReplyReportGenerationHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        TransferReplyReportGenerationHandler.class
+    );
 
     private static final String TRANSFER_REPLY_REPORT_GENERATION = "TRANSFER_REPLY_REPORT_GENERATION";
     private static final String LOGBOOK_ACTION_KEY = "TRANSFER_REPLY_DELETE_UNIT";
@@ -65,12 +65,13 @@ public class TransferReplyReportGenerationHandler extends GenericReportGeneratio
      * Test only constructor
      */
     @VisibleForTesting
-    TransferReplyReportGenerationHandler(TransferReplyReportService transferReplyReportService,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    TransferReplyReportGenerationHandler(
+        TransferReplyReportService transferReplyReportService,
+        LogbookOperationsClientFactory logbookOperationsClientFactory
+    ) {
         super(transferReplyReportService);
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
-
 
     @Override
     protected LogbookOperation getLogbookInformation(WorkerParameters param) throws ProcessingException {
@@ -82,7 +83,6 @@ public class TransferReplyReportGenerationHandler extends GenericReportGeneratio
             throw new ProcessingException(e);
         }
     }
-
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
@@ -107,5 +107,4 @@ public class TransferReplyReportGenerationHandler extends GenericReportGeneratio
     public String getLogbookActionKey() {
         return LOGBOOK_ACTION_KEY;
     }
-
 }

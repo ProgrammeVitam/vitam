@@ -33,9 +33,7 @@ import fr.gouv.vitam.security.internal.filter.AdminRequestIdFilter;
 import fr.gouv.vitam.security.internal.filter.BasicAuthenticationFilter;
 import fr.gouv.vitam.storage.engine.common.exception.StorageTechnicalException;
 import fr.gouv.vitam.storage.engine.server.distribution.StorageDistribution;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.ReadOnlyShieldStorageDistribution;
 import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionFactory;
-import fr.gouv.vitam.storage.engine.server.distribution.impl.StorageDistributionImpl;
 import fr.gouv.vitam.storage.engine.server.offerdiff.OfferDiffService;
 import fr.gouv.vitam.storage.engine.server.rest.writeprotection.WriteProtectionScanner;
 import fr.gouv.vitam.storage.engine.server.storagelog.StorageLog;
@@ -66,13 +64,13 @@ public class AdminStorageApplication extends Application {
      * @param servletConfig
      */
     public AdminStorageApplication(@Context ServletConfig servletConfig) {
-
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-
-            final StorageConfiguration storageConfiguration =
-                PropertiesUtils.readYaml(yamlIS, StorageConfiguration.class);
+            final StorageConfiguration storageConfiguration = PropertiesUtils.readYaml(
+                yamlIS,
+                StorageConfiguration.class
+            );
 
             adminApplication = new AdminApplication();
 
@@ -83,14 +81,16 @@ public class AdminStorageApplication extends Application {
 
             // Wrap storage distribution service by a ReadOnlyShieldStorageDistribution wrapper to enforce ReadOnly checks
             final StorageDistribution distribution = StorageDistributionFactory.createStorageDistribution(
-                storageConfiguration, storageLogService, new AlertServiceImpl());
+                storageConfiguration,
+                storageLogService,
+                new AlertServiceImpl()
+            );
 
             singletons.add(new AdminOfferSyncResource(distribution, storageConfiguration));
             singletons.add(new AdminOfferDiffResource(new OfferDiffService(distribution)));
             singletons.add(new BasicAuthenticationFilter(storageConfiguration));
             singletons.add(new AdminRequestIdFilter());
             singletons.add(new WriteProtectionScanner(new AlertServiceImpl(), storageConfiguration.isReadOnly()));
-
         } catch (IOException | StorageTechnicalException e) {
             throw new RuntimeException(e);
         }

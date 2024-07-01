@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class CachedOntologyLoader implements OntologyLoader {
+
     private final LoadingCache<String, List<OntologyModel>> cache;
     private static final String GET_FROM_SAME_CACHE = "GET-FROM-SAME-CACHE-VALUE-ONTOLOGY";
 
@@ -49,12 +50,14 @@ public class CachedOntologyLoader implements OntologyLoader {
         objectObjectCacheBuilder.expireAfterAccess(cacheTimeoutInSeconds, TimeUnit.SECONDS);
         // Okay to GC
         objectObjectCacheBuilder.weakValues();
-        this.cache = objectObjectCacheBuilder.build(new CacheLoader<String, List<OntologyModel>>() {
-            @Override
-            public List<OntologyModel> load(String key) {
-                return loadOntology.loadOntologies();
+        this.cache = objectObjectCacheBuilder.build(
+            new CacheLoader<String, List<OntologyModel>>() {
+                @Override
+                public List<OntologyModel> load(String key) {
+                    return loadOntology.loadOntologies();
+                }
             }
-        });
+        );
     }
 
     @Override

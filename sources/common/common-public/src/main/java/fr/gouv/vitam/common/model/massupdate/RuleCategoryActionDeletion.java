@@ -43,22 +43,26 @@ import static java.lang.Boolean.FALSE;
 @JsonInclude(NON_NULL)
 public class RuleCategoryActionDeletion {
 
-    protected final static String UNUSED_VALUE = "UNUSED_VALUE";
+    protected static final String UNUSED_VALUE = "UNUSED_VALUE";
 
     @JsonProperty("Rules")
     private Optional<List<RuleAction>> rules;
+
     @JsonProperty("FinalAction")
     private Optional<String> finalAction;
 
     @JsonProperty("ClassificationAudience")
     private Optional<String> classificationAudience;
+
     @JsonProperty("ClassificationReassessingDate")
     private Optional<String> classificationReassessingDate;
+
     @JsonProperty("NeedReassessingAuthorization")
     private Optional<Boolean> needReassessingAuthorization;
 
     @JsonProperty("PreventInheritance")
     private Optional<Boolean> preventInheritance;
+
     @JsonProperty("PreventRulesId")
     private Set<String> preventRulesId;
 
@@ -77,9 +81,7 @@ public class RuleCategoryActionDeletion {
     @JsonGetter
     @JsonProperty("Rules")
     public List<RuleAction> getRulesForDeserializer() {
-        return Objects.isNull(rules)
-            ? null
-            : rules.orElse(null);
+        return Objects.isNull(rules) ? null : rules.orElse(null);
     }
 
     @JsonIgnore
@@ -94,9 +96,7 @@ public class RuleCategoryActionDeletion {
     @JsonGetter
     @JsonProperty("FinalAction")
     public String getFinalActionForDeserializer() {
-        return Objects.isNull(finalAction)
-            ? null
-            : UNUSED_VALUE;
+        return Objects.isNull(finalAction) ? null : UNUSED_VALUE;
     }
 
     @JsonIgnore
@@ -111,9 +111,7 @@ public class RuleCategoryActionDeletion {
     @JsonGetter
     @JsonProperty("ClassificationAudience")
     public String getClassificationAudienceForDeserializer() {
-        return Objects.isNull(classificationAudience)
-            ? null
-            : UNUSED_VALUE;
+        return Objects.isNull(classificationAudience) ? null : UNUSED_VALUE;
     }
 
     @JsonIgnore
@@ -128,9 +126,7 @@ public class RuleCategoryActionDeletion {
     @JsonGetter
     @JsonProperty("ClassificationReassessingDate")
     public String getClassificationReassessingDateForDeserializer() {
-        return Objects.isNull(classificationReassessingDate)
-            ? null
-            : UNUSED_VALUE;
+        return Objects.isNull(classificationReassessingDate) ? null : UNUSED_VALUE;
     }
 
     @JsonIgnore
@@ -145,9 +141,7 @@ public class RuleCategoryActionDeletion {
     @JsonGetter
     @JsonProperty("NeedReassessingAuthorization")
     public Boolean getNeedReassessingAuthorizationForDeserializer() {
-        return Objects.isNull(needReassessingAuthorization)
-            ? null
-            : FALSE;
+        return Objects.isNull(needReassessingAuthorization) ? null : FALSE;
     }
 
     @JsonIgnore
@@ -162,9 +156,7 @@ public class RuleCategoryActionDeletion {
     @JsonGetter
     @JsonProperty("PreventInheritance")
     public Boolean getPreventInheritanceForDeserializer() {
-        return Objects.isNull(preventInheritance)
-            ? null
-            : FALSE;
+        return Objects.isNull(preventInheritance) ? null : FALSE;
     }
 
     @JsonIgnore
@@ -179,21 +171,21 @@ public class RuleCategoryActionDeletion {
     @JsonGetter
     @JsonProperty("PreventRulesId")
     public Set<String> getPreventRulesIdForDeserializer() {
-        return Objects.isNull(preventRulesId)
-            ? null
-            : Collections.singleton(UNUSED_VALUE);
+        return Objects.isNull(preventRulesId) ? null : Collections.singleton(UNUSED_VALUE);
     }
 
     @JsonIgnore
     public boolean isEmpty() {
-        return Objects.isNull(rules)
-            && Objects.isNull(finalAction)
-            && Objects.isNull(classificationAudience)
-            && Objects.isNull(classificationReassessingDate)
-            && Objects.isNull(needReassessingAuthorization)
-            && Objects.isNull(preventInheritance)
-            && Objects.isNull(preventRulesIdToRemove)
-            && Objects.isNull(preventRulesId);
+        return (
+            Objects.isNull(rules) &&
+            Objects.isNull(finalAction) &&
+            Objects.isNull(classificationAudience) &&
+            Objects.isNull(classificationReassessingDate) &&
+            Objects.isNull(needReassessingAuthorization) &&
+            Objects.isNull(preventInheritance) &&
+            Objects.isNull(preventRulesIdToRemove) &&
+            Objects.isNull(preventRulesId)
+        );
     }
 
     @JsonIgnore

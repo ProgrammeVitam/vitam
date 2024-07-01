@@ -62,46 +62,40 @@ import java.util.List;
 
 public class PurgeReportService {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(PurgeReportService.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PurgeReportService.class);
 
     static final String OBJECT_GROUP_REPORT_JSONL = "objectGroupReport.jsonl";
     static final String DISTINCT_REPORT_JSONL = "unitObjectGroups.jsonl";
     static final String ACCESSION_REGISTER_REPORT_JSONL = "accession_register.jsonl";
-    private static final TypeReference<JsonLineModel> JSON_LINE_MODEL_TYPE_REFERENCE = new TypeReference<>() {
-    };
+    private static final TypeReference<JsonLineModel> JSON_LINE_MODEL_TYPE_REFERENCE = new TypeReference<>() {};
     private final BatchReportClientFactory batchReportClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
 
     public PurgeReportService() {
-        this(
-            BatchReportClientFactory.getInstance(),
-            WorkspaceClientFactory.getInstance());
+        this(BatchReportClientFactory.getInstance(), WorkspaceClientFactory.getInstance());
     }
 
     @VisibleForTesting
     PurgeReportService(
         BatchReportClientFactory batchReportClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory
+    ) {
         this.batchReportClientFactory = batchReportClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
     }
 
     public void appendUnitEntries(String processId, List<PurgeUnitReportEntry> entries)
         throws ProcessingStatusException {
-
         appendEntries(processId, entries, ReportType.PURGE_UNIT);
     }
 
     public void appendObjectGroupEntries(String processId, List<PurgeObjectGroupReportEntry> entries)
         throws ProcessingStatusException {
-
         appendEntries(processId, entries, ReportType.PURGE_OBJECTGROUP);
     }
 
     private <T> void appendEntries(String processId, List<T> entries, ReportType reportType)
         throws ProcessingStatusException {
-
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
             ReportBody<T> reportBody = new ReportBody<>();
             reportBody.setProcessId(processId);
@@ -115,28 +109,29 @@ public class PurgeReportService {
 
     public CloseableIterator<String> exportDistinctObjectGroups(HandlerIO handler, String processId)
         throws ProcessingStatusException {
-
         generateDistinctObjectGroupsToWorkspace(processId);
 
         // Write report to local file
         File distinctObjectGroupsReportFile = handler.getNewLocalFile(DISTINCT_REPORT_JSONL);
 
-        try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
-            OutputStream os = new FileOutputStream(distinctObjectGroupsReportFile)) {
-
+        try (
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient();
+            OutputStream os = new FileOutputStream(distinctObjectGroupsReportFile)
+        ) {
             Response reportResponse = workspaceClient.getObject(processId, DISTINCT_REPORT_JSONL);
             IOUtils.copy(new VitamAsyncInputStream(reportResponse), os);
-
-        } catch (ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException |
-                 IOException e) {
+        } catch (
+            ContentAddressableStorageServerException | ContentAddressableStorageNotFoundException | IOException e
+        ) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load report from workspace", e);
         }
 
         // Return a stream iterator over local file (to avoid keeping an HTTP connection open too long)
         try {
-            JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
-                new JsonLineGenericIterator<>(new FileInputStream(distinctObjectGroupsReportFile),
-                    JSON_LINE_MODEL_TYPE_REFERENCE);
+            JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+                new FileInputStream(distinctObjectGroupsReportFile),
+                JSON_LINE_MODEL_TYPE_REFERENCE
+            );
 
             return CloseableIteratorUtils.map(jsonLineIterator, JsonLineModel::getId);
         } catch (IOException e) {
@@ -145,7 +140,6 @@ public class PurgeReportService {
     }
 
     private void generateDistinctObjectGroupsToWorkspace(String processId) throws ProcessingStatusException {
-
         if (isReportAlreadyExisting(processId, DISTINCT_REPORT_JSONL)) {
             LOGGER.info(DISTINCT_REPORT_JSONL + " report already exists. No need for regeneration (idempotency)");
             return;
@@ -153,32 +147,38 @@ public class PurgeReportService {
 
         // Generate report to workspace
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
-            batchReportClient.generatePurgeDistinctObjectGroupInUnitReport(processId,
-                new ReportExportRequest(DISTINCT_REPORT_JSONL));
-
+            batchReportClient.generatePurgeDistinctObjectGroupInUnitReport(
+                processId,
+                new ReportExportRequest(DISTINCT_REPORT_JSONL)
+            );
         } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not generate distinct object group report for deleted units to workspace", e);
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "Could not generate distinct object group report for deleted units to workspace",
+                e
+            );
         }
     }
 
     public void exportAccessionRegisters(String processId) throws ProcessingStatusException {
-
         if (isReportAlreadyExisting(processId, ACCESSION_REGISTER_REPORT_JSONL)) {
-            LOGGER.info(ACCESSION_REGISTER_REPORT_JSONL +
-                " report already exists. No need for regeneration (idempotency)");
+            LOGGER.info(
+                ACCESSION_REGISTER_REPORT_JSONL + " report already exists. No need for regeneration (idempotency)"
+            );
             return;
         }
 
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
             batchReportClient.generatePurgeAccessionRegisterReport(
                 processId,
-                new ReportExportRequest(ACCESSION_REGISTER_REPORT_JSONL));
-
+                new ReportExportRequest(ACCESSION_REGISTER_REPORT_JSONL)
+            );
         } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not generate purge accession register reports (" + processId + ")", e);
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "Could not generate purge accession register reports (" + processId + ")",
+                e
+            );
         }
     }
 
@@ -187,21 +187,21 @@ public class PurgeReportService {
             batchReportClient.cleanupReport(processId, ReportType.PURGE_UNIT);
             batchReportClient.cleanupReport(processId, ReportType.PURGE_OBJECTGROUP);
         } catch (VitamClientInternalException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not cleanup purge reports (" + processId + ")", e);
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "Could not cleanup purge reports (" + processId + ")",
+                e
+            );
         }
     }
 
     private boolean isReportAlreadyExisting(String processId, String reportFileName) throws ProcessingStatusException {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
             if (workspaceClient.isExistingObject(processId, reportFileName)) {
                 return true;
             }
-
         } catch (ContentAddressableStorageServerException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not check report existence in workspace", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Could not check report existence in workspace", e);
         }
         return false;
     }

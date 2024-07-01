@@ -51,7 +51,6 @@ public class VitamSequence extends VitamDocument<VitamSequence> {
         //nothing To do
     }
 
-
     /**
      * Constructor
      *
@@ -136,6 +135,4 @@ public class VitamSequence extends VitamDocument<VitamSequence> {
         append(COUNTER, counter);
         return this;
     }
-
-
 }

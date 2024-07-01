@@ -31,13 +31,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class UnitComputedInheritedRulesInvalidationReportEntry {
 
-    public final static String UNIT_ID = "id";
+    public static final String UNIT_ID = "id";
 
     private final String unitId;
 
     @JsonCreator
-    public UnitComputedInheritedRulesInvalidationReportEntry(
-        @JsonProperty(UNIT_ID) String unitId) {
+    public UnitComputedInheritedRulesInvalidationReportEntry(@JsonProperty(UNIT_ID) String unitId) {
         this.unitId = unitId;
     }
 

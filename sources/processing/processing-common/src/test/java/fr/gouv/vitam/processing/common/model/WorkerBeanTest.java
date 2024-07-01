@@ -36,10 +36,9 @@ import static org.junit.Assert.assertNotNull;
 
 public class WorkerBeanTest {
 
-
     private static final String JSON_WORKER =
         "{ \"name\" : \"workername\", \"family\" : \"familyname\", \"capacity\" : 10," +
-            "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : 89102 } }";
+        "\"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : 89102 } }";
 
     @Test
     public void testConstructor() {
@@ -72,8 +71,7 @@ public class WorkerBeanTest {
     @Test
     public void testWorkBeanSetters() {
         final WorkerBean wb = new WorkerBean();
-        wb.setCapacity(0).setFamily("family").setName("name")
-            .setStatus("Active").setWorkerId("workerId");
+        wb.setCapacity(0).setFamily("family").setName("name").setStatus("Active").setWorkerId("workerId");
         final WorkerRemoteConfiguration wc = new WorkerRemoteConfiguration("localhost", 89102);
         wb.setConfiguration(wc);
         assertEquals("family", wb.getFamily());
@@ -86,5 +84,4 @@ public class WorkerBeanTest {
         assertEquals("workerId", wb.getWorkerId());
         assertNotNull(wb.toString());
     }
-
 }

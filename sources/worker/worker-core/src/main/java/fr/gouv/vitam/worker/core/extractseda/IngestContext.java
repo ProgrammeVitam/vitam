@@ -89,8 +89,7 @@ public class IngestContext {
         return managementContractModel;
     }
 
-    public void setManagementContractModel(
-        ManagementContractModel managementContractModel) {
+    public void setManagementContractModel(ManagementContractModel managementContractModel) {
         this.managementContractModel = managementContractModel;
     }
 

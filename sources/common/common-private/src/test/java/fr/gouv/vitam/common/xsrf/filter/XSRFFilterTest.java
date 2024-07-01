@@ -50,7 +50,6 @@ public class XSRFFilterTest {
 
     @Before
     public void before() throws ServletException {
-
         filter = new XSRFFilter();
 
         httpServletRequest = mock(HttpServletRequest.class);
@@ -73,5 +72,4 @@ public class XSRFFilterTest {
 
         verify(filterChain).doFilter(httpServletRequest, httpServletResponse);
     }
-
 }

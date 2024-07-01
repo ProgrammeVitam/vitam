@@ -41,13 +41,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class LogbookReconstructionMetrics {
 
     private static final String TENANT_LABEL = "tenant";
-    private final static AtomicBoolean isInitialized = new AtomicBoolean(false);
+    private static final AtomicBoolean isInitialized = new AtomicBoolean(false);
 
-    private LogbookReconstructionMetrics() {
-    }
+    private LogbookReconstructionMetrics() {}
 
     public static synchronized void initialize(LogbookReconstructionMetricsCache reconstructionMetricsCache) {
-
         if (isInitialized.get()) {
             return;
         }
@@ -63,13 +61,12 @@ public class LogbookReconstructionMetrics {
     }
 
     private static Map<List<String>, Double> collectMetrics(
-        LogbookReconstructionMetricsCache reconstructionMetricsCache) {
-
+        LogbookReconstructionMetricsCache reconstructionMetricsCache
+    ) {
         Map<List<String>, Double> metricsByLabelValues = new HashMap<>();
         for (Integer tenant : VitamConfiguration.getTenants()) {
-
-            Duration durationSinceLastReconstruction = reconstructionMetricsCache.
-                getLogbookOperationReconstructionLatency(tenant);
+            Duration durationSinceLastReconstruction =
+                reconstructionMetricsCache.getLogbookOperationReconstructionLatency(tenant);
 
             List<String> labelValues = List.of(Integer.toString(tenant));
 
@@ -80,7 +77,6 @@ public class LogbookReconstructionMetrics {
     }
 
     private static double getReconstructionLatency(Duration durationSinceLastReconstruction) {
-
         // Returns :
         //   - Actual latency (in seconds) when available (eg. 100 seconds)
         //   - +∞ (positive infinity) when no latency information is available for current logbook instance (reconstruction is KO, server just restarted, reconstruction happened on other instances...)
@@ -90,8 +86,8 @@ public class LogbookReconstructionMetrics {
         //   - `min by (tenant) (vitam_logbook_reconstruction_operation_latency_seconds)`: Tenant aggregated reconstruction latency (across logbook instances)
         //   - `max (min by (tenant) (vitam_logbook_reconstruction_operation_latency_seconds))`: Global aggregated reconstruction latency
 
-        return durationSinceLastReconstruction == null ?
-            Double.POSITIVE_INFINITY :
-            Math.max(0.0, durationSinceLastReconstruction.toSeconds());
+        return durationSinceLastReconstruction == null
+            ? Double.POSITIVE_INFINITY
+            : Math.max(0.0, durationSinceLastReconstruction.toSeconds());
     }
 }

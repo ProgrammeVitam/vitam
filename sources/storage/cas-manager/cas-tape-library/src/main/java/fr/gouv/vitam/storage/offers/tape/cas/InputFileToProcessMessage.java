@@ -35,8 +35,14 @@ public class InputFileToProcessMessage extends TarCreatorMessage {
     private final String digestValue;
     private final String digestAlgorithm;
 
-    public InputFileToProcessMessage(String containerName, String objectName, String storageId, long size,
-        String digestValue, String digestAlgorithm) {
+    public InputFileToProcessMessage(
+        String containerName,
+        String objectName,
+        String storageId,
+        long size,
+        String digestValue,
+        String digestAlgorithm
+    ) {
         this.containerName = containerName;
         this.objectName = objectName;
         this.storageId = storageId;

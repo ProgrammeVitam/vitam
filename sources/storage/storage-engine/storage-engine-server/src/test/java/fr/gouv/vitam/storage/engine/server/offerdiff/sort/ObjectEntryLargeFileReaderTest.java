@@ -46,7 +46,6 @@ public class ObjectEntryLargeFileReaderTest {
 
     @Test
     public void testEmpty() throws IOException {
-
         // Given
         File file = tempFolder.newFile();
         try (ObjectEntryLargeFileWriter writer = new ObjectEntryLargeFileWriter(file)) {
@@ -55,7 +54,6 @@ public class ObjectEntryLargeFileReaderTest {
 
         // When
         try (ObjectEntryLargeFileReader reader = new ObjectEntryLargeFileReader(file)) {
-
             // Then
             assertThat(reader).isEmpty();
         }
@@ -63,7 +61,6 @@ public class ObjectEntryLargeFileReaderTest {
 
     @Test
     public void testSingleEntry() throws IOException {
-
         // Given
         File file = tempFolder.newFile();
         try (ObjectEntryLargeFileWriter writer = new ObjectEntryLargeFileWriter(file)) {
@@ -72,17 +69,15 @@ public class ObjectEntryLargeFileReaderTest {
 
         // When
         try (ObjectEntryLargeFileReader reader = new ObjectEntryLargeFileReader(file)) {
-
             // Then
-            assertThat(reader).extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
-                .isEqualTo(Arrays.asList(
-                    tuple("obj1", 1L)));
+            assertThat(reader)
+                .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
+                .isEqualTo(Arrays.asList(tuple("obj1", 1L)));
         }
     }
 
     @Test
     public void testMultiEntries() throws IOException {
-
         // Given
         File file = tempFolder.newFile();
         try (ObjectEntryLargeFileWriter writer = new ObjectEntryLargeFileWriter(file)) {
@@ -92,12 +87,10 @@ public class ObjectEntryLargeFileReaderTest {
 
         // When
         try (ObjectEntryLargeFileReader reader = new ObjectEntryLargeFileReader(file)) {
-
             // Then
-            assertThat(reader).extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
-                .isEqualTo(Arrays.asList(
-                    tuple("obj1", 1L),
-                    tuple("obj2", 2L)));
+            assertThat(reader)
+                .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
+                .isEqualTo(Arrays.asList(tuple("obj1", 1L), tuple("obj2", 2L)));
         }
     }
 }

@@ -97,10 +97,12 @@ public class RuleActions {
 
     @JsonIgnore
     public boolean isRuleActionsEmpty() {
-        return add.isEmpty()
-            && update.isEmpty()
-            && delete.isEmpty()
-            && (addOrUpdateMetadata == null || StringUtils.isBlank(addOrUpdateMetadata.getArchiveUnitProfile()))
-            && (deleteMetadata == null || StringUtils.isBlank(deleteMetadata.getArchiveUnitProfile()));
+        return (
+            add.isEmpty() &&
+            update.isEmpty() &&
+            delete.isEmpty() &&
+            (addOrUpdateMetadata == null || StringUtils.isBlank(addOrUpdateMetadata.getArchiveUnitProfile())) &&
+            (deleteMetadata == null || StringUtils.isBlank(deleteMetadata.getArchiveUnitProfile()))
+        );
     }
 }

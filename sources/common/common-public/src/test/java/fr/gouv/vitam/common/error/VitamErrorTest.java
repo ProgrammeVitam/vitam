@@ -45,8 +45,8 @@ public class VitamErrorTest {
 
     private static final String ERROR_JSON =
         "{\"httpCode\":0,\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
-            "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
-            "[{\"httpCode\":0,\"code\":\"1\"}]}";
+        "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
+        "[{\"httpCode\":0,\"code\":\"1\"}]}";
 
     @Test
     public void testSetGetCode() throws Exception {

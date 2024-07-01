@@ -40,6 +40,4 @@ public class MetaDataAlreadyExistExceptionTest {
         assertNotNull(new MetaDataAlreadyExistException(new Exception()).getCause());
         assertNotNull(new MetaDataAlreadyExistException("test", new Exception()).getCause());
     }
-
-
 }

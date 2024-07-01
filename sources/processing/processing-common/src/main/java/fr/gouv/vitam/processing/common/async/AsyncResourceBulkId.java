@@ -48,10 +48,8 @@ public class AsyncResourceBulkId {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         AsyncResourceBulkId that = (AsyncResourceBulkId) o;
         return Objects.equals(requestId, that.requestId) && Objects.equals(taskId, that.taskId);
     }

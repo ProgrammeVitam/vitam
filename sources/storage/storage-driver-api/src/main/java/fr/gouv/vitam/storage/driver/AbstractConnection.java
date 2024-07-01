@@ -56,5 +56,4 @@ public abstract class AbstractConnection extends DefaultClient implements Connec
     public String getDriverName() {
         return driverName;
     }
-
 }

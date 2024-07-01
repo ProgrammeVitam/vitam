@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.batch.report.model.entry.TraceabilityReportEntry;
 
 public class TraceabilityObjectModel {
+
     public static final String PROCESS_ID = "processId";
     public static final String TENANT = "_tenant";
     public static final String METADATA = "_metadata";
@@ -43,8 +44,7 @@ public class TraceabilityObjectModel {
     @JsonProperty(TENANT)
     private int tenant;
 
-    public TraceabilityObjectModel() {
-    }
+    public TraceabilityObjectModel() {}
 
     public TraceabilityObjectModel(String processId, TraceabilityReportEntry metadata, int tenant) {
         this.processId = processId;

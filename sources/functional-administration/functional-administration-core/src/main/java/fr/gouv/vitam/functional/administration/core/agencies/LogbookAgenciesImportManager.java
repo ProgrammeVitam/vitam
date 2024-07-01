@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.core.agencies;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOperationException;
@@ -62,6 +61,7 @@ import static fr.gouv.vitam.common.database.builder.query.QueryHelper.ne;
  * Agency validator and logBook manager
  */
 class LogbookAgenciesImportManager {
+
     public static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookAgenciesImportManager.class);
 
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -77,12 +77,15 @@ class LogbookAgenciesImportManager {
      * @throws VitamException thrown if the logbook could not be created
      */
     public void logStarted(GUID eip, String eventType) throws VitamException {
-
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eip, eventType, eip,
-                LogbookTypeProcess.MASTERDATA,
-                StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eip,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED),
+            eip
+        );
         createLogbookEntry(logbookParameters);
     }
 
@@ -93,23 +96,22 @@ class LogbookAgenciesImportManager {
      * @throws VitamException thrown if the logbook could not be updated
      */
     public void logFinishSuccess(GUID eip, String fileName, StatusCode statusCode) throws VitamException {
-
         LogbookOperationParameters logbookParameters;
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
 
-
-        logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, AgenciesService.AGENCIES_IMPORT_EVENT, eip,
-                LogbookTypeProcess.MASTERDATA,
-                statusCode,
-                VitamLogbookMessages.getCodeOp(AgenciesService.AGENCIES_IMPORT_EVENT, statusCode), eip);
-        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
-            JsonHandler.unprettyPrint(evDetData));
-
+        logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            AgenciesService.AGENCIES_IMPORT_EVENT,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            statusCode,
+            VitamLogbookMessages.getCodeOp(AgenciesService.AGENCIES_IMPORT_EVENT, statusCode),
+            eip
+        );
+        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, JsonHandler.unprettyPrint(evDetData));
 
         ReferentialFileUtils.addFilenameInLogbookOperation(fileName, logbookParameters);
         updateLogbookEntry(logbookParameters);
-
     }
 
     /**
@@ -119,10 +121,15 @@ class LogbookAgenciesImportManager {
      * @throws VitamException thrown if the logbook could not be updated
      */
     public void logEventFatal(GUID eip, String eventType) throws VitamException {
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter()),
-                eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.FATAL,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter()),
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.FATAL,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL),
+            eip
+        );
         updateLogbookEntry(logbookParameters);
     }
 
@@ -133,10 +140,15 @@ class LogbookAgenciesImportManager {
      * @throws VitamException thrown if the logbook could not be updated
      */
     public void logEventSuccess(GUID eip, String eventType) throws VitamException {
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter()),
-                eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter()),
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.OK,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK),
+            eip
+        );
         updateLogbookEntry(logbookParameters);
     }
 
@@ -147,16 +159,18 @@ class LogbookAgenciesImportManager {
      * @throws VitamException thrown if the logbook could not be updated
      */
     public void logEventWarning(GUID eip, String eventType) throws VitamException {
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter()),
-                eventType, eip, LogbookTypeProcess.MASTERDATA, StatusCode.WARNING,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.WARNING), eip);
-        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData,
-            JsonHandler.unprettyPrint(evDetData));
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter()),
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.WARNING,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.WARNING),
+            eip
+        );
+        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, JsonHandler.unprettyPrint(evDetData));
         updateLogbookEntry(logbookParameters);
     }
-
-
 
     /**
      * log fatal error (system or technical error)
@@ -169,25 +183,31 @@ class LogbookAgenciesImportManager {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
 
         // create logbook parameters
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eip, AgenciesService.AGENCIES_IMPORT_EVENT, eip,
-                LogbookTypeProcess.MASTERDATA,
-                StatusCode.KO,
-                VitamLogbookMessages.getCodeOp(AgenciesService.AGENCIES_IMPORT_EVENT, StatusCode.KO), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eip,
+            AgenciesService.AGENCIES_IMPORT_EVENT,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.KO,
+            VitamLogbookMessages.getCodeOp(AgenciesService.AGENCIES_IMPORT_EVENT, StatusCode.KO),
+            eip
+        );
         // set outcomeDetail
         if (subEvenType != null) {
-            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getCodeOp(AgenciesService.AGENCIES_IMPORT_EVENT, subEvenType, StatusCode.KO));
-            logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(AgenciesService.AGENCIES_IMPORT_EVENT, subEvenType,
-                    StatusCode.KO));
+            logbookParameters.putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getCodeOp(AgenciesService.AGENCIES_IMPORT_EVENT, subEvenType, StatusCode.KO)
+            );
+            logbookParameters.putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(AgenciesService.AGENCIES_IMPORT_EVENT, subEvenType, StatusCode.KO)
+            );
         }
         // set evDetData
         logbookMessageError(errorsDetails, logbookParameters);
 
         updateLogbookEntry(logbookParameters);
     }
-
 
     private void logbookMessageError(String errorsDetails, LogbookOperationParameters logbookParameters) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
@@ -203,13 +223,11 @@ class LogbookAgenciesImportManager {
         }
     }
 
-
     public void setEvDetData(ObjectNode evDetData) {
         this.evDetData = evDetData;
     }
 
     private ObjectNode evDetData = JsonHandler.createObjectNode();
-
 
     public boolean isImportOperationInProgress(GUID eip) throws VitamException {
         try (LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
@@ -217,8 +235,10 @@ class LogbookAgenciesImportManager {
             select.setLimitFilter(0, 1);
             select.addOrderByDescFilter(LogbookMongoDbName.eventDateTime.getDbname());
             select.setQuery(
-                and().add(eq(LogbookMongoDbName.eventType.getDbname(), AgenciesService.AGENCIES_IMPORT_EVENT))
-                    .add(ne(LogbookMongoDbName.eventIdentifier.getDbname(), eip.getId())));
+                and()
+                    .add(eq(LogbookMongoDbName.eventType.getDbname(), AgenciesService.AGENCIES_IMPORT_EVENT))
+                    .add(ne(LogbookMongoDbName.eventIdentifier.getDbname(), eip.getId()))
+            );
             // FIXME : #9847 Fix logbook projections - Add back projection once projection handling is fixed
             // select.addProjection(
             //     JsonHandler.createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
@@ -226,17 +246,18 @@ class LogbookAgenciesImportManager {
             //             .put(BuilderToken.PROJECTIONARGS.ID.exactToken(), 1)
             //             .put(String.format("%s.%s", LogbookDocument.EVENTS, LogbookMongoDbName.eventType.getDbname()),
             //                 1)));
-            JsonNode logbookResult =
-                logbookClient.selectOperation(select.getFinalSelect());
+            JsonNode logbookResult = logbookClient.selectOperation(select.getFinalSelect());
             RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(logbookResult);
             // one result and last event type is STP_IMPORT_RULES -> import in progress
             if (requestResponseOK.getHits().getSize() != 0) {
                 JsonNode result = requestResponseOK.getResults().get(0);
                 if (result.get(LogbookDocument.EVENTS) != null && result.get(LogbookDocument.EVENTS).size() > 0) {
-                    JsonNode lastEvent =
-                        result.get(LogbookDocument.EVENTS).get(result.get(LogbookDocument.EVENTS).size() - 1);
+                    JsonNode lastEvent = result
+                        .get(LogbookDocument.EVENTS)
+                        .get(result.get(LogbookDocument.EVENTS).size() - 1);
                     return !AgenciesService.AGENCIES_IMPORT_EVENT.equals(
-                        lastEvent.get(LogbookMongoDbName.eventType.getDbname()).asText());
+                        lastEvent.get(LogbookMongoDbName.eventType.getDbname()).asText()
+                    );
                 } else {
                     return true;
                 }
@@ -248,15 +269,13 @@ class LogbookAgenciesImportManager {
         }
     }
 
-    private void createLogbookEntry(LogbookOperationParameters logbookParametersStart)
-        throws LogbookClientException {
+    private void createLogbookEntry(LogbookOperationParameters logbookParametersStart) throws LogbookClientException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             client.create(logbookParametersStart);
         }
     }
 
-    private void updateLogbookEntry(LogbookOperationParameters logbookParametersEnd)
-        throws LogbookClientException {
+    private void updateLogbookEntry(LogbookOperationParameters logbookParametersEnd) throws LogbookClientException {
         try (LogbookOperationsClient client = logbookOperationsClientFactory.getClient()) {
             client.update(logbookParametersEnd);
         }

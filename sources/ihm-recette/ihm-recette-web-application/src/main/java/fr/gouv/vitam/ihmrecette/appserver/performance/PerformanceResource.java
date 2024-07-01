@@ -64,8 +64,9 @@ public class PerformanceResource {
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
-    private ExecutorService performanceTestLauncher =
-        Executors.newSingleThreadExecutor(VitamThreadFactory.getInstance());
+    private ExecutorService performanceTestLauncher = Executors.newSingleThreadExecutor(
+        VitamThreadFactory.getInstance()
+    );
 
     private PerformanceService performanceService;
 
@@ -81,9 +82,10 @@ public class PerformanceResource {
      */
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response launchPerformanceTest(@HeaderParam(GlobalDataRest.X_TENANT_ID) int tenantId,
-        PerformanceModel model) {
-
+    public Response launchPerformanceTest(
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) int tenantId,
+        PerformanceModel model
+    ) {
         if (performanceService.inProgress()) {
             return Response.accepted().build();
         }
@@ -98,13 +100,15 @@ public class PerformanceResource {
         if (model.getNumberOfIngest() == 0) {
             LOGGER.error("number of ingest must be greater than 0");
             return Response.status(Response.Status.PRECONDITION_FAILED)
-                .entity("number of ingest must be greater than 0").build();
+                .entity("number of ingest must be greater than 0")
+                .build();
         }
 
         if (model.getParallelIngest() != null && model.getDelay() != null) {
             LOGGER.error("unable to set parallel ingest and delay in same test");
             return Response.status(Response.Status.PRECONDITION_FAILED)
-                .entity("unable to set parallel ingest and delay in same test").build();
+                .entity("unable to set parallel ingest and delay in same test")
+                .build();
         }
 
         String fileName = format("report_%s.csv", LocalDateUtil.now().format(DATE_TIME_FORMATTER));
@@ -143,10 +147,13 @@ public class PerformanceResource {
     public Response listReport() throws IOException {
         List<java.nio.file.Path> paths = performanceService.listReportDirectory();
 
-        return Response.ok(paths.stream()
-            .map(java.nio.file.Path::getFileName)
-            .map(java.nio.file.Path::toString)
-            .collect(Collectors.toList())).build();
+        return Response.ok(
+            paths
+                .stream()
+                .map(java.nio.file.Path::getFileName)
+                .map(java.nio.file.Path::toString)
+                .collect(Collectors.toList())
+        ).build();
     }
 
     /**
@@ -161,9 +168,7 @@ public class PerformanceResource {
     public Response listSip() throws IOException {
         List<java.nio.file.Path> paths = performanceService.listSipDirectory();
 
-        return Response.ok(paths.stream()
-            .map(java.nio.file.Path::toString)
-            .collect(Collectors.toList())).build();
+        return Response.ok(paths.stream().map(java.nio.file.Path::toString).collect(Collectors.toList())).build();
     }
 
     /**
@@ -186,5 +191,4 @@ public class PerformanceResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
-
 }

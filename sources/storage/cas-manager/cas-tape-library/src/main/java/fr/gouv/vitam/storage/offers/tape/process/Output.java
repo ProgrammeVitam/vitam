@@ -49,7 +49,6 @@ public class Output {
     private final int exitCode;
 
     public Output(Exception exception, Process process, ProcessBuilder processBuilder, File stdout, File stderr) {
-
         this.exception = exception;
         this.command = processBuilder.command();
         this.exitCode = EXIT_CODE_WAIT_FOR_TIMEOUT;
@@ -71,7 +70,6 @@ public class Output {
     }
 
     private static String stdToString(Process process, File stdFile, boolean isErrorStream) {
-
         String msgToReturn = "";
         InputStream std = null;
         try {

@@ -73,11 +73,13 @@ public class UnitDetachmentPluginTest {
 
     @Mock
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
     @Mock
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
+
     @Mock
     private MetaDataClient metaDataClient;
 
@@ -85,8 +87,9 @@ public class UnitDetachmentPluginTest {
     private UnitDetachmentPlugin unitDetachmentPlugin;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Before
     public void init() {
@@ -94,25 +97,25 @@ public class UnitDetachmentPluginTest {
         doReturn(metaDataClient).when(metaDataClientFactory).getClient();
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void testDetachment() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         // Given
         String containedId = GUIDFactory.newGUID().toString();
         String unitId = GUIDFactory.newGUID().toString();
-        final WorkerParameters parameters =
-            WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(containedId)
-                .setObjectNameList(Lists.newArrayList(unitId))
-                .setObjectName(unitId).setCurrentStep("StepName");
+        final WorkerParameters parameters = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(containedId)
+            .setObjectNameList(Lists.newArrayList(unitId))
+            .setObjectName(unitId)
+            .setCurrentStep("StepName");
 
         HandlerIO handlerIO = mock(HandlerIO.class);
         doReturn(JsonHandler.toJsonNode(new HashSet<>(Arrays.asList("parentId1", "parentId2"))))
-            .when(handlerIO).getJsonFromWorkspace(eq(UNITS_TO_DETACH_DIR + "/" + unitId));
+            .when(handlerIO)
+            .getJsonFromWorkspace(eq(UNITS_TO_DETACH_DIR + "/" + unitId));
 
         // When
         unitDetachmentPlugin.execute(parameters, handlerIO);
@@ -120,14 +123,17 @@ public class UnitDetachmentPluginTest {
         // Then
         verify(metaDataClient).updateUnitById(any(), eq(unitId));
 
-        ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLCParam =
-            ArgumentCaptor.forClass(LogbookLifeCycleUnitParameters.class);
+        ArgumentCaptor<LogbookLifeCycleUnitParameters> logbookLCParam = ArgumentCaptor.forClass(
+            LogbookLifeCycleUnitParameters.class
+        );
         verify(logbookLifeCyclesClient).update(logbookLCParam.capture(), eq(LifeCycleStatusCode.LIFE_CYCLE_COMMITTED));
 
         assertThat(logbookLCParam.getValue().getStatus()).isEqualTo(StatusCode.OK);
         String evDetData = logbookLCParam.getValue().getMapParameters().get(LogbookParameterName.eventDetailData);
-        ReclassificationEventDetails eventDetails =
-            JsonHandler.getFromString(evDetData, ReclassificationEventDetails.class);
+        ReclassificationEventDetails eventDetails = JsonHandler.getFromString(
+            evDetData,
+            ReclassificationEventDetails.class
+        );
         assertThat(eventDetails.getRemovedParents()).containsExactlyInAnyOrder("parentId1", "parentId2");
     }
 }

@@ -63,22 +63,25 @@ public class TransferReplyUnitRepository extends ReportCommonRepository {
 
     public void bulkAppendReport(List<TransferReplyUnitModel> reports) {
         Set<TransferReplyUnitModel> reportsWithoutDuplicate = new HashSet<>(reports);
-        List<Document> transferReplyUnitDocument =
-            reportsWithoutDuplicate.stream()
-                .map(ReportCommonRepository::pojoToDocument)
-                .collect(Collectors.toList());
+        List<Document> transferReplyUnitDocument = reportsWithoutDuplicate
+            .stream()
+            .map(ReportCommonRepository::pojoToDocument)
+            .collect(Collectors.toList());
         super.bulkAppendReport(transferReplyUnitDocument, transferReplyReportCollection);
     }
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
-
-        return transferReplyReportCollection.aggregate(
+        return transferReplyReportCollection
+            .aggregate(
                 Arrays.asList(
-                    Aggregates.match(and(
-                        eq(TransferReplyUnitModel.PROCESS_ID, processId),
-                        eq(TransferReplyUnitModel.TENANT, tenantId)
-                    )),
-                    Aggregates.project(Projections.fields(
+                    Aggregates.match(
+                        and(
+                            eq(TransferReplyUnitModel.PROCESS_ID, processId),
+                            eq(TransferReplyUnitModel.TENANT, tenantId)
+                        )
+                    ),
+                    Aggregates.project(
+                        Projections.fields(
                             new Document("_id", 0),
                             new Document("id", "$_metadata.id"),
                             new Document("distribGroup", null),
@@ -86,7 +89,8 @@ public class TransferReplyUnitRepository extends ReportCommonRepository {
                             new Document("params.type", new Document("$literal", "Unit")),
                             new Document("params.status", "$_metadata.status")
                         )
-                    ))
+                    )
+                )
             )
             // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)

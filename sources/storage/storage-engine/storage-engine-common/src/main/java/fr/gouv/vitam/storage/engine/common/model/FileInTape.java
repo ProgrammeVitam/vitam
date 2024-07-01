@@ -42,7 +42,6 @@ public class FileInTape {
     @JsonProperty(STORAGE_ID)
     private String storageId;
 
-
     @JsonProperty(FILE_SEGMENTS)
     private List<TarEntryDescription> fileSegments;
 
@@ -50,9 +49,7 @@ public class FileInTape {
         // Empty constructor for deserialization
     }
 
-
-    public FileInTape(String fileName, String storageId,
-        List<TarEntryDescription> fileSegments) {
+    public FileInTape(String fileName, String storageId, List<TarEntryDescription> fileSegments) {
         this.fileName = fileName;
         this.storageId = storageId;
         this.fileSegments = fileSegments;

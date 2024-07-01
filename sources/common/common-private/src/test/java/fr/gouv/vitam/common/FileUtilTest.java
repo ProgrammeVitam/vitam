@@ -39,8 +39,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
 public class FileUtilTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(FileUtil.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FileUtil.class);
 
     @Test
     public final void testReadFileString() throws IOException {
@@ -64,5 +64,4 @@ public class FileUtilTest {
         FileUtil.deleteRecursive(dir);
         assertFalse(dir.exists());
     }
-
 }

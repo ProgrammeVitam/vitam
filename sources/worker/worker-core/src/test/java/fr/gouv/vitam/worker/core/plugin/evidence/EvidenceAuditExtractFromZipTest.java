@@ -52,10 +52,13 @@ public class EvidenceAuditExtractFromZipTest {
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
+
     @Mock
     public HandlerIO handlerIO;
+
     @Mock
     private EvidenceService evidenceService;
+
     private EvidenceAuditExtractFromZip evidenceAuditExtractFromZip;
 
     @Before
@@ -67,13 +70,11 @@ public class EvidenceAuditExtractFromZipTest {
     public void should_extract_from_zip() throws Exception {
         WorkerParameters defaultWorkerParameters = mock(WorkerParameters.class);
 
-        when(defaultWorkerParameters.getObjectName())
-            .thenReturn("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip");
+        when(defaultWorkerParameters.getObjectName()).thenReturn(
+            "evidenceAudit/0_LogbookLifecycles_20180220_111512.zip"
+        );
 
         ItemStatus execute = evidenceAuditExtractFromZip.execute(defaultWorkerParameters, handlerIO);
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
-
-
-
 }

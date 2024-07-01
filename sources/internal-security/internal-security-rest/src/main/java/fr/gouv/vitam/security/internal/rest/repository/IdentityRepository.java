@@ -90,8 +90,9 @@ public class IdentityRepository implements CertificateRepository, CertificateCRL
      */
     public Optional<IdentityModel> findIdentity(String subjectDN, String serialNumber)
         throws InvalidParseOperationException {
-        FindIterable<Document> models =
-            identityCollection.find(filterBySubjectDNAndSerialNumber(subjectDN, serialNumber));
+        FindIterable<Document> models = identityCollection.find(
+            filterBySubjectDNAndSerialNumber(subjectDN, serialNumber)
+        );
         Document first = models.first();
         if (first == null) {
             return Optional.empty();
@@ -101,7 +102,9 @@ public class IdentityRepository implements CertificateRepository, CertificateCRL
 
     public List<IdentityModel> findAll() throws InvalidParseOperationException {
         List<IdentityModel> result = new ArrayList<>();
-        FindIterable<Document> models = identityCollection.find().projection(Projections.exclude(IdentityModel.CERTIFICATE_TAG));
+        FindIterable<Document> models = identityCollection
+            .find()
+            .projection(Projections.exclude(IdentityModel.CERTIFICATE_TAG));
         for (Document model : models) {
             result.add(BsonHelper.fromDocumentToObject(model, IdentityModel.class));
         }
@@ -116,12 +119,16 @@ public class IdentityRepository implements CertificateRepository, CertificateCRL
     public void linkContextToIdentity(String subjectDN, String contextId, String serialNumber) {
         identityCollection.updateOne(
             filterBySubjectDNAndSerialNumber(subjectDN, serialNumber),
-            set("ContextId", contextId));
+            set("ContextId", contextId)
+        );
     }
 
     private Bson filterBySubjectDNAndSerialNumber(String subjectDN, String serialNumber) {
-        return and(eq("SubjectDN", subjectDN), eq("SerialNumber", serialNumber),
-            eq(CertificateBaseModel.STATUS_TAG, CertificateStatus.VALID.name()));
+        return and(
+            eq("SubjectDN", subjectDN),
+            eq("SerialNumber", serialNumber),
+            eq(CertificateBaseModel.STATUS_TAG, CertificateStatus.VALID.name())
+        );
     }
 
     /**
@@ -147,8 +154,7 @@ public class IdentityRepository implements CertificateRepository, CertificateCRL
      */
     @Override
     public void updateCertificateState(List<String> certificatesToUpdate, CertificateStatus certificateStatus) {
-        crlRepositoryHelper
-            .updateCertificateState(certificatesToUpdate, certificateStatus);
+        crlRepositoryHelper.updateCertificateState(certificatesToUpdate, certificateStatus);
     }
 
     @Override

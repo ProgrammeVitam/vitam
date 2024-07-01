@@ -53,6 +53,7 @@ import java.util.Set;
  * Common implementation of compute graph for UNIT and GOT
  */
 public abstract class AbstractGraphComputePlugin extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractGraphComputePlugin.class);
 
     private final MetaDataClientFactory metaDataClientFactory;
@@ -67,14 +68,12 @@ public abstract class AbstractGraphComputePlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         throw new ProcessingException("No need to implements method");
     }
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) {
-
         final ItemStatus itemStatus = new ItemStatus(getPluginKeyName());
 
         List<ItemStatus> aggregateItemStatus = new ArrayList<>();
@@ -86,7 +85,6 @@ public abstract class AbstractGraphComputePlugin extends ActionHandler {
         int finalSize = 0;
         GraphComputeResponse graphComputeResponse = null;
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-
             graphComputeResponse = metaDataClient.computeGraph(getGraphComputeAction(), ids);
 
             switch (getGraphComputeAction()) {
@@ -99,7 +97,6 @@ public abstract class AbstractGraphComputePlugin extends ActionHandler {
                 default:
                     throw new IllegalStateException("Unexpected graph compute action " + getGraphComputeAction());
             }
-
         } catch (VitamClientException e) {
             LOGGER.error("Processing exception", e);
             itemStatus.increment(StatusCode.FATAL);
@@ -127,8 +124,7 @@ public abstract class AbstractGraphComputePlugin extends ActionHandler {
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 
     abstract GraphComputeResponse.GraphComputeAction getGraphComputeAction();
 

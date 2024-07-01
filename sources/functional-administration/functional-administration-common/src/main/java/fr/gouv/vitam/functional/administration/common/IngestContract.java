@@ -108,7 +108,6 @@ public class IngestContract extends VitamDocument<IngestContract> {
      */
     public static final String MANAGEMENTCONTRACTID = "ManagementContractId";
 
-
     /**
      * Empty Constructor
      */
@@ -200,7 +199,6 @@ public class IngestContract extends VitamDocument<IngestContract> {
         return this;
     }
 
-
     /**
      * Get the contract status
      *
@@ -217,8 +215,6 @@ public class IngestContract extends VitamDocument<IngestContract> {
             throw new IllegalStateException("invalid STATUS value " + status);
         }
     }
-
-
 
     /**
      * Set or change the contract status
@@ -385,5 +381,4 @@ public class IngestContract extends VitamDocument<IngestContract> {
     public String getManagementContractId() {
         return getString(MANAGEMENTCONTRACTID);
     }
-
 }

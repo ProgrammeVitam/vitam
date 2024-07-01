@@ -48,6 +48,5 @@ public class TapeLibraryStatusParserTest {
         String expected = "result/tape-robot-stats.json";
         JsonNode initialJson = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(expected));
         JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(tapeLibraryState), initialJson);
-
     }
 }

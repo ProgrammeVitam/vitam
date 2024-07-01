@@ -42,7 +42,6 @@ import fr.gouv.vitam.functional.administration.common.exception.ReferentialExcep
  * MongoDb Access Referential interface
  */
 public interface MongoDbAccessReferential {
-
     /**
      * insert documents
      *
@@ -99,8 +98,7 @@ public interface MongoDbAccessReferential {
      * @return vitam document
      * @throws ReferentialException when error occurs
      */
-    VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection)
-        throws ReferentialException;
+    VitamDocument<?> getDocumentById(String id, FunctionalAdminCollections collection) throws ReferentialException;
 
     /**
      * @param id functional id value
@@ -109,12 +107,15 @@ public interface MongoDbAccessReferential {
      * @return
      * @throws ReferentialException
      */
-    VitamDocument<?> getDocumentByUniqueId(String id,
-        FunctionalAdminCollections collection, String field)
+    VitamDocument<?> getDocumentByUniqueId(String id, FunctionalAdminCollections collection, String field)
         throws ReferentialException;
 
-    void replaceDocument(JsonNode document, String identifier, String identifierName,
-        FunctionalAdminCollections vitamCollection) throws DatabaseException;
+    void replaceDocument(
+        JsonNode document,
+        String identifier,
+        String identifierName,
+        FunctionalAdminCollections vitamCollection
+    ) throws DatabaseException;
 
     /**
      * Update with queryDsl
@@ -150,8 +151,7 @@ public interface MongoDbAccessReferential {
      * @throws ReferentialException when error occurs
      * @throws BadRequestException when query is incorrect
      */
-    DbRequestResult findDocuments(JsonNode select, FunctionalAdminCollections collection)
-        throws ReferentialException;
+    DbRequestResult findDocuments(JsonNode select, FunctionalAdminCollections collection) throws ReferentialException;
 
     /**
      * @param delete filter

@@ -46,6 +46,7 @@ import java.util.Set;
  * Request for Single Mode Query
  */
 public abstract class RequestSingle extends AbstractRequest {
+
     protected Query query;
 
     /**
@@ -74,15 +75,13 @@ public abstract class RequestSingle extends AbstractRequest {
      * @throws InvalidCreateOperationException whern query is invalid
      */
     @Override
-    public final RequestSingle setQuery(final Query query)
-        throws InvalidCreateOperationException {
+    public final RequestSingle setQuery(final Query query) throws InvalidCreateOperationException {
         ParametersChecker.checkParameter("Query is a mandatory parameter", query);
         if (query == null) {
             throw new InvalidCreateOperationException("Null Query");
         }
         if (!query.isReady()) {
-            throw new InvalidCreateOperationException(
-                "Query is not ready to be set: " + query.getCurrentQuery());
+            throw new InvalidCreateOperationException("Query is not ready to be set: " + query.getCurrentQuery());
         }
         this.query = query;
         return this;
@@ -134,7 +133,6 @@ public abstract class RequestSingle extends AbstractRequest {
         return queries;
     }
 
-
     @Override
     public Set<String> getRoots() {
         return Collections.emptySet();
@@ -166,7 +164,9 @@ public abstract class RequestSingle extends AbstractRequest {
     @Override
     public String toString() {
         return new StringBuilder()
-            .append("Requests: ").append(query != null ? query : "").append(super.toString())
+            .append("Requests: ")
+            .append(query != null ? query : "")
+            .append(super.toString())
             .toString();
     }
 
@@ -176,5 +176,4 @@ public abstract class RequestSingle extends AbstractRequest {
     public ArrayNode getDatas() {
         return JsonHandler.createArrayNode();
     }
-
 }

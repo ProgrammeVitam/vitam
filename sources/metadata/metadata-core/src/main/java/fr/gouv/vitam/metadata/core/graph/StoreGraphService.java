@@ -112,7 +112,6 @@ public class StoreGraphService {
 
     private static AtomicBoolean alreadyRunningLock = new AtomicBoolean(false);
 
-
     /**
      * @param vitamRepositoryProvider
      * @param restoreBackupService
@@ -124,7 +123,8 @@ public class StoreGraphService {
         VitamRepositoryProvider vitamRepositoryProvider,
         RestoreBackupService restoreBackupService,
         WorkspaceClientFactory workspaceClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = restoreBackupService;
         this.workspaceClientFactory = workspaceClientFactory;
@@ -157,9 +157,15 @@ public class StoreGraphService {
     public LocalDateTime getLastGraphStoreDate(MetadataCollections metadataCollections) throws StoreGraphException {
         try {
             DataCategory dataCategory = getDataCategory(metadataCollections);
-            Iterator<OfferLog> offerLogIterator =
-                restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, dataCategory, null,
-                    null, Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE);
+            Iterator<OfferLog> offerLogIterator = restoreBackupService.getListing(
+                VitamConfiguration.getDefaultStrategy(),
+                null,
+                dataCategory,
+                null,
+                null,
+                Order.DESC,
+                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE
+            );
 
             if (!offerLogIterator.hasNext()) {
                 // Case where no offer log found. Means that no timestamp zip file saved yet in the offer
@@ -167,7 +173,6 @@ public class StoreGraphService {
             }
 
             return parseGraphEndDateFromFileName(offerLogIterator.next().getFileName());
-
         } catch (Exception e) {
             throw new StoreGraphException(e);
         }
@@ -196,11 +201,9 @@ public class StoreGraphService {
         return dataCategory;
     }
 
-
     public boolean isInProgress() {
         return alreadyRunningLock.get();
     }
-
 
     /**
      * If no graph store in progress, try to start one
@@ -224,13 +227,12 @@ public class StoreGraphService {
             try {
                 CompletableFuture<Integer>[] futures = new CompletableFuture[] {
                     createCompletableFeature(MetadataCollections.UNIT, map),
-                    createCompletableFeature(MetadataCollections.OBJECTGROUP, map)
+                    createCompletableFeature(MetadataCollections.OBJECTGROUP, map),
                 };
                 // Start async the features
-                CompletableFuture<Integer> result = CompletableFuture
-                    .allOf(futures)
+                CompletableFuture<Integer> result = CompletableFuture.allOf(futures)
                     .thenApply(v -> Stream.of(futures).map(CompletableFuture::join).collect(Collectors.toList()))
-                    .thenApply((numberOfDocuments) -> numberOfDocuments.stream().mapToInt(o -> o).sum())
+                    .thenApply(numberOfDocuments -> numberOfDocuments.stream().mapToInt(o -> o).sum())
                     .exceptionally(th -> {
                         throw new RuntimeException(th);
                     });
@@ -242,22 +244,24 @@ public class StoreGraphService {
                 alreadyRunningLock.set(false);
             }
             LOGGER.info("Graph store GOT and UNIT total : " + totalTreatedDocuments + " : (" + map.toString() + ")");
-
         } else {
             LOGGER.info("Graph store is already running ...");
         }
         return map;
-
-
     }
 
-    private CompletableFuture<Integer> createCompletableFeature(MetadataCollections metadataCollections,
-        Map<MetadataCollections, Integer> map) {
-        return CompletableFuture.supplyAsync(() -> {
-            Integer numberOfDocuments = storeGraph(metadataCollections);
-            map.put(metadataCollections, numberOfDocuments);
-            return numberOfDocuments;
-        }, VitamThreadPoolExecutor.getDefaultExecutor());
+    private CompletableFuture<Integer> createCompletableFeature(
+        MetadataCollections metadataCollections,
+        Map<MetadataCollections, Integer> map
+    ) {
+        return CompletableFuture.supplyAsync(
+            () -> {
+                Integer numberOfDocuments = storeGraph(metadataCollections);
+                map.put(metadataCollections, numberOfDocuments);
+                return numberOfDocuments;
+            },
+            VitamThreadPoolExecutor.getDefaultExecutor()
+        );
     }
 
     /**
@@ -268,14 +272,14 @@ public class StoreGraphService {
      * True if a stored zip file is created and saved in the storage.
      */
     private Integer storeGraph(MetadataCollections metadataCollections) {
-
         final GUID storeOperation = GUIDFactory.newGUID();
         VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
         VitamThreadUtils.getVitamSession().setRequestId(storeOperation);
         final String containerName = storeOperation.getId();
 
-        final Histogram.Timer timer =
-            CommonMetadataMetrics.LOG_SHIPPING_DURATION.labels(metadataCollections.name()).startTimer();
+        final Histogram.Timer timer = CommonMetadataMetrics.LOG_SHIPPING_DURATION.labels(
+            metadataCollections.name()
+        ).startTimer();
 
         try {
             LOGGER.info("Start graph store " + metadataCollections.getName() + " ...");
@@ -284,22 +288,26 @@ public class StoreGraphService {
             try {
                 lastStoreDate = getLastGraphStoreDate(metadataCollections);
             } catch (StoreGraphException e) {
-                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER
-                    .labels(String.valueOf(ParameterHelper.getTenantParameter()), "StoreGraph").inc();
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                    String.valueOf(ParameterHelper.getTenantParameter()),
+                    "StoreGraph"
+                ).inc();
                 LOGGER.error("[Consistency ERROR] : Error while getting the last store date from the offer ", e);
 
                 return 0;
             }
 
-            final LocalDateTime currentStoreDate =
-                LocalDateUtil.now().minus(VitamConfiguration.getStoreGraphOverlapDelay(),
-                    ChronoUnit.SECONDS);
+            final LocalDateTime currentStoreDate = LocalDateUtil.now()
+                .minus(VitamConfiguration.getStoreGraphOverlapDelay(), ChronoUnit.SECONDS);
             if (currentStoreDate.isBefore(lastStoreDate)) {
-                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER
-                    .labels(String.valueOf(ParameterHelper.getTenantParameter()), "StoreGraph").inc();
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                    String.valueOf(ParameterHelper.getTenantParameter()),
+                    "StoreGraph"
+                ).inc();
                 LOGGER.error(
                     "[Consistency ERROR] : The last store date should not be newer than the current date. " +
-                        "Someone have modified the file name in the offer ?!!");
+                    "Someone have modified the file name in the offer ?!!"
+                );
                 return 0;
             }
 
@@ -307,11 +315,9 @@ public class StoreGraphService {
             final String startDate = LocalDateUtil.getFormattedDateForMongo(lastStoreDate);
             final String endDate = LocalDateUtil.getFormattedDateForMongo(currentStoreDate);
             // Zip file name in the storage
-            final String graph_store_name =
-                lastStoreDate.format(formatter) + "_" + currentStoreDate.format(formatter);
+            final String graph_store_name = lastStoreDate.format(formatter) + "_" + currentStoreDate.format(formatter);
 
             try {
-
                 DataCategory dataCategory = getDataCategory(metadataCollections);
                 String graphFolder = metadataCollections.name().toLowerCase() + "_" + GRAPH;
                 String graphZipName = ZIP_PREFIX_NAME + metadataCollections.name().toLowerCase() + ZIP_EXTENTION;
@@ -345,22 +351,31 @@ public class StoreGraphService {
 
                 // Save in the storage the zipped file
                 if (is_graph_updated) {
-
                     zipAndSaveInOffer(dataCategory, containerName, graphFolder, graphZipName, graph_store_name);
                     LOGGER.info("End save graph of " + metadataCollections.name() + " in the storage");
                     return totalTreatedDocuments;
                 } else {
-                    LOGGER.info("End without any save graph of " + metadataCollections.name() +
-                        " . No document found with updated graph");
+                    LOGGER.info(
+                        "End without any save graph of " +
+                        metadataCollections.name() +
+                        " . No document found with updated graph"
+                    );
                     return 0;
                 }
-
             } catch (StoreGraphException e) {
-                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER
-                    .labels(String.valueOf(ParameterHelper.getTenantParameter()), "StoreGraph").inc();
-                LOGGER.error(String
-                    .format("[Consistency ERROR] : Error while graph store (%s) form (%s) to (%s)",
-                        metadataCollections.name(), startDate, endDate), e);
+                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                    String.valueOf(ParameterHelper.getTenantParameter()),
+                    "StoreGraph"
+                ).inc();
+                LOGGER.error(
+                    String.format(
+                        "[Consistency ERROR] : Error while graph store (%s) form (%s) to (%s)",
+                        metadataCollections.name(),
+                        startDate,
+                        endDate
+                    ),
+                    e
+                );
                 return 0;
             } finally {
                 try {
@@ -369,7 +384,6 @@ public class StoreGraphService {
                     LOGGER.error(e);
                 }
             }
-
         } finally {
             timer.observeDuration();
         }
@@ -397,9 +411,10 @@ public class StoreGraphService {
      * @return BasicDBObject GRAPH_LAST_PERSISTED_DATE between startDate and endDate
      */
     private BasicDBObject getMongoQuery(String startDate, String endDate) {
-        return new BasicDBObject(Unit.GRAPH_LAST_PERSISTED_DATE,
-            new BasicDBObject($_GTE, startDate)
-                .append($_LT, endDate));
+        return new BasicDBObject(
+            Unit.GRAPH_LAST_PERSISTED_DATE,
+            new BasicDBObject($_GTE, startDate).append($_LT, endDate)
+        );
     }
 
     /**
@@ -424,15 +439,13 @@ public class StoreGraphService {
      * @param graphFolder the graph folder name
      * @throws StoreGraphException
      */
-    private void tryCreateContainer(String containerName, String graphFolder)
-        throws StoreGraphException {
+    private void tryCreateContainer(String containerName, String graphFolder) throws StoreGraphException {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             if (!workspaceClient.isExistingContainer(containerName)) {
                 workspaceClient.createContainer(containerName);
                 workspaceClient.createFolder(containerName, graphFolder);
             }
-        } catch (ContentAddressableStorageServerException |
-            ContentAddressableStorageAlreadyExistException e) {
+        } catch (ContentAddressableStorageServerException | ContentAddressableStorageAlreadyExistException e) {
             throw new StoreGraphException(e);
         }
     }
@@ -445,8 +458,13 @@ public class StoreGraphService {
      * @param graph_store_name the name of the zip file in the offer
      * @throws StoreGraphException
      */
-    public void zipAndSaveInOffer(DataCategory dataCategory, String containerName, String graphFolder,
-        String graphZipName, String graph_store_name) throws StoreGraphException {
+    public void zipAndSaveInOffer(
+        DataCategory dataCategory,
+        String containerName,
+        String graphFolder,
+        String graphZipName,
+        String graph_store_name
+    ) throws StoreGraphException {
         try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             CompressInformation compressInformation = new CompressInformation();
             Collections.addAll(compressInformation.getFiles(), graphFolder);
@@ -458,7 +476,6 @@ public class StoreGraphService {
         }
 
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
-
             final ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(containerName);
             description.setWorkspaceObjectURI(graphZipName);
@@ -466,10 +483,12 @@ public class StoreGraphService {
             storageClient.storeFileFromWorkspace(
                 VitamConfiguration.getDefaultStrategy(),
                 dataCategory,
-                graph_store_name, description);
-
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException |
-            StorageServerClientException e) {
+                graph_store_name,
+                description
+            );
+        } catch (
+            StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException e
+        ) {
             throw new StoreGraphException(e);
         }
     }
@@ -481,9 +500,8 @@ public class StoreGraphService {
      *
      * @param documents
      */
-    public void storeInWorkspace(String containerName, String graphFolder,
-        List<Document> documents) throws StoreGraphException {
-
+    public void storeInWorkspace(String containerName, String graphFolder, List<Document> documents)
+        throws StoreGraphException {
         InputStream inputStream;
         try {
             inputStream = JsonHandler.writeToInpustream(documents);
@@ -492,9 +510,7 @@ public class StoreGraphService {
         }
 
         try (final WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-            workspaceClient.putObject(containerName,
-                graphFolder + "/" + GUIDFactory.newGUID().getId(),
-                inputStream);
+            workspaceClient.putObject(containerName, graphFolder + "/" + GUIDFactory.newGUID().getId(), inputStream);
         } catch (ContentAddressableStorageServerException e) {
             throw new StoreGraphException(e);
         } finally {

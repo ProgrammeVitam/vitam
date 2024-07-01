@@ -34,7 +34,6 @@ public class ElasticsearchNode {
     private String hostName;
     private int httpPort;
 
-
     /**
      * ElasticsearchNode empty constructor for YAMLFactory
      */
@@ -83,7 +82,4 @@ public class ElasticsearchNode {
         this.httpPort = httpPort;
         return this;
     }
-
-
-
 }

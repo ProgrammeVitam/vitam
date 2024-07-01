@@ -41,13 +41,16 @@ public class StorageRule extends InheritedRule {
     @JsonProperty(FINAL_ACTION)
     private List<String> finalAction;
 
-    public StorageRule() {
+    public StorageRule() {}
 
-    }
-
-    public StorageRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule,
-        List<ComputedInheritedRuleModel> rules, RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin,
-        Set<String> inheritedRuleIds) {
+    public StorageRule(
+        LocalDate maxEndDate,
+        Properties properties,
+        Map<String, LocalDate> ruleIdToRule,
+        List<ComputedInheritedRuleModel> rules,
+        RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin,
+        Set<String> inheritedRuleIds
+    ) {
         super(maxEndDate, ruleIdToRule, rules, ruleCategoryInheritanceOrigin, inheritedRuleIds);
         parseClassificationProperties(properties);
     }

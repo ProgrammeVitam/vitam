@@ -35,7 +35,6 @@ import java.util.List;
  * informations about drivers and offers associations.
  */
 public interface DriverMapper {
-
     /**
      * Get persisted offers list for a driver
      *

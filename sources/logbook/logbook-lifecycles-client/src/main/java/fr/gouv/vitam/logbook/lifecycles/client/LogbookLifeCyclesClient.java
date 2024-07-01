@@ -53,7 +53,6 @@ import java.util.List;
  * Logbook client interface
  */
 public interface LogbookLifeCyclesClient extends BasicClient {
-
     /**
      * Create logbook entry <br>
      * <br>
@@ -174,9 +173,11 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @return json line stream of raw life cycles
      * @throws LogbookClientException
      */
-    InputStream exportRawUnitLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate,
-        int maxEntries)
-        throws LogbookClientException, InvalidParseOperationException, IOException;
+    InputStream exportRawUnitLifecyclesByLastPersistedDate(
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        int maxEntries
+    ) throws LogbookClientException, InvalidParseOperationException, IOException;
 
     /**
      * Exports raw object group lifecycles by last persisted date range
@@ -191,9 +192,11 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @return json line stream of raw life cycles
      * @throws LogbookClientException
      */
-    InputStream exportRawObjectGroupLifecyclesByLastPersistedDate(LocalDateTime startDate, LocalDateTime endDate,
-        int maxEntries)
-        throws LogbookClientException, InvalidParseOperationException, IOException;
+    InputStream exportRawObjectGroupLifecyclesByLastPersistedDate(
+        LocalDateTime startDate,
+        LocalDateTime endDate,
+        int maxEntries
+    ) throws LogbookClientException, InvalidParseOperationException, IOException;
 
     /**
      * returns the object group life cycle
@@ -234,13 +237,17 @@ public interface LogbookLifeCyclesClient extends BasicClient {
     JsonNode selectObjectGroupLifeCycle(JsonNode queryDsl, LifeCycleStatusCode lifeCycleStatus)
         throws LogbookClientException, InvalidParseOperationException;
 
-    CloseableIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(String operationId,
-        LifeCycleStatusCode lifeCycleStatus, JsonNode query)
-        throws LogbookClientException;
+    CloseableIterator<JsonNode> objectGroupLifeCyclesByOperationIterator(
+        String operationId,
+        LifeCycleStatusCode lifeCycleStatus,
+        JsonNode query
+    ) throws LogbookClientException;
 
-    CloseableIterator<JsonNode> unitLifeCyclesByOperationIterator(String operationId,
-        LifeCycleStatusCode lifeCycleStatus, JsonNode query)
-        throws LogbookClientException;
+    CloseableIterator<JsonNode> unitLifeCyclesByOperationIterator(
+        String operationId,
+        LifeCycleStatusCode lifeCycleStatus,
+        JsonNode query
+    ) throws LogbookClientException;
 
     /**
      * Bulk Create for Unit<br>
@@ -255,8 +262,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
     void bulkCreateUnit(String objectIdentifier, Iterable<LogbookLifeCycleParameters> queue)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
-        LogbookClientServerException;
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException;
 
     /**
      * Bulk Update for Unit<br>
@@ -286,8 +292,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws IllegalArgumentException if some mandatories parameters are empty or null
      */
     void bulkCreateObjectGroup(String objectIdentifier, Iterable<LogbookLifeCycleParameters> queue)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
-        LogbookClientServerException;
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException;
 
     /**
      * Bulk Update for ObjectGroup<br>
@@ -390,8 +395,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode getRawUnitLifeCycleById(String id)
-        throws LogbookClientException, InvalidParseOperationException;
+    JsonNode getRawUnitLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * returns the raw unit life cycles
@@ -401,8 +405,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    List<JsonNode> getRawUnitLifeCycleByIds(List<String> ids)
-        throws LogbookClientException;
+    List<JsonNode> getRawUnitLifeCycleByIds(List<String> ids) throws LogbookClientException;
 
     /**
      * returns the raw object group life cycle
@@ -412,8 +415,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    JsonNode getRawObjectGroupLifeCycleById(String id)
-        throws LogbookClientException, InvalidParseOperationException;
+    JsonNode getRawObjectGroupLifeCycleById(String id) throws LogbookClientException, InvalidParseOperationException;
 
     /**
      * returns the raw object group life cycle
@@ -423,8 +425,7 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @throws LogbookClientException
      * @throws InvalidParseOperationException
      */
-    List<JsonNode> getRawObjectGroupLifeCycleByIds(List<String> ids)
-        throws LogbookClientException;
+    List<JsonNode> getRawObjectGroupLifeCycleByIds(List<String> ids) throws LogbookClientException;
 
     /**
      * Create lifecycle objectgroup
@@ -474,8 +475,11 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @param logbookLifeCycleParametersBulk logbookLifeCycleParametersBulk
      * @throws VitamClientInternalException VitamClientInternalException
      */
-    void bulkLifeCycleTemporary(String operationId, DistributionType type,
-        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException;
+    void bulkLifeCycleTemporary(
+        String operationId,
+        DistributionType type,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
+    ) throws VitamClientInternalException;
 
     /**
      * bulkLifeCycle
@@ -485,6 +489,9 @@ public interface LogbookLifeCyclesClient extends BasicClient {
      * @param logbookLifeCycleParametersBulk logbookLifeCycleParametersBulk
      * @throws VitamClientInternalException VitamClientInternalException
      */
-    void bulkLifeCycle(String operationId, DistributionType type,
-        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk) throws VitamClientInternalException;
+    void bulkLifeCycle(
+        String operationId,
+        DistributionType type,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
+    ) throws VitamClientInternalException;
 }

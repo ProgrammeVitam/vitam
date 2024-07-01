@@ -58,14 +58,12 @@ import java.util.List;
 
 import static org.junit.Assert.fail;
 
-
 public class LogbookApplicationTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -79,6 +77,7 @@ public class LogbookApplicationTest {
 
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     private static JunitHelper junitHelper;
     private static File logbook;
     private static LogbookConfiguration realLogbook;
@@ -91,11 +90,15 @@ public class LogbookApplicationTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        LogbookCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
 
         junitHelper = JunitHelper.getInstance();
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
@@ -105,9 +108,12 @@ public class LogbookApplicationTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
-        LogbookConfiguration logbookConfiguration =
-            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER,
-                esNodes);
+        LogbookConfiguration logbookConfiguration = new LogbookConfiguration(
+            nodes,
+            mongoRule.getMongoDatabase().getName(),
+            ElasticsearchRule.VITAM_CLUSTER,
+            esNodes
+        );
         VitamConfiguration.setTenants(tenantList);
         logbookConfiguration.setOpLfcEventsToSkip(new ArrayList<>());
         logbookConfiguration.setOpEventsNotInWf(new ArrayList<>());
@@ -131,7 +137,6 @@ public class LogbookApplicationTest {
         File file = temporaryFolder.newFile();
         configurationFile = file.getAbsolutePath();
         PropertiesUtils.writeYaml(file, realLogbook);
-
     }
 
     @AfterClass
@@ -157,5 +162,4 @@ public class LogbookApplicationTest {
     public final void shouldRaiseException() {
         new LogbookMain(null);
     }
-
 }

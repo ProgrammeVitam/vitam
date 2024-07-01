@@ -30,6 +30,7 @@ package fr.gouv.vitam.processing.common.exception;
  * Define a Processing Exception to be thrown when an error occurred, not a fatal error
  */
 public class ProcessingNotFoundException extends ProcessingException {
+
     private static final long serialVersionUID = 4559736510275835494L;
 
     private String manifestId;
@@ -45,8 +46,14 @@ public class ProcessingNotFoundException extends ProcessingException {
      * @param manifestId
      * @param guid
      */
-    public ProcessingNotFoundException(String message, String manifestId, String guid, boolean validGuid,
-        ExceptionType type, String taskKey) {
+    public ProcessingNotFoundException(
+        String message,
+        String manifestId,
+        String guid,
+        boolean validGuid,
+        ExceptionType type,
+        String taskKey
+    ) {
         super(message);
         this.type = type;
         this.manifestId = manifestId;

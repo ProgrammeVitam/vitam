@@ -64,20 +64,17 @@ public class IngestCleanupDeleteUnitPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    IngestCleanupDeleteUnitPlugin(
-        PurgeDeleteService purgeDeleteService) {
+    IngestCleanupDeleteUnitPlugin(PurgeDeleteService purgeDeleteService) {
         this.purgeDeleteService = purgeDeleteService;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         throw new UnsupportedOperationException("Unused method");
     }
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters param, HandlerIO handler) {
-
         try {
             return processUnits(param.getObjectMetadataList());
         } catch (ProcessingStatusException e) {
@@ -86,14 +83,10 @@ public class IngestCleanupDeleteUnitPlugin extends ActionHandler {
         }
     }
 
-    private List<ItemStatus> processUnits(List<JsonNode> units)
-        throws ProcessingStatusException {
-
-        Map<String, String> unitIdsWithStrategiesToDelete = units.stream()
-            .collect(Collectors.toMap(
-                entry -> entry.get("id").asText(),
-                entry -> entry.get("strategyId").asText()
-            ));
+    private List<ItemStatus> processUnits(List<JsonNode> units) throws ProcessingStatusException {
+        Map<String, String> unitIdsWithStrategiesToDelete = units
+            .stream()
+            .collect(Collectors.toMap(entry -> entry.get("id").asText(), entry -> entry.get("strategyId").asText()));
 
         List<ItemStatus> itemStatuses = new ArrayList<>();
 
@@ -104,12 +97,19 @@ public class IngestCleanupDeleteUnitPlugin extends ActionHandler {
 
         try {
             purgeDeleteService.deleteUnits(unitIdsWithStrategiesToDelete);
-        } catch (MetaDataExecutionException | MetaDataClientServerException |
-            LogbookClientBadRequestException | StorageServerClientException | LogbookClientServerException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not delete units [" + String.join(", ", unitIdsWithStrategiesToDelete.keySet()) + "]", e);
+        } catch (
+            MetaDataExecutionException
+            | MetaDataClientServerException
+            | LogbookClientBadRequestException
+            | StorageServerClientException
+            | LogbookClientServerException e
+        ) {
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "Could not delete units [" + String.join(", ", unitIdsWithStrategiesToDelete.keySet()) + "]",
+                e
+            );
         }
-
 
         return itemStatuses;
     }
@@ -117,5 +117,4 @@ public class IngestCleanupDeleteUnitPlugin extends ActionHandler {
     public static String getId() {
         return INGEST_CLEANUP_DELETE_UNIT;
     }
-
 }

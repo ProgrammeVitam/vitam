@@ -63,8 +63,10 @@ public class RestoreOfferBackupServiceTest {
     private static final String FILE_NAME = "fileName_";
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -80,20 +82,29 @@ public class RestoreOfferBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_get_listing_when_listing_objects_returns_response_ok() throws Exception {
-
         // given
         String containerName = String.format("%s_%s", TENANT_ID_0, DataCategory.BACKUP_OPERATION.getFolder());
 
         when(
-            distribution.getOfferLogsByOfferId(VitamConfiguration.getDefaultStrategy(), OFFER_ID,
-                DataCategory.BACKUP_OPERATION, 10L, 2, Order.ASC))
-            .thenReturn(getOfferLogsListing(containerName, 10L, 2L));
+            distribution.getOfferLogsByOfferId(
+                VitamConfiguration.getDefaultStrategy(),
+                OFFER_ID,
+                DataCategory.BACKUP_OPERATION,
+                10L,
+                2,
+                Order.ASC
+            )
+        ).thenReturn(getOfferLogsListing(containerName, 10L, 2L));
 
         // when
-        List<OfferLog> offerLogListing =
-            restoreOfferBackupService
-                .getListing(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.BACKUP_OPERATION, 10L, 2,
-                    Order.ASC);
+        List<OfferLog> offerLogListing = restoreOfferBackupService.getListing(
+            VitamConfiguration.getDefaultStrategy(),
+            OFFER_ID,
+            DataCategory.BACKUP_OPERATION,
+            10L,
+            2,
+            Order.ASC
+        );
 
         // then
         assertThat(offerLogListing).hasSize(2);
@@ -105,14 +116,25 @@ public class RestoreOfferBackupServiceTest {
         containerName = String.format("%s_%s", TENANT_ID_0, DataCategory.OBJECTGROUP.getFolder());
 
         when(
-            distribution.getOfferLogsByOfferId(VitamConfiguration.getDefaultStrategy(), OFFER_ID,
-                DataCategory.OBJECTGROUP, 100L, 3, Order.DESC))
-            .thenReturn(getOfferLogsListing(containerName, 100L, 3L));
+            distribution.getOfferLogsByOfferId(
+                VitamConfiguration.getDefaultStrategy(),
+                OFFER_ID,
+                DataCategory.OBJECTGROUP,
+                100L,
+                3,
+                Order.DESC
+            )
+        ).thenReturn(getOfferLogsListing(containerName, 100L, 3L));
 
         // when
-        offerLogListing =
-            restoreOfferBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFER_ID,
-                DataCategory.OBJECTGROUP, 100L, 3, Order.DESC);
+        offerLogListing = restoreOfferBackupService.getListing(
+            VitamConfiguration.getDefaultStrategy(),
+            OFFER_ID,
+            DataCategory.OBJECTGROUP,
+            100L,
+            3,
+            Order.DESC
+        );
 
         // then
         assertThat(offerLogListing).isNotNull().isNotEmpty();
@@ -126,16 +148,26 @@ public class RestoreOfferBackupServiceTest {
     @RunWithCustomExecutor
     @Test
     public void should_get_empty_listing_when_listing_objects_returns_empty_response_ok() throws StorageException {
-
         when(
-            distribution.getOfferLogsByOfferId(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.OBJECT,
-                10L, 1, Order.ASC))
-            .thenReturn(getOfferLogsListing(DataCategory.OBJECT.getFolder(), 10L, -1L));
+            distribution.getOfferLogsByOfferId(
+                VitamConfiguration.getDefaultStrategy(),
+                OFFER_ID,
+                DataCategory.OBJECT,
+                10L,
+                1,
+                Order.ASC
+            )
+        ).thenReturn(getOfferLogsListing(DataCategory.OBJECT.getFolder(), 10L, -1L));
 
         // when
-        List<OfferLog> offerLogListing =
-            restoreOfferBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.OBJECT,
-                10L, 1, Order.ASC);
+        List<OfferLog> offerLogListing = restoreOfferBackupService.getListing(
+            VitamConfiguration.getDefaultStrategy(),
+            OFFER_ID,
+            DataCategory.OBJECT,
+            10L,
+            1,
+            Order.ASC
+        );
 
         // then
         assertThat(offerLogListing).isNotNull().isEmpty();
@@ -145,17 +177,29 @@ public class RestoreOfferBackupServiceTest {
     @Test
     public void should_throw_VitamRuntimeException_when_listing_and_storage_throws_StorageServerClientException()
         throws StorageException {
-
         // given
         when(
-            distribution.getOfferLogsByOfferId(VitamConfiguration.getDefaultStrategy(), OFFER_ID, DataCategory.OBJECT,
-                10L, 1, Order.DESC))
-            .thenThrow(new StorageException("ERROR: Storage exception has been thrown."));
+            distribution.getOfferLogsByOfferId(
+                VitamConfiguration.getDefaultStrategy(),
+                OFFER_ID,
+                DataCategory.OBJECT,
+                10L,
+                1,
+                Order.DESC
+            )
+        ).thenThrow(new StorageException("ERROR: Storage exception has been thrown."));
 
         assertThatCode(
-            () -> restoreOfferBackupService.getListing(VitamConfiguration.getDefaultStrategy(), OFFER_ID,
-                DataCategory.OBJECT, 10L, 1, Order.DESC))
-            .isInstanceOf(StorageException.class);
+            () ->
+                restoreOfferBackupService.getListing(
+                    VitamConfiguration.getDefaultStrategy(),
+                    OFFER_ID,
+                    DataCategory.OBJECT,
+                    10L,
+                    1,
+                    Order.DESC
+                )
+        ).isInstanceOf(StorageException.class);
     }
 
     /**
@@ -174,5 +218,4 @@ public class RestoreOfferBackupServiceTest {
         });
         return listing;
     }
-
 }

@@ -80,15 +80,17 @@ public class WorkerTaskTest {
         try {
             WORKER_DESCRIPTION = JsonHandler.getFromString(
                 "{ \"name\" : \"workername\", \"workerId\":\"workerId\", \"family\" : \"DefaultWorker1\", \"capacity\" : 2, \"storage\" : 100, \"status\" : \"Active\", \"configuration\" : {\"serverHost\" : \"localhost\", \"serverPort\" : \"12345\" } }",
-                WorkerBean.class);
+                WorkerBean.class
+            );
         } catch (InvalidParseOperationException e) {
             throw new RuntimeException(e);
         }
     }
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -109,7 +111,6 @@ public class WorkerTaskTest {
         doNothing().when(workerClient).checkStatus();
     }
 
-
     @RunWithCustomExecutor
     @Test
     public void test_worker_task_get_ok() throws Exception {
@@ -117,13 +118,19 @@ public class WorkerTaskTest {
 
         WorkerInformation.getWorkerThreadLocal().get().setWorkerBean(WORKER_DESCRIPTION);
 
-        final WorkerTask task =
-            new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
-                workerClientFactory);
+        final WorkerTask task = new WorkerTask(
+            descriptionStep,
+            0,
+            "requestId",
+            "contractId",
+            "contextId",
+            "applicationId",
+            workerClientFactory
+        );
 
-
-        when(workerClient.submitStep(eq(descriptionStep)))
-            .thenReturn(new ItemStatus("item_ok").increment(StatusCode.OK));
+        when(workerClient.submitStep(eq(descriptionStep))).thenReturn(
+            new ItemStatus("item_ok").increment(StatusCode.OK)
+        );
         WorkerTaskResult workerTaskResult = task.get();
 
         assertThat(workerTaskResult).isNotNull();
@@ -131,10 +138,7 @@ public class WorkerTaskTest {
         assertThat(workerTaskResult.getItemStatus().getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(workerTaskResult.isProcessed()).isTrue();
         assertThat(workerTaskResult.getWorkerTask()).isEqualTo(task);
-
     }
-
-
 
     @RunWithCustomExecutor
     @Test(expected = WorkerUnreachableException.class)
@@ -143,16 +147,23 @@ public class WorkerTaskTest {
 
         WorkerInformation.getWorkerThreadLocal().get().setWorkerBean(WORKER_DESCRIPTION);
 
-        final WorkerTask task =
-            new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
-                workerClientFactory);
+        final WorkerTask task = new WorkerTask(
+            descriptionStep,
+            0,
+            "requestId",
+            "contractId",
+            "contextId",
+            "applicationId",
+            workerClientFactory
+        );
 
+        when(workerClient.submitStep(eq(descriptionStep))).thenThrow(
+            new WorkerServerClientException("Unreachable server")
+        );
 
-        when(workerClient.submitStep(eq(descriptionStep)))
-            .thenThrow(new WorkerServerClientException("Unreachable server"));
-
-        doThrow(new UnresolvedAddressException(), new UnresolvedAddressException(),
-            new UnresolvedAddressException()).when(workerClient).checkStatus();
+        doThrow(new UnresolvedAddressException(), new UnresolvedAddressException(), new UnresolvedAddressException())
+            .when(workerClient)
+            .checkStatus();
         task.get();
     }
 
@@ -163,15 +174,23 @@ public class WorkerTaskTest {
 
         WorkerInformation.getWorkerThreadLocal().get().setWorkerBean(WORKER_DESCRIPTION);
 
-        final WorkerTask task =
-            new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
-                workerClientFactory);
+        final WorkerTask task = new WorkerTask(
+            descriptionStep,
+            0,
+            "requestId",
+            "contractId",
+            "contextId",
+            "applicationId",
+            workerClientFactory
+        );
 
+        when(workerClient.submitStep(eq(descriptionStep))).thenThrow(
+            new WorkerServerClientException("Unreachable server")
+        );
 
-        when(workerClient.submitStep(eq(descriptionStep)))
-            .thenThrow(new WorkerServerClientException("Unreachable server"));
-
-        doThrow(new UnresolvedAddressException(), new UnresolvedAddressException()).doNothing().when(workerClient)
+        doThrow(new UnresolvedAddressException(), new UnresolvedAddressException())
+            .doNothing()
+            .when(workerClient)
             .checkStatus();
         task.get();
     }
@@ -181,20 +200,26 @@ public class WorkerTaskTest {
     public void with_completable_feature_test_worker_task_get_then_WorkerUnreachableException() throws Exception {
         DescriptionStep descriptionStep = getDescriptionStep();
 
-        final WorkerTask task =
-            new WorkerTask(descriptionStep, 0, "requestId", "contractId", "contextId", "applicationId",
-                workerClientFactory);
+        final WorkerTask task = new WorkerTask(
+            descriptionStep,
+            0,
+            "requestId",
+            "contractId",
+            "contextId",
+            "applicationId",
+            workerClientFactory
+        );
 
+        when(workerClient.submitStep(eq(descriptionStep))).thenThrow(
+            new WorkerServerClientException("Unreachable server")
+        );
 
-        when(workerClient.submitStep(eq(descriptionStep)))
-            .thenThrow(new WorkerServerClientException("Unreachable server"));
-
-        doThrow(new UnresolvedAddressException(), new UnresolvedAddressException(),
-            new UnresolvedAddressException()).when(workerClient).checkStatus();
+        doThrow(new UnresolvedAddressException(), new UnresolvedAddressException(), new UnresolvedAddressException())
+            .when(workerClient)
+            .checkStatus();
 
         WorkerFamilyManager workerFamilyManager = new WorkerFamilyManager("family", 10);
         workerFamilyManager.registerWorker(WORKER_DESCRIPTION);
-
 
         try {
             CompletableFuture.supplyAsync(task, workerFamilyManager.getExecutor(false))
@@ -202,7 +227,8 @@ public class WorkerTaskTest {
                     assertThat(th.getCause()).isInstanceOf(WorkerUnreachableException.class);
                     workerFamilyManager.unregisterWorker(WORKER_DESCRIPTION.getWorkerId());
                     throw (CompletionException) th;
-                }).get();
+                })
+                .get();
 
             fail("Should throw exception");
         } catch (ExecutionException e) {
@@ -222,7 +248,8 @@ public class WorkerTaskTest {
         actions.add(action);
 
         action.setActionDefinition(
-            new ActionDefinition().setActionKey("DummyHandler").setBehavior(ProcessBehavior.NOBLOCKING));
+            new ActionDefinition().setActionKey("DummyHandler").setBehavior(ProcessBehavior.NOBLOCKING)
+        );
         step.setBehavior(ProcessBehavior.NOBLOCKING).setActions(actions);
         return new DescriptionStep(step, params);
     }

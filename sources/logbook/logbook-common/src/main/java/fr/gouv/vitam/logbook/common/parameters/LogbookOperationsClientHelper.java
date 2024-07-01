@@ -66,23 +66,26 @@ public class LogbookOperationsClientHelper {
      * @return the primary key
      */
     public static String checkLogbookParameters(LogbookOperationParameters parameters) {
-        parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-            SERVER_IDENTITY.getJsonIdentity());
-        if (!LogbookTypeProcess.EXTERNAL_LOGBOOK.equals(parameters.getTypeProcess())
-            || parameters.getParameterValue(LogbookParameterName.eventDateTime) == null) {
-            parameters.putParameterValue(LogbookParameterName.eventDateTime,
-                LocalDateUtil.now().toString());
+        parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
+        if (
+            !LogbookTypeProcess.EXTERNAL_LOGBOOK.equals(parameters.getTypeProcess()) ||
+            parameters.getParameterValue(LogbookParameterName.eventDateTime) == null
+        ) {
+            parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
         } else {
             try {
                 LocalDateUtil.getDate(parameters.getParameterValue(LogbookParameterName.eventDateTime));
                 LOGGER.warn("External date : " + parameters.getParameterValue(LogbookParameterName.eventDateTime));
             } catch (ParseException e) {
                 throw new IllegalArgumentException(
-                    "Wrong date format : " + parameters.getParameterValue(LogbookParameterName.eventDateTime));
+                    "Wrong date format : " + parameters.getParameterValue(LogbookParameterName.eventDateTime)
+                );
             }
         }
-        ParametersChecker
-            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        ParametersChecker.checkNullOrEmptyParameters(
+            parameters.getMapParameters(),
+            parameters.getMandatoriesParameters()
+        );
         return parameters.getParameterValue(LogbookParameterName.eventIdentifierProcess);
     }
 

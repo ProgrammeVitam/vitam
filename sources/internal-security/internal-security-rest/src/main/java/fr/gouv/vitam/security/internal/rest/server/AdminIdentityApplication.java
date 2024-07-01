@@ -76,12 +76,13 @@ public class AdminIdentityApplication extends Application {
     @Override
     public Set<Object> getSingletons() {
         if (singletons == null) {
-
             singletons = adminApplication.getSingletons();
 
             try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-                final InternalSecurityConfiguration configuration =
-                    PropertiesUtils.readYaml(yamlIS, InternalSecurityConfiguration.class);
+                final InternalSecurityConfiguration configuration = PropertiesUtils.readYaml(
+                    yamlIS,
+                    InternalSecurityConfiguration.class
+                );
 
                 MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration);
 
@@ -93,16 +94,20 @@ public class AdminIdentityApplication extends Application {
 
                 PersonalRepository personalRepository = new PersonalRepository(mongoDbAccess);
                 PersonalCertificateService personalCertificateService = new PersonalCertificateService(
-                    LogbookOperationsClientFactory.getInstance(), personalRepository);
+                    LogbookOperationsClientFactory.getInstance(),
+                    personalRepository
+                );
                 singletons.add(new AdminPersonalCertificateResource(personalCertificateService));
 
                 CRLService crlService = new CRLServiceImpl(identityRepository, personalRepository);
                 singletons.add(new AdminCRLResource(crlService));
 
-                SecurityDataMigrationRepository securityDataMigrationRepository =
-                    new SecurityDataMigrationRepository(mongoDbAccess);
-                SecurityDataMigrationService securityDataMigrationService =
-                    new SecurityDataMigrationService(securityDataMigrationRepository);
+                SecurityDataMigrationRepository securityDataMigrationRepository = new SecurityDataMigrationRepository(
+                    mongoDbAccess
+                );
+                SecurityDataMigrationService securityDataMigrationService = new SecurityDataMigrationService(
+                    securityDataMigrationRepository
+                );
                 singletons.add(new AdminSecurityDataMigrationResource(securityDataMigrationService));
 
                 singletons.add(new BasicAuthenticationFilter(configuration));
@@ -110,7 +115,6 @@ public class AdminIdentityApplication extends Application {
                 singletons.add(new IllegalArgumentExceptionMapper());
                 singletons.add(new HeaderIdContainerFilter());
                 singletons.add(new JsonParseExceptionMapper());
-
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -118,5 +122,4 @@ public class AdminIdentityApplication extends Application {
 
         return singletons;
     }
-
 }

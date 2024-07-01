@@ -47,9 +47,10 @@ public class LogbookRepositoryService {
     private final VitamRepositoryProvider vitamRepositoryProvider;
     private final ElasticsearchLogbookIndexManager indexManager;
 
-
-    public LogbookRepositoryService(VitamRepositoryProvider vitamRepositoryProvider,
-        ElasticsearchLogbookIndexManager indexManager) {
+    public LogbookRepositoryService(
+        VitamRepositoryProvider vitamRepositoryProvider,
+        ElasticsearchLogbookIndexManager indexManager
+    ) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.indexManager = indexManager;
     }
@@ -62,13 +63,18 @@ public class LogbookRepositoryService {
      * @throws DatabaseException
      */
     public void saveBulk(LogbookCollections collection, List<JsonNode> logbookItems) throws DatabaseException {
-        List<Document> documents = logbookItems.stream()
-            .map(item -> Document.parse(JsonHandler.unprettyPrint(item))).collect(Collectors.toList());
+        List<Document> documents = logbookItems
+            .stream()
+            .map(item -> Document.parse(JsonHandler.unprettyPrint(item)))
+            .collect(Collectors.toList());
         vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection()).saveOrUpdate(documents);
         if (LogbookCollections.OPERATION.equals(collection)) {
-            vitamRepositoryProvider.getVitamESRepository(collection.getVitamCollection(),
-                indexManager.getElasticsearchIndexAliasResolver(collection)).save(documents);
+            vitamRepositoryProvider
+                .getVitamESRepository(
+                    collection.getVitamCollection(),
+                    indexManager.getElasticsearchIndexAliasResolver(collection)
+                )
+                .save(documents);
         }
-
     }
 }

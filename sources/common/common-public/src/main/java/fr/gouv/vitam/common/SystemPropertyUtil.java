@@ -38,6 +38,7 @@ import java.util.Properties;
  * A collection of utility methods to retrieve and parse the values of the Java system properties.
  */
 public final class SystemPropertyUtil {
+
     // Since logger could be not available yet, one must not declare there a Logger
 
     private static final String USING_THE_DEFAULT_VALUE = "using the default value: ";
@@ -77,7 +78,8 @@ public final class SystemPropertyUtil {
             // Since logger could be not available yet
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             SysErrLogger.FAKE_LOGGER.syserr(
-                "Unable to retrieve the system properties; default values will be used: " + e.getMessage());
+                "Unable to retrieve the system properties; default values will be used: " + e.getMessage()
+            );
         }
 
         synchronized (PROPS) {
@@ -104,9 +106,9 @@ public final class SystemPropertyUtil {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
                 SysErrLogger.FAKE_LOGGER.syserr(
                     "Issue while trying to set UTF-8 as default file encoding: use -Dfile.encoding=UTF-8 as java command argument: " +
-                        e1.getMessage());
-                SysErrLogger.FAKE_LOGGER.syserr(
-                    "Currently file.encoding is: " + get(FILE_ENCODING));
+                    e1.getMessage()
+                );
+                SysErrLogger.FAKE_LOGGER.syserr("Currently file.encoding is: " + get(FILE_ENCODING));
             }
         }
     }
@@ -218,8 +220,8 @@ public final class SystemPropertyUtil {
             return def;
         }
         SysErrLogger.FAKE_LOGGER.syserr(
-            "Unable to parse the boolean system property '" + key + "':" + value + " - " +
-                USING_THE_DEFAULT_VALUE + def);
+            "Unable to parse the boolean system property '" + key + "':" + value + " - " + USING_THE_DEFAULT_VALUE + def
+        );
 
         return def;
     }
@@ -258,8 +260,8 @@ public final class SystemPropertyUtil {
             return def;
         }
         SysErrLogger.FAKE_LOGGER.syserr(
-            "Unable to parse the integer system property '" + key + "':" + value + " - " +
-                USING_THE_DEFAULT_VALUE + def);
+            "Unable to parse the integer system property '" + key + "':" + value + " - " + USING_THE_DEFAULT_VALUE + def
+        );
 
         return def;
     }
@@ -299,8 +301,14 @@ public final class SystemPropertyUtil {
         }
 
         SysErrLogger.FAKE_LOGGER.syserr(
-            "Unable to parse the long integer system property '" + key + "':" + value + " - " +
-                USING_THE_DEFAULT_VALUE + def);
+            "Unable to parse the long integer system property '" +
+            key +
+            "':" +
+            value +
+            " - " +
+            USING_THE_DEFAULT_VALUE +
+            def
+        );
 
         return def;
     }
@@ -514,7 +522,7 @@ public final class SystemPropertyUtil {
         /**
          * Unsupported
          */
-        UNSUPPORTED
+        UNSUPPORTED,
     }
 
     /**

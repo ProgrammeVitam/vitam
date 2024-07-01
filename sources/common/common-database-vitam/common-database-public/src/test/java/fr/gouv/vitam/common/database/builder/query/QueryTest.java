@@ -46,6 +46,7 @@ import static org.junit.Assert.fail;
 
 @SuppressWarnings("javadoc")
 public class QueryTest {
+
     private int size;
     private static final int fakeSize = 1000;
 
@@ -425,21 +426,17 @@ public class QueryTest {
             request = new MatchQuery(QUERY.MATCH, "var", "val");
             assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
-            assertTrue(request.getCurrentObject()
-                .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
+            assertTrue(request.getCurrentObject().has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
             request = new MatchQuery(QUERY.MATCH_PHRASE, "var", "val");
             assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
-            assertTrue(request.getCurrentObject()
-                .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
+            assertTrue(request.getCurrentObject().has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
             request = new MatchQuery(QUERY.MATCH_PHRASE_PREFIX, "var", "val");
             assertTrue(request.isReady());
             request.setMatchMaxExpansions(10);
-            assertTrue(request.getCurrentObject()
-                .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
+            assertTrue(request.getCurrentObject().has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
             request.setMatchMaxExpansions(10);
-            assertTrue(request.getCurrentObject()
-                .has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
+            assertTrue(request.getCurrentObject().has(QUERYARGS.MAX_EXPANSIONS.exactToken()));
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -829,7 +826,6 @@ public class QueryTest {
         return new String(array);
     }
 
-
     @Test
     public void createTermQuery() throws InvalidCreateOperationException {
         final TermQuery request = new TermQuery("var", "val");
@@ -854,157 +850,134 @@ public class QueryTest {
         assertEquals(5, request.getCurrentObject().size());
         request.add("var1", "var1");
         assertEquals(6, request.getCurrentObject().size());
-
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddStringWithEmptyVaribaleName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddStringWithEmptyVaribaleName() throws InvalidCreateOperationException {
         final TermQuery request = new TermQuery("var", 1);
         request.add("", "var");
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddIntWithEmptyVaribaleName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddIntWithEmptyVaribaleName() throws InvalidCreateOperationException {
         final TermQuery request = new TermQuery("var", 1);
         request.add("", 3);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddDoubleWithEmptyVaribaleName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddDoubleWithEmptyVaribaleName() throws InvalidCreateOperationException {
         final TermQuery request = new TermQuery("var", 1);
         request.add("", 3.0);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddBooleanWithEmptyVaribaleName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddBooleanWithEmptyVaribaleName() throws InvalidCreateOperationException {
         final TermQuery request = new TermQuery("var", 1);
         request.add("", true);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddDateWithEmptyVaribaleName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddDateWithEmptyVaribaleName() throws InvalidCreateOperationException {
         final TermQuery request = new TermQuery("var", 1);
         request.add("", new Date(System.currentTimeMillis()));
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddStringWithTooLongVaribaleName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddStringWithTooLongVaribaleName() throws InvalidCreateOperationException {
         final TermQuery request = new TermQuery("var", 1);
         final String s = getStringWithLength();
         request.add(s, "var");
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddIntWithTooLongVaribaleName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddIntWithTooLongVaribaleName() throws InvalidCreateOperationException {
         final TermQuery request = new TermQuery("var", 1);
         final String s = getStringWithLength();
         request.add(s, 3);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddDoubleWithTooLongVaribaleName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddDoubleWithTooLongVaribaleName() throws InvalidCreateOperationException {
         final TermQuery request = new TermQuery("var", 1);
         final String s = getStringWithLength();
         request.add(s, 3.0);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddBooleanWithTooLongVaribaleName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddBooleanWithTooLongVaribaleName() throws InvalidCreateOperationException {
         final TermQuery request = new TermQuery("var", 1);
         final String s = getStringWithLength();
         request.add(s, true);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddDateWithTooLongVaribaleName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddDateWithTooLongVaribaleName() throws InvalidCreateOperationException {
         final TermQuery request = new TermQuery("var", 1);
         final String s = getStringWithLength();
         request.add(s, new Date(System.currentTimeMillis()));
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeIntWithEmptyVariableName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddRangeIntWithEmptyVariableName() throws InvalidCreateOperationException {
         new RangeQuery("", QUERY.GT, 1, QUERY.LT, 2);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeDoubleWithEmptyVariableName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddRangeDoubleWithEmptyVariableName() throws InvalidCreateOperationException {
         new RangeQuery("", QUERY.GT, 1.0, QUERY.LT, 2.0);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeStringWithEmptyVariableName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddRangeStringWithEmptyVariableName() throws InvalidCreateOperationException {
         new RangeQuery("", QUERY.GT, "1", QUERY.LT, "2");
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeDateWithEmptyVariableName()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddRangeDateWithEmptyVariableName() throws InvalidCreateOperationException {
         final Date date1 = new Date(System.currentTimeMillis());
         final Date date2 = new Date(System.currentTimeMillis() + 100);
         new RangeQuery("", QUERY.GT, date1, QUERY.LT, date2);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeIntWithWrongFromWord()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddRangeIntWithWrongFromWord() throws InvalidCreateOperationException {
         new RangeQuery("var", QUERY.NOT, 1, QUERY.LT, 2);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeDoubleWithWrongFromWord()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddRangeDoubleWithWrongFromWord() throws InvalidCreateOperationException {
         new RangeQuery("var", QUERY.NOT, 1.0, QUERY.LT, 2.0);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeStringWithWrongFromWord()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddRangeStringWithWrongFromWord() throws InvalidCreateOperationException {
         new RangeQuery("var", QUERY.NOT, "1", QUERY.LT, "2");
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeDateWithWrongFromWord()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddRangeDateWithWrongFromWord() throws InvalidCreateOperationException {
         final Date date1 = new Date(System.currentTimeMillis());
         final Date date2 = new Date(System.currentTimeMillis() + 100);
         new RangeQuery("var", QUERY.NOT, date1, QUERY.LT, date2);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeIntWithWrongToWord()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddRangeIntWithWrongToWord() throws InvalidCreateOperationException {
         new RangeQuery("var", QUERY.GT, 1, QUERY.NOT, 2);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeDoubleWithWrongToWord()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddRangeDoubleWithWrongToWord() throws InvalidCreateOperationException {
         new RangeQuery("var", QUERY.GT, 1.0, QUERY.NOT, 2.0);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeStringWithWrongToWord()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddRangeStringWithWrongToWord() throws InvalidCreateOperationException {
         new RangeQuery("var", QUERY.GT, "1", QUERY.NOT, "2");
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenAddRangeDateWithToFromWord()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenAddRangeDateWithToFromWord() throws InvalidCreateOperationException {
         final Date date1 = new Date(System.currentTimeMillis());
         final Date date2 = new Date(System.currentTimeMillis() + 100);
         new RangeQuery("var", QUERY.GT, date1, QUERY.NOT, date2);
@@ -1049,26 +1022,22 @@ public class QueryTest {
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenInRequestAddBooleanWithWrongQueryWord()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenInRequestAddBooleanWithWrongQueryWord() throws InvalidCreateOperationException {
         new InQuery(QUERY.GT, getStringWithLength(), true);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenInRequestAddIntWithWrongQueryWord()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenInRequestAddIntWithWrongQueryWord() throws InvalidCreateOperationException {
         new InQuery(QUERY.GT, getStringWithLength(), 1);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenInRequestAddDoubleWithWrongQueryWord()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenInRequestAddDoubleWithWrongQueryWord() throws InvalidCreateOperationException {
         new InQuery(QUERY.GT, getStringWithLength(), 1.0);
     }
 
     @Test(expected = InvalidCreateOperationException.class)
-    public void shouldRaiseExceptionWhenInRequestAddDateWithWrongQueryWord()
-        throws InvalidCreateOperationException {
+    public void shouldRaiseExceptionWhenInRequestAddDateWithWrongQueryWord() throws InvalidCreateOperationException {
         final Date date = new Date(System.currentTimeMillis());
         final String s = getStringWithLength();
         new InQuery(QUERY.GT, s, date);

@@ -105,13 +105,11 @@ public class UpdateParserSingle extends RequestParserSingle {
      * @param actionNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void actionParse(final JsonNode actionNode)
-        throws InvalidParseOperationException {
+    protected void actionParse(final JsonNode actionNode) throws InvalidParseOperationException {
         if (actionNode == null) {
             return;
         }
-        GlobalDatas.sanityParametersCheck(actionNode.toString(),
-            GlobalDatasParser.NB_ACTIONS);
+        GlobalDatas.sanityParametersCheck(actionNode.toString(), GlobalDatasParser.NB_ACTIONS);
         try {
             for (final JsonNode node : (ArrayNode) actionNode) {
                 Iterator<Entry<String, JsonNode>> iterator = node.fields();
@@ -122,8 +120,7 @@ public class UpdateParserSingle extends RequestParserSingle {
                 }
             }
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Action: " + actionNode, e);
+            throw new InvalidParseOperationException("Parse in error for Action: " + actionNode, e);
         }
     }
 
@@ -137,16 +134,14 @@ public class UpdateParserSingle extends RequestParserSingle {
     protected static final UPDATEACTION getUpdateActionId(final String actionroot)
         throws InvalidParseOperationException {
         if (!actionroot.startsWith(BuilderToken.DEFAULT_PREFIX)) {
-            throw new InvalidParseOperationException(
-                "Incorrect action $command: " + actionroot);
+            throw new InvalidParseOperationException("Incorrect action $command: " + actionroot);
         }
         final String command = actionroot.substring(1).toUpperCase();
         UPDATEACTION action = null;
         try {
             action = UPDATEACTION.valueOf(command);
         } catch (final IllegalArgumentException e) {
-            throw new InvalidParseOperationException("Invalid action command: " + command,
-                e);
+            throw new InvalidParseOperationException("Invalid action command: " + command, e);
         }
         return action;
     }
@@ -177,8 +172,7 @@ public class UpdateParserSingle extends RequestParserSingle {
             case UNSET:
                 return unset(command, updateAdapter);
             default:
-                throw new InvalidParseOperationException(
-                    "Invalid command: " + refCommand);
+                throw new InvalidParseOperationException("Invalid command: " + refCommand);
         }
     }
 

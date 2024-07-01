@@ -60,8 +60,14 @@ public class PurgeAccessionRegisterModel {
         // Empty constructor for deserialization
     }
 
-    public PurgeAccessionRegisterModel(String opi, String originatingAgency, long totalUnits,
-        long totalObjectGroups, long totalObjects, long totalSize) {
+    public PurgeAccessionRegisterModel(
+        String opi,
+        String originatingAgency,
+        long totalUnits,
+        long totalObjectGroups,
+        long totalObjects,
+        long totalSize
+    ) {
         this.opi = opi;
         this.originatingAgency = originatingAgency;
         this.totalUnits = totalUnits;

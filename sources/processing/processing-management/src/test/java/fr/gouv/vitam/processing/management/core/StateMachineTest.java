@@ -76,7 +76,6 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 public class StateMachineTest {
 
     private static final Integer TENANT_ID = 0;
@@ -87,11 +86,10 @@ public class StateMachineTest {
     private static final String WORKFLOW_FILE = "workflowJSONv1.json";
     private static final String WORKFLOW_FINALLY_STEP_FILE = "workflowJSONFinallyStep.json";
 
-
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
     private static final ProcessDataManagement dataManagement = mock(ProcessDataManagement.class);
@@ -120,25 +118,33 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.RUNNING);
             return null;
-        }).when(stateMachine).next(any());
+        })
+            .when(stateMachine)
+            .next(any());
         stateMachine.next(null);
 
         doAnswer(o -> {
             state.eval(ProcessState.RUNNING);
             return null;
-        }).when(stateMachine).resume(any());
+        })
+            .when(stateMachine)
+            .resume(any());
         stateMachine.resume(null);
 
         doAnswer(o -> {
             state.eval(ProcessState.PAUSE);
             return null;
-        }).when(stateMachine).pause();
+        })
+            .when(stateMachine)
+            .pause();
         stateMachine.pause();
 
         doAnswer(o -> {
             state.eval(ProcessState.COMPLETED);
             return null;
-        }).when(stateMachine).cancel();
+        })
+            .when(stateMachine)
+            .cancel();
         stateMachine.cancel();
     }
 
@@ -150,13 +156,17 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.PAUSE);
             return null;
-        }).when(stateMachine).pause();
+        })
+            .when(stateMachine)
+            .pause();
         stateMachine.pause();
 
         doAnswer(o -> {
             state.eval(ProcessState.COMPLETED);
             return null;
-        }).when(stateMachine).cancel();
+        })
+            .when(stateMachine)
+            .cancel();
         stateMachine.cancel();
     }
 
@@ -168,11 +178,12 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.RUNNING);
             return null;
-        }).when(stateMachine).next(any());
+        })
+            .when(stateMachine)
+            .next(any());
 
         stateMachine.next(null);
     }
-
 
     @Test(expected = StateNotAllowedException.class)
     @RunWithCustomExecutor
@@ -182,7 +193,9 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.RUNNING);
             return null;
-        }).when(stateMachine).resume(any());
+        })
+            .when(stateMachine)
+            .resume(any());
 
         stateMachine.resume(null);
     }
@@ -195,11 +208,12 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.RUNNING);
             return null;
-        }).when(stateMachine).next(any());
+        })
+            .when(stateMachine)
+            .next(any());
 
         stateMachine.next(null);
     }
-
 
     @Test(expected = StateNotAllowedException.class)
     @RunWithCustomExecutor
@@ -209,7 +223,9 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.RUNNING);
             return null;
-        }).when(stateMachine).resume(any());
+        })
+            .when(stateMachine)
+            .resume(any());
 
         stateMachine.resume(null);
     }
@@ -222,11 +238,12 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.PAUSE);
             return null;
-        }).when(stateMachine).pause();
+        })
+            .when(stateMachine)
+            .pause();
 
         stateMachine.pause();
     }
-
 
     @Test(expected = StateNotAllowedException.class)
     @RunWithCustomExecutor
@@ -236,12 +253,12 @@ public class StateMachineTest {
         doAnswer(o -> {
             state.eval(ProcessState.COMPLETED);
             return null;
-        }).when(stateMachine).cancel();
+        })
+            .when(stateMachine)
+            .cancel();
 
         stateMachine.cancel();
     }
-
-
 
     @Test
     @RunWithCustomExecutor
@@ -249,11 +266,10 @@ public class StateMachineTest {
         throws ProcessingException, StateNotAllowedException, ProcessingEngineException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
-        final ProcessWorkflow processWorkflow =
-            processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE).get(),
-                workParams.getContainerName()
-            );
+        final ProcessWorkflow processWorkflow = processDataAccess.initProcessWorkflow(
+            ProcessPopulator.populate(WORKFLOW_FILE).get(),
+            workParams.getContainerName()
+        );
 
         final ProcessEngine processEngine = mock(ProcessEngineImpl.class);
         final StateMachine stateMachine = StateMachineFactory.get()
@@ -264,13 +280,11 @@ public class StateMachineTest {
         try {
             stateMachine.next(workParams);
             fail("Should throw excetpion");
-        } catch (StateNotAllowedException e) {
-        }
+        } catch (StateNotAllowedException e) {}
         try {
             stateMachine.resume(workParams);
             fail("Should throw excetpion");
-        } catch (StateNotAllowedException e) {
-        }
+        } catch (StateNotAllowedException e) {}
         try {
             stateMachine.cancel();
         } catch (StateNotAllowedException e) {
@@ -284,7 +298,6 @@ public class StateMachineTest {
         processDataAccess.clearWorkflow();
     }
 
-
     /**
      * Test onComplete
      *
@@ -294,29 +307,26 @@ public class StateMachineTest {
      */
     @Test
     @RunWithCustomExecutor
-    public void testWhenProcessEngineOnCompleteOK()
-        throws ProcessingException, StateNotAllowedException {
+    public void testWhenProcessEngineOnCompleteOK() throws ProcessingException, StateNotAllowedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
-        final ProcessWorkflow processWorkflow =
-            processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE).get(),
-                workParams.getContainerName()
-            );
+        final ProcessWorkflow processWorkflow = processDataAccess.initProcessWorkflow(
+            ProcessPopulator.populate(WORKFLOW_FILE).get(),
+            workParams.getContainerName()
+        );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
-        final ProcessEngineImpl processEngine =
-            ProcessEngineFactoryTest.get().create(workParams, processDistributorMock);
+        final ProcessEngineImpl processEngine = ProcessEngineFactoryTest.get()
+            .create(workParams, processDistributorMock);
         StateMachine stateMachine = StateMachineFactory.get()
             .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
         ProcessStep firstStep = processWorkflow.getSteps().iterator().next();
         ItemStatus itemStatus = new ItemStatus(firstStep.getStepName()).increment(StatusCode.OK);
-        when(processDistributorMock.distribute(any(), any(), any()))
-            .thenReturn(itemStatus);
+        when(processDistributorMock.distribute(any(), any(), any())).thenReturn(itemStatus);
         stateMachine.resume(workParams);
         waitProcessToFinish(processWorkflow, (ProcessEngineTest) processEngine);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -325,8 +335,7 @@ public class StateMachineTest {
         try {
             stateMachine.next(workParams);
             fail("Should throw an exception");
-        } catch (StateNotAllowedException e) {
-        }
+        } catch (StateNotAllowedException e) {}
 
         processDataAccess.clearWorkflow();
     }
@@ -340,29 +349,26 @@ public class StateMachineTest {
      */
     @Test
     @RunWithCustomExecutor
-    public void testWhenProcessEngineOnCompleteKO()
-        throws ProcessingException, StateNotAllowedException {
+    public void testWhenProcessEngineOnCompleteKO() throws ProcessingException, StateNotAllowedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
-        final ProcessWorkflow processWorkflow =
-            processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE).get(),
-                workParams.getContainerName()
-            );
+        final ProcessWorkflow processWorkflow = processDataAccess.initProcessWorkflow(
+            ProcessPopulator.populate(WORKFLOW_FILE).get(),
+            workParams.getContainerName()
+        );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
-        final ProcessEngineImpl processEngine =
-            ProcessEngineFactoryTest.get().create(workParams, processDistributorMock);
+        final ProcessEngineImpl processEngine = ProcessEngineFactoryTest.get()
+            .create(workParams, processDistributorMock);
         StateMachine stateMachine = StateMachineFactory.get()
             .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
         ProcessStep firstStep = processWorkflow.getSteps().iterator().next();
         ItemStatus itemStatus = new ItemStatus(firstStep.getStepName()).increment(StatusCode.KO);
-        when(processDistributorMock.distribute(any(), any(), any()))
-            .thenReturn(itemStatus);
+        when(processDistributorMock.distribute(any(), any(), any())).thenReturn(itemStatus);
         stateMachine.resume(workParams);
         waitProcessToFinish(processWorkflow, (ProcessEngineTest) processEngine);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -371,8 +377,7 @@ public class StateMachineTest {
         try {
             stateMachine.next(workParams);
             fail("Should throw an exception");
-        } catch (StateNotAllowedException e) {
-        }
+        } catch (StateNotAllowedException e) {}
 
         processDataAccess.clearWorkflow();
     }
@@ -389,24 +394,23 @@ public class StateMachineTest {
     public void testWhenProcessEngineOnErrorFATAL() {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
-        final ProcessWorkflow processWorkflow =
-            processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE).get(),
-                workParams.getContainerName()
-            );
+        final ProcessWorkflow processWorkflow = processDataAccess.initProcessWorkflow(
+            ProcessPopulator.populate(WORKFLOW_FILE).get(),
+            workParams.getContainerName()
+        );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
-        final ProcessEngineImpl processEngine =
-            ProcessEngineFactoryTest.get().create(workParams, processDistributorMock);
+        final ProcessEngineImpl processEngine = ProcessEngineFactoryTest.get()
+            .create(workParams, processDistributorMock);
         StateMachine stateMachine = StateMachineFactory.get()
             .create(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
         processEngine.setStateMachineCallback(stateMachine);
 
-        when(processDistributorMock.distribute(any(), any(), any()))
-            .thenThrow(new RuntimeException("Fake Exception From Distributor"));
-
+        when(processDistributorMock.distribute(any(), any(), any())).thenThrow(
+            new RuntimeException("Fake Exception From Distributor")
+        );
 
         try {
             stateMachine.resume(workParams);
@@ -415,9 +419,7 @@ public class StateMachineTest {
         }
         try {
             waitProcessToFinish(processWorkflow, (ProcessEngineTest) processEngine);
-        } catch (RuntimeException e) {
-
-        }
+        } catch (RuntimeException e) {}
         assertEquals(ProcessState.PAUSE, processWorkflow.getState());
         assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
 
@@ -429,11 +431,10 @@ public class StateMachineTest {
     public void testWhenExceptionOccursThenDoNotExecuteFinalStep() {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
-        final ProcessWorkflow processWorkflow =
-            processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
-                workParams.getContainerName()
-            );
+        final ProcessWorkflow processWorkflow = processDataAccess.initProcessWorkflow(
+            ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
+            workParams.getContainerName()
+        );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -447,12 +448,14 @@ public class StateMachineTest {
         final ProcessStep lastStep = processWorkflow.getSteps().get(1);
 
         // First Step FATAL call onError
-        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName()))
-            .thenThrow(new RuntimeException("Fake Exception From Distributor"));
+        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName())).thenThrow(
+            new RuntimeException("Fake Exception From Distributor")
+        );
 
         // Final Step OK call onComplete
-        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName()))
-            .thenReturn(new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK));
+        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName())).thenReturn(
+            new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK)
+        );
         try {
             try {
                 stateMachine.resume(workParams);
@@ -460,9 +463,7 @@ public class StateMachineTest {
                 fail("Should throw FakeException");
             }
             waitProcessToFinish(processWorkflow, (ProcessEngineTest) processEngine);
-        } catch (CompletionException e) {
-
-        }
+        } catch (CompletionException e) {}
         assertEquals(ProcessState.PAUSE, processWorkflow.getState());
         assertEquals(StatusCode.FATAL, processWorkflow.getStatus());
 
@@ -474,15 +475,13 @@ public class StateMachineTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testWhenStepKOBlockingThenExecuteFinalStep()
-        throws ProcessingException, StateNotAllowedException {
+    public void testWhenStepKOBlockingThenExecuteFinalStep() throws ProcessingException, StateNotAllowedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
-        final ProcessWorkflow processWorkflow =
-            processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
-                workParams.getContainerName()
-            );
+        final ProcessWorkflow processWorkflow = processDataAccess.initProcessWorkflow(
+            ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
+            workParams.getContainerName()
+        );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -497,12 +496,14 @@ public class StateMachineTest {
         final ProcessStep lastStep = processWorkflow.getSteps().get(1);
 
         // First Step KO blocking call onComplete
-        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName()))
-            .thenReturn(new ItemStatus(firstStep.getStepName()).increment(StatusCode.KO));
+        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName())).thenReturn(
+            new ItemStatus(firstStep.getStepName()).increment(StatusCode.KO)
+        );
 
         // Final Step OK call onComplete
-        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName()))
-            .thenReturn(new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK));
+        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName())).thenReturn(
+            new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK)
+        );
 
         stateMachine.resume(workParams);
 
@@ -523,11 +524,10 @@ public class StateMachineTest {
         throws ProcessingException, StateNotAllowedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
-        final ProcessWorkflow processWorkflow =
-            processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
-                workParams.getContainerName()
-            );
+        final ProcessWorkflow processWorkflow = processDataAccess.initProcessWorkflow(
+            ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
+            workParams.getContainerName()
+        );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -541,12 +541,14 @@ public class StateMachineTest {
         final ProcessStep lastStep = processWorkflow.getSteps().get(1);
 
         // First Step FATAL blocking call onComplete
-        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName()))
-            .thenReturn(new ItemStatus(firstStep.getStepName()).increment(StatusCode.FATAL));
+        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName())).thenReturn(
+            new ItemStatus(firstStep.getStepName()).increment(StatusCode.FATAL)
+        );
 
         // Final Step OK call onComplete
-        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName()))
-            .thenReturn(new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK));
+        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName())).thenReturn(
+            new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK)
+        );
 
         stateMachine.resume(workParams);
         waitProcessToFinish(processWorkflow, (ProcessEngineTest) processEngine);
@@ -559,18 +561,15 @@ public class StateMachineTest {
         processDataAccess.clearWorkflow();
     }
 
-
     @Test
     @RunWithCustomExecutor
-    public void testStepAndFinalStepThenOK()
-        throws ProcessingException, StateNotAllowedException {
+    public void testStepAndFinalStepThenOK() throws ProcessingException, StateNotAllowedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
 
-        final ProcessWorkflow processWorkflow =
-            processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
-                workParams.getContainerName()
-            );
+        final ProcessWorkflow processWorkflow = processDataAccess.initProcessWorkflow(
+            ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
+            workParams.getContainerName()
+        );
 
         workParams.setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
@@ -584,12 +583,14 @@ public class StateMachineTest {
         final ProcessStep lastStep = processWorkflow.getSteps().get(1);
 
         // First Step FATAL blocking call onComplete
-        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName()))
-            .thenReturn(new ItemStatus(firstStep.getStepName()).increment(StatusCode.OK));
+        when(distributorMock.distribute(workParams, firstStep, workParams.getContainerName())).thenReturn(
+            new ItemStatus(firstStep.getStepName()).increment(StatusCode.OK)
+        );
 
         // Final Step OK call onComplete
-        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName()))
-            .thenReturn(new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK));
+        when(distributorMock.distribute(workParams, lastStep, workParams.getContainerName())).thenReturn(
+            new ItemStatus(lastStep.getStepName()).increment(StatusCode.OK)
+        );
 
         stateMachine.resume(workParams);
         waitProcessToFinish(processWorkflow, (ProcessEngineTest) processEngine);
@@ -602,25 +603,22 @@ public class StateMachineTest {
         processDataAccess.clearWorkflow();
     }
 
-
-
     @Test
     @RunWithCustomExecutor
     public void whenShutdownThenPauseOrCancelActionCurrentStepIsACTION_PAUSE()
         throws StateNotAllowedException, ProcessingException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
-        final ProcessEngine processEngine =
-            ProcessEngineFactory.get().create(workParams, processDistributorMock);
+        final ProcessEngine processEngine = ProcessEngineFactory.get().create(workParams, processDistributorMock);
 
-        final ProcessWorkflow processWorkflow =
-            processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
-                workParams.getContainerName()
-            );
+        final ProcessWorkflow processWorkflow = processDataAccess.initProcessWorkflow(
+            ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
+            workParams.getContainerName()
+        );
 
-        when(processDistributorMock.distribute(eq(workParams), any(Step.class),
-            eq(workParams.getContainerName()))).thenReturn(new ItemStatus().increment(StatusCode.OK));
+        when(
+            processDistributorMock.distribute(eq(workParams), any(Step.class), eq(workParams.getContainerName()))
+        ).thenReturn(new ItemStatus().increment(StatusCode.OK));
 
         // Simulate running workflow to be able to test cancel a running workflow
         processWorkflow.setTargetState(ProcessState.PAUSE);
@@ -631,25 +629,24 @@ public class StateMachineTest {
         stateMachine.shutdown();
 
         assertThat(processWorkflow.getSteps().iterator().next().getPauseOrCancelAction()).isEqualTo(
-            PauseOrCancelAction.ACTION_PAUSE);
+            PauseOrCancelAction.ACTION_PAUSE
+        );
 
         processDataAccess.clearWorkflow();
     }
 
     @Test
     @RunWithCustomExecutor
-    public void whenShutdownThenPauseOrCancelActionCurrentStepIsACTION_CANCEL()
-        throws StateNotAllowedException {
+    public void whenShutdownThenPauseOrCancelActionCurrentStepIsACTION_CANCEL() throws StateNotAllowedException {
         VitamThreadUtils.getVitamSession().setTenantId(1);
         final ProcessDistributor processDistributorMock = mock(ProcessDistributorImpl.class);
-        final ProcessEngine processEngine =
-            ProcessEngineFactory.get().create(mock(WorkerParameters.class), processDistributorMock);
+        final ProcessEngine processEngine = ProcessEngineFactory.get()
+            .create(mock(WorkerParameters.class), processDistributorMock);
 
-        final ProcessWorkflow processWorkflow =
-            processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
-                workParams.getContainerName()
-            );
+        final ProcessWorkflow processWorkflow = processDataAccess.initProcessWorkflow(
+            ProcessPopulator.populate(WORKFLOW_FINALLY_STEP_FILE).get(),
+            workParams.getContainerName()
+        );
 
         // Simulate running workflow to be able to test cancel a running workflow
         processWorkflow.setState(ProcessState.RUNNING);
@@ -661,10 +658,10 @@ public class StateMachineTest {
         stateMachine.cancel();
 
         assertThat(processWorkflow.getSteps().iterator().next().getPauseOrCancelAction()).isEqualTo(
-            PauseOrCancelAction.ACTION_CANCEL);
+            PauseOrCancelAction.ACTION_CANCEL
+        );
         processDataAccess.clearWorkflow();
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -672,11 +669,10 @@ public class StateMachineTest {
         VitamThreadUtils.getVitamSession().setTenantId(1);
         final ProcessEngine processEngine = mock(ProcessEngine.class);
 
-        final ProcessWorkflow processWorkflow =
-            processDataAccess.initProcessWorkflow(
-                ProcessPopulator.populate(WORKFLOW_FILE).get(),
-                workParams.getContainerName()
-            );
+        final ProcessWorkflow processWorkflow = processDataAccess.initProcessWorkflow(
+            ProcessPopulator.populate(WORKFLOW_FILE).get(),
+            workParams.getContainerName()
+        );
         processWorkflow.setStatus(StatusCode.FATAL);
 
         processWorkflow.getSteps().get(0).setStepStatusCode(StatusCode.OK);
@@ -704,7 +700,6 @@ public class StateMachineTest {
         assertThat(processWorkflow.getStatus()).isEqualTo(StatusCode.KO);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void test_init_index_new_process_workflow() {
@@ -729,8 +724,12 @@ public class StateMachineTest {
 
         // When init state machine
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
-                workspaceClientFactory);
+            .create(
+                processWorkflow,
+                mock(ProcessEngineImpl.class),
+                mock(ProcessDataManagement.class),
+                workspaceClientFactory
+            );
 
         assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep1);
         assertThat(stateMachine.getStepIndex()).isEqualTo(0);
@@ -759,8 +758,12 @@ public class StateMachineTest {
 
         // When init state machine
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
-                workspaceClientFactory);
+            .create(
+                processWorkflow,
+                mock(ProcessEngineImpl.class),
+                mock(ProcessDataManagement.class),
+                workspaceClientFactory
+            );
 
         assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep1);
         // Because of FATAL we replay the step 0
@@ -791,16 +794,20 @@ public class StateMachineTest {
 
         // When init state machine
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
-                workspaceClientFactory);
+            .create(
+                processWorkflow,
+                mock(ProcessEngineImpl.class),
+                mock(ProcessDataManagement.class),
+                workspaceClientFactory
+            );
 
         assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep1);
         // Because of FATAL we replay the step 0
         assertThat(stateMachine.getStepIndex()).isEqualTo(0);
-        verify(stateMachine.getCurrentStep(), atLeastOnce())
-            .setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+        verify(stateMachine.getCurrentStep(), atLeastOnce()).setPauseOrCancelAction(
+            eq(PauseOrCancelAction.ACTION_RECOVER)
+        );
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -825,8 +832,12 @@ public class StateMachineTest {
 
         // When init state machine
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
-                workspaceClientFactory);
+            .create(
+                processWorkflow,
+                mock(ProcessEngineImpl.class),
+                mock(ProcessDataManagement.class),
+                workspaceClientFactory
+            );
 
         assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
         // Because of FATAL we replay the step 1
@@ -857,8 +868,12 @@ public class StateMachineTest {
 
         // When init state machine
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
-                workspaceClientFactory);
+            .create(
+                processWorkflow,
+                mock(ProcessEngineImpl.class),
+                mock(ProcessDataManagement.class),
+                workspaceClientFactory
+            );
 
         assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
         // Because of FATAL we replay the step 1
@@ -889,14 +904,19 @@ public class StateMachineTest {
 
         // When init state machine
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
-                workspaceClientFactory);
+            .create(
+                processWorkflow,
+                mock(ProcessEngineImpl.class),
+                mock(ProcessDataManagement.class),
+                workspaceClientFactory
+            );
 
         assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep1);
         // Because of FATAL we replay the step 0
         assertThat(stateMachine.getStepIndex()).isEqualTo(0);
-        verify(stateMachine.getCurrentStep(), atLeastOnce())
-            .setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+        verify(stateMachine.getCurrentStep(), atLeastOnce()).setPauseOrCancelAction(
+            eq(PauseOrCancelAction.ACTION_RECOVER)
+        );
     }
 
     @Test
@@ -922,8 +942,12 @@ public class StateMachineTest {
 
         // When init state machine
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
-                workspaceClientFactory);
+            .create(
+                processWorkflow,
+                mock(ProcessEngineImpl.class),
+                mock(ProcessDataManagement.class),
+                workspaceClientFactory
+            );
 
         assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
         // Because of FATAL we replay the step 1
@@ -954,16 +978,20 @@ public class StateMachineTest {
 
         // When init state machine
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
-                workspaceClientFactory);
+            .create(
+                processWorkflow,
+                mock(ProcessEngineImpl.class),
+                mock(ProcessDataManagement.class),
+                workspaceClientFactory
+            );
 
         assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
         // Because of FATAL we replay the step 1
         assertThat(stateMachine.getStepIndex()).isEqualTo(1);
-        verify(stateMachine.getCurrentStep(), atLeastOnce())
-            .setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+        verify(stateMachine.getCurrentStep(), atLeastOnce()).setPauseOrCancelAction(
+            eq(PauseOrCancelAction.ACTION_RECOVER)
+        );
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -988,14 +1016,17 @@ public class StateMachineTest {
 
         // When init state machine
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
-                workspaceClientFactory);
+            .create(
+                processWorkflow,
+                mock(ProcessEngineImpl.class),
+                mock(ProcessDataManagement.class),
+                workspaceClientFactory
+            );
 
         assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
         // Because of FATAL we replay the step 1
         assertThat(stateMachine.getStepIndex()).isEqualTo(1);
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -1020,8 +1051,12 @@ public class StateMachineTest {
 
         // When init state machine
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
-                workspaceClientFactory);
+            .create(
+                processWorkflow,
+                mock(ProcessEngineImpl.class),
+                mock(ProcessDataManagement.class),
+                workspaceClientFactory
+            );
 
         assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
         // Because of FATAL we replay the step 1
@@ -1052,22 +1087,26 @@ public class StateMachineTest {
 
         // When init state machine
         StateMachine stateMachine = StateMachineFactory.get()
-            .create(processWorkflow, mock(ProcessEngineImpl.class), mock(ProcessDataManagement.class),
-                workspaceClientFactory);
+            .create(
+                processWorkflow,
+                mock(ProcessEngineImpl.class),
+                mock(ProcessDataManagement.class),
+                workspaceClientFactory
+            );
 
         assertThat(stateMachine.getCurrentStep()).isEqualTo(processStep2);
         // Because of FATAL we replay the step 1
         assertThat(stateMachine.getStepIndex()).isEqualTo(1);
-        verify(stateMachine.getCurrentStep(), atLeastOnce())
-            .setPauseOrCancelAction(eq(PauseOrCancelAction.ACTION_RECOVER));
+        verify(stateMachine.getCurrentStep(), atLeastOnce()).setPauseOrCancelAction(
+            eq(PauseOrCancelAction.ACTION_RECOVER)
+        );
     }
 
     private void waitProcessToFinish(ProcessWorkflow processWorkflow, ProcessEngineTest processEngine) {
         for (int i = 0; i < processWorkflow.getSteps().size(); i++) {
             CompletableFuture<ItemStatus> taskToWait = processEngine.getCurrentTask();
             taskToWait.join();
-            if (taskToWait.equals(processEngine.getCurrentTask()))
-                break;
+            if (taskToWait.equals(processEngine.getCurrentTask())) break;
         }
     }
 }

@@ -40,8 +40,9 @@ import fr.gouv.vitam.worker.common.HandlerIO;
 
 public class BuildUnitTraceabilityActionPlugin extends BuildTraceabilityActionPlugin {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(PrepareUnitLfcTraceabilityActionPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        PrepareUnitLfcTraceabilityActionPlugin.class
+    );
 
     private static final String STP_UNIT_LFC_TRACEABILITY = "STP_UNIT_LFC_TRACEABILITY";
     private static final String ACTION_HANDLER_ID = "BUILD_UNIT_LFC_TRACEABILITY";
@@ -51,15 +52,16 @@ public class BuildUnitTraceabilityActionPlugin extends BuildTraceabilityActionPl
     }
 
     @VisibleForTesting
-    BuildUnitTraceabilityActionPlugin(StorageClientFactory storageClientFactory,
-        int batchSize, AlertService alertService) {
+    BuildUnitTraceabilityActionPlugin(
+        StorageClientFactory storageClientFactory,
+        int batchSize,
+        AlertService alertService
+    ) {
         super(storageClientFactory, batchSize, alertService);
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         LOGGER.info("Building unit traceability data");
         ItemStatus itemStatus = new ItemStatus(ACTION_HANDLER_ID);
         buildTraceabilityData(handler, LogbookLifeCycleUnit.class.getName(), itemStatus);

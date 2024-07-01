@@ -81,11 +81,9 @@ public class InsertParserSingle extends RequestParserSingle {
      * @param rootNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void dataParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void dataParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Insert: empty data");
+            throw new InvalidParseOperationException("Parse in error for Insert: empty data");
         }
         GlobalDatas.sanityValueCheck(rootNode.toString());
         // Fix varname using adapter
@@ -95,8 +93,7 @@ public class InsertParserSingle extends RequestParserSingle {
         try {
             ((Insert) request).setData(newRootNode);
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Insert: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Insert: " + rootNode, e);
         }
     }
 

@@ -58,8 +58,12 @@ public class EvidenceAuditObjectModel {
         // Empty constructor for deserialization
     }
 
-    public EvidenceAuditObjectModel(String processId, int tenant, String creationDateTime,
-        EvidenceAuditReportEntry metadata) {
+    public EvidenceAuditObjectModel(
+        String processId,
+        int tenant,
+        String creationDateTime,
+        EvidenceAuditReportEntry metadata
+    ) {
         this.processId = processId;
         this.creationDateTime = creationDateTime;
         this.metadata = metadata;
@@ -100,21 +104,24 @@ public class EvidenceAuditObjectModel {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this)
-            return true;
+        if (o == this) return true;
         if (!(o instanceof EvidenceAuditObjectModel)) {
             return false;
         }
         EvidenceAuditObjectModel evidenceAuditObjectModel = (EvidenceAuditObjectModel) o;
 
-        return Objects.equals(getTenant(), evidenceAuditObjectModel.getTenant())
-            && Objects.equals(getProcessId(), evidenceAuditObjectModel.getProcessId())
-            && Objects.equals(getMetadataId(this), getMetadataId(evidenceAuditObjectModel));
+        return (
+            Objects.equals(getTenant(), evidenceAuditObjectModel.getTenant()) &&
+            Objects.equals(getProcessId(), evidenceAuditObjectModel.getProcessId()) &&
+            Objects.equals(getMetadataId(this), getMetadataId(evidenceAuditObjectModel))
+        );
     }
 
     private static String getMetadataId(EvidenceAuditObjectModel evidenceAuditObjectModel) {
-        if (evidenceAuditObjectModel.getMetadata() == null
-            || StringUtils.isEmpty(evidenceAuditObjectModel.getMetadata().getDetailId())) {
+        if (
+            evidenceAuditObjectModel.getMetadata() == null ||
+            StringUtils.isEmpty(evidenceAuditObjectModel.getMetadata().getDetailId())
+        ) {
             throw new IllegalArgumentException("Invalid metadata");
         }
 

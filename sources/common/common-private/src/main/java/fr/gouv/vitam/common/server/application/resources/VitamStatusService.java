@@ -36,7 +36,6 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  */
 
 public interface VitamStatusService {
-
     /**
      * getResourcesStatus
      *

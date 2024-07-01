@@ -56,11 +56,8 @@ public class PreservationResourceTest {
         preservationResource = new PreservationResource(preservationScenarioService, griffinService);
     }
 
-
-
     @Test
     public void shouldImportGriffin() {
-
         //Given
         //When
         Response griffinResponse = preservationResource.importGriffin(new ArrayList<>(), mock(UriInfo.class));
@@ -88,13 +85,13 @@ public class PreservationResourceTest {
 
     @Test
     public void shouldImportScenario() throws Exception {
-
         //Given
         //When
-        Response griffinResponse =
-            preservationResource.importPreservationScenario(new ArrayList<>(), mock(UriInfo.class));
+        Response griffinResponse = preservationResource.importPreservationScenario(
+            new ArrayList<>(),
+            mock(UriInfo.class)
+        );
         //Then
         assertThat(griffinResponse.getStatus()).isEqualTo(201);
     }
-
 }

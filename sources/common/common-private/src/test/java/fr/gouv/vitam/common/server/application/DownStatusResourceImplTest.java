@@ -72,11 +72,13 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StatusResourceImplTest.class);
 
     private static TestVitamAdminClientFactory factory = new TestVitamAdminClientFactory(1, ADMIN_STATUS_URI);
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
-        new VitamServerTestRunner(DownStatusResourceImplTest.class, factory, true);
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        DownStatusResourceImplTest.class,
+        factory,
+        true
+    );
 
-    private final static VitamStatusService statusService = new VitamStatusService() {
+    private static final VitamStatusService statusService = new VitamStatusService() {
         @Override
         public boolean getResourcesStatus() {
             return false;
@@ -120,7 +122,6 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
         public void changeServerPort(int port) {
             super.changeServerPort(port);
         }
-
     }
 
     @AfterClass
@@ -138,9 +139,10 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
      */
     @Test
     public void givenStartedServer_WhenGetStatusAdmin_ThenReturnServiceUnavailable() throws Exception {
-
-        final Map<String, String> headersMap =
-            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+        final Map<String, String> headersMap = AuthorizationFilterHelper.getAuthorizationHeaders(
+            HttpMethod.GET,
+            ADMIN_STATUS_URI
+        );
 
         RestAssured.port = vitamServerTestRunner.getAdminPort();
 
@@ -148,7 +150,9 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
             .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
             .when()
-            .get(ADMIN_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+            .get(ADMIN_STATUS_URI)
+            .then()
+            .statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
     }
 
     /**
@@ -161,8 +165,10 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
         String jsonAsString;
         Response response;
 
-        final Map<String, String> headersMap =
-            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+        final Map<String, String> headersMap = AuthorizationFilterHelper.getAuthorizationHeaders(
+            HttpMethod.GET,
+            ADMIN_STATUS_URI
+        );
 
         RestAssured.port = vitamServerTestRunner.getAdminPort();
 
@@ -170,7 +176,11 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
             .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
             .when()
-            .get(ADMIN_STATUS_URI).then().contentType(ContentType.JSON).extract().response();
+            .get(ADMIN_STATUS_URI)
+            .then()
+            .contentType(ContentType.JSON)
+            .extract()
+            .response();
 
         jsonAsString = response.asString();
         final JsonNode result = JsonHandler.getFromString(jsonAsString);
@@ -192,8 +202,10 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
      */
     @Test
     public void givenStartedServer_WhenGetStatusModule_ThenReturnServiceUnavailable() throws Exception {
-        final Map<String, String> headersMap =
-            AuthorizationFilterHelper.getAuthorizationHeaders(HttpMethod.GET, ADMIN_STATUS_URI);
+        final Map<String, String> headersMap = AuthorizationFilterHelper.getAuthorizationHeaders(
+            HttpMethod.GET,
+            ADMIN_STATUS_URI
+        );
 
         RestAssured.port = vitamServerTestRunner.getBusinessPort();
 
@@ -201,7 +213,9 @@ public class DownStatusResourceImplTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TIMESTAMP, headersMap.get(GlobalDataRest.X_TIMESTAMP))
             .header(GlobalDataRest.X_PLATFORM_ID, headersMap.get(GlobalDataRest.X_PLATFORM_ID))
             .when()
-            .get(TEST_STATUS_URI).then().statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
+            .get(TEST_STATUS_URI)
+            .then()
+            .statusCode(Status.SERVICE_UNAVAILABLE.getStatusCode());
         factory.changeServerPort(vitamServerTestRunner.getBusinessPort());
         factory.changeResourcePath(TEST_RESOURCE_URI);
 

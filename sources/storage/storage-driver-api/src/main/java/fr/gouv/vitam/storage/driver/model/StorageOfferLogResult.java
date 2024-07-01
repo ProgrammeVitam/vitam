@@ -54,5 +54,4 @@ public class StorageOfferLogResult extends StorageResult {
     public Long getOffset() {
         return offset;
     }
-
 }

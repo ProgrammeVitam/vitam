@@ -65,16 +65,16 @@ public class RequestResponseOKTest {
 
     private static final String ERROR_JSON =
         "{\"httpCode\":400,\"code\":\"0\",\"context\":\"context\",\"state\":\"state\"," +
-            "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
-            "[{\"httpCode\":0,\"code\":\"1\"}]}";
+        "\"message\":\"message\",\"description\":\"description\",\"errors\":" +
+        "[{\"httpCode\":0,\"code\":\"1\"}]}";
 
     private static final String OK_JSON =
         "{\"httpCode\":200,\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
-            "\"$results\":[],\"$facetResults\":[],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}";
+        "\"$results\":[],\"$facetResults\":[],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}";
 
     private static final String OK_JSON_FACET =
         "{\"httpCode\":200,\"$hits\":{\"total\":0,\"offset\":0,\"limit\":0,\"size\":0}," +
-            "\"$results\":[],\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}";
+        "\"$results\":[],\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}],\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}";
 
     @Test
     public final void testRequestResponseOKConstructor() {
@@ -84,9 +84,7 @@ public class RequestResponseOKTest {
     }
 
     @Test
-    public final void testSetRequestResponseOKAttributes()
-        throws IOException {
-
+    public final void testSetRequestResponseOKAttributes() throws IOException {
         ObjectTest objectTest = new ObjectTest();
         objectTest.addResult("One");
         objectTest.addResult("Two");
@@ -98,20 +96,19 @@ public class RequestResponseOKTest {
         query = new ObjectMapper().readTree(json);
         final RequestResponseOK<ObjectTest> requestResponseOK = new RequestResponseOK<>(query);
         requestResponseOK.addAllResults(new ArrayList<>());
-        requestResponseOK.addAllFacetResults(Collections.singletonList(new FacetResult("mgt_facet",
-            Collections.singletonList(bucket))));
+        requestResponseOK.addAllFacetResults(
+            Collections.singletonList(new FacetResult("mgt_facet", Collections.singletonList(bucket)))
+        );
         requestResponseOK.setHttpCode(Status.OK.getStatusCode());
         assertThat(requestResponseOK.getQuery()).isNotEmpty();
         assertThat(requestResponseOK.getResults()).isNotNull().isEmpty();
 
-        assertEquals(
-            OK_JSON_FACET,
-            JsonHandler.unprettyPrint(requestResponseOK));
+        assertEquals(OK_JSON_FACET, JsonHandler.unprettyPrint(requestResponseOK));
         try {
-            final RequestResponseOK<ObjectTest> copy =
-                JsonHandler.getFromStringAsTypeReference(JsonHandler.unprettyPrint(requestResponseOK),
-                    new TypeReference<>() {
-                    });
+            final RequestResponseOK<ObjectTest> copy = JsonHandler.getFromStringAsTypeReference(
+                JsonHandler.unprettyPrint(requestResponseOK),
+                new TypeReference<>() {}
+            );
             assertEquals(requestResponseOK.getQuery(), copy.getQuery());
         } catch (final InvalidParseOperationException e) {
             fail("should not failed");
@@ -121,27 +118,28 @@ public class RequestResponseOKTest {
         requestResponseOK.setHits(2, 0, 2, 2);
         assertEquals(
             "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":2,\"size\":2}," +
-                "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
-                "\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}]," +
-                "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
-            JsonHandler.unprettyPrint(requestResponseOK));
+            "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
+            "\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}]," +
+            "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
+            JsonHandler.unprettyPrint(requestResponseOK)
+        );
         requestResponseOK.setHits(2, 0, 4, 2);
         assertEquals(
             "{\"httpCode\":200,\"$hits\":{\"total\":2,\"offset\":0,\"limit\":4,\"size\":2}," +
-                "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
-                "\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}]," +
-                "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
-            JsonHandler.unprettyPrint(requestResponseOK));
+            "\"$results\":[{\"Objects\":[\"One\",\"Two\",\"Three\"]},{\"Objects\":[\"One\",\"Two\",\"Three\"]}]," +
+            "\"$facetResults\":[{\"name\":\"mgt_facet\",\"buckets\":[{\"value\":\"str0\",\"count\":1}]}]," +
+            "\"$context\":{\"Objects\":[\"One\",\"Two\",\"Three\"]}}",
+            JsonHandler.unprettyPrint(requestResponseOK)
+        );
         try {
-            final RequestResponseOK<ObjectTest> copy =
-                JsonHandler.getFromStringAsTypeReference(JsonHandler.unprettyPrint(requestResponseOK),
-                    new TypeReference<>() {
-                    });
+            final RequestResponseOK<ObjectTest> copy = JsonHandler.getFromStringAsTypeReference(
+                JsonHandler.unprettyPrint(requestResponseOK),
+                new TypeReference<>() {}
+            );
             assertEquals(requestResponseOK.getQuery(), copy.getQuery());
         } catch (final InvalidParseOperationException e) {
             fail("should not failed");
         }
-
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -165,7 +163,6 @@ public class RequestResponseOKTest {
 
     @Test
     public void testFromResponse() throws InvalidParseOperationException, InvalidFormatException {
-
         ObjectTest objectTest = new ObjectTest();
         objectTest.addResult("One");
         objectTest.addResult("Two");
@@ -178,8 +175,12 @@ public class RequestResponseOKTest {
         requestResponseOK.setQuery(query);
         requestResponseOK.addAllResults(Lists.newArrayList());
 
-        Response response =
-            getOutboundResponse(Status.OK, requestResponseOK.toString(), MediaType.APPLICATION_JSON, null);
+        Response response = getOutboundResponse(
+            Status.OK,
+            requestResponseOK.toString(),
+            MediaType.APPLICATION_JSON,
+            null
+        );
         RequestResponse<JsonNode> requestResponse = RequestResponse.parseFromResponse(response);
         assertEquals(OK_JSON, JsonHandler.unprettyPrint(requestResponse));
         assertTrue(requestResponse.isOk());
@@ -219,9 +220,12 @@ public class RequestResponseOKTest {
         }
     }
 
-
-    public static Response getOutboundResponse(Status status, Object entity, String contentType,
-        Map<String, String> headers) {
+    public static Response getOutboundResponse(
+        Status status,
+        Object entity,
+        String contentType,
+        Map<String, String> headers
+    ) {
         if (status == null) {
             throw new IllegalArgumentException("status cannot be null");
         }
@@ -245,6 +249,7 @@ public class RequestResponseOKTest {
     }
 
     private static class ObjectTest {
+
         @JsonProperty("Objects")
         private List<String> results = new ArrayList<>();
 
@@ -260,5 +265,4 @@ public class RequestResponseOKTest {
             results.add(s);
         }
     }
-
 }

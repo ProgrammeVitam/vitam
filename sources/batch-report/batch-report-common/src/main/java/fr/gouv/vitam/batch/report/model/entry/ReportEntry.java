@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ReportEntry {
+
     public static final String OUTCOME = "outcome";
     public static final String DETAIL_TYPE = "detailType";
     public static final String DETAIL_ID = "id";
@@ -39,8 +40,11 @@ public class ReportEntry {
     private final String detailId;
 
     @JsonCreator
-    public ReportEntry(@JsonProperty(OUTCOME) String outcome, @JsonProperty(DETAIL_TYPE) String detailType,
-        @JsonProperty(DETAIL_ID) String detailId) {
+    public ReportEntry(
+        @JsonProperty(OUTCOME) String outcome,
+        @JsonProperty(DETAIL_TYPE) String detailType,
+        @JsonProperty(DETAIL_ID) String detailId
+    ) {
         this.outcome = outcome;
         this.detailType = detailType;
         this.detailId = detailId;

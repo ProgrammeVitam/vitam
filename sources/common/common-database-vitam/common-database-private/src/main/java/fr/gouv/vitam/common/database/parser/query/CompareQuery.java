@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * the class of compare query
  */
 public class CompareQuery extends fr.gouv.vitam.common.database.builder.query.CompareQuery {
+
     /**
      * For Parsing
      *

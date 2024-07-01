@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.common.graph;
 
-
-
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -38,15 +36,16 @@ import java.util.NoSuchElementException;
  */
 // FIXME P1 use standard class from Java (25 years of experience)
 public class NodeIterable<Item> implements Iterable<Item> {
+
     private Node<Item> first;
     // number of elements
     private int n;
 
     // FIXME P1 missing a "clear" (memory pressure) or a default clear while getting next (help the GC)
 
-
     // helper linked list class
     private static class Node<Item> {
+
         private Item item;
         private Node<Item> next;
     }
@@ -90,7 +89,6 @@ public class NodeIterable<Item> implements Iterable<Item> {
         n++;
     }
 
-
     /**
      * Returns an iterator that iterates over the items in this bag in arbitrary order.
      *
@@ -103,6 +101,7 @@ public class NodeIterable<Item> implements Iterable<Item> {
 
     // an iterator, doesn't implement remove() since it's optional
     private class ListIterator<E> implements Iterator<E> {
+
         private Node<E> current;
 
         /**
@@ -143,6 +142,4 @@ public class NodeIterable<Item> implements Iterable<Item> {
             return item;
         }
     }
-
-
 }

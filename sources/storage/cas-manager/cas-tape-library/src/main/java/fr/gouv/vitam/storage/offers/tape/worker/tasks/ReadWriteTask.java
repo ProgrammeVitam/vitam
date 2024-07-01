@@ -45,20 +45,37 @@ public class ReadWriteTask implements Future<ReadWriteResult> {
 
     private final Future<ReadWriteResult> readWriteTask;
 
-    public ReadWriteTask(ReadWriteOrder order, TapeCatalog workerCurrentTape, TapeLibraryService tapeLibraryService,
+    public ReadWriteTask(
+        ReadWriteOrder order,
+        TapeCatalog workerCurrentTape,
+        TapeLibraryService tapeLibraryService,
         TapeCatalogService tapeCatalogService,
         ArchiveReferentialRepository archiveReferentialRepository,
-        AccessRequestManager accessRequestManager, String inputTarPath,
+        AccessRequestManager accessRequestManager,
+        String inputTarPath,
         boolean forceOverrideNonEmptyCartridges,
-        ArchiveCacheStorage archiveCacheStorage) {
-
+        ArchiveCacheStorage archiveCacheStorage
+    ) {
         if (order.isWriteOrder()) {
-            readWriteTask = new WriteTask((WriteOrder) order, workerCurrentTape, tapeLibraryService, tapeCatalogService,
-                archiveReferentialRepository, archiveCacheStorage, inputTarPath, forceOverrideNonEmptyCartridges
+            readWriteTask = new WriteTask(
+                (WriteOrder) order,
+                workerCurrentTape,
+                tapeLibraryService,
+                tapeCatalogService,
+                archiveReferentialRepository,
+                archiveCacheStorage,
+                inputTarPath,
+                forceOverrideNonEmptyCartridges
             );
         } else {
-            readWriteTask = new ReadTask((ReadOrder) order, workerCurrentTape, tapeLibraryService, tapeCatalogService,
-                accessRequestManager, archiveCacheStorage);
+            readWriteTask = new ReadTask(
+                (ReadOrder) order,
+                workerCurrentTape,
+                tapeLibraryService,
+                tapeCatalogService,
+                accessRequestManager,
+                archiveCacheStorage
+            );
         }
     }
 
@@ -72,7 +89,6 @@ public class ReadWriteTask implements Future<ReadWriteResult> {
         throws InterruptedException, ExecutionException, TimeoutException {
         return readWriteTask.get(timeout, unit);
     }
-
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {

@@ -29,7 +29,6 @@ package fr.gouv.vitam.storage.offers.tape.spec;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 
 public interface TapeReadWriteService {
-
     /**
      * @param inputPath mini-path to file from workingDir
      * @throws TapeCommandException on command failure

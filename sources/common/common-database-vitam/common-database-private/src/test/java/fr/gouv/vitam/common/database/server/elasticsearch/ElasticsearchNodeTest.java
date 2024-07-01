@@ -44,7 +44,5 @@ public class ElasticsearchNodeTest {
         final ElasticsearchNode node2 = new ElasticsearchNode();
         assertEquals(HOST, node2.setHostName(HOST).getHostName());
         assertEquals(PORT, node2.setHttpPort(PORT).getHttpPort());
-
     }
-
 }

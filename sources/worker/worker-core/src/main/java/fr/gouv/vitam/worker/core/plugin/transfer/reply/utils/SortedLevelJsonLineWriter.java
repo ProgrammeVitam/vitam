@@ -53,8 +53,7 @@ import java.util.stream.Collectors;
  */
 public class SortedLevelJsonLineWriter implements AutoCloseable {
 
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {
-    };
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<JsonLineModel>() {};
     private static final int MAX_LEVELS = 100;
 
     private final HandlerIO handler;
@@ -66,7 +65,6 @@ public class SortedLevelJsonLineWriter implements AutoCloseable {
     }
 
     public void addEntry(JsonLineModel line) throws IOException {
-
         if (line.getDistribGroup() == null) {
             throw new IllegalArgumentException("Null distribution group " + JsonHandler.unprettyPrint(line));
         }
@@ -86,7 +84,6 @@ public class SortedLevelJsonLineWriter implements AutoCloseable {
     }
 
     public void exportToWorkspace(String filename, boolean ascending) throws IOException, ProcessingException {
-
         // Flush / close all level writers
         for (JsonLineWriter value : this.writersByLevel.values()) {
             value.close();
@@ -94,23 +91,28 @@ public class SortedLevelJsonLineWriter implements AutoCloseable {
 
         File combinedSortedJsonLineFile = handler.getNewLocalFile(GUIDFactory.newGUID().toString());
         try {
-
-            try (OutputStream outputStream = new FileOutputStream(combinedSortedJsonLineFile);
-                JsonLineWriter writer = new JsonLineWriter(outputStream)) {
-
+            try (
+                OutputStream outputStream = new FileOutputStream(combinedSortedJsonLineFile);
+                JsonLineWriter writer = new JsonLineWriter(outputStream)
+            ) {
                 // Sort levels
-                List<Integer> levels = this.filesByLevel.keySet().stream()
-                    .sorted(ascending ? Comparator.naturalOrder() : Comparator.reverseOrder())
-                    .collect(Collectors.toList());
+                List<Integer> levels =
+                    this.filesByLevel.keySet()
+                        .stream()
+                        .sorted(ascending ? Comparator.naturalOrder() : Comparator.reverseOrder())
+                        .collect(Collectors.toList());
 
                 // Append files by level
                 for (Integer level : levels) {
-
                     File fileLevel = this.filesByLevel.get(level);
 
-                    try (InputStream is = new FileInputStream(fileLevel);
+                    try (
+                        InputStream is = new FileInputStream(fileLevel);
                         JsonLineGenericIterator<JsonLineModel> lineGenericIterator = new JsonLineGenericIterator<>(
-                            is, TYPE_REFERENCE)) {
+                            is,
+                            TYPE_REFERENCE
+                        )
+                    ) {
                         while (lineGenericIterator.hasNext()) {
                             writer.addEntry(lineGenericIterator.next());
                         }
@@ -119,7 +121,6 @@ public class SortedLevelJsonLineWriter implements AutoCloseable {
             }
 
             handler.transferFileToWorkspace(filename, combinedSortedJsonLineFile, true, false);
-
         } finally {
             for (File file : filesByLevel.values()) {
                 FileUtils.deleteQuietly(file);

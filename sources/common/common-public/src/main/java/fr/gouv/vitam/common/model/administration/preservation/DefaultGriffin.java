@@ -39,7 +39,6 @@ import java.util.List;
  */
 public class DefaultGriffin {
 
-
     @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty("GriffinIdentifier")
     private String griffinIdentifier;
@@ -65,9 +64,7 @@ public class DefaultGriffin {
         //default Constructor
     }
 
-    public DefaultGriffin(
-        @NotEmpty String griffinIdentifier,
-        @NotEmpty List<ActionPreservation> actionDetail) {
+    public DefaultGriffin(@NotEmpty String griffinIdentifier, @NotEmpty List<ActionPreservation> actionDetail) {
         this.griffinIdentifier = griffinIdentifier;
         this.actionDetail = actionDetail;
     }

@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DynamicParserTokens {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DynamicParserTokens.class);
 
     private final VitamDescriptionResolver vitamDescriptionResolver;
@@ -42,8 +43,9 @@ public class DynamicParserTokens {
 
     public DynamicParserTokens(VitamDescriptionResolver vitamDescriptionResolver, List<OntologyModel> ontologyModels) {
         this.vitamDescriptionResolver = vitamDescriptionResolver;
-        this.ontologyModelsByName =
-            ontologyModels.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, o -> o));
+        this.ontologyModelsByName = ontologyModels
+            .stream()
+            .collect(Collectors.toMap(OntologyModel::getIdentifier, o -> o));
     }
 
     public boolean isNotAnalyzed(String name) {

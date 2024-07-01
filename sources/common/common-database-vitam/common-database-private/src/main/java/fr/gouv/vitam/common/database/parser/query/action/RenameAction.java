@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Rename Action
  */
 public class RenameAction extends fr.gouv.vitam.common.database.builder.query.action.RenameAction {
+
     /**
      * For Parsing
      *

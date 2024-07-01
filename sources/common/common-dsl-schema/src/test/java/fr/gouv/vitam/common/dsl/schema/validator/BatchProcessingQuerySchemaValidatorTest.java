@@ -40,8 +40,9 @@ public class BatchProcessingQuerySchemaValidatorTest {
     public void should_not_retrieve_any_exception_when_selectOnlyQueryMultiple() throws Exception {
         // Given
         DslValidator dslValidator = new BatchProcessingQuerySchemaValidator();
-        JsonNode selectOnlyQueryMultiple =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("elimination-query-complete.json"));
+        JsonNode selectOnlyQueryMultiple = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("elimination-query-complete.json")
+        );
         // When
         // Then
         assertThatCode(() -> dslValidator.validate(selectOnlyQueryMultiple)).doesNotThrowAnyException();
@@ -51,8 +52,9 @@ public class BatchProcessingQuerySchemaValidatorTest {
     public void should_retrieve_exception_when_filter_is_in_query() throws Exception {
         // Given
         DslValidator dslValidator = new BatchProcessingQuerySchemaValidator();
-        JsonNode selectOnlyQueryMultiple =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("elimination-query-invalid-with-filter.json"));
+        JsonNode selectOnlyQueryMultiple = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("elimination-query-invalid-with-filter.json")
+        );
         // When
         // Then
         assertThatThrownBy(() -> dslValidator.validate(selectOnlyQueryMultiple))
@@ -65,9 +67,9 @@ public class BatchProcessingQuerySchemaValidatorTest {
     public void should_retrieve_exception_when_projection_is_in_query() throws Exception {
         // Given
         DslValidator dslValidator = new BatchProcessingQuerySchemaValidator();
-        JsonNode selectOnlyQueryMultiple =
-            JsonHandler
-                .getFromFile(PropertiesUtils.findFile("elimination-query-invalid-with-projection.json"));
+        JsonNode selectOnlyQueryMultiple = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("elimination-query-invalid-with-projection.json")
+        );
         // When
         // Then
         assertThatThrownBy(() -> dslValidator.validate(selectOnlyQueryMultiple))
@@ -80,9 +82,9 @@ public class BatchProcessingQuerySchemaValidatorTest {
     public void should_retrieve_exception_when_invalid_threshold() throws Exception {
         // Given
         DslValidator dslValidator = new BatchProcessingQuerySchemaValidator();
-        JsonNode selectOnlyQueryMultiple =
-            JsonHandler
-                .getFromFile(PropertiesUtils.findFile("elimination-query-invalid-threshold.json"));
+        JsonNode selectOnlyQueryMultiple = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("elimination-query-invalid-threshold.json")
+        );
         // When
         // Then
         assertThatThrownBy(() -> dslValidator.validate(selectOnlyQueryMultiple))

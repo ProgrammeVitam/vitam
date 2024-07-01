@@ -65,7 +65,6 @@ public class RuleMapperTest {
         assertThat(accessRuleType.getRuleAndStartDate().get(1).toString()).isEqualTo("2017-04-01");
     }
 
-
     @Test
     public void should_map_empty_rule() throws Exception {
         // Given
@@ -112,7 +111,8 @@ public class RuleMapperTest {
         DisseminationRuleType disseminationRuleType = ruleMapper.fillCommonRule(ruleModel, DisseminationRuleType::new);
 
         // Then
-        assertThat(disseminationRuleType.getRefNonRuleId()).extracting("value")
+        assertThat(disseminationRuleType.getRefNonRuleId())
+            .extracting("value")
             .containsExactly("DIS-0000X", "DIS-0000Y");
         assertThat(disseminationRuleType.isPreventInheritance()).isNull();
         assertThat(((RuleIdType) disseminationRuleType.getRuleAndStartDate().get(0)).getValue()).isEqualTo("RX");

@@ -46,7 +46,9 @@ import java.util.TreeMap;
  * Abstract class for all Parameters in Logbook
  */
 abstract class AbstractParameters implements LogbookParameters {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractParameters.class);
+
     @JsonIgnore
     private final Map<LogbookParameterName, String> mapParameters = new TreeMap<>();
 
@@ -108,8 +110,13 @@ abstract class AbstractParameters implements LogbookParameters {
     }
 
     @Override
-    public LogbookParameters setFinalStatus(String handlerId, String subTaskId,
-        StatusCode code, String additionalMessage, String... params) {
+    public LogbookParameters setFinalStatus(
+        String handlerId,
+        String subTaskId,
+        StatusCode code,
+        String additionalMessage,
+        String... params
+    ) {
         if (this instanceof LogbookOperationParameters) {
             setFinalStatusOp(handlerId, subTaskId, code, additionalMessage, params);
         } else {
@@ -119,8 +126,12 @@ abstract class AbstractParameters implements LogbookParameters {
     }
 
     @Override
-    public LogbookParameters setBeginningLog(String handlerId, String subTaskId,
-        String additionnalMessage, String... params) {
+    public LogbookParameters setBeginningLog(
+        String handlerId,
+        String subTaskId,
+        String additionnalMessage,
+        String... params
+    ) {
         if (this instanceof LogbookOperationParameters) {
             // should call setFinalStatus instead, as STARTED event is no longer used for logbook operation
             setFinalStatusOp(handlerId, subTaskId, StatusCode.OK, additionnalMessage, params);
@@ -131,22 +142,32 @@ abstract class AbstractParameters implements LogbookParameters {
         return this;
     }
 
-    private LogbookParameters setFinalStatusLfc(String handlerId, String subTaskId,
-        StatusCode code, String additionnalMessage, String... params) {
+    private LogbookParameters setFinalStatusLfc(
+        String handlerId,
+        String subTaskId,
+        StatusCode code,
+        String additionnalMessage,
+        String... params
+    ) {
         if (subTaskId != null) {
-            putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getSubTaskEventTypeLfc(handlerId, subTaskId));
+            putParameterValue(
+                LogbookParameterName.eventType,
+                VitamLogbookMessages.getSubTaskEventTypeLfc(handlerId, subTaskId)
+            );
         } else {
-            putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getEventTypeLfc(handlerId));
+            putParameterValue(LogbookParameterName.eventType, VitamLogbookMessages.getEventTypeLfc(handlerId));
         }
         putParameterValue(LogbookParameterName.outcome, code.name());
         if (subTaskId != null) {
-            putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetailLfc(handlerId, subTaskId, code));
+            putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetailLfc(handlerId, subTaskId, code)
+            );
         } else {
-            putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetailLfc(handlerId, code));
+            putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetailLfc(handlerId, code)
+            );
         }
         String detail;
         if (subTaskId != null) {
@@ -172,21 +193,32 @@ abstract class AbstractParameters implements LogbookParameters {
         return this;
     }
 
-    private LogbookParameters setFinalStatusOp(String handlerId, String subTaskId,
-        StatusCode code, String additionnalMessage, String... params) {
+    private LogbookParameters setFinalStatusOp(
+        String handlerId,
+        String subTaskId,
+        StatusCode code,
+        String additionnalMessage,
+        String... params
+    ) {
         if (subTaskId != null) {
-            putParameterValue(LogbookParameterName.eventType,
-                VitamLogbookMessages.getSubTaskEventTypeOp(handlerId, subTaskId));
+            putParameterValue(
+                LogbookParameterName.eventType,
+                VitamLogbookMessages.getSubTaskEventTypeOp(handlerId, subTaskId)
+            );
         } else {
             putParameterValue(LogbookParameterName.eventType, handlerId);
         }
         putParameterValue(LogbookParameterName.outcome, code.name());
         if (subTaskId != null) {
-            putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(handlerId, subTaskId, code));
+            putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(handlerId, subTaskId, code)
+            );
         } else {
-            putParameterValue(LogbookParameterName.outcomeDetail,
-                VitamLogbookMessages.getOutcomeDetail(handlerId, code));
+            putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                VitamLogbookMessages.getOutcomeDetail(handlerId, code)
+            );
         }
         String detail;
         if (subTaskId != null) {
@@ -277,8 +309,7 @@ abstract class AbstractParameters implements LogbookParameters {
         }
     }
 
-    private static <T extends Enum<T>> void checkNullOrEmptyParameter(T key, String value,
-        Set<T> mandatories) {
+    private static <T extends Enum<T>> void checkNullOrEmptyParameter(T key, String value, Set<T> mandatories) {
         ParametersChecker.checkParameter("Key parameter", key);
         if (mandatories.contains(key)) {
             ParametersChecker.checkParameter(key.name(), value);

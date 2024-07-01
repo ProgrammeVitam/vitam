@@ -37,7 +37,6 @@ import org.bson.Document;
  */
 public class FileRules extends VitamDocument<FileRules> {
 
-
     private static final long serialVersionUID = 2471943065920459435L;
 
     /**
@@ -72,8 +71,7 @@ public class FileRules extends VitamDocument<FileRules> {
      * Constructor
      */
 
-    public FileRules() {
-    }
+    public FileRules() {}
 
     /**
      * Constructor

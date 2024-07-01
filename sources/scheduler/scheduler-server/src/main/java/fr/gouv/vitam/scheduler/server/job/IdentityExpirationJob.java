@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.logging.VitamLogger;

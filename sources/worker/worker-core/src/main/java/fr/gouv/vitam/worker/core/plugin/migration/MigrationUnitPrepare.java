@@ -52,6 +52,7 @@ import static fr.gouv.vitam.worker.core.plugin.migration.MigrationHelper.getSele
  * MigrationUnitPrepare class
  */
 public class MigrationUnitPrepare extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MigrationUnitPrepare.class);
 
     private static final String MIGRATION_UNITS_LIST = "MIGRATION_UNITS_LIST";
@@ -75,15 +76,20 @@ public class MigrationUnitPrepare extends ActionHandler {
         ItemStatus itemStatus = new ItemStatus(MIGRATION_UNITS_LIST);
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
-
             SelectMultiQuery selectMultiQuery = getSelectMultiQuery();
 
-            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
-                .createUnitScrollSplitIterator(client, selectMultiQuery, bachSize);
+            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createUnitScrollSplitIterator(
+                client,
+                selectMultiQuery,
+                bachSize
+            );
 
-            exportToReportAndDistributionFile(scrollRequest, handler, "Units.jsonl",
-                REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + ".json");
-
+            exportToReportAndDistributionFile(
+                scrollRequest,
+                handler,
+                "Units.jsonl",
+                REPORTS + "/" + MIGRATION_UNITS_LIST_IDS + ".json"
+            );
         } catch (InvalidParseOperationException | InvalidCreateOperationException | ProcessingException e) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.FATAL);

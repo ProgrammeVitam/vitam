@@ -44,7 +44,6 @@ public class ObjectEntryLargeFileWriterTest {
 
     @Test
     public void testEmpty() throws IOException {
-
         // Given
         File file = tempFolder.newFile();
 
@@ -59,7 +58,6 @@ public class ObjectEntryLargeFileWriterTest {
 
     @Test
     public void testSingleEntry() throws IOException {
-
         // Given
         File file = tempFolder.newFile();
 
@@ -69,14 +67,11 @@ public class ObjectEntryLargeFileWriterTest {
         }
 
         // Then (entry + EOF marker)
-        assertThat(file).hasContent("" +
-            "{\"objectId\":\"obj1\",\"size\":1}\n" +
-            "{}");
+        assertThat(file).hasContent("" + "{\"objectId\":\"obj1\",\"size\":1}\n" + "{}");
     }
 
     @Test
     public void testMultiEntries() throws IOException {
-
         // Given
         File file = tempFolder.newFile();
 
@@ -87,9 +82,8 @@ public class ObjectEntryLargeFileWriterTest {
         }
 
         // Then (entry + EOF marker)
-        assertThat(file).hasContent("" +
-            "{\"objectId\":\"obj1\",\"size\":1}\n" +
-            "{\"objectId\":\"obj2\",\"size\":2}\n" +
-            "{}");
+        assertThat(file).hasContent(
+            "" + "{\"objectId\":\"obj1\",\"size\":1}\n" + "{\"objectId\":\"obj2\",\"size\":2}\n" + "{}"
+        );
     }
 }

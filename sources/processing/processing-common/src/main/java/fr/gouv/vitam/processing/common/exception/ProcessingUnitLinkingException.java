@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.model.UnitType;
  * Define a Processing Exception to be thrown when an error occurred, not a fatal error
  */
 public class ProcessingUnitLinkingException extends ProcessingException {
+
     private final String manifestId;
     private final UnitType unitType;
     private final UnitType ingestType;

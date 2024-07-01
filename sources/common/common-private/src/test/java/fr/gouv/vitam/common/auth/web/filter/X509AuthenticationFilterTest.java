@@ -79,6 +79,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class X509AuthenticationFilterTest extends AbstractShiroTest {
+
     public static final String BEGIN_CERT = "-----BEGIN CERTIFICATE-----";
     public static final String END_CERT = "-----END CERTIFICATE-----";
 
@@ -91,12 +92,9 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
 
     @Before
     public void setUp() throws Exception {
-
         generateX509Certificate();
 
         x509CertificateToHttpPemFormat();
-
-
 
         when(request.getRemoteHost()).thenReturn("127.0.0.1");
 
@@ -128,21 +126,21 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
             new Date(System.currentTimeMillis() - 10000),
             new Date(System.currentTimeMillis() + 24L * 3600 * 1000),
             new X500Name("CN=" + dn),
-            SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
+            SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded())
+        );
 
         builder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
         builder.addExtension(Extension.keyUsage, true, new KeyUsage(KeyUsage.digitalSignature));
         builder.addExtension(Extension.extendedKeyUsage, true, new ExtendedKeyUsage(KeyPurposeId.id_kp_clientAuth));
 
-        AlgorithmIdentifier signatureAlgorithmId =
-            new DefaultSignatureAlgorithmIdentifierFinder().find("SHA256withRSA");
+        AlgorithmIdentifier signatureAlgorithmId = new DefaultSignatureAlgorithmIdentifierFinder()
+            .find("SHA256withRSA");
         AlgorithmIdentifier digestAlgorithmId = new DefaultDigestAlgorithmIdentifierFinder().find(signatureAlgorithmId);
         AsymmetricKeyParameter privateKey = PrivateKeyFactory.createKey(keyPair.getPrivate().getEncoded());
 
-
-        X509CertificateHolder
-            holder =
-            builder.build(new BcRSAContentSignerBuilder(signatureAlgorithmId, digestAlgorithmId).build(privateKey));
+        X509CertificateHolder holder = builder.build(
+            new BcRSAContentSignerBuilder(signatureAlgorithmId, digestAlgorithmId).build(privateKey)
+        );
         Certificate certificate = holder.toASN1Structure();
 
         InputStream is = new ByteArrayInputStream(certificate.getEncoded());
@@ -161,7 +159,7 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
     @Test
     public void givenFilterAccessDenied() throws Exception {
         // Needs mock subject for login call
-        when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(new X509Certificate[] {cert});
+        when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(new X509Certificate[] { cert });
         Subject subjectUnderTest = mock(Subject.class);
         Mockito.doNothing().when(subjectUnderTest).login(any());
         setSubject(subjectUnderTest);
@@ -172,7 +170,7 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
 
     @Test
     public void givenFilterCreateToken() throws Exception {
-        when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(new X509Certificate[] {cert});
+        when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(new X509Certificate[] { cert });
         final X509AuthenticationFilter filter = new X509AuthenticationFilter();
         AuthenticationToken authToken = filter.createToken(request, response);
         assertNotNull(authToken);
@@ -206,7 +204,6 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
         filter.setUseHeader(true);
         AuthenticationToken authToken = filter.createToken(request, response);
         assertNotNull(authToken);
-
     }
 
     @Test(expected = Exception.class)
@@ -215,5 +212,4 @@ public class X509AuthenticationFilterTest extends AbstractShiroTest {
         filter.setUseHeader(true);
         filter.createToken(requestNull, response);
     }
-
 }

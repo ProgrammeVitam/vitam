@@ -74,9 +74,11 @@ public class ExportsPurgeServiceTest {
         storageClient = mock(StorageClient.class);
         doReturn(storageClient).when(storageClientFactory).getClient();
 
-        exportsPurgeService =
-            new ExportsPurgeService(workspaceClientFactory, storageClientFactory,
-                new TimeToLiveConfiguration(MAX_TIME_TO_LIVE, MIN_TIME_TO_LIVE, MAX_TIME_TO_LIVE));
+        exportsPurgeService = new ExportsPurgeService(
+            workspaceClientFactory,
+            storageClientFactory,
+            new TimeToLiveConfiguration(MAX_TIME_TO_LIVE, MIN_TIME_TO_LIVE, MAX_TIME_TO_LIVE)
+        );
     }
 
     @Test
@@ -89,8 +91,15 @@ public class ExportsPurgeServiceTest {
         );
 
         doReturn(new RequestResponseOK<OfferLog>().addAllResults(offerLogs))
-            .when(storageClient).getOfferLogs(VitamConfiguration.getDefaultStrategy(), null, DataCategory.DIP,
-                null, VitamConfiguration.getChunkSize(), Order.ASC);
+            .when(storageClient)
+            .getOfferLogs(
+                VitamConfiguration.getDefaultStrategy(),
+                null,
+                DataCategory.DIP,
+                null,
+                VitamConfiguration.getChunkSize(),
+                Order.ASC
+            );
 
         when(workspaceClient.getFreespacePercent()).thenReturn((JsonHandler.createObjectNode().put(FREESPACE, 50)));
 
@@ -106,27 +115,33 @@ public class ExportsPurgeServiceTest {
     public void purgeExpiredDipAndUseCriticalTimeToLiveWhenFreespaceLowerThanThreshold() throws Exception {
         // Given
         when(workspaceClient.getFreespacePercent()).thenReturn(
-            (JsonHandler.createObjectNode().put(FREESPACE, VitamConfiguration.getWorkspaceFreespaceThreshold() - 1)));
+            (JsonHandler.createObjectNode().put(FREESPACE, VitamConfiguration.getWorkspaceFreespaceThreshold() - 1))
+        );
 
         // When
         exportsPurgeService.purgeExpiredFiles(DIP_CONTAINER);
 
         // Then
-        verify(workspaceClient).purgeOldFilesInContainer(DIP_CONTAINER,
-            new TimeToLive(MIN_TIME_TO_LIVE, ChronoUnit.MINUTES));
+        verify(workspaceClient).purgeOldFilesInContainer(
+            DIP_CONTAINER,
+            new TimeToLive(MIN_TIME_TO_LIVE, ChronoUnit.MINUTES)
+        );
     }
 
     @Test
     public void purgeExpiredDipAndUseUsualTimeToLiveWhenFreespaceGreaterThanThreshold() throws Exception {
         // Given
         when(workspaceClient.getFreespacePercent()).thenReturn(
-            (JsonHandler.createObjectNode().put(FREESPACE, VitamConfiguration.getWorkspaceFreespaceThreshold() + 1)));
+            (JsonHandler.createObjectNode().put(FREESPACE, VitamConfiguration.getWorkspaceFreespaceThreshold() + 1))
+        );
 
         // When
         exportsPurgeService.purgeExpiredFiles(DIP_CONTAINER);
 
         // Then
-        verify(workspaceClient).purgeOldFilesInContainer(DIP_CONTAINER,
-            new TimeToLive(MAX_TIME_TO_LIVE, ChronoUnit.MINUTES));
+        verify(workspaceClient).purgeOldFilesInContainer(
+            DIP_CONTAINER,
+            new TimeToLive(MAX_TIME_TO_LIVE, ChronoUnit.MINUTES)
+        );
     }
 }

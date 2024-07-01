@@ -39,7 +39,6 @@ public interface TapeDrivePool {
      */
     TapeDriveService checkoutDriveService(Integer driveIndex) throws InterruptedException;
 
-
     /**
      * Return or add TapeDriveService to the pool
      *

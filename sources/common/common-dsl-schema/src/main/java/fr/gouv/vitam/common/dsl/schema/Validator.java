@@ -38,5 +38,4 @@ public class Validator {
     public static void validate(Schema schema, String root, JsonNode document) throws ValidationException {
         new ValidatorEngine(schema).validate(document, root);
     }
-
 }

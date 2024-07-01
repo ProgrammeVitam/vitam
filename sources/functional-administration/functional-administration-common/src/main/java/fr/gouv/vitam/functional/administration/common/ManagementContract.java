@@ -96,7 +96,6 @@ public class ManagementContract extends VitamDocument<ManagementContract> {
      */
     public static final String OBJECT_STRATEGY = "Storage.ObjectStrategy";
 
-
     public static final String VERSION_RETENTION_POLICY = "VersionRetentionPolicy";
     public static final String INITIAL_VERSION = "InitialVersion";
     public static final String INTERMEDIARY_VERSION = "IntermediaryVersion";
@@ -194,7 +193,6 @@ public class ManagementContract extends VitamDocument<ManagementContract> {
         return this;
     }
 
-
     /**
      * Get the contract status
      *
@@ -211,7 +209,6 @@ public class ManagementContract extends VitamDocument<ManagementContract> {
             throw new IllegalStateException("invalid STATUS value " + status);
         }
     }
-
 
     /**
      * Set or change the contract status
@@ -287,5 +284,4 @@ public class ManagementContract extends VitamDocument<ManagementContract> {
         append(DEACTIVATIONDATE, deactivationdate);
         return this;
     }
-
 }

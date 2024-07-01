@@ -63,7 +63,8 @@ public class DeleteGotVersionsReportEntry extends ReportEntry {
         @JsonProperty(OBJECT_GROUP_ID) String objectGroupId,
         @JsonProperty(UNIT_IDS) Set<String> unitIds,
         @JsonProperty(OBJECT_GROUP_GLOBAL) List<ObjectGroupToDeleteReportEntry> objectGroupGlobal,
-        @JsonProperty(OUTCOME) String outcome) {
+        @JsonProperty(OUTCOME) String outcome
+    ) {
         super(outcome, DELETE_GOT_VERSIONS.name(), detailId);
         this.processId = processId;
         this.tenant = tenant;
@@ -102,5 +103,4 @@ public class DeleteGotVersionsReportEntry extends ReportEntry {
     public Set<String> getUnitIds() {
         return unitIds;
     }
-
 }

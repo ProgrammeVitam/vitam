@@ -65,14 +65,16 @@ public class EndpointAdminOnlyAuthorizationFilter implements ContainerRequestFil
      */
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-
         int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
         if (isAdminOnly && tenantId != VitamConfiguration.getAdminTenant()) {
             final VitamError vitamError = generateVitamError();
             requestContext.abortWith(
-                Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
-                    .build());
+                Response.status(vitamError.getHttpCode())
+                    .entity(vitamError)
+                    .type(MediaType.APPLICATION_JSON_TYPE)
+                    .build()
+            );
         }
     }
 
@@ -82,15 +84,14 @@ public class EndpointAdminOnlyAuthorizationFilter implements ContainerRequestFil
      * @return Vitam Error
      */
     private VitamError generateVitamError() {
-        final VitamError vitamError =
-            new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED));
+        final VitamError vitamError = new VitamError(VitamCodeHelper.getCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED));
 
-        vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
+        vitamError
+            .setContext(ServerIdentity.getInstance().getJsonIdentity())
             .setMessage(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getMessage())
             .setDescription(TENANT_ADMINISTRATION_IS_REQUIRED)
             .setState(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.name())
             .setHttpCode(VitamCode.INTERNAL_SECURITY_UNAUTHORIZED.getStatus().getStatusCode());
         return vitamError;
     }
-
 }

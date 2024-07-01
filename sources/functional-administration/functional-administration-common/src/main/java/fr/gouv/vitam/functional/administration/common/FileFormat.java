@@ -38,6 +38,7 @@ import java.util.List;
  */
 
 public class FileFormat extends VitamDocument<FileFormat> {
+
     /**
      * FileFormat PUID key
      */

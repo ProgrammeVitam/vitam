@@ -30,8 +30,9 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-@JsonIgnoreProperties(value = {"total"}, allowGetters = true)
+@JsonIgnoreProperties(value = { "total" }, allowGetters = true)
 public class ReportResults {
+
     @JsonProperty("OK")
     private Integer nbOk;
 

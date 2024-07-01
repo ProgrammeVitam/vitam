@@ -42,7 +42,6 @@ public class PermissionServiceTest {
 
     @Test
     public void isPersonalCertificateRequiredForPermission() throws Exception {
-
         PersonalCertificatePermissionConfig config = new PersonalCertificatePermissionConfig();
         config.setPermissionsRequiringPersonalCertificate(Sets.newHashSet(PERM_1, PERM_2));
         config.setPermissionsWithoutPersonalCertificate(Sets.newHashSet(PERM_3));
@@ -50,12 +49,15 @@ public class PermissionServiceTest {
         PermissionService instance = new PermissionService(config);
 
         assertThat(instance.isPersonalCertificateRequiredForPermission(PERM_1).getResponse()).isEqualTo(
-            IsPersonalCertificateRequiredModel.Response.REQUIRED_PERSONAL_CERTIFICATE);
+            IsPersonalCertificateRequiredModel.Response.REQUIRED_PERSONAL_CERTIFICATE
+        );
 
         assertThat(instance.isPersonalCertificateRequiredForPermission(PERM_3).getResponse()).isEqualTo(
-            IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE);
+            IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE
+        );
 
         assertThat(instance.isPersonalCertificateRequiredForPermission(PERM_4).getResponse()).isEqualTo(
-            IsPersonalCertificateRequiredModel.Response.ERROR_UNKNOWN_PERMISSION);
+            IsPersonalCertificateRequiredModel.Response.ERROR_UNKNOWN_PERMISSION
+        );
     }
 }

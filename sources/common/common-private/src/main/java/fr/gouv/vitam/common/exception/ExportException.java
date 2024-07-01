@@ -27,6 +27,7 @@
 package fr.gouv.vitam.common.exception;
 
 public class ExportException extends VitamException {
+
     public ExportException(String message) {
         super(message);
     }

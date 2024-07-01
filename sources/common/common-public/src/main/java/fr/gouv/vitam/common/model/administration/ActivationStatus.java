@@ -38,5 +38,5 @@ public enum ActivationStatus {
     /**
      * status inactive
      */
-    INACTIVE
+    INACTIVE,
 }

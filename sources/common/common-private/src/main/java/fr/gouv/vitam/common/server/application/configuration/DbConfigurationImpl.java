@@ -34,6 +34,7 @@ import java.util.List;
  * Implementation of DbConfiguraton Interface
  */
 public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration implements DbConfiguration {
+
     private static final String PORT_MUST_BE_POSITIVE = "Port must be positive";
     private static final String CONFIGURATION_PARAMETERS = "DbConfiguration parameters";
     private List<MongoDbNode> mongoDbNodes;
@@ -59,11 +60,15 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      * @param dbPassword
      * @throws IllegalArgumentException if host or dbName null or empty, or if port &lt;= 0
      */
-    public DbConfigurationImpl(List<MongoDbNode> mongoDbNodes, String dbName, boolean dbAuthentication,
-        String dbUserName, String dbPassword) {
+    public DbConfigurationImpl(
+        List<MongoDbNode> mongoDbNodes,
+        String dbName,
+        boolean dbAuthentication,
+        String dbUserName,
+        String dbPassword
+    ) {
         for (final MongoDbNode node : mongoDbNodes) {
-            ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
-                node.getDbHost(), dbName);
+            ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS, node.getDbHost(), dbName);
             if (node.getDbPort() <= 0) {
                 throw new IllegalArgumentException(PORT_MUST_BE_POSITIVE);
             }
@@ -75,7 +80,6 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
         this.dbPassword = dbPassword;
     }
 
-
     /**
      * DbConfiguration constructor
      *
@@ -85,8 +89,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      */
     public DbConfigurationImpl(List<MongoDbNode> mongoDbNodes, String dbName) {
         for (final MongoDbNode node : mongoDbNodes) {
-            ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
-                node.getDbHost(), dbName);
+            ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS, node.getDbHost(), dbName);
             if (node.getDbPort() <= 0) {
                 throw new IllegalArgumentException(PORT_MUST_BE_POSITIVE);
             }
@@ -128,8 +131,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      */
     public DbConfigurationImpl setMongoDbNodes(List<MongoDbNode> mongoDbNodes) {
         for (final MongoDbNode node : mongoDbNodes) {
-            ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
-                node.getDbHost());
+            ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS, node.getDbHost());
             if (node.getDbPort() <= 0) {
                 throw new IllegalArgumentException(PORT_MUST_BE_POSITIVE);
             }
@@ -144,8 +146,7 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
      * @throws IllegalArgumentException if dbName is null or empty
      */
     public DbConfigurationImpl setDbName(String dbName) {
-        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS,
-            dbName);
+        ParametersChecker.checkParameter(CONFIGURATION_PARAMETERS, dbName);
         this.dbName = dbName;
         return this;
     }
@@ -176,5 +177,4 @@ public class DbConfigurationImpl extends DefaultVitamApplicationConfiguration im
         dbAuthentication = authentication;
         return this;
     }
-
 }

@@ -59,24 +59,39 @@ import static org.mockito.Mockito.when;
  * EvidenceAuditGenerateReportsTest class
  */
 public class EvidenceAuditGenerateReportsTest {
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-    @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
-    @Mock public HandlerIO handlerIO;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+
+    @Mock
+    public HandlerIO handlerIO;
+
     @Mock
     WorkerParameters defaultWorkerParameters;
+
     private EvidenceAuditGenerateReports evidenceAuditGenerateReports;
+
     @Mock
     private BatchReportClientFactory batchReportFactory;
+
     @Mock
     private WorkspaceClientFactory workspaceClientFactory;
+
     @Mock
     private StorageClientFactory storageClientFactory;
+
     @Mock
     private EvidenceAuditReportService evidenceAuditReportService;
+
     @Mock
     private BatchReportClient batchReportClient;
+
     @Mock
     private WorkspaceClient workspaceClient;
+
     @Mock
     private StorageClient storageClient;
 
@@ -88,14 +103,16 @@ public class EvidenceAuditGenerateReportsTest {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(storageClientFactory.getClient()).willReturn(storageClient);
 
-        evidenceAuditReportService =
-            new EvidenceAuditReportService(batchReportFactory, workspaceClientFactory, storageClientFactory);
+        evidenceAuditReportService = new EvidenceAuditReportService(
+            batchReportFactory,
+            workspaceClientFactory,
+            storageClientFactory
+        );
 
         evidenceAuditGenerateReports = new EvidenceAuditGenerateReports(evidenceAuditReportService);
 
         processId = "aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq";
     }
-
 
     @Test
     public void should_generate_reports_when_line_not_found() throws Exception {
@@ -107,24 +124,27 @@ public class EvidenceAuditGenerateReportsTest {
         File report = tempFolder.newFile();
         JsonHandler.writeAsFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq", file2);
         when(handlerIO.getFileFromWorkspace("fileNames/test")).thenReturn(file2);
-        when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq"))
-            .thenReturn(PropertiesUtils.getResourceFile("evidenceAudit/test.json"));
+        when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).thenReturn(
+            PropertiesUtils.getResourceFile("evidenceAudit/test.json")
+        );
         when(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).thenReturn(report);
-        given(handlerIO.getJsonFromWorkspace("evidenceOptions"))
-            .willReturn(JsonHandler.createObjectNode().put("correctiveOption", false));
+        given(handlerIO.getJsonFromWorkspace("evidenceOptions")).willReturn(
+            JsonHandler.createObjectNode().put("correctiveOption", false)
+        );
 
         ItemStatus execute = evidenceAuditGenerateReports.execute(defaultWorkerParameters, handlerIO);
 
-
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
-        EvidenceAuditReportLine evidenceAuditReportLine =
-            JsonHandler.getFromFile(report, EvidenceAuditReportLine.class);
+        EvidenceAuditReportLine evidenceAuditReportLine = JsonHandler.getFromFile(
+            report,
+            EvidenceAuditReportLine.class
+        );
         assertThat(evidenceAuditReportLine.getIdentifier()).isEqualTo("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq");
         assertThat(evidenceAuditReportLine.getEvidenceStatus()).isEqualTo(EvidenceStatus.KO);
-        assertThat(evidenceAuditReportLine.getMessage())
-            .isEqualTo("Could not find matching traceability info in the file");
-
+        assertThat(evidenceAuditReportLine.getMessage()).isEqualTo(
+            "Could not find matching traceability info in the file"
+        );
     }
 
     @Test
@@ -136,22 +156,25 @@ public class EvidenceAuditGenerateReportsTest {
         File report = tempFolder.newFile();
         JsonHandler.writeAsFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq", file2);
         when(handlerIO.getFileFromWorkspace("fileNames/test")).thenReturn(file2);
-        when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq"))
-            .thenReturn(PropertiesUtils.getResourceFile("evidenceAudit/test.json"));
+        when(handlerIO.getFileFromWorkspace("data/aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).thenReturn(
+            PropertiesUtils.getResourceFile("evidenceAudit/test.json")
+        );
         when(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).thenReturn(report);
-        given(handlerIO.getJsonFromWorkspace("evidenceOptions"))
-            .willReturn(JsonHandler.createObjectNode().put("correctiveOption", false));
+        given(handlerIO.getJsonFromWorkspace("evidenceOptions")).willReturn(
+            JsonHandler.createObjectNode().put("correctiveOption", false)
+        );
 
         ItemStatus execute = evidenceAuditGenerateReports.execute(defaultWorkerParameters, handlerIO);
 
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
-        EvidenceAuditReportLine evidenceAuditReportLine =
-            JsonHandler.getFromFile(report, EvidenceAuditReportLine.class);
+        EvidenceAuditReportLine evidenceAuditReportLine = JsonHandler.getFromFile(
+            report,
+            EvidenceAuditReportLine.class
+        );
         assertThat(evidenceAuditReportLine.getIdentifier()).isEqualTo("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq");
         assertThat(evidenceAuditReportLine.getEvidenceStatus()).isEqualTo(EvidenceStatus.KO);
         assertThat(evidenceAuditReportLine.getMessage()).contains("Traceability audit KO  Database check failure");
         assertThat(evidenceAuditReportLine.getStrategyId()).contains("default");
-
     }
 }

@@ -53,6 +53,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
 public class DefaultSslClientTest extends ResteasyTestApplication {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultSslClientTest.class);
 
     private static final String BASE_URI = "/ingest-ext/v1";
@@ -61,22 +62,26 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
     private static final String INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED = "standard-client-secure_notgranted.conf";
     private static final String INGEST_EXTERNAL_CLIENT_CONF_EXPIRED = "standard-client-secure_expired.conf";
 
-    private final static SecureClientConfiguration configurationServer =
-        changeConfigurationFile(INGEST_EXTERNAL_SERVER_CONF);
+    private static final SecureClientConfiguration configurationServer = changeConfigurationFile(
+        INGEST_EXTERNAL_SERVER_CONF
+    );
 
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
-        new VitamServerTestRunner(DefaultSslClientTest.class, VitamServerTestRunner.AdminApp.class,
-            new SslConfig(
-                configurationServer.getSslConfiguration().getKeystore().iterator().next().getKeyPath(),
-                configurationServer.getSslConfiguration().getKeystore().iterator().next().getKeyPassword(),
-                configurationServer.getSslConfiguration().getTruststore().iterator().next().getKeyPath(),
-                configurationServer.getSslConfiguration().getTruststore().iterator().next().getKeyPassword()
-            ),
-            null,
-            false, false, false, true, false);
-
-
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        DefaultSslClientTest.class,
+        VitamServerTestRunner.AdminApp.class,
+        new SslConfig(
+            configurationServer.getSslConfiguration().getKeystore().iterator().next().getKeyPath(),
+            configurationServer.getSslConfiguration().getKeystore().iterator().next().getKeyPassword(),
+            configurationServer.getSslConfiguration().getTruststore().iterator().next().getKeyPath(),
+            configurationServer.getSslConfiguration().getTruststore().iterator().next().getKeyPassword()
+        ),
+        null,
+        false,
+        false,
+        false,
+        true,
+        false
+    );
 
     @Override
     public Set<Object> getResources() {
@@ -88,7 +93,6 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
     private static class SslResource extends ApplicationStatusResource {
         // Empty
     }
-
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -106,17 +110,22 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
         final ArrayList<SSLKey> truststore = new ArrayList<>();
         truststore.add(key);
         final SSLConfiguration sslConfig = new SSLConfiguration(truststore, truststore);
-        final SecureClientConfiguration configuration =
-            new SecureClientConfigurationImpl("host", 8443, true, sslConfig, false);
-        final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<DefaultClient>(configuration, BASE_URI) {
-
-                @Override
-                public DefaultClient getClient() {
-                    return new DefaultClient(this);
-                }
-
-            };
+        final SecureClientConfiguration configuration = new SecureClientConfigurationImpl(
+            "host",
+            8443,
+            true,
+            sslConfig,
+            false
+        );
+        final VitamClientFactory<DefaultClient> factory = new VitamClientFactory<DefaultClient>(
+            configuration,
+            BASE_URI
+        ) {
+            @Override
+            public DefaultClient getClient() {
+                return new DefaultClient(this);
+            }
+        };
         try (DefaultClient client = factory.getClient()) {
             // Only Apache Pool has this
             assertNull(client.getClient().getHostnameVerifier());
@@ -137,8 +146,10 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
     static final SecureClientConfiguration changeConfigurationFile(String configurationPath) {
         SecureClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                SecureClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                SecureClientConfigurationImpl.class
+            );
         } catch (final IOException e) {
             throw new IllegalStateException("Configuration cannot be read: " + configurationPath, e);
         }
@@ -153,15 +164,12 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF);
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
-        final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<>(configuration, BASE_URI) {
-
-                @Override
-                public DefaultClient getClient() {
-                    return new DefaultClient(this);
-                }
-
-            };
+        final VitamClientFactory<DefaultClient> factory = new VitamClientFactory<>(configuration, BASE_URI) {
+            @Override
+            public DefaultClient getClient() {
+                return new DefaultClient(this);
+            }
+        };
         factory.disableUseAuthorizationFilter();
         factory.changeServerPort(vitamServerTestRunner.getBusinessPort());
 
@@ -178,30 +186,24 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
             }
         }
-
     }
-
 
     @Test
     public void givenCertifNotGrantedThenReturnForbidden() {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_NOTGRANTED);
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
-        final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<>(configuration, BASE_URI) {
-
-                @Override
-                public DefaultClient getClient() {
-                    return new DefaultClient(this);
-                }
-
-            };
+        final VitamClientFactory<DefaultClient> factory = new VitamClientFactory<>(configuration, BASE_URI) {
+            @Override
+            public DefaultClient getClient() {
+                return new DefaultClient(this);
+            }
+        };
         factory.disableUseAuthorizationFilter();
         try (final DefaultClient client = factory.getClient()) {
             client.checkStatus();
             fail("Should Raized an exception");
-        } catch (final VitamException e) {
-        } finally {
+        } catch (final VitamException e) {} finally {
             try {
                 factory.shutdown();
             } catch (Exception e) {
@@ -210,29 +212,23 @@ public class DefaultSslClientTest extends ResteasyTestApplication {
         }
     }
 
-
     @Test
     public void givenCertifExpiredThenRaiseAnException() throws VitamException {
         final SecureClientConfiguration configuration = changeConfigurationFile(INGEST_EXTERNAL_CLIENT_CONF_EXPIRED);
         configuration.setServerPort(vitamServerTestRunner.getBusinessPort());
 
         // TODO: remake this test. Check if it's the correct exception (expired and not just Internal Server Error)
-        final VitamClientFactory<DefaultClient> factory =
-            new VitamClientFactory<>(configuration, BASE_URI) {
-
-                @Override
-                public DefaultClient getClient() {
-                    return new DefaultClient(this);
-                }
-
-            };
+        final VitamClientFactory<DefaultClient> factory = new VitamClientFactory<>(configuration, BASE_URI) {
+            @Override
+            public DefaultClient getClient() {
+                return new DefaultClient(this);
+            }
+        };
         factory.disableUseAuthorizationFilter();
         try (final DefaultClient client = factory.getClient()) {
             client.checkStatus();
             fail("SHould Raized an exception");
-        } catch (final VitamException e) {
-
-        } finally {
+        } catch (final VitamException e) {} finally {
             try {
                 factory.shutdown();
             } catch (Exception e) {

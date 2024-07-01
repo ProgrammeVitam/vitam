@@ -54,5 +54,4 @@ public class StorageObjectResult extends StorageResult {
     public String getGuid() {
         return guid;
     }
-
 }

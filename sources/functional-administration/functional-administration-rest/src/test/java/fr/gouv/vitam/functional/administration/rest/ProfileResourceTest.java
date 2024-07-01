@@ -100,7 +100,6 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 /**
  * As contract Resource call ProfileService, the full tests are done in @see AccessProfileTest
  */
@@ -109,8 +108,7 @@ public class ProfileResourceTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -131,8 +129,8 @@ public class ProfileResourceTest {
 
     private static int workspacePort = junitHelper.findAvailablePort();
 
-    private static final ElasticsearchFunctionalAdminIndexManager indexManager
-        = FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+    private static final ElasticsearchFunctionalAdminIndexManager indexManager =
+        FunctionalAdminCollectionsTestUtils.createTestIndexManager();
 
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(workspacePort);
@@ -145,29 +143,34 @@ public class ProfileResourceTest {
     private static AdminManagementMain application;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                esNodes, indexManager));
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
 
         LogbookOperationsClientFactory.changeMode(null);
         System.setProperty(VitamConfiguration.getVitamTmpProperty(), tempFolder.newFolder().getAbsolutePath());
         SystemPropertyUtil.refresh();
 
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+        final AdminManagementConfiguration realAdminConfig = PropertiesUtils.readYaml(
+            adminConfig,
+            AdminManagementConfiguration.class
+        );
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
         realAdminConfig.setDbName(MongoRule.VITAM_DB);
         realAdminConfig.setElasticsearchNodes(esNodes);
@@ -179,10 +182,11 @@ public class ProfileResourceTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
-        mongoDbAccess =
-            MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
-                    indexManager);
+        mongoDbAccess = MongoDbAccessAdminFactory.create(
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+            Collections::emptyList,
+            indexManager
+        );
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -198,11 +202,9 @@ public class ProfileResourceTest {
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the AdminManagement Application Server", e);
+            throw new IllegalStateException("Cannot start the AdminManagement Application Server", e);
         }
         VitamConfiguration.setTenants(Arrays.asList(TENANT_ID));
-
     }
 
     @AfterClass
@@ -222,12 +224,16 @@ public class ProfileResourceTest {
 
     @Before
     public void setUp() {
-        instanceRule.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(
-                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
-        instanceRule.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(
-                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        instanceRule.stubFor(
+            WireMock.post(urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
+        instanceRule.stubFor(
+            WireMock.delete(urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
     }
 
     @Test
@@ -241,28 +247,36 @@ public class ProfileResourceTest {
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
-        given().contentType(ContentType.JSON).body(json)
+        given()
+            .contentType(ContentType.JSON)
+            .body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+            .when()
+            .post(ProfileResource.PROFILE_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
-            .when().post(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
-
-        final Select select =
-            new Select();
+        final Select select = new Select();
         final BooleanQuery query = and();
         query.add(match("Identifier", "PR-0000"));
         select.setQuery(query);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        List<String> result = given().contentType(ContentType.JSON).body(select.getFinalSelect())
+        List<String> result = given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
-            .when().get(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath().get("$results.Identifier");
+            .when()
+            .get(ProfileResource.PROFILE_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .jsonPath()
+            .get("$results.Identifier");
 
         assertThat(result).hasSize(0);
-
     }
 
     @Test
@@ -275,12 +289,15 @@ public class ProfileResourceTest {
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
 
-
-        given().contentType(ContentType.JSON).body(json)
+        given()
+            .contentType(ContentType.JSON)
+            .body(json)
             .header(GlobalDataRest.X_TENANT_ID, VitamThreadUtils.getVitamSession().getTenantId())
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(ProfileResource.PROFILE_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -293,14 +310,16 @@ public class ProfileResourceTest {
         File fileProfiles = PropertiesUtils.getResourceFile("profile_duplicate_name.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
-        given().contentType(ContentType.JSON).body(json)
+        given()
+            .contentType(ContentType.JSON)
+            .body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(ProfileResource.PROFILE_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
     }
-
-
 
     @Test
     @RunWithCustomExecutor
@@ -311,18 +330,29 @@ public class ProfileResourceTest {
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
-        given().contentType(ContentType.JSON).body(json)
+        given()
+            .contentType(ContentType.JSON)
+            .body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(ProfileResource.PROFILE_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         Select select = new Select().addOrderByAscFilter("Identifier");
-        JsonPath result = given().contentType(ContentType.JSON).body(select.getFinalSelect())
+        JsonPath result = given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().get(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
+            .when()
+            .get(ProfileResource.PROFILE_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .jsonPath();
 
         List<String> identifiers = result.get("$results.Identifier");
         assertThat(identifiers).hasSize(2);
@@ -331,41 +361,49 @@ public class ProfileResourceTest {
 
         String identifierProfile = identifiers.iterator().next();
 
-
-
         InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.xsd"));
 
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-
         doAnswer(invocation -> null).when(workspaceClient).createContainer(anyString());
-        doAnswer(invocation -> xsdProfile).when(workspaceClient).putObject(anyString(), anyString(),
-            any(InputStream.class));
+        doAnswer(invocation -> xsdProfile)
+            .when(workspaceClient)
+            .putObject(anyString(), anyString(), any(InputStream.class));
 
         // transform to json
-        given().contentType(ContentType.BINARY).body(xsdProfile)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(xsdProfile)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         // we update an existing profile -> OK
         File updateProfile = PropertiesUtils.getResourceFile("updateProfile.json");
         JsonNode updateSecurityProfileJson = JsonHandler.getFromFile(updateProfile);
-        given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
+        given()
+            .contentType(ContentType.JSON)
+            .body(updateSecurityProfileJson)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .put(ProfileResource.PROFILE_URI + "/" + identifierProfile)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
-        given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
+        given()
+            .contentType(ContentType.JSON)
+            .body(updateSecurityProfileJson)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().put(ProfileResource.PROFILE_URI + "/wrongId")
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .when()
+            .put(ProfileResource.PROFILE_URI + "/wrongId")
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
-
-
 
     @Test
     @RunWithCustomExecutor
@@ -376,17 +414,28 @@ public class ProfileResourceTest {
         File fileProfiles = PropertiesUtils.getResourceFile("profile_ok.json");
         JsonNode json = JsonHandler.getFromFile(fileProfiles);
         // transform to json
-        given().contentType(ContentType.JSON).body(json)
+        given()
+            .contentType(ContentType.JSON)
+            .body(json)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(ProfileResource.PROFILE_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
         Select select = new Select().addOrderByAscFilter("Identifier");
 
-        JsonPath result = given().contentType(ContentType.JSON).body(select.getFinalSelect())
+        JsonPath result = given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().get(ProfileResource.PROFILE_URI)
-            .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
+            .when()
+            .get(ProfileResource.PROFILE_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .jsonPath();
 
         List<String> identifiers = result.get("$results.Identifier");
         assertThat(identifiers).hasSize(2);
@@ -396,22 +445,24 @@ public class ProfileResourceTest {
         String identifierProfile0 = identifiers.get(0);
         String identifierProfile1 = identifiers.get(1);
 
-
-
         InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.rng"));
 
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-
         doAnswer(invocation -> null).when(workspaceClient).createContainer(anyString());
-        doAnswer(invocation -> xsdProfile).when(workspaceClient).putObject(anyString(), anyString(),
-            any(InputStream.class));
+        doAnswer(invocation -> xsdProfile)
+            .when(workspaceClient)
+            .putObject(anyString(), anyString(), any(InputStream.class));
 
         // transform to json
-        given().contentType(ContentType.BINARY).body(xsdProfile)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(xsdProfile)
             .header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().put(ProfileResource.PROFILE_URI + "/" + identifierProfile1)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .put(ProfileResource.PROFILE_URI + "/" + identifierProfile1)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         // update identifier with existing one should fail
         Update update = new Update();
@@ -419,8 +470,13 @@ public class ProfileResourceTest {
         update.addActions(setDescription);
         update.setQuery(QueryHelper.eq("Identifier", identifierProfile1));
 
-        given().contentType(ContentType.JSON).body(update.getFinalUpdate()).header(GlobalDataRest.X_TENANT_ID, 0)
-            .when().put(ProfileResource.UPDATE_PROFIL_URI + "/" + identifierProfile1).then()
+        given()
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdate())
+            .header(GlobalDataRest.X_TENANT_ID, 0)
+            .when()
+            .put(ProfileResource.UPDATE_PROFIL_URI + "/" + identifierProfile1)
+            .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
 
         // update profile
@@ -429,13 +485,14 @@ public class ProfileResourceTest {
         update.addActions(setDescription);
         update.setQuery(QueryHelper.eq("Name", "aName"));
 
-        given().contentType(ContentType.JSON).body(update.getFinalUpdate()).header(GlobalDataRest.X_TENANT_ID, 0)
+        given()
+            .contentType(ContentType.JSON)
+            .body(update.getFinalUpdate())
+            .header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
-            .when().put(ProfileResource.UPDATE_PROFIL_URI + "/" + identifierProfile1).then()
+            .when()
+            .put(ProfileResource.UPDATE_PROFIL_URI + "/" + identifierProfile1)
+            .then()
             .statusCode(Status.OK.getStatusCode());
-
-
-
     }
 }

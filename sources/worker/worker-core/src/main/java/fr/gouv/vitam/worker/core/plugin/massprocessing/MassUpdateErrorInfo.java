@@ -30,6 +30,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class MassUpdateErrorInfo {
+
     private final String error;
     private final String message;
 

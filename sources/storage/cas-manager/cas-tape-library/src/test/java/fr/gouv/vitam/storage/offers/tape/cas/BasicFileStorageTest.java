@@ -52,7 +52,6 @@ public class BasicFileStorageTest {
 
     @Test
     public void testWriteFile() throws Exception {
-
         // Given
         BasicFileStorage basicFileStorage = new BasicFileStorage(temporaryFolder.getRoot().getAbsolutePath());
         byte[] data = "data".getBytes();
@@ -66,7 +65,6 @@ public class BasicFileStorageTest {
 
     @Test
     public void testMultipleWritesWithSameObjectName() throws Exception {
-
         // Given
         BasicFileStorage basicFileStorage = new BasicFileStorage(temporaryFolder.getRoot().getAbsolutePath());
         byte[] data1 = "data1".getBytes();
@@ -86,7 +84,6 @@ public class BasicFileStorageTest {
 
     @Test
     public void testReadFile() throws Exception {
-
         // Given
         BasicFileStorage basicFileStorage = new BasicFileStorage(temporaryFolder.getRoot().getAbsolutePath());
         byte[] data = "data".getBytes();
@@ -94,7 +91,6 @@ public class BasicFileStorageTest {
 
         // When
         try (InputStream inputStream = basicFileStorage.readFile(CONTAINER, storageId)) {
-
             // Then
             assertThat(inputStream).hasSameContentAs(new ByteArrayInputStream(data));
         }
@@ -102,7 +98,6 @@ public class BasicFileStorageTest {
 
     @Test
     public void testDeleteFile() throws Exception {
-
         // Given
         BasicFileStorage basicFileStorage = new BasicFileStorage(temporaryFolder.getRoot().getAbsolutePath());
         byte[] data = "data".getBytes();
@@ -112,15 +107,11 @@ public class BasicFileStorageTest {
         basicFileStorage.deleteFile(CONTAINER, storageId);
 
         // Then
-        assertThatThrownBy(
-            () -> basicFileStorage.readFile(CONTAINER, storageId)
-        ).isInstanceOf(IOException.class);
+        assertThatThrownBy(() -> basicFileStorage.readFile(CONTAINER, storageId)).isInstanceOf(IOException.class);
     }
-
 
     @Test
     public void testFileListingEmpty() throws Exception {
-
         // Given
         BasicFileStorage basicFileStorage = new BasicFileStorage(temporaryFolder.getRoot().getAbsolutePath());
 
@@ -128,13 +119,11 @@ public class BasicFileStorageTest {
         Stream<String> storageIds = basicFileStorage.listStorageIdsByContainerName(CONTAINER);
 
         // Then
-        assertThat(IteratorUtils.toList(storageIds.iterator()))
-            .isEmpty();
+        assertThat(IteratorUtils.toList(storageIds.iterator())).isEmpty();
     }
 
     @Test
     public void testFileListing() throws Exception {
-
         // Given
         BasicFileStorage basicFileStorage = new BasicFileStorage(temporaryFolder.getRoot().getAbsolutePath());
         byte[] data = "data".getBytes();
@@ -146,13 +135,15 @@ public class BasicFileStorageTest {
         Stream<String> storageIds = basicFileStorage.listStorageIdsByContainerName(CONTAINER);
 
         // Then
-        assertThat(IteratorUtils.toList(storageIds.iterator()))
-            .containsExactlyInAnyOrder(storageId1, storageId2, storageId3);
+        assertThat(IteratorUtils.toList(storageIds.iterator())).containsExactlyInAnyOrder(
+            storageId1,
+            storageId2,
+            storageId3
+        );
     }
 
     @Test
     public void testStorageIdToObjectName() throws Exception {
-
         // Given
         BasicFileStorage basicFileStorage = new BasicFileStorage(temporaryFolder.getRoot().getAbsolutePath());
         byte[] data = "data".getBytes();

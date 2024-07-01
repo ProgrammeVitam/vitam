@@ -43,7 +43,6 @@ import org.junit.Test;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
-
 public class ProcessManagementMainTest {
 
     private ProcessManagementMain application;
@@ -51,24 +50,23 @@ public class ProcessManagementMainTest {
     private static int port;
     private static final String CONF = "processing.conf";
 
-
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(8084);
 
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
 
-
     @Before
     public void setUp() throws Exception {
-
-        instanceRule.stubFor(WireMock.get(urlMatching("/workspace/v1/containers/process/folders/1"))
-            .willReturn(
+        instanceRule.stubFor(
+            WireMock.get(urlMatching("/workspace/v1/containers/process/folders/1")).willReturn(
                 aResponse()
                     .withStatus(200)
                     .withBody(JsonHandler.createArrayNode().toString())
                     .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(1))
-                    .withHeader("Content-Type", "application/json")));
+                    .withHeader("Content-Type", "application/json")
+            )
+        );
     }
 
     @BeforeClass
@@ -82,7 +80,6 @@ public class ProcessManagementMainTest {
         junitHelper.releasePort(port);
         VitamClientFactory.resetConnections();
     }
-
 
     @Test(expected = IllegalArgumentException.class)
     public void givenEmptyArgsWhenConfigureApplicationOThenRaiseAnException() throws Exception {
@@ -106,8 +103,7 @@ public class ProcessManagementMainTest {
 
     @Test
     public void givenFileExistsWhenStartupApplicationThenRunServer() throws Exception {
-        SystemPropertyUtil
-            .set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
+        SystemPropertyUtil.set(ProcessManagementMain.PARAMETER_JETTY_SERVER_PORT, Integer.toString(port));
         application = new ProcessManagementMain(CONF);
         application.start();
         application.stop();

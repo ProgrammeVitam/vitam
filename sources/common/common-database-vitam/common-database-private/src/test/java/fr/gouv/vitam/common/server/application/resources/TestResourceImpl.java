@@ -33,7 +33,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-
 /**
  * TestResourceImpl implements ApplicationStatusResource
  */
@@ -42,6 +41,7 @@ import javax.ws.rs.Produces;
 @Produces("application/json")
 @javax.ws.rs.ApplicationPath("webresources")
 public class TestResourceImpl extends ApplicationStatusResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TestResourceImpl.class);
 
     /**
@@ -59,5 +59,4 @@ public class TestResourceImpl extends ApplicationStatusResource {
         super(statusService);
         LOGGER.debug("TestResource initialized");
     }
-
 }

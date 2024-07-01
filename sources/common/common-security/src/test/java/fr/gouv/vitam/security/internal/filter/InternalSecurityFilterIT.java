@@ -83,29 +83,38 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
     private GenericContainer<?> reverseContainer;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     public VitamServerTestRunner vitamServerTestRunner;
 
     public void initializeTestServer(boolean allowSslClientHeader) throws Exception {
-
         LOGGER.info("Starting app server...");
         SslConfig sslConfig = new SslConfig(
-            PropertiesUtils.getResourceFile("tls/app/app.jks").getAbsolutePath(), "azerty",
-            PropertiesUtils.getResourceFile("tls/app/truststore.jks").getAbsolutePath(), "azerty"
+            PropertiesUtils.getResourceFile("tls/app/app.jks").getAbsolutePath(),
+            "azerty",
+            PropertiesUtils.getResourceFile("tls/app/truststore.jks").getAbsolutePath(),
+            "azerty"
         );
         // Hack: Using a static variable to pass InternalSecurityFilter instance to the Application
         InternalSecurityFilterIT.currentInternalSecurityFilter = new InternalSecurityFilter(allowSslClientHeader);
-        vitamServerTestRunner =
-            new VitamServerTestRunner(InternalSecurityFilterIT.class, InternalSecurityFilterIT.class,
-                sslConfig, null, false, false, false, false, false);
+        vitamServerTestRunner = new VitamServerTestRunner(
+            InternalSecurityFilterIT.class,
+            InternalSecurityFilterIT.class,
+            sslConfig,
+            null,
+            false,
+            false,
+            false,
+            false,
+            false
+        );
         vitamServerTestRunner.start();
         LOGGER.info("Running test with app port " + vitamServerTestRunner.getBusinessPort());
 
         Testcontainers.exposeHostPorts(vitamServerTestRunner.getBusinessPort());
         LOGGER.info("Port " + vitamServerTestRunner.getBusinessPort() + " exposed on host to containers");
-
     }
 
     @After
@@ -123,16 +132,24 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
     public void testAccessWithoutReverseProxyWithClientCert() throws Exception {
         initializeTestServer(false);
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        SSLKey clientKeyStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(), "azerty");
-        SSLKey clientTrustStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
-        SSLConfiguration sslConfiguration =
-            new SSLConfiguration(List.of(clientKeyStore), List.of(clientTrustStore));
+        SSLKey clientKeyStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(),
+            "azerty"
+        );
+        SSLKey clientTrustStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(),
+            "azerty"
+        );
+        SSLConfiguration sslConfiguration = new SSLConfiguration(List.of(clientKeyStore), List.of(clientTrustStore));
         MyVitamClientFactory factory = new MyVitamClientFactory(
-            new SecureClientConfigurationImpl("localhost", vitamServerTestRunner.getBusinessPort(), true,
+            new SecureClientConfigurationImpl(
+                "localhost",
+                vitamServerTestRunner.getBusinessPort(),
+                true,
                 sslConfiguration,
-                false));
+                false
+            )
+        );
         String hello;
         try (TestClient client = factory.getClient()) {
             hello = client.sayHello();
@@ -146,14 +163,21 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
     public void testAccessWithoutReverseProxyWithoutClientCert() throws Exception {
         initializeTestServer(false);
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        SSLKey clientTrustStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
+        SSLKey clientTrustStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(),
+            "azerty"
+        );
         SSLConfiguration sslConfiguration = new SSLConfiguration();
         sslConfiguration.setTruststore(List.of(clientTrustStore));
         MyVitamClientFactory factory = new MyVitamClientFactory(
-            new SecureClientConfigurationImpl("localhost", vitamServerTestRunner.getBusinessPort(), true,
+            new SecureClientConfigurationImpl(
+                "localhost",
+                vitamServerTestRunner.getBusinessPort(),
+                true,
                 sslConfiguration,
-                false));
+                false
+            )
+        );
 
         try (TestClient client = factory.getClient()) {
             assertThatThrownBy(client::sayHello)
@@ -168,16 +192,24 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
         initializeTestServer(false);
         initializeNginxContainer();
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        SSLKey clientKeyStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(), "azerty");
-        SSLKey clientTrustStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
-        SSLConfiguration sslConfiguration =
-            new SSLConfiguration(List.of(clientKeyStore), List.of(clientTrustStore));
+        SSLKey clientKeyStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(),
+            "azerty"
+        );
+        SSLKey clientTrustStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(),
+            "azerty"
+        );
+        SSLConfiguration sslConfiguration = new SSLConfiguration(List.of(clientKeyStore), List.of(clientTrustStore));
         MyVitamClientFactory factory = new MyVitamClientFactory(
-            new SecureClientConfigurationImpl("localhost", reverseContainer.getFirstMappedPort(), true,
+            new SecureClientConfigurationImpl(
+                "localhost",
+                reverseContainer.getFirstMappedPort(),
+                true,
                 sslConfiguration,
-                false));
+                false
+            )
+        );
 
         try (TestClient client = factory.getClient()) {
             assertThatThrownBy(client::sayHello)
@@ -192,16 +224,24 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
         initializeTestServer(true);
         initializeNginxContainer();
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        SSLKey clientKeyStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(), "azerty");
-        SSLKey clientTrustStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
-        SSLConfiguration sslConfiguration =
-            new SSLConfiguration(List.of(clientKeyStore), List.of(clientTrustStore));
+        SSLKey clientKeyStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(),
+            "azerty"
+        );
+        SSLKey clientTrustStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(),
+            "azerty"
+        );
+        SSLConfiguration sslConfiguration = new SSLConfiguration(List.of(clientKeyStore), List.of(clientTrustStore));
         MyVitamClientFactory factory = new MyVitamClientFactory(
-            new SecureClientConfigurationImpl("localhost", reverseContainer.getFirstMappedPort(), true,
+            new SecureClientConfigurationImpl(
+                "localhost",
+                reverseContainer.getFirstMappedPort(),
+                true,
                 sslConfiguration,
-                false));
+                false
+            )
+        );
         String hello;
         try (TestClient client = factory.getClient()) {
             hello = client.sayHello();
@@ -216,14 +256,21 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
         initializeTestServer(false);
         initializeNginxContainer();
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        SSLKey clientTrustStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
+        SSLKey clientTrustStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(),
+            "azerty"
+        );
         SSLConfiguration sslConfiguration = new SSLConfiguration();
         sslConfiguration.setTruststore(List.of(clientTrustStore));
         MyVitamClientFactory factory = new MyVitamClientFactory(
-            new SecureClientConfigurationImpl("localhost", reverseContainer.getFirstMappedPort(), true,
+            new SecureClientConfigurationImpl(
+                "localhost",
+                reverseContainer.getFirstMappedPort(),
+                true,
                 sslConfiguration,
-                false));
+                false
+            )
+        );
 
         try (TestClient client = factory.getClient()) {
             assertThatThrownBy(client::sayHello)
@@ -238,14 +285,21 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
         initializeTestServer(true);
         initializeNginxContainer();
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        SSLKey clientTrustStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
+        SSLKey clientTrustStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(),
+            "azerty"
+        );
         SSLConfiguration sslConfiguration = new SSLConfiguration();
         sslConfiguration.setTruststore(List.of(clientTrustStore));
         MyVitamClientFactory factory = new MyVitamClientFactory(
-            new SecureClientConfigurationImpl("localhost", reverseContainer.getFirstMappedPort(), true,
+            new SecureClientConfigurationImpl(
+                "localhost",
+                reverseContainer.getFirstMappedPort(),
+                true,
                 sslConfiguration,
-                false));
+                false
+            )
+        );
 
         try (TestClient client = factory.getClient()) {
             assertThatThrownBy(client::sayHello)
@@ -260,16 +314,24 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
         initializeTestServer(true);
         initializeHttpdContainer();
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        SSLKey clientKeyStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(), "azerty");
-        SSLKey clientTrustStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
-        SSLConfiguration sslConfiguration =
-            new SSLConfiguration(List.of(clientKeyStore), List.of(clientTrustStore));
+        SSLKey clientKeyStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(),
+            "azerty"
+        );
+        SSLKey clientTrustStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(),
+            "azerty"
+        );
+        SSLConfiguration sslConfiguration = new SSLConfiguration(List.of(clientKeyStore), List.of(clientTrustStore));
         MyVitamClientFactory factory = new MyVitamClientFactory(
-            new SecureClientConfigurationImpl("localhost", reverseContainer.getFirstMappedPort(), true,
+            new SecureClientConfigurationImpl(
+                "localhost",
+                reverseContainer.getFirstMappedPort(),
+                true,
                 sslConfiguration,
-                false));
+                false
+            )
+        );
 
         String hello;
         try (TestClient client = factory.getClient()) {
@@ -285,16 +347,24 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
         initializeTestServer(false);
         initializeHttpdContainer();
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        SSLKey clientKeyStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(), "azerty");
-        SSLKey clientTrustStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
-        SSLConfiguration sslConfiguration =
-            new SSLConfiguration(List.of(clientKeyStore), List.of(clientTrustStore));
+        SSLKey clientKeyStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/client.p12").getAbsolutePath(),
+            "azerty"
+        );
+        SSLKey clientTrustStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(),
+            "azerty"
+        );
+        SSLConfiguration sslConfiguration = new SSLConfiguration(List.of(clientKeyStore), List.of(clientTrustStore));
         MyVitamClientFactory factory = new MyVitamClientFactory(
-            new SecureClientConfigurationImpl("localhost", reverseContainer.getFirstMappedPort(), true,
+            new SecureClientConfigurationImpl(
+                "localhost",
+                reverseContainer.getFirstMappedPort(),
+                true,
                 sslConfiguration,
-                false));
+                false
+            )
+        );
 
         try (TestClient client = factory.getClient()) {
             assertThatThrownBy(client::sayHello)
@@ -309,14 +379,21 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
         initializeTestServer(true);
         initializeHttpdContainer();
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        SSLKey clientTrustStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
+        SSLKey clientTrustStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(),
+            "azerty"
+        );
         SSLConfiguration sslConfiguration = new SSLConfiguration();
         sslConfiguration.setTruststore(List.of(clientTrustStore));
         MyVitamClientFactory factory = new MyVitamClientFactory(
-            new SecureClientConfigurationImpl("localhost", reverseContainer.getFirstMappedPort(), true,
+            new SecureClientConfigurationImpl(
+                "localhost",
+                reverseContainer.getFirstMappedPort(),
+                true,
                 sslConfiguration,
-                false));
+                false
+            )
+        );
 
         try (TestClient client = factory.getClient()) {
             assertThatThrownBy(client::sayHello)
@@ -331,14 +408,21 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
         initializeTestServer(false);
         initializeHttpdContainer();
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        SSLKey clientTrustStore =
-            new SSLKey(PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(), "azerty");
+        SSLKey clientTrustStore = new SSLKey(
+            PropertiesUtils.getResourceFile("tls/client/truststore.jks").getAbsolutePath(),
+            "azerty"
+        );
         SSLConfiguration sslConfiguration = new SSLConfiguration();
         sslConfiguration.setTruststore(List.of(clientTrustStore));
         MyVitamClientFactory factory = new MyVitamClientFactory(
-            new SecureClientConfigurationImpl("localhost", reverseContainer.getFirstMappedPort(), true,
+            new SecureClientConfigurationImpl(
+                "localhost",
+                reverseContainer.getFirstMappedPort(),
+                true,
                 sslConfiguration,
-                false));
+                false
+            )
+        );
 
         try (TestClient client = factory.getClient()) {
             assertThatThrownBy(client::sayHello)
@@ -348,7 +432,6 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
     }
 
     private void initializeNginxContainer() throws Exception {
-
         updateReverseConfigWithPort("tls/reverse-nginx/nginx.conf.template");
 
         String nginxContainerVersion = System.getProperty("nginxContainerVersion");
@@ -367,9 +450,7 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
     }
 
     private void initializeHttpdContainer() throws Exception {
-
         updateReverseConfigWithPort("tls/reverse-httpd/httpd.conf.template");
-
 
         String httpdContainerVersion = System.getProperty("httpdContainerVersion");
 
@@ -387,8 +468,10 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
 
     private void updateReverseConfigWithPort(String templateResourcesFile) throws IOException {
         File templateConfFile = PropertiesUtils.getResourceFile(templateResourcesFile);
-        File confFile = new File(templateConfFile.getParentFile(),
-            StringUtils.remove(templateConfFile.getName(), ".template"));
+        File confFile = new File(
+            templateConfFile.getParentFile(),
+            StringUtils.remove(templateConfFile.getName(), ".template")
+        );
         String config = FileUtils.readFileToString(templateConfFile, StandardCharsets.UTF_8);
         String updatedConfig = config.replaceAll("####PORT####", vitamServerTestRunner.getBusinessPort() + "");
         FileUtils.write(confFile, updatedConfig, StandardCharsets.UTF_8);
@@ -402,11 +485,7 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
 
     @Override
     public Set<Object> getResources() {
-        return Sets.newHashSet(
-            new EchoResource(),
-            currentInternalSecurityFilter,
-            new SanityCheckerCommonFilter()
-        );
+        return Sets.newHashSet(new EchoResource(), currentInternalSecurityFilter, new SanityCheckerCommonFilter());
     }
 
     @Path("/")
@@ -419,7 +498,6 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
             return Response.ok("hi!").build();
         }
     }
-
 
     private static class MyVitamClientFactory extends VitamClientFactory<TestClient> {
 
@@ -444,7 +522,6 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
         }
     }
 
-
     public static class TestClient extends DefaultClient {
 
         public TestClient(VitamClientFactoryInterface<TestClient> factory) {
@@ -460,7 +537,8 @@ public class InternalSecurityFilterIT extends ResteasyTestApplication {
             try (Response response = make(request)) {
                 if (response.getStatus() != Response.Status.OK.getStatusCode()) {
                     throw new VitamClientInternalException(
-                        "Expected 200, got " + response.getStatus() + "\n" + response.readEntity(String.class));
+                        "Expected 200, got " + response.getStatus() + "\n" + response.readEntity(String.class)
+                    );
                 }
                 return response.readEntity(String.class);
             }

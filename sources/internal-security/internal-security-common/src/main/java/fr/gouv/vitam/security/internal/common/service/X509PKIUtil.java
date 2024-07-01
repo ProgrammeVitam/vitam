@@ -48,8 +48,9 @@ public class X509PKIUtil {
      */
     public static X509Certificate parseX509Certificate(byte[] certificate) throws CertificateException {
         CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-        X509Certificate x509Certificate =
-            (X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(certificate));
+        X509Certificate x509Certificate = (X509Certificate) certificateFactory.generateCertificate(
+            new ByteArrayInputStream(certificate)
+        );
 
         x509Certificate.checkValidity();
 
@@ -58,8 +59,10 @@ public class X509PKIUtil {
 
     public static boolean validateX509CRL(X509CRL crl) throws CRLException {
         Date now = new Date();
-        return (crl.getThisUpdate() != null && now.after(crl.getThisUpdate())) &&
-            (crl.getNextUpdate() != null && now.before(crl.getNextUpdate()));
+        return (
+            (crl.getThisUpdate() != null && now.after(crl.getThisUpdate())) &&
+            (crl.getNextUpdate() != null && now.before(crl.getNextUpdate()))
+        );
     }
 
     public static X509CRL parseX509CRLCertificate(byte[] crlCertificate) throws CertificateException, CRLException {

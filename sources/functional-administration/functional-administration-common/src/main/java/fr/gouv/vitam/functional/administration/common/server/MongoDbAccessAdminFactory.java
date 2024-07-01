@@ -54,8 +54,11 @@ public final class MongoDbAccessAdminFactory {
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static MongoDbAccessAdminImpl create(DbConfiguration configuration, OntologyLoader ontologyLoader,
-        ElasticsearchFunctionalAdminIndexManager indexManager) {
+    public static MongoDbAccessAdminImpl create(
+        DbConfiguration configuration,
+        OntologyLoader ontologyLoader,
+        ElasticsearchFunctionalAdminIndexManager indexManager
+    ) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
         final List<Class<?>> classList = new ArrayList<>();
         for (final FunctionalAdminCollections e : FunctionalAdminCollections.class.getEnumConstants()) {
@@ -63,8 +66,7 @@ public final class MongoDbAccessAdminFactory {
         }
         FunctionalAdminCollections.class.getEnumConstants();
 
-        MongoClient mongoClient =
-            MongoDbAccess.createMongoClient(configuration, classList);
+        MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration, classList);
 
         return new MongoDbAccessAdminImpl(mongoClient, configuration.getDbName(), false, indexManager, ontologyLoader);
     }
@@ -80,11 +82,14 @@ public final class MongoDbAccessAdminFactory {
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static MongoDbAccessAdminImpl create(DbConfiguration configuration, String clusterName,
-        List<ElasticsearchNode> nodes, OntologyLoader ontologyLoader,
-        ElasticsearchFunctionalAdminIndexManager indexManager) {
+    public static MongoDbAccessAdminImpl create(
+        DbConfiguration configuration,
+        String clusterName,
+        List<ElasticsearchNode> nodes,
+        OntologyLoader ontologyLoader,
+        ElasticsearchFunctionalAdminIndexManager indexManager
+    ) {
         ElasticsearchAccessAdminFactory.create(clusterName, nodes, indexManager);
         return create(configuration, ontologyLoader, indexManager);
     }
-
 }

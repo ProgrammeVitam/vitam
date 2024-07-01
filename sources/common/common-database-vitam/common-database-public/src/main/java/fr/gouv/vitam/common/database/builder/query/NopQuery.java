@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
  * Correspond to an nop query (like "{{'$nop':'1'}}")
  */
 public class NopQuery extends Query {
+
     /**
      * Constructs a NopQuery and declare it ready
      *

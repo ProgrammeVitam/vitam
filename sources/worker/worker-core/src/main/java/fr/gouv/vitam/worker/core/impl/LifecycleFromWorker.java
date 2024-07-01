@@ -67,8 +67,12 @@ class LifecycleFromWorker {
         this.logbookLfcClient = logbookLfcClient;
     }
 
-    void generateLifeCycle(List<ItemStatus> pluginResponse, WorkerParameters workParams, Action action,
-        DistributionType distributionType) throws InvalidGuidOperationException {
+    void generateLifeCycle(
+        List<ItemStatus> pluginResponse,
+        WorkerParameters workParams,
+        Action action,
+        DistributionType distributionType
+    ) throws InvalidGuidOperationException {
         int i = 0;
         String handlerName = action.getActionDefinition().getActionKey();
 
@@ -79,12 +83,16 @@ class LifecycleFromWorker {
             if (!StatusCode.ALREADY_EXECUTED.equals(itemStatus.getGlobalStatus()) && itemStatus.isLifecycleEnable()) {
                 workParams.setObjectName(objectName);
                 LogbookLifeCycleParameters lfcParam = createStartLogbookLfc(distributionType, handlerName, workParams);
-                List<LogbookLifeCycleParameters> logbookParamList =
-                    createLogbookLifeCycleParameters(handlerName, itemStatus, lfcParam);
+                List<LogbookLifeCycleParameters> logbookParamList = createLogbookLifeCycleParameters(
+                    handlerName,
+                    itemStatus,
+                    lfcParam
+                );
                 String objectId = objectName.replace(".json", "");
                 if (action.getActionDefinition().lifecycleState() == LifecycleState.TEMPORARY) {
-                    logbookLifeCycleParametersTemporaryBulks
-                        .add(new LogbookLifeCycleParametersBulk(objectId, logbookParamList));
+                    logbookLifeCycleParametersTemporaryBulks.add(
+                        new LogbookLifeCycleParametersBulk(objectId, logbookParamList)
+                    );
                 } else {
                     logbookLifeCycleParametersBulks.add(new LogbookLifeCycleParametersBulk(objectId, logbookParamList));
                 }
@@ -102,23 +110,30 @@ class LifecycleFromWorker {
      */
     void saveLifeCycles(DistributionType distributionType) throws VitamClientInternalException {
         if (!logbookLifeCycleParametersTemporaryBulks.isEmpty()) {
-            logbookLfcClient.bulkLifeCycleTemporary(VitamThreadUtils.getVitamSession().getRequestId(), distributionType,
-                logbookLifeCycleParametersTemporaryBulks);
+            logbookLfcClient.bulkLifeCycleTemporary(
+                VitamThreadUtils.getVitamSession().getRequestId(),
+                distributionType,
+                logbookLifeCycleParametersTemporaryBulks
+            );
             logbookLifeCycleParametersTemporaryBulks.clear();
         }
         if (!logbookLifeCycleParametersBulks.isEmpty()) {
-            logbookLfcClient.bulkLifeCycle(VitamThreadUtils.getVitamSession().getRequestId(), distributionType,
-                logbookLifeCycleParametersBulks);
+            logbookLfcClient.bulkLifeCycle(
+                VitamThreadUtils.getVitamSession().getRequestId(),
+                distributionType,
+                logbookLifeCycleParametersBulks
+            );
             logbookLifeCycleParametersBulks.clear();
         }
     }
 
-    private LogbookLifeCycleParameters createStartLogbookLfc(DistributionType distributionType, String handlerName,
-        WorkerParameters workParams)
-        throws InvalidGuidOperationException {
+    private LogbookLifeCycleParameters createStartLogbookLfc(
+        DistributionType distributionType,
+        String handlerName,
+        WorkerParameters workParams
+    ) throws InvalidGuidOperationException {
         LogbookLifeCycleParameters lfcParam = null;
         switch (distributionType) {
-
             case Units:
                 lfcParam = LogbookParameterHelper.newLogbookLifeCycleUnitParameters(
                     GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()),
@@ -129,7 +144,8 @@ class LifecycleFromWorker {
                     StatusCode.OK,
                     VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.OK),
                     VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.OK),
-                    GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
+                    GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams))
+                );
 
                 lfcParam.putParameterValue(LogbookParameterName.eventDateTime, now().toString());
 
@@ -144,72 +160,112 @@ class LifecycleFromWorker {
                     StatusCode.OK,
                     VitamLogbookMessages.getOutcomeDetailLfc(handlerName, StatusCode.OK),
                     VitamLogbookMessages.getCodeLfc(handlerName, StatusCode.OK),
-                    GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams)));
+                    GUIDReader.getGUID(LogbookLifecycleWorkerHelper.getObjectID(workParams))
+                );
 
                 lfcParam.putParameterValue(LogbookParameterName.eventDateTime, now().toString());
 
                 break;
         }
-        lfcParam
-            .putParameterValue(LogbookParameterName.agentIdentifier, ServerIdentity.getInstance().getJsonIdentity());
+        lfcParam.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
 
         return lfcParam;
     }
 
-    private List<LogbookLifeCycleParameters> createLogbookLifeCycleParameters(String handlerName,
-        ItemStatus actionResponse, LogbookLifeCycleParameters logbookParam) {
+    private List<LogbookLifeCycleParameters> createLogbookLifeCycleParameters(
+        String handlerName,
+        ItemStatus actionResponse,
+        LogbookLifeCycleParameters logbookParam
+    ) {
         logbookParam.putParameterValue(LogbookParameterName.eventDateTime, null);
         List<LogbookLifeCycleParameters> logbookParamList = new ArrayList<>();
         LogbookLifeCycleParameters finalLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
         if (!actionResponse.getItemId().contains(".")) {
-            finalLogbookLfcParam.setFinalStatus(handlerName, null, actionResponse.getGlobalStatus(),
-                actionResponse.getMessage());
+            finalLogbookLfcParam.setFinalStatus(
+                handlerName,
+                null,
+                actionResponse.getGlobalStatus(),
+                actionResponse.getMessage()
+            );
         } else {
-            finalLogbookLfcParam.setFinalStatus(actionResponse.getItemId(), null, actionResponse.getGlobalStatus(),
-                actionResponse.getMessage());
+            finalLogbookLfcParam.setFinalStatus(
+                actionResponse.getItemId(),
+                null,
+                actionResponse.getGlobalStatus(),
+                actionResponse.getMessage()
+            );
         }
         if (!actionResponse.getEvDetailData().isEmpty()) {
-            finalLogbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,
-                actionResponse.getEvDetailData());
+            finalLogbookLfcParam.putParameterValue(
+                LogbookParameterName.eventDetailData,
+                actionResponse.getEvDetailData()
+            );
         }
         if (actionResponse.getData("Detail") != null) {
             String outcomeDetailMessage =
-                finalLogbookLfcParam.getParameterValue(LogbookParameterName.outcomeDetailMessage) + " " +
-                    actionResponse.getData("Detail");
-            finalLogbookLfcParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                outcomeDetailMessage);
+                finalLogbookLfcParam.getParameterValue(LogbookParameterName.outcomeDetailMessage) +
+                " " +
+                actionResponse.getData("Detail");
+            finalLogbookLfcParam.putParameterValue(LogbookParameterName.outcomeDetailMessage, outcomeDetailMessage);
         }
         for (final Map.Entry<String, ItemStatus> entry : actionResponse.getItemsStatus().entrySet()) {
             for (final Map.Entry<String, ItemStatus> subTaskEntry : entry.getValue().getSubTaskStatus().entrySet()) {
                 LogbookLifeCycleParameters subLogbookLfcParam = LogbookLifeCyclesClientHelper.copy(logbookParam);
                 // set a new eventId for every subTask
-                subLogbookLfcParam.putParameterValue(LogbookParameterName.eventIdentifier,
-                    GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).getId());
+                subLogbookLfcParam.putParameterValue(
+                    LogbookParameterName.eventIdentifier,
+                    GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter()).getId()
+                );
                 // set parent eventId
-                subLogbookLfcParam.putParameterValue(LogbookParameterName.parentEventIdentifier,
-                    logbookParam.getParameterValue(LogbookParameterName.eventIdentifier));
+                subLogbookLfcParam.putParameterValue(
+                    LogbookParameterName.parentEventIdentifier,
+                    logbookParam.getParameterValue(LogbookParameterName.eventIdentifier)
+                );
                 // set obId and gotId (used to determine the LFC to update)
-                subLogbookLfcParam.putParameterValue(LogbookParameterName.lifeCycleIdentifier,
-                    subLogbookLfcParam.getParameterValue(LogbookParameterName.objectIdentifier));
+                subLogbookLfcParam.putParameterValue(
+                    LogbookParameterName.lifeCycleIdentifier,
+                    subLogbookLfcParam.getParameterValue(LogbookParameterName.objectIdentifier)
+                );
                 subLogbookLfcParam.putParameterValue(LogbookParameterName.objectIdentifier, subTaskEntry.getKey());
 
                 // set status
                 ItemStatus subItemStatus = subTaskEntry.getValue();
-                subLogbookLfcParam.setFinalStatus(handlerName,
-                    entry.getKey(), subItemStatus.getGlobalStatus(), subItemStatus.getMessage());
+                subLogbookLfcParam.setFinalStatus(
+                    handlerName,
+                    entry.getKey(),
+                    subItemStatus.getGlobalStatus(),
+                    subItemStatus.getMessage()
+                );
                 // set evDetailData
                 if (!subItemStatus.getEvDetailData().isEmpty()) {
-                    subLogbookLfcParam.putParameterValue(LogbookParameterName.eventDetailData,
-                        subItemStatus.getEvDetailData());
+                    subLogbookLfcParam.putParameterValue(
+                        LogbookParameterName.eventDetailData,
+                        subItemStatus.getEvDetailData()
+                    );
                 }
                 // set detailed message
                 if (subItemStatus.getGlobalOutcomeDetailSubcode() != null) {
-                    subLogbookLfcParam.putParameterValue(LogbookParameterName.outcomeDetail,
-                        VitamLogbookMessages.getOutcomeDetailLfc(handlerName, entry.getKey(),
-                            subItemStatus.getGlobalOutcomeDetailSubcode(), subItemStatus.getGlobalStatus()));
-                    subLogbookLfcParam.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                        VitamLogbookMessages.getCodeLfc(handlerName, entry.getKey(),
-                            subItemStatus.getGlobalOutcomeDetailSubcode(), subItemStatus.getGlobalStatus()));
+                    subLogbookLfcParam.putParameterValue(
+                        LogbookParameterName.outcomeDetail,
+                        VitamLogbookMessages.getOutcomeDetailLfc(
+                            handlerName,
+                            entry.getKey(),
+                            subItemStatus.getGlobalOutcomeDetailSubcode(),
+                            subItemStatus.getGlobalStatus()
+                        )
+                    );
+                    subLogbookLfcParam.putParameterValue(
+                        LogbookParameterName.outcomeDetailMessage,
+                        VitamLogbookMessages.getCodeLfc(
+                            handlerName,
+                            entry.getKey(),
+                            subItemStatus.getGlobalOutcomeDetailSubcode(),
+                            subItemStatus.getGlobalStatus()
+                        )
+                    );
                 }
                 // add to list
                 logbookParamList.add(subLogbookLfcParam);
@@ -219,6 +275,4 @@ class LifecycleFromWorker {
         logbookParamList.add(finalLogbookLfcParam);
         return logbookParamList;
     }
-
-
 }

@@ -31,7 +31,6 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-
 public class ReferentialImportInProgressExceptionTest {
 
     private static final String EXCEPTION_MESSAGE = "test";

@@ -36,6 +36,7 @@ import java.io.Serializable;
  * Accession Register Summary document
  */
 public class AccessionRegisterSymbolic extends VitamDocument<AccessionRegisterSymbolic> implements Serializable {
+
     private static final long serialVersionUID = 4726876406866905409L;
     /**
      * the tenant field of accession register
@@ -69,8 +70,7 @@ public class AccessionRegisterSymbolic extends VitamDocument<AccessionRegisterSy
     /**
      * Empty Constructor
      */
-    public AccessionRegisterSymbolic() {
-    }
+    public AccessionRegisterSymbolic() {}
 
     /**
      * Constructor

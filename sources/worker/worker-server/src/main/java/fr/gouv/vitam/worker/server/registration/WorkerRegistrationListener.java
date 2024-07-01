@@ -48,14 +48,15 @@ public class WorkerRegistrationListener implements ServletContextListener {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerRegistrationListener.class);
 
-    private final ScheduledExecutorService executorService =
-        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance());
+    private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(
+        1,
+        VitamThreadFactory.getInstance()
+    );
     private final WorkerConfiguration configuration;
 
     private final ProcessingManagementClientFactory processingManagementClientFactory;
 
     private final WorkerRegister workerRegister;
-
 
     public WorkerRegistrationListener(WorkerConfiguration configuration) {
         this.configuration = configuration;
@@ -65,8 +66,10 @@ public class WorkerRegistrationListener implements ServletContextListener {
     }
 
     @VisibleForTesting
-    public WorkerRegistrationListener(WorkerConfiguration configuration,
-        ProcessingManagementClientFactory processingManagementClientFactory) {
+    public WorkerRegistrationListener(
+        WorkerConfiguration configuration,
+        ProcessingManagementClientFactory processingManagementClientFactory
+    ) {
         this.configuration = configuration;
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.workerRegister = new WorkerRegister(configuration, processingManagementClientFactory);
@@ -75,8 +78,12 @@ public class WorkerRegistrationListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         LOGGER.debug("ServletContextListener started");
-        executorService
-            .scheduleWithFixedDelay(this.workerRegister, 0, configuration.getRegisterDelay(), TimeUnit.SECONDS);
+        executorService.scheduleWithFixedDelay(
+            this.workerRegister,
+            0,
+            configuration.getRegisterDelay(),
+            TimeUnit.SECONDS
+        );
     }
 
     @Override
@@ -90,14 +97,18 @@ public class WorkerRegistrationListener implements ServletContextListener {
             LOGGER.warn(e);
         } finally {
             try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient()) {
-                processingClient.unregisterWorker(configuration.getWorkerFamily(),
-                    String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId()));
+                processingClient.unregisterWorker(
+                    configuration.getWorkerFamily(),
+                    String.valueOf(ServerIdentity.getInstance().getGlobalPlatformId())
+                );
             } catch (final Exception e) {
                 LOGGER.error(
-                    "WorkerUnRegister run : unregister call failed => Processing (" + configuration.getProcessingUrl() +
-                        ") will unregister worker automatically ", e);
+                    "WorkerUnRegister run : unregister call failed => Processing (" +
+                    configuration.getProcessingUrl() +
+                    ") will unregister worker automatically ",
+                    e
+                );
             }
         }
     }
-
 }

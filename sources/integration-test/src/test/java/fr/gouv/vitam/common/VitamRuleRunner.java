@@ -84,27 +84,32 @@ public class VitamRuleRunner {
         }
     }
 
-
     @ClassRule
     public static DisableCacheContainerRule disableCacheContainerRule = new DisableCacheContainerRule();
 
     @ClassRule
-    public static final MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(
-            merge(MetadataCollections.getClasses(), LogbookCollections.getClasses(),
-                FunctionalAdminCollections.getClasses())),
-            OfferCollections.OFFER_SEQUENCE.getName(),
-            OffsetRepository.COLLECTION_NAME,
-            OfferCollections.OFFER_LOG.getName(),
-            OfferCollections.COMPACTED_OFFER_LOG.getName(),
-            PersonalRepository.PERSONAL_COLLECTION,
-            IdentityRepository.CERTIFICATE_COLLECTION,
-            PurgeObjectGroupRepository.PURGE_OBJECT_GROUP,
-            PurgeUnitRepository.PURGE_UNIT,
-            EliminationActionUnitRepository.ELIMINATION_ACTION_UNIT,
-            TransferReplyUnitRepository.TRANSFER_REPLY_UNIT,
-            AuditReportRepository.AUDIT_OBJECT_GROUP,
-            EvidenceAuditReportRepository.EVIDENCE_AUDIT, TransactionRepository.TRANSACTION_COLLECTION);
+    public static final MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(
+            merge(
+                MetadataCollections.getClasses(),
+                LogbookCollections.getClasses(),
+                FunctionalAdminCollections.getClasses()
+            )
+        ),
+        OfferCollections.OFFER_SEQUENCE.getName(),
+        OffsetRepository.COLLECTION_NAME,
+        OfferCollections.OFFER_LOG.getName(),
+        OfferCollections.COMPACTED_OFFER_LOG.getName(),
+        PersonalRepository.PERSONAL_COLLECTION,
+        IdentityRepository.CERTIFICATE_COLLECTION,
+        PurgeObjectGroupRepository.PURGE_OBJECT_GROUP,
+        PurgeUnitRepository.PURGE_UNIT,
+        EliminationActionUnitRepository.ELIMINATION_ACTION_UNIT,
+        TransferReplyUnitRepository.TRANSFER_REPLY_UNIT,
+        AuditReportRepository.AUDIT_OBJECT_GROUP,
+        EvidenceAuditReportRepository.EVIDENCE_AUDIT,
+        TransactionRepository.TRANSACTION_COLLECTION
+    );
 
     @ClassRule
     public static final ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -114,52 +119,65 @@ public class VitamRuleRunner {
     protected static ElasticsearchFunctionalAdminIndexManager functionalAdminIndexManager;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
-    public static void handleBeforeClass(
-        List<Integer> dedicatedTenants, Map<String, List<Integer>> tenantGroups) throws Exception {
+    public static void handleBeforeClass(List<Integer> dedicatedTenants, Map<String, List<Integer>> tenantGroups)
+        throws Exception {
         handleBeforeClass(Prefix.PREFIX.getPrefix(), dedicatedTenants, tenantGroups);
         FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection()
             .setName(FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection().getClasz().getSimpleName());
     }
 
     public static void handleBeforeClass(
-        String prefix, List<Integer> dedicatedTenants, Map<String, List<Integer>> tenantGroups) throws Exception {
-
+        String prefix,
+        List<Integer> dedicatedTenants,
+        Map<String, List<Integer>> tenantGroups
+    ) throws Exception {
         logbookIndexManager = LogbookCollectionsTestUtils.createTestIndexManager(dedicatedTenants, tenantGroups);
-        metadataIndexManager = MetadataCollectionsTestUtils.createTestIndexManager(dedicatedTenants, tenantGroups,
-            MappingLoaderTestUtils.getTestMappingLoader());
+        metadataIndexManager = MetadataCollectionsTestUtils.createTestIndexManager(
+            dedicatedTenants,
+            tenantGroups,
+            MappingLoaderTestUtils.getTestMappingLoader()
+        );
         functionalAdminIndexManager = FunctionalAdminCollectionsTestUtils.createTestIndexManager();
 
         // ES client
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        MetadataCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
-            new ElasticsearchAccessMetadata(ElasticsearchRule.getClusterName(), esNodes,
-                metadataIndexManager));
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.getClusterName(), esNodes,
-                functionalAdminIndexManager));
-        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), prefix,
-            new LogbookElasticsearchAccess(ElasticsearchRule.getClusterName(), esNodes, logbookIndexManager));
+        MetadataCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            prefix,
+            new ElasticsearchAccessMetadata(ElasticsearchRule.getClusterName(), esNodes, metadataIndexManager)
+        );
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            prefix,
+            new ElasticsearchAccessFunctionalAdmin(
+                ElasticsearchRule.getClusterName(),
+                esNodes,
+                functionalAdminIndexManager
+            )
+        );
+        LogbookCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            prefix,
+            new LogbookElasticsearchAccess(ElasticsearchRule.getClusterName(), esNodes, logbookIndexManager)
+        );
     }
 
     public static void handleAfterClass() {
-        MetadataCollectionsTestUtils
-            .afterTestClass(metadataIndexManager, false);
-        LogbookCollectionsTestUtils
-            .afterTestClass(logbookIndexManager, false);
-        FunctionalAdminCollectionsTestUtils
-            .afterTestClass(false);
+        MetadataCollectionsTestUtils.afterTestClass(metadataIndexManager, false);
+        LogbookCollectionsTestUtils.afterTestClass(logbookIndexManager, false);
+        FunctionalAdminCollectionsTestUtils.afterTestClass(false);
     }
 
     public static void handleAfterClassExceptReferential() {
-        MetadataCollectionsTestUtils
-            .afterTestClass(metadataIndexManager, false);
-        LogbookCollectionsTestUtils
-            .afterTestClass(logbookIndexManager, false);
+        MetadataCollectionsTestUtils.afterTestClass(metadataIndexManager, false);
+        LogbookCollectionsTestUtils.afterTestClass(logbookIndexManager, false);
     }
 
     public static void handleAfter() {
@@ -183,7 +201,8 @@ public class VitamRuleRunner {
         // clean offers
         VitamServerRunner.cleanOffers();
         elasticsearchRule.handleAfter(
-            Arrays.stream(indexAliases).map(ElasticsearchIndexAlias::getName).collect(Collectors.toSet()));
+            Arrays.stream(indexAliases).map(ElasticsearchIndexAlias::getName).collect(Collectors.toSet())
+        );
     }
 
     public static void runAfter() {

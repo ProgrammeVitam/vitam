@@ -34,6 +34,7 @@ import org.bson.Document;
  * Defines a Security Profile collection. </BR>
  */
 public class SecurityProfile extends VitamDocument<SecurityProfile> {
+
     /**
      *
      */
@@ -62,8 +63,7 @@ public class SecurityProfile extends VitamDocument<SecurityProfile> {
     /**
      * Empty Constructor
      */
-    public SecurityProfile() {
-    }
+    public SecurityProfile() {}
 
     /**
      * Constructor
@@ -92,5 +92,4 @@ public class SecurityProfile extends VitamDocument<SecurityProfile> {
     public VitamDocument<SecurityProfile> newInstance(JsonNode content) {
         return new SecurityProfile(content);
     }
-
 }

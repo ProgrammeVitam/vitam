@@ -61,6 +61,7 @@ import static javax.ws.rs.core.Response.status;
 @ApplicationPath("webresources")
 @Tag(name = "Functional-Administration")
 public class PreservationResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationResource.class);
 
     private final PreservationScenarioService preservationScenarioService;
@@ -68,10 +69,8 @@ public class PreservationResource {
     private final GriffinService griffinService;
 
     PreservationResource(PreservationScenarioService preservationScenarioService, GriffinService griffinService) {
-
         this.preservationScenarioService = preservationScenarioService;
         this.griffinService = griffinService;
-
     }
 
     @POST
@@ -92,12 +91,14 @@ public class PreservationResource {
     @Path("/importPreservationScenarios")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response importPreservationScenario(List<PreservationScenarioModel> preservationScenarioModel,
-        @Context UriInfo uri) {
-
+    public Response importPreservationScenario(
+        List<PreservationScenarioModel> preservationScenarioModel,
+        @Context UriInfo uri
+    ) {
         try {
-            RequestResponse<PreservationScenarioModel> requestResponse =
-                preservationScenarioService.importScenarios(preservationScenarioModel);
+            RequestResponse<PreservationScenarioModel> requestResponse = preservationScenarioService.importScenarios(
+                preservationScenarioModel
+            );
             return status(Status.CREATED).entity(requestResponse).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
@@ -109,11 +110,19 @@ public class PreservationResource {
     }
 
     private Response buildErrorResponse(VitamCode vitamCode, String message) {
-
         return Response.status(vitamCode.getStatus())
-            .entity(new RequestResponseError().setError(new VitamError<JsonNode>(getCode(vitamCode))
-                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString() + message)
+            .entity(
+                new RequestResponseError()
+                    .setError(
+                        new VitamError<JsonNode>(getCode(vitamCode))
+                            .setContext(vitamCode.getService().getName())
+                            .setState(vitamCode.getDomain().getName())
+                            .setMessage(vitamCode.getMessage())
+                            .setDescription(vitamCode.getMessage())
+                    )
+                    .toString() +
+                message
+            )
             .build();
     }
 
@@ -122,12 +131,10 @@ public class PreservationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findGriffin(JsonNode queryDsl) {
-
         try {
             RequestResponse<GriffinModel> requestResponse = griffinService.findGriffin(queryDsl);
 
             return Response.status(Status.OK).entity(requestResponse).build();
-
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Unexpected server error {}", e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
@@ -142,13 +149,11 @@ public class PreservationResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response findPreservation(JsonNode queryDsl) {
-
         try {
             RequestResponse<PreservationScenarioModel> requestResponse =
                 preservationScenarioService.findPreservationScenario(queryDsl);
 
             return Response.status(Status.OK).entity(requestResponse).build();
-
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Unexpected server error {}", e);
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());

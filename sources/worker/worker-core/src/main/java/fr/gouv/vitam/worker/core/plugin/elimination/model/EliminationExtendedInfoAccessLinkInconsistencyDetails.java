@@ -34,8 +34,10 @@ public class EliminationExtendedInfoAccessLinkInconsistencyDetails {
 
     @JsonProperty("ParentUnitId")
     private String parentUnitId;
+
     @JsonProperty("DestroyableOriginatingAgencies")
     private Set<String> destroyableOriginatingAgencies;
+
     @JsonProperty("NonDestroyableOriginatingAgencies")
     private Set<String> nonDestroyableOriginatingAgencies;
 
@@ -43,8 +45,11 @@ public class EliminationExtendedInfoAccessLinkInconsistencyDetails {
         // Empty constructor for deserialization
     }
 
-    public EliminationExtendedInfoAccessLinkInconsistencyDetails(String parentUnitId,
-        Set<String> destroyableOriginatingAgencies, Set<String> nonDestroyableOriginatingAgencies) {
+    public EliminationExtendedInfoAccessLinkInconsistencyDetails(
+        String parentUnitId,
+        Set<String> destroyableOriginatingAgencies,
+        Set<String> nonDestroyableOriginatingAgencies
+    ) {
         this.parentUnitId = parentUnitId;
         this.destroyableOriginatingAgencies = destroyableOriginatingAgencies;
         this.nonDestroyableOriginatingAgencies = nonDestroyableOriginatingAgencies;

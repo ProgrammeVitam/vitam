@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.json.JsonHandler;
  */
 public class TermsFacet extends Facet {
 
-
     /**
      * Terms Facet constructor
      *

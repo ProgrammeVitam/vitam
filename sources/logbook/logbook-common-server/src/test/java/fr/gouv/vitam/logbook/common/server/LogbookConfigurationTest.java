@@ -55,10 +55,9 @@ public class LogbookConfigurationTest {
     private static final String WORKSPACE_URL = "http://localhost:8082";
     private static final String PROCESSING_URL = "http://localhost:8087";
 
-    private final static String CLUSTER_NAME = "cluster-vitam";
-    private final static String HOST_NAME = "localhost";
+    private static final String CLUSTER_NAME = "cluster-vitam";
+    private static final String HOST_NAME = "localhost";
     private static int TCP_PORT = 9300;
-
 
     @Test
     public void testSetterGetter() {
@@ -79,12 +78,12 @@ public class LogbookConfigurationTest {
         assertEquals(WORKSPACE_URL, config1.getWorkspaceUrl());
         config1.setProcessingUrl(PROCESSING_URL);
         assertEquals(PROCESSING_URL, config1.getProcessingUrl());
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
         assertEquals(1, config1.setElasticsearchNodes(esNodes).getElasticsearchNodes().size());
 
-        final LogbookConfiguration config2 =
-            new LogbookConfiguration(mongo_nodes, DB_NAME, CLUSTER_NAME, esNodes);
+        final LogbookConfiguration config2 = new LogbookConfiguration(mongo_nodes, DB_NAME, CLUSTER_NAME, esNodes);
         assertEquals(config2.getMongoDbNodes().get(0).getDbHost(), HOST);
         assertEquals(config2.getMongoDbNodes().get(0).getDbPort(), PORT);
         assertEquals(config2.getDbName(), DB_NAME);
@@ -94,7 +93,6 @@ public class LogbookConfigurationTest {
 
     @Test
     public void testElasticsearchIndexationConfigurationLoading() throws Exception {
-
         LogbookConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./logbook_test_config.yml")) {
             config = PropertiesUtils.readYaml(yamlIS, LogbookConfiguration.class);
@@ -102,16 +100,17 @@ public class LogbookConfigurationTest {
 
         assertThat(config.getLogbookTenantIndexation()).isNotNull();
 
-        DefaultCollectionConfiguration defaultCollectionConfiguration =
-            config.getLogbookTenantIndexation().getDefaultCollectionConfiguration();
+        DefaultCollectionConfiguration defaultCollectionConfiguration = config
+            .getLogbookTenantIndexation()
+            .getDefaultCollectionConfiguration();
         assertThat(defaultCollectionConfiguration).isNotNull();
         assertThat(defaultCollectionConfiguration.getLogbookoperation()).isNotNull();
         assertThat(defaultCollectionConfiguration.getLogbookoperation().getNumberOfShards()).isEqualTo(2);
         assertThat(defaultCollectionConfiguration.getLogbookoperation().getNumberOfReplicas()).isEqualTo(10);
 
-
-        List<DedicatedTenantConfiguration> dedicatedTenantConfiguration =
-            config.getLogbookTenantIndexation().getDedicatedTenantConfiguration();
+        List<DedicatedTenantConfiguration> dedicatedTenantConfiguration = config
+            .getLogbookTenantIndexation()
+            .getDedicatedTenantConfiguration();
         assertThat(dedicatedTenantConfiguration).isNotNull();
         assertThat(dedicatedTenantConfiguration).hasSize(1);
         assertThat(dedicatedTenantConfiguration.get(0)).isNotNull();
@@ -120,9 +119,9 @@ public class LogbookConfigurationTest {
         assertThat(dedicatedTenantConfiguration.get(0).getLogbookoperation().getNumberOfShards()).isEqualTo(3);
         assertThat(dedicatedTenantConfiguration.get(0).getLogbookoperation().getNumberOfReplicas()).isEqualTo(11);
 
-
-        List<GroupedTenantConfiguration> groupedTenantConfiguration =
-            config.getLogbookTenantIndexation().getGroupedTenantConfiguration();
+        List<GroupedTenantConfiguration> groupedTenantConfiguration = config
+            .getLogbookTenantIndexation()
+            .getGroupedTenantConfiguration();
         assertThat(groupedTenantConfiguration).isNotNull();
         assertThat(groupedTenantConfiguration).hasSize(1);
         assertThat(groupedTenantConfiguration.get(0)).isNotNull();

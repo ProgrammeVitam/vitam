@@ -49,8 +49,9 @@ import java.util.Set;
  */
 class LogbookOperationParametersDeserializer extends JsonDeserializer<AbstractParameters> {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(LogbookOperationParametersDeserializer.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        LogbookOperationParametersDeserializer.class
+    );
 
     /**
      * Empty constructor
@@ -58,7 +59,6 @@ class LogbookOperationParametersDeserializer extends JsonDeserializer<AbstractPa
     public LogbookOperationParametersDeserializer() {
         // empty
     }
-
 
     @Override
     public AbstractParameters deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
@@ -81,18 +81,13 @@ class LogbookOperationParametersDeserializer extends JsonDeserializer<AbstractPa
             Set<LogbookParameters> events = new LinkedHashSet<>();
             if (eventList != null) {
                 for (JsonNode event : eventList) {
-                    events
-                        .add(JsonHandler.getFromJsonNode(event, LogbookOperationParameters.class));
+                    events.add(JsonHandler.getFromJsonNode(event, LogbookOperationParameters.class));
                 }
             }
             logbookOperationParams.setEvents(events);
-
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
         }
         return logbookOperationParams;
     }
-
-
 }
-

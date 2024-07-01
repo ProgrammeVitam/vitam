@@ -74,23 +74,17 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public abstract class GenericReportGenerationHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(GenericReportGenerationHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GenericReportGenerationHandler.class);
 
     private final CommonReportService<?> reportService;
-
 
     protected GenericReportGenerationHandler(CommonReportService<?> reportService) {
         this.reportService = reportService;
     }
 
-
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             storeReportToWorkspace(param, handler);
 
             storeReportToOffers(param.getContainerName());
@@ -99,8 +93,7 @@ public abstract class GenericReportGenerationHandler extends ActionHandler {
 
             return buildItemStatus(getPluginId(), StatusCode.OK, null);
         } catch (ProcessingStatusException e) {
-            LOGGER.error(
-                String.format("Report generation failed with status [%s]", e.getStatusCode()), e);
+            LOGGER.error(String.format("Report generation failed with status [%s]", e.getStatusCode()), e);
             return buildItemStatus(getPluginId(), e.getStatusCode(), e.getEventDetails());
         }
     }
@@ -123,7 +116,6 @@ public abstract class GenericReportGenerationHandler extends ActionHandler {
         }
     }
 
-
     private void storeReportToOffers(String containerName) throws ProcessingStatusException {
         reportService.storeReportToOffers(containerName);
     }
@@ -131,7 +123,6 @@ public abstract class GenericReportGenerationHandler extends ActionHandler {
     private void cleanupReport(String containerName) throws ProcessingStatusException {
         reportService.cleanupReport(containerName);
     }
-
 
     protected OperationSummary getOperationSummary(LogbookOperation logbook, String processId)
         throws InvalidParseOperationException {
@@ -163,18 +154,24 @@ public abstract class GenericReportGenerationHandler extends ActionHandler {
         OperationSummary operationSummary = getOperationSummary(logbook, param.getContainerName());
         ReportSummary reportSummary = getReport(logbook);
         // Agregate status of logbook operations when ko occurs
-        if (reportSummary.getVitamResults() != null && reportSummary.getVitamResults().getNbKo() > 0 &&
-            WARNING.name().equals(param.getWorkflowStatusKo())) {
+        if (
+            reportSummary.getVitamResults() != null &&
+            reportSummary.getVitamResults().getNbKo() > 0 &&
+            WARNING.name().equals(param.getWorkflowStatusKo())
+        ) {
             operationSummary.setOutcome(operationSummary.getOutcome().replace(KO.name(), param.getWorkflowStatusKo()));
-            operationSummary
-                .setOutDetail(operationSummary.getOutDetail().replace(KO.name(), param.getWorkflowStatusKo()));
+            operationSummary.setOutDetail(
+                operationSummary.getOutDetail().replace(KO.name(), param.getWorkflowStatusKo())
+            );
         }
         JsonNode context = JsonHandler.createObjectNode();
         return new Report(operationSummary, reportSummary, context);
     }
 
     protected ReportSummary getReport(LogbookOperation logbook) {
-        Optional<LogbookEventOperation> logbookEvent = logbook.getEvents().stream()
+        Optional<LogbookEventOperation> logbookEvent = logbook
+            .getEvents()
+            .stream()
             .filter(e -> e.getEvType().startsWith(getLogbookActionKey()))
             .reduce((a, b) -> b);
 
@@ -205,10 +202,17 @@ public abstract class GenericReportGenerationHandler extends ActionHandler {
         }
         return Stream.of(splitedMessage)
             .reduce((first, second) -> second)
-            .map(last -> Stream.of(last.split("\\s"))
-                .filter(StringUtils::isNotBlank)
-                .collect(
-                    Collectors.toMap(s -> StatusCode.valueOf(s.split(":")[0]), s -> Integer.valueOf(s.split(":")[1]))))
+            .map(
+                last ->
+                    Stream.of(last.split("\\s"))
+                        .filter(StringUtils::isNotBlank)
+                        .collect(
+                            Collectors.toMap(
+                                s -> StatusCode.valueOf(s.split(":")[0]),
+                                s -> Integer.valueOf(s.split(":")[1])
+                            )
+                        )
+            )
             .orElse(Collections.emptyMap());
     }
 

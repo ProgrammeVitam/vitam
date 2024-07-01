@@ -56,6 +56,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
 public class PreservationUnitMetadataSecurityChecksTest {
+
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
@@ -78,10 +79,19 @@ public class PreservationUnitMetadataSecurityChecksTest {
         output.setAction(ActionTypePreservation.EXTRACT_AU);
         output.setExtractedMetadataAU(extractedMetadata);
 
-        List<WorkflowBatchResult.OutputExtra> outputExtras =
-            Collections.singletonList(WorkflowBatchResult.OutputExtra.of(output));
-        WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
+        List<WorkflowBatchResult.OutputExtra> outputExtras = Collections.singletonList(
+            WorkflowBatchResult.OutputExtra.of(output)
+        );
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(
+            "",
+            "",
+            "",
+            "",
+            outputExtras,
+            "",
+            "",
+            Collections.emptyList()
+        );
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
@@ -104,12 +114,22 @@ public class PreservationUnitMetadataSecurityChecksTest {
     public void should_check_extracted_metadata_and_fill_output_extra_KO() throws Exception {
         // Given
         OutputPreservation output = getOutputPreservationExtracted(
-            "<!doctype html><html lang=\"en\"><head>  <meta charset=\"utf-8\">  <title>The HTML5 Herald</title>  <meta name=\"description\" content=\"The HTML5 example\">  <meta name=\"author\" content=\"yeah\">  <link rel=\"stylesheet\" href=\"css/styles.css?v=1.0\"></head><body>  <script src=\"js/scripts.js\"></script></body></html>");
+            "<!doctype html><html lang=\"en\"><head>  <meta charset=\"utf-8\">  <title>The HTML5 Herald</title>  <meta name=\"description\" content=\"The HTML5 example\">  <meta name=\"author\" content=\"yeah\">  <link rel=\"stylesheet\" href=\"css/styles.css?v=1.0\"></head><body>  <script src=\"js/scripts.js\"></script></body></html>"
+        );
 
-        List<WorkflowBatchResult.OutputExtra> outputExtras =
-            Collections.singletonList(WorkflowBatchResult.OutputExtra.of(output));
-        WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
+        List<WorkflowBatchResult.OutputExtra> outputExtras = Collections.singletonList(
+            WorkflowBatchResult.OutputExtra.of(output)
+        );
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(
+            "",
+            "",
+            "",
+            "",
+            outputExtras,
+            "",
+            "",
+            Collections.emptyList()
+        );
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
@@ -126,13 +146,24 @@ public class PreservationUnitMetadataSecurityChecksTest {
     public void should_check_extracted_metadata_and_fill_output_extra_WARNING() throws Exception {
         // Given
         OutputPreservation output = getOutputPreservationExtracted(
-            "<!doctype html><html lang=\"en\"><head>  <meta charset=\"utf-8\">  <title>The HTML5 Herald</title>  <meta name=\"description\" content=\"The HTML5 example\">  <meta name=\"author\" content=\"yeah\">  <link rel=\"stylesheet\" href=\"css/styles.css?v=1.0\"></head><body>  <script src=\"js/scripts.js\"></script></body></html>");
+            "<!doctype html><html lang=\"en\"><head>  <meta charset=\"utf-8\">  <title>The HTML5 Herald</title>  <meta name=\"description\" content=\"The HTML5 example\">  <meta name=\"author\" content=\"yeah\">  <link rel=\"stylesheet\" href=\"css/styles.css?v=1.0\"></head><body>  <script src=\"js/scripts.js\"></script></body></html>"
+        );
         OutputPreservation output2 = getOutputPreservationExtracted("yeah");
 
-        List<WorkflowBatchResult.OutputExtra> outputExtras =
-            Arrays.asList(WorkflowBatchResult.OutputExtra.of(output), WorkflowBatchResult.OutputExtra.of(output2));
-        WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
+        List<WorkflowBatchResult.OutputExtra> outputExtras = Arrays.asList(
+            WorkflowBatchResult.OutputExtra.of(output),
+            WorkflowBatchResult.OutputExtra.of(output2)
+        );
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(
+            "",
+            "",
+            "",
+            "",
+            outputExtras,
+            "",
+            "",
+            Collections.emptyList()
+        );
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
@@ -152,10 +183,19 @@ public class PreservationUnitMetadataSecurityChecksTest {
         // Given
         OutputPreservation output = getOutputPreservationExtracted("_us");
 
-        List<WorkflowBatchResult.OutputExtra> outputExtras =
-            Collections.singletonList(WorkflowBatchResult.OutputExtra.of(output));
-        WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList());
+        List<WorkflowBatchResult.OutputExtra> outputExtras = Collections.singletonList(
+            WorkflowBatchResult.OutputExtra.of(output)
+        );
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(
+            "",
+            "",
+            "",
+            "",
+            outputExtras,
+            "",
+            "",
+            Collections.emptyList()
+        );
         List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(batchResult);
 
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);

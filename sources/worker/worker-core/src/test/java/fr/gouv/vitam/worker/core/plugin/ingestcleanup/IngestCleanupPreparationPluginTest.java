@@ -72,11 +72,12 @@ import static org.mockito.Mockito.doReturn;
 
 public class IngestCleanupPreparationPluginTest {
 
-    private final static String INGEST_OPERATION_ID = "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq";
+    private static final String INGEST_OPERATION_ID = "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq";
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -86,14 +87,15 @@ public class IngestCleanupPreparationPluginTest {
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
+
     @Mock
     private MetaDataClient metaDataClient;
 
     @Mock
     private AdminManagementClientFactory adminManagementClientFactory;
+
     @Mock
     private AdminManagementClient adminManagementClient;
-
 
     @InjectMocks
     private IngestCleanupPreparationPlugin instance;
@@ -111,8 +113,7 @@ public class IngestCleanupPreparationPluginTest {
         params = WorkerParametersFactory.newWorkerParameters()
             .putParameterValue(WorkerParameterName.ingestOperationIdToCleanup, INGEST_OPERATION_ID)
             .putParameterValue(WorkerParameterName.containerName, VitamThreadUtils.getVitamSession().getRequestId());
-        handlerIO = new TestHandlerIO()
-            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId());
+        handlerIO = new TestHandlerIO().setContainerName(VitamThreadUtils.getVitamSession().getRequestId());
         handlerIO.setNewLocalFileProvider(name -> {
             try {
                 return tempFolder.newFile(name);
@@ -125,7 +126,6 @@ public class IngestCleanupPreparationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testPrepareUnitDistribution() throws Exception {
-
         // Given
         givenInitialReportData();
         givenUnits("IngestCleanup/Preparation/units.json");
@@ -139,13 +139,14 @@ public class IngestCleanupPreparationPluginTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertJsonlReportsEqualUnordered(
             handlerIO.getFileFromWorkspace(IngestCleanupPreparationPlugin.UNITS_TO_DELETE_JSONL),
-            PropertiesUtils.getResourceFile("IngestCleanup/Preparation/expectedUnitDistributionFile.jsonl"), 0);
+            PropertiesUtils.getResourceFile("IngestCleanup/Preparation/expectedUnitDistributionFile.jsonl"),
+            0
+        );
     }
 
     @RunWithCustomExecutor
     @Test
     public void testPrepareObjectGroupDistribution() throws Exception {
-
         // Given
         givenInitialReportData();
         givenUnits("IngestCleanup/Preparation/units.json");
@@ -159,13 +160,14 @@ public class IngestCleanupPreparationPluginTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertJsonlReportsEqualUnordered(
             handlerIO.getFileFromWorkspace(IngestCleanupPreparationPlugin.OBJECT_GROUPS_TO_DELETE_JSONL),
-            PropertiesUtils.getResourceFile("IngestCleanup/Preparation/expectedObjectGroupDistributionFile.jsonl"), 0);
+            PropertiesUtils.getResourceFile("IngestCleanup/Preparation/expectedObjectGroupDistributionFile.jsonl"),
+            0
+        );
     }
 
     @RunWithCustomExecutor
     @Test
     public void testPrepareAccessingRegisterDistributionWhenExistingAccessionRegisterDetails() throws Exception {
-
         // Given
         givenInitialReportData();
         givenUnits("IngestCleanup/Preparation/units.json");
@@ -179,14 +181,16 @@ public class IngestCleanupPreparationPluginTest {
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertJsonlReportsEqualUnordered(
             handlerIO.getFileFromWorkspace(IngestCleanupPreparationPlugin.ACCESSION_REGISTERS_JSONL),
-            PropertiesUtils
-                .getResourceFile("IngestCleanup/Preparation/expectedAccessionRegisterDistributionFile.jsonl"), 0);
+            PropertiesUtils.getResourceFile(
+                "IngestCleanup/Preparation/expectedAccessionRegisterDistributionFile.jsonl"
+            ),
+            0
+        );
     }
 
     @RunWithCustomExecutor
     @Test
     public void testPrepareAccessingRegisterDistributionWhenNoAccessionRegisterDetails() throws Exception {
-
         // Given
         givenInitialReportData();
         givenUnits("IngestCleanup/Preparation/units.json");
@@ -198,14 +202,14 @@ public class IngestCleanupPreparationPluginTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        assertThat(handlerIO.getFileFromWorkspace(IngestCleanupPreparationPlugin.ACCESSION_REGISTERS_JSONL))
-            .hasContent("");
+        assertThat(handlerIO.getFileFromWorkspace(IngestCleanupPreparationPlugin.ACCESSION_REGISTERS_JSONL)).hasContent(
+            ""
+        );
     }
 
     @RunWithCustomExecutor
     @Test
     public void testPrepareAccessingRegisterDistributionWhenNoMetadataFound() throws Exception {
-
         // Given
         givenInitialReportData();
         givenUnits("IngestCleanup/Preparation/emptyUnits.json");
@@ -217,14 +221,14 @@ public class IngestCleanupPreparationPluginTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        assertThat(handlerIO.getFileFromWorkspace(IngestCleanupPreparationPlugin.ACCESSION_REGISTERS_JSONL))
-            .hasContent("");
+        assertThat(handlerIO.getFileFromWorkspace(IngestCleanupPreparationPlugin.ACCESSION_REGISTERS_JSONL)).hasContent(
+            ""
+        );
     }
 
     @RunWithCustomExecutor
     @Test
     public void testPrepareReport() throws Exception {
-
         // Given
         givenInitialReportData();
         givenUnits("IngestCleanup/Preparation/units.json");
@@ -236,43 +240,49 @@ public class IngestCleanupPreparationPluginTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        CleanupReportManager updatedReportManager = CleanupReportManager.loadReportDataFromWorkspace(handlerIO)
-            .orElseThrow(AssertionError::new);
+        CleanupReportManager updatedReportManager = CleanupReportManager.loadReportDataFromWorkspace(
+            handlerIO
+        ).orElseThrow(AssertionError::new);
         JsonAssert.assertJsonEquals(
             JsonHandler.toJsonNode(updatedReportManager.getCleanupReport()),
             JsonHandler.getFromInputStream(
-                PropertiesUtils.getResourceAsStream("IngestCleanup/Preparation/expectedReportData.json"))
+                PropertiesUtils.getResourceAsStream("IngestCleanup/Preparation/expectedReportData.json")
+            )
         );
     }
 
     private void givenInitialReportData() throws ProcessingException, FileNotFoundException {
-        handlerIO.transferFileToWorkspace(CleanupReportManager.CLEANUP_REPORT_BACKUP_FILE_NAME,
-            PropertiesUtils.getResourceFile("IngestCleanup/Preparation/initialReportData.json"), true, false);
+        handlerIO.transferFileToWorkspace(
+            CleanupReportManager.CLEANUP_REPORT_BACKUP_FILE_NAME,
+            PropertiesUtils.getResourceFile("IngestCleanup/Preparation/initialReportData.json"),
+            true,
+            false
+        );
     }
 
     private void givenUnits(String responseFile)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException, FileNotFoundException {
-        doReturn(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(responseFile)))
-            .when(metaDataClient).selectUnits(any());
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException, FileNotFoundException {
+        doReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(responseFile)))
+            .when(metaDataClient)
+            .selectUnits(any());
     }
 
     private void givenObjectGroups(String reponseFile)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException, FileNotFoundException {
-        doReturn(JsonHandler
-            .getFromInputStream(PropertiesUtils.getResourceAsStream(reponseFile)))
-            .when(metaDataClient).selectObjectGroups(any());
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException, FileNotFoundException {
+        doReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(reponseFile)))
+            .when(metaDataClient)
+            .selectObjectGroups(any());
     }
 
     private void givenExistingAccessionRegisterDetails() throws InvalidParseOperationException, ReferentialException {
         doReturn(new RequestResponseOK<AccessionRegisterDetail>().addResult(new AccessionRegisterDetail()))
-            .when(adminManagementClient).getAccessionRegisterDetail(any());
+            .when(adminManagementClient)
+            .getAccessionRegisterDetail(any());
     }
 
     private void givenNoAccessionRegisterDetails() throws InvalidParseOperationException, ReferentialException {
         doReturn(new RequestResponseOK<AccessionRegisterDetail>())
-            .when(adminManagementClient).getAccessionRegisterDetail(any());
+            .when(adminManagementClient)
+            .getAccessionRegisterDetail(any());
     }
 }

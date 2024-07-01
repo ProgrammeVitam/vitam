@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Inc Action
  */
 public class IncAction extends fr.gouv.vitam.common.database.builder.query.action.IncAction {
+
     /**
      * For Parsing
      *

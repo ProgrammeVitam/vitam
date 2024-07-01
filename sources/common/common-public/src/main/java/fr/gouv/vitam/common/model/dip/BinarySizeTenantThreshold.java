@@ -27,14 +27,12 @@
 
 package fr.gouv.vitam.common.model.dip;
 
-
 public class BinarySizeTenantThreshold extends BinarySizePlatformThreshold {
 
     private int tenant;
     private boolean authorize;
 
-    public BinarySizeTenantThreshold() {
-    }
+    public BinarySizeTenantThreshold() {}
 
     public BinarySizeTenantThreshold(int tenant, long limit, SizeUnit sizeUnit, boolean authorize) {
         super(limit, sizeUnit);

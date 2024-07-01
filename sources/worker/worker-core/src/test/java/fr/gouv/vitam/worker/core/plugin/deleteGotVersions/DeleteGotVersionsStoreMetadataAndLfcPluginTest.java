@@ -60,12 +60,14 @@ import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 public class DeleteGotVersionsStoreMetadataAndLfcPluginTest {
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @InjectMocks
     private DeleteGotVersionsStoreMetadataAndLfcPlugin deleteGotVersionsStoreMetadataAndLfcPlugin;
@@ -84,8 +86,9 @@ public class DeleteGotVersionsStoreMetadataAndLfcPluginTest {
 
     @Before
     public void setUp() throws Exception {
-        deleteGotVersionsStoreMetadataAndLfcPlugin =
-            new DeleteGotVersionsStoreMetadataAndLfcPlugin(storeMetaDataObjectGroupActionPlugin);
+        deleteGotVersionsStoreMetadataAndLfcPlugin = new DeleteGotVersionsStoreMetadataAndLfcPlugin(
+            storeMetaDataObjectGroupActionPlugin
+        );
         VitamThreadUtils.getVitamSession().setTenantId(0);
     }
 
@@ -93,12 +96,10 @@ public class DeleteGotVersionsStoreMetadataAndLfcPluginTest {
     @RunWithCustomExecutor
     public void givenOkResultsThenStoreMetadataAndLfcAndReturnOK() throws Exception {
         doNothing().when(storeMetaDataObjectGroupActionPlugin).storeDocumentsWithLfc(any(), any(), any());
-        when(params.getObjectNameList())
-            .thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
+        when(params.getObjectNameList()).thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
 
         JsonNode results = getFromFile(PropertiesUtils.getResourceFile(OK_RESULTS_LIST));
-        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {
-        });
+        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {});
         when(params.getObjectMetadataList()).thenReturn(resultsNodes);
 
         List<ItemStatus> itemStatusList = deleteGotVersionsStoreMetadataAndLfcPlugin.executeList(params, handlerIO);
@@ -110,12 +111,10 @@ public class DeleteGotVersionsStoreMetadataAndLfcPluginTest {
     @RunWithCustomExecutor
     public void givenOkAndWarningThenStoreMetadataAndLfcReturnWarning() throws Exception {
         doNothing().when(storeMetaDataObjectGroupActionPlugin).storeDocumentsWithLfc(any(), any(), any());
-        when(params.getObjectNameList())
-            .thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
+        when(params.getObjectNameList()).thenReturn(Collections.singletonList("aebaaaaaaaepjubnaasdualyqi65jkyaaaaq"));
 
         JsonNode results = getFromFile(PropertiesUtils.getResourceFile(OK_AND_WARNING_RESULTS_LIST));
-        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {
-        });
+        List<JsonNode> resultsNodes = getFromJsonNode(results, new TypeReference<>() {});
         when(params.getObjectMetadataList()).thenReturn(resultsNodes);
 
         List<ItemStatus> itemStatusList = deleteGotVersionsStoreMetadataAndLfcPlugin.executeList(params, handlerIO);

@@ -81,8 +81,22 @@ public class DataContext {
 
     @Override
     public String toString() {
-        return "DataContext{" +
-            "objectId='" + objectId + '\'' + ", category=" + category + ", requester='" + requester + '\'' +
-            ", tenantId=" + tenantId + '\'' + ", strategyId=" + strategyId + '}';
+        return (
+            "DataContext{" +
+            "objectId='" +
+            objectId +
+            '\'' +
+            ", category=" +
+            category +
+            ", requester='" +
+            requester +
+            '\'' +
+            ", tenantId=" +
+            tenantId +
+            '\'' +
+            ", strategyId=" +
+            strategyId +
+            '}'
+        );
     }
 }

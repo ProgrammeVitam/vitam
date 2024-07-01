@@ -45,6 +45,7 @@ import java.util.Objects;
 import static java.nio.charset.StandardCharsets.US_ASCII;
 
 public class TimeStampService {
+
     private final DigestType digestType;
 
     public TimeStampService() {
@@ -69,16 +70,18 @@ public class TimeStampService {
     }
 
     public TimeStampToken getTimeStampFrom(String timeStampAsString) throws IOException, TSPException {
-        try (ByteArrayInputStream is = new ByteArrayInputStream(Base64.decode(timeStampAsString.getBytes(US_ASCII)));
-            ASN1InputStream timeStampAsn1Stream = new ASN1InputStream(is)) {
-
+        try (
+            ByteArrayInputStream is = new ByteArrayInputStream(Base64.decode(timeStampAsString.getBytes(US_ASCII)));
+            ASN1InputStream timeStampAsn1Stream = new ASN1InputStream(is)
+        ) {
             ASN1Primitive timeStampAsn1Primitive = timeStampAsn1Stream.readObject();
             if (timeStampAsn1Primitive == null) {
                 throw new IOException("Cannot get ASN1Primitive.");
             }
 
-            TimeStampToken timeStampToken =
-                new TimeStampResponse(timeStampAsn1Primitive.getEncoded()).getTimeStampToken();
+            TimeStampToken timeStampToken = new TimeStampResponse(
+                timeStampAsn1Primitive.getEncoded()
+            ).getTimeStampToken();
             if (timeStampToken.getTimeStampInfo().getNonce() != null) {
                 throw new IOException("Timestamp token nonce cannot be filled.");
             }
@@ -88,11 +91,8 @@ public class TimeStampService {
     }
 
     public byte[] getDigestAsBytes(String property) {
-        return Objects.isNull(property) || property.equals("null")
-            ? null
-            : BaseXx.getFromBase64(property);
+        return Objects.isNull(property) || property.equals("null") ? null : BaseXx.getFromBase64(property);
     }
-
 
     public DigestType getDigestType() {
         return digestType;

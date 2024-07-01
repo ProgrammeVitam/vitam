@@ -46,7 +46,6 @@ public class MultiplexedStreamTest {
 
     @Test
     public void testEmpty() throws IOException {
-
         // Given
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         MultiplexedStreamWriter instance = new MultiplexedStreamWriter(byteArrayOutputStream);
@@ -61,7 +60,6 @@ public class MultiplexedStreamTest {
 
     @Test
     public void testSingleEntry() throws IOException {
-
         // Given
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         MultiplexedStreamWriter instance = new MultiplexedStreamWriter(byteArrayOutputStream);
@@ -77,7 +75,6 @@ public class MultiplexedStreamTest {
 
     @Test
     public void testMultipleEntries() throws IOException {
-
         // Given
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         MultiplexedStreamWriter instance = new MultiplexedStreamWriter(byteArrayOutputStream);
@@ -93,7 +90,6 @@ public class MultiplexedStreamTest {
 
     @Test
     public void testCorruptedStreamNoEOF() throws IOException {
-
         // Given
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         MultiplexedStreamWriter instance = new MultiplexedStreamWriter(byteArrayOutputStream);
@@ -102,20 +98,20 @@ public class MultiplexedStreamTest {
         appendEntries(instance, 100);
 
         // Then
-        try (MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(
-            byteArrayOutputStream.toInputStream())) {
-
+        try (
+            MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(
+                byteArrayOutputStream.toInputStream()
+            )
+        ) {
             readEntries(multiplexedStreamReader, 100);
 
             // Check EOF
-            assertThatThrownBy(multiplexedStreamReader::readNextEntry)
-                .isInstanceOf(IOException.class);
+            assertThatThrownBy(multiplexedStreamReader::readNextEntry).isInstanceOf(IOException.class);
         }
     }
 
     @Test
     public void testCorruptedStreamBeforeEOF() throws IOException {
-
         // Given
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         MultiplexedStreamWriter instance = new MultiplexedStreamWriter(byteArrayOutputStream);
@@ -123,23 +119,22 @@ public class MultiplexedStreamTest {
         // When
         appendEntries(instance, 100);
         instance.appendEndOfFile();
-        InputStream resultInputStream =
-            new BoundedInputStream(byteArrayOutputStream.toInputStream(), byteArrayOutputStream.size() - 1);
+        InputStream resultInputStream = new BoundedInputStream(
+            byteArrayOutputStream.toInputStream(),
+            byteArrayOutputStream.size() - 1
+        );
 
         // Then
         try (MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(resultInputStream)) {
-
             readEntries(multiplexedStreamReader, 100);
 
             // Check EOF
-            assertThatThrownBy(multiplexedStreamReader::readNextEntry)
-                .isInstanceOf(IOException.class);
+            assertThatThrownBy(multiplexedStreamReader::readNextEntry).isInstanceOf(IOException.class);
         }
     }
 
     @Test
     public void testCorruptedStreamIncompleteEntry() throws IOException {
-
         // Given
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         MultiplexedStreamWriter instance = new MultiplexedStreamWriter(byteArrayOutputStream);
@@ -147,16 +142,18 @@ public class MultiplexedStreamTest {
         // When
         appendEntries(instance, 100);
         instance.appendEndOfFile();
-        InputStream resultInputStream =
-            new BoundedInputStream(byteArrayOutputStream.toInputStream(), byteArrayOutputStream.size() - 8 - 2);
+        InputStream resultInputStream = new BoundedInputStream(
+            byteArrayOutputStream.toInputStream(),
+            byteArrayOutputStream.size() - 8 - 2
+        );
 
         // Then
         try (MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(resultInputStream)) {
-
             readEntries(multiplexedStreamReader, 99);
 
-            assertThatThrownBy(() -> IOUtils.toByteArray(multiplexedStreamReader.readNextEntry().get()))
-                .isInstanceOf(IOException.class);
+            assertThatThrownBy(() -> IOUtils.toByteArray(multiplexedStreamReader.readNextEntry().get())).isInstanceOf(
+                IOException.class
+            );
         }
     }
 
@@ -168,10 +165,8 @@ public class MultiplexedStreamTest {
     }
 
     private void verifyEntries(InputStream inputStream, int expectedEntries) throws IOException {
-
         InputStream spyInputStream = spy(inputStream);
         try (MultiplexedStreamReader multiplexedStreamReader = new MultiplexedStreamReader(inputStream)) {
-
             // Check expected entries
             readEntries(multiplexedStreamReader, expectedEntries);
 

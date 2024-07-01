@@ -55,8 +55,7 @@ public class PreservationReportRepositoryTest {
     private static final String PRESERVATION_REPORT = "PreservationReport" + GUIDFactory.newGUID().getId();
 
     @Rule
-    public MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), PRESERVATION_REPORT);
+    public MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), PRESERVATION_REPORT);
 
     private PreservationReportRepository repository;
 
@@ -71,16 +70,38 @@ public class PreservationReportRepositoryTest {
         repository = new PreservationReportRepository(mongoDbAccess, PRESERVATION_REPORT);
         preservationReportCollection = mongoRule.getMongoCollection(PRESERVATION_REPORT);
         processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
-        preservationReportEntry = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq", processId,
-            TENANT_ID, "2018-11-15T11:13:20.986",
-            PreservationStatus.OK, "unitId", "objectGroupId", ANALYSE, "VALID_ALL",
-            "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST", "griffinId",
-            "preservationScenarioId");
-        preservationReportEntry2 = new PreservationReportEntry("aeaaaaaaaagw45nxabw2ualhc4jvawqabbbq", processId,
-            TENANT_ID, "2018-11-15T11:13:20.986",
-            PreservationStatus.OK, "unitId2", "objectGroupId", ANALYSE, "VALID_ALL",
-            "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq", "", "Outcome - TEST", "griffinId",
-            "preservationScenarioId");
+        preservationReportEntry = new PreservationReportEntry(
+            "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq",
+            processId,
+            TENANT_ID,
+            "2018-11-15T11:13:20.986",
+            PreservationStatus.OK,
+            "unitId",
+            "objectGroupId",
+            ANALYSE,
+            "VALID_ALL",
+            "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq",
+            "",
+            "Outcome - TEST",
+            "griffinId",
+            "preservationScenarioId"
+        );
+        preservationReportEntry2 = new PreservationReportEntry(
+            "aeaaaaaaaagw45nxabw2ualhc4jvawqabbbq",
+            processId,
+            TENANT_ID,
+            "2018-11-15T11:13:20.986",
+            PreservationStatus.OK,
+            "unitId2",
+            "objectGroupId",
+            ANALYSE,
+            "VALID_ALL",
+            "aeaaaaaaaagh65wtab27ialg5fopxnaaaaaq",
+            "",
+            "Outcome - TEST",
+            "griffinId",
+            "preservationScenarioId"
+        );
     }
 
     @Test
@@ -89,18 +110,26 @@ public class PreservationReportRepositoryTest {
         populateDatabase();
 
         // When
-        Document report = preservationReportCollection.find(
-            and(eq(PreservationReportEntry.DETAIL_ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq"),
-                eq(PreservationReportEntry.TENANT, 0))).first();
+        Document report = preservationReportCollection
+            .find(
+                and(
+                    eq(PreservationReportEntry.DETAIL_ID, "aeaaaaaaaagw45nxabw2ualhc4jvawqaaaaq"),
+                    eq(PreservationReportEntry.TENANT, 0)
+                )
+            )
+            .first();
 
         // Then
         assertThat(report.get(PreservationReportEntry.DETAIL_ID)).isEqualTo(preservationReportEntry.getDetailId());
         assertThat(report.get(PreservationReportEntry.OBJECT_GROUP_ID)).isEqualTo(
-            preservationReportEntry.getObjectGroupId());
+            preservationReportEntry.getObjectGroupId()
+        );
         assertThat(PreservationStatus.valueOf(report.get(PreservationReportEntry.STATUS).toString())).isEqualTo(
-            preservationReportEntry.getStatus());
+            preservationReportEntry.getStatus()
+        );
         assertThat(report.get(PreservationReportEntry.ANALYSE_RESULT)).isEqualTo(
-            preservationReportEntry.getAnalyseResult());
+            preservationReportEntry.getAnalyseResult()
+        );
     }
 
     @Test
@@ -108,8 +137,7 @@ public class PreservationReportRepositoryTest {
         // Given
         populateDatabase();
         // When
-        MongoCursor<Document> iterator =
-            repository.findCollectionByProcessIdTenant(processId, TENANT_ID);
+        MongoCursor<Document> iterator = repository.findCollectionByProcessIdTenant(processId, TENANT_ID);
 
         // Then
         List<Document> documents = new ArrayList<>();
@@ -153,8 +181,9 @@ public class PreservationReportRepositoryTest {
         // When
         repository.deleteReportByIdAndTenant(processId, TENANT_ID);
         // Then
-        FindIterable<Document> iterable =
-            preservationReportCollection.find(and(eq("processId", processId), eq("tenantId", TENANT_ID)));
+        FindIterable<Document> iterable = preservationReportCollection.find(
+            and(eq("processId", processId), eq("tenantId", TENANT_ID))
+        );
         MongoCursor<Document> iterator = iterable.iterator();
         List<Document> documents = new ArrayList<>();
         while (iterator.hasNext()) {
@@ -163,5 +192,4 @@ public class PreservationReportRepositoryTest {
         assertThat(documents).isEmpty();
         assertThat(documents.size()).isEqualTo(0);
     }
-
 }

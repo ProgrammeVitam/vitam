@@ -89,16 +89,15 @@ public class AdminManagementClientFactory extends VitamClientFactory<AdminManage
     static final ClientConfiguration changeConfigurationFile(String configurationPath) {
         ClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                ClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                ClientConfigurationImpl.class
+            );
         } catch (final IOException fnf) {
-            LOGGER.debug("Error when retrieving configuration file {}, using mock",
-                configurationPath,
-                fnf);
+            LOGGER.debug("Error when retrieving configuration file {}, using mock", configurationPath, fnf);
         }
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file {}, using mock",
-                configurationPath);
+            LOGGER.error("Error when retrieving configuration file {}, using mock", configurationPath);
         }
         return configuration;
     }
@@ -110,5 +109,4 @@ public class AdminManagementClientFactory extends VitamClientFactory<AdminManage
     public static final void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
-
 }

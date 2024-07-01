@@ -31,6 +31,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.temporal.ChronoUnit;
 
 public class DurationData {
+
     @JsonProperty("DurationValue")
     private Integer durationValue;
 

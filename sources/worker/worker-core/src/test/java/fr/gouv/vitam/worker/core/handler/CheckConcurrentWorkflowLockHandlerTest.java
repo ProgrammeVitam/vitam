@@ -64,8 +64,9 @@ import static org.mockito.Mockito.doReturn;
 public class CheckConcurrentWorkflowLockHandlerTest {
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -84,31 +85,33 @@ public class CheckConcurrentWorkflowLockHandlerTest {
 
     @Before
     public void init() throws Exception {
-
         int tenant = 0;
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
         String operationId = GUIDFactory.newRequestIdGUID(tenant).toString();
         VitamThreadUtils.getVitamSession().setRequestId(operationId);
 
         String objectId = GUIDFactory.newGUID().toString();
-        parameters = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(operationId)
+        parameters = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(operationId)
             .setObjectNameList(Lists.newArrayList(objectId))
-            .setObjectName(objectId).setCurrentStep("StepName");
+            .setObjectName(objectId)
+            .setCurrentStep("StepName");
     }
 
     @Test
     public void execute_GivenConcurrentProcessFoundThenExpectKO() throws Exception {
-
         ProcessDetail concurrentProcessDetail = new ProcessDetail();
         concurrentProcessDetail.setOperationId("SomeOtherProcessId");
         concurrentProcessDetail.setGlobalState("PAUSE");
         concurrentProcessDetail.setStepStatus("FATAL");
 
-        doReturn(Collections.singletonList(concurrentProcessDetail)).when(lightweightWorkflowLock)
+        doReturn(Collections.singletonList(concurrentProcessDetail))
+            .when(lightweightWorkflowLock)
             .listConcurrentWorkflows(
                 eq(Arrays.asList(Contexts.RECLASSIFICATION.getEventType(), Contexts.ELIMINATION_ACTION.getEventType())),
-                eq(VitamThreadUtils.getVitamSession().getRequestId()));
+                eq(VitamThreadUtils.getVitamSession().getRequestId())
+            );
 
         doReturn("RECLASSIFICATION,ELIMINATION_ACTION").when(handlerIO).getInput(0);
 
@@ -118,17 +121,18 @@ public class CheckConcurrentWorkflowLockHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
         assertThat(
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError())
-            .isEqualTo(CONCURRENT_PROCESSES_FOUND);
+            JsonHandler.getFromString(itemStatus.getEvDetailData(), ReclassificationEventDetails.class).getError()
+        ).isEqualTo(CONCURRENT_PROCESSES_FOUND);
     }
 
     @Test
     public void execute_GivenNoConcurrentProcessFoundThenExpectOK() throws Exception {
-
-        doReturn(Collections.EMPTY_LIST).when(lightweightWorkflowLock)
+        doReturn(Collections.EMPTY_LIST)
+            .when(lightweightWorkflowLock)
             .listConcurrentWorkflows(
                 eq(Arrays.asList(Contexts.RECLASSIFICATION.getEventType(), Contexts.ELIMINATION_ACTION.getEventType())),
-                any());
+                any()
+            );
 
         doReturn("RECLASSIFICATION,ELIMINATION_ACTION").when(handlerIO).getInput(0);
 

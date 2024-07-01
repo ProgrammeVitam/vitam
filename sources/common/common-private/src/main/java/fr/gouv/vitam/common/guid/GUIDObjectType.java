@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.guid;
  * Defines all types that could have a UUID
  */
 public final class GUIDObjectType {
+
     /**
      * Utility Enum for GUIDObjectType
      */
@@ -112,7 +113,6 @@ public final class GUIDObjectType {
         }
     }
 
-
     /**
      * Unassigned
      */
@@ -164,7 +164,6 @@ public final class GUIDObjectType {
      */
     public static final int CONTRACT_TYPE = 11;
 
-
     /**
      * Profile
      */
@@ -188,8 +187,6 @@ public final class GUIDObjectType {
      * Ontology
      */
     public static final int ONTOLOGY_TYPE = 16;
-
-
 
     private GUIDObjectType() {
         // empty

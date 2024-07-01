@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class ValuesPreservation {
+
     @JsonProperty("Extension")
     private String extension;
 
@@ -67,7 +68,6 @@ public class ValuesPreservation {
         this.args = args;
     }
 
-
     public List<String> getFilteredExtractedObjectGroupData() {
         return filteredExtractedObjectGroupData;
     }
@@ -86,11 +86,18 @@ public class ValuesPreservation {
 
     @Override
     public String toString() {
-        return "ValuesPreservation{" +
-            "extension='" + extension + '\'' +
-            ", args=" + args +
-            ", FilteredExtractedDataObjectGroup=" + filteredExtractedObjectGroupData +
-            ", FilteredExtractedDataUnit=" + filteredExtractedUnitData +
-            '}';
+        return (
+            "ValuesPreservation{" +
+            "extension='" +
+            extension +
+            '\'' +
+            ", args=" +
+            args +
+            ", FilteredExtractedDataObjectGroup=" +
+            filteredExtractedObjectGroupData +
+            ", FilteredExtractedDataUnit=" +
+            filteredExtractedUnitData +
+            '}'
+        );
     }
 }

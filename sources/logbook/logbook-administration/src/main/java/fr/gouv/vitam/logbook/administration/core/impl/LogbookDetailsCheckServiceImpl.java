@@ -77,7 +77,6 @@ public class LogbookDetailsCheckServiceImpl implements LogbookDetailsCheckServic
     private final String EXPECTED_LOGBOOK_OPERATION_EVENTS_NOT_EXIST_IN_LFC_MSG =
         "The logbook operation event %s, must be present in the lifecycles";
 
-
     private final String DOT = ".";
 
     /**
@@ -91,31 +90,46 @@ public class LogbookDetailsCheckServiceImpl implements LogbookDetailsCheckServic
         List<LogbookCheckError> logbookCheckErrors = new ArrayList<>();
 
         // check event evType coherence.
-        if (LogbookEventType.TASK.equals(event.getLogbookEventType())
-            && event.getEvTypeParent() != null) {
-
+        if (LogbookEventType.TASK.equals(event.getLogbookEventType()) && event.getEvTypeParent() != null) {
             // the evType must have the following format : <evTypeParent.*>
             String evTypeFormat = event.getEvTypeParent() + DOT;
             if (!event.getEvType().startsWith(evTypeFormat)) {
                 // construct LogbookCheckResult
-                logbookCheckErrors
-                    .add(new LogbookCheckError(event.getOperationId(), event.getLfcId(), event.getEvType(),
+                logbookCheckErrors.add(
+                    new LogbookCheckError(
+                        event.getOperationId(),
+                        event.getLfcId(),
+                        event.getEvType(),
                         String.format(SAVED_LOGBOOK_MSG, LogbookEventName.EVTYPE.getValue(), event.getEvType()),
-                        String.format(EXPECTED_LOGBOOK_MSG, LogbookEventName.EVTYPE.getValue(), evTypeFormat + "*")));
+                        String.format(EXPECTED_LOGBOOK_MSG, LogbookEventName.EVTYPE.getValue(), evTypeFormat + "*")
+                    )
+                );
             }
         }
 
         // check outcome coherence.
-        boolean isOutcomeOk = Stream.of(OutcomeStatus.values()).map(String::valueOf)
+        boolean isOutcomeOk = Stream.of(OutcomeStatus.values())
+            .map(String::valueOf)
             .anyMatch(s -> s.contains(event.getOutcome()));
 
         if (!isOutcomeOk) {
-            logbookCheckErrors.add(new LogbookCheckError(event.getOperationId(), event.getLfcId(), event.getEvType(),
-                String
-                    .format(SAVED_LOGBOOK_MSG, event.getEvType() + " " + LogbookEventName.OUTCOME.getValue(),
-                        event.getOutcome()),
-                String.format(EXPECTED_LOGBOOK_MSG, LogbookEventName.OUTCOME.getValue()
-                    , Stream.of(OutcomeStatus.values()).map(String::valueOf).collect(Collectors.joining(", ")))));
+            logbookCheckErrors.add(
+                new LogbookCheckError(
+                    event.getOperationId(),
+                    event.getLfcId(),
+                    event.getEvType(),
+                    String.format(
+                        SAVED_LOGBOOK_MSG,
+                        event.getEvType() + " " + LogbookEventName.OUTCOME.getValue(),
+                        event.getOutcome()
+                    ),
+                    String.format(
+                        EXPECTED_LOGBOOK_MSG,
+                        LogbookEventName.OUTCOME.getValue(),
+                        Stream.of(OutcomeStatus.values()).map(String::valueOf).collect(Collectors.joining(", "))
+                    )
+                )
+            );
         }
 
         // Check event outcomeDetails coherence.
@@ -125,9 +139,15 @@ public class LogbookDetailsCheckServiceImpl implements LogbookDetailsCheckServic
         Matcher matcher = pattern.matcher(event.getOutDetail());
 
         if (!matcher.find()) {
-            logbookCheckErrors.add(new LogbookCheckError(event.getOperationId(), event.getLfcId(), event.getEvType(),
-                String.format(SAVED_LOGBOOK_MSG, LogbookEventName.OUTCOMEDETAILS.getValue(), event.getOutDetail()),
-                String.format(EXPECTED_LOGBOOK_MSG, LogbookEventName.OUTCOMEDETAILS.getValue(), regex)));
+            logbookCheckErrors.add(
+                new LogbookCheckError(
+                    event.getOperationId(),
+                    event.getLfcId(),
+                    event.getEvType(),
+                    String.format(SAVED_LOGBOOK_MSG, LogbookEventName.OUTCOMEDETAILS.getValue(), event.getOutDetail()),
+                    String.format(EXPECTED_LOGBOOK_MSG, LogbookEventName.OUTCOMEDETAILS.getValue(), regex)
+                )
+            );
         }
 
         return logbookCheckErrors;
@@ -141,8 +161,10 @@ public class LogbookDetailsCheckServiceImpl implements LogbookDetailsCheckServic
      * @return
      */
     @Override
-    public List<LogbookCheckError> checkLFCandOperation(Map<String, EventModel> mapOpEvents,
-        Map<String, EventModel> mapLfcEvents) {
+    public List<LogbookCheckError> checkLFCandOperation(
+        Map<String, EventModel> mapOpEvents,
+        Map<String, EventModel> mapLfcEvents
+    ) {
         List<LogbookCheckError> logbookCheckErrors = new ArrayList<>();
         LOGGER.debug("Check coherence between logbook operation and Lifecycles");
 
@@ -155,21 +177,42 @@ public class LogbookDetailsCheckServiceImpl implements LogbookDetailsCheckServic
             eventOp = mapOpEvents.get(evType);
             if (eventOp == null) {
                 // case when the lifecycle event is not present in the operation logbook
-                logbookCheckErrors.add(new LogbookCheckError(eventLfc.getOperationId(),
-                    eventLfc.getLfcId(), eventLfc.getEvType(),
-                    String.format(SAVED_LOGBOOK_OP_LFC_NOT_EXISTS_MSG, LogbookEventName.EVTYPE.getValue(),
-                        eventLfc.getEvType()),
-                    String.format(EXPECTED_LOGBOOK_OP_LFC_NOT_EXISTS_MSG, LogbookEventName.EVTYPE.getValue(),
-                        eventLfc.getEvType())));
-
+                logbookCheckErrors.add(
+                    new LogbookCheckError(
+                        eventLfc.getOperationId(),
+                        eventLfc.getLfcId(),
+                        eventLfc.getEvType(),
+                        String.format(
+                            SAVED_LOGBOOK_OP_LFC_NOT_EXISTS_MSG,
+                            LogbookEventName.EVTYPE.getValue(),
+                            eventLfc.getEvType()
+                        ),
+                        String.format(
+                            EXPECTED_LOGBOOK_OP_LFC_NOT_EXISTS_MSG,
+                            LogbookEventName.EVTYPE.getValue(),
+                            eventLfc.getEvType()
+                        )
+                    )
+                );
             } else if (!eventLfc.getOutcome().equals(eventOp.getOutcome())) {
                 // case when the logbook operation event is not conform to the lifecycle event
-                logbookCheckErrors.add(new LogbookCheckError(eventLfc.getOperationId(),
-                    eventLfc.getLfcId(), eventLfc.getEvType(),
-                    String.format(SAVED_LOGBOOK_OP_LFC_NOT_CONFORME_MSG, LogbookEventName.OUTCOME.getValue(),
-                        eventLfc.getOutcome()),
-                    String.format(EXPECTED_LOGBOOK_OP_LFC_NOT_CONFORME_MSG, LogbookEventName.OUTCOME.getValue(),
-                        eventLfc.getOutcome())));
+                logbookCheckErrors.add(
+                    new LogbookCheckError(
+                        eventLfc.getOperationId(),
+                        eventLfc.getLfcId(),
+                        eventLfc.getEvType(),
+                        String.format(
+                            SAVED_LOGBOOK_OP_LFC_NOT_CONFORME_MSG,
+                            LogbookEventName.OUTCOME.getValue(),
+                            eventLfc.getOutcome()
+                        ),
+                        String.format(
+                            EXPECTED_LOGBOOK_OP_LFC_NOT_CONFORME_MSG,
+                            LogbookEventName.OUTCOME.getValue(),
+                            eventLfc.getOutcome()
+                        )
+                    )
+                );
             }
             // collect treated events
             treatedEvents.add(evType);
@@ -180,14 +223,28 @@ public class LogbookDetailsCheckServiceImpl implements LogbookDetailsCheckServic
         // treat non-conform logbook operation events
         if (!mapOpEvents.isEmpty()) {
             // case when logbook operation contains events without corespondances on Lifecycles.
-            mapOpEvents.values().forEach(event -> logbookCheckErrors.add(new LogbookCheckError(event.getOperationId(),
-                event.getLfcId(), event.getEvType(),
-                String.format(SAVED_LOGBOOK_OPERATION_EVENTS_NOT_EXIST_IN_LFC_MSG, LogbookEventName.EVTYPE.getValue(),
-                    event.getEvType()),
-                String.format(EXPECTED_LOGBOOK_OPERATION_EVENTS_NOT_EXIST_IN_LFC_MSG,
-                    LogbookEventName.EVTYPE.getValue(),
-                    event.getEvType())))
-            );
+            mapOpEvents
+                .values()
+                .forEach(
+                    event ->
+                        logbookCheckErrors.add(
+                            new LogbookCheckError(
+                                event.getOperationId(),
+                                event.getLfcId(),
+                                event.getEvType(),
+                                String.format(
+                                    SAVED_LOGBOOK_OPERATION_EVENTS_NOT_EXIST_IN_LFC_MSG,
+                                    LogbookEventName.EVTYPE.getValue(),
+                                    event.getEvType()
+                                ),
+                                String.format(
+                                    EXPECTED_LOGBOOK_OPERATION_EVENTS_NOT_EXIST_IN_LFC_MSG,
+                                    LogbookEventName.EVTYPE.getValue(),
+                                    event.getEvType()
+                                )
+                            )
+                        )
+                );
         }
 
         return logbookCheckErrors;

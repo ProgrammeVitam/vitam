@@ -88,8 +88,8 @@ public class UnitGraphModelTest {
         assertThat(unitGraphModel.originatingAgency()).isEqualTo("sp");
         assertThat(unitGraphModel.unitDepths()).containsExactly(
             entry("1", Sets.newHashSet("2")),
-            entry("2", Sets.newHashSet("3")));
+            entry("2", Sets.newHashSet("3"))
+        );
         assertThat(unitGraphModel.graph()).containsExactly("1/2", "2/3");
     }
-
 }

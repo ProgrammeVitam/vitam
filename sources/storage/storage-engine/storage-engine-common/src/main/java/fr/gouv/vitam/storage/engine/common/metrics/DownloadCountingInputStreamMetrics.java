@@ -36,26 +36,32 @@ import io.prometheus.client.Summary;
 import java.io.InputStream;
 
 public class DownloadCountingInputStreamMetrics extends AbstractCountingInputStreamMetrics {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DownloadCountingInputStreamMetrics.class);
 
     public static final Summary DOWNLOAD_BYTES = Summary.build()
         .name(VitamMetricsNames.VITAM_STORAGE_DOWNLOAD_SIZE_BYTES)
         .labelNames("tenant", "strategy", "offer_id", "origin", "data_category")
         .help(
-            "Vitam storage download objects from offers size in bytes per tenant, strategy, offer_id, origin of request  (normal, traceability, offer_sync) and data_category")
+            "Vitam storage download objects from offers size in bytes per tenant, strategy, offer_id, origin of request  (normal, traceability, offer_sync) and data_category"
+        )
         .register();
 
-    public DownloadCountingInputStreamMetrics(Integer tenant, String strategy, String offerId, String origin,
-        DataCategory dataCategory, InputStream inputStream) {
+    public DownloadCountingInputStreamMetrics(
+        Integer tenant,
+        String strategy,
+        String offerId,
+        String origin,
+        DataCategory dataCategory,
+        InputStream inputStream
+    ) {
         super(tenant, strategy, offerId, origin, dataCategory, inputStream);
     }
 
     @Override
     protected void onEndOfFileReached() {
         try {
-            DOWNLOAD_BYTES
-                .labels(super.tenant, strategy, offerId, origin, dataCategory)
-                .observe(super.getByteCount());
+            DOWNLOAD_BYTES.labels(super.tenant, strategy, offerId, origin, dataCategory).observe(super.getByteCount());
         } catch (Exception e) {
             LOGGER.warn(e);
         }

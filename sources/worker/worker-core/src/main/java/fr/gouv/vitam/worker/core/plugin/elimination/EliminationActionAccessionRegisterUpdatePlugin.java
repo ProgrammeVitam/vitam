@@ -51,8 +51,11 @@ public class EliminationActionAccessionRegisterUpdatePlugin extends PurgeAccessi
      */
     @VisibleForTesting
     EliminationActionAccessionRegisterUpdatePlugin(AdminManagementClientFactory adminManagementClientFactory) {
-        super(ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE, LogbookTypeProcess.ELIMINATION,
-            adminManagementClientFactory);
+        super(
+            ELIMINATION_ACTION_ACCESSION_REGISTER_UPDATE,
+            LogbookTypeProcess.ELIMINATION,
+            adminManagementClientFactory
+        );
     }
 
     public static String getId() {

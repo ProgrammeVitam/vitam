@@ -55,8 +55,10 @@ public class BusinessApplication extends Application {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            InterceptorConfiguration interceptorConfiguration =
-                PropertiesUtils.readYaml(yamlIS, InterceptorConfiguration.class);
+            InterceptorConfiguration interceptorConfiguration = PropertiesUtils.readYaml(
+                yamlIS,
+                InterceptorConfiguration.class
+            );
 
             final InterceptorResource interceptorResource = new InterceptorResource(interceptorConfiguration);
             singletons = new HashSet<>();
@@ -71,4 +73,3 @@ public class BusinessApplication extends Application {
         return singletons;
     }
 }
-

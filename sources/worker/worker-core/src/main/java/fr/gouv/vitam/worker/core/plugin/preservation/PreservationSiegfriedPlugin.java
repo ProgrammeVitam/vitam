@@ -64,6 +64,7 @@ import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPl
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubItems;
 
 public class PreservationSiegfriedPlugin extends ActionHandler {
+
     private static final String SUBSTATUS_UNKNOWN = "SUBSTATUS_UNKNOWN";
     private static final String KO_FILE_FORMAT_NOT_FOUND = "KO - FILE_FORMAT_NOT_FOUND ";
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationSiegfriedPlugin.class);
@@ -96,7 +97,8 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
         List<WorkflowBatchResult> workflowBatchResults = new ArrayList<>();
 
         for (WorkflowBatchResult workflowBatchResult : results.getWorkflowBatchResults()) {
-            List<OutputExtra> outputExtras = workflowBatchResult.getOutputExtras()
+            List<OutputExtra> outputExtras = workflowBatchResult
+                .getOutputExtras()
                 .stream()
                 .filter(OutputExtra::isOkAndGenerated)
                 .map(a -> getOutputExtra(outputFiles, a, results.getBatchDirectory(), siegfried))
@@ -112,13 +114,15 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
 
             itemStatuses.add(getItemStatus(outputExtras));
 
-            Stream<OutputExtra> otherActions = workflowBatchResult.getOutputExtras()
+            Stream<OutputExtra> otherActions = workflowBatchResult
+                .getOutputExtras()
                 .stream()
                 .filter(o -> !o.isOkAndGenerated());
 
-            List<OutputExtra> previousAndNewExtras =
-                Stream.concat(otherActions, outputExtras.stream().filter(outputExtra -> !outputExtra.isInError()))
-                    .collect(Collectors.toList());
+            List<OutputExtra> previousAndNewExtras = Stream.concat(
+                otherActions,
+                outputExtras.stream().filter(outputExtra -> !outputExtra.isInError())
+            ).collect(Collectors.toList());
             workflowBatchResults.add(WorkflowBatchResult.of(workflowBatchResult, previousAndNewExtras));
         }
 
@@ -138,7 +142,8 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
 
     private ItemStatus getItemStatus(List<OutputExtra> outputExtras) {
         Stream<String> subItemIds = outputExtras.stream().map(OutputExtra::getBinaryGUID);
-        String error = outputExtras.stream()
+        String error = outputExtras
+            .stream()
             .filter(o -> o.getError().isPresent())
             .map(o -> o.getError().get())
             .collect(Collectors.joining(","));
@@ -147,7 +152,8 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
                 .disableLfc()
                 .setGlobalOutcomeDetailSubcode(SUBSTATUS_UNKNOWN);
         }
-        String binaryFormats = outputExtras.stream()
+        String binaryFormats = outputExtras
+            .stream()
             .filter(o -> o.getBinaryFormat().isPresent())
             .map(OutputExtra::getBinaryFormat)
             .map(Optional::get)
@@ -159,14 +165,18 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
         return buildItemStatusSubItems(ITEM_ID, subItemIds, WARNING, EventDetails.of(error, binaryFormats));
     }
 
-    private OutputExtra getOutputExtra(Path inputFiles, OutputExtra a, Path batchDirectory,
-        FormatIdentifier siegfried) {
+    private OutputExtra getOutputExtra(
+        Path inputFiles,
+        OutputExtra a,
+        Path batchDirectory,
+        FormatIdentifier siegfried
+    ) {
         try {
-            Optional<FormatIdentifierResponse> format =
-                siegfried.analysePath(inputFiles.resolve(a.getOutput().getOutputName()))
-                    .stream()
-                    .filter(f -> PRONOM_NAMESPACE.equals(f.getMatchedNamespace()))
-                    .findFirst();
+            Optional<FormatIdentifierResponse> format = siegfried
+                .analysePath(inputFiles.resolve(a.getOutput().getOutputName()))
+                .stream()
+                .filter(f -> PRONOM_NAMESPACE.equals(f.getMatchedNamespace()))
+                .findFirst();
 
             if (format.isPresent()) {
                 return OutputExtra.withBinaryFormat(a, format.get());
@@ -174,7 +184,6 @@ public class PreservationSiegfriedPlugin extends ActionHandler {
                 logger.warn(KO_FILE_FORMAT_NOT_FOUND + SUBSTATUS_UNKNOWN);
                 return OutputExtra.inError(KO_FILE_FORMAT_NOT_FOUND + SUBSTATUS_UNKNOWN);
             }
-
         } catch (FileFormatNotFoundException e) {
             logger.warn(KO_FILE_FORMAT_NOT_FOUND + SUBSTATUS_UNKNOWN + ", {}", e);
             return OutputExtra.inError(e.getMessage());

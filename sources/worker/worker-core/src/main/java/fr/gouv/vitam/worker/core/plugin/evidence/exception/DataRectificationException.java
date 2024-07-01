@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.exception.VitamException;
  * DataRectificationException class
  */
 public class DataRectificationException extends VitamException {
+
     public DataRectificationException(VitamError vitamError) {
         super(vitamError);
     }

@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.collect.common.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -38,7 +37,6 @@ public class CriteriaProjectDto implements Serializable {
 
     @JsonProperty(value = "$query")
     private String query;
-
 
     public CriteriaProjectDto() {
         //Empty constructor for serialization
@@ -58,10 +56,8 @@ public class CriteriaProjectDto implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         CriteriaProjectDto that = (CriteriaProjectDto) o;
         return Objects.equals(query, that.query);
     }

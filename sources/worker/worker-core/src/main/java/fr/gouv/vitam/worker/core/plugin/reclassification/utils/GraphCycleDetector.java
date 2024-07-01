@@ -79,7 +79,6 @@ public class GraphCycleDetector {
      * @return a set of unit ids having one or more cycles is any. An empty set is returned if no cycles are detected.
      */
     public Set<String> checkCycles() {
-
         // Remove root units recursively
         removeNodesWithoutParents();
 
@@ -97,10 +96,10 @@ public class GraphCycleDetector {
      * If at some
      */
     private void removeNodesWithoutParents() {
-
         while (true) {
-
-            List<String> rootParents = parentToChildren.keySet().stream()
+            List<String> rootParents = parentToChildren
+                .keySet()
+                .stream()
                 .filter(node -> !childToParents.containsKey(node))
                 .collect(Collectors.toList());
 
@@ -118,10 +117,10 @@ public class GraphCycleDetector {
     }
 
     private void removeNodesWithoutChildren() {
-
         while (true) {
-
-            List<String> leaves = childToParents.keySet().stream()
+            List<String> leaves = childToParents
+                .keySet()
+                .stream()
                 .filter(node -> !parentToChildren.containsKey(node))
                 .collect(Collectors.toList());
 

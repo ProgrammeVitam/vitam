@@ -45,14 +45,15 @@ import static org.mockito.Mockito.mock;
 
 public class JsonLineDataBaseTest {
 
-    @ClassRule public static TempFolderRule tempFolderRule = new TempFolderRule();
+    @ClassRule
+    public static TempFolderRule tempFolderRule = new TempFolderRule();
 
     public static JsonLineDataBase dataBase;
 
     @BeforeClass
     public static void setUpClass() {
         HandlerIO handlerIO = mock(HandlerIO.class);
-        doAnswer((a) -> {
+        doAnswer(a -> {
             String name = a.getArgument(0);
             Path path = Path.of(tempFolderRule.newFile().getPath()).getParent().resolve(name);
             FileUtils.createParentDirectories(path.toFile());
@@ -61,7 +62,9 @@ public class JsonLineDataBaseTest {
             } else {
                 return tempFolderRule.newFile(name);
             }
-        }).when(handlerIO).getNewLocalFile(anyString());
+        })
+            .when(handlerIO)
+            .getNewLocalFile(anyString());
         dataBase = new JsonLineDataBase(handlerIO, "dir");
     }
 
@@ -75,5 +78,4 @@ public class JsonLineDataBaseTest {
         JsonNode read = dataBase.read("B1");
         assertEquals("B1", read.get("_id").asText());
     }
-
 }

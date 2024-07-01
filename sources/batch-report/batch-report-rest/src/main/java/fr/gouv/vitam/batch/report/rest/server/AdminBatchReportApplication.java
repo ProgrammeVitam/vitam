@@ -47,7 +47,6 @@ import static fr.gouv.vitam.common.serverv2.application.ApplicationParameter.CON
  */
 public class AdminBatchReportApplication extends Application {
 
-
     private final AdminApplication adminApplication;
     private Set<Object> singletons;
     private String configurationFile;
@@ -60,18 +59,18 @@ public class AdminBatchReportApplication extends Application {
     @Override
     public Set<Object> getSingletons() {
         if (singletons == null) {
-
             singletons = adminApplication.getSingletons();
 
             try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-                final BatchReportConfiguration configuration =
-                    PropertiesUtils.readYaml(yamlIS, BatchReportConfiguration.class);
+                final BatchReportConfiguration configuration = PropertiesUtils.readYaml(
+                    yamlIS,
+                    BatchReportConfiguration.class
+                );
 
                 singletons.add(new AdminBatchReportResource());
                 singletons.add(new BasicAuthenticationFilter(configuration));
                 singletons.add(new HeaderIdContainerFilter());
                 singletons.add(new JsonParseExceptionMapper());
-
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

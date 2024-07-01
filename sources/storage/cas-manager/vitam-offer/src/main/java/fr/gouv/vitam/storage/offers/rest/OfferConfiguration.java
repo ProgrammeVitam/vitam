@@ -43,6 +43,7 @@ public class OfferConfiguration extends DbConfigurationImpl {
     private String contextPath;
     private boolean authentication;
     private String swiftProjectName;
+
     @JsonProperty("offerLogCompaction")
     private OfferLogCompactionConfiguration offerLogCompactionConfiguration;
 
@@ -207,7 +208,8 @@ public class OfferConfiguration extends DbConfigurationImpl {
     }
 
     public OfferConfiguration setOfferLogCompactionConfiguration(
-        OfferLogCompactionConfiguration offerLogCompactionConfiguration) {
+        OfferLogCompactionConfiguration offerLogCompactionConfiguration
+    ) {
         this.offerLogCompactionConfiguration = offerLogCompactionConfiguration;
         return this;
     }

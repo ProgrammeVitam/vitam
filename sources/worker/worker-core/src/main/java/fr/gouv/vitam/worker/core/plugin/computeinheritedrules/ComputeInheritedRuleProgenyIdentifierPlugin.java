@@ -82,12 +82,12 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildBulkItemStatus;
 
 public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ComputeInheritedRuleProgenyIdentifierPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ComputeInheritedRuleProgenyIdentifierPlugin.class
+    );
 
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_PROGENY_IDENTIFIER";
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {
-    };
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {};
     static final String UNITS_JSONL_FILE_NAME = "unitsToInvalidate.jsonl";
 
     private final MetaDataClientFactory metaDataClientFactory;
@@ -96,15 +96,22 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
     private final int bulkSize;
 
     public ComputeInheritedRuleProgenyIdentifierPlugin() {
-        this(MetaDataClientFactory.getInstance(), BatchReportClientFactory.getInstance(),
-            WorkspaceClientFactory.getInstance(), GlobalDatas.LIMIT_LOAD);
+        this(
+            MetaDataClientFactory.getInstance(),
+            BatchReportClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance(),
+            GlobalDatas.LIMIT_LOAD
+        );
         // Default constructor for workflow initialization by Worker
     }
 
     @VisibleForTesting
-    ComputeInheritedRuleProgenyIdentifierPlugin(MetaDataClientFactory metaDataClientFactory,
-        BatchReportClientFactory batchReportClientFactory, WorkspaceClientFactory workspaceClientFactory,
-        int bulkSize) {
+    ComputeInheritedRuleProgenyIdentifierPlugin(
+        MetaDataClientFactory metaDataClientFactory,
+        BatchReportClientFactory batchReportClientFactory,
+        WorkspaceClientFactory workspaceClientFactory,
+        int bulkSize
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.batchReportClientFactory = batchReportClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
@@ -131,17 +138,18 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
         }
 
         handler.setCurrentObjectId(workerParameters.getObjectNameList().get(0));
-        try (InputStream inputStream = new FileInputStream((File) handler.getInput(0));
+        try (
+            InputStream inputStream = new FileInputStream((File) handler.getInput(0));
             JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE);
             BatchReportClient batchReportClient = batchReportClientFactory.getClient();
-            MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-
+            MetaDataClient metaDataClient = metaDataClientFactory.getClient()
+        ) {
             Iterator<List<JsonLineModel>> bulkLines = Iterators.partition(lines, bulkSize);
             bulkLines.forEachRemaining(
-                unitsToBatch -> findAndSaveUnitsProgeny(metaDataClient, batchReportClient, unitsToBatch, processId));
+                unitsToBatch -> findAndSaveUnitsProgeny(metaDataClient, batchReportClient, unitsToBatch, processId)
+            );
 
             batchReportClient.exportUnitsToInvalidate(processId, new ReportExportRequest(UNITS_JSONL_FILE_NAME));
-
         } catch (IOException | VitamClientInternalException e) {
             throw new ProcessingException(e);
         }
@@ -149,16 +157,15 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
         return buildBulkItemStatus(workerParameters, PLUGIN_NAME, StatusCode.OK);
     }
 
-    private void findAndSaveUnitsProgeny(MetaDataClient metaDataClient,
-        BatchReportClient batchReportClient, List<JsonLineModel> unitsToBatch,
-        String operationId) {
-
-        String[] parentsIds = unitsToBatch.stream()
-            .map(JsonLineModel::getId)
-            .toArray(String[]::new);
+    private void findAndSaveUnitsProgeny(
+        MetaDataClient metaDataClient,
+        BatchReportClient batchReportClient,
+        List<JsonLineModel> unitsToBatch,
+        String operationId
+    ) {
+        String[] parentsIds = unitsToBatch.stream().map(JsonLineModel::getId).toArray(String[]::new);
 
         try {
-
             InQuery childrenUnitsQuery = QueryHelper.in(VitamFieldsHelper.allunitups(), parentsIds);
             InQuery parentsUnitsQuery = QueryHelper.in(VitamFieldsHelper.id(), parentsIds);
             BooleanQuery parentsAndProgenyUnits = QueryHelper.or().add(childrenUnitsQuery, parentsUnitsQuery);
@@ -172,33 +179,40 @@ public class ComputeInheritedRuleProgenyIdentifierPlugin extends ActionHandler {
 
             // Query against ES via cursor
             Iterator<JsonNode> unitIterator = new SpliteratorIterator<>(
-                ScrollSpliteratorHelper.createUnitScrollSplitIterator(metaDataClient, select));
+                ScrollSpliteratorHelper.createUnitScrollSplitIterator(metaDataClient, select)
+            );
 
             // Map to unit Ids
             Iterator<String> unitIdIterator = IteratorUtils.transformedIterator(
                 unitIterator,
-                result -> Objects.requireNonNull(result.get(VitamFieldsHelper.id()).asText()));
+                result -> Objects.requireNonNull(result.get(VitamFieldsHelper.id()).asText())
+            );
 
             // Process in chunks
             Iterators.partition(unitIdIterator, VitamConfiguration.getBatchSize()).forEachRemaining(
                 unitsIds -> appendUnitIdsToBatchReport(batchReportClient, operationId, unitsIds)
             );
-
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             throw new VitamRuntimeException(e);
         }
     }
 
-    private void appendUnitIdsToBatchReport(BatchReportClient batchReportClient, String operationId,
-        List<String> unitsIds) {
+    private void appendUnitIdsToBatchReport(
+        BatchReportClient batchReportClient,
+        String operationId,
+        List<String> unitsIds
+    ) {
         try {
-            List<UnitComputedInheritedRulesInvalidationReportEntry> entries = unitsIds.stream()
+            List<UnitComputedInheritedRulesInvalidationReportEntry> entries = unitsIds
+                .stream()
                 .distinct()
                 .map(UnitComputedInheritedRulesInvalidationReportEntry::new)
                 .collect(Collectors.toList());
-            ReportBody<UnitComputedInheritedRulesInvalidationReportEntry> report =
-                new ReportBody<>(operationId,
-                    ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION, entries);
+            ReportBody<UnitComputedInheritedRulesInvalidationReportEntry> report = new ReportBody<>(
+                operationId,
+                ReportType.UNIT_COMPUTED_INHERITED_RULES_INVALIDATION,
+                entries
+            );
             batchReportClient.appendReportEntries(report);
         } catch (VitamClientInternalException e) {
             throw new VitamRuntimeException(e);

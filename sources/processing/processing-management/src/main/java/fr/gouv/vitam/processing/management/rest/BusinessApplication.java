@@ -56,5 +56,4 @@ public class BusinessApplication extends Application {
     public Set<Object> getSingletons() {
         return singletons;
     }
-
 }

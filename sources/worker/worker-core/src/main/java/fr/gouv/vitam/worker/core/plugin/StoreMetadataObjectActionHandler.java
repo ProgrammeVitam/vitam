@@ -44,9 +44,7 @@ import fr.gouv.vitam.storage.engine.common.model.DataCategory;
  */
 public abstract class StoreMetadataObjectActionHandler extends StoreObjectActionHandler {
 
-
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(StoreMetadataObjectActionHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreMetadataObjectActionHandler.class);
 
     private static final String $RESULTS = "$results";
     private static final String DOCUMENT_NOT_FOUND = "Document not found";
@@ -64,9 +62,11 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
      * @return JsonNode from the found document
      * @throws ProcessingException if no result found or error during parsing response from metadata client
      */
-    protected JsonNode selectMetadataDocumentRawById(String idDocument, DataCategory dataCategory,
-        MetaDataClient metaDataClient)
-        throws VitamException {
+    protected JsonNode selectMetadataDocumentRawById(
+        String idDocument,
+        DataCategory dataCategory,
+        MetaDataClient metaDataClient
+    ) throws VitamException {
         ParametersChecker.checkParameter("Data category ", dataCategory);
         ParametersChecker.checkParameter("idDocument is empty", idDocument);
 
@@ -105,9 +105,11 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
      * @return the raw LFC
      * @throws ProcessingException if no result found or error during parsing response from logbook client
      */
-    protected JsonNode getRawLogbookLifeCycleById(String idDocument, DataCategory dataCategory,
-        LogbookLifeCyclesClient logbookClient)
-        throws VitamException {
+    protected JsonNode getRawLogbookLifeCycleById(
+        String idDocument,
+        DataCategory dataCategory,
+        LogbookLifeCyclesClient logbookClient
+    ) throws VitamException {
         switch (dataCategory) {
             case UNIT:
                 return logbookClient.getRawUnitLifeCycleById(idDocument);
@@ -126,9 +128,7 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
      * @return a single result from response
      * @throws ProcessingException if no result found
      */
-    private JsonNode extractNodeFromResponse(JsonNode jsonResponse, final String error)
-        throws VitamException {
-
+    private JsonNode extractNodeFromResponse(JsonNode jsonResponse, final String error) throws VitamException {
         JsonNode jsonNode;
         // check response
         if (jsonResponse == null) {
@@ -146,4 +146,3 @@ public abstract class StoreMetadataObjectActionHandler extends StoreObjectAction
         return jsonNode.get(0);
     }
 }
-

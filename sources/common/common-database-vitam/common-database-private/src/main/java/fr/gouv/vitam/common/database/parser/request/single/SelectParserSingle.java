@@ -98,8 +98,7 @@ public class SelectParserSingle extends RequestParserSingle {
      * @throws InvalidParseOperationException if rootNode could not parse to projection or check sanity to rootNode is
      * in error
      */
-    public void projectionParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    public void projectionParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -113,8 +112,7 @@ public class SelectParserSingle extends RequestParserSingle {
             }
             ((Select) request).setProjection(rootNode);
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Projection: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Projection: " + rootNode, e);
         }
     }
 
@@ -129,13 +127,11 @@ public class SelectParserSingle extends RequestParserSingle {
     public void addProjection(final ObjectNode slice, final ObjectNode allFields)
         throws InvalidParseOperationException {
         if (slice == null || allFields == null) {
-            throw new InvalidParseOperationException(
-                "addProjection does not accept null parameters");
+            throw new InvalidParseOperationException("addProjection does not accept null parameters");
         }
         GlobalDatas.sanityParametersCheck(slice.toString(), GlobalDatas.NB_PROJECTIONS);
         try {
-            ObjectNode node = (ObjectNode) ((Select) request).getProjection().get(
-                PROJECTION.FIELDS.exactToken());
+            ObjectNode node = (ObjectNode) ((Select) request).getProjection().get(PROJECTION.FIELDS.exactToken());
             if (node == null) {
                 node = ((Select) request).getProjection().putObject(PROJECTION.FIELDS.exactToken());
                 // Add all fields
@@ -149,8 +145,7 @@ public class SelectParserSingle extends RequestParserSingle {
             }
             node.setAll(slice);
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Projection: " + slice, e);
+            throw new InvalidParseOperationException("Parse in error for Projection: " + slice, e);
         }
     }
 

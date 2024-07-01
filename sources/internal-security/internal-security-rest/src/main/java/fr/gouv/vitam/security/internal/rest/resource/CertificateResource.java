@@ -27,29 +27,18 @@
 
 package fr.gouv.vitam.security.internal.rest.resource;
 
-import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.alert.AlertService;
 import fr.gouv.vitam.common.alert.AlertServiceImpl;
 import fr.gouv.vitam.common.exception.InvalidParseOperationException;
-import fr.gouv.vitam.common.logging.VitamLogLevel;
-import fr.gouv.vitam.security.internal.common.model.CertificateBaseModel;
-import fr.gouv.vitam.security.internal.common.model.IdentityModel;
-import fr.gouv.vitam.security.internal.common.model.PersonalCertificateModel;
 import fr.gouv.vitam.security.internal.rest.service.IdentityService;
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 
-import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.text.ParseException;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.time.format.FormatStyle;
-import java.util.List;
 
 @Path("/v1/api/certificate")
 public class CertificateResource {
@@ -60,13 +49,15 @@ public class CertificateResource {
 
     private final AlertService alertService;
 
-    public CertificateResource(IdentityService identityService,
-        PersonalCertificateService personalCertificateService) {
+    public CertificateResource(IdentityService identityService, PersonalCertificateService personalCertificateService) {
         this(identityService, personalCertificateService, new AlertServiceImpl());
     }
 
-    public CertificateResource(IdentityService identityService,
-        PersonalCertificateService personalCertificateService, AlertService alertService) {
+    public CertificateResource(
+        IdentityService identityService,
+        PersonalCertificateService personalCertificateService,
+        AlertService alertService
+    ) {
         this.identityService = identityService;
         this.personalCertificateService = personalCertificateService;
         this.alertService = alertService;
@@ -80,7 +71,7 @@ public class CertificateResource {
     @GET
     @Path("/check-expiration")
     @Produces(MediaType.APPLICATION_JSON)
-        public Response checkCertificatesExpiration() throws InvalidParseOperationException {
+    public Response checkCertificatesExpiration() throws InvalidParseOperationException {
         try {
             identityService.checkCertificates();
             personalCertificateService.checkCertificates();

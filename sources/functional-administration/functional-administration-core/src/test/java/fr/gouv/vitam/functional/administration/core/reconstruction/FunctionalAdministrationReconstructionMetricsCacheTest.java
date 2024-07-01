@@ -41,11 +41,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class FunctionalAdministrationReconstructionMetricsCacheTest {
 
-    @Rule public LogicalClockRule logicalClock = new LogicalClockRule();
+    @Rule
+    public LogicalClockRule logicalClock = new LogicalClockRule();
 
     @Test
     public void getFreshlyReconstructedDocumentMetrics() {
-
         // Given
         FunctionalAdministrationReconstructionMetricsCache cache =
             new FunctionalAdministrationReconstructionMetricsCache(10L, TimeUnit.MINUTES);
@@ -61,7 +61,6 @@ public class FunctionalAdministrationReconstructionMetricsCacheTest {
 
     @Test
     public void getDocumentMetricsAfterDelay() {
-
         // Given
         FunctionalAdministrationReconstructionMetricsCache cache =
             new FunctionalAdministrationReconstructionMetricsCache(10L, TimeUnit.MINUTES);
@@ -78,15 +77,13 @@ public class FunctionalAdministrationReconstructionMetricsCacheTest {
 
     @Test
     public void getMetricsAfterExpiration() {
-
         // Given
         FunctionalAdministrationReconstructionMetricsCache cache =
             new FunctionalAdministrationReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
 
         // When
-        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_DETAIL, 0,
-            LocalDateUtil.now());
+        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_DETAIL, 0, LocalDateUtil.now());
         logicalClock.logicalSleep(11, ChronoUnit.MINUTES);
         Duration elapsed = cache.getReconstructionLatency(ACCESSION_REGISTER_DETAIL, 0);
 
@@ -96,18 +93,15 @@ public class FunctionalAdministrationReconstructionMetricsCacheTest {
 
     @Test
     public void getUpdatedMetrics() {
-
         // Given
         FunctionalAdministrationReconstructionMetricsCache cache =
             new FunctionalAdministrationReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
 
         // When
-        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_DETAIL, 0,
-            LocalDateUtil.now());
+        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_DETAIL, 0, LocalDateUtil.now());
         logicalClock.logicalSleep(2, ChronoUnit.MINUTES);
-        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_DETAIL, 0,
-            LocalDateUtil.now());
+        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_DETAIL, 0, LocalDateUtil.now());
         logicalClock.logicalSleep(3, ChronoUnit.MINUTES);
         Duration elapsed = cache.getReconstructionLatency(ACCESSION_REGISTER_DETAIL, 0);
 
@@ -117,37 +111,45 @@ public class FunctionalAdministrationReconstructionMetricsCacheTest {
 
     @Test
     public void testMultipleMetrics() {
-
         // Given
         FunctionalAdministrationReconstructionMetricsCache cache =
             new FunctionalAdministrationReconstructionMetricsCache(10L, TimeUnit.MINUTES);
         logicalClock.freezeTime();
 
         // When
-        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_DETAIL, 0,
-            LocalDateUtil.now());
-        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_DETAIL, 3,
-            LocalDateUtil.now().minus(2, ChronoUnit.MINUTES));
+        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_DETAIL, 0, LocalDateUtil.now());
+        cache.registerLastDocumentReconstructionDate(
+            ACCESSION_REGISTER_DETAIL,
+            3,
+            LocalDateUtil.now().minus(2, ChronoUnit.MINUTES)
+        );
 
         logicalClock.logicalSleep(9, ChronoUnit.MINUTES);
 
-        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_DETAIL, 0,
-            LocalDateUtil.now());
-        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_DETAIL, 1,
-            LocalDateUtil.now().minus(15, ChronoUnit.MINUTES));
-        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_SYMBOLIC, 1,
-            LocalDateUtil.now().minus(30, ChronoUnit.MINUTES));
+        cache.registerLastDocumentReconstructionDate(ACCESSION_REGISTER_DETAIL, 0, LocalDateUtil.now());
+        cache.registerLastDocumentReconstructionDate(
+            ACCESSION_REGISTER_DETAIL,
+            1,
+            LocalDateUtil.now().minus(15, ChronoUnit.MINUTES)
+        );
+        cache.registerLastDocumentReconstructionDate(
+            ACCESSION_REGISTER_SYMBOLIC,
+            1,
+            LocalDateUtil.now().minus(30, ChronoUnit.MINUTES)
+        );
 
         logicalClock.logicalSleep(2, ChronoUnit.MINUTES);
 
         // Then
         assertThat(cache.getReconstructionLatency(ACCESSION_REGISTER_DETAIL, 0)).isEqualTo(
-            Duration.of(2, ChronoUnit.MINUTES));
-        assertThat(
-            cache.getReconstructionLatency(ACCESSION_REGISTER_DETAIL, 3)).isNull();
+            Duration.of(2, ChronoUnit.MINUTES)
+        );
+        assertThat(cache.getReconstructionLatency(ACCESSION_REGISTER_DETAIL, 3)).isNull();
         assertThat(cache.getReconstructionLatency(ACCESSION_REGISTER_DETAIL, 1)).isEqualTo(
-            Duration.of(17, ChronoUnit.MINUTES));
+            Duration.of(17, ChronoUnit.MINUTES)
+        );
         assertThat(cache.getReconstructionLatency(ACCESSION_REGISTER_SYMBOLIC, 1)).isEqualTo(
-            Duration.of(32, ChronoUnit.MINUTES));
+            Duration.of(32, ChronoUnit.MINUTES)
+        );
     }
 }

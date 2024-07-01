@@ -85,6 +85,7 @@ import java.io.IOException;
  */
 
 public class LogbookLifeCyclesClientFactory extends VitamClientFactory<LogbookLifeCyclesClient> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCyclesClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "logbook-client.conf";
     private static final LogbookLifeCyclesClientFactory LOGBOOK_LIFECYCLES_CLIENT_FACTORY =
@@ -139,18 +140,20 @@ public class LogbookLifeCyclesClientFactory extends VitamClientFactory<LogbookLi
     static final ClientConfiguration changeConfigurationFile(String configurationPath) {
         ClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                ClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                ClientConfigurationImpl.class
+            );
         } catch (final IOException fnf) {
-            LOGGER.debug("Error when retrieving configuration file {}, using mock",
-                configurationPath,
-                fnf);
+            LOGGER.debug("Error when retrieving configuration file {}, using mock", configurationPath, fnf);
         }
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file {}, using mock",
-                configurationPath);
-        } else if (configuration.getServerHost() == null || configuration.getServerHost().trim().isEmpty() ||
-            configuration.getServerPort() <= 0) {
+            LOGGER.error("Error when retrieving configuration file {}, using mock", configurationPath);
+        } else if (
+            configuration.getServerHost() == null ||
+            configuration.getServerHost().trim().isEmpty() ||
+            configuration.getServerPort() <= 0
+        ) {
             configuration = null;
         }
         return configuration;
@@ -162,5 +165,4 @@ public class LogbookLifeCyclesClientFactory extends VitamClientFactory<LogbookLi
     public static final void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
-
 }

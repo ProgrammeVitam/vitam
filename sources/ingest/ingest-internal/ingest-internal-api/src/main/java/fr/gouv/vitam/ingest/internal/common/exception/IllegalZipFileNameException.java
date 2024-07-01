@@ -34,5 +34,4 @@ public class IllegalZipFileNameException extends IngestInternalClientException {
     public IllegalZipFileNameException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

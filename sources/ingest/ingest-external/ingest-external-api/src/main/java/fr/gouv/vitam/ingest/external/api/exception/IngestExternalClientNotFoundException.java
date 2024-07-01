@@ -29,6 +29,7 @@ package fr.gouv.vitam.ingest.external.api.exception;
 import fr.gouv.vitam.common.error.VitamError;
 
 public class IngestExternalClientNotFoundException extends IngestExternalClientException {
+
     private static final long serialVersionUID = -559328374023039896L;
 
     public IngestExternalClientNotFoundException(String message) {

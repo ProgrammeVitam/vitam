@@ -74,7 +74,8 @@ public class IndexationHelper {
      * @param indexAlias the elastic index alias information
      * @return the result of the reindexation as a IndexationResult object
      */
-    public ReindexationOK reindex(MongoCollection<Document> collection,
+    public ReindexationOK reindex(
+        MongoCollection<Document> collection,
         ElasticsearchAccess esClient,
         ElasticsearchIndexAlias indexAlias,
         ElasticsearchIndexSettings indexSettings,
@@ -82,7 +83,6 @@ public class IndexationHelper {
         List<Integer> tenantIds,
         String tenantGroupName
     ) throws DatabaseException {
-
         MongoCursor<Document> cursor = null;
         long numberOfDocumentsToIndex;
         try {
@@ -91,14 +91,16 @@ public class IndexationHelper {
 
             if (CollectionUtils.isNotEmpty(tenantIds)) {
                 LOGGER.warn("Reindexation started on index {} in tenants {}", indexAlias.getName(), tenantIds);
-                cursor = vitamMongoRepository.findDocuments(
-                    Filters.in(VitamDocument.TENANT_ID, tenantIds),
-                    VitamConfiguration.getMaxElasticsearchBulk()).iterator();
+                cursor = vitamMongoRepository
+                    .findDocuments(
+                        Filters.in(VitamDocument.TENANT_ID, tenantIds),
+                        VitamConfiguration.getMaxElasticsearchBulk()
+                    )
+                    .iterator();
                 numberOfDocumentsToIndex = vitamMongoRepository.count(Filters.in(VitamDocument.TENANT_ID, tenantIds));
             } else {
                 LOGGER.warn("Reindexation started on index {} in all tenants", indexAlias.getName());
-                cursor = vitamMongoRepository.findDocuments(
-                    VitamConfiguration.getMaxElasticsearchBulk()).iterator();
+                cursor = vitamMongoRepository.findDocuments(VitamConfiguration.getMaxElasticsearchBulk()).iterator();
                 numberOfDocumentsToIndex = vitamMongoRepository.count();
             }
 
@@ -106,16 +108,18 @@ public class IndexationHelper {
             ElasticsearchIndexAlias newIndexWithoutAlias = esClient.createIndexWithoutAlias(indexAlias, indexSettings);
 
             // Create repository for the given indexName
-            VitamElasticsearchRepository vitamElasticsearchRepository =
-                new VitamElasticsearchRepository(esClient.getClient(),
-                    (tenant) -> newIndexWithoutAlias);
-
+            VitamElasticsearchRepository vitamElasticsearchRepository = new VitamElasticsearchRepository(
+                esClient.getClient(),
+                tenant -> newIndexWithoutAlias
+            );
 
             LOGGER.warn("number of documents to index = {}", numberOfDocumentsToIndex);
             long numberOfDocumentsIndexed = 0;
             // Reindex document with bulk
-            Iterator<List<Document>> bulkDocumentIterator =
-                Iterators.partition(cursor, VitamConfiguration.getMaxElasticsearchBulk());
+            Iterator<List<Document>> bulkDocumentIterator = Iterators.partition(
+                cursor,
+                VitamConfiguration.getMaxElasticsearchBulk()
+            );
             while (bulkDocumentIterator.hasNext()) {
                 List<Document> documents = bulkDocumentIterator.next();
                 if (elasticsearchCollection == ElasticsearchCollections.OPERATION) {
@@ -124,14 +128,18 @@ public class IndexationHelper {
                     vitamElasticsearchRepository.save(documents);
                 }
                 numberOfDocumentsIndexed += documents.size();
-                LOGGER.warn("Reindexation in progress {}%",
-                    0.01 * ((int) ((float) numberOfDocumentsIndexed / numberOfDocumentsToIndex * 10000)));
-                LOGGER.warn("number of indexed documents = {}\t number of remaining documents = {}",
-                    numberOfDocumentsIndexed, numberOfDocumentsToIndex - numberOfDocumentsIndexed);
+                LOGGER.warn(
+                    "Reindexation in progress {}%",
+                    0.01 * ((int) (((float) numberOfDocumentsIndexed / numberOfDocumentsToIndex) * 10000))
+                );
+                LOGGER.warn(
+                    "number of indexed documents = {}\t number of remaining documents = {}",
+                    numberOfDocumentsIndexed,
+                    numberOfDocumentsToIndex - numberOfDocumentsIndexed
+                );
             }
             LOGGER.warn("Reindexation ended successfully");
             return new ReindexationOK(indexAlias.getName(), newIndexWithoutAlias.getName(), tenantIds, tenantGroupName);
-
         } catch (DatabaseException | RuntimeException e) {
             LOGGER.error("Reindexation failed", e);
             throw e;
@@ -150,13 +158,16 @@ public class IndexationHelper {
      * @param esClient the elastic client
      * @throws DatabaseException if an error occurs
      */
-    public SwitchIndexResult switchIndex(ElasticsearchIndexAlias indexAlias, ElasticsearchIndexAlias newIndex,
-        ElasticsearchAccess esClient)
-        throws DatabaseException {
+    public SwitchIndexResult switchIndex(
+        ElasticsearchIndexAlias indexAlias,
+        ElasticsearchIndexAlias newIndex,
+        ElasticsearchAccess esClient
+    ) throws DatabaseException {
         try {
             if (!indexAlias.isValidAliasOfIndex(newIndex)) {
                 throw new DatabaseException(
-                    "Illegal index name '" + newIndex + "' for alias '" + indexAlias.getName() + "'");
+                    "Illegal index name '" + newIndex + "' for alias '" + indexAlias.getName() + "'"
+                );
             }
             esClient.switchIndex(indexAlias, newIndex);
             return new SwitchIndexResult()

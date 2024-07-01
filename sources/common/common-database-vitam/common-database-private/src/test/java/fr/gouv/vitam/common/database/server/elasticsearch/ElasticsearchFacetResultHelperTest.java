@@ -48,7 +48,6 @@ public class ElasticsearchFacetResultHelperTest {
 
     @Test
     public void should_return_valid_result_when_valid_terms_aggregation() {
-
         // given
         Terms terms = Mockito.mock(Terms.class);
         Mockito.when(terms.getName()).thenReturn("Name");
@@ -77,10 +76,8 @@ public class ElasticsearchFacetResultHelperTest {
         assertThat(facet.getBuckets().get(1).getCount()).isEqualTo(1L);
     }
 
-
     @Test
     public void should_return_valid_result_when_valid_date_range_aggregation() {
-
         // given
         Range range = Mockito.mock(Range.class);
         Mockito.when(range.getName()).thenReturn("EndDate");
@@ -109,10 +106,8 @@ public class ElasticsearchFacetResultHelperTest {
         assertThat(facet.getBuckets().get(1).getCount()).isEqualTo(1L);
     }
 
-
     @Test
     public void should_return_valid_result_when_empty_buckets_terms_aggregation() {
-
         // given
         Terms terms = Mockito.mock(Terms.class);
         Mockito.when(terms.getName()).thenReturn("Name");
@@ -129,4 +124,3 @@ public class ElasticsearchFacetResultHelperTest {
         assertThat(facet.getBuckets()).hasSize(0);
     }
 }
-

@@ -32,8 +32,10 @@ public class StorageBulkMetadataResultEntry {
 
     @JsonProperty("objectName")
     private String objectName;
+
     @JsonProperty("digest")
     private String digest;
+
     @JsonProperty("size")
     private Long size;
 

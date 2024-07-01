@@ -61,10 +61,8 @@ import java.util.Map;
 @Tag(name = "Tape")
 public class TapeCatalogResource extends ApplicationStatusResource {
 
-    private static final String MISSING_THE_TAPE_ID =
-        "Missing the tape ID or wrong ID";
-    private static final String MISSING_THE_SEARCH_CRITERIA =
-        "Missing or wrong search criteria";
+    private static final String MISSING_THE_TAPE_ID = "Missing the tape ID or wrong ID";
+    private static final String MISSING_THE_SEARCH_CRITERIA = "Missing or wrong search criteria";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeCatalogResource.class);
 
     private final TapeCatalogService tapeCatalogService;
@@ -98,8 +96,10 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     @Path("/tapecatalog/{tapeId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "return tape model from catalog",
-        description = "Permet de récupérer la cassette de stockage à partir du catalogue")
+    @Operation(
+        summary = "return tape model from catalog",
+        description = "Permet de récupérer la cassette de stockage à partir du catalogue"
+    )
     public Response getTape(@PathParam("tapeId") String tapeId) {
         try {
             if (Strings.isNullOrEmpty(tapeId)) {
@@ -117,7 +117,6 @@ public class TapeCatalogResource extends ApplicationStatusResource {
             responseOK.addAllResults(Arrays.asList(JsonHandler.toJsonNode(tapeCatalog)));
             LOGGER.debug("Result {}", responseOK);
             return Response.status(Status.OK).entity(responseOK).build();
-
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -134,8 +133,10 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     @Path("/tapecatalog/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "return tapes list from catalog",
-        description = "Permet de récupérer la liste des cassettes de stockage à partir du catalogue")
+    @Operation(
+        summary = "return tapes list from catalog",
+        description = "Permet de récupérer la liste des cassettes de stockage à partir du catalogue"
+    )
     public Response getTapes(List<QueryCriteria> criteria) {
         try {
             if (criteria == null || criteria.isEmpty()) {
@@ -147,7 +148,6 @@ public class TapeCatalogResource extends ApplicationStatusResource {
             responseOK.addAllResults(Arrays.asList(JsonHandler.toJsonNode(tapeCatalogService.find(criteria))));
             LOGGER.debug("Result {}", responseOK);
             return Response.status(Status.OK).entity(responseOK).build();
-
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -164,10 +164,11 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     @Path("/tapecatalog/tapeId")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "replace tape model by id",
-        description = "Permet de remplacer entièrement une cassette de stockage à partir d'un id")
+    @Operation(
+        summary = "replace tape model by id",
+        description = "Permet de remplacer entièrement une cassette de stockage à partir d'un id"
+    )
     public Response replaceTape(@PathParam("tapeId") String tapeId, TapeCatalog tapeCatalog) {
-
         try {
             if (Strings.isNullOrEmpty(tapeId)) {
                 LOGGER.error(MISSING_THE_TAPE_ID);
@@ -179,7 +180,6 @@ public class TapeCatalogResource extends ApplicationStatusResource {
                 return Response.status(Status.NOT_MODIFIED).build();
             }
             return Response.status(Status.OK).build();
-
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -196,10 +196,11 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     @Path("/tapecatalog/tapeId")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "update tape model by id",
-        description = "Permet de modifier une cassette de stockage à partir d'un id")
+    @Operation(
+        summary = "update tape model by id",
+        description = "Permet de modifier une cassette de stockage à partir d'un id"
+    )
     public Response updateTape(@PathParam("tapeId") String tapeId, Map<String, Object> fields) {
-
         try {
             if (Strings.isNullOrEmpty(tapeId)) {
                 LOGGER.error(MISSING_THE_TAPE_ID);
@@ -216,7 +217,6 @@ public class TapeCatalogResource extends ApplicationStatusResource {
                 return Response.status(Status.NOT_MODIFIED).build();
             }
             return Response.status(Status.OK).build();
-
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).build();
@@ -233,16 +233,13 @@ public class TapeCatalogResource extends ApplicationStatusResource {
     @Path("/tapecatalog/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "create a tape model",
-        description = "Permet de créer une cassette de stockage")
+    @Operation(summary = "create a tape model", description = "Permet de créer une cassette de stockage")
     public Response createTape(TapeCatalog tapeCatalog) {
-
         try {
             final RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
 
             tapeCatalogService.create(tapeCatalog);
             return Response.status(Status.OK).entity(responseOK).build();
-
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).build();

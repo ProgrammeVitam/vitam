@@ -35,6 +35,7 @@ import java.util.Date;
  * Max Action: $max : { name : value }
  */
 public class MaxAction extends Action {
+
     protected MaxAction() {
         super();
     }
@@ -46,8 +47,7 @@ public class MaxAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public MaxAction(final String variableName, final long value)
-        throws InvalidCreateOperationException {
+    public MaxAction(final String variableName, final long value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.MAX, variableName, value);
         currentUPDATEACTION = UPDATEACTION.MAX;
@@ -61,8 +61,7 @@ public class MaxAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public MaxAction(final String variableName, final double value)
-        throws InvalidCreateOperationException {
+    public MaxAction(final String variableName, final double value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.MAX, variableName, value);
         currentUPDATEACTION = UPDATEACTION.MAX;
@@ -76,8 +75,7 @@ public class MaxAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public MaxAction(final String variableName, final Date value)
-        throws InvalidCreateOperationException {
+    public MaxAction(final String variableName, final Date value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.MAX, variableName, value);
         currentUPDATEACTION = UPDATEACTION.MAX;
@@ -91,8 +89,7 @@ public class MaxAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public MaxAction(final String variableName, final boolean value)
-        throws InvalidCreateOperationException {
+    public MaxAction(final String variableName, final boolean value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.MAX, variableName, value);
         currentUPDATEACTION = UPDATEACTION.MAX;
@@ -106,12 +103,10 @@ public class MaxAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public MaxAction(final String variableName, final String value)
-        throws InvalidCreateOperationException {
+    public MaxAction(final String variableName, final String value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.MAX, variableName, value);
         currentUPDATEACTION = UPDATEACTION.MAX;
         setReady(true);
     }
-
 }

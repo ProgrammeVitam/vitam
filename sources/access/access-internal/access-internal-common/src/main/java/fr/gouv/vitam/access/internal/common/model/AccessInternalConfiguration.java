@@ -53,7 +53,6 @@ public class AccessInternalConfiguration extends DefaultVitamApplicationConfigur
         this.urlMetaData = urlMetaData;
     }
 
-
     /**
      * getter UrlMetaData
      *
@@ -105,5 +104,4 @@ public class AccessInternalConfiguration extends DefaultVitamApplicationConfigur
         this.urlProcessing = urlProcessing;
         return this;
     }
-
 }

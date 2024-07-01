@@ -44,11 +44,11 @@ public class ArchiveCacheEvictionController {
     private final BucketTopologyHelper bucketTopologyHelper;
     private final LockManager<ArchiveCacheEntry> archiveCacheEntryLockManager;
 
-
     public ArchiveCacheEvictionController(
         AccessRequestReferentialRepository accessRequestReferentialRepository,
         ObjectReferentialRepository objectReferentialRepository,
-        BucketTopologyHelper bucketTopologyHelper) {
+        BucketTopologyHelper bucketTopologyHelper
+    ) {
         this.accessRequestReferentialRepository = accessRequestReferentialRepository;
         this.objectReferentialRepository = objectReferentialRepository;
         this.bucketTopologyHelper = bucketTopologyHelper;
@@ -61,11 +61,9 @@ public class ArchiveCacheEvictionController {
      * @return An eviction judge that decides if an archive "file-bucket-id/tarId" can be evicted from cache or not.
      */
     public LRUCacheEvictionJudge<ArchiveCacheEntry> computeEvictionJudge() {
-
         Set<String> inUseArchiveIds = listArchiveIdsRequiredByActiveAccessRequests();
 
-        return (archiveCacheEntry) -> {
-
+        return archiveCacheEntry -> {
             if (inUseArchiveIds.contains(archiveCacheEntry.getTarId())) {
                 return false;
             }
@@ -74,11 +72,11 @@ public class ArchiveCacheEvictionController {
                 return false;
             }
 
-            boolean tarIdRequiredByActiveAccessRequests =
-                bucketTopologyHelper.keepFileBucketIdForeverInCache(archiveCacheEntry.getFileBucketId());
+            boolean tarIdRequiredByActiveAccessRequests = bucketTopologyHelper.keepFileBucketIdForeverInCache(
+                archiveCacheEntry.getFileBucketId()
+            );
             return !tarIdRequiredByActiveAccessRequests;
         };
-
     }
 
     private Set<String> listArchiveIdsRequiredByActiveAccessRequests() {
@@ -86,20 +84,28 @@ public class ArchiveCacheEvictionController {
             Set<String> inUseArchiveIds;
 
             StopWatch swListObjects = StopWatch.createStarted();
-            try (CloseableIterator<TapeLibraryObjectReferentialId> objectIdIterator =
-                this.accessRequestReferentialRepository.listObjectIdsForActiveAccessRequests()) {
+            try (
+                CloseableIterator<TapeLibraryObjectReferentialId> objectIdIterator =
+                    this.accessRequestReferentialRepository.listObjectIdsForActiveAccessRequests()
+            ) {
                 swListObjects.stop();
-                PerformanceLogger.getInstance().log(
-                    "TAPE_CACHE_EVICTION", "LIST_OBJECT_IDS_REQUIRED_BY_ACCESS_REQUESTS",
-                    swListObjects.getTime(TimeUnit.MILLISECONDS));
+                PerformanceLogger.getInstance()
+                    .log(
+                        "TAPE_CACHE_EVICTION",
+                        "LIST_OBJECT_IDS_REQUIRED_BY_ACCESS_REQUESTS",
+                        swListObjects.getTime(TimeUnit.MILLISECONDS)
+                    );
 
                 // From objectIds, get archiveIds
                 StopWatch swListArchives = StopWatch.createStarted();
                 inUseArchiveIds = this.objectReferentialRepository.selectArchiveIdsByObjectIds(objectIdIterator);
                 swListArchives.stop();
-                PerformanceLogger.getInstance().log(
-                    "TAPE_CACHE_EVICTION", "LIST_ARCHIVE_IDS_REQUIRED_BY_ACCESS_REQUESTS",
-                    swListArchives.getTime(TimeUnit.MILLISECONDS));
+                PerformanceLogger.getInstance()
+                    .log(
+                        "TAPE_CACHE_EVICTION",
+                        "LIST_ARCHIVE_IDS_REQUIRED_BY_ACCESS_REQUESTS",
+                        swListArchives.getTime(TimeUnit.MILLISECONDS)
+                    );
             }
 
             return inUseArchiveIds;

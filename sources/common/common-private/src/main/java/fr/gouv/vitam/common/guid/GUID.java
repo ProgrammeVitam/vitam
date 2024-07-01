@@ -33,8 +33,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 /**
  * GUID Interface
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY,
-    property = "@class")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, include = JsonTypeInfo.As.PROPERTY, property = "@class")
 public interface GUID extends Comparable<GUID> {
     /**
      * @return True if is Worm
@@ -161,5 +160,4 @@ public interface GUID extends Comparable<GUID> {
 
     @Override
     int compareTo(GUID arg0);
-
 }

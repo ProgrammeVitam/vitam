@@ -38,29 +38,25 @@ public class VerifyTimeStampActionConfigurationTest {
         try {
             new VerifyTimeStampActionConfiguration("password", null);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             new VerifyTimeStampActionConfiguration(null, "file");
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
-
-
+        } catch (final IllegalArgumentException e) {}
     }
 
     @Test
     public void testBuildOk() {
-        VerifyTimeStampActionConfiguration clientConfigurationImpl0 =
-            new VerifyTimeStampActionConfiguration("password", "file");
+        VerifyTimeStampActionConfiguration clientConfigurationImpl0 = new VerifyTimeStampActionConfiguration(
+            "password",
+            "file"
+        );
         assertEquals("password", clientConfigurationImpl0.getP12LogbookPassword());
         assertEquals("file", clientConfigurationImpl0.getP12LogbookFile());
-        VerifyTimeStampActionConfiguration clientConfigurationImpl1 =
-            new VerifyTimeStampActionConfiguration();
+        VerifyTimeStampActionConfiguration clientConfigurationImpl1 = new VerifyTimeStampActionConfiguration();
         clientConfigurationImpl1.setP12LogbookFile("file1");
         clientConfigurationImpl1.setP12LogbookPassword("password1");
         assertEquals("password1", clientConfigurationImpl1.getP12LogbookPassword());
         assertEquals("file1", clientConfigurationImpl1.getP12LogbookFile());
-
     }
 }

@@ -35,12 +35,11 @@ public class ReportItemStatus {
 
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("status")
     private ReportStatus status;
 
-    public ReportItemStatus() {
-
-    }
+    public ReportItemStatus() {}
 
     public ReportItemStatus(String id, ReportStatus status) {
         super();
@@ -63,5 +62,4 @@ public class ReportItemStatus {
     public void setStatus(ReportStatus status) {
         this.status = status;
     }
-
 }

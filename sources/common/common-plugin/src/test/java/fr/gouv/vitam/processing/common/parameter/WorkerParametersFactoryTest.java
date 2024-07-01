@@ -59,8 +59,15 @@ public class WorkerParametersFactoryTest {
         assertEquals(5, parameters.getMandatoriesParameters().size());
         assertEquals(0, parameters.getMapParameters().size());
 
-        final WorkerParameters parameters2 = WorkerParametersFactory.newWorkerParameters("processId", "stepUniqId",
-            "containerName", "currentStep", Lists.newArrayList("objectName"), "urlMetadata", "urlWorkspace");
+        final WorkerParameters parameters2 = WorkerParametersFactory.newWorkerParameters(
+            "processId",
+            "stepUniqId",
+            "containerName",
+            "currentStep",
+            Lists.newArrayList("objectName"),
+            "urlMetadata",
+            "urlWorkspace"
+        );
         assertNotNull(parameters2);
         assertEquals(7, parameters2.getMapParameters().size());
     }

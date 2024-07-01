@@ -92,6 +92,7 @@ import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class ReadTaskTest {
+
     public static final String FAKE_LIBRARY = "fakeLibrary";
     public static final String FAKE_TAPE_CODE = "fakeTapeCode";
     public static final Integer SLOT_INDEX = 1;
@@ -135,8 +136,7 @@ public class ReadTaskTest {
 
     @Before
     public void setUp() throws IOException {
-        when(tapeDriveService.getReadWriteService())
-            .thenAnswer(o -> tapeReadWriteService);
+        when(tapeDriveService.getReadWriteService()).thenAnswer(o -> tapeReadWriteService);
 
         tmpTarOutputDir = temporaryFolder.newFolder("tmpTarOutput");
 
@@ -161,39 +161,81 @@ public class ReadTaskTest {
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
 
         // Test constructors
-        assertThatThrownBy(() -> new ReadTask(null, mock(TapeCatalog.class), mock(TapeLibraryServiceImpl.class),
-            mock(TapeCatalogService.class), mock(AccessRequestManager.class), archiveCacheStorage)
-        ).withFailMessage("read order is required")
+        assertThatThrownBy(
+            () ->
+                new ReadTask(
+                    null,
+                    mock(TapeCatalog.class),
+                    mock(TapeLibraryServiceImpl.class),
+                    mock(TapeCatalogService.class),
+                    mock(AccessRequestManager.class),
+                    archiveCacheStorage
+                )
+        )
+            .withFailMessage("read order is required")
             .isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> new ReadTask(mock(ReadOrder.class), mock(TapeCatalog.class), null,
-            mock(TapeCatalogService.class), mock(AccessRequestManager.class), archiveCacheStorage)
-        ).withFailMessage("tape library service is required")
+        assertThatThrownBy(
+            () ->
+                new ReadTask(
+                    mock(ReadOrder.class),
+                    mock(TapeCatalog.class),
+                    null,
+                    mock(TapeCatalogService.class),
+                    mock(AccessRequestManager.class),
+                    archiveCacheStorage
+                )
+        )
+            .withFailMessage("tape library service is required")
             .isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> new ReadTask(mock(ReadOrder.class), mock(TapeCatalog.class),
-            mock(TapeLibraryServiceImpl.class), null, mock(AccessRequestManager.class), archiveCacheStorage)
-        ).withFailMessage("tape catalog service is required")
+        assertThatThrownBy(
+            () ->
+                new ReadTask(
+                    mock(ReadOrder.class),
+                    mock(TapeCatalog.class),
+                    mock(TapeLibraryServiceImpl.class),
+                    null,
+                    mock(AccessRequestManager.class),
+                    archiveCacheStorage
+                )
+        )
+            .withFailMessage("tape catalog service is required")
             .isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> new ReadTask(mock(ReadOrder.class), mock(TapeCatalog.class),
-            mock(TapeLibraryServiceImpl.class), mock(TapeCatalogService.class), null, archiveCacheStorage)
-        ).withFailMessage("Archive storage manager is required")
+        assertThatThrownBy(
+            () ->
+                new ReadTask(
+                    mock(ReadOrder.class),
+                    mock(TapeCatalog.class),
+                    mock(TapeLibraryServiceImpl.class),
+                    mock(TapeCatalogService.class),
+                    null,
+                    archiveCacheStorage
+                )
+        )
+            .withFailMessage("Archive storage manager is required")
             .isInstanceOf(IllegalArgumentException.class);
 
-        assertThatThrownBy(() -> new ReadTask(mock(ReadOrder.class), mock(TapeCatalog.class),
-            mock(TapeLibraryServiceImpl.class), mock(TapeCatalogService.class),
-            mock(AccessRequestManager.class), null)
-        ).withFailMessage("Archive cache storage is required")
+        assertThatThrownBy(
+            () ->
+                new ReadTask(
+                    mock(ReadOrder.class),
+                    mock(TapeCatalog.class),
+                    mock(TapeLibraryServiceImpl.class),
+                    mock(TapeCatalogService.class),
+                    mock(AccessRequestManager.class),
+                    null
+                )
+        )
+            .withFailMessage("Archive cache storage is required")
             .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     public void testReadTaskCurrentTapeIsNotNullAndEligible() throws Exception {
         // When
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog tapeCatalog = new TapeCatalog()
@@ -203,39 +245,50 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setLabel(tapeCatalogLabel);
 
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            FILE_POSITION,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, tapeCatalog,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            tapeCatalog,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String filePath = args.getArgument(0);
             FileUtils.write(tmpTarOutputDir.toPath().resolve(filePath).toFile(), "data", StandardCharsets.UTF_8);
             return null;
-        }).when(tapeReadWriteService).readFromTape(any());
+        })
+            .when(tapeReadWriteService)
+            .readFromTape(any());
 
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
         doNothing().when(tapeDriveCommandService).eject();
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
-        doAnswer(
-            args -> {
-                assertThat(fileTest).isNotNull();
-                assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
-                assertThat(fileTest).exists();
-                assertThat(fileTest).hasContent("data");
-                return null;
-            }
-        ).when(archiveCacheStorage).moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
+        doAnswer(args -> {
+            assertThat(fileTest).isNotNull();
+            assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
+            assertThat(fileTest).exists();
+            assertThat(fileTest).hasContent("data");
+            return null;
+        })
+            .when(archiveCacheStorage)
+            .moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -245,8 +298,9 @@ public class ReadTaskTest {
         assertThat(result.getOrderState()).isEqualTo(QueueState.COMPLETED);
         assertThat(result.getCurrentTape()).isNotNull();
         assertThat(result.getCurrentTape().getCode()).isEqualTo(FAKE_TAPE_CODE);
-        assertThat(result.getCurrentTape().getCurrentLocation()
-            .equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))).isEqualTo(true);
+        assertThat(
+            result.getCurrentTape().getCurrentLocation().equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
+        ).isEqualTo(true);
         assertThat(result.getCurrentTape().getCurrentPosition()).isEqualTo(FILE_POSITION + 1);
 
         InOrder inOrder = Mockito.inOrder(tapeReadWriteService, tapeDriveCommandService);
@@ -276,9 +330,7 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         TapeCatalog appropriateTape = new TapeCatalog()
             .setLibrary(FAKE_LIBRARY)
@@ -287,34 +339,43 @@ public class ReadTaskTest {
             .setLabel(tapeCatalogLabel);
 
         int filePosition = 1;
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, filePosition, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            filePosition,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            currentTape,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String labelPath = args.getArgument(0);
             JsonHandler.writeAsFile(tapeCatalogLabel, tmpTarOutputDir.toPath().resolve(labelPath).toFile());
             return null;
-        }).doAnswer((args) -> {
+        })
+            .doAnswer(args -> {
                 String filePath = args.getArgument(0);
                 FileUtils.write(tmpTarOutputDir.toPath().resolve(filePath).toFile(), "data", StandardCharsets.UTF_8);
                 return null;
             })
-            .when(tapeReadWriteService).readFromTape(any());
+            .when(tapeReadWriteService)
+            .readFromTape(any());
 
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any()))
-            .thenReturn(Optional.of(appropriateTape));
-        when(tapeDriveService.getTapeDriveConf().getIndex())
-            .thenReturn(DRIVE_INDEX);
+        when(tapeCatalogService.receive(any())).thenReturn(Optional.of(appropriateTape));
+        when(tapeDriveService.getTapeDriveConf().getIndex()).thenReturn(DRIVE_INDEX);
         TapeRobotService tapeRobotService = mock(TapeRobotService.class);
         when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
         TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
@@ -325,15 +386,15 @@ public class ReadTaskTest {
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
-        doAnswer(
-            args -> {
-                assertThat(fileTest).isNotNull();
-                assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
-                assertThat(fileTest).exists();
-                assertThat(fileTest).hasContent("data");
-                return null;
-            }
-        ).when(archiveCacheStorage).moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
+        doAnswer(args -> {
+            assertThat(fileTest).isNotNull();
+            assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
+            assertThat(fileTest).exists();
+            assertThat(fileTest).hasContent("data");
+            return null;
+        })
+            .when(archiveCacheStorage)
+            .moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -344,10 +405,11 @@ public class ReadTaskTest {
         assertThat(result.getCurrentTape()).isNotNull();
         assertThat(result.getCurrentTape().getCode()).isEqualTo(FAKE_TAPE_CODE);
         assertThat(
-            result.getCurrentTape().getCurrentLocation().equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE)))
-            .isEqualTo(true);
-        assertThat(currentTape.getCurrentLocation().equals(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT)))
-            .isEqualTo(true);
+            result.getCurrentTape().getCurrentLocation().equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
+        ).isEqualTo(true);
+        assertThat(
+            currentTape.getCurrentLocation().equals(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT))
+        ).isEqualTo(true);
         assertThat(result.getCurrentTape().getCurrentPosition()).isEqualTo(filePosition + 1);
 
         InOrder inOrder = Mockito.inOrder(tapeReadWriteService, tapeLoadUnloadService, tapeDriveCommandService);
@@ -386,9 +448,7 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         TapeCatalog appropriateTape = new TapeCatalog()
             .setLibrary(FAKE_LIBRARY)
@@ -396,34 +456,43 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT))
             .setLabel(tapeCatalogLabel);
 
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            FILE_POSITION,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            currentTape,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String labelPath = args.getArgument(0);
             JsonHandler.writeAsFile(tapeCatalogLabel, tmpTarOutputDir.toPath().resolve(labelPath).toFile());
             return null;
-        }).doAnswer((args) -> {
+        })
+            .doAnswer(args -> {
                 String filePath = args.getArgument(0);
                 FileUtils.write(tmpTarOutputDir.toPath().resolve(filePath).toFile(), "data", StandardCharsets.UTF_8);
                 return null;
             })
-            .when(tapeReadWriteService).readFromTape(any());
+            .when(tapeReadWriteService)
+            .readFromTape(any());
 
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any()))
-            .thenReturn(Optional.of(appropriateTape));
-        when(tapeDriveService.getTapeDriveConf().getIndex())
-            .thenReturn(DRIVE_INDEX);
+        when(tapeCatalogService.receive(any())).thenReturn(Optional.of(appropriateTape));
+        when(tapeDriveService.getTapeDriveConf().getIndex()).thenReturn(DRIVE_INDEX);
         TapeRobotService tapeRobotService = mock(TapeRobotService.class);
         when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
         TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
@@ -434,15 +503,15 @@ public class ReadTaskTest {
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
-        doAnswer(
-            args -> {
-                assertThat(fileTest).isNotNull();
-                assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
-                assertThat(fileTest).exists();
-                assertThat(fileTest).hasContent("data");
-                return null;
-            }
-        ).when(archiveCacheStorage).moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
+        doAnswer(args -> {
+            assertThat(fileTest).isNotNull();
+            assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
+            assertThat(fileTest).exists();
+            assertThat(fileTest).hasContent("data");
+            return null;
+        })
+            .when(archiveCacheStorage)
+            .moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -453,10 +522,11 @@ public class ReadTaskTest {
         assertThat(result.getCurrentTape()).isNotNull();
         assertThat(result.getCurrentTape().getCode()).isEqualTo(FAKE_TAPE_CODE);
         assertThat(
-            result.getCurrentTape().getCurrentLocation().equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE)))
-            .isEqualTo(true);
-        assertThat(currentTape.getCurrentLocation().equals(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT)))
-            .isEqualTo(true);
+            result.getCurrentTape().getCurrentLocation().equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
+        ).isEqualTo(true);
+        assertThat(
+            currentTape.getCurrentLocation().equals(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT))
+        ).isEqualTo(true);
         assertThat(result.getCurrentTape().getCurrentPosition()).isEqualTo(FILE_POSITION + 1);
 
         InOrder inOrder = Mockito.inOrder(tapeReadWriteService, tapeLoadUnloadService, tapeDriveCommandService);
@@ -495,9 +565,7 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         TapeCatalog appropriateTape = new TapeCatalog()
             .setLibrary(FAKE_LIBRARY)
@@ -506,37 +574,44 @@ public class ReadTaskTest {
             .setLabel(tapeCatalogLabel);
 
         int filePosition = 1;
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, filePosition, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            filePosition,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            currentTape,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String labelPath = args.getArgument(0);
-            TapeCatalogLabel wrongLabel = new TapeCatalogLabel()
-                .setCode("AnotherTape")
-                .setBucket(FAKE_BUCKET);
+            TapeCatalogLabel wrongLabel = new TapeCatalogLabel().setCode("AnotherTape").setBucket(FAKE_BUCKET);
             JsonHandler.writeAsFile(wrongLabel, tmpTarOutputDir.toPath().resolve(labelPath).toFile());
             return null;
-        }).doAnswer((args) -> {
+        })
+            .doAnswer(args -> {
                 String filePath = args.getArgument(0);
                 FileUtils.write(tmpTarOutputDir.toPath().resolve(filePath).toFile(), "data", StandardCharsets.UTF_8);
                 return null;
             })
-            .when(tapeReadWriteService).readFromTape(any());
+            .when(tapeReadWriteService)
+            .readFromTape(any());
 
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any()))
-            .thenReturn(Optional.of(appropriateTape));
-        when(tapeDriveService.getTapeDriveConf().getIndex())
-            .thenReturn(DRIVE_INDEX);
+        when(tapeCatalogService.receive(any())).thenReturn(Optional.of(appropriateTape));
+        when(tapeDriveService.getTapeDriveConf().getIndex()).thenReturn(DRIVE_INDEX);
         TapeRobotService tapeRobotService = mock(TapeRobotService.class);
         when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
         TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
@@ -547,15 +622,15 @@ public class ReadTaskTest {
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
-        doAnswer(
-            args -> {
-                assertThat(fileTest).isNotNull();
-                assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
-                assertThat(fileTest).exists();
-                assertThat(fileTest).hasContent("data");
-                return null;
-            }
-        ).when(archiveCacheStorage).moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
+        doAnswer(args -> {
+            assertThat(fileTest).isNotNull();
+            assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
+            assertThat(fileTest).exists();
+            assertThat(fileTest).hasContent("data");
+            return null;
+        })
+            .when(archiveCacheStorage)
+            .moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -594,9 +669,7 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         TapeCatalog appropriateTape = new TapeCatalog()
             .setLibrary(FAKE_LIBRARY)
@@ -605,26 +678,32 @@ public class ReadTaskTest {
             .setLabel(tapeCatalogLabel);
 
         int filePosition = 1;
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, filePosition, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            filePosition,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            currentTape,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-        doThrow(new TapeCommandException("label error"))
-            .when(tapeReadWriteService).readFromTape(any());
+        doThrow(new TapeCommandException("label error")).when(tapeReadWriteService).readFromTape(any());
 
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any()))
-            .thenReturn(Optional.of(appropriateTape));
-        when(tapeDriveService.getTapeDriveConf().getIndex())
-            .thenReturn(DRIVE_INDEX);
+        when(tapeCatalogService.receive(any())).thenReturn(Optional.of(appropriateTape));
+        when(tapeDriveService.getTapeDriveConf().getIndex()).thenReturn(DRIVE_INDEX);
         TapeRobotService tapeRobotService = mock(TapeRobotService.class);
         when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
         TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
@@ -635,15 +714,15 @@ public class ReadTaskTest {
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
-        doAnswer(
-            args -> {
-                assertThat(fileTest).isNotNull();
-                assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
-                assertThat(fileTest).exists();
-                assertThat(fileTest).hasContent("data");
-                return null;
-            }
-        ).when(archiveCacheStorage).moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
+        doAnswer(args -> {
+            assertThat(fileTest).isNotNull();
+            assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
+            assertThat(fileTest).exists();
+            assertThat(fileTest).hasContent("data");
+            return null;
+        })
+            .when(archiveCacheStorage)
+            .moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -681,9 +760,7 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         TapeCatalog appropriateTape = new TapeCatalog()
             .setLibrary(FAKE_LIBRARY)
@@ -691,25 +768,31 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT))
             .setLabel(tapeCatalogLabel);
 
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            FILE_POSITION,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            currentTape,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any()))
-            .thenReturn(Optional.empty());
-        when(tapeCatalogService.find(any()))
-            .thenReturn(List.of(appropriateTape));
-        when(tapeDriveService.getTapeDriveConf().getIndex())
-            .thenReturn(DRIVE_INDEX);
+        when(tapeCatalogService.receive(any())).thenReturn(Optional.empty());
+        when(tapeCatalogService.find(any())).thenReturn(List.of(appropriateTape));
+        when(tapeDriveService.getTapeDriveConf().getIndex()).thenReturn(DRIVE_INDEX);
         TapeRobotService tapeRobotService = mock(TapeRobotService.class);
         when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
         TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
@@ -736,8 +819,7 @@ public class ReadTaskTest {
     }
 
     @Test
-    public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTheEligibleTapeIsUnknown()
-        throws Exception {
+    public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleAndTheEligibleTapeIsUnknown() throws Exception {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
         TapeCatalog currentTape = new TapeCatalog()
@@ -746,25 +828,31 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            FILE_POSITION,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            currentTape,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any()))
-            .thenReturn(Optional.empty());
-        when(tapeCatalogService.find(any()))
-            .thenReturn(Collections.emptyList());
-        when(tapeDriveService.getTapeDriveConf().getIndex())
-            .thenReturn(DRIVE_INDEX);
+        when(tapeCatalogService.receive(any())).thenReturn(Optional.empty());
+        when(tapeCatalogService.find(any())).thenReturn(Collections.emptyList());
+        when(tapeDriveService.getTapeDriveConf().getIndex()).thenReturn(DRIVE_INDEX);
         TapeRobotService tapeRobotService = mock(TapeRobotService.class);
         when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
         TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
@@ -800,23 +888,30 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            FILE_POSITION,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            currentTape,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any()))
-            .thenThrow(QueueException.class);
-        when(tapeDriveService.getTapeDriveConf().getIndex())
-            .thenReturn(DRIVE_INDEX);
+        when(tapeCatalogService.receive(any())).thenThrow(QueueException.class);
+        when(tapeDriveService.getTapeDriveConf().getIndex()).thenReturn(DRIVE_INDEX);
         TapeRobotService tapeRobotService = mock(TapeRobotService.class);
         when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
         TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
@@ -852,9 +947,7 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         TapeCatalog appropriateTape = new TapeCatalog()
             .setLibrary(FAKE_LIBRARY)
@@ -862,23 +955,30 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(null, TapeLocationType.OUTSIDE))
             .setLabel(tapeCatalogLabel);
 
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            FILE_POSITION,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            currentTape,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any()))
-            .thenReturn(Optional.of(appropriateTape));
-        when(tapeDriveService.getTapeDriveConf().getIndex())
-            .thenReturn(DRIVE_INDEX);
+        when(tapeCatalogService.receive(any())).thenReturn(Optional.of(appropriateTape));
+        when(tapeDriveService.getTapeDriveConf().getIndex()).thenReturn(DRIVE_INDEX);
         TapeRobotService tapeRobotService = mock(TapeRobotService.class);
         when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
         TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
@@ -916,9 +1016,7 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         TapeCatalog appropriateTape = new TapeCatalog()
             .setLibrary(FAKE_LIBRARY)
@@ -926,23 +1024,30 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT))
             .setLabel(tapeCatalogLabel);
 
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            FILE_POSITION,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            currentTape,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any()))
-            .thenReturn(Optional.of(appropriateTape));
-        when(tapeDriveService.getTapeDriveConf().getIndex())
-            .thenReturn(DRIVE_INDEX);
+        when(tapeCatalogService.receive(any())).thenReturn(Optional.of(appropriateTape));
+        when(tapeDriveService.getTapeDriveConf().getIndex()).thenReturn(DRIVE_INDEX);
         TapeRobotService tapeRobotService = mock(TapeRobotService.class);
         when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
         TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
@@ -971,7 +1076,6 @@ public class ReadTaskTest {
         verifyZeroInteractions(archiveCacheStorage, accessRequestManager);
     }
 
-
     @Test
     public void testReadTaskWhenCurrentTapeIsNotNullAndNotEligibleThenErrorWhenUnloadingTheCurrentTape()
         throws Exception {
@@ -983,9 +1087,7 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         TapeCatalog appropriateTape = new TapeCatalog()
             .setLibrary(FAKE_LIBRARY)
@@ -993,23 +1095,30 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT))
             .setLabel(tapeCatalogLabel);
 
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            FILE_POSITION,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            currentTape,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         doNothing().when(tapeReadWriteService).readFromTape(startsWith(readOrder.getFileName()));
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any()))
-            .thenReturn(Optional.of(appropriateTape));
-        when(tapeDriveService.getTapeDriveConf().getIndex())
-            .thenReturn(DRIVE_INDEX);
+        when(tapeCatalogService.receive(any())).thenReturn(Optional.of(appropriateTape));
+        when(tapeDriveService.getTapeDriveConf().getIndex()).thenReturn(DRIVE_INDEX);
         TapeRobotService tapeRobotService = mock(TapeRobotService.class);
         when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
         TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
@@ -1048,9 +1157,7 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setPreviousLocation(new TapeLocation(SLOT_INDEX + 1, TapeLocationType.SLOT));
 
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         TapeCatalog appropriateTape = new TapeCatalog()
             .setLibrary(FAKE_LIBRARY)
@@ -1058,29 +1165,38 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT))
             .setLabel(tapeCatalogLabel);
 
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            FILE_POSITION,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, currentTape,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            currentTape,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String labelPath = args.getArgument(0);
             JsonHandler.writeAsFile(tapeCatalogLabel, tmpTarOutputDir.toPath().resolve(labelPath).toFile());
             return null;
-        }).doThrow(new TapeCommandException("error"))
-            .when(tapeReadWriteService).readFromTape(any());
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        })
+            .doThrow(new TapeCommandException("error"))
+            .when(tapeReadWriteService)
+            .readFromTape(any());
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any()))
-            .thenReturn(Optional.of(appropriateTape));
-        when(tapeDriveService.getTapeDriveConf().getIndex())
-            .thenReturn(DRIVE_INDEX);
+        when(tapeCatalogService.receive(any())).thenReturn(Optional.of(appropriateTape));
+        when(tapeDriveService.getTapeDriveConf().getIndex()).thenReturn(DRIVE_INDEX);
         TapeRobotService tapeRobotService = mock(TapeRobotService.class);
         when(tapeRobotPool.checkoutRobotService()).thenReturn(tapeRobotService);
         doNothing().when(tapeDriveCommandService).eject();
@@ -1129,9 +1245,7 @@ public class ReadTaskTest {
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
 
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         TapeCatalog tapeCatalog = new TapeCatalog()
             .setLibrary(FAKE_LIBRARY)
@@ -1139,54 +1253,60 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(SLOT_INDEX, TapeLocationType.SLOT))
             .setLabel(tapeCatalogLabel);
 
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            FILE_POSITION,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, null,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            null,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String labelPath = args.getArgument(0);
             JsonHandler.writeAsFile(tapeCatalogLabel, tmpTarOutputDir.toPath().resolve(labelPath).toFile());
             return null;
-        }).doAnswer((args) -> {
+        })
+            .doAnswer(args -> {
                 String filePath = args.getArgument(0);
                 FileUtils.write(tmpTarOutputDir.toPath().resolve(filePath).toFile(), "data", StandardCharsets.UTF_8);
                 return null;
             })
-            .when(tapeReadWriteService).readFromTape(any());
+            .when(tapeReadWriteService)
+            .readFromTape(any());
 
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
-        when(tapeCatalogService.receive(any()))
-            .thenReturn(Optional.of(tapeCatalog));
-        when(tapeDriveService.getTapeDriveConf().getIndex())
-            .thenReturn(DRIVE_INDEX);
-        when(tapeRobotPool.checkoutRobotService())
-            .thenReturn(mock(TapeRobotService.class));
+        when(tapeCatalogService.receive(any())).thenReturn(Optional.of(tapeCatalog));
+        when(tapeDriveService.getTapeDriveConf().getIndex()).thenReturn(DRIVE_INDEX);
+        when(tapeRobotPool.checkoutRobotService()).thenReturn(mock(TapeRobotService.class));
         TapeLoadUnloadService tapeLoadUnloadService = mock(TapeLoadUnloadService.class);
-        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService())
-            .thenReturn(tapeLoadUnloadService);
-        doNothing().when(tapeLoadUnloadService)
-            .loadTape(anyInt(), anyInt());
+        when(tapeRobotPool.checkoutRobotService().getLoadUnloadService()).thenReturn(tapeLoadUnloadService);
+        doNothing().when(tapeLoadUnloadService).loadTape(anyInt(), anyInt());
 
         doNothing().when(tapeDriveCommandService).eject();
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
-        doAnswer(
-            args -> {
-                assertThat(fileTest).isNotNull();
-                assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
-                assertThat(fileTest).exists();
-                return null;
-            }
-        ).when(archiveCacheStorage).moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
+        doAnswer(args -> {
+            assertThat(fileTest).isNotNull();
+            assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
+            assertThat(fileTest).exists();
+            return null;
+        })
+            .when(archiveCacheStorage)
+            .moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
 
         // Case one current t
         ReadWriteResult result = readTask.get();
@@ -1196,8 +1316,9 @@ public class ReadTaskTest {
         assertThat(result.getOrderState()).isEqualTo(QueueState.COMPLETED);
         assertThat(result.getCurrentTape()).isNotNull();
         assertThat(result.getCurrentTape().getCode()).isEqualTo(FAKE_TAPE_CODE);
-        assertThat(result.getCurrentTape().getCurrentLocation()
-            .equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))).isEqualTo(true);
+        assertThat(
+            result.getCurrentTape().getCurrentLocation().equals(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
+        ).isEqualTo(true);
         assertThat(result.getCurrentTape().getCurrentPosition()).isEqualTo(FILE_POSITION + 1);
 
         InOrder inOrder = Mockito.inOrder(tapeReadWriteService, tapeLoadUnloadService, tapeDriveCommandService);
@@ -1224,13 +1345,10 @@ public class ReadTaskTest {
 
     @Test
     public void cacheDiskSpaceFullThenNoDataReadFromTape() throws Exception {
-
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
 
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         TapeCatalog tapeCatalog = new TapeCatalog()
             .setLibrary(FAKE_LIBRARY)
@@ -1239,32 +1357,43 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setLabel(tapeCatalogLabel);
 
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            FILE_POSITION,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, tapeCatalog,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            tapeCatalog,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
-        doThrow(IllegalStateException.class).when(archiveCacheStorage).
-            reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
+        doThrow(IllegalStateException.class)
+            .when(archiveCacheStorage)
+            .reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
 
         fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String filePath = args.getArgument(0);
             FileUtils.write(tmpTarOutputDir.toPath().resolve(filePath).toFile(), "data", StandardCharsets.UTF_8);
             return null;
-        }).when(tapeReadWriteService).readFromTape(any());
+        })
+            .when(tapeReadWriteService)
+            .readFromTape(any());
 
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
 
         // When
         ReadWriteResult result = readTask.get();
-
 
         // Then
         assertThat(result.getStatus()).isEqualTo(StatusCode.FATAL);
@@ -1284,13 +1413,10 @@ public class ReadTaskTest {
 
     @Test
     public void whenAccessRequestManagerUpdateFailureThenReadOrderCompletesSuccessfully() throws Exception {
-
         // When
         when(tapeDriveService.getTapeDriveConf()).thenAnswer(o -> mock(TapeDriveConf.class));
 
-        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel()
-            .setCode(FAKE_TAPE_CODE)
-            .setBucket(FAKE_BUCKET);
+        TapeCatalogLabel tapeCatalogLabel = new TapeCatalogLabel().setCode(FAKE_TAPE_CODE).setBucket(FAKE_BUCKET);
 
         TapeCatalog tapeCatalog = new TapeCatalog()
             .setLibrary(FAKE_LIBRARY)
@@ -1299,50 +1425,61 @@ public class ReadTaskTest {
             .setCurrentLocation(new TapeLocation(DRIVE_INDEX, TapeLocationType.DRIVE))
             .setLabel(tapeCatalogLabel);
 
-        ReadOrder readOrder = new ReadOrder(FAKE_TAPE_CODE, FILE_POSITION, fileName, FAKE_BUCKET, FAKE_FILE_BUCKET_ID,
-            FILE_SIZE);
+        ReadOrder readOrder = new ReadOrder(
+            FAKE_TAPE_CODE,
+            FILE_POSITION,
+            fileName,
+            FAKE_BUCKET,
+            FAKE_FILE_BUCKET_ID,
+            FILE_SIZE
+        );
 
-        ReadTask readTask =
-            new ReadTask(readOrder, tapeCatalog,
-                new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
-                tapeCatalogService, accessRequestManager, archiveCacheStorage);
+        ReadTask readTask = new ReadTask(
+            readOrder,
+            tapeCatalog,
+            new TapeLibraryServiceImpl(tapeDriveService, tapeRobotPool, FULL_CARTRIDGE_THRESHOLD),
+            tapeCatalogService,
+            accessRequestManager,
+            archiveCacheStorage
+        );
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String filePath = args.getArgument(0);
             FileUtils.write(tmpTarOutputDir.toPath().resolve(filePath).toFile(), "data", StandardCharsets.UTF_8);
             return null;
-        }).when(tapeReadWriteService).readFromTape(any());
+        })
+            .when(tapeReadWriteService)
+            .readFromTape(any());
 
-        when(tapeDriveService.getDriveCommandService())
-            .thenReturn(tapeDriveCommandService);
+        when(tapeDriveService.getDriveCommandService()).thenReturn(tapeDriveCommandService);
         doNothing().when(tapeDriveCommandService).rewind();
         doNothing().when(tapeDriveCommandService).move(anyInt(), anyBoolean());
         doNothing().when(tapeDriveCommandService).eject();
 
         doReturn(false).when(archiveCacheStorage).containsArchive(FAKE_FILE_BUCKET_ID, fileName);
         doNothing().when(archiveCacheStorage).reserveArchiveStorageSpace(FAKE_FILE_BUCKET_ID, fileName, FILE_SIZE);
-        doAnswer(
-            args -> {
-                assertThat(fileTest).isNotNull();
-                assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
-                assertThat(fileTest).exists();
-                return null;
-            }
-        ).when(archiveCacheStorage).moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
+        doAnswer(args -> {
+            assertThat(fileTest).isNotNull();
+            assertThat(args.getArgument(0, Path.class)).isEqualTo(fileTest);
+            assertThat(fileTest).exists();
+            return null;
+        })
+            .when(archiveCacheStorage)
+            .moveArchiveToCache(any(), eq(FAKE_FILE_BUCKET_ID), eq(fileName));
 
-        doThrow(new AccessRequestReferentialException("prb")).when(accessRequestManager)
+        doThrow(new AccessRequestReferentialException("prb"))
+            .when(accessRequestManager)
             .updateAccessRequestWhenArchiveReady(fileName);
 
-        doAnswer(
-            invocationOnMock -> {
-                fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
-                return null;
-            }
-        ).when(tapeReadWriteService).readFromTape(any());
+        doAnswer(invocationOnMock -> {
+            fileTest = Files.createFile(tmpTarOutputDir.toPath().resolve(fileName + ReadTask.TEMP_EXT));
+            return null;
+        })
+            .when(tapeReadWriteService)
+            .readFromTape(any());
 
         // When
         ReadWriteResult result = readTask.get();
-
 
         // Then
         assertThat(result.getStatus()).isEqualTo(StatusCode.OK);

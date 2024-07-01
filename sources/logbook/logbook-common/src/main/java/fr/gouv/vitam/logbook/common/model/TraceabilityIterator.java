@@ -34,7 +34,6 @@ import java.util.Iterator;
  * @param <T> The kind of iterable data
  */
 public interface TraceabilityIterator<T> extends Iterator<T> {
-
     /**
      * Warning: This method should only calculate the iterated data. The real result should be found when no "hasNext()" item left
      *

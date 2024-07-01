@@ -36,20 +36,28 @@ import io.prometheus.client.Summary;
 import java.io.InputStream;
 
 public class UploadCountingInputStreamMetrics extends AbstractCountingInputStreamMetrics {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(UploadCountingInputStreamMetrics.class);
 
     public static final Summary UPLOAD_BYTES = Summary.build()
         .name(VitamMetricsNames.VITAM_STORAGE_UPLOAD_SIZE_BYTES)
         .labelNames("tenant", "strategy", "offer_id", "data_category", "origin", "attempt")
         .help(
-            "Vitam storage upload objects to offers size in bytes per tenant, strategy, offer_id, data_category, origin (normal, bulk, offer_sync), and per attempt")
+            "Vitam storage upload objects to offers size in bytes per tenant, strategy, offer_id, data_category, origin (normal, bulk, offer_sync), and per attempt"
+        )
         .register();
 
     private final String attempt;
 
-    public UploadCountingInputStreamMetrics(Integer tenant, String strategy, String offerId, String origin,
-        DataCategory dataCategory, int attempt,
-        InputStream inputStream) {
+    public UploadCountingInputStreamMetrics(
+        Integer tenant,
+        String strategy,
+        String offerId,
+        String origin,
+        DataCategory dataCategory,
+        int attempt,
+        InputStream inputStream
+    ) {
         super(tenant, strategy, offerId, origin, dataCategory, inputStream);
         this.attempt = String.valueOf(attempt);
     }
@@ -57,9 +65,7 @@ public class UploadCountingInputStreamMetrics extends AbstractCountingInputStrea
     @Override
     protected void onEndOfFileReached() {
         try {
-            UPLOAD_BYTES
-                .labels(tenant, strategy, offerId, origin, dataCategory, attempt)
-                .observe(super.getByteCount());
+            UPLOAD_BYTES.labels(tenant, strategy, offerId, origin, dataCategory, attempt).observe(super.getByteCount());
         } catch (Exception e) {
             LOGGER.warn(e);
         }

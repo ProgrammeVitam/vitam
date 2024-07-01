@@ -33,12 +33,11 @@ import fr.gouv.vitam.workspace.common.WorkspaceFileSystem;
  * Asynchrone exchange Model
  */
 public class PreUploadResume {
+
     private final WorkFlow workFlow;
     private final WorkspaceFileSystem workspaceFileSystem;
 
-    public PreUploadResume(
-        WorkFlow workFlow,
-        WorkspaceFileSystem workspaceFileSystem) {
+    public PreUploadResume(WorkFlow workFlow, WorkspaceFileSystem workspaceFileSystem) {
         this.workFlow = workFlow;
         this.workspaceFileSystem = workspaceFileSystem;
     }
@@ -53,5 +52,4 @@ public class PreUploadResume {
     public WorkspaceFileSystem getWorkspaceFileSystem() {
         return workspaceFileSystem;
     }
-
 }

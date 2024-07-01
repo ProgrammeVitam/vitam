@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * UnSet Action
  */
 public class UnsetAction extends fr.gouv.vitam.common.database.builder.query.action.UnsetAction {
+
     /**
      * For Parsing
      *

@@ -26,5 +26,4 @@
  */
 package fr.gouv.vitam.storage.offers.tape.spec;
 
-public interface TapeLibraryPool extends TapeRobotPool, TapeDrivePool {
-}
+public interface TapeLibraryPool extends TapeRobotPool, TapeDrivePool {}

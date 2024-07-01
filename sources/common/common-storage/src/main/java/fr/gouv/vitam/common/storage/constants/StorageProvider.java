@@ -91,5 +91,4 @@ public enum StorageProvider {
     public boolean hasStoragePath() {
         return this.hasStoragePath;
     }
-
 }

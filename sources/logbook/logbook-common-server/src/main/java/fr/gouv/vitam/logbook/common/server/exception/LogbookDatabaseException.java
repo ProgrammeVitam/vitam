@@ -30,6 +30,7 @@ package fr.gouv.vitam.logbook.common.server.exception;
  * Exception indicating an error with datadase
  */
 public class LogbookDatabaseException extends LogbookException {
+
     private static final long serialVersionUID = 7446810988407086170L;
 
     /**

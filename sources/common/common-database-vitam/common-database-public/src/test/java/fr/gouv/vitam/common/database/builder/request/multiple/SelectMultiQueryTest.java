@@ -161,10 +161,12 @@ public class SelectMultiQueryTest {
         assertTrue(select.queries.isEmpty());
         try {
             select.addQueries(
-                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
-                    .setRelativeDepthLimit(5));
-            select.addQueries(new PathQuery("path1", "path2"),
-                new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
+                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA")).setRelativeDepthLimit(5)
+            );
+            select.addQueries(
+                new PathQuery("path1", "path2"),
+                new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10)
+            );
             select.addQueries(new PathQuery("path3"));
             assertEquals(4, select.getQueries().size());
 
@@ -198,15 +200,16 @@ public class SelectMultiQueryTest {
         final SelectMultiQuery select = new SelectMultiQuery();
         assertTrue(select.facets.isEmpty());
         try {
-            select.addFacets(new TermsFacet("myFacet1", "myField1", 5, FacetOrder.ASC),
-                new TermsFacet("myFacet2", "myField2", 10, FacetOrder.ASC));
+            select.addFacets(
+                new TermsFacet("myFacet1", "myField1", 5, FacetOrder.ASC),
+                new TermsFacet("myFacet2", "myField2", 10, FacetOrder.ASC)
+            );
             select.addFacets(new TermsFacet("myFacet3", "myField3", 5, FacetOrder.ASC));
             assertEquals(3, select.getFacets().size());
             select.setFacet(new TermsFacet("myFacet1", "myField1", 1, FacetOrder.DESC));
             assertEquals(1, select.getFacets().size());
             select.resetFacets();
             assertEquals(0, select.getFacets().size());
-
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -243,16 +246,21 @@ public class SelectMultiQueryTest {
         final SelectMultiQuery select = new SelectMultiQuery();
         select.parseOrderByFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }}");
         select.parseLimitFilter("{$limit : 5}");
-        assertEquals("{\"maclef1\":1,\"maclef2\":-1}",
-            select.getFilter().get(SELECTFILTER.ORDERBY.exactToken()).toString());
+        assertEquals(
+            "{\"maclef1\":1,\"maclef2\":-1}",
+            select.getFilter().get(SELECTFILTER.ORDERBY.exactToken()).toString()
+        );
         assertEquals("5", select.getFilter().get(SELECTFILTER.LIMIT.exactToken()).toString());
         select.resetFilter();
         select.parseFilter("{$orderby : { maclef1 : 1 , maclef2 : -1 }, $limit : 5}");
         select.parseProjection("{$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' }");
         assertTrue(select.getAllProjection());
-        assertEquals("{\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}",
-            select.getProjection().toString());
-        final String s = "QUERY: Requests: \n\tFilter: {\"$limit\":5,\"$orderby\":{\"maclef1\":1,\"maclef2\":-1}}" +
+        assertEquals(
+            "{\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}",
+            select.getProjection().toString()
+        );
+        final String s =
+            "QUERY: Requests: \n\tFilter: {\"$limit\":5,\"$orderby\":{\"maclef1\":1,\"maclef2\":-1}}" +
             "\n\tRoots: []\n\tProjection: {\"$fields\":{\"#dua\":1,\"#all\":1},\"$usage\":\"abcdef1234\"}\n\tFacets: \n" +
             "\tThreshold: null";
         assertEquals(s, select.toString());
@@ -262,7 +270,6 @@ public class SelectMultiQueryTest {
 
     @Test
     public void testTrackTotalHits() {
-
         // Given
         SelectMultiQuery selectMultiQuery = new SelectMultiQuery();
 

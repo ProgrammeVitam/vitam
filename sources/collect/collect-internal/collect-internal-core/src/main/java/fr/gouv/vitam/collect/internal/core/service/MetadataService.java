@@ -106,13 +106,15 @@ public class MetadataService {
     private final ProjectRepository projectRepository;
     private final BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService;
 
-    public MetadataService(MetadataRepository metadataRepository, ProjectRepository projectRepository,
-        BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService) {
+    public MetadataService(
+        MetadataRepository metadataRepository,
+        ProjectRepository projectRepository,
+        BulkAtomicUpdateMetadataService bulkAtomicUpdateMetadataService
+    ) {
         this.metadataRepository = metadataRepository;
         this.projectRepository = projectRepository;
         this.bulkAtomicUpdateMetadataService = bulkAtomicUpdateMetadataService;
     }
-
 
     public JsonNode selectUnitById(String unitId) throws CollectInternalException {
         return metadataRepository.selectUnitById(unitId);
@@ -124,8 +126,8 @@ public class MetadataService {
 
     public JsonNode saveArchiveUnit(JsonNode unit, TransactionModel transactionModel)
         throws CollectInternalException, InvalidParseOperationException {
-        ArchiveUnitModel unitModel =
-            VitamObjectMapper.getDeserializationObjectMapper().convertValue(unit, ArchiveUnitModel.class);
+        ArchiveUnitModel unitModel = VitamObjectMapper.getDeserializationObjectMapper()
+            .convertValue(unit, ArchiveUnitModel.class);
         String unitId = GUIDFactory.newUnitGUID(VitamThreadUtils.getVitamSession().getTenantId()).getId();
         unitModel.setId(unitId);
         unitModel.setOpi(transactionModel.getId());
@@ -141,13 +143,14 @@ public class MetadataService {
         Map<String, String> attachmentUnitsBySystemId = prepareAttachmentUnits(projectModel, transactionModel.getId());
         if (unitModel.getUnitups() == null || unitModel.getUnitups().isEmpty()) {
             if (projectModel.getUnitUp() != null) {
-                unitModel.setUnitups(List.of(
-                    attachmentUnitsBySystemId.get(projectModel.getUnitUp())));
+                unitModel.setUnitups(List.of(attachmentUnitsBySystemId.get(projectModel.getUnitUp())));
             }
             if (projectModel.getUnitUps() != null) {
-                Set<String> unitUpSet =
-                    MetadataHelper.findUnitParent(((ObjectNode) unit).put(VitamFieldsHelper.id(), unitId),
-                        projectModel.getUnitUps(), attachmentUnitsBySystemId);
+                Set<String> unitUpSet = MetadataHelper.findUnitParent(
+                    ((ObjectNode) unit).put(VitamFieldsHelper.id(), unitId),
+                    projectModel.getUnitUps(),
+                    attachmentUnitsBySystemId
+                );
                 if (!attachmentUnitsBySystemId.isEmpty()) {
                     unitModel.setUnitups(new ArrayList<>(unitUpSet));
                 }
@@ -202,12 +205,13 @@ public class MetadataService {
         return metadataRepository.selectUnits(queryDsl, transactionId);
     }
 
-    void updateUnitsWithJsonlMetadataFile(String transactionId, InputStream is)
-        throws CollectInternalException {
-
-        try (JsonLineGenericIterator<CollectJsonMetadataLine> metadata =
-            new JsonLineGenericIterator<>(is, CollectJsonMetadataLine.TYPE_REFERENCE)) {
-
+    void updateUnitsWithJsonlMetadataFile(String transactionId, InputStream is) throws CollectInternalException {
+        try (
+            JsonLineGenericIterator<CollectJsonMetadataLine> metadata = new JsonLineGenericIterator<>(
+                is,
+                CollectJsonMetadataLine.TYPE_REFERENCE
+            )
+        ) {
             Iterator<List<CollectJsonMetadataLine>> iterator = Iterators.partition(metadata, BULK_SIZE);
             int nbOK = 0;
             int nbKO = 0;
@@ -215,8 +219,10 @@ public class MetadataService {
             while (iterator.hasNext()) {
                 List<CollectJsonMetadataLine> jsonlMetadataLinesBatch = iterator.next();
 
-                List<BulkAtomicUpdateResult> updateUnitsBatchResults
-                    = updateUnitsBatch(transactionId, jsonlMetadataLinesBatch);
+                List<BulkAtomicUpdateResult> updateUnitsBatchResults = updateUnitsBatch(
+                    transactionId,
+                    jsonlMetadataLinesBatch
+                );
 
                 for (BulkAtomicUpdateResult updateUnitsBatchResult : updateUnitsBatchResults) {
                     switch (updateUnitsBatchResult.getStatus()) {
@@ -248,15 +254,22 @@ public class MetadataService {
 
             boolean isTruncated = nbKO > firstNErrorMessages.size();
             throw new CollectInternalInvalidRequestException(
-                "Metadata update failed. Nb OK: " + nbOK + ", Nb KO: " + nbKO
-                    + ". Error messages" + (isTruncated ? " (truncated)" : "") + ":" + firstNErrorMessages);
+                "Metadata update failed. Nb OK: " +
+                nbOK +
+                ", Nb KO: " +
+                nbKO +
+                ". Error messages" +
+                (isTruncated ? " (truncated)" : "") +
+                ":" +
+                firstNErrorMessages
+            );
         }
     }
 
-    private List<BulkAtomicUpdateResult> updateUnitsBatch(String transactionId,
-        List<CollectJsonMetadataLine> jsonlMetadataLines)
-        throws CollectInternalException {
-
+    private List<BulkAtomicUpdateResult> updateUnitsBatch(
+        String transactionId,
+        List<CollectJsonMetadataLine> jsonlMetadataLines
+    ) throws CollectInternalException {
         ArrayNode queries = JsonHandler.createArrayNode();
         for (CollectJsonMetadataLine jsonMetadataLine : jsonlMetadataLines) {
             queries.add(createUpdateQuery(jsonMetadataLine));
@@ -267,7 +280,6 @@ public class MetadataService {
 
     private static ObjectNode createUpdateQuery(CollectJsonMetadataLine jsonMetadataLine)
         throws CollectInternalServerSideException {
-
         try {
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
             updateMultiQuery.addQueries(buildSelectorQuery(jsonMetadataLine));
@@ -275,13 +287,16 @@ public class MetadataService {
             Map<String, JsonNode> fieldsToSet = new HashMap<>();
             List<String> fieldsToUnset = new ArrayList<>();
 
-            jsonMetadataLine.getUnitContent().fields().forEachRemaining(e -> {
-                if (e.getValue().isNull()) {
-                    fieldsToUnset.add(e.getKey());
-                } else {
-                    fieldsToSet.put(e.getKey(), e.getValue());
-                }
-            });
+            jsonMetadataLine
+                .getUnitContent()
+                .fields()
+                .forEachRemaining(e -> {
+                    if (e.getValue().isNull()) {
+                        fieldsToUnset.add(e.getKey());
+                    } else {
+                        fieldsToSet.put(e.getKey(), e.getValue());
+                    }
+                });
 
             if (!fieldsToSet.isEmpty()) {
                 updateMultiQuery.addActions(new SetAction(fieldsToSet));
@@ -341,14 +356,12 @@ public class MetadataService {
 
     private Map<String, String> findAttachmentUnitIdsBySystemId(String transactionId, ProjectModel projectModel)
         throws InvalidCreateOperationException, CollectInternalException, InvalidParseOperationException {
-
         Set<String> unitsToFetchBySystemId = new HashSet<>();
         if (projectModel.getUnitUp() != null) {
             unitsToFetchBySystemId.add(projectModel.getUnitUp());
         }
         if (projectModel.getUnitUps() != null) {
-            projectModel.getUnitUps()
-                .forEach(unitUp -> unitsToFetchBySystemId.add(unitUp.getUnitUp()));
+            projectModel.getUnitUps().forEach(unitUp -> unitsToFetchBySystemId.add(unitUp.getUnitUp()));
         }
         if (unitsToFetchBySystemId.isEmpty()) {
             return Collections.emptyMap();
@@ -359,27 +372,35 @@ public class MetadataService {
         query.addUsedProjection(VitamFieldsHelper.id(), SYSTEM_ID_FIELD_PATH);
         RequestResponseOK<JsonNode> units = metadataRepository.selectUnits(query.getFinalSelect(), transactionId);
 
-        return units.getResults().stream()
-            .collect(Collectors.toMap(
-                this::findSystemId,
-                attachmentUnit -> attachmentUnit.get(VitamFieldsHelper.id()).asText()
-            ));
+        return units
+            .getResults()
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    this::findSystemId,
+                    attachmentUnit -> attachmentUnit.get(VitamFieldsHelper.id()).asText()
+                )
+            );
     }
 
     Map<String, String> prepareAttachmentUnits(ProjectModel projectModel, String transactionId)
         throws CollectInternalException {
         try {
-
             // Get existing virtual attachment units
-            Map<String, String> attachmentUnitsBySystemId =
-                findAttachmentUnitIdsBySystemId(transactionId, projectModel);
+            Map<String, String> attachmentUnitsBySystemId = findAttachmentUnitIdsBySystemId(
+                transactionId,
+                projectModel
+            );
 
             // Create virtual attachment units in needed
             List<ArchiveUnitModel> unitsToCreate = new ArrayList<>();
             if (projectModel.getUnitUp() != null) {
                 if (!attachmentUnitsBySystemId.containsKey(projectModel.getUnitUp())) {
-                    ArchiveUnitModel unit =
-                        createAttachmentUnit(transactionId, STATIC_ATTACHMENT, projectModel.getUnitUp());
+                    ArchiveUnitModel unit = createAttachmentUnit(
+                        transactionId,
+                        STATIC_ATTACHMENT,
+                        projectModel.getUnitUp()
+                    );
                     unitsToCreate.add(unit);
                     attachmentUnitsBySystemId.put(projectModel.getUnitUp(), unit.getId());
                 }
@@ -400,12 +421,14 @@ public class MetadataService {
                 // FIXME : Attachment units should be created on transaction initialization to avoid concurrent creation
                 ObjectMapper objectMapper = getSerializationObjectMapper();
                 metadataRepository.saveArchiveUnits(
-                    unitsToCreate.stream().map(unit -> objectMapper.convertValue(unit, ObjectNode.class))
-                        .collect(Collectors.toList()));
+                    unitsToCreate
+                        .stream()
+                        .map(unit -> objectMapper.convertValue(unit, ObjectNode.class))
+                        .collect(Collectors.toList())
+                );
             }
 
             return attachmentUnitsBySystemId;
-
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             throw new CollectInternalException(e);
         }

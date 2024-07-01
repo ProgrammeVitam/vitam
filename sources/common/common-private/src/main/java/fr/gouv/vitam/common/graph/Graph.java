@@ -46,7 +46,6 @@ import java.util.Set;
  */
 public class Graph {
 
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Graph.class);
 
     private final Vertex[] vertices;
@@ -92,19 +91,15 @@ public class Graph {
                 final JsonNode arrNode = up.get("_up");
 
                 for (final JsonNode idParent : arrNode) {
-
                     addEdge(getIndex(idParent.textValue()), getIndex(idChild));
 
                     LOGGER.debug("source:" + idParent);
                     LOGGER.debug("destin:" + idChild);
-
                 }
-
             } else {
                 roots.add(idChild);
             }
         }
-
     }
 
     private int addMapIdToIndex(String idXml) {
@@ -142,6 +137,7 @@ public class Graph {
      * Vertex class
      */
     public class Vertex {
+
         int data;
         Neighbour adj;
         int cost = 0;
@@ -157,19 +153,19 @@ public class Graph {
         }
     }
 
-
     /**
      * state enum
      */
     public enum State {
-        NEW, VISITED
+        NEW,
+        VISITED,
     }
-
 
     /**
      * Neighbour class
      */
     public class Neighbour {
+
         int index;
         Neighbour next;
         int weight = 1;
@@ -246,7 +242,6 @@ public class Graph {
      * @return {@link Map}
      */
     public Map<Integer, Set<String>> getGraphWithLongestPaths() {
-
         longestsPath = new HashMap<>();
         Map<Integer, Integer> paths = findAllLongestsPath(roots);
         if (paths != null) {
@@ -256,7 +251,6 @@ public class Graph {
                 if (longestsPath.containsKey(level) && longestsPath.get(level) != null) {
                     // add value
                     longestsPath.get(level).add(indexMapping.get(unitId));
-
                 } else {
                     final Set<String> units = new HashSet<>();
                     units.add(indexMapping.get(unitId));
@@ -267,7 +261,6 @@ public class Graph {
         paths = null;
         return longestsPath;
     }
-
 
     private void applyTopologicalSort() {
         for (int i = 0; i < maxSize; i++) {
@@ -305,9 +298,4 @@ public class Graph {
         }
         return key;
     }
-
-
-
 }
-
-

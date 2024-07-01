@@ -66,7 +66,6 @@ import static fr.gouv.vitam.common.storage.swift.Swift.X_OBJECT_META_DIGEST_TYPE
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-
 /**
  * Integration tests using docker instances with storage swift/keystone API V2 & V3
  */
@@ -131,7 +130,6 @@ public class SwiftMigrationITTest {
 
         // obj5 : Already migrated object
         writeLargeObject(containerName, "obj5", false, true, true, true);
-
     }
 
     @After
@@ -142,13 +140,11 @@ public class SwiftMigrationITTest {
 
     @Test
     public void migrate_swift_v3_analysis_only() throws Exception {
-
         // Given prepared data in container
 
         // When
         SwiftMigrationService swiftMigrationService = new SwiftMigrationService(swiftKeystoneFactoryV3);
-        boolean migrationStarted = swiftMigrationService.tryStartMigration(
-            SwiftMigrationMode.MODE_0_ANALYSIS_ONLY);
+        boolean migrationStarted = swiftMigrationService.tryStartMigration(SwiftMigrationMode.MODE_0_ANALYSIS_ONLY);
 
         for (int i = 0; i < MAX_RETRIES; i++) {
             if (!swiftMigrationService.isMigrationInProgress()) {
@@ -185,13 +181,13 @@ public class SwiftMigrationITTest {
 
     @Test
     public void migrate_swift_v3_fix_inconsistencies_without_delete() throws Exception {
-
         // Given prepared data in container
 
         // When
         SwiftMigrationService swiftMigrationService = new SwiftMigrationService(swiftKeystoneFactoryV3);
         boolean migrationStarted = swiftMigrationService.tryStartMigration(
-            SwiftMigrationMode.MODE_1_FIX_INCONSISTENCIES);
+            SwiftMigrationMode.MODE_1_FIX_INCONSISTENCIES
+        );
 
         for (int i = 0; i < MAX_RETRIES; i++) {
             if (!swiftMigrationService.isMigrationInProgress()) {
@@ -218,8 +214,9 @@ public class SwiftMigrationITTest {
         checkObjectContent(containerName, "obj0");
 
         // Obj1 have not been deleted, but still have no manifest and have its old segment name format
-        assertThatThrownBy(() -> swift.getObject(containerName, "obj1"))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(() -> swift.getObject(containerName, "obj1")).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
         assertThat(allObjectsAndSegments)
             .doesNotContain("obj1", "obj1/000001", "obj1/00000010")
             .contains("obj1/1", "obj1/10");
@@ -236,13 +233,13 @@ public class SwiftMigrationITTest {
 
     @Test
     public void migrate_swift_v3_full() throws Exception {
-
         // Given prepared data in container
 
         // When
         SwiftMigrationService swiftMigrationService = new SwiftMigrationService(swiftKeystoneFactoryV3);
         boolean migrationStarted = swiftMigrationService.tryStartMigration(
-            SwiftMigrationMode.MODE_2_FIX_INCONSISTENCIES_AND_PURGE_DELETED);
+            SwiftMigrationMode.MODE_2_FIX_INCONSISTENCIES_AND_PURGE_DELETED
+        );
 
         for (int i = 0; i < MAX_RETRIES; i++) {
             if (!swiftMigrationService.isMigrationInProgress()) {
@@ -269,10 +266,10 @@ public class SwiftMigrationITTest {
         checkObjectContent(containerName, "obj0");
 
         // Obj1 have not been deleted, but still have no manifest and have its old segment name format
-        assertThatThrownBy(() -> swift.getObject(containerName, "obj1"))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
-        assertThat(allObjectsAndSegments)
-            .doesNotContain("obj1", "obj1/1", "obj1/000001", "obj1/10", "obj1/00000010");
+        assertThatThrownBy(() -> swift.getObject(containerName, "obj1")).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
+        assertThat(allObjectsAndSegments).doesNotContain("obj1", "obj1/1", "obj1/000001", "obj1/10", "obj1/00000010");
 
         // obj2..obj5 : Check objects have no old segment names, have proper headers & content
         for (String objectName : List.of("obj2", "obj3", "obj4", "obj5")) {
@@ -284,22 +281,28 @@ public class SwiftMigrationITTest {
         }
     }
 
-    private void writeLargeObject(String containerName, String objectName, boolean useOldSegmentNameFormat,
-        boolean writeManifestObject, boolean hasManifestHeader, boolean hasDigestMetadata)
-        throws ContentAddressableStorageException, IOException {
-
+    private void writeLargeObject(
+        String containerName,
+        String objectName,
+        boolean useOldSegmentNameFormat,
+        boolean writeManifestObject,
+        boolean hasManifestHeader,
+        boolean hasDigestMetadata
+    ) throws ContentAddressableStorageException, IOException {
         // 6906 bytes --> 10 segments (9*700+606)
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream("file1.pdf"));
 
         final int SEGMENT_SIZE = 700;
         for (int i = 1, pos = 0; pos < data.length; i++, pos += SEGMENT_SIZE) {
             byte[] segment = Arrays.copyOfRange(data, pos, Math.min(pos + SEGMENT_SIZE, data.length));
-            String segmentName = useOldSegmentNameFormat ?
-                getOldObjectSegmentName(objectName, i) :
-                getNewObjectSegmentName(objectName, i);
+            String segmentName = useOldSegmentNameFormat
+                ? getOldObjectSegmentName(objectName, i)
+                : getNewObjectSegmentName(objectName, i);
             vitamSwiftObjectStorageService.put(
-                containerName, segmentName,
-                Payloads.create(new ByteArrayInputStream(segment)));
+                containerName,
+                segmentName,
+                Payloads.create(new ByteArrayInputStream(segment))
+            );
         }
 
         if (writeManifestObject) {
@@ -312,7 +315,11 @@ public class SwiftMigrationITTest {
                 manifestOptions.getOptions().put(X_OBJECT_META_DIGEST_TYPE, SHA512_DIGEST_TYPE);
             }
             vitamSwiftObjectStorageService.put(
-                containerName, objectName, Payloads.create(new NullInputStream(0)), manifestOptions);
+                containerName,
+                objectName,
+                Payloads.create(new NullInputStream(0)),
+                manifestOptions
+            );
         }
     }
 
@@ -324,22 +331,25 @@ public class SwiftMigrationITTest {
         return objectName + "/" + String.format("%08d", index);
     }
 
-    private Set<String> listContainer(VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
-        String containerName, boolean includeSegments)
-        throws ContentAddressableStorageException {
-
+    private Set<String> listContainer(
+        VitamSwiftObjectStorageService vitamSwiftObjectStorageService,
+        String containerName,
+        boolean includeSegments
+    ) throws ContentAddressableStorageException {
         Set<String> results = new HashSet<>();
         String nextMarker = null;
         do {
-            ObjectListOptions objectListOptions = ObjectListOptions.create()
-                .limit(1000);
+            ObjectListOptions objectListOptions = ObjectListOptions.create().limit(1000);
 
             if (nextMarker != null) {
                 objectListOptions.marker(nextMarker);
             }
 
-            List<? extends SwiftObject> swiftObjects =
-                vitamSwiftObjectStorageService.list(containerName, objectListOptions, Collections.emptyMap());
+            List<? extends SwiftObject> swiftObjects = vitamSwiftObjectStorageService.list(
+                containerName,
+                objectListOptions,
+                Collections.emptyMap()
+            );
 
             if (swiftObjects.isEmpty()) {
                 break;
@@ -353,7 +363,6 @@ public class SwiftMigrationITTest {
                 results.add(obj.getName());
             }
             nextMarker = swiftObjects.get(swiftObjects.size() - 1).getName();
-
         } while (nextMarker != null);
         return results;
     }
@@ -364,14 +373,24 @@ public class SwiftMigrationITTest {
         obj0Options.getOptions().put(X_OBJECT_META_DIGEST, DATA_DIGEST);
         obj0Options.getOptions().put(X_OBJECT_META_DIGEST_TYPE, SHA512_DIGEST_TYPE);
         vitamSwiftObjectStorageService.put(
-            containerName, objectName, Payloads.create(PropertiesUtils.getResourceAsStream("file1.pdf")), obj0Options);
+            containerName,
+            objectName,
+            Payloads.create(PropertiesUtils.getResourceAsStream("file1.pdf")),
+            obj0Options
+        );
     }
 
-    private void checkLargeObjectHeaders(String containerName, String objectName, boolean hasManifestHeader,
-        boolean hasDigestMetadata)
-        throws ContentAddressableStorageException {
-        Map<String, String> headers =
-            vitamSwiftObjectStorageService.getMetadata(containerName, objectName, Collections.emptyMap());
+    private void checkLargeObjectHeaders(
+        String containerName,
+        String objectName,
+        boolean hasManifestHeader,
+        boolean hasDigestMetadata
+    ) throws ContentAddressableStorageException {
+        Map<String, String> headers = vitamSwiftObjectStorageService.getMetadata(
+            containerName,
+            objectName,
+            Collections.emptyMap()
+        );
         if (hasManifestHeader) {
             assertThat(headers.get(X_OBJECT_MANIFEST)).isEqualTo(containerName + "/" + objectName + "/");
         } else {
@@ -387,13 +406,12 @@ public class SwiftMigrationITTest {
 
     private void checkObjectContent(String containerName, String objectName)
         throws ContentAddressableStorageException, IOException {
-
         byte[] expectedContent = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream("file1.pdf"));
 
         ObjectContent object = swift.getObject(containerName, objectName);
-        assertThat(object.getSize()).withFailMessage("Check size for " + objectName)
-            .isEqualTo(expectedContent.length);
-        assertThat(object.getInputStream()).withFailMessage("Check content for " + objectName)
+        assertThat(object.getSize()).withFailMessage("Check size for " + objectName).isEqualTo(expectedContent.length);
+        assertThat(object.getInputStream())
+            .withFailMessage("Check content for " + objectName)
             .hasSameContentAs(new ByteArrayInputStream(expectedContent));
     }
 }

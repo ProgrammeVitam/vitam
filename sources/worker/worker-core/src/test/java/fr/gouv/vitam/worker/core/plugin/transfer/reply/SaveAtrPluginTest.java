@@ -60,6 +60,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class SaveAtrPluginTest {
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -82,15 +83,16 @@ public class SaveAtrPluginTest {
 
     @Before
     public void setup() {
-
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String filename = args.getArgument(0);
             File file = tempFolder.newFile(filename);
             tempFiles.put(filename, file);
             return file;
-        }).when(handler).getNewLocalFile((anyString()));
+        })
+            .when(handler)
+            .getNewLocalFile((anyString()));
     }
 
     @Test
@@ -120,8 +122,9 @@ public class SaveAtrPluginTest {
         doReturn(createATR()).when(handler).getInput(0);
         doReturn("container").when(handler).getContainerName();
 
-        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any()))
-            .thenThrow(new StorageNotFoundClientException("ERROR"));
+        when(storageClient.storeFileFromWorkspace(anyString(), any(), anyString(), any())).thenThrow(
+            new StorageNotFoundClientException("ERROR")
+        );
 
         // When
         ItemStatus execute = saveAtrPlugin.execute(null, handler);

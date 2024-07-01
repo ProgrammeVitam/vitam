@@ -69,8 +69,7 @@ public class UnionFormat extends Format {
         StringBuilder builder = new StringBuilder();
         boolean notFirst = false;
         for (Format item : types) {
-            if (notFirst)
-                builder.append(" & ");
+            if (notFirst) builder.append(" & ");
             builder.append(item.debugInfo());
             notFirst = true;
         }

@@ -65,6 +65,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 public class PreservationStorageBinaryPluginTest {
+
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
@@ -87,9 +88,9 @@ public class PreservationStorageBinaryPluginTest {
         output.setAction(ActionTypePreservation.ANALYSE);
         output.setOutputName("outputName");
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults =
-            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                "", "", Collections.emptyList()));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(
+            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "", Collections.emptyList())
+        );
         WorkflowBatchResults batchResults = new WorkflowBatchResults(Paths.get("tmp"), workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
@@ -107,18 +108,27 @@ public class PreservationStorageBinaryPluginTest {
         output.setStatus(PreservationStatus.OK);
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
-        OutputExtra outputExtra =
-            new OutputExtra(output, "binaryGUID", Optional.of(42L), Optional.of("sha-42"), Optional.empty(),
-                Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.empty());
+        OutputExtra outputExtra = new OutputExtra(
+            output,
+            "binaryGUID",
+            Optional.of(42L),
+            Optional.of("sha-42"),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
+        );
         List<OutputExtra> outputExtras = Arrays.asList(outputExtra);
-        List<WorkflowBatchResult> workflowBatchResults =
-            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                "", "other_binary_strategy", Collections.emptyList()));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(
+            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "other_binary_strategy", Collections.emptyList())
+        );
         File file = tmpGriffinFolder.newFolder(OUTPUT_FILES);
         Files.createFile(file.toPath().resolve(output.getOutputName()));
-        WorkflowBatchResults batchResults =
-            new WorkflowBatchResults(tmpGriffinFolder.getRoot().toPath(), workflowBatchResults);
+        WorkflowBatchResults batchResults = new WorkflowBatchResults(
+            tmpGriffinFolder.getRoot().toPath(),
+            workflowBatchResults
+        );
         handler.addOutputResult(0, batchResults);
 
         StoredInfoResult storedInfo = new StoredInfoResult();
@@ -127,22 +137,27 @@ public class PreservationStorageBinaryPluginTest {
         storedInfo.setDigestType("SHA");
         storedInfo.setOfferIds(Collections.singletonList("offer.42.consul"));
         given(
-            backupService.backup(any(), eq(DataCategory.OBJECT), anyString(), eq("other_binary_strategy"))).willReturn(
-            storedInfo);
+            backupService.backup(any(), eq(DataCategory.OBJECT), anyString(), eq("other_binary_strategy"))
+        ).willReturn(storedInfo);
 
         // When
         List<ItemStatus> itemStatuses = storageBinaryPlugin.executeList(null, handler);
 
         // Then
         String binaryGUID =
-            ((WorkflowBatchResults) handler.getInput(0)).getWorkflowBatchResults().get(0).getOutputExtras().get(0)
+            ((WorkflowBatchResults) handler.getInput(0)).getWorkflowBatchResults()
+                .get(0)
+                .getOutputExtras()
+                .get(0)
                 .getBinaryGUID();
 
         assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
-        assertThat(itemStatuses).extracting(ItemStatus::getItemsStatus)
+        assertThat(itemStatuses)
+            .extracting(ItemStatus::getItemsStatus)
             .extracting(itemStatus -> itemStatus.get(PreservationStorageBinaryPlugin.ITEM_ID))
             .extracting(ItemStatus::getSubTaskStatus)
-            .extracting(subItemStatus -> subItemStatus.get(binaryGUID)).isNotEmpty();
+            .extracting(subItemStatus -> subItemStatus.get(binaryGUID))
+            .isNotEmpty();
     }
 
     @Test
@@ -153,15 +168,16 @@ public class PreservationStorageBinaryPluginTest {
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
         List<OutputExtra> outputExtras = Arrays.asList(OutputExtra.of(output));
-        List<WorkflowBatchResult> workflowBatchResults =
-            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                "", "other_binary_strategy", Collections.emptyList()));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(
+            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "other_binary_strategy", Collections.emptyList())
+        );
         Path batchDirectory = Paths.get("tmp");
         WorkflowBatchResults batchResults = new WorkflowBatchResults(batchDirectory, workflowBatchResults);
         handler.addOutputResult(0, batchResults);
 
         given(backupService.backup(any(), eq(DataCategory.OBJECT), anyString(), eq("other_binary_strategy"))).willThrow(
-            new BackupServiceException("execption"));
+            new BackupServiceException("execption")
+        );
 
         // When
         List<ItemStatus> itemStatuses = storageBinaryPlugin.executeList(null, handler);
@@ -177,18 +193,27 @@ public class PreservationStorageBinaryPluginTest {
         output.setStatus(PreservationStatus.OK);
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
-        OutputExtra outputExtra =
-            new OutputExtra(output, "binaryGUID", Optional.of(42L), Optional.of("42424242424242424242"),
-                Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.empty());
+        OutputExtra outputExtra = new OutputExtra(
+            output,
+            "binaryGUID",
+            Optional.of(42L),
+            Optional.of("42424242424242424242"),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
+        );
         List<OutputExtra> outputExtras = Arrays.asList(outputExtra);
-        List<WorkflowBatchResult> workflowBatchResults =
-            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                "", "other_binary_strategy", Collections.emptyList()));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(
+            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "other_binary_strategy", Collections.emptyList())
+        );
         File file = tmpGriffinFolder.newFolder(OUTPUT_FILES);
         Files.createFile(file.toPath().resolve(output.getOutputName()));
-        WorkflowBatchResults batchResults =
-            new WorkflowBatchResults(tmpGriffinFolder.getRoot().toPath(), workflowBatchResults);
+        WorkflowBatchResults batchResults = new WorkflowBatchResults(
+            tmpGriffinFolder.getRoot().toPath(),
+            workflowBatchResults
+        );
         handler.addOutputResult(0, batchResults);
 
         StoredInfoResult storedInfo = new StoredInfoResult();
@@ -197,8 +222,8 @@ public class PreservationStorageBinaryPluginTest {
         storedInfo.setDigestType("SHA");
         storedInfo.setOfferIds(Collections.singletonList("offer.42.consul"));
         given(
-            backupService.backup(any(), eq(DataCategory.OBJECT), anyString(), eq("other_binary_strategy"))).willReturn(
-            storedInfo);
+            backupService.backup(any(), eq(DataCategory.OBJECT), anyString(), eq("other_binary_strategy"))
+        ).willReturn(storedInfo);
 
         // When
         storageBinaryPlugin.executeList(null, handler);
@@ -218,18 +243,27 @@ public class PreservationStorageBinaryPluginTest {
         output.setStatus(PreservationStatus.OK);
         output.setAction(ActionTypePreservation.GENERATE);
         output.setOutputName("outputName");
-        OutputExtra outputExtra =
-            new OutputExtra(output, "binaryGuid", Optional.of(32L), Optional.of("hash_42"), Optional.empty(),
-                Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.empty());
+        OutputExtra outputExtra = new OutputExtra(
+            output,
+            "binaryGuid",
+            Optional.of(32L),
+            Optional.of("hash_42"),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty()
+        );
         List<OutputExtra> outputExtras = Arrays.asList(outputExtra);
-        List<WorkflowBatchResult> workflowBatchResults =
-            Collections.singletonList(WorkflowBatchResult.of("", "", "", "", outputExtras,
-                "", "other_binary_strategy", Collections.emptyList()));
+        List<WorkflowBatchResult> workflowBatchResults = Collections.singletonList(
+            WorkflowBatchResult.of("", "", "", "", outputExtras, "", "other_binary_strategy", Collections.emptyList())
+        );
         File file = tmpGriffinFolder.newFolder(OUTPUT_FILES);
         Files.createFile(file.toPath().resolve(output.getOutputName()));
-        WorkflowBatchResults batchResults =
-            new WorkflowBatchResults(tmpGriffinFolder.getRoot().toPath(), workflowBatchResults);
+        WorkflowBatchResults batchResults = new WorkflowBatchResults(
+            tmpGriffinFolder.getRoot().toPath(),
+            workflowBatchResults
+        );
         handler.addOutputResult(0, batchResults);
 
         StoredInfoResult storedInfo = new StoredInfoResult();
@@ -238,8 +272,8 @@ public class PreservationStorageBinaryPluginTest {
         storedInfo.setDigestType("SHA");
         storedInfo.setOfferIds(Collections.singletonList("offer.42.consul"));
         given(
-            backupService.backup(any(), eq(DataCategory.OBJECT), anyString(), eq("other_binary_strategy"))).willReturn(
-            storedInfo);
+            backupService.backup(any(), eq(DataCategory.OBJECT), anyString(), eq("other_binary_strategy"))
+        ).willReturn(storedInfo);
 
         // When
         List<ItemStatus> itemStatuses = storageBinaryPlugin.executeList(null, handler);

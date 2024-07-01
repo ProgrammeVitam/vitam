@@ -96,28 +96,30 @@ import static fr.gouv.vitam.storage.engine.common.model.DataCategory.UNIT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-
 /**
  * PurgeIT integration test
  */
 public class PurgeIT extends VitamRuleRunner {
 
-    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        PurgeIT.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PurgeIT.class);
     private StorageClient storageClient;
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private MetaDataClient metaDataClient;
+
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(PurgeIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                StorageMain.class,
-                DefaultOfferMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        PurgeIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class
+        )
+    );
+
     private final PurgeDeleteService purgeDeleteService = new PurgeDeleteService();
     private final BackupService backupService = new BackupService();
 
@@ -217,7 +219,6 @@ public class PurgeIT extends VitamRuleRunner {
         checkDeletedFilesInOfferLogs(UNIT, id_1 + ".json", id_2 + ".json", id_3 + ".json");
     }
 
-
     @RunWithCustomExecutor
     @Test
     public void should_delete_objectGroups_documents() throws Exception {
@@ -225,7 +226,6 @@ public class PurgeIT extends VitamRuleRunner {
 
         final GUID operationGuid = GUIDFactory.newGUID();
         VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
-
 
         String id_1 = "aebaaaaaaqhad455abryqalenekbcnyaaaaq";
         String id_2 = "aebaaaaaaqhad455abryqalenekbcqqaaaaq";
@@ -301,13 +301,19 @@ public class PurgeIT extends VitamRuleRunner {
 
     private void checkDeletedFilesInOfferLogs(DataCategory dataCategory, String... fileNames)
         throws StorageServerClientException {
-        RequestResponse<OfferLog> offerLogRequestResponse =
-            storageClient.getOfferLogs(VitamConfiguration.getDefaultStrategy(), null, dataCategory, null, 100000,
-                Order.ASC);
+        RequestResponse<OfferLog> offerLogRequestResponse = storageClient.getOfferLogs(
+            VitamConfiguration.getDefaultStrategy(),
+            null,
+            dataCategory,
+            null,
+            100000,
+            Order.ASC
+        );
         assertThat(offerLogRequestResponse.isOk()).isTrue();
         List<OfferLog> offerLogs = ((RequestResponseOK<OfferLog>) offerLogRequestResponse).getResults();
 
-        List<String> deletedFileNamesInOfferLogs = offerLogs.stream()
+        List<String> deletedFileNamesInOfferLogs = offerLogs
+            .stream()
             .filter(offerLog -> offerLog.getAction() == OfferLogAction.DELETE)
             .map(OfferLog::getFileName)
             .collect(Collectors.toList());
@@ -333,22 +339,26 @@ public class PurgeIT extends VitamRuleRunner {
             byte[] bytes = JsonHandler.unprettyPrint(docWithLfc).getBytes();
 
             backupService.backup(new ByteArrayInputStream(bytes), category, id + ".json");
-
         } catch (Exception e) {
             LOGGER.error(e);
         }
     }
 
-    private void saveInRepositories(JsonNode vitamDocument, JsonNode lfc, MetadataCollections objectgroup,
-        LogbookCollections collection) throws DatabaseException {
-
+    private void saveInRepositories(
+        JsonNode vitamDocument,
+        JsonNode lfc,
+        MetadataCollections objectgroup,
+        LogbookCollections collection
+    ) throws DatabaseException {
         VitamRepositoryFactory.get()
             .getVitamMongoRepository(objectgroup.getVitamCollection())
             .save(Document.parse(vitamDocument.toString()));
 
         VitamRepositoryFactory.get()
-            .getVitamESRepository(objectgroup.getVitamCollection(),
-                metadataIndexManager.getElasticsearchIndexAliasResolver(objectgroup))
+            .getVitamESRepository(
+                objectgroup.getVitamCollection(),
+                metadataIndexManager.getElasticsearchIndexAliasResolver(objectgroup)
+            )
             .save(Document.parse(vitamDocument.toString()));
 
         VitamRepositoryFactory.get()
@@ -357,31 +367,26 @@ public class PurgeIT extends VitamRuleRunner {
     }
 
     private JsonNode getMongoRawUnit(String id) throws VitamClientException {
-
         return ((RequestResponseOK<JsonNode>) metaDataClient.getUnitByIdRaw(id)).getFirstResult();
     }
 
     private void assertThatMongoRawUnitNotExists(String id) throws VitamClientException {
-
         RequestResponse<JsonNode> response = metaDataClient.getUnitByIdRaw(id);
         assertThat(response.isOk()).isFalse();
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
     }
 
     private JsonNode getMongoRawObjectGroup(String id) throws VitamClientException {
-
         return ((RequestResponseOK<JsonNode>) metaDataClient.getObjectGroupByIdRaw(id)).getFirstResult();
     }
 
     private void assertThatMongoRawObjectGroupNotExists(String id) throws VitamClientException {
-
         RequestResponse<JsonNode> response = metaDataClient.getObjectGroupByIdRaw(id);
         assertThat(response.isOk()).isFalse();
         assertThat(response.getStatus()).isEqualTo(Response.Status.NOT_FOUND.getStatusCode());
     }
 
     private String getUnitIdByTitleForElastic(String title) throws Exception {
-
         Select select = new Select();
         select.setQuery(QueryHelper.eq("Title", title));
 
@@ -394,9 +399,11 @@ public class PurgeIT extends VitamRuleRunner {
 
     private String getObjectGrpByIdForElastic(String id) throws Exception {
         Optional<Document> document = VitamRepositoryFactory.get()
-            .getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
+            .getVitamESRepository(
+                MetadataCollections.OBJECTGROUP.getVitamCollection(),
                 metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP)
-            ).getByID(id, 0);
+            )
+            .getByID(id, 0);
         if (document.isPresent()) {
             return id;
         }
@@ -406,11 +413,14 @@ public class PurgeIT extends VitamRuleRunner {
     private void checkFileInStorage(DataCategory dataCategory, String filename, boolean shouldExist)
         throws StorageNotFoundClientException, StorageServerClientException {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             List<String> offers = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
-            JsonNode information =
-                storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), dataCategory, filename, offers,
-                    false);
+            JsonNode information = storageClient.getInformation(
+                VitamConfiguration.getDefaultStrategy(),
+                dataCategory,
+                filename,
+                offers,
+                false
+            );
             boolean fileFound = information.size() > 0;
             assertThat(fileFound).isEqualTo(shouldExist);
         }

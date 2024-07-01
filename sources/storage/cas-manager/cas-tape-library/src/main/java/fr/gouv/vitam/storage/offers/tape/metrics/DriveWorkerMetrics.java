@@ -39,14 +39,15 @@ public final class DriveWorkerMetrics {
     }
 
     public static void initializeMetrics(String tapeLibrary, TapeDriveWorkerManager tapeDriveWorkerManager) {
-
-        GaugeUtils.createCustomGauge(VitamMetricsNames.VITAM_TAPE_OFFER_TOTAL_WORKERS,
+        GaugeUtils.createCustomGauge(
+            VitamMetricsNames.VITAM_TAPE_OFFER_TOTAL_WORKERS,
             "Total number of worker drives for a vitam tape offer",
             Map.of("library", tapeLibrary),
             () -> (double) tapeDriveWorkerManager.getTotalWorkerCount()
         ).register();
 
-        GaugeUtils.createCustomGauge(VitamMetricsNames.VITAM_TAPE_OFFER_INTERRUPTED_WORKERS,
+        GaugeUtils.createCustomGauge(
+            VitamMetricsNames.VITAM_TAPE_OFFER_INTERRUPTED_WORKERS,
             "Number of KO worker drives for a vitam tape offer",
             Map.of("library", tapeLibrary),
             () -> (double) tapeDriveWorkerManager.getInterruptedWorkerCount()

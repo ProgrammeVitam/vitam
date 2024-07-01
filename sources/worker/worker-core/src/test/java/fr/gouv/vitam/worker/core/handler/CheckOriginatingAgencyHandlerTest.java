@@ -63,12 +63,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 public class CheckOriginatingAgencyHandlerTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -91,13 +91,12 @@ public class CheckOriginatingAgencyHandlerTest {
     CheckOriginatingAgencyHandler handler;
     private static final String HANDLER_ID = "CHECK_AGENT";
 
-    private static final String AGENCY = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+    private static final String AGENCY =
+        "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":\"0\", " +
         "\"Identifier\":\"AG-0000002\", " +
         "\"Name\":\"agency\", " +
         "\"Description\":\"Une description\"}";
-
-
 
     @Before
     public void setUp() throws ProcessingException, FileNotFoundException {
@@ -117,10 +116,13 @@ public class CheckOriginatingAgencyHandlerTest {
         // When
         when(handlerIO.getInput(0)).thenReturn(serviceAgent);
         when(adminClient.getAgencies(any())).thenReturn(ClientMockResultHelper.getAgency().toJsonNode());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata(FAKE_URL)
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         // Then
         assertThat(CheckOriginatingAgencyHandler.getId()).isEqualTo(HANDLER_ID);
         ItemStatus response = handler.execute(params, handlerIO);
@@ -137,18 +139,19 @@ public class CheckOriginatingAgencyHandlerTest {
         // When
         when(handlerIO.getInput(0)).thenReturn(serviceAgent);
         when(adminClient.getAgencies(any())).thenReturn(createReponse(AGENCY).toJsonNode());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata(FAKE_URL)
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         // Then
         assertThat(CheckOriginatingAgencyHandler.getId()).isEqualTo(HANDLER_ID);
         ItemStatus response = handler.execute(params, handlerIO);
         assertThat(response.getGlobalStatus()).isEqualTo(StatusCode.KO);
         String evDetData = response.getItemsStatus().get("CHECK_AGENT").getEvDetailData();
         assertThat(evDetData).contains("AG-000000").contains("error originating agency validation");
-
-
     }
 
     /**
@@ -165,10 +168,13 @@ public class CheckOriginatingAgencyHandlerTest {
         when(handlerIO.getInput(0)).thenReturn(serviceAgent);
         when(adminClient.getAgencies(any())).thenReturn(createReponse(AGENCY).toJsonNode());
         // When
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL).setUrlMetadata(FAKE_URL)
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata(FAKE_URL)
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         assertThat(CheckOriginatingAgencyHandler.getId()).isEqualTo(HANDLER_ID);
         ItemStatus response = handler.execute(params, handlerIO);
         // Then
@@ -183,9 +189,7 @@ public class CheckOriginatingAgencyHandlerTest {
      */
     private static RequestResponse createReponse(String s) throws InvalidParseOperationException {
         RequestResponseOK responseOK = new RequestResponseOK();
-        if (null != s)
-            responseOK.addResult(JsonHandler.getFromString(s));
+        if (null != s) responseOK.addResult(JsonHandler.getFromString(s));
         return responseOK.setHttpCode(Status.OK.getStatusCode());
     }
-
 }

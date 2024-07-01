@@ -83,24 +83,23 @@ public class AccessRequestReferentialRepository {
 
     public void insert(TapeAccessRequestReferentialEntity accessRequestReferentialEntity)
         throws AccessRequestReferentialException {
-
         try {
             collection.insertOne(toBson(accessRequestReferentialEntity));
         } catch (MongoException ex) {
             throw new AccessRequestReferentialException(
-                "Could not insert access requests referential for id " +
-                    accessRequestReferentialEntity.getRequestId(), ex);
+                "Could not insert access requests referential for id " + accessRequestReferentialEntity.getRequestId(),
+                ex
+            );
         }
     }
 
     public Optional<TapeAccessRequestReferentialEntity> findByRequestId(String requestId)
         throws AccessRequestReferentialException {
-
         try {
-            TapeAccessRequestReferentialEntity accessRequestReferentialEntity =
-                collection.find(Filters.eq(TapeAccessRequestReferentialEntity.ID, requestId))
-                    .map(this::toModel)
-                    .first();
+            TapeAccessRequestReferentialEntity accessRequestReferentialEntity = collection
+                .find(Filters.eq(TapeAccessRequestReferentialEntity.ID, requestId))
+                .map(this::toModel)
+                .first();
             return Optional.ofNullable(accessRequestReferentialEntity);
         } catch (MongoException ex) {
             throw new AccessRequestReferentialException("Could not find read request by id " + requestId, ex);
@@ -109,18 +108,17 @@ public class AccessRequestReferentialRepository {
 
     public List<TapeAccessRequestReferentialEntity> findByRequestIds(Set<String> requestIds)
         throws AccessRequestReferentialException {
-
         try {
-
             if (requestIds.isEmpty()) {
                 return emptyList();
             }
 
             List<TapeAccessRequestReferentialEntity> results = new ArrayList<>();
             for (List<String> requestIdsBulk : IteratorUtils.asIterable(
-                Iterators.partition(requestIds.iterator(), bulkSize))) {
-
-                collection.find(Filters.in(TapeAccessRequestReferentialEntity.ID, requestIdsBulk))
+                Iterators.partition(requestIds.iterator(), bulkSize)
+            )) {
+                collection
+                    .find(Filters.in(TapeAccessRequestReferentialEntity.ID, requestIdsBulk))
                     .map(this::toModel)
                     .forEach((Consumer<TapeAccessRequestReferentialEntity>) results::add);
             }
@@ -130,43 +128,34 @@ public class AccessRequestReferentialRepository {
         }
     }
 
-    public long countNonReadyAccessRequests()
-        throws AccessRequestReferentialException {
-
+    public long countNonReadyAccessRequests() throws AccessRequestReferentialException {
         try {
-
             return collection.countDocuments(
-                Filters.and(Filters.exists(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS),
-                    Filters.ne(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS, emptyList())));
-
+                Filters.and(
+                    Filters.exists(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS),
+                    Filters.ne(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS, emptyList())
+                )
+            );
         } catch (MongoException ex) {
             throw new AccessRequestReferentialException("Could not count non-ready access requests", ex);
         }
     }
 
-    public long countReadyAccessRequests()
-        throws AccessRequestReferentialException {
-
+    public long countReadyAccessRequests() throws AccessRequestReferentialException {
         try {
             String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
-            return collection.countDocuments(
-                Filters.gte(TapeAccessRequestReferentialEntity.EXPIRATION_DATE, now));
-
+            return collection.countDocuments(Filters.gte(TapeAccessRequestReferentialEntity.EXPIRATION_DATE, now));
         } catch (MongoException ex) {
             throw new AccessRequestReferentialException("Could not count ready access requests", ex);
         }
     }
 
-    public long countExpiredAccessRequests()
-        throws AccessRequestReferentialException {
-
+    public long countExpiredAccessRequests() throws AccessRequestReferentialException {
         try {
             String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
-            return collection.countDocuments(
-                Filters.lt(TapeAccessRequestReferentialEntity.EXPIRATION_DATE, now));
-
+            return collection.countDocuments(Filters.lt(TapeAccessRequestReferentialEntity.EXPIRATION_DATE, now));
         } catch (MongoException ex) {
             throw new AccessRequestReferentialException("Could not count expired access requests", ex);
         }
@@ -174,12 +163,15 @@ public class AccessRequestReferentialRepository {
 
     public List<TapeAccessRequestReferentialEntity> findNonReadyAccessRequests()
         throws AccessRequestReferentialException {
-
         try {
             List<TapeAccessRequestReferentialEntity> results = new ArrayList<>();
-            collection.find(
-                    Filters.and(Filters.exists(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS),
-                        Filters.ne(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS, emptyList())))
+            collection
+                .find(
+                    Filters.and(
+                        Filters.exists(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS),
+                        Filters.ne(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS, emptyList())
+                    )
+                )
                 .map(this::toModel)
                 .forEach((Consumer<TapeAccessRequestReferentialEntity>) results::add);
             return results;
@@ -190,11 +182,10 @@ public class AccessRequestReferentialRepository {
 
     public List<TapeAccessRequestReferentialEntity> findByUnavailableArchiveId(String archiveId)
         throws AccessRequestReferentialException {
-
         try {
-
             List<TapeAccessRequestReferentialEntity> results = new ArrayList<>();
-            collection.find(Filters.in(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS, archiveId))
+            collection
+                .find(Filters.in(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS, archiveId))
                 .map(this::toModel)
                 .forEach((Consumer<TapeAccessRequestReferentialEntity>) results::add);
             return results;
@@ -203,11 +194,11 @@ public class AccessRequestReferentialRepository {
         }
     }
 
-    public boolean deleteAccessRequestById(String accessRequestId)
-        throws AccessRequestReferentialException {
+    public boolean deleteAccessRequestById(String accessRequestId) throws AccessRequestReferentialException {
         try {
             DeleteResult deleteResult = collection.deleteOne(
-                Filters.eq(TapeAccessRequestReferentialEntity.ID, accessRequestId));
+                Filters.eq(TapeAccessRequestReferentialEntity.ID, accessRequestId)
+            );
 
             if (deleteResult.getDeletedCount() == 0) {
                 // LOG & continue (idempotency)
@@ -217,7 +208,6 @@ public class AccessRequestReferentialRepository {
 
             LOGGER.warn("Access request deleted successfully: " + accessRequestId);
             return true;
-
         } catch (MongoException ex) {
             throw new AccessRequestReferentialException("Could not delete access request for " + accessRequestId, ex);
         }
@@ -226,40 +216,48 @@ public class AccessRequestReferentialRepository {
     public List<TapeAccessRequestReferentialEntity> cleanupAndGetExpiredAccessRequests()
         throws AccessRequestReferentialException {
         try {
-
             String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
             List<TapeAccessRequestReferentialEntity> expiredAccessRequests = new ArrayList<>();
-            try (MongoCursor<Document> expiredAccessRequestCursor = collection.find(
-                Filters.lt(TapeAccessRequestReferentialEntity.PURGE_DATE, now)).cursor()) {
-                expiredAccessRequestCursor.forEachRemaining(document ->
-                    expiredAccessRequests.add(toModel(document)));
+            try (
+                MongoCursor<Document> expiredAccessRequestCursor = collection
+                    .find(Filters.lt(TapeAccessRequestReferentialEntity.PURGE_DATE, now))
+                    .cursor()
+            ) {
+                expiredAccessRequestCursor.forEachRemaining(document -> expiredAccessRequests.add(toModel(document)));
             }
 
             for (TapeAccessRequestReferentialEntity expiredAccessRequest : expiredAccessRequests) {
-                LOGGER.warn("Deleting expired access request " + expiredAccessRequest.getRequestId() +
-                    ", lastUpdateDate: " + expiredAccessRequest.getReadyDate());
+                LOGGER.warn(
+                    "Deleting expired access request " +
+                    expiredAccessRequest.getRequestId() +
+                    ", lastUpdateDate: " +
+                    expiredAccessRequest.getReadyDate()
+                );
             }
 
             for (List<TapeAccessRequestReferentialEntity> accessRequestBulkToDelete : ListUtils.partition(
-                expiredAccessRequests, VitamConfiguration.getBatchSize())) {
+                expiredAccessRequests,
+                VitamConfiguration.getBatchSize()
+            )) {
                 collection.deleteMany(
-                    Filters.in(TapeAccessRequestReferentialEntity.ID,
-                        accessRequestBulkToDelete.stream().map(TapeAccessRequestReferentialEntity::getRequestId)
+                    Filters.in(
+                        TapeAccessRequestReferentialEntity.ID,
+                        accessRequestBulkToDelete
+                            .stream()
+                            .map(TapeAccessRequestReferentialEntity::getRequestId)
                             .collect(Collectors.toList())
                     )
                 );
             }
 
             return expiredAccessRequests;
-
         } catch (MongoException ex) {
             throw new AccessRequestReferentialException("Could not purge expired access requests.", ex);
         }
     }
 
     public Set<String> excludeArchiveIdsStillRequiredByAccessRequests(Set<String> archiveIdsToCheck) {
-
         if (archiveIdsToCheck.isEmpty()) {
             return Collections.emptySet();
         }
@@ -269,19 +267,22 @@ public class AccessRequestReferentialRepository {
 
         // Should we filter by bulk archiveIdsToCheck?
         for (List<String> archiveIdsBulk : IteratorUtils.asIterable(
-            Iterators.partition(archiveIdsToCheck.iterator(), bulkSize))) {
-            DistinctIterable<String> distinct =
-                collection.distinct(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS,
-                    Filters.in(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS, archiveIdsBulk),
-                    String.class);
+            Iterators.partition(archiveIdsToCheck.iterator(), bulkSize)
+        )) {
+            DistinctIterable<String> distinct = collection.distinct(
+                TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS,
+                Filters.in(TapeAccessRequestReferentialEntity.UNAVAILABLE_ARCHIVE_IDS, archiveIdsBulk),
+                String.class
+            );
             distinct.forEach((Consumer<? super String>) inUseArchiveIds::remove);
         }
         return inUseArchiveIds;
     }
 
-    public boolean updateAccessRequest(TapeAccessRequestReferentialEntity updatedAccessRequestEntity,
-        int expectedVersion) throws AccessRequestReferentialException {
-
+    public boolean updateAccessRequest(
+        TapeAccessRequestReferentialEntity updatedAccessRequestEntity,
+        int expectedVersion
+    ) throws AccessRequestReferentialException {
         try {
             UpdateResult updateResult = collection.replaceOne(
                 Filters.and(
@@ -294,40 +295,50 @@ public class AccessRequestReferentialRepository {
             return (updateResult.getMatchedCount() != 0);
         } catch (MongoException e) {
             throw new AccessRequestReferentialException(
-                "Could not update access request " + updatedAccessRequestEntity.getRequestId(), e);
+                "Could not update access request " + updatedAccessRequestEntity.getRequestId(),
+                e
+            );
         }
     }
 
     public CloseableIterator<TapeLibraryObjectReferentialId> listObjectIdsForActiveAccessRequests()
         throws AccessRequestReferentialException {
-
         try {
             // Select distinct containerName / objectName pairs of non-expired access requests
             String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
             List<Bson> aggregatePipeline = List.of(
                 // Exclude expired access requests
-                Aggregates.match(Filters.or(
-                    Filters.eq(TapeAccessRequestReferentialEntity.EXPIRATION_DATE, null),
-                    Filters.gte(TapeAccessRequestReferentialEntity.EXPIRATION_DATE, now))),
+                Aggregates.match(
+                    Filters.or(
+                        Filters.eq(TapeAccessRequestReferentialEntity.EXPIRATION_DATE, null),
+                        Filters.gte(TapeAccessRequestReferentialEntity.EXPIRATION_DATE, now)
+                    )
+                ),
                 // Only select objectNames & containerName
-                Aggregates.project(new Document()
-                    .append(TapeAccessRequestReferentialEntity.ID, 0)
-                    .append(TapeAccessRequestReferentialEntity.OBJECT_NAMES, 1)
-                    .append(TapeAccessRequestReferentialEntity.CONTAINER_NAME, 1)),
+                Aggregates.project(
+                    new Document()
+                        .append(TapeAccessRequestReferentialEntity.ID, 0)
+                        .append(TapeAccessRequestReferentialEntity.OBJECT_NAMES, 1)
+                        .append(TapeAccessRequestReferentialEntity.CONTAINER_NAME, 1)
+                ),
                 // Unwind objectNames
                 Aggregates.unwind("$" + TapeAccessRequestReferentialEntity.OBJECT_NAMES),
                 // Deduplicate { "containerName": "<containerName>" , "objectName": "<objectName>" } pairs
-                Aggregates.group(new Document()
-                    .append(TapeLibraryObjectReferentialId.CONTAINER_NAME,
-                        "$" + TapeAccessRequestReferentialEntity.CONTAINER_NAME)
-                    .append(TapeLibraryObjectReferentialId.OBJECT_NAME,
-                        "$" + TapeAccessRequestReferentialEntity.OBJECT_NAMES))
+                Aggregates.group(
+                    new Document()
+                        .append(
+                            TapeLibraryObjectReferentialId.CONTAINER_NAME,
+                            "$" + TapeAccessRequestReferentialEntity.CONTAINER_NAME
+                        )
+                        .append(
+                            TapeLibraryObjectReferentialId.OBJECT_NAME,
+                            "$" + TapeAccessRequestReferentialEntity.OBJECT_NAMES
+                        )
+                )
             );
 
-            AggregateIterable<Document> aggregate = collection
-                .aggregate(aggregatePipeline)
-                .allowDiskUse(true);
+            AggregateIterable<Document> aggregate = collection.aggregate(aggregatePipeline).allowDiskUse(true);
             MongoCursor<Document> iterator = aggregate.iterator();
 
             return new CloseableIterator<>() {
@@ -346,13 +357,15 @@ public class AccessRequestReferentialRepository {
                     Document docId = iterator.next().get("_id", Document.class);
                     return new TapeLibraryObjectReferentialId(
                         docId.getString(TapeLibraryObjectReferentialId.CONTAINER_NAME),
-                        docId.getString(TapeLibraryObjectReferentialId.OBJECT_NAME));
+                        docId.getString(TapeLibraryObjectReferentialId.OBJECT_NAME)
+                    );
                 }
             };
-
         } catch (MongoException e) {
             throw new AccessRequestReferentialException(
-                "Could not fetch archive ids required by active access requests", e);
+                "Could not fetch archive ids required by active access requests",
+                e
+            );
         }
     }
 
@@ -360,8 +373,7 @@ public class AccessRequestReferentialRepository {
         return Document.parse(JsonHandler.unprettyPrint(object));
     }
 
-    private TapeAccessRequestReferentialEntity toModel(Document document)
-        throws IllegalStateException {
+    private TapeAccessRequestReferentialEntity toModel(Document document) throws IllegalStateException {
         try {
             return BsonHelper.fromDocumentToObject(document, TapeAccessRequestReferentialEntity.class);
         } catch (InvalidParseOperationException e) {

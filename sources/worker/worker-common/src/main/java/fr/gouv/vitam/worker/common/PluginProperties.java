@@ -37,12 +37,12 @@ public class PluginProperties {
 
     @JsonProperty("className")
     private String className;
+
     @JsonProperty("propertiesFile")
     private String propertiesFile;
 
     @JsonProperty("jarName")
     private String jarName;
-
 
     /**
      * Constructor.
@@ -51,13 +51,14 @@ public class PluginProperties {
      * @param propertiesFile parameters
      */
     @JsonCreator
-    public PluginProperties(@JsonProperty("className") String className,
-        @JsonProperty("propertiesFile") String propertiesFile) {
+    public PluginProperties(
+        @JsonProperty("className") String className,
+        @JsonProperty("propertiesFile") String propertiesFile
+    ) {
         ParametersChecker.checkParameter("className is a mandatory parameter", className);
         this.className = className;
         this.propertiesFile = propertiesFile;
     }
-
 
     /**
      * Get the className

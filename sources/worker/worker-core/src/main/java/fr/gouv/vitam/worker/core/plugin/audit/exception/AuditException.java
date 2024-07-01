@@ -44,7 +44,6 @@ public class AuditException extends VitamException {
     public AuditException(StatusCode statusCode, String message, Throwable cause) {
         super(message, cause);
         this.statusCode = statusCode;
-
     }
 
     /**
@@ -58,5 +57,4 @@ public class AuditException extends VitamException {
     public StatusCode getStatusCode() {
         return statusCode;
     }
-
 }

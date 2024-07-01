@@ -39,22 +39,27 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class FileRulesManagementReport {
 
-
     @JsonProperty("insertedRules")
     private List<String> fileRulesToImport = new ArrayList<>();
+
     @JsonProperty("updatedRules")
     private List<String> fileRulesToUpdate = new ArrayList<>();
+
     @JsonProperty("deletedRules")
     private List<String> fileRulesToDelete = new ArrayList<>();
 
     @JsonProperty("usedRulesWithDurationModeUpdate")
     private List<String> usedRulesWithDurationModeUpdate = new ArrayList<>();
+
     @JsonProperty("usedFileRulesToDelete")
     private List<String> usedFileRulesToDelete = new ArrayList<>();
+
     @JsonProperty("usedFileRulesToUpdate")
     private List<String> usedFileRulesToUpdate = new ArrayList<>();
+
     @JsonProperty("Operation")
     private HashMap<String, String> jdo = new HashMap<>();
+
     @JsonProperty("error")
     private HashMap<String, Object> errors;
 
@@ -151,5 +156,4 @@ public class FileRulesManagementReport {
     public void setError(HashMap<String, Object> errors) {
         this.errors = errors;
     }
-
 }

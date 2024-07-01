@@ -64,6 +64,7 @@ import static com.mongodb.client.model.Filters.or;
  * AuditReportRepository
  */
 public class AuditReportRepository extends ReportCommonRepository {
+
     public static final String AUDIT_OBJECT_GROUP = "AuditObjectGroup";
     private final MongoCollection<Document> objectGroupReportCollection;
 
@@ -83,8 +84,10 @@ public class AuditReportRepository extends ReportCommonRepository {
      */
     public void bulkAppendReport(List<AuditObjectGroupModel> reports) {
         Set<AuditObjectGroupModel> reportsWithoutDuplicate = new HashSet<>(reports);
-        List<Document> auditObjectGroupDocument = reportsWithoutDuplicate.stream()
-            .map(ReportCommonRepository::pojoToDocument).collect(Collectors.toList());
+        List<Document> auditObjectGroupDocument = reportsWithoutDuplicate
+            .stream()
+            .map(ReportCommonRepository::pojoToDocument)
+            .collect(Collectors.toList());
         super.bulkAppendReport(auditObjectGroupDocument, objectGroupReportCollection);
     }
 
@@ -98,8 +101,10 @@ public class AuditReportRepository extends ReportCommonRepository {
         Bson eqProcessId = eq(AuditObjectGroupModel.PROCESS_ID, processId);
         Bson eqTenant = eq(AuditObjectGroupModel.TENANT, tenantId);
         Bson groupOnSp = group("$_metadata.status", sum("result", 1));
-        MongoCursor<Document> objectGroupsStatusCountResult = getListStats(Aggregates.match(and(eqProcessId, eqTenant)),
-            groupOnSp);
+        MongoCursor<Document> objectGroupsStatusCountResult = getListStats(
+            Aggregates.match(and(eqProcessId, eqTenant)),
+            groupOnSp
+        );
         while (objectGroupsStatusCountResult.hasNext()) {
             Document result = objectGroupsStatusCountResult.next();
             String status = result.getString("_id");
@@ -129,18 +134,28 @@ public class AuditReportRepository extends ReportCommonRepository {
      * @param status statuses
      * @return mongo cursor of report documents
      */
-    public MongoCursor<Document> findCollectionByProcessIdTenantAndStatus(String processId, int tenantId,
-        String... status) {
+    public MongoCursor<Document> findCollectionByProcessIdTenantAndStatus(
+        String processId,
+        int tenantId,
+        String... status
+    ) {
         Bson eqProcessId = eq(AuditObjectGroupModel.PROCESS_ID, processId);
         Bson eqTenant = eq(AuditObjectGroupModel.TENANT, tenantId);
-        Bson inStatus = or(in(AuditObjectGroupModel.METADATA + ".status", status),
-            in(AuditObjectGroupModel.METADATA + ".objectVersions.status", status));
+        Bson inStatus = or(
+            in(AuditObjectGroupModel.METADATA + ".status", status),
+            in(AuditObjectGroupModel.METADATA + ".objectVersions.status", status)
+        );
 
         return objectGroupReportCollection
-            .aggregate(Arrays.asList(Aggregates.match(and(eqProcessId, eqTenant, inStatus)),
-                Aggregates.project(reportProjection())))
+            .aggregate(
+                Arrays.asList(
+                    Aggregates.match(and(eqProcessId, eqTenant, inStatus)),
+                    Aggregates.project(reportProjection())
+                )
+            )
             // Aggregation query requires more than 100MB to proceed.
-            .allowDiskUse(true).iterator();
+            .allowDiskUse(true)
+            .iterator();
     }
 
     /**
@@ -155,10 +170,12 @@ public class AuditReportRepository extends ReportCommonRepository {
         Bson eqTenant = eq(AuditObjectGroupModel.TENANT, tenantId);
 
         return objectGroupReportCollection
-            .aggregate(Arrays.asList(Aggregates.match(and(eqProcessId, eqTenant)),
-                Aggregates.project(reportProjection())))
+            .aggregate(
+                Arrays.asList(Aggregates.match(and(eqProcessId, eqTenant)), Aggregates.project(reportProjection()))
+            )
             // Aggregation query requires more than 100MB to proceed.
-            .allowDiskUse(true).iterator();
+            .allowDiskUse(true)
+            .iterator();
     }
 
     /**
@@ -211,8 +228,11 @@ public class AuditReportRepository extends ReportCommonRepository {
      * @return number of objects
      */
     private int getNbObjects(Bson matchAgg) {
-        Document nbObjectsResult = getStats(matchAgg, getUnwindAggregation("_metadata.objectVersions"),
-            getGroupAggregation("nbObjects"));
+        Document nbObjectsResult = getStats(
+            matchAgg,
+            getUnwindAggregation("_metadata.objectVersions"),
+            getGroupAggregation("nbObjects")
+        );
         if (nbObjectsResult != null) {
             return nbObjectsResult.getInteger("result");
         } else {
@@ -298,8 +318,10 @@ public class AuditReportRepository extends ReportCommonRepository {
             String status = id.getString("status");
             Integer count = result.getInteger("result");
             if (!results.containsKey(originatingAgency)) {
-                results.put(originatingAgency,
-                    new AuditFullStatusCount(new AuditStatusCount(), new AuditStatusCount()));
+                results.put(
+                    originatingAgency,
+                    new AuditFullStatusCount(new AuditStatusCount(), new AuditStatusCount())
+                );
             }
             results.get(originatingAgency).getObjectGroupsCount().addOneStatus(status, count);
         }
@@ -327,21 +349,28 @@ public class AuditReportRepository extends ReportCommonRepository {
             String status = id.getString("status");
             Integer count = result.getInteger("result");
             if (!results.containsKey(originatingAgency)) {
-                results.put(originatingAgency,
-                    new AuditFullStatusCount(new AuditStatusCount(), new AuditStatusCount()));
+                results.put(
+                    originatingAgency,
+                    new AuditFullStatusCount(new AuditStatusCount(), new AuditStatusCount())
+                );
             }
             results.get(originatingAgency).getObjectsCount().addOneStatus(status, count);
         }
     }
 
     private Bson reportProjection() {
-        return Projections.fields(new Document("_id", 0), new Document("outcome", "$_metadata.outcome"),
-            new Document("detailType", "$_metadata.detailType"), new Document("detailId", "$_metadata.detailId"),
-            new Document("params.id", "$_metadata.id"), new Document("params.status", "$_metadata.status"),
+        return Projections.fields(
+            new Document("_id", 0),
+            new Document("outcome", "$_metadata.outcome"),
+            new Document("detailType", "$_metadata.detailType"),
+            new Document("detailId", "$_metadata.detailId"),
+            new Document("params.id", "$_metadata.id"),
+            new Document("params.status", "$_metadata.status"),
             new Document("params.opi", "$_metadata.opi"),
             new Document("params.originatingAgency", "$_metadata.originatingAgency"),
             new Document("params.parentUnitIds", "$_metadata.parentUnitIds"),
-            new Document("params.objectVersions", "$_metadata.objectVersions"));
+            new Document("params.objectVersions", "$_metadata.objectVersions")
+        );
     }
 
     private Bson getMatchAggregation(Bson filter) {
@@ -363,5 +392,4 @@ public class AuditReportRepository extends ReportCommonRepository {
     private Document getStats(Bson... aggregations) {
         return objectGroupReportCollection.aggregate(Arrays.asList(aggregations)).first();
     }
-
 }

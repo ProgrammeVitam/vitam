@@ -32,7 +32,6 @@ import fr.gouv.vitam.common.logging.VitamLogLevel;
  * Interface for securiry alert service.
  */
 public interface AlertService {
-
     /**
      * Create an alert with the specified message and level
      *
@@ -52,5 +51,4 @@ public interface AlertService {
      * / Create an alert with the specified message, level au cause
      */
     void createAlert(VitamLogLevel level, String message, Throwable cause);
-
 }

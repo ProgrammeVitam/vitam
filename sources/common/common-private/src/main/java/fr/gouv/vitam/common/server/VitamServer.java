@@ -35,7 +35,6 @@ import org.eclipse.jetty.xml.XmlConfiguration;
  * Interface for every Vitam REST Server
  */
 public interface VitamServer extends VitamServerInterface {
-
     /**
      * Default message
      */
@@ -103,7 +102,6 @@ public interface VitamServer extends VitamServerInterface {
      */
     boolean isStarted();
 
-
     /**
      * check if vitam server is stopped
      *
@@ -117,8 +115,6 @@ public interface VitamServer extends VitamServerInterface {
      * @throws VitamApplicationServerException
      */
     void stop() throws VitamApplicationServerException;
-
-
 
     /**
      * start the jetty server without join (Junit only)

@@ -59,7 +59,6 @@ public class AbstractGraphComputePluginTest {
         MetaDataClientFactory metaDataClientFactory = MetaDataClientFactory.getInstance();
         metaDataClientFactory.setVitamClientType(VitamClientFactoryInterface.VitamClientType.MOCK);
         abstractGraphComputePlugin = new AbstractGraphComputePlugin(metaDataClientFactory) {
-
             @Override
             GraphComputeResponse.GraphComputeAction getGraphComputeAction() {
                 return GraphComputeResponse.GraphComputeAction.UNIT;
@@ -71,7 +70,6 @@ public class AbstractGraphComputePluginTest {
             }
         };
     }
-
 
     @Test(expected = ProcessingException.class)
     public void executeShouldThrowException() throws ProcessingException {
@@ -105,5 +103,4 @@ public class AbstractGraphComputePluginTest {
         assertThat(statusMeter.get(3)).isEqualTo(3);
         assertThat(statusMeter.get(6)).isEqualTo(1);
     }
-
 }

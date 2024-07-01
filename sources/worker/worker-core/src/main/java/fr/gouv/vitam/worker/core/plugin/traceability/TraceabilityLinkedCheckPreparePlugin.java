@@ -69,10 +69,12 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
 
     private static final String PLUGIN_NAME = "TRACEABILITY_LINKED_CHECK_PREPARE";
-    private static final String[] EVENT_TRACEABILITY_TYPES =
-        {LOGBOOK_TRACEABILITY.getEventType(), LOGBOOK_STORAGE_TRACEABILITY.getEventType(),
-            UNIT_LFC_TRACEABILITY.getEventType(),
-            OBJECTGROUP_LFC_TRACEABILITY.getEventType()};
+    private static final String[] EVENT_TRACEABILITY_TYPES = {
+        LOGBOOK_TRACEABILITY.getEventType(),
+        LOGBOOK_STORAGE_TRACEABILITY.getEventType(),
+        UNIT_LFC_TRACEABILITY.getEventType(),
+        OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
+    };
 
     static final String LOGBOOK_OPERATIONS_JSONL_FILE = "logbookOperations.jsonl";
 
@@ -88,8 +90,7 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         ItemStatus itemStatus = new ItemStatus(PLUGIN_NAME);
         JsonNode dslQuery = filterQuery(handler.getJsonFromWorkspace(WorkspaceConstants.QUERY));
         File logbookOperationDistributionFile = handler.getNewLocalFile(LOGBOOK_OPERATIONS_JSONL_FILE);
@@ -100,26 +101,34 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
             JsonNode logbookOperations = logbookOperationsClient.selectOperation(dslQuery);
             JsonNode results = logbookOperations.get(TAG_RESULTS);
 
-            try (JsonLineWriter logbookOperationsWriter = new JsonLineWriter(
-                new FileOutputStream(logbookOperationDistributionFile))) {
-
+            try (
+                JsonLineWriter logbookOperationsWriter = new JsonLineWriter(
+                    new FileOutputStream(logbookOperationDistributionFile)
+                )
+            ) {
                 for (int i = 0; i < results.size(); i++) {
                     JsonNode logbookOperation = results.get(i);
-                    JsonNode eventDetail = JsonHandler
-                        .getFromString(logbookOperation.get(LogbookMongoDbName.eventDetailData.getDbname()).asText());
+                    JsonNode eventDetail = JsonHandler.getFromString(
+                        logbookOperation.get(LogbookMongoDbName.eventDetailData.getDbname()).asText()
+                    );
                     if (eventDetail instanceof NullNode || eventDetail.isEmpty()) {
                         skippedOperations.add(logbookOperation.get(LogbookEvent.EV_ID).asText());
                     } else {
-                        JsonLineModel entry =
-                            new JsonLineModel(logbookOperation.get(LogbookEvent.EV_ID).textValue(), null, eventDetail);
+                        JsonLineModel entry = new JsonLineModel(
+                            logbookOperation.get(LogbookEvent.EV_ID).textValue(),
+                            null,
+                            eventDetail
+                        );
                         logbookOperationsWriter.addEntry(entry);
                     }
                 }
             }
-            handler
-                .transferFileToWorkspace(LOGBOOK_OPERATIONS_JSONL_FILE, logbookOperationDistributionFile, true, false);
-
-
+            handler.transferFileToWorkspace(
+                LOGBOOK_OPERATIONS_JSONL_FILE,
+                logbookOperationDistributionFile,
+                true,
+                false
+            );
         } catch (IOException | LogbookClientException | InvalidParseOperationException e) {
             return buildItemStatus(PLUGIN_NAME, StatusCode.FATAL, e.getMessage());
         } finally {
@@ -127,10 +136,18 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
         }
 
         if (!skippedOperations.isEmpty()) {
-            itemStatus.setItemsStatus(buildItemStatus(PLUGIN_NAME, StatusCode.WARNING,
-                PluginHelper.EventDetails
-                    .of(String.format("These operations %s does not contains data. they will be skipped !",
-                        skippedOperations.toString()))));
+            itemStatus.setItemsStatus(
+                buildItemStatus(
+                    PLUGIN_NAME,
+                    StatusCode.WARNING,
+                    PluginHelper.EventDetails.of(
+                        String.format(
+                            "These operations %s does not contains data. they will be skipped !",
+                            skippedOperations.toString()
+                        )
+                    )
+                )
+            );
             return itemStatus;
         }
 
@@ -142,9 +159,7 @@ public class TraceabilityLinkedCheckPreparePlugin extends ActionHandler {
         try {
             final SelectParserSingle parser = new SelectParserSingle();
             parser.parse(dslQuery);
-            parser.addCondition(
-                QueryHelper.in(EV_TYPE, EVENT_TRACEABILITY_TYPES)
-            );
+            parser.addCondition(QueryHelper.in(EV_TYPE, EVENT_TRACEABILITY_TYPES));
             return parser.getRootNode();
         } catch (InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new ProcessingException(e);

@@ -41,8 +41,7 @@ public class ProcessingStatusException extends Exception {
         this(statusCode, null, message, null);
     }
 
-    public ProcessingStatusException(StatusCode statusCode, Object eventDetails, String message,
-        Throwable cause) {
+    public ProcessingStatusException(StatusCode statusCode, Object eventDetails, String message, Throwable cause) {
         super(message, cause);
         this.statusCode = statusCode;
         this.eventDetails = eventDetails;

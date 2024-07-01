@@ -32,7 +32,6 @@ import fr.gouv.vitam.security.internal.rest.service.IdentityService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
@@ -71,7 +70,7 @@ public class AdminIdentityResourceTest {
     @Test
     public void should_create_identity() throws Exception {
         // Given
-        byte[] bytes = new byte[] {1, 2};
+        byte[] bytes = new byte[] { 1, 2 };
         IdentityInsertModel identityModel = new IdentityInsertModel();
         identityModel.setContextId("contextId");
         identityModel.setCertificate(bytes);
@@ -86,7 +85,7 @@ public class AdminIdentityResourceTest {
     @Test
     public void should_not_create_identity_when_exists() throws Exception {
         // Given
-        byte[] bytes = new byte[] {1, 2};
+        byte[] bytes = new byte[] { 1, 2 };
         IdentityInsertModel identityModel = new IdentityInsertModel();
         identityModel.setContextId("contextId");
         identityModel.setCertificate(bytes);
@@ -103,7 +102,7 @@ public class AdminIdentityResourceTest {
     @Test
     public void should_return_not_found_when_certificate_is_missing() throws Exception {
         // Given
-        byte[] bytes = new byte[] {1, 2};
+        byte[] bytes = new byte[] { 1, 2 };
         IdentityInsertModel identityModel = new IdentityInsertModel();
         identityModel.setContextId("contextId");
         identityModel.setCertificate(bytes);
@@ -111,14 +110,15 @@ public class AdminIdentityResourceTest {
         given(identityService.linkContextToIdentity(identityModel)).willReturn(Optional.empty());
 
         // When
-        assertThatThrownBy(() -> identityResource.linkContextToIdentity(identityModel, uriInfo))
-            .isInstanceOf(NotFoundException.class);
+        assertThatThrownBy(() -> identityResource.linkContextToIdentity(identityModel, uriInfo)).isInstanceOf(
+            NotFoundException.class
+        );
     }
 
     @Test
     public void should_link_context_to_identity() throws Exception {
         // Given
-        byte[] bytes = new byte[] {1, 2};
+        byte[] bytes = new byte[] { 1, 2 };
         IdentityInsertModel identityInsertModel = new IdentityInsertModel();
         identityInsertModel.setContextId("contextId");
         identityInsertModel.setCertificate(bytes);
@@ -133,5 +133,4 @@ public class AdminIdentityResourceTest {
         then(identityService).should().linkContextToIdentity(identityInsertModel);
         assertThat(result).isEqualTo(identityModel);
     }
-
 }

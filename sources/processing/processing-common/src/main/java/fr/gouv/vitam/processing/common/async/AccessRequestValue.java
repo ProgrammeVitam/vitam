@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.processing.common.async;
 
-
 public class AccessRequestValue {
 
     // mandatory
@@ -38,9 +37,13 @@ public class AccessRequestValue {
     // mandatory
     private final AsyncResourceBulkId bulkId;
 
-    public AccessRequestValue(String accessRequestId, String requestId, String taskId,
+    public AccessRequestValue(
+        String accessRequestId,
+        String requestId,
+        String taskId,
         WorkflowInterruptionChecker workflowInterruptionChecker,
-        AsyncResourceCallback callback) {
+        AsyncResourceCallback callback
+    ) {
         this.accessRequestId = accessRequestId;
         this.workflowInterruptionChecker = workflowInterruptionChecker;
         this.bulkId = new AsyncResourceBulkId(requestId, taskId);

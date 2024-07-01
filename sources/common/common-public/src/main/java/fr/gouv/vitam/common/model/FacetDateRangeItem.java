@@ -48,8 +48,7 @@ public class FacetDateRangeItem {
     /**
      * constructor.
      */
-    public FacetDateRangeItem() {
-    }
+    public FacetDateRangeItem() {}
 
     public FacetDateRangeItem(String dateMin, String dateMax) {
         this.dateMin = dateMin;
@@ -92,4 +91,3 @@ public class FacetDateRangeItem {
         this.dateMax = dateMax;
     }
 }
-

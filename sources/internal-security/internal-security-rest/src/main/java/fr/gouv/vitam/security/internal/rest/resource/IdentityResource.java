@@ -50,7 +50,6 @@ public class IdentityResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IdentityResource.class);
 
-
     private final IdentityService identityService;
 
     /**

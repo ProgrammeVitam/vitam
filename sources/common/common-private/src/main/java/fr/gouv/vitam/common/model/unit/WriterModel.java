@@ -36,6 +36,4 @@ package fr.gouv.vitam.common.model.unit;
  * @author afraoucene
  */
 
-public class WriterModel extends AgentTypeModel {
-
-}
+public class WriterModel extends AgentTypeModel {}

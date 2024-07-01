@@ -50,7 +50,6 @@ import static fr.gouv.vitam.collect.internal.core.helpers.QueryHandlerTest.TestD
 import static fr.gouv.vitam.collect.internal.core.helpers.QueryHandlerTest.TestDummyData.qualifiersAddMultiQuery;
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 public class QueryHandlerTest {
 
     @Test
@@ -71,17 +70,23 @@ public class QueryHandlerTest {
         objectDto.setId(VERSION_ID);
 
         // WHEN
-        UpdateMultiQuery qualifiersAddMultiQuery =
-            QueryHandler.getQualifiersAddMultiQuery(objectGroup, USAGE, QUALIFIER_VERSION, objectDto);
+        UpdateMultiQuery qualifiersAddMultiQuery = QueryHandler.getQualifiersAddMultiQuery(
+            objectGroup,
+            USAGE,
+            QUALIFIER_VERSION,
+            objectDto
+        );
 
         // THEN
         JsonNode expectedJsonNode = qualifiersAddMultiQuery();
         assertThat(qualifiersAddMultiQuery).isNotNull();
         assertThat(qualifiersAddMultiQuery.getFinalUpdate().toPrettyString()).hasToString(
-            expectedJsonNode.toPrettyString());
+            expectedJsonNode.toPrettyString()
+        );
     }
 
     static class TestDummyData {
+
         static DataObjectVersionType USAGE = DataObjectVersionType.BINARY_MASTER;
         static String FILE_NAME = "memoire_nationale.txt";
         static String VERSION_ID = "OBJECT_ID";
@@ -90,7 +95,8 @@ public class QueryHandlerTest {
         static int QUALIFIER_VERSION = 1;
 
         static JsonNode qualifiersAddMultiQuery() throws InvalidParseOperationException {
-            String qualifiersAddMultiQuery = "{\n" +
+            String qualifiersAddMultiQuery =
+                "{\n" +
                 "  \"$roots\" : [ ],\n" +
                 "  \"$query\" : [ ],\n" +
                 "  \"$filter\" : {\n" +
@@ -99,13 +105,23 @@ public class QueryHandlerTest {
                 "  \"$action\" : [ {\n" +
                 "    \"$set\" : {\n" +
                 "      \"#qualifiers\" : [ {\n" +
-                "        \"qualifier\" : \"" + USAGE.getName() + "\",\n" +
+                "        \"qualifier\" : \"" +
+                USAGE.getName() +
+                "\",\n" +
                 "        \"_nbc\" : 1,\n" +
                 "        \"versions\" : [ {\n" +
-                "          \"_id\" : \"" + VERSION_ID + "\",\n" +
-                "          \"DataObjectVersion\" : \"" + USAGE.getName() + "_" + QUALIFIER_VERSION + "\",\n" +
+                "          \"_id\" : \"" +
+                VERSION_ID +
+                "\",\n" +
+                "          \"DataObjectVersion\" : \"" +
+                USAGE.getName() +
+                "_" +
+                QUALIFIER_VERSION +
+                "\",\n" +
                 "          \"FileInfo\" : {\n" +
-                "            \"Filename\" : \"" + FILE_NAME + "\"\n" +
+                "            \"Filename\" : \"" +
+                FILE_NAME +
+                "\"\n" +
                 "          },\n" +
                 "          \"Size\" : 0\n" +
                 "        } ]\n" +

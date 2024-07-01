@@ -37,10 +37,12 @@ public final class StorageDistributionFactory {
     public static StorageDistribution createStorageDistribution(
         StorageConfiguration storageConfiguration,
         StorageLog storageLogService,
-        AlertService alertService) throws StorageTechnicalException {
-
-        StorageDistributionImpl storageDistribution =
-            new StorageDistributionImpl(storageConfiguration, storageLogService);
+        AlertService alertService
+    ) throws StorageTechnicalException {
+        StorageDistributionImpl storageDistribution = new StorageDistributionImpl(
+            storageConfiguration,
+            storageLogService
+        );
 
         if (storageConfiguration.isReadOnly()) {
             return new ReadOnlyShieldStorageDistribution(storageDistribution, alertService);
@@ -48,5 +50,4 @@ public final class StorageDistributionFactory {
 
         return storageDistribution;
     }
-
 }

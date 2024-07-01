@@ -51,6 +51,7 @@ import java.util.List;
  * @param <T> Parameter Type
  */
 public abstract class Result<T> {
+
     private static final String INVALID_NUMBER_OF_RESULT_AND_LIST_OF_RESULTS =
         "Invalid number of Result and List of results";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ElasticsearchAccessMetadata.class);
@@ -201,7 +202,6 @@ public abstract class Result<T> {
         return this;
     }
 
-
     /**
      * Add ScrollId to Result
      *
@@ -212,7 +212,6 @@ public abstract class Result<T> {
         this.scrollId = scrollId;
         return this;
     }
-
 
     /**
      * Return ScrollId of Result
@@ -275,7 +274,6 @@ public abstract class Result<T> {
         }
         return facetResult;
     }
-
 
     /**
      * @return the filtered list for Select operation
@@ -342,12 +340,16 @@ public abstract class Result<T> {
         if (type == FILTERARGS.UNITS) {
             for (int i = 0; i < currentIds.size(); i++) {
                 String id = currentIds.get(i);
-                final Unit unit =
-                    MetadataCollections.UNIT.<Unit>getCollection().find(new Document(MetadataDocument.ID, id))
-                        .projection(projection).first();
+                final Unit unit = MetadataCollections.UNIT.<Unit>getCollection()
+                    .find(new Document(MetadataDocument.ID, id))
+                    .projection(projection)
+                    .first();
                 if (unit != null) {
-                    if (VitamConfiguration.isExportScore() && MetadataCollections.UNIT.useScore() &&
-                        isScoreIncluded(projection)) {
+                    if (
+                        VitamConfiguration.isExportScore() &&
+                        MetadataCollections.UNIT.useScore() &&
+                        isScoreIncluded(projection)
+                    ) {
                         Float score = 1f;
                         try {
                             score = scores.get(i);
@@ -365,13 +367,16 @@ public abstract class Result<T> {
         } else if (type == FILTERARGS.OBJECTGROUPS) {
             for (int i = 0; i < currentIds.size(); i++) {
                 String id = currentIds.get(i);
-                final ObjectGroup og =
-                    MetadataCollections.OBJECTGROUP.<ObjectGroup>getCollection()
-                        .find(new Document(MetadataDocument.ID, id))
-                        .projection(projection).first();
+                final ObjectGroup og = MetadataCollections.OBJECTGROUP.<ObjectGroup>getCollection()
+                    .find(new Document(MetadataDocument.ID, id))
+                    .projection(projection)
+                    .first();
                 if (og != null) {
-                    if (VitamConfiguration.isExportScore() && MetadataCollections.OBJECTGROUP.useScore() &&
-                        isScoreIncluded(projection)) {
+                    if (
+                        VitamConfiguration.isExportScore() &&
+                        MetadataCollections.OBJECTGROUP.useScore() &&
+                        isScoreIncluded(projection)
+                    ) {
                         Float score = 1f;
                         try {
                             score = scores.get(i);
@@ -400,20 +405,46 @@ public abstract class Result<T> {
         getFacet().add(facetResult);
     }
 
-
     @Override
     public String toString() {
         if (finalResult == null) {
-            return new StringBuilder(this.getClass().getSimpleName()).append(": {")
-                .append(IDLIST).append(':').append(currentIds).append(',')
-                .append("nb").append(':').append(nbResult).append(", total: ").append(total)
-                .append(',').append("type").append(':').append(type).append('}').toString();
+            return new StringBuilder(this.getClass().getSimpleName())
+                .append(": {")
+                .append(IDLIST)
+                .append(':')
+                .append(currentIds)
+                .append(',')
+                .append("nb")
+                .append(':')
+                .append(nbResult)
+                .append(", total: ")
+                .append(total)
+                .append(',')
+                .append("type")
+                .append(':')
+                .append(type)
+                .append('}')
+                .toString();
         } else {
-            return new StringBuilder(this.getClass().getSimpleName()).append(": {")
-                .append(IDLIST).append(':').append(currentIds).append(',')
-                .append("nb").append(':').append(nbResult).append(", total: ").append(total)
-                .append(',').append("type").append(':').append(type).append(',')
-                .append(finalResult).append('}').toString();
+            return new StringBuilder(this.getClass().getSimpleName())
+                .append(": {")
+                .append(IDLIST)
+                .append(':')
+                .append(currentIds)
+                .append(',')
+                .append("nb")
+                .append(':')
+                .append(nbResult)
+                .append(", total: ")
+                .append(total)
+                .append(',')
+                .append("type")
+                .append(':')
+                .append(type)
+                .append(',')
+                .append(finalResult)
+                .append('}')
+                .toString();
         }
     }
 
@@ -423,5 +454,4 @@ public abstract class Result<T> {
     public boolean hasFinalResult() {
         return finalResult != null;
     }
-
 }

@@ -54,19 +54,24 @@ public final class FunctionalAdminCollectionsTestUtils {
     }
 
     @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, String prefix,
-        final ElasticsearchAccessFunctionalAdmin esClient) {
+    public static void beforeTestClass(
+        final MongoDatabase db,
+        String prefix,
+        final ElasticsearchAccessFunctionalAdmin esClient
+    ) {
         beforeTestClass(db, prefix, esClient, Lists.newArrayList(FunctionalAdminCollections.values()));
     }
 
     @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, String prefix,
+    public static void beforeTestClass(
+        final MongoDatabase db,
+        String prefix,
         final ElasticsearchAccessFunctionalAdmin esClient,
-        Collection<FunctionalAdminCollections> functionalAdminCollections) {
+        Collection<FunctionalAdminCollections> functionalAdminCollections
+    ) {
         for (FunctionalAdminCollections collection : functionalAdminCollections) {
             if (collection != FunctionalAdminCollections.VITAM_SEQUENCE) {
-                collection.getVitamCollection()
-                    .setName(prefix + collection.getClasz().getSimpleName());
+                collection.getVitamCollection().setName(prefix + collection.getClasz().getSimpleName());
                 collection.initialize(db, false);
                 if (collection.getEsClient() == null) {
                     collection.initialize(esClient);
@@ -77,14 +82,18 @@ public final class FunctionalAdminCollectionsTestUtils {
         }
         if (functionalAdminCollections.contains(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)) {
             FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getCollection()
-                .createIndex(new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
-                    new IndexOptions().unique(true));
+                .createIndex(
+                    new Document("OriginatingAgency", 1).append("Opi", 1).append("_tenant", 1),
+                    new IndexOptions().unique(true)
+                );
         }
 
         if (functionalAdminCollections.contains(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY)) {
             FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getCollection()
-                .createIndex(new Document("_tenant", 1).append("OriginatingAgency", 1),
-                    new IndexOptions().unique(true));
+                .createIndex(
+                    new Document("_tenant", 1).append("OriginatingAgency", 1),
+                    new IndexOptions().unique(true)
+                );
         }
         // TODO: 30/01/19 Add indexes of other collections
 
@@ -102,8 +111,10 @@ public final class FunctionalAdminCollectionsTestUtils {
     }
 
     @VisibleForTesting
-    public static void afterTestClass(Collection<FunctionalAdminCollections> functionalAdminCollections,
-        boolean deleteEsIndex) {
+    public static void afterTestClass(
+        Collection<FunctionalAdminCollections> functionalAdminCollections,
+        boolean deleteEsIndex
+    ) {
         ParametersChecker.checkParameter("functionalAdminCollections is required", functionalAdminCollections);
         try {
             for (FunctionalAdminCollections collection : functionalAdminCollections) {
@@ -114,11 +125,17 @@ public final class FunctionalAdminCollectionsTestUtils {
 
                     if (collection.getEsClient() != null) {
                         if (deleteEsIndex) {
-                            collection.getEsClient().deleteIndexByAliasForTesting(
-                                ElasticsearchIndexAlias.ofCrossTenantCollection(collection.getName()));
+                            collection
+                                .getEsClient()
+                                .deleteIndexByAliasForTesting(
+                                    ElasticsearchIndexAlias.ofCrossTenantCollection(collection.getName())
+                                );
                         } else {
-                            collection.getEsClient().purgeIndexForTesting(
-                                ElasticsearchIndexAlias.ofCrossTenantCollection(collection.getName()));
+                            collection
+                                .getEsClient()
+                                .purgeIndexForTesting(
+                                    ElasticsearchIndexAlias.ofCrossTenantCollection(collection.getName())
+                                );
                         }
                     }
                 }
@@ -141,9 +158,9 @@ public final class FunctionalAdminCollectionsTestUtils {
     @VisibleForTesting
     public static ElasticsearchFunctionalAdminIndexManager createTestIndexManager() {
         return new ElasticsearchFunctionalAdminIndexManager(
-            new AdminManagementConfiguration(Collections.emptyList(), null, null, null)
-                .setIndexationConfiguration(new FunctionalAdminIndexationConfiguration()
-                    .setDefaultConfiguration(new CollectionConfiguration(1, 0)))
+            new AdminManagementConfiguration(Collections.emptyList(), null, null, null).setIndexationConfiguration(
+                new FunctionalAdminIndexationConfiguration().setDefaultConfiguration(new CollectionConfiguration(1, 0))
+            )
         );
     }
 }

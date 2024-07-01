@@ -51,7 +51,6 @@ import java.util.Optional;
  * Logbook operations interface for database operations
  */
 public interface LogbookOperations {
-
     /**
      * Create and insert logbook operation entries
      *
@@ -91,9 +90,11 @@ public interface LogbookOperations {
     List<LogbookOperation> selectOperations(JsonNode select, boolean sliced, boolean crossTenant)
         throws VitamDBException, LogbookDatabaseException;
 
-    RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(JsonNode select, boolean sliced,
-        boolean crossTenant)
-        throws VitamDBException, LogbookDatabaseException;
+    RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(
+        JsonNode select,
+        boolean sliced,
+        boolean crossTenant
+    ) throws VitamDBException, LogbookDatabaseException;
 
     LogbookOperation getById(String idProcess) throws LogbookDatabaseException, LogbookNotFoundException;
 
@@ -123,10 +124,11 @@ public interface LogbookOperations {
      * @throws InvalidParseOperationException if invalid parse for selecting the operation
      * @throws InvalidCreateOperationException if the query could not be created
      */
-    MongoCursor<LogbookOperation> selectOperationsByLastPersistenceDateInterval(LocalDateTime startDate,
-        LocalDateTime endDate)
-        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException,
-        InvalidCreateOperationException;
+    MongoCursor<LogbookOperation> selectOperationsByLastPersistenceDateInterval(
+        LocalDateTime startDate,
+        LocalDateTime endDate
+    )
+        throws LogbookDatabaseException, LogbookNotFoundException, InvalidParseOperationException, InvalidCreateOperationException;
 
     /**
      * Find One logbook TraceabilityOperation after a given date
@@ -141,7 +143,6 @@ public interface LogbookOperations {
     LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
         throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException;
 
-
     /**
      * Find last successful traceability operation
      *
@@ -152,8 +153,7 @@ public interface LogbookOperations {
      * @throws InvalidParseOperationException if the query could not be created
      */
     LogbookOperation findLastTraceabilityOperationOK()
-        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException,
-        InvalidParseOperationException;
+        throws InvalidCreateOperationException, LogbookNotFoundException, LogbookDatabaseException, InvalidParseOperationException;
 
     /**
      * Find last OK or WARNING LFC traceability operation (even if no traceability zip has been generated)
@@ -163,9 +163,8 @@ public interface LogbookOperations {
      * @return the last valid traceability operation
      * @throws VitamException if errors occur while retrieving data
      */
-    LogbookOperation findLastLifecycleTraceabilityOperation(
-        String eventType,
-        boolean traceabilityWithZipOnly) throws VitamException;
+    LogbookOperation findLastLifecycleTraceabilityOperation(String eventType, boolean traceabilityWithZipOnly)
+        throws VitamException;
 
     /**
      * Reindex one or more collections
@@ -186,8 +185,9 @@ public interface LogbookOperations {
     SwitchIndexResult switchIndex(String alias, String newIndexName) throws DatabaseException;
 
     boolean checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
-        LocalDateTime traceabilityStartDate, LocalDateTime traceabilityEndDate)
-        throws LogbookDatabaseException;
+        LocalDateTime traceabilityStartDate,
+        LocalDateTime traceabilityEndDate
+    ) throws LogbookDatabaseException;
 
     /**
      * FInd last event of last operation by type
@@ -199,6 +199,6 @@ public interface LogbookOperations {
      * @throws LogbookDatabaseException
      * @throws InvalidParseOperationException
      */
-    Optional<LogbookOperation> findLastOperationByType(String operationType) throws InvalidCreateOperationException,
-        LogbookDatabaseException, InvalidParseOperationException;
+    Optional<LogbookOperation> findLastOperationByType(String operationType)
+        throws InvalidCreateOperationException, LogbookDatabaseException, InvalidParseOperationException;
 }

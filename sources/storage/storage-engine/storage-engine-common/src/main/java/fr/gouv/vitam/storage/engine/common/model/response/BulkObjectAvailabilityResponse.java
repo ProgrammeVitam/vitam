@@ -35,8 +35,7 @@ public class BulkObjectAvailabilityResponse {
     private final boolean areObjectsAvailable;
 
     @JsonCreator
-    public BulkObjectAvailabilityResponse(
-        @JsonProperty("areObjectsAvailable") boolean areObjectsAvailable) {
+    public BulkObjectAvailabilityResponse(@JsonProperty("areObjectsAvailable") boolean areObjectsAvailable) {
         this.areObjectsAvailable = areObjectsAvailable;
     }
 

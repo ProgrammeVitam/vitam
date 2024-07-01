@@ -33,8 +33,7 @@ import fr.gouv.vitam.worker.core.plugin.purge.PurgeAccessionRegisterUpdatePlugin
 
 public class IngestCleanupAccessionRegisterUpdatePlugin extends PurgeAccessionRegisterUpdatePlugin {
 
-    private static final String INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE =
-        "INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE";
+    private static final String INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE = "INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE";
 
     public IngestCleanupAccessionRegisterUpdatePlugin() {
         super(INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE, LogbookTypeProcess.INGEST_CLEANUP);
@@ -42,7 +41,10 @@ public class IngestCleanupAccessionRegisterUpdatePlugin extends PurgeAccessionRe
 
     @VisibleForTesting
     IngestCleanupAccessionRegisterUpdatePlugin(AdminManagementClientFactory adminManagementClientFactory) {
-        super(INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE, LogbookTypeProcess.INGEST_CLEANUP,
-            adminManagementClientFactory);
+        super(
+            INGEST_CLEANUP_ACCESSION_REGISTER_UPDATE,
+            LogbookTypeProcess.INGEST_CLEANUP,
+            adminManagementClientFactory
+        );
     }
 }

@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.model.ItemStatus;
@@ -53,7 +52,9 @@ import static org.mockito.Mockito.when;
  * EvidenceAuditPrepareTest class
  */
 public class EvidenceAuditPrepareTest {
-    private static String query = "{\n" +
+
+    private static String query =
+        "{\n" +
         "  \"$roots\" : [ ],\n" +
         "  \"$query\" : [ {\n" +
         "    \"$eq\" : {\n" +
@@ -68,12 +69,25 @@ public class EvidenceAuditPrepareTest {
         "}";
     private static String query2 =
         "{\"$roots\":[],\"$query\":[{\"$eq\":{\"Title\":\"monsip\"},\"$depth\":1000}],\"$filter\":{\"$scrollId\":\"START\",\"$limit\":10000,\"$scrollTimeout\":300000},\"$projection\":{\"$fields\":{\"#id\":1,\"#object\":1}},\"$facets\":[]}";
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-    @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
-    @Mock public HandlerIO handlerIO;
-    @Mock private EvidenceService evidenceService;
-    @Mock private MetaDataClientFactory metaDataClientFactory;
-    @Mock private MetaDataClient metaDataClient;
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+
+    @Mock
+    public HandlerIO handlerIO;
+
+    @Mock
+    private EvidenceService evidenceService;
+
+    @Mock
+    private MetaDataClientFactory metaDataClientFactory;
+
+    @Mock
+    private MetaDataClient metaDataClient;
+
     private EvidenceAuditPrepare evidenceAuditPrepare;
 
     @Before
@@ -90,17 +104,17 @@ public class EvidenceAuditPrepareTest {
         JsonNode query = JsonHandler.getFromString(EvidenceAuditPrepareTest.query);
         when(handlerIO.getJsonFromWorkspace(anyString())).thenReturn(query);
 
-
         given(metaDataClient.selectUnits(JsonHandler.getFromString(query2))).willReturn(
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/evidenceAudit/selectResult.json")));
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/evidenceAudit/selectResult.json"))
+        );
 
         given(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aaoc4alcdk4hlcqaaaaq")).willReturn(tempFolder.newFile());
         given(handlerIO.getNewLocalFile("aeaqaaaaaaebta56aam5ualcdnzc4wiaaabq")).willReturn(tempFolder.newFile());
-        given(handlerIO.getJsonFromWorkspace("evidenceOptions"))
-            .willReturn(JsonHandler.createObjectNode().put("correctiveOption", false));
+        given(handlerIO.getJsonFromWorkspace("evidenceOptions")).willReturn(
+            JsonHandler.createObjectNode().put("correctiveOption", false)
+        );
 
         ItemStatus execute = evidenceAuditPrepare.execute(defaultWorkerParameters, handlerIO);
         Assertions.assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
-
     }
 }

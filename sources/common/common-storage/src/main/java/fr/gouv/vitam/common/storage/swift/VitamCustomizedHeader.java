@@ -32,8 +32,7 @@ public class VitamCustomizedHeader {
     String key;
     String value;
 
-    public VitamCustomizedHeader() {
-    }
+    public VitamCustomizedHeader() {}
 
     public VitamCustomizedHeader(String key, String value) {
         this.key = key;

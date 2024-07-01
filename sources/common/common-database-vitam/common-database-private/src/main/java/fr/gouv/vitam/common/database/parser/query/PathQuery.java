@@ -39,6 +39,7 @@ import java.util.Set;
  * Path query
  */
 public class PathQuery extends fr.gouv.vitam.common.database.builder.query.PathQuery {
+
     /**
      * For Parsing
      *

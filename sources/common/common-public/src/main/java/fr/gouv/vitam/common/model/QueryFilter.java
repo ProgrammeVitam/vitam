@@ -34,10 +34,13 @@ import java.util.Map;
  * Query Filter POJO
  */
 public class QueryFilter {
+
     @JsonProperty("$offset")
     private int offset = 0;
+
     @JsonProperty("$limit")
     private int limit = 10000;
+
     @JsonProperty("$orderby")
     private Map<String, Integer> orderby;
 

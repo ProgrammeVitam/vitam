@@ -71,8 +71,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMe
 
 public class RetrieveSecureTraceabilityDataFilePlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(RetrieveSecureTraceabilityDataFilePlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        RetrieveSecureTraceabilityDataFilePlugin.class
+    );
     private static final String PLUGIN_NAME = "RETRIEVE_SECURE_TRACEABILITY_DATA_FILE";
     private static final int TRACEABILITY_EVENT_OUT_RANK = 0;
     private static final int DIGEST_OUT_RANK = 1;
@@ -90,8 +91,7 @@ public class RetrieveSecureTraceabilityDataFilePlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             JsonNode eventDetail = param.getObjectMetadata();
             TraceabilityEvent traceabilityEvent = JsonHandler.getFromJsonNode(eventDetail, TraceabilityEvent.class);
@@ -100,32 +100,69 @@ public class RetrieveSecureTraceabilityDataFilePlugin extends ActionHandler {
             Map<String, String> digests = new HashMap<>();
 
             List<String> offerIds = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
-            Map<String, Boolean> existsMap = new HashMap<>(storageClient
-                .exists(VitamConfiguration.getDefaultStrategy(), dataCategory, traceabilityEvent.getFileName(),
-                    offerIds));
+            Map<String, Boolean> existsMap = new HashMap<>(
+                storageClient.exists(
+                    VitamConfiguration.getDefaultStrategy(),
+                    dataCategory,
+                    traceabilityEvent.getFileName(),
+                    offerIds
+                )
+            );
             boolean exists = existsMap.values().stream().allMatch(e -> e);
             if (!exists) {
                 existsMap.values().removeIf(Predicate.isEqual(Boolean.TRUE));
-                ItemStatus result =
-                    buildItemStatusWithMessage(PLUGIN_NAME, StatusCode.KO, String
-                        .format("Unable to find data file with name %s in all offers %s",
-                            traceabilityEvent.getFileName(), existsMap.keySet().toString()));
-                saveReport(param, handler,
-                    createTraceabilityReportEntry(param, traceabilityEvent, digests, result,
-                        TraceabilityError.FILE_NOT_FOUND));
+                ItemStatus result = buildItemStatusWithMessage(
+                    PLUGIN_NAME,
+                    StatusCode.KO,
+                    String.format(
+                        "Unable to find data file with name %s in all offers %s",
+                        traceabilityEvent.getFileName(),
+                        existsMap.keySet().toString()
+                    )
+                );
+                saveReport(
+                    param,
+                    handler,
+                    createTraceabilityReportEntry(
+                        param,
+                        traceabilityEvent,
+                        digests,
+                        result,
+                        TraceabilityError.FILE_NOT_FOUND
+                    )
+                );
                 HandlerUtils.save(handler, "", param.getObjectName() + File.separator + ERROR_FLAG);
                 return result;
             }
 
-            digests.putAll(getOfferDigests(storageClient, dataCategory, traceabilityEvent.getFileName(),
-                VitamConfiguration.getDefaultStrategy(), offerIds));
+            digests.putAll(
+                getOfferDigests(
+                    storageClient,
+                    dataCategory,
+                    traceabilityEvent.getFileName(),
+                    VitamConfiguration.getDefaultStrategy(),
+                    offerIds
+                )
+            );
 
             Set<String> hashes = new HashSet<>(digests.values());
             if (hashes.isEmpty()) {
-                ItemStatus result =
-                    buildItemStatusWithMessage(PLUGIN_NAME, StatusCode.KO, "Error: unable to retrive all hashes!");
-                saveReport(param, handler, createTraceabilityReportEntry(param, traceabilityEvent, digests, result,
-                    TraceabilityError.HASH_NOT_FOUND));
+                ItemStatus result = buildItemStatusWithMessage(
+                    PLUGIN_NAME,
+                    StatusCode.KO,
+                    "Error: unable to retrive all hashes!"
+                );
+                saveReport(
+                    param,
+                    handler,
+                    createTraceabilityReportEntry(
+                        param,
+                        traceabilityEvent,
+                        digests,
+                        result,
+                        TraceabilityError.HASH_NOT_FOUND
+                    )
+                );
                 HandlerUtils.save(handler, "", param.getObjectName() + File.separator + ERROR_FLAG);
                 return result;
             }
@@ -135,34 +172,68 @@ public class RetrieveSecureTraceabilityDataFilePlugin extends ActionHandler {
                 HandlerUtils.save(handler, traceabilityEvent, TRACEABILITY_EVENT_OUT_RANK);
                 handler.addOutputResult(DIGEST_OUT_RANK, digest);
             } catch (IllegalArgumentException e) {
-                ItemStatus result =
-                    buildItemStatusWithMessage(PLUGIN_NAME, StatusCode.KO, "Error: hashes are not equals!");
-                saveReport(param, handler, createTraceabilityReportEntry(param, traceabilityEvent, digests, result,
-                    TraceabilityError.INEQUAL_HASHES));
+                ItemStatus result = buildItemStatusWithMessage(
+                    PLUGIN_NAME,
+                    StatusCode.KO,
+                    "Error: hashes are not equals!"
+                );
+                saveReport(
+                    param,
+                    handler,
+                    createTraceabilityReportEntry(
+                        param,
+                        traceabilityEvent,
+                        digests,
+                        result,
+                        TraceabilityError.INEQUAL_HASHES
+                    )
+                );
                 HandlerUtils.save(handler, "", param.getObjectName() + File.separator + ERROR_FLAG);
                 return result;
             }
             ItemStatus result = buildItemStatus(PLUGIN_NAME, StatusCode.OK);
             saveReport(param, handler, createTraceabilityReportEntry(param, traceabilityEvent, digests, result, null));
             return result;
-        } catch (InvalidParseOperationException | StorageServerClientException | StorageNotFoundClientException | IOException e) {
+        } catch (
+            InvalidParseOperationException
+            | StorageServerClientException
+            | StorageNotFoundClientException
+            | IOException e
+        ) {
             throw new ProcessingException(e);
         }
     }
 
-    private TraceabilityReportEntry createTraceabilityReportEntry(WorkerParameters param,
-        TraceabilityEvent traceabilityEvent, Map<String, String> digests, ItemStatus result,
-        TraceabilityError error) {
-        return new TraceabilityReportEntry(param.getObjectName(), traceabilityEvent.getLogType().name(),
-            result.getGlobalStatus().name(), result.getMessage(), error, null, digests, traceabilityEvent.getFileName(),
-            null);
+    private TraceabilityReportEntry createTraceabilityReportEntry(
+        WorkerParameters param,
+        TraceabilityEvent traceabilityEvent,
+        Map<String, String> digests,
+        ItemStatus result,
+        TraceabilityError error
+    ) {
+        return new TraceabilityReportEntry(
+            param.getObjectName(),
+            traceabilityEvent.getLogType().name(),
+            result.getGlobalStatus().name(),
+            result.getMessage(),
+            error,
+            null,
+            digests,
+            traceabilityEvent.getFileName(),
+            null
+        );
     }
 
-    private void saveReport(WorkerParameters param, HandlerIO handlerIO,
-        TraceabilityReportEntry traceabilityReportEntry)
-        throws IOException, ProcessingException {
-        HandlerUtils.save(handlerIO, traceabilityReportEntry,
-            param.getObjectName() + File.separator + WorkspaceConstants.REPORT);
+    private void saveReport(
+        WorkerParameters param,
+        HandlerIO handlerIO,
+        TraceabilityReportEntry traceabilityReportEntry
+    ) throws IOException, ProcessingException {
+        HandlerUtils.save(
+            handlerIO,
+            traceabilityReportEntry,
+            param.getObjectName() + File.separator + WorkspaceConstants.REPORT
+        );
     }
 
     // TODO : make it a static method in a shared class
@@ -183,17 +254,22 @@ public class RetrieveSecureTraceabilityDataFilePlugin extends ActionHandler {
         }
     }
 
-    private Map<String, String> getOfferDigests(StorageClient storageClient, DataCategory dataCategory,
+    private Map<String, String> getOfferDigests(
+        StorageClient storageClient,
+        DataCategory dataCategory,
         String objectGuid,
-        String strategyId, List<String> offerIds) throws StorageNotFoundClientException, StorageServerClientException {
+        String strategyId,
+        List<String> offerIds
+    ) throws StorageNotFoundClientException, StorageServerClientException {
         JsonNode information = storageClient.getInformation(strategyId, dataCategory, objectGuid, offerIds, true);
 
-        return offerIds.stream()
+        return offerIds
+            .stream()
             .map(e -> new SimpleEntry<>(e, information.get(e)))
             .filter(e -> Objects.nonNull(e.getValue()))
             .filter(e -> !e.getValue().isMissingNode())
             .filter(e -> !e.getValue().isNull())
-            .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().get(DIGEST).textValue())
-            ).collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+            .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().get(DIGEST).textValue()))
+            .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 }

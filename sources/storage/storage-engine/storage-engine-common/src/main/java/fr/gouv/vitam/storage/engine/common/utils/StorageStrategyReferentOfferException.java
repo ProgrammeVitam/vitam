@@ -30,7 +30,6 @@ import fr.gouv.vitam.common.exception.VitamException;
 
 public class StorageStrategyReferentOfferException extends VitamException {
 
-
     private final String strategyId;
     private final String variableName;
 
@@ -53,5 +52,4 @@ public class StorageStrategyReferentOfferException extends VitamException {
     public String getVariableName() {
         return variableName;
     }
-
 }

@@ -58,22 +58,29 @@ public class BulkAtomicUpdateFinalize extends UpdateUnitFinalize {
         this(
             BatchReportClientFactory.getInstance(),
             LogbookOperationsClientFactory.getInstance(),
-            StorageClientFactory.getInstance());
+            StorageClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
-    private BulkAtomicUpdateFinalize(BatchReportClientFactory batchReportClientFactory,
+    private BulkAtomicUpdateFinalize(
+        BatchReportClientFactory batchReportClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         super(batchReportClientFactory, logbookOperationsClientFactory, storageClientFactory);
     }
 
     @Override
     protected ReportSummary getReport(LogbookOperation logbook) {
-        Optional<LogbookEventOperation> logbookEventPrepare = logbook.getEvents().stream()
+        Optional<LogbookEventOperation> logbookEventPrepare = logbook
+            .getEvents()
+            .stream()
             .filter(e -> e.getEvType().startsWith(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME))
             .reduce((a, b) -> b);
-        Optional<LogbookEventOperation> logbookEventUpdate = logbook.getEvents().stream()
+        Optional<LogbookEventOperation> logbookEventUpdate = logbook
+            .getEvents()
+            .stream()
             .filter(e -> e.getEvType().startsWith(BULK_ATOMIC_UPDATE_UNITS_PLUGIN_NAME))
             .reduce((a, b) -> b);
 
@@ -122,5 +129,4 @@ public class BulkAtomicUpdateFinalize extends UpdateUnitFinalize {
     protected ReportType getReportType() {
         return BULK_UPDATE_UNIT;
     }
-
 }

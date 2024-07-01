@@ -57,14 +57,12 @@ public class ThrottlingAlertServiceTest {
 
     @Before
     public void init() {
-        this.throttlingAlertService = new ThrottlingAlertService(
-            alertService, "error_message", 60);
+        this.throttlingAlertService = new ThrottlingAlertService(alertService, "error_message", 60);
         this.logicalClock.freezeTime();
     }
 
     @Test
     public void testFirstAlert() {
-
         // Given
 
         // When
@@ -77,7 +75,6 @@ public class ThrottlingAlertServiceTest {
 
     @Test
     public void testMultipleAlerts() {
-
         // Given
 
         // When
@@ -94,7 +91,6 @@ public class ThrottlingAlertServiceTest {
 
     @Test
     public void testMultipleSparseAlerts() {
-
         // Given
 
         // When

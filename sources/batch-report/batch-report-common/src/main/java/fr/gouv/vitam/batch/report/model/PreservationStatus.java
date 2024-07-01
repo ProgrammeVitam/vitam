@@ -29,5 +29,5 @@ package fr.gouv.vitam.batch.report.model;
 public enum PreservationStatus {
     OK,
     WARNING,
-    KO
+    KO,
 }

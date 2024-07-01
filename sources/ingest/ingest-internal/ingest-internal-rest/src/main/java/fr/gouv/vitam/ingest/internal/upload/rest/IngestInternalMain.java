@@ -49,6 +49,7 @@ import java.io.InputStream;
  * Ingest Internal web server application
  */
 public class IngestInternalMain {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestInternalMain.class);
     public static final String PARAMETER_JETTY_SERVER_PORT = "jetty.ingest-internal.port";
 
@@ -58,10 +59,16 @@ public class IngestInternalMain {
     private VitamStarter vitamStarter;
 
     public IngestInternalMain(String configurationFile) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(IngestInternalConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class);
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
+        vitamStarter = new VitamStarter(
+            IngestInternalConfiguration.class,
+            configurationFile,
+            BusinessApplication.class,
+            AdminApplication.class
+        );
     }
 
     /**
@@ -74,20 +81,24 @@ public class IngestInternalMain {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                    String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME)
+                );
             }
             IngestInternalMain main = new IngestInternalMain(args[0]);
             VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
             try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(args[0])) {
-                final IngestInternalConfiguration configuration =
-                    PropertiesUtils.readYaml(yamlIS, IngestInternalConfiguration.class);
+                final IngestInternalConfiguration configuration = PropertiesUtils.readYaml(
+                    yamlIS,
+                    IngestInternalConfiguration.class
+                );
                 WorkspaceClientFactory.changeMode(configuration.getWorkspaceUrl());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
             // Register Workspace
-            serviceRegistry.register(WorkspaceClientFactory.getInstance())
+            serviceRegistry
+                .register(WorkspaceClientFactory.getInstance())
                 // Register Logbook for Operation
                 .register(LogbookOperationsClientFactory.getInstance())
                 // Register Storage (ATR access)
@@ -99,8 +110,11 @@ public class IngestInternalMain {
 
             main.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
-                e.getMessage(), e);
+            LOGGER.error(
+                String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(),
+                e
+            );
 
             System.exit(1);
         }
@@ -141,5 +155,4 @@ public class IngestInternalMain {
     public VitamStarter getVitamStarter() {
         return vitamStarter;
     }
-
 }

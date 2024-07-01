@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.mapping.dip;
 
-import fr.gouv.vitam.common.SedaConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -45,8 +44,7 @@ import static fr.gouv.vitam.common.utils.SupportedSedaVersions.UNIFIED_NAMESPACE
  */
 public class TransformJsonTreeToListOfXmlElement {
 
-    private TransformJsonTreeToListOfXmlElement() {
-    }
+    private TransformJsonTreeToListOfXmlElement() {}
 
     /**
      * Transform Json Tree to list of xml elements
@@ -75,7 +73,7 @@ public class TransformJsonTreeToListOfXmlElement {
      * @param map Json tree
      */
     private static void transformMapToElement(Consumer<Element> consumer, Document document, Map<String, ?> map) {
-        for (Map.Entry<String,?> entry : map.entrySet()) {
+        for (Map.Entry<String, ?> entry : map.entrySet()) {
             //skip vitam technical metadata (_opi,..)
             if (entry.getKey().startsWith("#")) {
                 continue;

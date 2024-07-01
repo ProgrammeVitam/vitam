@@ -44,6 +44,7 @@ import java.util.stream.StreamSupport;
 import static java.util.Spliterator.ORDERED;
 
 public class JsonLineIterator<T> implements CloseableIterator<T> {
+
     private final InputStream inputStream;
     private final Class<T> clasz;
     private byte[] buffer;
@@ -65,7 +66,6 @@ public class JsonLineIterator<T> implements CloseableIterator<T> {
     public static <T> JsonLineIterator<T> parseFromResponse(Response response, Class<T> clasz) {
         return new JsonLineIterator<>(response.readEntity(InputStream.class), clasz);
     }
-
 
     @Override
     public boolean hasNext() {
@@ -99,13 +99,11 @@ public class JsonLineIterator<T> implements CloseableIterator<T> {
 
     @Override
     public T next() {
-
         if (!hasNext()) {
             throw new IllegalStateException();
         }
 
         InputStream lineInputStream = new InputStream() {
-
             boolean endOfLineStream = false;
 
             @Override
@@ -172,8 +170,9 @@ public class JsonLineIterator<T> implements CloseableIterator<T> {
         try {
             // Wrap line input stream to ensure all line is read
             // Jackson may not consume the whole line stream if it ends with spacing or \n
-            InputStream remainingReadOnCloseInputStream =
-                StreamUtils.getRemainingReadOnCloseInputStream(lineInputStream);
+            InputStream remainingReadOnCloseInputStream = StreamUtils.getRemainingReadOnCloseInputStream(
+                lineInputStream
+            );
             return JsonHandler.getFromInputStream(remainingReadOnCloseInputStream, clasz);
         } catch (InvalidParseOperationException e) {
             throw new RuntimeException("Could not parse json line entry", e);

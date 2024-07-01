@@ -57,9 +57,6 @@ import java.util.Optional;
  * Interface Storage Distribution for Storage Operations
  */
 public interface StorageDistribution extends VitamAutoCloseable {
-
-
-
     /**
      * copy object from on offer to an another
      *
@@ -85,8 +82,13 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @return a StoredInfoResult containing informations about the created Data
      * @throws StorageException StorageException
      */
-    StoredInfoResult storeDataInAllOffers(String strategyId, String objectId, ObjectDescription createObjectDescription,
-        DataCategory category, String requester) throws StorageException;
+    StoredInfoResult storeDataInAllOffers(
+        String strategyId,
+        String objectId,
+        ObjectDescription createObjectDescription,
+        DataCategory category,
+        String requester
+    ) throws StorageException;
 
     /**
      * Store data of any type for given tenant on the given storage offer.
@@ -101,8 +103,15 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @return a StoredInfoResult containing information about the created Data
      * @throws StorageException StorageException
      */
-    StoredInfoResult storeDataInOffers(String strategyId, String origin, String objectId,
-        DataCategory category, String requester, List<String> offerIds, Response response) throws StorageException;
+    StoredInfoResult storeDataInOffers(
+        String strategyId,
+        String origin,
+        String objectId,
+        DataCategory category,
+        String requester,
+        List<String> offerIds,
+        Response response
+    ) throws StorageException;
 
     /**
      * @param strategyId id of the strategy
@@ -115,10 +124,15 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @return StoredInfoResult
      * @throws StorageException StorageException
      */
-    StoredInfoResult storeDataInOffers(String strategyId, String origin, StreamAndInfo streamAndInfo, String objectId,
-        DataCategory category, String requester,
-        List<String> offerIds)
-        throws StorageException;
+    StoredInfoResult storeDataInOffers(
+        String strategyId,
+        String origin,
+        StreamAndInfo streamAndInfo,
+        String objectId,
+        DataCategory category,
+        String requester,
+        List<String> offerIds
+    ) throws StorageException;
 
     /**
      * get  offer ids list
@@ -150,8 +164,11 @@ public interface StorageDistribution extends VitamAutoCloseable {
     CloseableIterator<ObjectEntry> listContainerObjects(String strategyId, DataCategory category)
         throws StorageException;
 
-    CloseableIterator<ObjectEntry> listContainerObjectsForOffer(DataCategory category,
-        String offerId, boolean includeDisabled) throws StorageException;
+    CloseableIterator<ObjectEntry> listContainerObjectsForOffer(
+        DataCategory category,
+        String offerId,
+        boolean includeDisabled
+    ) throws StorageException;
 
     /**
      * Get offer log from referent
@@ -164,8 +181,13 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @return list of offer log
      * @throws StorageException thrown in case of any technical problem
      */
-    RequestResponse<OfferLog> getOfferLogs(String strategyId, DataCategory category, Long offset, int limit,
-        Order order) throws StorageException;
+    RequestResponse<OfferLog> getOfferLogs(
+        String strategyId,
+        DataCategory category,
+        Long offset,
+        int limit,
+        Order order
+    ) throws StorageException;
 
     /**
      * Get offer log from the given offer
@@ -179,9 +201,14 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @return list of offer log
      * @throws StorageException thrown in case of any technical problem
      */
-    RequestResponse<OfferLog> getOfferLogsByOfferId(String strategyId, String offerId, DataCategory category,
+    RequestResponse<OfferLog> getOfferLogsByOfferId(
+        String strategyId,
+        String offerId,
+        DataCategory category,
         Long offset,
-        int limit, Order order) throws StorageException;
+        int limit,
+        Order order
+    ) throws StorageException;
 
     /**
      * Get a specific Object binary data as an input stream
@@ -196,8 +223,13 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
-    Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category,
-        AccessLogInfoModel logInformation) throws StorageException;
+    Response getContainerByCategory(
+        String strategyId,
+        String origin,
+        String objectId,
+        DataCategory category,
+        AccessLogInfoModel logInformation
+    ) throws StorageException;
 
     /**
      * Get a specific Object binary data as an input stream
@@ -212,9 +244,13 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
-    Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category,
-        String offerId)
-        throws StorageException;
+    Response getContainerByCategory(
+        String strategyId,
+        String origin,
+        String objectId,
+        DataCategory category,
+        String offerId
+    ) throws StorageException;
 
     /**
      * Get a specific Object information
@@ -226,10 +262,13 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @return JsonNode containing informations about the requested object
      * @throws StorageException
      */
-    JsonNode getContainerInformation(String strategyId, DataCategory type, String objectId,
-        List<String> offerIds, boolean noCache) throws StorageException;
-
-
+    JsonNode getContainerInformation(
+        String strategyId,
+        DataCategory type,
+        String objectId,
+        List<String> offerIds,
+        boolean noCache
+    ) throws StorageException;
 
     /**
      * Verify if object exists. If an offer is not in hot offers in strategy, it is
@@ -242,9 +281,12 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @return list of result existence by offerId
      * @throws StorageException StorageException
      */
-    Map<String, Boolean> checkObjectExisting(String strategyId, String objectId, DataCategory category,
-        List<String> offerIds) throws StorageException;
-
+    Map<String, Boolean> checkObjectExisting(
+        String strategyId,
+        String objectId,
+        DataCategory category,
+        List<String> offerIds
+    ) throws StorageException;
 
     /**
      * Delete an object
@@ -253,9 +295,7 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
-    void deleteObjectInAllOffers(String strategyId, DataContext context)
-        throws StorageException;
-
+    void deleteObjectInAllOffers(String strategyId, DataContext context) throws StorageException;
 
     /**
      * Delete an object in  offers
@@ -266,16 +306,20 @@ public interface StorageDistribution extends VitamAutoCloseable {
      * @throws StorageNotFoundException Thrown if the Container or the object does not exist
      * @throws StorageTechnicalException thrown if a technical error happened
      */
-    void deleteObjectInOffers(String strategyId, DataContext context, List<String> offers)
-        throws StorageException;
+    void deleteObjectInOffers(String strategyId, DataContext context, List<String> offers) throws StorageException;
 
-    List<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type,
-        List<String> objectIds, List<String> offerIds)
-        throws StorageException;
+    List<BatchObjectInformationResponse> getBatchObjectInformation(
+        String strategyId,
+        DataCategory type,
+        List<String> objectIds,
+        List<String> offerIds
+    ) throws StorageException;
 
-    BulkObjectStoreResponse bulkCreateFromWorkspace(String strategyId, BulkObjectStoreRequest bulkObjectStoreRequest,
-        String requester)
-        throws StorageException;
+    BulkObjectStoreResponse bulkCreateFromWorkspace(
+        String strategyId,
+        BulkObjectStoreRequest bulkObjectStoreRequest,
+        String requester
+    ) throws StorageException;
 
     /**
      * Retrieve all the available storage strategies
@@ -285,20 +329,33 @@ public interface StorageDistribution extends VitamAutoCloseable {
      */
     Map<String, StorageStrategy> getStrategies() throws StorageException;
 
-    Optional<String> createAccessRequestIfRequired(String strategyId, String offerId, DataCategory dataCategory,
-        List<String> objectsNames)
-        throws StorageException;
+    Optional<String> createAccessRequestIfRequired(
+        String strategyId,
+        String offerId,
+        DataCategory dataCategory,
+        List<String> objectsNames
+    ) throws StorageException;
 
-    Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
-        List<String> accessRequestIds, boolean adminCrossTenantAccessRequestAllowed)
-        throws StorageException;
+    Map<String, AccessRequestStatus> checkAccessRequestStatuses(
+        String strategyId,
+        String offerId,
+        List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) throws StorageException;
 
-    void removeAccessRequest(String strategyId, String offerId, String accessRequestId,
-        boolean adminCrossTenantAccessRequestAllowed)
-        throws StorageException;
+    void removeAccessRequest(
+        String strategyId,
+        String offerId,
+        String accessRequestId,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) throws StorageException;
 
-    boolean checkObjectAvailability(String strategyId, String offerId, DataCategory dataCategory,
-        List<String> objectsNames) throws StorageException;
+    boolean checkObjectAvailability(
+        String strategyId,
+        String offerId,
+        DataCategory dataCategory,
+        List<String> objectsNames
+    ) throws StorageException;
 
     String getReferentOffer(String strategyId) throws StorageTechnicalException, StorageNotFoundException;
 

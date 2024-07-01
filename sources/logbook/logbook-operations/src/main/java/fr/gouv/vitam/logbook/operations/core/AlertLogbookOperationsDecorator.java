@@ -73,10 +73,12 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
         alertService = new AlertServiceImpl();
     }
 
-
     @VisibleForTesting
-    AlertLogbookOperationsDecorator(LogbookOperations logbookOperations, List<LogbookEvent> alertEvents,
-        AlertService alertService) {
+    AlertLogbookOperationsDecorator(
+        LogbookOperations logbookOperations,
+        List<LogbookEvent> alertEvents,
+        AlertService alertService
+    ) {
         super(logbookOperations);
         this.alertEvents = alertEvents;
         this.alertService = alertService;
@@ -97,8 +99,8 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
     }
 
     @Override
-    public List<LogbookOperation> selectOperations(JsonNode select) throws LogbookDatabaseException,
-        InvalidParseOperationException, VitamDBException {
+    public List<LogbookOperation> selectOperations(JsonNode select)
+        throws LogbookDatabaseException, InvalidParseOperationException, VitamDBException {
         return logbookOperations.selectOperations(select);
     }
 
@@ -109,8 +111,11 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
     }
 
     @Override
-    public RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(JsonNode select, boolean sliced,
-        boolean crossTenant) throws VitamDBException, LogbookDatabaseException {
+    public RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(
+        JsonNode select,
+        boolean sliced,
+        boolean crossTenant
+    ) throws VitamDBException, LogbookDatabaseException {
         return logbookOperations.selectOperationsAsRequestResponse(select, sliced, crossTenant);
     }
 
@@ -127,19 +132,21 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
     }
 
     @Override
-    public boolean checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(LocalDateTime traceabilityStartDate,
-        LocalDateTime traceabilityEndDate) throws LogbookDatabaseException {
+    public boolean checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
+        LocalDateTime traceabilityStartDate,
+        LocalDateTime traceabilityEndDate
+    ) throws LogbookDatabaseException {
         return logbookOperations.checkNewEligibleLogbookOperationsSinceLastTraceabilityOperation(
-            traceabilityStartDate, traceabilityEndDate);
+            traceabilityStartDate,
+            traceabilityEndDate
+        );
     }
 
     @Override
     public Optional<LogbookOperation> findLastOperationByType(String operationType)
-        throws InvalidCreateOperationException,
-        LogbookDatabaseException, InvalidParseOperationException {
+        throws InvalidCreateOperationException, LogbookDatabaseException, InvalidParseOperationException {
         return logbookOperations.findLastOperationByType(operationType);
     }
-
 
     /**
      * Create an alert for the configured LogbookOperationParameters eventType and outcome if the specified eventType should raise an alert
@@ -148,11 +155,13 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
      */
     private void createAlertIfNecessary(LogbookOperationParameters parameters) {
         if (isAlertEvent(parameters)) {
-            String message =
-                MessageFormat.format(SECURITY_ALERT, parameters.getParameterValue(LogbookParameterName.eventType),
-                    parameters.getParameterValue(LogbookParameterName.outcome),
-                    parameters.getParameterValue(LogbookParameterName.outcomeDetail),
-                    parameters.getParameterValue(LogbookParameterName.outcomeDetailMessage));
+            String message = MessageFormat.format(
+                SECURITY_ALERT,
+                parameters.getParameterValue(LogbookParameterName.eventType),
+                parameters.getParameterValue(LogbookParameterName.outcome),
+                parameters.getParameterValue(LogbookParameterName.outcomeDetail),
+                parameters.getParameterValue(LogbookParameterName.outcomeDetailMessage)
+            );
             alertService.createAlert(VitamLogLevel.INFO, message);
         }
     }
@@ -166,9 +175,7 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
         for (LogbookOperationParameters parameters : operationArray) {
             createAlertIfNecessary(parameters);
         }
-
     }
-
 
     /**
      * Check if the LogbookOperationParameters should raise an alert
@@ -178,7 +185,6 @@ public class AlertLogbookOperationsDecorator extends LogbookOperationsDecorator 
      */
     @VisibleForTesting
     boolean isAlertEvent(LogbookOperationParameters parameters) {
-
         for (LogbookEvent logbookEvent : alertEvents) {
             if (logbookEvent.getOutDetail() != null) {
                 String outDetail = parameters.getParameterValue(LogbookParameterName.outcomeDetail);

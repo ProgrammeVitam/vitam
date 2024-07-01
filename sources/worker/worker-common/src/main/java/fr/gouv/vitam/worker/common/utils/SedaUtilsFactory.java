@@ -51,7 +51,7 @@ public class SedaUtilsFactory {
 
     public SedaUtils createSedaUtils(HandlerIO handlerIO) {
         ParametersChecker.checkParameter("HandlerIO must not be null", handlerIO);
-        return new  SedaUtils(handlerIO);
+        return new SedaUtils(handlerIO);
     }
 
     public SedaUtils createSedaUtilsWithSedaIngestParams(HandlerIO handlerIO) throws ProcessingException {
@@ -67,7 +67,8 @@ public class SedaUtilsFactory {
         } catch (ProcessingException | InvalidParseOperationException e) {
             throw new ProcessingException(
                 "A problem occurred when reading Seda ingest params from workspace for operation " +
-                    handlerIO.getContainerName());
+                handlerIO.getContainerName()
+            );
         }
     }
 
@@ -80,5 +81,4 @@ public class SedaUtilsFactory {
         ParametersChecker.checkParameter("HandlerIO must not be null", handlerIO);
         return sedaUtilsFactory.createSedaUtils(handlerIO);
     }
-
 }

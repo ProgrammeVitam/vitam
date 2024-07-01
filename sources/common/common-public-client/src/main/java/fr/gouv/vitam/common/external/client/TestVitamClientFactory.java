@@ -36,6 +36,7 @@ import javax.ws.rs.client.Client;
  * @param <T> BasicClient class
  */
 public class TestVitamClientFactory<T extends BasicClient> extends VitamClientFactory<T> {
+
     /**
      * localhost
      */
@@ -63,5 +64,4 @@ public class TestVitamClientFactory<T extends BasicClient> extends VitamClientFa
     public T getClient() {
         return (T) new DefaultClient(this);
     }
-
 }

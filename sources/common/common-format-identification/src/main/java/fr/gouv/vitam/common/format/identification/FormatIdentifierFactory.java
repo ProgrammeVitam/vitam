@@ -47,6 +47,7 @@ import java.util.Map;
  * Format Identifier Factory : used to retrieve the FormatIdentifier implementations
  */
 public class FormatIdentifierFactory {
+
     private static final String FORMAT_IDENTIFIER_ID_NOT_NULL = "formatIdentifierId cannot be null";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FormatIdentifierFactory.class);
 
@@ -72,9 +73,10 @@ public class FormatIdentifierFactory {
         try {
             final File configurationFile = PropertiesUtils.findFile(configurationPath);
             if (configurationFile != null) {
-                final Map<String, FormatIdentifierConfiguration> configMap = PropertiesUtils.readYaml(configurationFile,
-                    new TypeReference<Map<String, FormatIdentifierConfiguration>>() {
-                    });
+                final Map<String, FormatIdentifierConfiguration> configMap = PropertiesUtils.readYaml(
+                    configurationFile,
+                    new TypeReference<Map<String, FormatIdentifierConfiguration>>() {}
+                );
                 for (final FormatIdentifierConfiguration configuration : configMap.values()) {
                     checkConfiguration(configuration);
                 }
@@ -82,11 +84,13 @@ public class FormatIdentifierFactory {
                 configurationsFormatIdentifiers.putAll(configMap);
             }
         } catch (final IOException e) {
-            LOGGER.warn("could not load format identifiers configuration for file {}, no format identifier available",
-                configurationPath, e);
+            LOGGER.warn(
+                "could not load format identifiers configuration for file {}, no format identifier available",
+                configurationPath,
+                e
+            );
         }
     }
-
 
     /**
      * Get the FormatIdentifierFactory instance
@@ -138,7 +142,8 @@ public class FormatIdentifierFactory {
         ParametersChecker.checkParameter(FORMAT_IDENTIFIER_ID_NOT_NULL, formatIdentifierId);
         if (configurationsFormatIdentifiers.remove(formatIdentifierId) == null) {
             throw new FormatIdentifierNotFoundException(
-                "Can't remove " + formatIdentifierId + " because no configuration with this name is registered");
+                "Can't remove " + formatIdentifierId + " because no configuration with this name is registered"
+            );
         }
     }
 
@@ -157,8 +162,8 @@ public class FormatIdentifierFactory {
         final FormatIdentifierConfiguration infos = configurationsFormatIdentifiers.get(formatIdentifierId);
         if (infos == null) {
             throw new FormatIdentifierNotFoundException(
-                "Format Identifier configuration can't be found for id " + formatIdentifierId);
-
+                "Format Identifier configuration can't be found for id " + formatIdentifierId
+            );
         }
         switch (infos.getType()) {
             case MOCK:
@@ -167,7 +172,8 @@ public class FormatIdentifierFactory {
                 return new FormatIdentifierSiegfried(infos.getConfigurationProperties());
             default:
                 throw new FormatIdentifierFactoryException(
-                    "Format Identifier Configuration implementation can't be found for id " + formatIdentifierId);
+                    "Format Identifier Configuration implementation can't be found for id " + formatIdentifierId
+                );
         }
     }
 
@@ -181,6 +187,4 @@ public class FormatIdentifierFactory {
         ParametersChecker.checkParameter("Configuration cannot be null", configuration);
         ParametersChecker.checkParameter("Type cannot be null", configuration.getType());
     }
-
 }
-

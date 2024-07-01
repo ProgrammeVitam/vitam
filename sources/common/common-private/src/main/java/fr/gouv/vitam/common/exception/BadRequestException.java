@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.exception;
  * BadRequestException : Bad Request Exception
  */
 public class BadRequestException extends VitamException {
+
     private static final long serialVersionUID = -944197890309351793L;
 
     /**

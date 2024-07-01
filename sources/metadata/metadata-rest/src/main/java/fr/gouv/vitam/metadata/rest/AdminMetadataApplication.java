@@ -70,24 +70,31 @@ public class AdminMetadataApplication extends Application {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final MetaDataConfiguration metaDataConfiguration =
-                PropertiesUtils.readYaml(yamlIS, MetaDataConfiguration.class);
+            final MetaDataConfiguration metaDataConfiguration = PropertiesUtils.readYaml(
+                yamlIS,
+                MetaDataConfiguration.class
+            );
 
             // Validate configuration
             MetaDataConfigurationValidator.validateConfiguration(metaDataConfiguration);
 
-            MappingLoader mappingLoader =
-                new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings());
+            MappingLoader mappingLoader = new MappingLoader(
+                metaDataConfiguration.getElasticsearchExternalMetadataMappings()
+            );
 
             // Elasticsearch configuration
-            ElasticsearchMetadataIndexManager indexManager =
-                new ElasticsearchMetadataIndexManager(metaDataConfiguration, VitamConfiguration.getTenants(),
-                    mappingLoader);
+            ElasticsearchMetadataIndexManager indexManager = new ElasticsearchMetadataIndexManager(
+                metaDataConfiguration,
+                VitamConfiguration.getTenants(),
+                mappingLoader
+            );
 
             adminApplication = new AdminApplication();
             // Hack to instance metadatas collections
-            MongoDbAccessMetadataImpl mongoDbAccessMetadata =
-                MongoDbAccessMetadataFactory.create(metaDataConfiguration, indexManager);
+            MongoDbAccessMetadataImpl mongoDbAccessMetadata = MongoDbAccessMetadataFactory.create(
+                metaDataConfiguration,
+                indexManager
+            );
 
             // TODO: Ugly fix as we have to change all unit test
             if (null != metaDataConfiguration.getWorkspaceUrl() && !metaDataConfiguration.getWorkspaceUrl().isEmpty()) {
@@ -104,11 +111,16 @@ public class AdminMetadataApplication extends Application {
                 metaDataConfiguration.getArchiveUnitProfileCacheTimeoutInSeconds(),
                 metaDataConfiguration.getSchemaValidatorCacheMaxEntries(),
                 metaDataConfiguration.getSchemaValidatorCacheTimeoutInSeconds(),
-                indexManager);
+                indexManager
+            );
 
             final AdminMetadataManagementResource adminMetadataReconstructionResource =
-                new AdminMetadataManagementResource(vitamRepositoryProvider,
-                    metadata, metaDataConfiguration, indexManager);
+                new AdminMetadataManagementResource(
+                    vitamRepositoryProvider,
+                    metadata,
+                    metaDataConfiguration,
+                    indexManager
+                );
             final MetadataAuditResource metadataAuditResource = new MetadataAuditResource(metaDataConfiguration);
 
             singletons = new HashSet<>();

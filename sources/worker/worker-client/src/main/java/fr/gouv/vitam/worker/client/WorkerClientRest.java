@@ -59,10 +59,10 @@ import static javax.ws.rs.core.Response.Status.fromStatusCode;
  * WorkerClient implementation for production environment using REST API.
  */
 class WorkerClientRest extends DefaultClient implements WorkerClient {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerClientRest.class);
     private static final String DATA_MUST_HAVE_A_VALID_VALUE = "data must have a valid value";
-    private static final GenericType<List<WorkerAccessRequest>> LIST_AR_TYPE = new GenericType<>() {
-    };
+    private static final GenericType<List<WorkerAccessRequest>> LIST_AR_TYPE = new GenericType<>() {};
 
     WorkerClientRest(WorkerClientFactory factory) {
         super(factory);
@@ -73,10 +73,7 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
         throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException {
         VitamThreadUtils.getVitamSession().checkValidRequestId();
 
-        VitamRequestBuilder request = post()
-            .withPath("/tasks")
-            .withBody(step, DATA_MUST_HAVE_A_VALID_VALUE)
-            .withJson();
+        VitamRequestBuilder request = post().withPath("/tasks").withBody(step, DATA_MUST_HAVE_A_VALID_VALUE).withJson();
 
         try (Response response = make(request)) {
             return handleCommonResponseStatus(step, response);
@@ -98,14 +95,23 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
                 throw new WorkerNotFoundClientException(status.getReasonPhrase());
             default:
                 try {
-                    LOGGER.error(INTERNAL_SERVER_ERROR.getReasonPhrase() + " during execution of " +
-                        VitamThreadUtils.getVitamSession().getRequestId() + " Request, stepname:  " +
-                        step.getStep().getStepName() + " : " + status.getReasonPhrase());
+                    LOGGER.error(
+                        INTERNAL_SERVER_ERROR.getReasonPhrase() +
+                        " during execution of " +
+                        VitamThreadUtils.getVitamSession().getRequestId() +
+                        " Request, stepname:  " +
+                        step.getStep().getStepName() +
+                        " : " +
+                        status.getReasonPhrase()
+                    );
                 } catch (final VitamThreadAccessException e) {
                     LOGGER.error(
                         INTERNAL_SERVER_ERROR.getReasonPhrase() +
-                            " during execution of <unknown request id> Request, stepname:  " +
-                            step.getStep().getStepName() + " : " + status.getReasonPhrase());
+                        " during execution of <unknown request id> Request, stepname:  " +
+                        step.getStep().getStepName() +
+                        " : " +
+                        status.getReasonPhrase()
+                    );
                 }
                 throw new WorkerServerClientException(INTERNAL_SERVER_ERROR.getReasonPhrase());
         }
@@ -118,10 +124,12 @@ class WorkerClientRest extends DefaultClient implements WorkerClient {
             if (StringUtils.isEmpty(item.getAccessRequestId())) {
                 throw new ProcessingException("Invalid accessRequestId was returned by worker");
             }
-            accessRequestIdByContext.computeIfAbsent(
-                    new AccessRequestContext(item.getStrategyId(), item.getOfferId()), (x -> new ArrayList<>()))
+            accessRequestIdByContext
+                .computeIfAbsent(
+                    new AccessRequestContext(item.getStrategyId(), item.getOfferId()),
+                    (x -> new ArrayList<>())
+                )
                 .add(item.getAccessRequestId());
-
         });
         return new ProcessingRetryAsyncException(accessRequestIdByContext);
     }

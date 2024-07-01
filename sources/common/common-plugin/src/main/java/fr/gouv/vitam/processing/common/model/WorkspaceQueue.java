@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.processing.common.model;
 
-
 import fr.gouv.vitam.common.CommonMediaType;
 
 import java.io.InputStream;
@@ -37,9 +36,9 @@ import java.nio.file.Path;
  */
 public class WorkspaceQueue {
 
-    final private String workspacePath;
-    final private InputStream sourceFile;
-    final private WorkspaceAction action;
+    private final String workspacePath;
+    private final InputStream sourceFile;
+    private final WorkspaceAction action;
     private String mediaType = CommonMediaType.TAR;
     private String folderName = "";
     private Path filePath = null;
@@ -72,8 +71,7 @@ public class WorkspaceQueue {
      * @param sourceFile
      * @param action
      */
-    public WorkspaceQueue(String workspacePath, InputStream sourceFile,
-        WorkspaceAction action) {
+    public WorkspaceQueue(String workspacePath, InputStream sourceFile, WorkspaceAction action) {
         this.workspacePath = workspacePath;
         this.sourceFile = sourceFile;
         this.action = action;

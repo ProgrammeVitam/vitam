@@ -62,7 +62,8 @@ public class ProbativeReportEntry {
         @JsonProperty("checks") List<ProbativeCheck> checks,
         @JsonProperty("evStartDateTime") String evStartDateTime,
         @JsonProperty("evEndDateTime") String evEndDateTime,
-        @JsonProperty("status") StatusCode status) {
+        @JsonProperty("status") StatusCode status
+    ) {
         this.unitIds = unitIds;
         this.objectGroupId = objectGroupId;
         this.objectId = objectId;
@@ -74,8 +75,15 @@ public class ProbativeReportEntry {
         this.status = status;
     }
 
-    public ProbativeReportEntry(String evStartDateTime, List<String> unitIds, String objectGroupId, String objectId,
-        String usageVersion, List<ProbativeOperation> operations, List<ProbativeCheck> checks) {
+    public ProbativeReportEntry(
+        String evStartDateTime,
+        List<String> unitIds,
+        String objectGroupId,
+        String objectId,
+        String usageVersion,
+        List<ProbativeOperation> operations,
+        List<ProbativeCheck> checks
+    ) {
         this.unitIds = unitIds;
         this.objectGroupId = objectGroupId;
         this.objectId = objectId;
@@ -89,27 +97,36 @@ public class ProbativeReportEntry {
 
     @JsonIgnore
     private StatusCode getStatus(List<ProbativeOperation> operations, List<ProbativeCheck> checks) {
-        if (operations.stream().allMatch(Objects::nonNull)
-            && operations.size() == 3
-            && checks.stream().allMatch(Objects::nonNull)
-            && checks.stream().allMatch(c -> OK.equals(c.getStatus()))
-            && checks.size() == ChecksInformation.values().length) {
+        if (
+            operations.stream().allMatch(Objects::nonNull) &&
+            operations.size() == 3 &&
+            checks.stream().allMatch(Objects::nonNull) &&
+            checks.stream().allMatch(c -> OK.equals(c.getStatus())) &&
+            checks.size() == ChecksInformation.values().length
+        ) {
             return OK;
         }
 
-        if (operations.stream().allMatch(Objects::nonNull)
-            && operations.size() == 3
-            && checks.stream().allMatch(Objects::nonNull)
-            && checks.stream().noneMatch(c -> KO.equals(c.getStatus()))
-            && checks.size() == ChecksInformation.values().length) {
+        if (
+            operations.stream().allMatch(Objects::nonNull) &&
+            operations.size() == 3 &&
+            checks.stream().allMatch(Objects::nonNull) &&
+            checks.stream().noneMatch(c -> KO.equals(c.getStatus())) &&
+            checks.size() == ChecksInformation.values().length
+        ) {
             return WARNING;
         }
 
         return KO;
     }
 
-    private ProbativeReportEntry(String evStartDateTime, List<String> unitIds, String objectGroupId, String objectId,
-        String usageVersion) {
+    private ProbativeReportEntry(
+        String evStartDateTime,
+        List<String> unitIds,
+        String objectGroupId,
+        String objectId,
+        String usageVersion
+    ) {
         this.unitIds = unitIds;
         this.objectGroupId = objectGroupId;
         this.objectId = objectId;
@@ -122,24 +139,55 @@ public class ProbativeReportEntry {
     }
 
     @JsonIgnore
-    public static ProbativeReportEntry koFrom(String evStartDateTime, List<String> unitIds, String objectGroupId,
-        String objectId, String usageVersion) {
+    public static ProbativeReportEntry koFrom(
+        String evStartDateTime,
+        List<String> unitIds,
+        String objectGroupId,
+        String objectId,
+        String usageVersion
+    ) {
         return new ProbativeReportEntry(evStartDateTime, unitIds, objectGroupId, objectId, usageVersion);
     }
 
     @JsonIgnore
-    public static ProbativeReportEntry koFrom(String startEntryCreation, List<String> unitIds, String objectGroupId,
-        String objectId, String usageVersion, List<ProbativeOperation> probativeOperations) {
-        return new ProbativeReportEntry(startEntryCreation, unitIds, objectGroupId, objectId, usageVersion,
-            probativeOperations, Collections.emptyList());
+    public static ProbativeReportEntry koFrom(
+        String startEntryCreation,
+        List<String> unitIds,
+        String objectGroupId,
+        String objectId,
+        String usageVersion,
+        List<ProbativeOperation> probativeOperations
+    ) {
+        return new ProbativeReportEntry(
+            startEntryCreation,
+            unitIds,
+            objectGroupId,
+            objectId,
+            usageVersion,
+            probativeOperations,
+            Collections.emptyList()
+        );
     }
 
     @JsonIgnore
-    public static ProbativeReportEntry koFrom(String startEntryCreation, List<String> unitIds, String objectGroupId,
-        String objectId, String usageVersion, List<ProbativeOperation> probativeOperations,
-        List<ProbativeCheck> probativeChecks) {
-        return new ProbativeReportEntry(startEntryCreation, unitIds, objectGroupId, objectId, usageVersion,
-            probativeOperations, probativeChecks);
+    public static ProbativeReportEntry koFrom(
+        String startEntryCreation,
+        List<String> unitIds,
+        String objectGroupId,
+        String objectId,
+        String usageVersion,
+        List<ProbativeOperation> probativeOperations,
+        List<ProbativeCheck> probativeChecks
+    ) {
+        return new ProbativeReportEntry(
+            startEntryCreation,
+            unitIds,
+            objectGroupId,
+            objectId,
+            usageVersion,
+            probativeOperations,
+            probativeChecks
+        );
     }
 
     @JsonProperty("unitIds")

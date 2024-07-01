@@ -50,14 +50,16 @@ public class HeaderIdContainerFilter implements ContainerRequestFilter, Containe
      */
     @Override
     public void filter(ContainerRequestContext requestContext) {
-        HeaderIdHelper.putVitamIdFromHeaderInSession(requestContext.getHeaders(),
-            HeaderIdHelper.Context.REQUEST);
+        HeaderIdHelper.putVitamIdFromHeaderInSession(requestContext.getHeaders(), HeaderIdHelper.Context.REQUEST);
     }
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
         throws IOException {
-        HeaderIdHelper.putVitamIdFromSessionInHeader(responseContext.getHeaders(),
-            HeaderIdHelper.Context.RESPONSE, responseContext.getStatus());
+        HeaderIdHelper.putVitamIdFromSessionInHeader(
+            responseContext.getHeaders(),
+            HeaderIdHelper.Context.RESPONSE,
+            responseContext.getStatus()
+        );
     }
 }

@@ -28,5 +28,5 @@ package fr.gouv.vitam.logbook.administration.core;
 
 public enum LfcTraceabilityType {
     Unit,
-    ObjectGroup
+    ObjectGroup,
 }

@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.security.internal.filter;
 
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -69,8 +68,10 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
      *
      * @param authentLevel
      */
-    public EndpointAuthenticationFilter(AuthenticationLevel authentLevel,
-        DefaultVitamApplicationConfiguration configuration) {
+    public EndpointAuthenticationFilter(
+        AuthenticationLevel authentLevel,
+        DefaultVitamApplicationConfiguration configuration
+    ) {
         this.authentLevel = authentLevel;
         this.configuration = configuration;
     }
@@ -83,11 +84,13 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext containerRequestContext) {
         Response errorResponse = Response.status(Response.Status.UNAUTHORIZED)
-            .entity("VitamAuthentication failed: VitamAuthentication informations are missing.").build();
+            .entity("VitamAuthentication failed: VitamAuthentication informations are missing.")
+            .build();
         try {
-            ParametersChecker
-                .checkParameter("VitamAuthentication failed! The service needs user authentication.",
-                    containerRequestContext.getHeaders().get(HttpHeaders.AUTHORIZATION));
+            ParametersChecker.checkParameter(
+                "VitamAuthentication failed! The service needs user authentication.",
+                containerRequestContext.getHeaders().get(HttpHeaders.AUTHORIZATION)
+            );
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             containerRequestContext.abortWith(errorResponse);
@@ -115,21 +118,22 @@ public class EndpointAuthenticationFilter implements ContainerRequestFilter {
         // validate the authentication information with the Vitam configuration.
         List<String> decodedAuthentgInfos = Arrays.asList(decodedAuthent.split(":"));
         List<BasicAuthModel> basicAuthConfig = configuration.getAdminBasicAuth();
-        if (decodedAuthentgInfos.isEmpty() || (basicAuthConfig != null &&
-            (!basicAuthConfig.get(0).getUserName().equals(decodedAuthentgInfos.get(0)) ||
-                !basicAuthConfig.get(0).getPassword()
-                    .equals(decodedAuthentgInfos.get(1))))) {
+        if (
+            decodedAuthentgInfos.isEmpty() ||
+            (basicAuthConfig != null &&
+                (!basicAuthConfig.get(0).getUserName().equals(decodedAuthentgInfos.get(0)) ||
+                    !basicAuthConfig.get(0).getPassword().equals(decodedAuthentgInfos.get(1))))
+        ) {
             //throw new IllegalArgumentException("VitamAuthentication failed: Wrong credentials.");
             containerRequestContext.abortWith(
-                Response.status(Response.Status.UNAUTHORIZED).entity("VitamAuthentication failed: Wrong credentials.")
-                    .build());
+                Response.status(Response.Status.UNAUTHORIZED)
+                    .entity("VitamAuthentication failed: Wrong credentials.")
+                    .build()
+            );
         }
     }
 
     public AuthenticationLevel getAuthentLevel() {
         return authentLevel;
     }
-
-
-
 }

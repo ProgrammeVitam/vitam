@@ -35,16 +35,17 @@ public class RawLifecycleByLastPersistedDateRequest {
 
     @JsonProperty("startDate")
     private String startDate;
+
     @JsonProperty("endDate")
     private String endDate;
+
     @JsonProperty("limit")
     private int limit;
 
     /**
      * Deserialization constructor
      */
-    public RawLifecycleByLastPersistedDateRequest() {
-    }
+    public RawLifecycleByLastPersistedDateRequest() {}
 
     /**
      * Constructor

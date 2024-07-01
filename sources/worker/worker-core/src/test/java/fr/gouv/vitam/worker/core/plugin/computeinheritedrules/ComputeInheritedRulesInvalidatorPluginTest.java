@@ -55,11 +55,14 @@ import static org.mockito.Mockito.when;
 
 public class ComputeInheritedRulesInvalidatorPluginTest {
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock private MetaDataClientFactory metaDataClientFactory;
+    @Mock
+    private MetaDataClientFactory metaDataClientFactory;
 
-    @Mock private MetaDataClient metaDataClient;
+    @Mock
+    private MetaDataClient metaDataClient;
 
     private ComputeInheritedRulesInvalidatorPlugin computeInheritedRulesInvalidatorPlugin;
 
@@ -76,7 +79,6 @@ public class ComputeInheritedRulesInvalidatorPluginTest {
         HandlerIO handlerIO = mock(HandlerIO.class);
         WorkerParameters workerParameters = mock(WorkerParameters.class);
         when(workerParameters.getObjectNameList()).thenReturn(Collections.singletonList(unitToUpdate));
-
 
         when(metaDataClient.updateUnitBulk(any(JsonNode.class))).thenReturn(new RequestResponseOK<JsonNode>());
 

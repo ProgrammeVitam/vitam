@@ -49,8 +49,7 @@ public class EliminationActionAccessionRegisterPreparationHandler extends PurgeA
      * Test only constructor
      */
     @VisibleForTesting
-    EliminationActionAccessionRegisterPreparationHandler(
-        PurgeReportService purgeReportService) {
+    EliminationActionAccessionRegisterPreparationHandler(PurgeReportService purgeReportService) {
         super(ELIMINATION_ACTION_ACCESSION_REGISTER_PREPARATION, purgeReportService);
     }
 

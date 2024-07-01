@@ -74,9 +74,7 @@ public class LightweightWorkflowLock {
      */
     public List<ProcessDetail> listConcurrentWorkflows(List<String> workflowIds, String currentProcessId)
         throws VitamClientException {
-
         try (ProcessingManagementClient client = processingManagementClientFactory.getClient()) {
-
             ProcessQuery query = new ProcessQuery();
             // Non completed processes
             query.setStates(
@@ -90,16 +88,17 @@ public class LightweightWorkflowLock {
 
             RequestResponse<ProcessDetail> processDetailRequestResponse = client.listOperationsDetails(query);
             if (!processDetailRequestResponse.isOk()) {
-
                 VitamError error = (VitamError) processDetailRequestResponse;
                 throw new VitamClientException(
-                    "Could not check concurrent workflows " + error.getDescription() + " - " + error.getMessage());
+                    "Could not check concurrent workflows " + error.getDescription() + " - " + error.getMessage()
+                );
             }
 
             List<ProcessDetail> processDetails =
                 ((RequestResponseOK<ProcessDetail>) processDetailRequestResponse).getResults();
 
-            return processDetails.stream()
+            return processDetails
+                .stream()
                 .filter(processDetail -> !currentProcessId.equals(processDetail.getOperationId()))
                 .collect(Collectors.toList());
         }

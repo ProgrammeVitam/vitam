@@ -38,7 +38,6 @@ import fr.gouv.vitam.common.model.administration.DataObjectVersionType;
 import fr.gouv.vitam.common.model.objectgroup.DbObjectGroupModel;
 import fr.gouv.vitam.storage.engine.common.exception.StorageNotFoundException;
 import io.restassured.http.ContentType;
-import io.restassured.response.ResponseBodyExtractionOptions;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
@@ -60,7 +59,8 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
     public static final String QUERY_OBJECT = "{ \"_id\" : \"1\",  \"FileInfo\" : {\"Filename\" : \"name\"} }";
     public static final String OBJECTS = "objects";
     private static final String OBJECT_ZIP_PATH = "streamZip/transaction.zip";
-    public static final String OK_RESULT = "{\n" +
+    public static final String OK_RESULT =
+        "{\n" +
         "        \"httpCode\": 200,\n" +
         "        \"$hits\": {\n" +
         "          \"total\": 52,\n" +
@@ -112,8 +112,13 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
     public void uploadObjectGroup() throws Exception {
         when(collectService.getArchiveUnitModel("1")).thenReturn(new CollectUnitModel());
         when(
-            collectService.updateOrSaveObjectGroup(any(CollectUnitModel.class), any(DataObjectVersionType.class), eq(1),
-                any(ObjectDto.class))).thenReturn(new ObjectDto());
+            collectService.updateOrSaveObjectGroup(
+                any(CollectUnitModel.class),
+                any(DataObjectVersionType.class),
+                eq(1),
+                any(ObjectDto.class)
+            )
+        ).thenReturn(new ObjectDto());
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -166,7 +171,6 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
             .statusCode(Response.Status.OK.getStatusCode());
     }
 
-
     @Test
     public void getObjectById_ko_collect_error() throws Exception {
         when(metadataService.selectObjectGroupById("1")).thenThrow(new CollectInternalException("error"));
@@ -195,15 +199,15 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
 
     @Test
     public void upload() throws Exception {
-        CollectUnitModel uaWithExistingOpi= new CollectUnitModel();
+        CollectUnitModel uaWithExistingOpi = new CollectUnitModel();
         uaWithExistingOpi.setOpi("1");
 
-        CollectUnitModel uaWithBadTransactionStatus= new CollectUnitModel();
+        CollectUnitModel uaWithBadTransactionStatus = new CollectUnitModel();
         uaWithBadTransactionStatus.setOpi("2");
 
-        CollectUnitModel uaWithOpiNull= new CollectUnitModel();
+        CollectUnitModel uaWithOpiNull = new CollectUnitModel();
 
-        CollectUnitModel uaWithOpiAndBadTransaction= new CollectUnitModel();
+        CollectUnitModel uaWithOpiAndBadTransaction = new CollectUnitModel();
         uaWithOpiAndBadTransaction.setOpi("2");
 
         TransactionModel transactionWithCorrectStatus = new TransactionModel();
@@ -322,8 +326,9 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
         CollectUnitModel collectUnitModel = new CollectUnitModel();
         when(collectService.getArchiveUnitModel("1")).thenReturn(collectUnitModel);
         when(collectService.getDbObjectGroup(any(CollectUnitModel.class))).thenReturn(new DbObjectGroupModel());
-        when(collectService.getBinaryByUsageAndVersion(collectUnitModel, BINARY_MASTER, 1)).thenReturn(Response.status(
-            Response.Status.OK).entity("test download").build());
+        when(collectService.getBinaryByUsageAndVersion(collectUnitModel, BINARY_MASTER, 1)).thenReturn(
+            Response.status(Response.Status.OK).entity("test download").build()
+        );
 
         given()
             .contentType(ContentType.JSON)
@@ -365,8 +370,13 @@ public class CollectMetadataInternalResourceImplTest extends CollectInternalReso
     public void download_ko_storage_error() throws Exception {
         when(collectService.getArchiveUnitModel("1")).thenReturn(new CollectUnitModel());
         when(collectService.getDbObjectGroup(any(CollectUnitModel.class))).thenReturn(new DbObjectGroupModel());
-        when(collectService.getBinaryByUsageAndVersion(any(CollectUnitModel.class), any(DataObjectVersionType.class),
-            eq(1))).thenThrow(new StorageNotFoundException("error"));
+        when(
+            collectService.getBinaryByUsageAndVersion(
+                any(CollectUnitModel.class),
+                any(DataObjectVersionType.class),
+                eq(1)
+            )
+        ).thenThrow(new StorageNotFoundException("error"));
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.BINARY)

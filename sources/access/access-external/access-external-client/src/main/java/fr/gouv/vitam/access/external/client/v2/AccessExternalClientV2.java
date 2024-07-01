@@ -37,13 +37,11 @@ import fr.gouv.vitam.common.model.export.dip.DipRequest;
  * Access External Client Interface
  */
 public interface AccessExternalClientV2 extends BasicClient {
-
     /**
      * @param vitamContext the vitam context
      * @param dipRequest the DSL query used to select unit to export as DIP
      * @return the result of the information obtained in the DIP
      * @throws VitamClientException
      */
-    RequestResponse<JsonNode> exportDIP(VitamContext vitamContext,
-        DipRequest dipRequest) throws VitamClientException;
+    RequestResponse<JsonNode> exportDIP(VitamContext vitamContext, DipRequest dipRequest) throws VitamClientException;
 }

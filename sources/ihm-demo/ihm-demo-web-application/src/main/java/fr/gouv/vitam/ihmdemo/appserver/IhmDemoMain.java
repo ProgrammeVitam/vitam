@@ -55,17 +55,29 @@ public class IhmDemoMain {
      * @param configurationFile
      */
     public IhmDemoMain(String configurationFile) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
-        vitamStarter = new VitamStarter(WebApplicationConfig.class, configurationFile,
-            BusinessApplication.class, AdminApplication.class, Lists.newArrayList(), true);
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
+        vitamStarter = new VitamStarter(
+            WebApplicationConfig.class,
+            configurationFile,
+            BusinessApplication.class,
+            AdminApplication.class,
+            Lists.newArrayList(),
+            true
+        );
     }
 
-    public IhmDemoMain(String configurationFile,
+    public IhmDemoMain(
+        String configurationFile,
         Class<? extends Application> testBusinessApplication,
-        Class<? extends Application> testAdminApplication) {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-            CONF_FILE_NAME), configurationFile);
+        Class<? extends Application> testAdminApplication
+    ) {
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
         if (null == testBusinessApplication) {
             testBusinessApplication = BusinessApplication.class;
         }
@@ -73,10 +85,15 @@ public class IhmDemoMain {
         if (null == testAdminApplication) {
             testAdminApplication = AdminApplication.class;
         }
-        vitamStarter = new VitamStarter(WebApplicationConfig.class, configurationFile,
-            testBusinessApplication, testAdminApplication, Lists.newArrayList(), true);
+        vitamStarter = new VitamStarter(
+            WebApplicationConfig.class,
+            configurationFile,
+            testBusinessApplication,
+            testAdminApplication,
+            Lists.newArrayList(),
+            true
+        );
     }
-
 
     /**
      * Main method to run the application (doing start and join)
@@ -87,14 +104,18 @@ public class IhmDemoMain {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    CONF_FILE_NAME));
+                throw new IllegalArgumentException(
+                    String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME)
+                );
             }
             IhmDemoMain main = new IhmDemoMain(args[0]);
             main.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
-                e.getMessage(), e);
+            LOGGER.error(
+                String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(),
+                e
+            );
 
             System.exit(1);
         }

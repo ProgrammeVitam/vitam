@@ -30,15 +30,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.LocalDateUtil;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 
-
 public class TapeCatalogLabel {
+
     public static final String ID = "_id";
     public static final String CODE = "code";
     public static final String ALTERNATIVE_CODE = "alternative_code";
     public static final String BUCKET = "bucket";
     public static final String TYPE = "type";
     public static final String TAG_CREATION_DATE = "creationDate";
-
 
     @JsonProperty(ID)
     private String id = GUIDFactory.newGUID().getId();
@@ -58,9 +57,7 @@ public class TapeCatalogLabel {
     @JsonProperty(TAG_CREATION_DATE)
     private String created = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
 
-
-    public TapeCatalogLabel() {
-    }
+    public TapeCatalogLabel() {}
 
     public TapeCatalogLabel(String id, String code) {
         this.id = id;

@@ -55,25 +55,26 @@ public class CertificateCRLCheckRepositoryHelper {
     }
 
     public FindIterable<Document> findCertificate(String issuerDN, CertificateStatus certificateStatus) {
-
-        Bson crlCAFilter = and(eq(CertificateBaseModel.ISSUER_DN_TAG, issuerDN),
-            eq(CertificateBaseModel.STATUS_TAG, certificateStatus.name()));
+        Bson crlCAFilter = and(
+            eq(CertificateBaseModel.ISSUER_DN_TAG, issuerDN),
+            eq(CertificateBaseModel.STATUS_TAG, certificateStatus.name())
+        );
 
         return certificateCollection.find(crlCAFilter);
     }
 
     public void updateCertificateState(List<String> certificatesToUpdate, CertificateStatus certificateStatus) {
-
         Bson fieldsToUpdateBson = set(CertificateBaseModel.STATUS_TAG, certificateStatus.name());
 
         if (certificateStatus.equals(CertificateStatus.REVOKED)) {
-            fieldsToUpdateBson = combine(fieldsToUpdateBson,
-                set(CertificateBaseModel.REVOCATION_DATE_TAG,
-                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()))
+            fieldsToUpdateBson = combine(
+                fieldsToUpdateBson,
+                set(
+                    CertificateBaseModel.REVOCATION_DATE_TAG,
+                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+                )
             );
         }
-        certificateCollection
-            .updateMany(in(VitamDocument.ID, certificatesToUpdate),
-                fieldsToUpdateBson);
+        certificateCollection.updateMany(in(VitamDocument.ID, certificatesToUpdate), fieldsToUpdateBson);
     }
 }

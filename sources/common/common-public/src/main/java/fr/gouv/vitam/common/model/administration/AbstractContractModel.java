@@ -203,7 +203,6 @@ public class AbstractContractModel {
         return this;
     }
 
-
     /**
      * Get the contract status
      *
@@ -212,7 +211,6 @@ public class AbstractContractModel {
     public ActivationStatus getStatus() {
         return this.status;
     }
-
 
     /**
      * Set or change the contract status
@@ -288,5 +286,4 @@ public class AbstractContractModel {
         this.deactivationdate = deactivationdate;
         return this;
     }
-
 }

@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
  * MongoDbAccess interface
  */
 public abstract class MongoDbAccess implements DatabaseConnection {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccess.class);
 
     private MongoClient mongoClient;
@@ -160,11 +161,12 @@ public abstract class MongoDbAccess implements DatabaseConnection {
     }
 
     public static MongoClient createMongoClient(DbConfiguration configuration, List<Class<?>> classList) {
-
         MongoClientSettings.Builder settingsBuilder = getMongoClientSettingsBuilder(classList);
 
         // Hosts
-        final List<ServerAddress> serverAddress = configuration.getMongoDbNodes().stream()
+        final List<ServerAddress> serverAddress = configuration
+            .getMongoDbNodes()
+            .stream()
             .map(node -> new ServerAddress(node.getDbHost(), node.getDbPort()))
             .collect(Collectors.toList());
         settingsBuilder.applyToClusterSettings(builder -> builder.hosts(serverAddress));
@@ -173,7 +175,10 @@ public abstract class MongoDbAccess implements DatabaseConnection {
         if (configuration.isDbAuthentication()) {
             // As of mongo 5.0, SCRAM-SHA-256 is the strongest authentication schema to date.
             final MongoCredential credential = MongoCredential.createScramSha256Credential(
-                configuration.getDbUserName(), configuration.getDbName(), configuration.getDbPassword().toCharArray());
+                configuration.getDbUserName(),
+                configuration.getDbName(),
+                configuration.getDbPassword().toCharArray()
+            );
             settingsBuilder.credential(credential);
         }
 
@@ -184,32 +189,38 @@ public abstract class MongoDbAccess implements DatabaseConnection {
         return getMongoClientSettingsBuilder(Arrays.asList(classes));
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static MongoClientSettings.Builder getMongoClientSettingsBuilder(List<Class<?>> classList) {
         MongoClientSettings.Builder settingsBuilder = MongoClientSettings.builder()
             .writeConcern(WriteConcern.MAJORITY)
             .readConcern(ReadConcern.MAJORITY)
-            .applyToSocketSettings(builder -> builder
-                .connectTimeout(VitamConfiguration.getConnectTimeout(), TimeUnit.MILLISECONDS)
-                .readTimeout(VitamConfiguration.getReadTimeout(), TimeUnit.MILLISECONDS)
+            .applyToSocketSettings(
+                builder ->
+                    builder
+                        .connectTimeout(VitamConfiguration.getConnectTimeout(), TimeUnit.MILLISECONDS)
+                        .readTimeout(VitamConfiguration.getReadTimeout(), TimeUnit.MILLISECONDS)
             )
-            .applyToConnectionPoolSettings(builder -> builder
-                .minSize(1)
-                .maxConnecting(10)
-                .maxSize(VitamConfiguration.getNumberDbClientThread())
-                .maxConnectionIdleTime(VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS)
+            .applyToConnectionPoolSettings(
+                builder ->
+                    builder
+                        .minSize(1)
+                        .maxConnecting(10)
+                        .maxSize(VitamConfiguration.getNumberDbClientThread())
+                        .maxConnectionIdleTime(VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS)
             );
 
         // Codecs
         if (CollectionUtils.isNotEmpty(classList)) {
-            List<CodecRegistry> codecs =
-                classList.stream()
-                    .map(clasz -> CodecRegistries.fromCodecs(new VitamDocumentCodec(clasz)))
-                    .collect(Collectors.toList());
+            List<CodecRegistry> codecs = classList
+                .stream()
+                .map(clasz -> CodecRegistries.fromCodecs(new VitamDocumentCodec(clasz)))
+                .collect(Collectors.toList());
 
             final CodecRegistry vitamCodecRegistry = CodecRegistries.fromRegistries(codecs);
-            final CodecRegistry codecRegistry =
-                CodecRegistries.fromRegistries(vitamCodecRegistry, MongoClientSettings.getDefaultCodecRegistry());
+            final CodecRegistry codecRegistry = CodecRegistries.fromRegistries(
+                vitamCodecRegistry,
+                MongoClientSettings.getDefaultCodecRegistry()
+            );
             settingsBuilder.codecRegistry(codecRegistry);
         }
         return settingsBuilder;
@@ -224,5 +235,4 @@ public abstract class MongoDbAccess implements DatabaseConnection {
         mongoDatabase = mongoClient.getDatabase(dbname);
         this.dbname = dbname;
     }
-
 }

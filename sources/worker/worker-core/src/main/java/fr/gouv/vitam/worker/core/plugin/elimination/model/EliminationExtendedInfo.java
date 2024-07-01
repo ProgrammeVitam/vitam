@@ -30,12 +30,20 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "ExtendedInfoType")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = EliminationExtendedInfoKeepAccessSp.class, name = "KEEP_ACCESS_SP"),
-    @JsonSubTypes.Type(value = EliminationExtendedInfoAccessLinkInconsistency.class, name = "ACCESS_LINK_INCONSISTENCY"),
-    @JsonSubTypes.Type(value = EliminationExtendedInfoFinalActionInconsistency.class, name = "FINAL_ACTION_INCONSISTENCY"),
-    @JsonSubTypes.Type(value = EliminationExtendedInfoHoldRule.class, name = "BLOCKED_BY_HOLD_RULE")
-})
+@JsonSubTypes(
+    {
+        @JsonSubTypes.Type(value = EliminationExtendedInfoKeepAccessSp.class, name = "KEEP_ACCESS_SP"),
+        @JsonSubTypes.Type(
+            value = EliminationExtendedInfoAccessLinkInconsistency.class,
+            name = "ACCESS_LINK_INCONSISTENCY"
+        ),
+        @JsonSubTypes.Type(
+            value = EliminationExtendedInfoFinalActionInconsistency.class,
+            name = "FINAL_ACTION_INCONSISTENCY"
+        ),
+        @JsonSubTypes.Type(value = EliminationExtendedInfoHoldRule.class, name = "BLOCKED_BY_HOLD_RULE"),
+    }
+)
 public abstract class EliminationExtendedInfo {
 
     public EliminationExtendedInfo() {

@@ -36,6 +36,6 @@ import java.lang.annotation.Target;
  * Mainly designed to run Tests inside VitamThreads
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD, ElementType.TYPE})
+@Target({ ElementType.METHOD, ElementType.TYPE })
 public @interface RunWithCustomExecutor {
 }

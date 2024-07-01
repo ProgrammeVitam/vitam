@@ -35,6 +35,7 @@ import static org.junit.Assert.assertNotNull;
  * test class
  */
 public class BackupServiceExceptionTest {
+
     @Test
     public final void testContentAddressableStorageAlreadyExistExceptionThrowable() {
         assertEquals(null, new BackupServiceException((String) null).getMessage());

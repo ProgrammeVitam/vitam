@@ -91,17 +91,28 @@ public class StorageLogAdministration {
 
     private final StorageDistribution distribution;
 
-
-    public StorageLogAdministration(StorageLog storageLogService, StorageDistribution distribution,
-        StorageConfiguration configuration) {
-        this(storageLogService, distribution, configuration, WorkspaceClientFactory.getInstance(),
-            LogbookOperationsClientFactory.getInstance());
+    public StorageLogAdministration(
+        StorageLog storageLogService,
+        StorageDistribution distribution,
+        StorageConfiguration configuration
+    ) {
+        this(
+            storageLogService,
+            distribution,
+            configuration,
+            WorkspaceClientFactory.getInstance(),
+            LogbookOperationsClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
-    public StorageLogAdministration(StorageLog storageLogService, StorageDistribution distribution,
-        StorageConfiguration configuration, WorkspaceClientFactory workspaceClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+    public StorageLogAdministration(
+        StorageLog storageLogService,
+        StorageDistribution distribution,
+        StorageConfiguration configuration,
+        WorkspaceClientFactory workspaceClientFactory,
+        LogbookOperationsClientFactory logbookOperationsClientFactory
+    ) {
         this.storageLogService = storageLogService;
         this.distribution = distribution;
         this.workspaceClientFactory = workspaceClientFactory;
@@ -109,15 +120,13 @@ public class StorageLogAdministration {
         this.storageLogBackupThreadPoolSize = configuration.getStorageLogBackupThreadPoolSize();
     }
 
-
-    public List<StorageLogBackupResult> backupStorageWriteLog(String strategyId,
-        List<Integer> tenants) throws StorageLogException {
+    public List<StorageLogBackupResult> backupStorageWriteLog(String strategyId, List<Integer> tenants)
+        throws StorageLogException {
         return backupStorageLog(strategyId, true, tenants);
     }
 
-
-    public List<StorageLogBackupResult> backupStorageAccessLog(String strategyId,
-        List<Integer> tenants) throws StorageLogException {
+    public List<StorageLogBackupResult> backupStorageAccessLog(String strategyId, List<Integer> tenants)
+        throws StorageLogException {
         return backupStorageLog(strategyId, false, tenants);
     }
 
@@ -133,10 +142,11 @@ public class StorageLogAdministration {
      * @return backup result list
      * @throws StorageLogException if storage log backup failed
      */
-    private synchronized List<StorageLogBackupResult> backupStorageLog(String strategyId, Boolean backupWriteLog,
-        List<Integer> tenants)
-        throws StorageLogException {
-
+    private synchronized List<StorageLogBackupResult> backupStorageLog(
+        String strategyId,
+        Boolean backupWriteLog,
+        List<Integer> tenants
+    ) throws StorageLogException {
         String operationType = backupWriteLog ? "StorageWriteLog" : "StorageAccessLog";
 
         int threadPoolSize = Math.min(this.storageLogBackupThreadPoolSize, tenants.size());
@@ -146,22 +156,25 @@ public class StorageLogAdministration {
             List<CompletableFuture<StorageLogBackupResult>> completableFutures = new ArrayList<>();
 
             for (Integer tenantId : tenants) {
-                CompletableFuture<StorageLogBackupResult> traceabilityCompletableFuture =
-                    CompletableFuture.supplyAsync(() -> {
+                CompletableFuture<StorageLogBackupResult> traceabilityCompletableFuture = CompletableFuture.supplyAsync(
+                    () -> {
                         Thread.currentThread().setName(operationType + "-" + tenantId);
                         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
                         try {
                             String operationId = backupStorageLog(strategyId, backupWriteLog, tenantId);
-                            return new StorageLogBackupResult()
-                                .setTenantId(tenantId)
-                                .setOperationId(operationId);
+                            return new StorageLogBackupResult().setTenantId(tenantId).setOperationId(operationId);
                         } catch (Exception e) {
-                            alertService.createAlert(VitamLogLevel.ERROR,
-                                "An error occurred during " + operationType + " for tenant " + tenantId);
+                            alertService.createAlert(
+                                VitamLogLevel.ERROR,
+                                "An error occurred during " + operationType + " for tenant " + tenantId
+                            );
                             throw new RuntimeException(
-                                "An error occurred during " + operationType + " for tenant " + tenantId);
+                                "An error occurred during " + operationType + " for tenant " + tenantId
+                            );
                         }
-                    }, executorService);
+                    },
+                    executorService
+                );
                 completableFutures.add(traceabilityCompletableFuture);
             }
 
@@ -184,21 +197,17 @@ public class StorageLogAdministration {
             }
 
             return results;
-
         } finally {
             executorService.shutdown();
         }
     }
 
     private String backupStorageLog(String strategyId, Boolean backupWriteLog, int tenantId)
-        throws IOException, StorageLogException,
-        LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-
+        throws IOException, StorageLogException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         GUID eip = GUIDFactory.newOperationLogbookGUID(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(eip);
         try {
-
             String evType;
 
             if (backupWriteLog) {
@@ -212,52 +221,74 @@ public class StorageLogAdministration {
             List<LogInformation> info = storageLogService.rotateLogFile(tenantId, backupWriteLog);
 
             for (LogInformation logInformation : info) {
-                storeLogFile(helper, strategyId, tenantId, eip, logInformation, storageLogService, evType,
-                    backupWriteLog);
+                storeLogFile(
+                    helper,
+                    strategyId,
+                    tenantId,
+                    eip,
+                    logInformation,
+                    storageLogService,
+                    evType,
+                    backupWriteLog
+                );
             }
 
             createLogbookOperationEvent(helper, eip, evType, StatusCode.OK);
             return eip.getId();
-
         } catch (LogbookClientNotFoundException | LogbookClientAlreadyExistsException e) {
             throw new StorageLogException(e);
         } finally {
-            logbookOperationsClientFactory.getClient()
-                .create(eip.getId(), helper.removeCreateDelegate(eip.getId()));
+            logbookOperationsClientFactory.getClient().create(eip.getId(), helper.removeCreateDelegate(eip.getId()));
         }
     }
 
-    private void storeLogFile(LogbookOperationsClientHelper helper, String strategyId, Integer tenantId, GUID eip,
-        LogInformation logInformation, StorageLog storageLogService, String evType, boolean isWriteOperation)
-        throws LogbookClientNotFoundException, StorageLogException {
+    private void storeLogFile(
+        LogbookOperationsClientHelper helper,
+        String strategyId,
+        Integer tenantId,
+        GUID eip,
+        LogInformation logInformation,
+        StorageLog storageLogService,
+        String evType,
+        boolean isWriteOperation
+    ) throws LogbookClientNotFoundException, StorageLogException {
         LOGGER.info("Storing log file " + logInformation.getPath() + " -- " + isWriteOperation);
 
-        String fileName = tenantId + "_" + storageLogService.getFileName(isWriteOperation) + "_"
-            + logInformation.getBeginTime().format(getDateTimeFormatter()) + "_"
-            + logInformation.getEndTime().format(getDateTimeFormatter()) + "_"
-            + eip.toString() + ".log";
+        String fileName =
+            tenantId +
+            "_" +
+            storageLogService.getFileName(isWriteOperation) +
+            "_" +
+            logInformation.getBeginTime().format(getDateTimeFormatter()) +
+            "_" +
+            logInformation.getEndTime().format(getDateTimeFormatter()) +
+            "_" +
+            eip.toString() +
+            ".log";
 
-        try (InputStream inputStream =
-            new BufferedInputStream(new FileInputStream(logInformation.getPath().toFile()));
-            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
+        try (
+            InputStream inputStream = new BufferedInputStream(new FileInputStream(logInformation.getPath().toFile()));
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()
+        ) {
             String containerName = GUIDFactory.newGUID().toString();
 
             workspaceClient.createContainer(containerName);
 
             try {
-
                 workspaceClient.putObject(containerName, fileName, inputStream);
 
                 try {
-
                     final ObjectDescription description = new ObjectDescription();
                     description.setWorkspaceContainerGUID(containerName);
                     description.setWorkspaceObjectURI(fileName);
 
-                    distribution.storeDataInAllOffers(strategyId, fileName, description,
-                        isWriteOperation ? DataCategory.STORAGELOG : DataCategory.STORAGEACCESSLOG, null);
-
+                    distribution.storeDataInAllOffers(
+                        strategyId,
+                        fileName,
+                        description,
+                        isWriteOperation ? DataCategory.STORAGELOG : DataCategory.STORAGEACCESSLOG,
+                        null
+                    );
                 } catch (StorageException e) {
                     LOGGER.error("unable to store log file", e);
                     createLogbookOperationEvent(helper, eip, evType, StatusCode.FATAL);
@@ -267,17 +298,16 @@ public class StorageLogAdministration {
                 if (!Files.deleteIfExists(logInformation.getPath())) {
                     LOGGER.warn("Could not delete local storage file " + logInformation.getPath().toAbsolutePath());
                 }
-
             } finally {
                 try {
                     workspaceClient.deleteContainer(containerName, true);
                 } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
                     LOGGER.error(
-                        String.format("Unable to cleanup file from workspace %s/%s", containerName, fileName), e);
+                        String.format("Unable to cleanup file from workspace %s/%s", containerName, fileName),
+                        e
+                    );
                 }
             }
-
-
         } catch (ContentAddressableStorageServerException | IOException e) {
             LOGGER.error("Unable to create container", e);
             createLogbookOperationEvent(helper, eip, evType, StatusCode.FATAL);
@@ -287,27 +317,42 @@ public class StorageLogAdministration {
 
     private void createLogbookOperationStarted(LogbookOperationsClientHelper helper, GUID eip, String evType)
         throws LogbookClientAlreadyExistsException {
-        final LogbookOperationParameters logbookOperationParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eip, evType, eip, LogbookTypeProcess.STORAGE_BACKUP,
+        final LogbookOperationParameters logbookOperationParameters =
+            LogbookParameterHelper.newLogbookOperationParameters(
+                eip,
+                evType,
+                eip,
+                LogbookTypeProcess.STORAGE_BACKUP,
                 StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(evType, StatusCode.STARTED), eip);
-        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, evType +
-            "." + StatusCode.STARTED);
+                VitamLogbookMessages.getCodeOp(evType, StatusCode.STARTED),
+                eip
+            );
+        logbookOperationParameters.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            evType + "." + StatusCode.STARTED
+        );
 
         LogbookOperationsClientHelper.checkLogbookParameters(logbookOperationParameters);
         helper.createDelegate(logbookOperationParameters);
     }
 
-    private void createLogbookOperationEvent(LogbookOperationsClientHelper helper, GUID parentEventId, String eventType,
-        StatusCode statusCode) throws LogbookClientNotFoundException {
-
-        final LogbookOperationParameters logbookOperationParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(GUIDFactory.newEventGUID(parentEventId), eventType, parentEventId,
+    private void createLogbookOperationEvent(
+        LogbookOperationsClientHelper helper,
+        GUID parentEventId,
+        String eventType,
+        StatusCode statusCode
+    ) throws LogbookClientNotFoundException {
+        final LogbookOperationParameters logbookOperationParameters =
+            LogbookParameterHelper.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(parentEventId),
+                eventType,
+                parentEventId,
                 LogbookTypeProcess.STORAGE_BACKUP,
                 statusCode,
-                VitamLogbookMessages.getCodeOp(eventType, statusCode), parentEventId);
-        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventType +
-            "." + statusCode);
+                VitamLogbookMessages.getCodeOp(eventType, statusCode),
+                parentEventId
+            );
+        logbookOperationParameters.putParameterValue(LogbookParameterName.outcomeDetail, eventType + "." + statusCode);
 
         LogbookOperationsClientHelper.checkLogbookParameters(logbookOperationParameters);
         helper.updateDelegate(logbookOperationParameters);

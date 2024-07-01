@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.collect.common.dto;
 
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -53,5 +52,4 @@ public class IngestDto implements Serializable {
     public void setIdIngest(String id) {
         this.idIngest = id;
     }
-
 }

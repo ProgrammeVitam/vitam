@@ -32,13 +32,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Objects;
 
 public class TransferReplyContext {
+
     private final String transferMessageRequestIdentifier;
     private final String atrMessageIdentifier;
 
     @JsonCreator
     public TransferReplyContext(
         @JsonProperty("transferMessageRequestIdentifier") String transferMessageRequestIdentifier,
-        @JsonProperty("atrMessageIdentifier") String atrMessageIdentifier) {
+        @JsonProperty("atrMessageIdentifier") String atrMessageIdentifier
+    ) {
         this.transferMessageRequestIdentifier = transferMessageRequestIdentifier;
         this.atrMessageIdentifier = atrMessageIdentifier;
     }
@@ -55,13 +57,13 @@ public class TransferReplyContext {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         TransferReplyContext that = (TransferReplyContext) o;
-        return transferMessageRequestIdentifier.equals(that.transferMessageRequestIdentifier) &&
-            atrMessageIdentifier.equals(that.atrMessageIdentifier);
+        return (
+            transferMessageRequestIdentifier.equals(that.transferMessageRequestIdentifier) &&
+            atrMessageIdentifier.equals(that.atrMessageIdentifier)
+        );
     }
 
     @Override
@@ -71,9 +73,15 @@ public class TransferReplyContext {
 
     @Override
     public String toString() {
-        return "SharedTransferReplyIds{" +
-            "transferMessageRequestIdentifier='" + transferMessageRequestIdentifier + '\'' +
-            ", atrMessageIdentifier='" + atrMessageIdentifier + '\'' +
-            '}';
+        return (
+            "SharedTransferReplyIds{" +
+            "transferMessageRequestIdentifier='" +
+            transferMessageRequestIdentifier +
+            '\'' +
+            ", atrMessageIdentifier='" +
+            atrMessageIdentifier +
+            '\'' +
+            '}'
+        );
     }
 }

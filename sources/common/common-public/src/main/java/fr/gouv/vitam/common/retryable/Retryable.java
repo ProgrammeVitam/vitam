@@ -34,27 +34,43 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public interface Retryable<T, E extends Exception> {
-
     T exec(DelegateRetry<T, E> delegate) throws E;
 
     void execute(DelegateRetryVoid<E> delegate) throws E;
 
-    default void sleep(int attempt, String name, RetryableParameters param, SecureRandom randomSleep,
-        Consumer<T> onResult, T type) {
+    default void sleep(
+        int attempt,
+        String name,
+        RetryableParameters param,
+        SecureRandom randomSleep,
+        Consumer<T> onResult,
+        T type
+    ) {
         onResult.accept(type);
         String resultString = type.toString();
         doSleep(attempt, name, param, randomSleep, resultString);
     }
 
-    default void sleep(int attempt, String name, RetryableParameters param, SecureRandom randomSleep,
-        Consumer<Exception> onException, Exception exception) {
+    default void sleep(
+        int attempt,
+        String name,
+        RetryableParameters param,
+        SecureRandom randomSleep,
+        Consumer<Exception> onException,
+        Exception exception
+    ) {
         onException.accept(exception);
         String stackTrace = ExceptionUtils.getStackTrace(exception);
         doSleep(attempt, name, param, randomSleep, stackTrace);
     }
 
-    default void doSleep(int attempt, String name, RetryableParameters param, SecureRandom randomSleep,
-        String toPrint) {
+    default void doSleep(
+        int attempt,
+        String name,
+        RetryableParameters param,
+        SecureRandom randomSleep,
+        String toPrint
+    ) {
         try {
             int randomRangeSleep = param.getRandomRangeSleep() == 0
                 ? 0
@@ -65,9 +81,18 @@ public interface Retryable<T, E extends Exception> {
                 : randomRangeSleep + param.getWaitingTime();
 
             TimeUnit timeUnit = param.getTimeUnit();
-            param.getLog().accept(
-                String.format("Retryable='%s' - Will retry, attempt '%d' in '%d' %s. %s", name, attempt, sleepTime,
-                    timeUnit.name(), toPrint));
+            param
+                .getLog()
+                .accept(
+                    String.format(
+                        "Retryable='%s' - Will retry, attempt '%d' in '%d' %s. %s",
+                        name,
+                        attempt,
+                        sleepTime,
+                        timeUnit.name(),
+                        toPrint
+                    )
+                );
             timeUnit.sleep(sleepTime);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();

@@ -41,8 +41,7 @@ public class TapeLibraryTarObjectStorageLocation extends TapeLibraryObjectStorag
         // Empty constructor for deserialization
     }
 
-    public TapeLibraryTarObjectStorageLocation(
-        List<TarEntryDescription> tarEntries) {
+    public TapeLibraryTarObjectStorageLocation(List<TarEntryDescription> tarEntries) {
         this.tarEntries = tarEntries;
     }
 
@@ -50,8 +49,7 @@ public class TapeLibraryTarObjectStorageLocation extends TapeLibraryObjectStorag
         return tarEntries;
     }
 
-    public TapeLibraryTarObjectStorageLocation setTarEntries(
-        List<TarEntryDescription> tarEntries) {
+    public TapeLibraryTarObjectStorageLocation setTarEntries(List<TarEntryDescription> tarEntries) {
         this.tarEntries = tarEntries;
         return this;
     }

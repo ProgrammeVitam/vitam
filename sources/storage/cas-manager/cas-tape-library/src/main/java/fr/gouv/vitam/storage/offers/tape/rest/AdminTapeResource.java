@@ -86,22 +86,22 @@ public class AdminTapeResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
     public Response putObject(@PathParam("objectId") String objectId, InputStream input) {
-
         final Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
-        try (final SizedInputStream sis = new SizedInputStream(input);
-            final InputStream digestInputStream = digest.getDigestInputStream(sis)) {
+        try (
+            final SizedInputStream sis = new SizedInputStream(input);
+            final InputStream digestInputStream = digest.getDigestInputStream(sis)
+        ) {
             LOGGER.info("Writing backup '" + objectId);
 
             SanityChecker.checkParameter(objectId);
 
             backupFileStorage.writeFile(objectId, digestInputStream);
 
-            ObjectNode response =
-                JsonHandler.createObjectNode().put("digest", digest.digestHex()).put("size", sis.getSize());
+            ObjectNode response = JsonHandler.createObjectNode()
+                .put("digest", digest.digestHex())
+                .put("size", sis.getSize());
 
-            return Response.status(Response.Status.CREATED)
-                .entity(response)
-                .build();
+            return Response.status(Response.Status.CREATED).entity(response).build();
         } catch (Exception exc) {
             LOGGER.error("Cannot create object", exc);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
@@ -109,5 +109,4 @@ public class AdminTapeResource extends ApplicationStatusResource {
             StreamUtils.closeSilently(input);
         }
     }
-
 }

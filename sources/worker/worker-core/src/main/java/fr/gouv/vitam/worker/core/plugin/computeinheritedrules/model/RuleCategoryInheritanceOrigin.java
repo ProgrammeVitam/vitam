@@ -29,7 +29,6 @@ package fr.gouv.vitam.worker.core.plugin.computeinheritedrules.model;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum RuleCategoryInheritanceOrigin {
-
     LOCAL("Local"),
     INHERITED("Inherited"),
     LOCAL_AND_INHERITED("LocalAndInherited");

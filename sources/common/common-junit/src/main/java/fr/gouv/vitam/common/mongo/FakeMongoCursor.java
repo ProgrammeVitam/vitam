@@ -34,6 +34,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class FakeMongoCursor<T> implements MongoCursor<T> {
+
     private final Iterator<T> iterator;
 
     public FakeMongoCursor(List<T> iterator) {
@@ -41,8 +42,7 @@ public class FakeMongoCursor<T> implements MongoCursor<T> {
     }
 
     @Override
-    public void close() {
-    }
+    public void close() {}
 
     @Override
     public boolean hasNext() {

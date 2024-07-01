@@ -33,7 +33,6 @@ package fr.gouv.vitam.storage.offers.tape.cache;
  */
 @FunctionalInterface
 public interface LRUCacheEvictionJudge<T> {
-
     /**
      * Evaluates if a cache entry can ben evicted or not.
      *

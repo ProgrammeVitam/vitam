@@ -58,16 +58,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-
 public class AccessContractIdHeaderHelperTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
-    private static final AdminManagementClientFactory adminManagementClientFactory =
-        mock(AdminManagementClientFactory.class);
+    private static final AdminManagementClientFactory adminManagementClientFactory = mock(
+        AdminManagementClientFactory.class
+    );
 
     private static final Integer TENANT_ID = 0;
     private static final String CONTRACT_ID = "CONTRACT_ID";
@@ -89,8 +90,7 @@ public class AccessContractIdHeaderHelperTest {
         RequestResponse<AccessContractModel> mockedResponse = new VitamError("KO");
         mockedResponse.setHttpCode(500);
 
-        when(adminManagementClient.findAccessContracts(any()))
-            .thenReturn(mockedResponse);
+        when(adminManagementClient.findAccessContracts(any())).thenReturn(mockedResponse);
 
         // launch test
         MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
@@ -113,8 +113,7 @@ public class AccessContractIdHeaderHelperTest {
         RequestResponseOK<AccessContractModel> mockedResponse = new RequestResponseOK<>();
         mockedResponse.setHttpCode(200);
 
-        when(adminManagementClient.findAccessContracts(any()))
-            .thenReturn(mockedResponse);
+        when(adminManagementClient.findAccessContracts(any())).thenReturn(mockedResponse);
 
         // launch test
         MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
@@ -145,8 +144,7 @@ public class AccessContractIdHeaderHelperTest {
         mockedResponse.setHttpCode(200);
         mockedResponse.addResult(mockedContract);
 
-        when(adminManagementClient.findAccessContracts(any()))
-            .thenReturn(mockedResponse);
+        when(adminManagementClient.findAccessContracts(any())).thenReturn(mockedResponse);
 
         // launch test
         MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
@@ -178,13 +176,11 @@ public class AccessContractIdHeaderHelperTest {
         rootUnits.add("guid");
         mockedContract.setRootUnits(rootUnits);
 
-
         RequestResponseOK<AccessContractModel> mockedResponse = new RequestResponseOK<>();
         mockedResponse.setHttpCode(200);
         mockedResponse.addResult(mockedContract);
 
-        when(adminManagementClient.findAccessContracts(any()))
-            .thenReturn(mockedResponse);
+        when(adminManagementClient.findAccessContracts(any())).thenReturn(mockedResponse);
 
         // launch test
         MultivaluedMap<String, String> requestHeaders = new MultivaluedHashMap<>();
@@ -197,5 +193,4 @@ public class AccessContractIdHeaderHelperTest {
         assertEquals(originatingAgencies, VitamThreadUtils.getVitamSession().getContract().getOriginatingAgencies());
         assertEquals(rootUnits, VitamThreadUtils.getVitamSession().getContract().getRootUnits());
     }
-
 }

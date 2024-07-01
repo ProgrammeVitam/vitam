@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.common.exception;
 
-
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 
 import java.util.List;
@@ -45,8 +44,10 @@ public class FileRulesIllegalDurationModeUpdateException extends ReferentialExce
      * @param message message to associate with the exception
      * @param usedRulesWithDurationModeUpdate
      */
-    public FileRulesIllegalDurationModeUpdateException(String message,
-        List<FileRulesModel> usedRulesWithDurationModeUpdate) {
+    public FileRulesIllegalDurationModeUpdateException(
+        String message,
+        List<FileRulesModel> usedRulesWithDurationModeUpdate
+    ) {
         super(message);
         this.usedRulesWithDurationModeUpdate = usedRulesWithDurationModeUpdate;
     }

@@ -79,8 +79,7 @@ public class EventModel {
     /**
      * Default constructor/
      */
-    public EventModel() {
-    }
+    public EventModel() {}
 
     /**
      * EventModel constructor.
@@ -95,9 +94,17 @@ public class EventModel {
      * @param outcome
      * @param outDetail
      */
-    public EventModel(LogbookEventType logbookEventType, String operationId, String lfcId,
-        String evId, String evParentId, String evType, String evTypeParent,
-        String outcome, String outDetail) {
+    public EventModel(
+        LogbookEventType logbookEventType,
+        String operationId,
+        String lfcId,
+        String evId,
+        String evParentId,
+        String evType,
+        String evTypeParent,
+        String outcome,
+        String outDetail
+    ) {
         this.logbookEventType = logbookEventType;
         this.operationId = operationId;
         this.lfcId = lfcId;

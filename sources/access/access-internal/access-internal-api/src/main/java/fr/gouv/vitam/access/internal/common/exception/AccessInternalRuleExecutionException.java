@@ -28,8 +28,7 @@ package fr.gouv.vitam.access.internal.common.exception;
 
 import fr.gouv.vitam.common.error.VitamCode;
 
-public class AccessInternalRuleExecutionException extends
-    AccessInternalException {
+public class AccessInternalRuleExecutionException extends AccessInternalException {
 
     private static final long serialVersionUID = 3507862590422500648L;
 
@@ -68,8 +67,12 @@ public class AccessInternalRuleExecutionException extends
      * @param enableSuppression allow suppression or not
      * @param writableStackTrace allow writable stack trace or not
      */
-    public AccessInternalRuleExecutionException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
+    public AccessInternalRuleExecutionException(
+        String message,
+        Throwable cause,
+        boolean enableSuppression,
+        boolean writableStackTrace
+    ) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

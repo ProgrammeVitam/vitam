@@ -71,8 +71,13 @@ public class DateRangeFacet extends Facet {
         populateFacet(name, field, null, dateFormat, ranges);
     }
 
-    private void populateFacet(String name, String field, String nestdPath, String dateFormat,
-        List<RangeFacetValue> ranges) throws InvalidCreateOperationException {
+    private void populateFacet(
+        String name,
+        String field,
+        String nestdPath,
+        String dateFormat,
+        List<RangeFacetValue> ranges
+    ) throws InvalidCreateOperationException {
         setName(name);
         currentTokenFACET = FACET.DATE_RANGE;
         if (name == null || name.isEmpty()) {
@@ -97,9 +102,9 @@ public class DateRangeFacet extends Facet {
         ArrayNode rangesNode = JsonHandler.createArrayNode();
         for (RangeFacetValue item : ranges) {
             ObjectNode rangeNode = JsonHandler.createObjectNode();
-            if ((item.getFrom() == null || item.getFrom().isEmpty()) &&
-                (item.getTo() == null || item.getTo().isEmpty()))
-                throw new InvalidCreateOperationException("Either a 'from' or a 'to' value are requested");
+            if (
+                (item.getFrom() == null || item.getFrom().isEmpty()) && (item.getTo() == null || item.getTo().isEmpty())
+            ) throw new InvalidCreateOperationException("Either a 'from' or a 'to' value are requested");
             rangeNode.put(FACETARGS.FROM.exactToken(), item.getFrom());
             rangeNode.put(FACETARGS.TO.exactToken(), item.getTo());
             rangesNode.add(rangeNode);

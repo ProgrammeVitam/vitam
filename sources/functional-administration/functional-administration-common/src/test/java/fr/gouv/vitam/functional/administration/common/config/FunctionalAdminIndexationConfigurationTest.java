@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.functional.administration.common.config;
 
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.model.config.CollectionConfiguration;
 import fr.gouv.vitam.functional.administration.common.server.FunctionalAdminCollections;
@@ -41,10 +40,10 @@ public class FunctionalAdminIndexationConfigurationTest {
 
     @Test
     public void testElasticsearchIndexationConfigurationLoading() throws Exception {
-
         AdminManagementConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils
-            .getConfigAsStream("./functional_administration_test_config.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./functional_administration_test_config.yml")
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
         }
 
@@ -58,12 +57,23 @@ public class FunctionalAdminIndexationConfigurationTest {
         assertThat(config.getIndexationConfiguration().getCollectionConfigurationMap()).hasSize(1);
         assertThat(config.getIndexationConfiguration().getCollectionConfigurationMap()).containsOnlyKeys("ontology");
 
-        assertThat(config.getIndexationConfiguration().getCollectionConfiguration(
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)).isNull();
+        assertThat(
+            config
+                .getIndexationConfiguration()
+                .getCollectionConfiguration(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL)
+        ).isNull();
 
-        assertThat(config.getIndexationConfiguration().getCollectionConfiguration(
-            FunctionalAdminCollections.ONTOLOGY).getNumberOfShards()).isEqualTo(4);
-        assertThat(config.getIndexationConfiguration().getCollectionConfiguration(
-            FunctionalAdminCollections.ONTOLOGY).getNumberOfReplicas()).isEqualTo(11);
+        assertThat(
+            config
+                .getIndexationConfiguration()
+                .getCollectionConfiguration(FunctionalAdminCollections.ONTOLOGY)
+                .getNumberOfShards()
+        ).isEqualTo(4);
+        assertThat(
+            config
+                .getIndexationConfiguration()
+                .getCollectionConfiguration(FunctionalAdminCollections.ONTOLOGY)
+                .getNumberOfReplicas()
+        ).isEqualTo(11);
     }
 }

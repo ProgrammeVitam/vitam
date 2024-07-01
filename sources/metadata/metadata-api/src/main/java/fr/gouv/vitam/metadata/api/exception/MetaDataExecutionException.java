@@ -32,11 +32,11 @@ import fr.gouv.vitam.common.error.VitamError;
  * MetaDataExecutionException database error
  */
 public class MetaDataExecutionException extends MetaDataException {
+
     /**
      *
      */
     private static final long serialVersionUID = -8131926677545592877L;
-
 
     /**
      * Constructor

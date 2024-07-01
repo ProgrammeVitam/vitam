@@ -148,15 +148,13 @@ public class ProjectRepository {
         LOGGER.debug("Project tenant to find : {}", tenant);
         try {
             List<ProjectModel> listProjects = new ArrayList<>();
-            try (MongoCursor<Document> projectsCursor =
-                projectCollection.find(eq(TENANT_ID, tenant)).cursor()) {
+            try (MongoCursor<Document> projectsCursor = projectCollection.find(eq(TENANT_ID, tenant)).cursor()) {
                 while (projectsCursor.hasNext()) {
                     Document doc = projectsCursor.next();
                     listProjects.add(BsonHelper.fromDocumentToObject(doc, ProjectModel.class));
                 }
             }
             return listProjects;
-
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Error when fetching project: ", e);
             throw new CollectInternalException("Error when fetching project : " + e);
@@ -174,7 +172,6 @@ public class ProjectRepository {
         LOGGER.debug("Project deleted Id: {}", id);
     }
 
-
     /**
      * return projects according to criteria
      *
@@ -183,28 +180,31 @@ public class ProjectRepository {
      * @return List<ProjectModel>
      * @throws CollectInternalException exception thrown in case of error
      */
-    public List<ProjectModel> searchProject(String searchValue, int tenant)
-        throws CollectInternalException {
+    public List<ProjectModel> searchProject(String searchValue, int tenant) throws CollectInternalException {
         List<String> keys = List.of(ID, SUBMISSION_AGENCY_IDENTIFIER, MESSAGE_IDENTIFIER);
         try {
             List<ProjectModel> listProjects = new ArrayList<>();
-            List<Bson> filters = keys.stream().map(key -> {
-                if (ID.equals(key)) {
-                    return Filters.eq(key, searchValue);
-                }
-                return Filters.regex(key, Pattern.quote(searchValue), "i");
-            }).collect(Collectors.toList());
+            List<Bson> filters = keys
+                .stream()
+                .map(key -> {
+                    if (ID.equals(key)) {
+                        return Filters.eq(key, searchValue);
+                    }
+                    return Filters.regex(key, Pattern.quote(searchValue), "i");
+                })
+                .collect(Collectors.toList());
 
-            try (MongoCursor<Document> projectsCursor = projectCollection
-                .find(Filters.and(Filters.or(filters), Filters.eq(TENANT_ID, tenant)))
-                .cursor()) {
+            try (
+                MongoCursor<Document> projectsCursor = projectCollection
+                    .find(Filters.and(Filters.or(filters), Filters.eq(TENANT_ID, tenant)))
+                    .cursor()
+            ) {
                 while (projectsCursor.hasNext()) {
                     Document doc = projectsCursor.next();
                     listProjects.add(BsonHelper.fromDocumentToObject(doc, ProjectModel.class));
                 }
             }
             return listProjects;
-
         } catch (InvalidParseOperationException e) {
             throw new CollectInternalException("Error when fetching projects : " + e);
         }

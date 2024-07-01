@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.rest;
 
-
 import com.google.common.annotations.VisibleForTesting;
 import fr.gouv.vitam.common.GlobalDataRest;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -90,8 +89,10 @@ public class AdminOperationResource {
     }
 
     @VisibleForTesting
-    public AdminOperationResource(WorkspaceClientFactory workspaceClientFactory,
-        ProcessingManagementClientFactory processingManagementClientFactory) {
+    public AdminOperationResource(
+        WorkspaceClientFactory workspaceClientFactory,
+        ProcessingManagementClientFactory processingManagementClientFactory
+    ) {
         this.workspaceClientFactory = workspaceClientFactory;
         this.processingManagementClientFactory = processingManagementClientFactory;
     }
@@ -103,17 +104,19 @@ public class AdminOperationResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    public Response startIngestCleanupWorkflow(@PathParam("ingestOperationId") String ingestOperationId,
-        @HeaderParam(GlobalDataRest.X_TENANT_ID) Integer tenantId) {
-
+    public Response startIngestCleanupWorkflow(
+        @PathParam("ingestOperationId") String ingestOperationId,
+        @HeaderParam(GlobalDataRest.X_TENANT_ID) Integer tenantId
+    ) {
         ParametersChecker.checkParameter("Missing tenant", tenantId);
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(tenantId));
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
 
-        try (ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
-            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
+        try (
+            ProcessingManagementClient processingClient = processingManagementClientFactory.getClient();
+            WorkspaceClient workspaceClient = workspaceClientFactory.getClient()
+        ) {
             workspaceClient.createContainer(operationId);
 
             createCleanupLogbookOperation(operationId);
@@ -122,17 +125,19 @@ public class AdminOperationResource {
             entry.getExtraParams().put(WorkerParameterName.ingestOperationIdToCleanup.name(), ingestOperationId);
 
             // store original query
-            workspaceClient
-                .putObject(operationId, OperationContextMonitor.OperationContextFileName, writeToInpustream(
-                    OperationContextModel.get(entry)));
-
+            workspaceClient.putObject(
+                operationId,
+                OperationContextMonitor.OperationContextFileName,
+                writeToInpustream(OperationContextModel.get(entry))
+            );
 
             // compress file to backup
-            OperationContextMonitor
-                .compressInWorkspace(workspaceClientFactory, operationId,
-                    Contexts.INGEST_CLEANUP.getLogbookTypeProcess(),
-                    OperationContextMonitor.OperationContextFileName);
-
+            OperationContextMonitor.compressInWorkspace(
+                workspaceClientFactory,
+                operationId,
+                Contexts.INGEST_CLEANUP.getLogbookTypeProcess(),
+                OperationContextMonitor.OperationContextFileName
+            );
 
             processingClient.initVitamProcess(entry);
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), operationId);
@@ -141,28 +146,32 @@ public class AdminOperationResource {
 
             return Response.status(Response.Status.ACCEPTED)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .entity(new RequestResponseOK<>().setHttpCode(Response.Status.ACCEPTED.getStatusCode())).build();
-
+                .entity(new RequestResponseOK<>().setHttpCode(Response.Status.ACCEPTED.getStatusCode()))
+                .build();
         } catch (Exception e) {
             LOGGER.error("An error occurred during cleanup", e);
             final Response.Status status = INTERNAL_SERVER_ERROR;
             return Response.status(status)
                 .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .entity(getErrorEntity(status, e.getLocalizedMessage())).build();
+                .entity(getErrorEntity(status, e.getLocalizedMessage()))
+                .build();
         }
     }
 
     private void createCleanupLogbookOperation(String operationId)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        InvalidGuidOperationException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException, InvalidGuidOperationException {
         final GUID objectId = GUIDReader.getGUID(operationId);
 
         try (final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient()) {
             final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-                objectId, Contexts.INGEST_CLEANUP.getEventType(), objectId, LogbookTypeProcess.INTERNAL_OPERATING_OP,
+                objectId,
+                Contexts.INGEST_CLEANUP.getEventType(),
+                objectId,
+                LogbookTypeProcess.INTERNAL_OPERATING_OP,
                 StatusCode.STARTED,
                 VitamLogbookMessages.getCodeOp(Contexts.INGEST_CLEANUP.getEventType(), StatusCode.STARTED),
-                objectId);
+                objectId
+            );
             initParameters.putParameterValue(LogbookParameterName.objectIdentifierRequest, operationId);
 
             logbookClient.create(initParameters);
@@ -170,11 +179,14 @@ public class AdminOperationResource {
     }
 
     private VitamError getErrorEntity(Response.Status status, String message) {
-        String aMessage = StringUtils.isNotEmpty(message) ? message
+        String aMessage = StringUtils.isNotEmpty(message)
+            ? message
             : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode())
+        return new VitamError(status.name())
+            .setHttpCode(status.getStatusCode())
             .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
             .setState(status.name())
-            .setMessage(status.getReasonPhrase()).setDescription(aMessage);
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 }

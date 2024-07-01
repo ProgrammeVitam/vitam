@@ -27,6 +27,7 @@
 package fr.gouv.vitam.storage.engine.server.distribution.impl.bulk;
 
 public class ObjectInfo {
+
     private final String objectId;
     private final String digest;
     private final Long size;

@@ -46,7 +46,6 @@ public class BulkBufferingEntryIteratorTest {
 
     @Test
     public void testEmpty() {
-
         // Given
         Supplier<List<String>> supplier = mock(Supplier.class);
         Iterator<String> instance = new BulkBufferingEntryIterator<String>(10) {
@@ -66,7 +65,6 @@ public class BulkBufferingEntryIteratorTest {
 
     @Test
     public void testOnePage() {
-
         // Given
         Supplier<List<String>> supplier = mock(Supplier.class);
         Iterator<String> instance = new BulkBufferingEntryIterator<String>(10) {
@@ -92,7 +90,6 @@ public class BulkBufferingEntryIteratorTest {
 
     @Test
     public void testExactlyOnePage() {
-
         // Given
         Supplier<List<String>> supplier = mock(Supplier.class);
         Iterator<String> instance = new BulkBufferingEntryIterator<String>(3) {
@@ -101,9 +98,7 @@ public class BulkBufferingEntryIteratorTest {
                 return supplier.get();
             }
         };
-        when(supplier.get()).thenReturn(
-            Arrays.asList("1", "2", "3"),
-            Collections.emptyList());
+        when(supplier.get()).thenReturn(Arrays.asList("1", "2", "3"), Collections.emptyList());
 
         // When / Then
         assertThat(instance.hasNext()).isTrue();
@@ -120,7 +115,6 @@ public class BulkBufferingEntryIteratorTest {
 
     @Test
     public void testMultiPages() {
-
         // Given
         Supplier<List<String>> supplier = mock(Supplier.class);
         Iterator<String> instance = new BulkBufferingEntryIterator<String>(2) {
@@ -129,9 +123,7 @@ public class BulkBufferingEntryIteratorTest {
                 return supplier.get();
             }
         };
-        when(supplier.get()).thenReturn(
-            Arrays.asList("1", "2"),
-            Collections.singletonList("3"));
+        when(supplier.get()).thenReturn(Arrays.asList("1", "2"), Collections.singletonList("3"));
 
         // When / Then
         assertThat(instance.hasNext()).isTrue();

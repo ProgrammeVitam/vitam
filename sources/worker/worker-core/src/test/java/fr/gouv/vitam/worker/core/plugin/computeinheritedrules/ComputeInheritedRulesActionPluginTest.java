@@ -72,7 +72,8 @@ public class ComputeInheritedRulesActionPluginTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
@@ -83,10 +84,8 @@ public class ComputeInheritedRulesActionPluginTest {
     @Mock
     private HandlerIO HandlerIO;
 
-
     private ComputeInheritedRulesActionPlugin ComputeInheritedRulesActionPlugin;
     private WorkerParameters workerParameters;
-
 
     @Before
     public void setUp() throws Exception {
@@ -129,29 +128,32 @@ public class ComputeInheritedRulesActionPluginTest {
         assertThat(itemStatus.stream().filter(i -> i.getGlobalStatus() == StatusCode.OK)).hasSize(4);
         JsonNode updatedUnit = objectNodeArgumentCaptor.getValue();
 
-        JsonAssert.assertJsonEquals(expectedJson, updatedUnit,
-            JsonAssert.whenIgnoringPaths("$action[*].$set.#computedInheritedRules.indexationDate"));
+        JsonAssert.assertJsonEquals(
+            expectedJson,
+            updatedUnit,
+            JsonAssert.whenIgnoringPaths("$action[*].$set.#computedInheritedRules.indexationDate")
+        );
     }
 
     private ArgumentCaptor<JsonNode> initializeMockWithResponse(JsonNode response)
-        throws MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException,
-        MetaDataExecutionException,
-        MetaDataNotFoundException {
+        throws MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException, MetaDataExecutionException, MetaDataNotFoundException {
         given(metaDataClient.selectUnitsWithInheritedRules(ArgumentMatchers.any())).willReturn(response);
         ArgumentCaptor<JsonNode> objectNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
         when(
-            metaDataClient.updateUnitById(objectNodeArgumentCaptor.capture(), ArgumentMatchers.anyString())).thenReturn(
-            null);
+            metaDataClient.updateUnitById(objectNodeArgumentCaptor.capture(), ArgumentMatchers.anyString())
+        ).thenReturn(null);
         return objectNodeArgumentCaptor;
     }
 
     private JsonNode getJsonNodeResponse() throws InvalidParseOperationException, FileNotFoundException {
         return JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("computeInheritedRules/InheritedRulesResponse.json"));
+            PropertiesUtils.getResourceAsStream("computeInheritedRules/InheritedRulesResponse.json")
+        );
     }
 
     private JsonNode getExpectedJsonNode() throws InvalidParseOperationException, FileNotFoundException {
         return JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream("computeInheritedRules/response.json"));
+            PropertiesUtils.getResourceAsStream("computeInheritedRules/response.json")
+        );
     }
 }

@@ -143,6 +143,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class TransferAndDipIT extends VitamRuleRunner {
+
     private static final Integer TENANT_ID = 0;
     private static final String CONTRACT_ID = "aName5";
     private static final String CONTRACT_RULE_ID = "contract_rule";
@@ -152,8 +153,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
     private static final String SIP_OK_2_2 = "integration-ingest-internal/OK_SIP_FULL_SEDA2.2.zip";
     private static final String UNIT_WITHOUT_OBJECT_TRANSFER =
         "integration-ingest-internal/unit_without_object_transfer.zip";
-    private static final String SIP_EXTENDED =
-        "integration-ingest-internal/SIP_EXTENDED.zip";
+    private static final String SIP_EXTENDED = "integration-ingest-internal/SIP_EXTENDED.zip";
 
     private static final String WARNING_SIP_mail_Seda2_2 = "sip/WARNING_SIP_mail_Seda2.2.zip";
     private static final String WARNING_SIP_mail_Seda2_3 = "sip/WARNING_SIP_mail_Seda2.3.zip";
@@ -169,29 +169,31 @@ public class TransferAndDipIT extends VitamRuleRunner {
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ArchiveTransferReply xmlns=\"%s\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"%s %s\"";
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(TransferAndDipIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                ProcessManagementMain.class,
-                AccessInternalMain.class,
-                IngestInternalMain.class,
-                StorageMain.class,
-                DefaultOfferMain.class,
-                BatchReportMain.class
-            )
-        );
+    public static VitamServerRunner runner = new VitamServerRunner(
+        TransferAndDipIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            ProcessManagementMain.class,
+            AccessInternalMain.class,
+            IngestInternalMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            BatchReportMain.class
+        )
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1, 2), Collections.emptyMap());
-        String CONFIG_SIEGFRIED_PATH =
-            PropertiesUtils.getResourcePath("integration-ingest-internal/format-identifiers.conf").toString();
+        String CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcePath(
+            "integration-ingest-internal/format-identifiers.conf"
+        ).toString();
 
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
 
@@ -249,15 +251,21 @@ public class TransferAndDipIT extends VitamRuleRunner {
         String manifest = getManifestString(getDip(exportOperationId));
 
         assertThat(manifest).contains(
-            String.format(EXPECTED_MANIFEST_START_WITH_SEDA_VERSION, SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
+            String.format(
+                EXPECTED_MANIFEST_START_WITH_SEDA_VERSION,
                 SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
-                SupportedSedaVersions.SEDA_2_2.getSedaValidatorXSD()));
+                SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_2.getSedaValidatorXSD()
+            )
+        );
 
         assertThat(manifest).contains("<DateLitteral>XXème siècle</DateLitteral>");
         assertThat(manifest).contains(
-            "<LinkingAgentIdentifier><LinkingAgentIdentifierType>Agent</LinkingAgentIdentifierType><LinkingAgentIdentifierValue>Catherine Jablasy</LinkingAgentIdentifierValue><LinkingAgentRole>Standardiste</LinkingAgentRole></LinkingAgentIdentifier>");
+            "<LinkingAgentIdentifier><LinkingAgentIdentifierType>Agent</LinkingAgentIdentifierType><LinkingAgentIdentifierValue>Catherine Jablasy</LinkingAgentIdentifierValue><LinkingAgentRole>Standardiste</LinkingAgentRole></LinkingAgentIdentifier>"
+        );
         assertThat(manifest).contains(
-            "<OriginatingSystemIdReplyTo>catherine.jablasy@culture.gouv.fr</OriginatingSystemIdReplyTo>");
+            "<OriginatingSystemIdReplyTo>catherine.jablasy@culture.gouv.fr</OriginatingSystemIdReplyTo>"
+        );
         assertThat(manifest).contains("<TextContent>").contains("</TextContent>");
         assertThat(manifest).contains("<DataObjectProfile>AUP_IDENTIFIER</DataObjectProfile>");
 
@@ -267,7 +275,6 @@ public class TransferAndDipIT extends VitamRuleRunner {
         assertTrue(evDetData.asText().contains("SystemMessageDigest"));
         assertTrue(evDetData.asText().contains("SystemAlgorithm"));
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -296,19 +303,24 @@ public class TransferAndDipIT extends VitamRuleRunner {
         // Then
         VitamTestHelper.verifyOperation(exportOperationId, OK);
 
-
         String manifest = getManifestString(getDip(exportOperationId));
 
         assertThat(manifest).contains(
-            String.format(EXPECTED_MANIFEST_START_WITH_SEDA_VERSION, SupportedSedaVersions.SEDA_2_3.getNamespaceURI(),
+            String.format(
+                EXPECTED_MANIFEST_START_WITH_SEDA_VERSION,
                 SupportedSedaVersions.SEDA_2_3.getNamespaceURI(),
-                SupportedSedaVersions.SEDA_2_3.getSedaValidatorXSD()));
+                SupportedSedaVersions.SEDA_2_3.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_3.getSedaValidatorXSD()
+            )
+        );
 
         assertThat(manifest).contains("<DateLitteral>XXème siècle</DateLitteral>");
         assertThat(manifest).contains(
-            "<LinkingAgentIdentifier><LinkingAgentIdentifierType>Agent</LinkingAgentIdentifierType><LinkingAgentIdentifierValue>Catherine Jablasy</LinkingAgentIdentifierValue><LinkingAgentRole>Standardiste</LinkingAgentRole></LinkingAgentIdentifier>");
+            "<LinkingAgentIdentifier><LinkingAgentIdentifierType>Agent</LinkingAgentIdentifierType><LinkingAgentIdentifierValue>Catherine Jablasy</LinkingAgentIdentifierValue><LinkingAgentRole>Standardiste</LinkingAgentRole></LinkingAgentIdentifier>"
+        );
         assertThat(manifest).contains(
-            "<OriginatingSystemIdReplyTo>catherine.jablasy@culture.gouv.fr</OriginatingSystemIdReplyTo>");
+            "<OriginatingSystemIdReplyTo>catherine.jablasy@culture.gouv.fr</OriginatingSystemIdReplyTo>"
+        );
         assertThat(manifest).contains("<TextContent>").contains("</TextContent>");
         assertThat(manifest).contains("<DataObjectProfile>AUP_IDENTIFIER</DataObjectProfile>");
 
@@ -318,7 +330,6 @@ public class TransferAndDipIT extends VitamRuleRunner {
         assertTrue(evDetData.asText().contains("SystemMessageDigest"));
         assertTrue(evDetData.asText().contains("SystemAlgorithm"));
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -356,18 +367,20 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         List<LogbookEventOperation> logbookEvents = getLogbookEvents(exportOperationId);
 
-        assertThat(logbookEvents).extracting(EV_TYPE, OUTCOME)
-            .contains(
-                tuple(ExportCheckResourceAvailability.PLUGIN_NAME, OK.name())
-            );
-
+        assertThat(logbookEvents)
+            .extracting(EV_TYPE, OUTCOME)
+            .contains(tuple(ExportCheckResourceAvailability.PLUGIN_NAME, OK.name()));
 
         String manifest = getManifestString(getDip(exportOperationId));
 
         assertThat(manifest).contains(
-            String.format(EXPECTED_MANIFEST_START_WITH_SEDA_VERSION, SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
+            String.format(
+                EXPECTED_MANIFEST_START_WITH_SEDA_VERSION,
                 SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
-                SupportedSedaVersions.SEDA_2_2.getSedaValidatorXSD()));
+                SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_2.getSedaValidatorXSD()
+            )
+        );
         assertThat(manifest).contains("</ArchiveDeliveryRequestReply>");
         String header = PropertiesUtils.getResourceAsString("dip/header1");
         header = header.replace("OPERATION_ID_REPLACE", getVitamSession().getRequestId());
@@ -375,8 +388,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         String footer = PropertiesUtils.getResourceAsString("dip/footer1");
         assertThat(manifest).contains(footer);
-        assertThat(manifest)
-            .contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
+        assertThat(manifest).contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
         assertThat(manifest).contains("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
     }
 
@@ -417,17 +429,20 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         List<LogbookEventOperation> logbookEvents = getLogbookEvents(exportOperationId);
 
-        assertThat(logbookEvents).extracting(EV_TYPE, OUTCOME)
-            .contains(
-                tuple(ExportCheckResourceAvailability.PLUGIN_NAME, OK.name())
-            );
+        assertThat(logbookEvents)
+            .extracting(EV_TYPE, OUTCOME)
+            .contains(tuple(ExportCheckResourceAvailability.PLUGIN_NAME, OK.name()));
 
         String manifest = getManifestString(getDip(exportOperationId));
 
         assertThat(manifest).contains(
-            String.format(EXPECTED_MANIFEST_START_WITH_SEDA_VERSION, SupportedSedaVersions.SEDA_2_1.getNamespaceURI(),
+            String.format(
+                EXPECTED_MANIFEST_START_WITH_SEDA_VERSION,
                 SupportedSedaVersions.SEDA_2_1.getNamespaceURI(),
-                SupportedSedaVersions.SEDA_2_1.getSedaValidatorXSD()));
+                SupportedSedaVersions.SEDA_2_1.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_1.getSedaValidatorXSD()
+            )
+        );
         assertThat(manifest).contains("</ArchiveDeliveryRequestReply>");
         String header = PropertiesUtils.getResourceAsString("dip/header1");
         header = header.replace("OPERATION_ID_REPLACE", getVitamSession().getRequestId());
@@ -435,8 +450,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         String footer = PropertiesUtils.getResourceAsString("dip/footer1");
         assertThat(manifest).contains(footer);
-        assertThat(manifest)
-            .contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
+        assertThat(manifest).contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
         assertThat(manifest).contains("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
     }
 
@@ -475,17 +489,20 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         List<LogbookEventOperation> logbookEvents = getLogbookEvents(exportOperationId);
 
-        assertThat(logbookEvents).extracting(EV_TYPE, OUTCOME)
-            .contains(
-                tuple(ExportCheckResourceAvailability.PLUGIN_NAME, OK.name())
-            );
+        assertThat(logbookEvents)
+            .extracting(EV_TYPE, OUTCOME)
+            .contains(tuple(ExportCheckResourceAvailability.PLUGIN_NAME, OK.name()));
 
         String manifest = getManifestString(getDip(exportOperationId));
 
         assertThat(manifest).contains(
-            String.format(EXPECTED_MANIFEST_START_WITH_SEDA_VERSION, SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
+            String.format(
+                EXPECTED_MANIFEST_START_WITH_SEDA_VERSION,
                 SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
-                SupportedSedaVersions.SEDA_2_2.getSedaValidatorXSD()));
+                SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
+                SupportedSedaVersions.SEDA_2_2.getSedaValidatorXSD()
+            )
+        );
         assertThat(manifest).contains("</ArchiveDeliveryRequestReply>");
         String header = PropertiesUtils.getResourceAsString("dip/header1");
         header = header.replace("OPERATION_ID_REPLACE", getVitamSession().getRequestId());
@@ -493,8 +510,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         String footer = PropertiesUtils.getResourceAsString("dip/footer_seda_2_2");
         assertThat(manifest).contains(footer);
-        assertThat(manifest)
-            .contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
+        assertThat(manifest).contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
         assertThat(manifest).contains("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
     }
 
@@ -535,10 +551,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         List<LogbookEventOperation> logbookEvents = getLogbookEvents(exportOperationId);
 
-        assertThat(logbookEvents).extracting(EV_TYPE, OUTCOME)
-            .contains(
-                tuple(CreateManifest.PLUGIN_NAME, KO.name())
-            );
+        assertThat(logbookEvents).extracting(EV_TYPE, OUTCOME).contains(tuple(CreateManifest.PLUGIN_NAME, KO.name()));
     }
 
     @Test
@@ -592,10 +605,8 @@ public class TransferAndDipIT extends VitamRuleRunner {
         // As FormatIdentifierMock is used, pdf is identified as Plain Text File => WARNING
         verifyOperation(ingestOpId, WARNING);
 
-
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.initialOperation(), ingestOpId));
-
 
         ExportRequest exportRequest = new ExportRequest(
             new DataObjectVersions(Collections.singleton("BinaryMaster")),
@@ -639,8 +650,7 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         String footer = PropertiesUtils.getResourceAsString("dip/footer1");
         assertThat(manifest).contains(footer);
-        assertThat(manifest)
-            .contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
+        assertThat(manifest).contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
         assertThat(manifest).contains("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
     }
 
@@ -654,7 +664,6 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.operations(), ingestOpId));
-
 
         ExportRequest exportRequest = new ExportRequest(
             new DataObjectVersions(Collections.singleton("BinaryMaster")),
@@ -708,8 +717,9 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         ExportRequestParameters exportRequestParameters = getExportRequestParameters(ingestOpId);
         exportRequestParameters.setComment("Not Required comment for ArchiveDeliveryRequestReply");
-        exportRequestParameters
-            .setAuthorizationRequestReplyIdentifier("Not Required  AuthorizationRequestReplyIdentifier");
+        exportRequestParameters.setAuthorizationRequestReplyIdentifier(
+            "Not Required  AuthorizationRequestReplyIdentifier"
+        );
         exportRequestParameters.setTransferRequestReplyIdentifier("Not required TransferRequestReplyIdentifier");
         exportRequest.setExportRequestParameters(exportRequestParameters);
 
@@ -720,8 +730,9 @@ public class TransferAndDipIT extends VitamRuleRunner {
         assertNotNull(logbook);
         RequestResponseOK<JsonNode> response = RequestResponseOK.getFromJsonNode(logbook);
         assertThat(response.getResults()).isNotEmpty();
-        assertThat(response.getResults().get(0).get(EV_TYPE).asText())
-            .isEqualTo(Contexts.ARCHIVE_TRANSFER.getEventType());
+        assertThat(response.getResults().get(0).get(EV_TYPE).asText()).isEqualTo(
+            Contexts.ARCHIVE_TRANSFER.getEventType()
+        );
 
         String manifest = getManifestString(getTransferSIP(exportOperationId));
 
@@ -770,8 +781,9 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
         ExportRequestParameters exportRequestParameters = getExportRequestParameters(ingestOpId);
         exportRequestParameters.setComment("Not Required comment for ArchiveDeliveryRequestReply");
-        exportRequestParameters
-            .setAuthorizationRequestReplyIdentifier("Not Required  AuthorizationRequestReplyIdentifier");
+        exportRequestParameters.setAuthorizationRequestReplyIdentifier(
+            "Not Required  AuthorizationRequestReplyIdentifier"
+        );
         exportRequestParameters.setTransferRequestReplyIdentifier("Not required TransferRequestReplyIdentifier");
         exportRequest.setExportRequestParameters(exportRequestParameters);
 
@@ -782,8 +794,9 @@ public class TransferAndDipIT extends VitamRuleRunner {
         assertNotNull(logbook);
         RequestResponseOK<JsonNode> response = RequestResponseOK.getFromJsonNode(logbook);
         assertThat(response.getResults()).isNotEmpty();
-        assertThat(response.getResults().get(0).get(EV_TYPE).asText())
-            .isEqualTo(Contexts.ARCHIVE_TRANSFER.getEventType());
+        assertThat(response.getResults().get(0).get(EV_TYPE).asText()).isEqualTo(
+            Contexts.ARCHIVE_TRANSFER.getEventType()
+        );
 
         String manifest = getManifestString(getTransferSIP(exportOperationId));
 
@@ -798,18 +811,21 @@ public class TransferAndDipIT extends VitamRuleRunner {
         String footer = PropertiesUtils.getResourceAsString("dip/footer3");
         assertThat(manifest).contains(footer);
 
-        assertThat(manifest)
-            .contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
+        assertThat(manifest).contains("</BinaryDataObject><LogBook><Event><EventIdentifier>"); // tag for GOT logbook LFC
         assertThat(manifest).contains("<Management><LogBook><Event><EventIdentifier>"); // tag for AU logbook LFC
 
         // try Ingest the Transfer SIP
         try (InputStream transferSipStream = getTransferSIP(getVitamSession().getRequestId())) {
-            final String ingestTransfertOpId =
-                VitamTestHelper.doIngest(TENANT_ID, transferSipStream, DEFAULT_WORKFLOW, RESUME, STARTED);
+            final String ingestTransfertOpId = VitamTestHelper.doIngest(
+                TENANT_ID,
+                transferSipStream,
+                DEFAULT_WORKFLOW,
+                RESUME,
+                STARTED
+            );
             // As FormatIdentifierMock is used, pdf signature was modified in the first ingest. After transferByIngestGuid manifest and FormatIdentifierMock return the same mime type => status code OK
             verifyOperation(ingestTransfertOpId, OK);
         }
-
     }
 
     @Test
@@ -842,9 +858,13 @@ public class TransferAndDipIT extends VitamRuleRunner {
         VitamTestHelper.verifyOperation(transferOpId, OK);
         InputStream transferSip = getTransferSIP(transferOpId);
 
-
-        String transferredIngestedSipOpId =
-            VitamTestHelper.doIngest(TENANT_ID, transferSip, DEFAULT_WORKFLOW, RESUME, STARTED);
+        String transferredIngestedSipOpId = VitamTestHelper.doIngest(
+            TENANT_ID,
+            transferSip,
+            DEFAULT_WORKFLOW,
+            RESUME,
+            STARTED
+        );
         verifyOperation(transferredIngestedSipOpId, OK);
         String atr = getAtrTransferredSip(transferredIngestedSipOpId);
 
@@ -853,17 +873,21 @@ public class TransferAndDipIT extends VitamRuleRunner {
         List<LogbookEventOperation> logbookEvents = getLogbookEvents(transferReplyWorkflowGuid);
 
         // Then
-        assertThat(logbookEvents).extracting(EV_TYPE, OUTCOME)
+        assertThat(logbookEvents)
+            .extracting(EV_TYPE, OUTCOME)
             .contains(
                 tuple(VerifyAtrPlugin.PLUGIN_NAME, OK.name()),
                 tuple(SaveAtrPlugin.PLUGIN_NAME, OK.name()),
                 tuple(LogbookTypeProcess.TRANSFER_REPLY.name(), OK.name())
             );
         assertThat(atr).contains(
-            String.format(EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION,
+            String.format(
+                EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION,
                 SupportedSedaVersions.SEDA_2_1.getNamespaceURI(),
                 SupportedSedaVersions.SEDA_2_1.getNamespaceURI(),
-                SupportedSedaVersions.SEDA_2_1.getSedaValidatorXSD()));
+                SupportedSedaVersions.SEDA_2_1.getSedaValidatorXSD()
+            )
+        );
     }
 
     @Test
@@ -895,9 +919,13 @@ public class TransferAndDipIT extends VitamRuleRunner {
         VitamTestHelper.verifyOperation(transferOpId, OK);
         InputStream transferSip = getTransferSIP(transferOpId);
 
-
-        String transferredIngestedSipOpId =
-            VitamTestHelper.doIngest(TENANT_ID, transferSip, DEFAULT_WORKFLOW, RESUME, STARTED);
+        String transferredIngestedSipOpId = VitamTestHelper.doIngest(
+            TENANT_ID,
+            transferSip,
+            DEFAULT_WORKFLOW,
+            RESUME,
+            STARTED
+        );
         verifyOperation(transferredIngestedSipOpId, OK);
         String atr = getAtrTransferredSip(transferredIngestedSipOpId);
 
@@ -906,17 +934,21 @@ public class TransferAndDipIT extends VitamRuleRunner {
         List<LogbookEventOperation> logbookEvents = getLogbookEvents(transferReplyWorkflowGuid);
 
         // Then
-        assertThat(logbookEvents).extracting(EV_TYPE, OUTCOME)
+        assertThat(logbookEvents)
+            .extracting(EV_TYPE, OUTCOME)
             .contains(
                 tuple(VerifyAtrPlugin.PLUGIN_NAME, OK.name()),
                 tuple(SaveAtrPlugin.PLUGIN_NAME, OK.name()),
                 tuple(LogbookTypeProcess.TRANSFER_REPLY.name(), OK.name())
             );
         assertThat(atr).contains(
-            String.format(EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION,
+            String.format(
+                EXPECTED_TRANSFER_MANIFEST_START_WITH_SEDA_VERSION,
                 SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
                 SupportedSedaVersions.SEDA_2_2.getNamespaceURI(),
-                SupportedSedaVersions.SEDA_2_2.getSedaValidatorXSD()));
+                SupportedSedaVersions.SEDA_2_2.getSedaValidatorXSD()
+            )
+        );
     }
 
     @Test
@@ -1011,8 +1043,9 @@ public class TransferAndDipIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void should_not_export_DIP_when_exceed_tenant_threshold() throws Exception {
         // Given
-        VitamConfiguration
-            .setBinarySizeTenantThreshold(List.of(new BinarySizeTenantThreshold(TENANT_ID, 1, KILOBYTE, true)));
+        VitamConfiguration.setBinarySizeTenantThreshold(
+            List.of(new BinarySizeTenantThreshold(TENANT_ID, 1, KILOBYTE, true))
+        );
         final String ingestOpId = VitamTestHelper.doIngest(TENANT_ID, SIP_OK_PHYSICAL_ARCHIVE);
         // As FormatIdentifierMock is used, pdf is identified as Plain Text File => WARNING
         verifyOperation(ingestOpId, WARNING);
@@ -1156,15 +1189,14 @@ public class TransferAndDipIT extends VitamRuleRunner {
     private List<LogbookEventOperation> getLogbookEvents(String operationId)
         throws LogbookClientException, InvalidParseOperationException, AccessUnauthorizedException {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
-            JsonNode logbookEvents =
-                client.selectOperationById(operationId)
-                    .toJsonNode()
-                    .get("$results")
-                    .get(0)
-                    .get("events");
+            JsonNode logbookEvents = client
+                .selectOperationById(operationId)
+                .toJsonNode()
+                .get("$results")
+                .get(0)
+                .get("events");
 
-            return JsonHandler.getFromJsonNode(logbookEvents, new TypeReference<>() {
-            });
+            return JsonHandler.getFromJsonNode(logbookEvents, new TypeReference<>() {});
         }
     }
 
@@ -1185,21 +1217,20 @@ public class TransferAndDipIT extends VitamRuleRunner {
     }
 
     private String getAtrTransferredSip(String transferredIngestedSipOpId)
-        throws InvalidParseOperationException, IngestInternalClientServerException,
-        IngestInternalClientNotFoundException, IOException {
+        throws InvalidParseOperationException, IngestInternalClientServerException, IngestInternalClientNotFoundException, IOException {
         try (IngestInternalClient ingestExternalClient = IngestInternalClientFactory.getInstance().getClient()) {
-            Response response =
-                ingestExternalClient.downloadObjectAsync(transferredIngestedSipOpId, IngestCollection.REPORTS);
+            Response response = ingestExternalClient.downloadObjectAsync(
+                transferredIngestedSipOpId,
+                IngestCollection.REPORTS
+            );
 
             try (InputStream manifestAsStream = response.readEntity(InputStream.class)) {
                 return IOUtils.toString(manifestAsStream, StandardCharsets.UTF_8.name());
             }
-
         }
     }
 
-    private String transfer(ExportRequest exportRequest)
-        throws Exception {
+    private String transfer(ExportRequest exportRequest) throws Exception {
         GUID transferGuid = newOperationLogbookGUID(TENANT_ID);
         getVitamSession().setRequestId(transferGuid);
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {
@@ -1208,7 +1239,6 @@ public class TransferAndDipIT extends VitamRuleRunner {
 
             return transferGuid.getId();
         }
-
     }
 
     private ExportRequestParameters getExportRequestParameters() {
@@ -1217,16 +1247,17 @@ public class TransferAndDipIT extends VitamRuleRunner {
         exportRequestParameters.setArchivalAgencyIdentifier("Required ArchivalAgencyIdentifier");
         exportRequestParameters.setRequesterIdentifier("Required RequesterIdentifier");
         exportRequestParameters.setComment("Not Required comment for ArchiveDeliveryRequestReply");
-        exportRequestParameters
-            .setAuthorizationRequestReplyIdentifier("Not Required  AuthorizationRequestReplyIdentifier");
+        exportRequestParameters.setAuthorizationRequestReplyIdentifier(
+            "Not Required  AuthorizationRequestReplyIdentifier"
+        );
         exportRequestParameters.setArchivalAgreement("Not Required ArchivalAgreement");
         exportRequestParameters.setOriginatingAgencyIdentifier("Not Required OriginatingAgencyIdentifier");
         exportRequestParameters.setSubmissionAgencyIdentifier("Not Required SubmissionAgencyIdentifier");
-        exportRequestParameters
-            .setRelatedTransferReference(Lists.newArrayList("RelatedTransferReference1", "RelatedTransferReference2"));
+        exportRequestParameters.setRelatedTransferReference(
+            Lists.newArrayList("RelatedTransferReference1", "RelatedTransferReference2")
+        );
         return exportRequestParameters;
     }
-
 
     private ExportRequestParameters getExportRequestParameters(String opi) {
         ExportRequestParameters exportRequestParameters = new ExportRequestParameters();
@@ -1236,8 +1267,9 @@ public class TransferAndDipIT extends VitamRuleRunner {
         exportRequestParameters.setArchivalAgreement("ArchivalAgreement0");
         exportRequestParameters.setOriginatingAgencyIdentifier("FRAN_NP_050056");
         exportRequestParameters.setSubmissionAgencyIdentifier("FRAN_NP_050056");
-        exportRequestParameters.setRelatedTransferReference(List.of("RelatedTransferReference1",
-            "RelatedTransferReference2"));
+        exportRequestParameters.setRelatedTransferReference(
+            List.of("RelatedTransferReference1", "RelatedTransferReference2")
+        );
         return exportRequestParameters;
     }
 
@@ -1273,7 +1305,6 @@ public class TransferAndDipIT extends VitamRuleRunner {
             return client.findExportByID(operationId).readEntity(InputStream.class);
         }
     }
-
 
     private InputStream getTransferSIP(String operationId) throws Exception {
         try (AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient()) {

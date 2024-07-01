@@ -49,8 +49,11 @@ public class ReadOnlyStorageLogTest {
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
 
-    @Mock AlertService alertService;
-    @InjectMocks ReadOnlyStorageLog instance;
+    @Mock
+    AlertService alertService;
+
+    @InjectMocks
+    ReadOnlyStorageLog instance;
 
     @After
     public void afterTest() {
@@ -59,41 +62,35 @@ public class ReadOnlyStorageLogTest {
 
     @Test
     public void close() {
-        assertThatCode(() -> instance.close())
-            .doesNotThrowAnyException();
+        assertThatCode(() -> instance.close()).doesNotThrowAnyException();
     }
 
     @Test
     public void appendWriteLog() {
-        assertThatThrownBy(() -> instance.appendWriteLog(1, null))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> instance.appendWriteLog(1, null)).isInstanceOf(IllegalStateException.class);
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString(), notNull());
     }
 
     @Test
     public void appendAccessLog() {
-        assertThatThrownBy(() -> instance.appendAccessLog(1, null))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> instance.appendAccessLog(1, null)).isInstanceOf(IllegalStateException.class);
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString(), notNull());
     }
 
     @Test
     public void rotateLogFile() {
-        assertThatThrownBy(() -> instance.rotateLogFile(1, true))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> instance.rotateLogFile(1, true)).isInstanceOf(IllegalStateException.class);
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString(), notNull());
     }
 
     @Test
     public void initializeStorageLogs() {
-        assertThatCode(() -> instance.initializeStorageLogs())
-            .doesNotThrowAnyException();
+        assertThatCode(() -> instance.initializeStorageLogs()).doesNotThrowAnyException();
     }
 
     @Test
     public void getFileName() {
-        assertThatThrownBy(() -> instance.getFileName(true))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> instance.getFileName(true)).isInstanceOf(IllegalStateException.class);
         verify(alertService).createAlert(eq(VitamLogLevel.ERROR), anyString(), notNull());
     }
 }

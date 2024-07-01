@@ -138,11 +138,9 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     private static final String TYPE = "object";
     private static Driver driver;
 
-    protected final static ExpectedResults mock = mock(ExpectedResults.class);
+    protected static final ExpectedResults mock = mock(ExpectedResults.class);
 
-    private static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(ConnectionImplTest.class);
-
+    private static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(ConnectionImplTest.class);
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -176,6 +174,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     @Path("/offer/v1")
     public static class MockResource {
+
         private final ExpectedResults mock;
 
         MockResource(ExpectedResults mock) {
@@ -191,10 +190,13 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
         @HEAD
         @Path("/objects/{type}/{id:.+}")
-        public Response headObject(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
+        public Response headObject(
+            @PathParam("type") DataCategory type,
+            @PathParam("id") String idObject,
             @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
             @HeaderParam(GlobalDataRest.X_DIGEST) String xDigest,
-            @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm) {
+            @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String xDigestAlgorithm
+        ) {
             return mock.head();
         }
 
@@ -224,8 +226,11 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         @GET
         @Path("/objects/{type}/{id:.+}/metadatas")
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getObjectMetadata(@PathParam("type") DataCategory type, @PathParam("id") String idObject,
-            @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId) {
+        public Response getObjectMetadata(
+            @PathParam("type") DataCategory type,
+            @PathParam("id") String idObject,
+            @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId
+        ) {
             return mock.get();
         }
 
@@ -233,17 +238,19 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         @Path("/bulk/objects/{type}/metadata")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getBulkObjectMetadata(@PathParam("type") DataCategory type,
+        public Response getBulkObjectMetadata(
+            @PathParam("type") DataCategory type,
             @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
             @HeaderParam(GlobalDataRest.X_OFFER_NO_CACHE) boolean noCache,
-            List<String> guids) {
+            List<String> guids
+        ) {
             return mock.get();
         }
 
         @GET
         @Path("/objects/{type}/{id:.+}")
         @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(value = {MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM})
+        @Produces(value = { MediaType.APPLICATION_JSON, MediaType.APPLICATION_OCTET_STREAM })
         public Response getObject(@PathParam("id") String objectId) {
             return mock.get();
         }
@@ -259,8 +266,11 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         @Path("/objects/{type}/log")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response getOfferLogs(@HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
-            @PathParam("type") String type, OfferLogRequest offerLogRequest) {
+        public Response getOfferLogs(
+            @HeaderParam(GlobalDataRest.X_TENANT_ID) String xTenantId,
+            @PathParam("type") String type,
+            OfferLogRequest offerLogRequest
+        ) {
             return mock.get();
         }
 
@@ -276,8 +286,11 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         @Path("/access-request/{type}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response createAccessRequest(@PathParam("type") DataCategory type, List<String> objectsIds,
-            @Context HttpHeaders headers) {
+        public Response createAccessRequest(
+            @PathParam("type") DataCategory type,
+            List<String> objectsIds,
+            @Context HttpHeaders headers
+        ) {
             final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             assertThat(xTenantId).isEqualTo("3");
             assertThat(objectsIds).containsExactly("obj1", "obj2");
@@ -292,8 +305,9 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         public Response checkAccessRequestStatuses(List<String> accessRequestIds, @Context HttpHeaders headers) {
             final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             assertThat(xTenantId).isEqualTo("3");
-            assertThat(headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED))
-                .isEqualTo("true");
+            assertThat(headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED)).isEqualTo(
+                "true"
+            );
             assertThat(accessRequestIds).containsExactly("accessRequestId1", "accessRequestId2");
             return mock.get();
         }
@@ -302,12 +316,15 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         @Path("/access-request/{accessRequestId}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response removeAccessRequest(@PathParam("accessRequestId") String accessRequestId,
-            @Context HttpHeaders headers) {
+        public Response removeAccessRequest(
+            @PathParam("accessRequestId") String accessRequestId,
+            @Context HttpHeaders headers
+        ) {
             final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             assertThat(xTenantId).isEqualTo("3");
-            assertThat(headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED))
-                .isEqualTo("true");
+            assertThat(headers.getHeaderString(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED)).isEqualTo(
+                "true"
+            );
             assertThat(accessRequestId).isEqualTo("accessRequestId1");
 
             return mock.delete();
@@ -317,8 +334,11 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         @Path("/object-availability-check/{type}")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response checkObjectAvailability(@PathParam("type") DataCategory type, List<String> objectsIds,
-            @Context HttpHeaders headers) {
+        public Response checkObjectAvailability(
+            @PathParam("type") DataCategory type,
+            List<String> objectsIds,
+            @Context HttpHeaders headers
+        ) {
             final String xTenantId = headers.getHeaderString(GlobalDataRest.X_TENANT_ID);
             assertThat(xTenantId).isEqualTo("3");
             assertThat(objectsIds).containsExactly("obj1", "obj2");
@@ -329,8 +349,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         void consumeAndCloseStream(InputStream stream) {
             try {
                 if (null != stream) {
-                    while (stream.read() > 0) {
-                    }
+                    while (stream.read() > 0) {}
                     stream.close();
                 }
             } catch (IOException e) {
@@ -418,7 +437,8 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     @Test
     public void putObjectWithRequestOK() throws Exception {
         final StoragePutRequest request = getPutObjectRequest(true, true, true, true, true);
-        when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
+        when(mock.put())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
             .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
             .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(2)).build())
             .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(3)).build())
@@ -437,9 +457,15 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     // chunk size (1024) factor size case
     @Test
     public void putBigObjectWithRequestOk() throws Exception {
-        final StoragePutRequest request = new StoragePutRequest(1, DataCategory.OBJECT.getFolder(), "GUID",
-            DigestType.MD5.getName(), new FakeInputStream(2097152));
-        when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
+        final StoragePutRequest request = new StoragePutRequest(
+            1,
+            DataCategory.OBJECT.getFolder(),
+            "GUID",
+            DigestType.MD5.getName(),
+            new FakeInputStream(2097152)
+        );
+        when(mock.put())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
             .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
             .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(2)).build())
             .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(3)).build())
@@ -457,11 +483,16 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     // No chunk size (1024) factor case
     @Test
     public void putBigObject2WithRequestOk() throws Exception {
-        final StoragePutRequest request = new StoragePutRequest(tenant, DataCategory.OBJECT.getFolder(), "GUID",
-            DigestType.MD5.getName(), new FakeInputStream(2201507));
-        when(mock.put()).thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
-            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build())
-        ;
+        final StoragePutRequest request = new StoragePutRequest(
+            tenant,
+            DataCategory.OBJECT.getFolder(),
+            "GUID",
+            DigestType.MD5.getName(),
+            new FakeInputStream(2201507)
+        );
+        when(mock.put())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(0)).build())
+            .thenReturn(Response.status(Status.CREATED).entity(getPutObjectResult(1)).build());
         try (Connection connection = driver.connect(offer.getId())) {
             final StoragePutResult result = connection.putObject(request);
             assertNotNull(result);
@@ -524,9 +555,13 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     @Test
     public void getStorageCapacityOK() throws Exception {
-        when(mock.head())
-            .thenReturn(Response.status(Status.OK).header("X-Usable-Space", "1000").header("X-Used-Space", "1000")
-                .header(GlobalDataRest.X_TENANT_ID, tenant).build());
+        when(mock.head()).thenReturn(
+            Response.status(Status.OK)
+                .header("X-Usable-Space", "1000")
+                .header("X-Used-Space", "1000")
+                .header(GlobalDataRest.X_TENANT_ID, tenant)
+                .build()
+        );
         try (Connection connection = driver.connect(offer.getId())) {
             final StorageCapacityResult result = connection.getStorageCapacity(tenant);
             assertNotNull(result);
@@ -578,12 +613,13 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     @Test
     public void getObjectUnavailableDataFromAsyncOffer() throws Exception {
         when(mock.get()).thenReturn(
-            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build());
+            Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode()).build()
+        );
         final StorageObjectRequest request = new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
         try (Connection connection = driver.connect(offer.getId())) {
-
-            assertThatThrownBy(() -> connection.getObject(request))
-                .isInstanceOf(StorageDriverUnavailableDataFromAsyncOfferException.class);
+            assertThatThrownBy(() -> connection.getObject(request)).isInstanceOf(
+                StorageDriverUnavailableDataFromAsyncOfferException.class
+            );
         }
     }
 
@@ -604,9 +640,7 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         final StorageObjectRequest request = new StorageObjectRequest(tenant, DataCategory.OBJECT.getFolder(), "guid");
         try (Connection connection = driver.connect(offer.getId())) {
-            assertThatCode(() -> connection.getObject(request)).isInstanceOf(
-                StorageDriverServerErrorException.class
-            );
+            assertThatCode(() -> connection.getObject(request)).isInstanceOf(StorageDriverServerErrorException.class);
         }
     }
 
@@ -639,7 +673,6 @@ public class ConnectionImplTest extends ResteasyTestApplication {
             connection.objectExistsInOffer(null);
         }
     }
-
 
     @Test
     public void objectExistInOfferInternalServerError() throws Exception {
@@ -689,10 +722,13 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         }
     }
 
-    private StoragePutRequest getPutObjectRequest(boolean putDataS, boolean putDigestA, boolean putGuid,
+    private StoragePutRequest getPutObjectRequest(
+        boolean putDataS,
+        boolean putDigestA,
+        boolean putGuid,
         boolean putTenantId,
-        boolean putType)
-        throws Exception {
+        boolean putType
+    ) throws Exception {
         FakeInputStream stream = null;
         String digest = null;
         String guid = null;
@@ -725,14 +761,16 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     @Test
     public void deleteObjectTestIllegalArgument() throws Exception {
         try (Connection connection = driver.connect(offer.getId())) {
-            assertThatThrownBy(() -> connection.removeObject(null))
-                .isInstanceOf(IllegalArgumentException.class);
-            assertThatThrownBy(() -> connection.removeObject(getStorageRemoveRequest(false, true, true)))
-                .isInstanceOf(IllegalArgumentException.class);
-            assertThatThrownBy(() -> connection.removeObject(getStorageRemoveRequest(true, false, true)))
-                .isInstanceOf(IllegalArgumentException.class);
-            assertThatThrownBy(() -> connection.removeObject(getStorageRemoveRequest(true, true, false)))
-                .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> connection.removeObject(null)).isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> connection.removeObject(getStorageRemoveRequest(false, true, true))).isInstanceOf(
+                IllegalArgumentException.class
+            );
+            assertThatThrownBy(() -> connection.removeObject(getStorageRemoveRequest(true, false, true))).isInstanceOf(
+                IllegalArgumentException.class
+            );
+            assertThatThrownBy(() -> connection.removeObject(getStorageRemoveRequest(true, true, false))).isInstanceOf(
+                IllegalArgumentException.class
+            );
         }
     }
 
@@ -740,16 +778,18 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     public void deleteObjectTestOK() throws Exception {
         when(mock.delete()).thenReturn(Response.status(Status.OK).entity(getRemoveObjectResult()).build());
         try (Connection connection = driver.connect(offer.getId())) {
-            StorageRemoveResult storageRemoveResult =
-                connection.removeObject(getStorageRemoveRequest(true, true, true));
+            StorageRemoveResult storageRemoveResult = connection.removeObject(
+                getStorageRemoveRequest(true, true, true)
+            );
             assertNotNull(storageRemoveResult);
             assertTrue(storageRemoveResult.isObjectDeleted());
         }
 
         when(mock.delete()).thenReturn(Response.status(Status.OK).entity(getRemoveObjectResultNotFound()).build());
         try (Connection connection = driver.connect(offer.getId())) {
-            StorageRemoveResult storageRemoveResult2 =
-                connection.removeObject(getStorageRemoveRequest(true, true, true));
+            StorageRemoveResult storageRemoveResult2 = connection.removeObject(
+                getStorageRemoveRequest(true, true, true)
+            );
             assertNotNull(storageRemoveResult2);
             assertFalse(storageRemoveResult2.isObjectDeleted());
         }
@@ -789,11 +829,9 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     @Test
     public void listObjectsTest() throws Exception {
-        StorageListRequest storageRequest =
-            new StorageListRequest(TENANT_ID, DataCategory.OBJECT.getFolder());
+        StorageListRequest storageRequest = new StorageListRequest(TENANT_ID, DataCategory.OBJECT.getFolder());
 
-        String responseContent = "{objectId:\"id\", size: 10}\n" +
-            "{}";
+        String responseContent = "{objectId:\"id\", size: 10}\n" + "{}";
         InputStream is = new ByteArrayInputStream(responseContent.getBytes(StandardCharsets.UTF_8));
         when(mock.get()).thenReturn(Response.ok(is).build());
         try (Connection connection = driver.connect(offer.getId())) {
@@ -838,21 +876,27 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     @Test
     public void getObjectMetadataTestOK() throws StorageDriverException {
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(mockMetadatasObjectResult()).build());
-        final StorageGetMetadataRequest request =
-            new StorageGetMetadataRequest(tenant, DataCategory.OBJECT.getFolder(), "guid",
-                false);
+        final StorageGetMetadataRequest request = new StorageGetMetadataRequest(
+            tenant,
+            DataCategory.OBJECT.getFolder(),
+            "guid",
+            false
+        );
         try (Connection connection = driver.connect(offer.getId())) {
             final StorageMetadataResult result = connection.getMetadatas(request);
             assertNotNull(result);
         }
-
     }
 
     @Test(expected = StorageDriverNotFoundException.class)
     public void getObjectMetadataTestTestNotFound() throws StorageDriverException {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
-        final StorageGetMetadataRequest request =
-            new StorageGetMetadataRequest(tenant, DataCategory.OBJECT.getFolder(), "guid", false);
+        final StorageGetMetadataRequest request = new StorageGetMetadataRequest(
+            tenant,
+            DataCategory.OBJECT.getFolder(),
+            "guid",
+            false
+        );
         try (Connection connection = driver.connect(offer.getId())) {
             connection.getMetadatas(request);
         }
@@ -861,18 +905,19 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     @Test(expected = StorageDriverException.class)
     public void getObjectMetadataTestInternalServerError() throws StorageDriverException {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
-        final StorageGetMetadataRequest request =
-            new StorageGetMetadataRequest(tenant, DataCategory.OBJECT.getFolder(), "guid", false);
+        final StorageGetMetadataRequest request = new StorageGetMetadataRequest(
+            tenant,
+            DataCategory.OBJECT.getFolder(),
+            "guid",
+            false
+        );
         try (Connection connection = driver.connect(offer.getId())) {
             connection.getMetadatas(request);
         }
     }
 
-
-
     @Test
     public void getOfferLogsOK() throws Exception {
-
         RequestResponseOK<OfferLog> requestResponse = new RequestResponseOK<>();
         IntStream.range(1, 11).forEach(sequence -> {
             OfferLog offerLog = new OfferLog();
@@ -885,11 +930,19 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         requestResponse.setHttpCode(Status.OK.getStatusCode());
 
         when(mock.get()).thenReturn(
-            Response.status(Status.OK).header(GlobalDataRest.X_TENANT_ID, tenant)
-                .entity(JsonHandler.writeAsString(requestResponse)).build());
+            Response.status(Status.OK)
+                .header(GlobalDataRest.X_TENANT_ID, tenant)
+                .entity(JsonHandler.writeAsString(requestResponse))
+                .build()
+        );
 
-        StorageOfferLogRequest offerLogRequest =
-            new StorageOfferLogRequest(tenant, DataCategory.OBJECT.getFolder(), 2L, 10, Order.ASC);
+        StorageOfferLogRequest offerLogRequest = new StorageOfferLogRequest(
+            tenant,
+            DataCategory.OBJECT.getFolder(),
+            2L,
+            10,
+            Order.ASC
+        );
         try (Connection connection = driver.connect(offer.getId())) {
             final RequestResponse<OfferLog> result = connection.getOfferLogs(offerLogRequest);
             assertNotNull(result);
@@ -904,12 +957,19 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     @Test
     public void getOfferLogsInternalServerError() throws Exception {
         when(mock.get()).thenReturn(
-            Response.status(Status.INTERNAL_SERVER_ERROR).header(GlobalDataRest.X_TENANT_ID, tenant).build());
-        StorageOfferLogRequest offerLogRequest =
-            new StorageOfferLogRequest(tenant, DataCategory.OBJECT.getFolder(), 2L, 10, Order.ASC);
+            Response.status(Status.INTERNAL_SERVER_ERROR).header(GlobalDataRest.X_TENANT_ID, tenant).build()
+        );
+        StorageOfferLogRequest offerLogRequest = new StorageOfferLogRequest(
+            tenant,
+            DataCategory.OBJECT.getFolder(),
+            2L,
+            10,
+            Order.ASC
+        );
         try (Connection connection = driver.connect(offer.getId())) {
-            assertThatThrownBy(() -> connection.getOfferLogs(offerLogRequest))
-                .isInstanceOf(StorageDriverException.class);
+            assertThatThrownBy(() -> connection.getOfferLogs(offerLogRequest)).isInstanceOf(
+                StorageDriverException.class
+            );
         }
     }
 
@@ -923,16 +983,27 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     @Test(expected = IllegalArgumentException.class)
     public void getOfferLogsInvalidRequestOrder() throws Exception {
-        StorageOfferLogRequest offerLogRequest =
-            new StorageOfferLogRequest(tenant, DataCategory.OBJECT.getFolder(), 2L, 10, null);
+        StorageOfferLogRequest offerLogRequest = new StorageOfferLogRequest(
+            tenant,
+            DataCategory.OBJECT.getFolder(),
+            2L,
+            10,
+            null
+        );
         try (Connection connection = driver.connect(offer.getId())) {
             connection.getOfferLogs(offerLogRequest);
         }
     }
 
     private StorageMetadataResult mockMetadatasObjectResult() {
-        return new StorageMetadataResult(OBJECT_ID, TYPE, "abcdef", 6096,
-            "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
+        return new StorageMetadataResult(
+            OBJECT_ID,
+            TYPE,
+            "abcdef",
+            6096,
+            "Tue Aug 31 10:20:56 SGT 2016",
+            "Tue Aug 31 10:20:56 SGT 2016"
+        );
     }
 
     @Test(expected = StorageDriverException.class)
@@ -991,7 +1062,6 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     @Test
     public void bulkPutObjectsWithRequestOK() throws Exception {
-
         final StorageBulkPutRequest request = getBulkPutObjectsRequest(true, true, true, true, true);
 
         StorageBulkPutResult storageBulkPutResult = new StorageBulkPutResult(
@@ -1048,9 +1118,13 @@ public class ConnectionImplTest extends ResteasyTestApplication {
         }
     }
 
-    private StorageBulkPutRequest getBulkPutObjectsRequest(boolean putInputStream, boolean putDigestA, boolean putGuid,
-        boolean putTenantId, boolean putType) {
-
+    private StorageBulkPutRequest getBulkPutObjectsRequest(
+        boolean putInputStream,
+        boolean putDigestA,
+        boolean putGuid,
+        boolean putTenantId,
+        boolean putType
+    ) {
         FakeInputStream stream = null;
         DigestType digest = null;
         List<String> guid = null;
@@ -1077,14 +1151,19 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     @Test
     public void bulkMetadataWithRequestOK() throws Exception {
-
         final StorageGetBulkMetadataRequest request = new StorageGetBulkMetadataRequest(
-            0, DataCategory.UNIT.getFolder(), Arrays.asList("GUID1", "GUID2"), false);
+            0,
+            DataCategory.UNIT.getFolder(),
+            Arrays.asList("GUID1", "GUID2"),
+            false
+        );
 
-        StorageBulkMetadataResult storageBulkMetadataResult = new StorageBulkMetadataResult(Arrays.asList(
-            new StorageBulkMetadataResultEntry("GUID1", "d1", 1L),
-            new StorageBulkMetadataResultEntry("GUID2", "d2", 2L)
-        ));
+        StorageBulkMetadataResult storageBulkMetadataResult = new StorageBulkMetadataResult(
+            Arrays.asList(
+                new StorageBulkMetadataResultEntry("GUID1", "d1", 1L),
+                new StorageBulkMetadataResultEntry("GUID2", "d2", 2L)
+            )
+        );
         when(mock.get()).thenReturn(Response.status(Status.OK).entity(storageBulkMetadataResult).build());
 
         try (Connection connection = driver.connect(offer.getId())) {
@@ -1100,25 +1179,32 @@ public class ConnectionImplTest extends ResteasyTestApplication {
     @Test
     public void bulkMetadataWithInternalServerErrorThanStorageDriverException() throws Exception {
         final StorageGetBulkMetadataRequest request = new StorageGetBulkMetadataRequest(
-            0, DataCategory.UNIT.getFolder(), Arrays.asList("GUID1", "GUID2"), false);
+            0,
+            DataCategory.UNIT.getFolder(),
+            Arrays.asList("GUID1", "GUID2"),
+            false
+        );
 
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         try (Connection connection = driver.connect(offer.getId())) {
-            assertThatThrownBy(() -> connection.getBulkMetadata(request))
-                .isInstanceOf(StorageDriverException.class);
+            assertThatThrownBy(() -> connection.getBulkMetadata(request)).isInstanceOf(StorageDriverException.class);
         }
     }
 
     @Test
     public void createAccessRequestOK() throws Exception {
-
         // Given
         StorageAccessRequestCreationRequest request = new StorageAccessRequestCreationRequest(
-            3, DataCategory.OBJECT.getFolder(), Arrays.asList("obj1", "obj2"));
-        when(mock.post()).thenReturn(new RequestResponseOK<>()
-            .addResult("myAccessRequestId")
-            .setHttpCode(Status.CREATED.getStatusCode())
-            .toResponse());
+            3,
+            DataCategory.OBJECT.getFolder(),
+            Arrays.asList("obj1", "obj2")
+        );
+        when(mock.post()).thenReturn(
+            new RequestResponseOK<>()
+                .addResult("myAccessRequestId")
+                .setHttpCode(Status.CREATED.getStatusCode())
+                .toResponse()
+        );
 
         // When
         try (Connection connection = driver.connect(offer.getId())) {
@@ -1131,99 +1217,108 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     @Test
     public void createAccessRequestWithServerErrorThenException() throws Exception {
-
         // Given
         StorageAccessRequestCreationRequest request = new StorageAccessRequestCreationRequest(
-            3, DataCategory.OBJECT.getFolder(), Arrays.asList("obj1", "obj2"));
+            3,
+            DataCategory.OBJECT.getFolder(),
+            Arrays.asList("obj1", "obj2")
+        );
 
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         // When / Then
         try (Connection connection = driver.connect(offer.getId())) {
-
-            assertThatThrownBy(() -> connection.createAccessRequest(request))
-                .isInstanceOf(StorageDriverException.class);
+            assertThatThrownBy(() -> connection.createAccessRequest(request)).isInstanceOf(
+                StorageDriverException.class
+            );
         }
     }
 
     @Test
     public void checkAccessRequestStatusesOK() throws Exception {
-
         // Given
-        when(mock.get()).thenReturn(new RequestResponseOK<>()
-            .addResult(Map.of(
-                "accessRequestId1", AccessRequestStatus.NOT_FOUND,
-                "accessRequestId2", AccessRequestStatus.READY
-            ))
-            .setHttpCode(Status.OK.getStatusCode())
-            .toResponse());
+        when(mock.get()).thenReturn(
+            new RequestResponseOK<>()
+                .addResult(
+                    Map.of(
+                        "accessRequestId1",
+                        AccessRequestStatus.NOT_FOUND,
+                        "accessRequestId2",
+                        AccessRequestStatus.READY
+                    )
+                )
+                .setHttpCode(Status.OK.getStatusCode())
+                .toResponse()
+        );
 
         // When
         try (Connection connection = driver.connect(offer.getId())) {
-            Map<String, AccessRequestStatus> accessRequestStatuses
-                = connection.checkAccessRequestStatuses(List.of("accessRequestId1", "accessRequestId2"), 3, true);
+            Map<String, AccessRequestStatus> accessRequestStatuses = connection.checkAccessRequestStatuses(
+                List.of("accessRequestId1", "accessRequestId2"),
+                3,
+                true
+            );
 
             // Then
-            assertThat(accessRequestStatuses).isEqualTo(Map.of(
-                "accessRequestId1", AccessRequestStatus.NOT_FOUND,
-                "accessRequestId2", AccessRequestStatus.READY
-            ));
+            assertThat(accessRequestStatuses).isEqualTo(
+                Map.of("accessRequestId1", AccessRequestStatus.NOT_FOUND, "accessRequestId2", AccessRequestStatus.READY)
+            );
         }
     }
 
     @Test
     public void checkAccessRequestStatusesWithServerErrorThenException() throws Exception {
-
         // Given
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         // When / Then
         try (Connection connection = driver.connect(offer.getId())) {
-
             assertThatThrownBy(
-                () -> connection.checkAccessRequestStatuses(List.of("accessRequestId1", "accessRequestId2"), 3, true))
-                .isInstanceOf(StorageDriverException.class);
+                () -> connection.checkAccessRequestStatuses(List.of("accessRequestId1", "accessRequestId2"), 3, true)
+            ).isInstanceOf(StorageDriverException.class);
         }
     }
 
     @Test
     public void removeAccessRequestOK() throws Exception {
-
         // Given
         when(mock.delete()).thenReturn(Response.status(Status.OK).build());
 
         try (Connection connection = driver.connect(offer.getId())) {
-
             // When / Then
-            assertThatCode(() -> connection.removeAccessRequest("accessRequestId1", 3, true))
-                .doesNotThrowAnyException();
+            assertThatCode(
+                () -> connection.removeAccessRequest("accessRequestId1", 3, true)
+            ).doesNotThrowAnyException();
         }
     }
 
     @Test
     public void removeAccessRequestOKWithServerErrorThenException() throws Exception {
-
         // Given
         when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         // When / Then
         try (Connection connection = driver.connect(offer.getId())) {
-
-            assertThatThrownBy(() -> connection.removeAccessRequest("accessRequestId1", 3, true))
-                .isInstanceOf(StorageDriverException.class);
+            assertThatThrownBy(() -> connection.removeAccessRequest("accessRequestId1", 3, true)).isInstanceOf(
+                StorageDriverException.class
+            );
         }
     }
 
     @Test
     public void checkObjectAvailabilityOK() throws Exception {
-
         // Given
         StorageCheckObjectAvailabilityRequest request = new StorageCheckObjectAvailabilityRequest(
-            3, DataCategory.OBJECT.getFolder(), Arrays.asList("obj1", "obj2"));
-        when(mock.get()).thenReturn(new RequestResponseOK<>()
-            .addResult(new StorageCheckObjectAvailabilityResult(true))
-            .setHttpCode(Status.OK.getStatusCode())
-            .toResponse());
+            3,
+            DataCategory.OBJECT.getFolder(),
+            Arrays.asList("obj1", "obj2")
+        );
+        when(mock.get()).thenReturn(
+            new RequestResponseOK<>()
+                .addResult(new StorageCheckObjectAvailabilityResult(true))
+                .setHttpCode(Status.OK.getStatusCode())
+                .toResponse()
+        );
 
         // When
         try (Connection connection = driver.connect(offer.getId())) {
@@ -1236,18 +1331,20 @@ public class ConnectionImplTest extends ResteasyTestApplication {
 
     @Test
     public void checkObjectAvailabilityWithServerErrorThenException() throws Exception {
-
         // Given
         StorageCheckObjectAvailabilityRequest request = new StorageCheckObjectAvailabilityRequest(
-            3, DataCategory.OBJECT.getFolder(), Arrays.asList("obj1", "obj2"));
+            3,
+            DataCategory.OBJECT.getFolder(),
+            Arrays.asList("obj1", "obj2")
+        );
 
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
         // When / Then
         try (Connection connection = driver.connect(offer.getId())) {
-
-            assertThatThrownBy(() -> connection.checkObjectAvailability(request))
-                .isInstanceOf(StorageDriverException.class);
+            assertThatThrownBy(() -> connection.checkObjectAvailability(request)).isInstanceOf(
+                StorageDriverException.class
+            );
         }
     }
 }

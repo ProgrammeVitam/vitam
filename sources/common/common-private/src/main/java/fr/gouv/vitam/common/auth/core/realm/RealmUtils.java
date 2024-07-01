@@ -122,14 +122,15 @@ class RealmUtils {
         String trustedKeyStoreName,
         String trustedKeyStorePassphrase,
         Set<X509Certificate> grantedIssuers,
-        String realmName) {
+        String realmName
+    ) {
         X509AuthenticationInfo x509AuthenticationInfo = null;
         try {
             ParametersChecker.checkParameter(grantedKeyStorePassphrase, "grantedKeyStorePassphrase cannot be null");
             ParametersChecker.checkParameter(trustedKeyStorePassphrase, "trustedKeyStorePassphrase cannot be null");
             final KeyStore trustedks = readAndLoadKeystore(trustedKeyStoreName, trustedKeyStorePassphrase);
             if (trustedks != null) {
-                for (final Enumeration<String> e = trustedks.aliases(); e.hasMoreElements(); ) {
+                for (final Enumeration<String> e = trustedks.aliases(); e.hasMoreElements();) {
                     final String alias = e.nextElement();
                     grantedIssuers.add((X509Certificate) trustedks.getCertificate(alias));
                 }
@@ -137,16 +138,20 @@ class RealmUtils {
 
             final KeyStore grantedks = readAndLoadKeystore(grantedKeyStoreName, grantedKeyStorePassphrase);
             if (grantedks != null) {
-                for (final Enumeration<String> e = grantedks.aliases(); e.hasMoreElements(); ) {
+                for (final Enumeration<String> e = grantedks.aliases(); e.hasMoreElements();) {
                     final String alias = e.nextElement();
                     final X509Certificate x509cert = (X509Certificate) grantedks.getCertificate(alias);
-                    if (new Sha256Hash(x509cert.getEncoded())
-                        .equals(new Sha256Hash(x509AuthenticationToken.getX509Certificate().getEncoded()))) {
+                    if (
+                        new Sha256Hash(x509cert.getEncoded()).equals(
+                            new Sha256Hash(x509AuthenticationToken.getX509Certificate().getEncoded())
+                        )
+                    ) {
                         x509AuthenticationInfo = new X509AuthenticationInfo(
                             x509AuthenticationToken.getSubjectDN().getName(),
                             x509AuthenticationToken.getX509Certificate(),
                             grantedIssuers,
-                            realmName);
+                            realmName
+                        );
                         break;
                     }
                 }

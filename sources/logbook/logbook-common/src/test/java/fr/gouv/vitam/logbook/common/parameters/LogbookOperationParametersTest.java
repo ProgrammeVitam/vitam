@@ -52,8 +52,9 @@ import static org.junit.Assert.fail;
 public class LogbookOperationParametersTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Test
     public void getMapParameters() {
@@ -64,8 +65,10 @@ public class LogbookOperationParametersTest {
         }
         assertEquals(params.getMapParameters().size(), LogbookParameterName.values().length);
 
-        assertEquals(params.getMapParameters().get(LogbookParameterName.eventType),
-            LogbookParameterName.eventType.name());
+        assertEquals(
+            params.getMapParameters().get(LogbookParameterName.eventType),
+            LogbookParameterName.eventType.name()
+        );
         final LogbookOperationParameters params2 = LogbookParameterHelper.newLogbookOperationParameters();
         params2.setFromParameters(params);
         for (final LogbookParameterName value : LogbookParameterName.values()) {
@@ -129,37 +132,71 @@ public class LogbookOperationParametersTest {
         assertEquals(null, params.getParameterValue(LogbookParameterName.eventDateTime));
         final GUID aa = GUIDFactory.newEventGUID(0);
         final GUID cc = GUIDFactory.newEventGUID(0);
-        LogbookParameterHelper.newLogbookOperationParameters(aa, "aa", aa,
-            LogbookTypeProcess.AUDIT, StatusCode.OK, "Informative Message", cc);
+        LogbookParameterHelper.newLogbookOperationParameters(
+            aa,
+            "aa",
+            aa,
+            LogbookTypeProcess.AUDIT,
+            StatusCode.OK,
+            "Informative Message",
+            cc
+        );
         try {
-            LogbookParameterHelper.newLogbookOperationParameters(aa, "", aa,
-                LogbookTypeProcess.AUDIT, StatusCode.OK, "Informative Message", cc);
+            LogbookParameterHelper.newLogbookOperationParameters(
+                aa,
+                "",
+                aa,
+                LogbookTypeProcess.AUDIT,
+                StatusCode.OK,
+                "Informative Message",
+                cc
+            );
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookParameterHelper.newLogbookOperationParameters(aa, "aa", null,
-                LogbookTypeProcess.AUDIT, StatusCode.OK, "Informative Message", cc);
+            LogbookParameterHelper.newLogbookOperationParameters(
+                aa,
+                "aa",
+                null,
+                LogbookTypeProcess.AUDIT,
+                StatusCode.OK,
+                "Informative Message",
+                cc
+            );
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookParameterHelper.newLogbookOperationParameters(aa, "aa", aa,
-                LogbookTypeProcess.AUDIT, null, "Informative Message", cc);
+            LogbookParameterHelper.newLogbookOperationParameters(
+                aa,
+                "aa",
+                aa,
+                LogbookTypeProcess.AUDIT,
+                null,
+                "Informative Message",
+                cc
+            );
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
         try {
-            LogbookParameterHelper.newLogbookOperationParameters(aa, "aa", aa,
-                null, StatusCode.OK, "Informative Message", cc);
+            LogbookParameterHelper.newLogbookOperationParameters(
+                aa,
+                "aa",
+                aa,
+                null,
+                StatusCode.OK,
+                "Informative Message",
+                cc
+            );
             fail("Should raized an exception");
         } catch (final IllegalArgumentException e) {
             // ignore
         }
-
     }
 
     @Test
@@ -189,5 +226,4 @@ public class LogbookOperationParametersTest {
         lop.setFinalStatus("handler", null, StatusCode.FATAL, " Detail=", "test");
         assertEquals(StatusCode.FATAL, lop.getStatus());
     }
-
 }

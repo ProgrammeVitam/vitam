@@ -56,8 +56,10 @@ public class AgenciesImportResult {
         this(Collections.emptySet(), Collections.emptyMap());
     }
 
-    public AgenciesImportResult(Set<AgenciesModel> agenciesToImport,
-        Map<Integer, List<ErrorReportAgencies>> errorsMap) {
+    public AgenciesImportResult(
+        Set<AgenciesModel> agenciesToImport,
+        Map<Integer, List<ErrorReportAgencies>> errorsMap
+    ) {
         this.agenciesToImport = agenciesToImport;
         this.errorsMap = errorsMap;
         this.insertedAgencies = Collections.emptySet();
@@ -79,8 +81,7 @@ public class AgenciesImportResult {
         return insertedAgencies;
     }
 
-    public void setInsertedAgencies(
-        Collection<AgenciesModel> insertedAgencies) {
+    public void setInsertedAgencies(Collection<AgenciesModel> insertedAgencies) {
         this.insertedAgencies = insertedAgencies;
     }
 
@@ -104,8 +105,7 @@ public class AgenciesImportResult {
         return usedAgenciesContract;
     }
 
-    public void setUsedAgenciesContract(
-        Collection<AgenciesModel> usedAgenciesContract) {
+    public void setUsedAgenciesContract(Collection<AgenciesModel> usedAgenciesContract) {
         this.usedAgenciesContract = usedAgenciesContract;
     }
 

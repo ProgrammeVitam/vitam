@@ -41,6 +41,7 @@ import fr.gouv.vitam.storage.offers.tape.spec.TapeLoadUnloadService;
 import java.util.List;
 
 public class MtxTapeLibraryService implements TapeLoadUnloadService {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MtxTapeLibraryService.class);
     public static final String F = "-f";
     public static final String UNLOAD = "unload";
@@ -59,41 +60,49 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
     @Override
     public TapeLibrarySpec status() throws TapeCommandException {
         List<String> args = Lists.newArrayList(F, tapeRobotConf.getDevice(), STATUS);
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRobotConf.getMtxPath(),
+        LOGGER.debug(
+            "Execute script : {},timeout: {}, args : {}",
+            tapeRobotConf.getMtxPath(),
             tapeRobotConf.getTimeoutInMilliseconds(),
-            args);
-        Output output = this.processExecutor
-            .execute(tapeRobotConf.getMtxPath(), true, tapeRobotConf.getTimeoutInMilliseconds(), args);
+            args
+        );
+        Output output =
+            this.processExecutor.execute(
+                    tapeRobotConf.getMtxPath(),
+                    true,
+                    tapeRobotConf.getTimeoutInMilliseconds(),
+                    args
+                );
         return parseTapeLibraryState(output);
     }
 
     @Override
     public void loadTape(int slotNumber, int driveIndex) throws TapeCommandException {
-
         Output output = executeCommand(slotNumber, driveIndex, LOAD);
 
         if (output.getExitCode() != 0) {
             throw new TapeCommandException(
-                "Could not load tape from slot " + slotNumber + " into drive " + driveIndex, output);
+                "Could not load tape from slot " + slotNumber + " into drive " + driveIndex,
+                output
+            );
         }
     }
 
     @Override
     public void unloadTape(int slotNumber, int driveIndex) throws TapeCommandException {
-
         Output output = executeCommand(slotNumber, driveIndex, UNLOAD);
 
         if (output.getExitCode() != 0) {
             throw new TapeCommandException(
-                "Could not unload tape from drive " + driveIndex + " into slot " + slotNumber, output);
+                "Could not unload tape from drive " + driveIndex + " into slot " + slotNumber,
+                output
+            );
         }
     }
 
     private TapeLibrarySpec parseTapeLibraryState(Output output) throws TapeCommandException {
-
         if (output.getExitCode() != 0) {
-            throw new TapeCommandException(
-                "Could not retrieve tape library status", output);
+            throw new TapeCommandException("Could not retrieve tape library status", output);
         }
 
         final TapeLibraryStatusParser tapeLibraryStatusParser = new TapeLibraryStatusParser();
@@ -101,10 +110,19 @@ public class MtxTapeLibraryService implements TapeLoadUnloadService {
     }
 
     private Output executeCommand(int tapeIndex, int driveIndex, String command) {
-        List<String> args = Lists.newArrayList(F, tapeRobotConf.getDevice(), command,
-            Integer.toString(tapeIndex), Integer.toString(driveIndex));
-        LOGGER.debug("Execute script : {},timeout: {}, args : {}", tapeRobotConf.getMtxPath(),
-            tapeRobotConf.getTimeoutInMilliseconds(), args);
+        List<String> args = Lists.newArrayList(
+            F,
+            tapeRobotConf.getDevice(),
+            command,
+            Integer.toString(tapeIndex),
+            Integer.toString(driveIndex)
+        );
+        LOGGER.debug(
+            "Execute script : {},timeout: {}, args : {}",
+            tapeRobotConf.getMtxPath(),
+            tapeRobotConf.getTimeoutInMilliseconds(),
+            args
+        );
 
         return this.processExecutor.execute(tapeRobotConf.getMtxPath(), tapeRobotConf.getTimeoutInMilliseconds(), args);
     }

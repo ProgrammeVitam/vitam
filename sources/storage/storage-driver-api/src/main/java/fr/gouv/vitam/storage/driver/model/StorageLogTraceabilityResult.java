@@ -33,6 +33,7 @@ public class StorageLogTraceabilityResult {
 
     @JsonProperty("tenantId")
     private Integer tenantId;
+
     @JsonProperty("operationId")
     private String operationId;
 

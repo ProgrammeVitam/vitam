@@ -55,19 +55,21 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class DriverImplTest extends ResteasyTestApplication {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DriverImplTest.class);
 
     protected static final String HOSTNAME = "localhost";
     private static final String DRIVER_NAME = "DefaultOfferDriver";
     private static StorageOffer offer = new StorageOffer();
 
-    protected final static ExpectedResults mock = mock(ExpectedResults.class);
+    protected static final ExpectedResults mock = mock(ExpectedResults.class);
 
     static TestVitamClientFactory factory = new TestVitamClientFactory(1, "/offer/v1", mock(Client.class));
 
-    public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(DriverImplTest.class, factory);
-
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        DriverImplTest.class,
+        factory
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -84,9 +86,9 @@ public class DriverImplTest extends ResteasyTestApplication {
         return Sets.newHashSet(new MockResource(mock));
     }
 
-
     @Path("/offer/v1")
     public static class MockResource {
+
         private final ExpectedResults expectedResponse;
 
         public MockResource(ExpectedResults expectedResponse) {
@@ -99,7 +101,6 @@ public class DriverImplTest extends ResteasyTestApplication {
         public Response getStatus() {
             return expectedResponse.get();
         }
-
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -138,24 +139,23 @@ public class DriverImplTest extends ResteasyTestApplication {
         }
     }
 
-    @Test()
+    @Test
     public void getNameOK() {
         assertEquals(DRIVER_NAME, DriverImpl.getInstance().getName());
     }
 
-    @Test()
+    @Test
     public void isStorageOfferAvailableOK() throws Exception {
         assertEquals(false, DriverImpl.getInstance().isStorageOfferAvailable(null));
     }
 
-    @Test()
+    @Test
     public void getMajorVersionOK() throws Exception {
         assertEquals(0, DriverImpl.getInstance().getMajorVersion());
     }
 
-    @Test()
+    @Test
     public void getMinorVersionOK() throws Exception {
         assertEquals(0, DriverImpl.getInstance().getMinorVersion());
     }
-
 }

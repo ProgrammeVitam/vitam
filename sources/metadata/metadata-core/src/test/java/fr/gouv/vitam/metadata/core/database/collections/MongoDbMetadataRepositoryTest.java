@@ -58,22 +58,24 @@ public class MongoDbMetadataRepositoryTest {
 
     public static final String PREFIX = GUIDFactory.newGUID().getId();
 
+    @Rule
+    public MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(Unit.class),
+        PREFIX + UNIT.getName()
+    );
 
     @Rule
-    public MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Unit.class),
-            PREFIX + UNIT.getName());
-
-    @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private MongoDbMetadataRepository<Unit> unitMongoDbMetadataRepository;
 
     @Before
     public void setUp() throws Exception {
-        unitMongoDbMetadataRepository =
-            new MongoDbMetadataRepository<>(() -> mongoRule.getMongoCollection(PREFIX + UNIT.getName(), Unit.class));
+        unitMongoDbMetadataRepository = new MongoDbMetadataRepository<>(
+            () -> mongoRule.getMongoCollection(PREFIX + UNIT.getName(), Unit.class)
+        );
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
     }
 
@@ -141,9 +143,7 @@ public class MongoDbMetadataRepositoryTest {
         // Then
         MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(PREFIX + UNIT.getName());
         assertThat(mongoCollection.countDocuments()).isEqualTo(2);
-        assertThat(mongoCollection.find())
-            .extracting("title")
-            .containsExactly("unit1", "unit2");
+        assertThat(mongoCollection.find()).extracting("title").containsExactly("unit1", "unit2");
     }
 
     @Test
@@ -157,10 +157,10 @@ public class MongoDbMetadataRepositoryTest {
         Unit unit3 = createUnit(id3);
 
         // When
-        assertThatCode(() -> unitMongoDbMetadataRepository.insert(Lists.newArrayList(unit1, unit2, unit3)))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> unitMongoDbMetadataRepository.insert(Lists.newArrayList(unit1, unit2, unit3))
+        ).doesNotThrowAnyException();
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -178,7 +178,6 @@ public class MongoDbMetadataRepositoryTest {
 
         MongoCollection<Document> mongoCollection = mongoRule.getMongoCollection(PREFIX + UNIT.getName());
 
-
         assertThat(mongoCollection.find()).isEmpty();
     }
 
@@ -187,5 +186,4 @@ public class MongoDbMetadataRepositoryTest {
         unit1.put(Unit.ID, id);
         return unit1;
     }
-
 }

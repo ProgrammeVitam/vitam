@@ -41,17 +41,21 @@ public class CollectionConfigurationUtilsTest {
         CollectionConfiguration collectionConfiguration3 = new CollectionConfiguration(null, null);
         CollectionConfiguration collectionConfiguration4 = new CollectionConfiguration(10, 10);
 
-        assertThatCode(() -> CollectionConfigurationUtils.validate(collectionConfiguration1, true))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> CollectionConfigurationUtils.validate(collectionConfiguration1, true)
+        ).doesNotThrowAnyException();
 
-        assertThatCode(() -> CollectionConfigurationUtils.validate(collectionConfiguration2, true))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> CollectionConfigurationUtils.validate(collectionConfiguration2, true)
+        ).doesNotThrowAnyException();
 
-        assertThatCode(() -> CollectionConfigurationUtils.validate(collectionConfiguration3, true))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> CollectionConfigurationUtils.validate(collectionConfiguration3, true)
+        ).doesNotThrowAnyException();
 
-        assertThatCode(() -> CollectionConfigurationUtils.validate(collectionConfiguration4, true))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> CollectionConfigurationUtils.validate(collectionConfiguration4, true)
+        ).doesNotThrowAnyException();
     }
 
     @Test
@@ -61,17 +65,21 @@ public class CollectionConfigurationUtilsTest {
         CollectionConfiguration collectionConfiguration3 = new CollectionConfiguration(null, null);
         CollectionConfiguration collectionConfiguration4 = new CollectionConfiguration(10, 10);
 
-        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration1, false))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration1, false)).isInstanceOf(
+            IllegalStateException.class
+        );
 
-        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration2, false))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration2, false)).isInstanceOf(
+            IllegalStateException.class
+        );
 
-        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration3, false))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration3, false)).isInstanceOf(
+            IllegalStateException.class
+        );
 
-        assertThatCode(() -> CollectionConfigurationUtils.validate(collectionConfiguration4, false))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> CollectionConfigurationUtils.validate(collectionConfiguration4, false)
+        ).doesNotThrowAnyException();
     }
 
     @Test
@@ -81,17 +89,21 @@ public class CollectionConfigurationUtilsTest {
         CollectionConfiguration collectionConfiguration3 = new CollectionConfiguration(1000, 10);
         CollectionConfiguration collectionConfiguration4 = new CollectionConfiguration(1001, 10);
 
-        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration1, false))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration1, false)).isInstanceOf(
+            IllegalStateException.class
+        );
 
-        assertThatCode(() -> CollectionConfigurationUtils.validate(collectionConfiguration2, false))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> CollectionConfigurationUtils.validate(collectionConfiguration2, false)
+        ).doesNotThrowAnyException();
 
-        assertThatCode(() -> CollectionConfigurationUtils.validate(collectionConfiguration3, false))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> CollectionConfigurationUtils.validate(collectionConfiguration3, false)
+        ).doesNotThrowAnyException();
 
-        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration4, false))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration4, false)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 
     @Test
@@ -101,16 +113,20 @@ public class CollectionConfigurationUtilsTest {
         CollectionConfiguration collectionConfiguration3 = new CollectionConfiguration(10, 100);
         CollectionConfiguration collectionConfiguration4 = new CollectionConfiguration(10, 101);
 
-        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration1, false))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration1, false)).isInstanceOf(
+            IllegalStateException.class
+        );
 
-        assertThatCode(() -> CollectionConfigurationUtils.validate(collectionConfiguration2, false))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> CollectionConfigurationUtils.validate(collectionConfiguration2, false)
+        ).doesNotThrowAnyException();
 
-        assertThatCode(() -> CollectionConfigurationUtils.validate(collectionConfiguration3, false))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> CollectionConfigurationUtils.validate(collectionConfiguration3, false)
+        ).doesNotThrowAnyException();
 
-        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration4, false))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> CollectionConfigurationUtils.validate(collectionConfiguration4, false)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 }

@@ -79,7 +79,4 @@ public class WorkerParametersSerializerTest {
         assertTrue(parametersDeser.getWorkerGUID().equals(parameters.getWorkerGUID()));
         assertTrue(parametersDeser.getProcessId().equals(parameters.getProcessId()));
     }
-
-
-
 }

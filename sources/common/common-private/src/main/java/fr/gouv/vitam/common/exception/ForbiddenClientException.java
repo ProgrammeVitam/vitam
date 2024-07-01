@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.exception;
 import fr.gouv.vitam.common.error.VitamError;
 
 public class ForbiddenClientException extends VitamException {
+
     public ForbiddenClientException(VitamError vitamError) {
         super(vitamError);
     }

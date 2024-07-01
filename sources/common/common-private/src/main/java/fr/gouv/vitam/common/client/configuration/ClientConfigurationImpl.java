@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.ParametersChecker;
  * ClientConfiguration interface's implementation
  */
 public class ClientConfigurationImpl implements ClientConfiguration {
+
     private static final String CONFIGURATION_PARAMETERS = "ClientConfiguration parameters";
     private String serverHost;
     private int serverPort;

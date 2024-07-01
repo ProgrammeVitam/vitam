@@ -38,13 +38,18 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Default Administration Status message
  */
 public class AdminStatusMessage {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminStatusMessage.class);
+
     @JsonProperty("serverIdentity")
     private JsonNode serverIdentity;
+
     @JsonProperty("status")
     private boolean status;
+
     @JsonProperty("detail")
     private ObjectNode detail;
+
     @JsonProperty("componentsVersions")
     private JsonNode componentsVersions;
 
@@ -141,5 +146,4 @@ public class AdminStatusMessage {
             return "unknownStatusMessage";
         }
     }
-
 }

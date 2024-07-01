@@ -39,8 +39,10 @@ public class CompressInformation {
 
     @JsonProperty("files")
     private List<String> files = new ArrayList<>();
+
     @JsonProperty("outputFile")
     private String outputFile;
+
     @JsonProperty("outputContainer")
     private String outputContainer;
 
@@ -110,14 +112,14 @@ public class CompressInformation {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         CompressInformation that = (CompressInformation) o;
-        return Objects.equals(files, that.files) &&
+        return (
+            Objects.equals(files, that.files) &&
             Objects.equals(outputFile, that.outputFile) &&
-            Objects.equals(outputContainer, that.outputContainer);
+            Objects.equals(outputContainer, that.outputContainer)
+        );
     }
 
     @Override

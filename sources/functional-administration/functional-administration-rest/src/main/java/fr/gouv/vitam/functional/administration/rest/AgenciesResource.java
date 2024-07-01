@@ -79,8 +79,7 @@ public class AgenciesResource {
     private static final String ATTACHEMENT_FILENAME = "attachment; filename=ErrorReport.json";
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AgenciesResource.class);
-    private static final String AGENCIES_FILES_IS_MANDATORY_PATAMETER =
-        "The json input of agency is mandatory";
+    private static final String AGENCIES_FILES_IS_MANDATORY_PATAMETER = "The json input of agency is mandatory";
 
     private final AgenciesService agenciesService;
 
@@ -97,7 +96,6 @@ public class AgenciesResource {
         ParametersChecker.checkParameter(AGENCIES_FILES_IS_MANDATORY_PATAMETER, inputStream);
 
         try {
-
             String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
 
             RequestResponse<AgenciesModel> requestResponse = agenciesService.importAgencies(inputStream, filename);
@@ -108,18 +106,17 @@ public class AgenciesResource {
             } else {
                 return Response.created(uri.getRequestUri().normalize()).entity(requestResponse).build();
             }
-
         } catch (VitamException exp) {
             LOGGER.error(exp);
             return Response.status(Status.BAD_REQUEST)
-                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage())).build();
-
+                .entity(getErrorEntity(Status.BAD_REQUEST, exp.getMessage()))
+                .build();
         } catch (Exception exp) {
             LOGGER.error("Unexpected server error {}", exp);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage())).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, exp.getMessage()))
+                .build();
         }
-
     }
 
     /**
@@ -128,11 +125,15 @@ public class AgenciesResource {
      * the http code will be used instead * @return
      */
     private VitamError getErrorEntity(Status status, String message) {
-        String aMessage = (message != null && !message.trim().isEmpty()) ?
-            message : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
-        return new VitamError(String.valueOf(status.getStatusCode())).setHttpCode(status.getStatusCode())
+        String aMessage = (message != null && !message.trim().isEmpty())
+            ? message
+            : (status.getReasonPhrase() != null ? status.getReasonPhrase() : status.name());
+        return new VitamError(String.valueOf(status.getStatusCode()))
+            .setHttpCode(status.getStatusCode())
             .setContext(FUNCTIONAL_ADMINISTRATION_MODULE)
-            .setState("ko").setMessage(status.getReasonPhrase()).setDescription(aMessage);
+            .setState("ko")
+            .setMessage(status.getReasonPhrase())
+            .setDescription(aMessage);
     }
 
     /**
@@ -149,13 +150,17 @@ public class AgenciesResource {
         try {
             SanityChecker.checkJsonAll(queryDsl);
             final DbRequestResult agenciesModelList = agenciesService.findAgencies(queryDsl);
-            RequestResponseOK<AgenciesModel> reponse =
-                agenciesModelList.getRequestResponseOK(queryDsl, Agencies.class, AgenciesModel.class);
+            RequestResponseOK<AgenciesModel> reponse = agenciesModelList.getRequestResponseOK(
+                queryDsl,
+                Agencies.class,
+                AgenciesModel.class
+            );
             return Response.status(Status.OK).entity(reponse).build();
         } catch (Exception e) {
             LOGGER.error(e);
             return Response.status(Status.INTERNAL_SERVER_ERROR)
-                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage())).build();
+                .entity(getErrorEntity(Status.INTERNAL_SERVER_ERROR, e.getMessage()))
+                .build();
         }
     }
 
@@ -179,19 +184,15 @@ public class AgenciesResource {
         try {
             File file = FileUtil.convertInputStreamToFile(agencyStream, GUIDFactory.newGUID().getId());
             agenciesService.parseFile(file);
-            InputStream errorReportInputStream = agenciesService
-                .generateErrorReport(new AgenciesImportResult());
+            InputStream errorReportInputStream = agenciesService.generateErrorReport(new AgenciesImportResult());
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
-            return new VitamAsyncInputStreamResponse(errorReportInputStream,
-                Status.OK, headers);
+            return new VitamAsyncInputStreamResponse(errorReportInputStream, Status.OK, headers);
         } catch (Exception e) {
             return handleGenerateReport();
         }
     }
-
-
 
     /**
      * Handle Generation of the report in case of exception
@@ -204,12 +205,10 @@ public class AgenciesResource {
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
-            return new VitamAsyncInputStreamResponse(errorReportInputStream,
-                Status.BAD_REQUEST, headers);
+            return new VitamAsyncInputStreamResponse(errorReportInputStream, Status.BAD_REQUEST, headers);
         } catch (Exception e1) {
             LOGGER.error(e1);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
-

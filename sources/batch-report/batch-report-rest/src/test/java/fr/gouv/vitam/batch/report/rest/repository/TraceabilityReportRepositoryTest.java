@@ -78,13 +78,21 @@ public class TraceabilityReportRepositoryTest {
         traceabilityReportCollection = mongoRule.getMongoCollection(TRACEABILITY_REPORT);
         processId = "aeeaaaaaacgw45nxaaopkalhchougsiaaaaq";
 
-        traceabilityObjectModelOK =
-            new TraceabilityObjectModel(processId, generateTraceabilityReportEntry("OK", "OPERATION"), TENANT_ID);
-        traceabilityObjectModelKO =
-            new TraceabilityObjectModel(processId, generateTraceabilityReportEntry("KO", "STORAGE"), TENANT_ID);
-        traceabilityObjectModelWARNING =
-            new TraceabilityObjectModel(processId, generateTraceabilityReportEntry("WARNING", "UNIT_LIFECYCLE"),
-                TENANT_ID);
+        traceabilityObjectModelOK = new TraceabilityObjectModel(
+            processId,
+            generateTraceabilityReportEntry("OK", "OPERATION"),
+            TENANT_ID
+        );
+        traceabilityObjectModelKO = new TraceabilityObjectModel(
+            processId,
+            generateTraceabilityReportEntry("KO", "STORAGE"),
+            TENANT_ID
+        );
+        traceabilityObjectModelWARNING = new TraceabilityObjectModel(
+            processId,
+            generateTraceabilityReportEntry("WARNING", "UNIT_LIFECYCLE"),
+            TENANT_ID
+        );
     }
 
     @Test
@@ -172,8 +180,9 @@ public class TraceabilityReportRepositoryTest {
         // When
         repository.deleteReportByIdAndTenant(processId, TENANT_ID);
         // Then
-        FindIterable<Document> iterable = traceabilityReportCollection
-            .find(and(eq("processId", processId), eq("tenantId", TENANT_ID)));
+        FindIterable<Document> iterable = traceabilityReportCollection.find(
+            and(eq("processId", processId), eq("tenantId", TENANT_ID))
+        );
         MongoCursor<Document> iterator = iterable.iterator();
         List<Document> documents = new ArrayList<>();
         while (iterator.hasNext()) {
@@ -184,8 +193,17 @@ public class TraceabilityReportRepositoryTest {
     }
 
     private TraceabilityReportEntry generateTraceabilityReportEntry(String status, String operationType) {
-        return new TraceabilityReportEntry("FAKE_OP_ID_" + status,
-            operationType, status, "Operation is " + status, null, null, null, null, null);
+        return new TraceabilityReportEntry(
+            "FAKE_OP_ID_" + status,
+            operationType,
+            status,
+            "Operation is " + status,
+            null,
+            null,
+            null,
+            null,
+            null
+        );
     }
 
     private void populateDatabase(TraceabilityObjectModel... entries) {

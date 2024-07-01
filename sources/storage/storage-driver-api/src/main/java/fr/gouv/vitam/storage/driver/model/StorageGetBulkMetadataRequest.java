@@ -37,6 +37,7 @@ public class StorageGetBulkMetadataRequest extends StorageRequest {
 
     @JsonProperty("guids")
     private final List<String> guids;
+
     @JsonProperty("noCache")
     private final boolean noCache;
 
@@ -71,5 +72,4 @@ public class StorageGetBulkMetadataRequest extends StorageRequest {
     public String toString() {
         return "GUID: " + guids + " NoCache: " + noCache + " " + super.toString();
     }
-
 }

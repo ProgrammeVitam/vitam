@@ -65,12 +65,11 @@ public class ReportWriter implements AutoCloseable {
         }
         isEmpty = false;
 
-        writer.append(JsonHandler.unprettyPrint(
-            new ReportEntry()
-                .setObjectId(objectId)
-                .setSizeInOffer1(sizeOffer1)
-                .setSizeInOffer2(sizeOffer2)
-        ));
+        writer.append(
+            JsonHandler.unprettyPrint(
+                new ReportEntry().setObjectId(objectId).setSizeInOffer1(sizeOffer1).setSizeInOffer2(sizeOffer2)
+            )
+        );
     }
 
     @Override

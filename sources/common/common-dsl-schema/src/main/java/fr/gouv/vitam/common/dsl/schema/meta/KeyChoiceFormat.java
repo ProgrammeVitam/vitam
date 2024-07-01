@@ -102,8 +102,7 @@ public class KeyChoiceFormat extends Format {
         builder.append("{");
         boolean notFirst = false;
         for (Map.Entry<String, Format> entry : choices.entrySet()) {
-            if (notFirst)
-                builder.append("}|{");
+            if (notFirst) builder.append("}|{");
             builder.append(entry.getKey());
             builder.append(": ...");
             notFirst = true;

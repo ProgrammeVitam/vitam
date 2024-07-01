@@ -50,21 +50,23 @@ public class AuthorizationFilterTest {
 
     @Mock
     private HttpServletRequest httpServletRequest;
+
     @Mock
     private HttpServletResponse httpServletResponse;
+
     @Mock
     private RequestAuthorizationValidator requestAuthorizationValidator;
+
     @Mock
     private FilterChain filterChain;
+
     @InjectMocks
     private AuthorizationFilter filter;
 
     @Test
     public void testDoFilterWhenValidationOk() throws Exception {
-
         // Given
-        doReturn(true)
-            .when(requestAuthorizationValidator).checkAuthorizationHeaders(httpServletRequest);
+        doReturn(true).when(requestAuthorizationValidator).checkAuthorizationHeaders(httpServletRequest);
 
         // When
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
@@ -77,17 +79,17 @@ public class AuthorizationFilterTest {
 
     @Test
     public void testDenyRequestWhenValidationFails() throws Exception {
-
         // Given
-        doReturn(false)
-            .when(requestAuthorizationValidator).checkAuthorizationHeaders(httpServletRequest);
+        doReturn(false).when(requestAuthorizationValidator).checkAuthorizationHeaders(httpServletRequest);
 
         // When
         filter.doFilter(httpServletRequest, httpServletResponse, filterChain);
 
         // Then
-        verify(httpServletResponse).sendError(eq(Status.UNAUTHORIZED.getStatusCode()),
-            eq("{\"Error\":\"Authorization headers check failed!\"}"));
+        verify(httpServletResponse).sendError(
+            eq(Status.UNAUTHORIZED.getStatusCode()),
+            eq("{\"Error\":\"Authorization headers check failed!\"}")
+        );
         verifyNoMoreInteractions(filterChain);
     }
 }

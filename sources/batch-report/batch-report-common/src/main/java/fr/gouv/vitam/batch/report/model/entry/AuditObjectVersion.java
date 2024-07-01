@@ -39,25 +39,36 @@ public class AuditObjectVersion {
 
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("opi")
     private String opi;
+
     @JsonProperty("qualifier")
     private String qualifier;
+
     @JsonProperty("version")
     private String version;
+
     @JsonProperty("strategyId")
     private String strategyId;
+
     @JsonProperty("offerIds")
     private List<ReportItemStatus> offerStatuses;
+
     @JsonProperty("status")
     private ReportStatus status;
 
-    public AuditObjectVersion() {
-    }
+    public AuditObjectVersion() {}
 
-    public AuditObjectVersion(String id, String opi, String qualifier, String version, String strategyId,
+    public AuditObjectVersion(
+        String id,
+        String opi,
+        String qualifier,
+        String version,
+        String strategyId,
         List<ReportItemStatus> offerStatuses,
-        ReportStatus status) {
+        ReportStatus status
+    ) {
         super();
         this.id = id;
         this.opi = opi;
@@ -123,5 +134,4 @@ public class AuditObjectVersion {
     public void setStatus(ReportStatus status) {
         this.status = status;
     }
-
 }

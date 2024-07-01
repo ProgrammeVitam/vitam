@@ -54,6 +54,4 @@ public class PersonalCertificateModel extends CertificateBaseModel {
     public void setCertificateHash(String certificateHash) {
         this.certificateHash = certificateHash;
     }
-
-
 }

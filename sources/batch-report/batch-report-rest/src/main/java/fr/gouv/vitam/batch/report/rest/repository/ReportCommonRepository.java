@@ -49,6 +49,7 @@ import static com.mongodb.client.model.Filters.eq;
  * ReportCommonRepository
  */
 public abstract class ReportCommonRepository {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReportCommonRepository.class);
 
     /**
@@ -65,12 +66,18 @@ public abstract class ReportCommonRepository {
             Document metadata = (Document) document.get("_metadata");
             updates.add(
                 new UpdateOneModel<>(
-                    and(eq("_metadata.id", metadata.get("id")),
+                    and(
+                        eq("_metadata.id", metadata.get("id")),
                         eq("processId", document.get("processId")),
-                        eq("_tenant", document.get("_tenant"))),
-                    new Document("$set", document)
-                        .append("$setOnInsert", new Document("_id", GUIDFactory.newGUID().toString())),
-                    new UpdateOptions().upsert(true)));
+                        eq("_tenant", document.get("_tenant"))
+                    ),
+                    new Document("$set", document).append(
+                        "$setOnInsert",
+                        new Document("_id", GUIDFactory.newGUID().toString())
+                    ),
+                    new UpdateOptions().upsert(true)
+                )
+            );
         }
         collection.bulkWrite(updates);
     }
@@ -82,10 +89,9 @@ public abstract class ReportCommonRepository {
      * @param tenantId tenantId
      */
     protected void deleteReportByIdAndTenant(String processId, int tenantId, MongoCollection<Document> collection) {
-        DeleteResult deleteResult = collection
-            .deleteMany(
-                and(eq(EliminationActionUnitModel.PROCESS_ID, processId),
-                    eq(EliminationActionUnitModel.TENANT, tenantId)));
+        DeleteResult deleteResult = collection.deleteMany(
+            and(eq(EliminationActionUnitModel.PROCESS_ID, processId), eq(EliminationActionUnitModel.TENANT, tenantId))
+        );
         LOGGER.info("Deleted document count: " + deleteResult.getDeletedCount() + " for process " + processId);
     }
 

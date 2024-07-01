@@ -62,5 +62,4 @@ public class NonUpdatableContentAddressableStorageException extends ContentAddre
     public NonUpdatableContentAddressableStorageException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

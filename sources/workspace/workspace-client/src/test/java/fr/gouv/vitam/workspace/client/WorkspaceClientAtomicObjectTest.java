@@ -53,17 +53,17 @@ import static org.mockito.Mockito.when;
 public class WorkspaceClientAtomicObjectTest extends ResteasyTestApplication {
 
     protected static WorkspaceClient client;
-    private final static ExpectedResults mock = mock(ExpectedResults.class);
+    private static final ExpectedResults mock = mock(ExpectedResults.class);
 
     private static final String CONTAINER_NAME = "myContainer";
     private static final String OBJECT_NAME = "myObject";
 
     static WorkspaceClientFactory factory = WorkspaceClientFactory.getInstance();
 
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
-        new VitamServerTestRunner(WorkspaceClientAtomicObjectTest.class, factory);
-
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        WorkspaceClientAtomicObjectTest.class,
+        factory
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -96,9 +96,11 @@ public class WorkspaceClientAtomicObjectTest extends ResteasyTestApplication {
         @POST
         @Consumes(MediaType.APPLICATION_OCTET_STREAM)
         @Produces(MediaType.APPLICATION_JSON)
-        public Response putAtomicObject(InputStream stream,
+        public Response putAtomicObject(
+            InputStream stream,
             @PathParam("containerName") String containerName,
-            @PathParam("objectName") String objectName) {
+            @PathParam("objectName") String objectName
+        ) {
             return mock.post();
         }
     }

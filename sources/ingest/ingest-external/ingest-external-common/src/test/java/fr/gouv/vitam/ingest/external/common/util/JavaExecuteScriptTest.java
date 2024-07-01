@@ -41,14 +41,30 @@ public class JavaExecuteScriptTest {
     private static final long timeoutScanDelay = 60000;
 
     @Test
-    public void givenExecuteScanClamAVWhenVirusFoundButNotCorrectedThenReturn2()
-        throws Exception {
-        assertEquals(1, JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,
-            PropertiesUtils.getResourceFile(FIXED_VIRUS_FILE).getPath(), timeoutScanDelay).getExitCode());
-        assertEquals(2, JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,
-            PropertiesUtils.getResourceFile(UNFIXED_VIRUS_FILE).getPath(), timeoutScanDelay).getExitCode());
-        assertEquals(0, JavaExecuteScript.executeCommand(SCRIPT_SCAN_CLAMAV,
-            PropertiesUtils.getResourceFile(NO_VIRUS_FILE).getPath(), timeoutScanDelay).getExitCode());
+    public void givenExecuteScanClamAVWhenVirusFoundButNotCorrectedThenReturn2() throws Exception {
+        assertEquals(
+            1,
+            JavaExecuteScript.executeCommand(
+                SCRIPT_SCAN_CLAMAV,
+                PropertiesUtils.getResourceFile(FIXED_VIRUS_FILE).getPath(),
+                timeoutScanDelay
+            ).getExitCode()
+        );
+        assertEquals(
+            2,
+            JavaExecuteScript.executeCommand(
+                SCRIPT_SCAN_CLAMAV,
+                PropertiesUtils.getResourceFile(UNFIXED_VIRUS_FILE).getPath(),
+                timeoutScanDelay
+            ).getExitCode()
+        );
+        assertEquals(
+            0,
+            JavaExecuteScript.executeCommand(
+                SCRIPT_SCAN_CLAMAV,
+                PropertiesUtils.getResourceFile(NO_VIRUS_FILE).getPath(),
+                timeoutScanDelay
+            ).getExitCode()
+        );
     }
-
 }

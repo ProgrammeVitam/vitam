@@ -59,8 +59,13 @@ public enum MetadataCollections {
     MetadataCollections(final Class<? extends MetadataDocument<?>> clasz) {
         VitamDescriptionLoader vitamDescriptionLoader = new VitamDescriptionLoader(clasz.getSimpleName());
         vitamDescriptionResolver = vitamDescriptionLoader.getVitamDescriptionResolver();
-        vitamCollection =
-            VitamCollectionHelper.getCollection(clasz, true, clasz.equals(Unit.class), "", vitamDescriptionResolver);
+        vitamCollection = VitamCollectionHelper.getCollection(
+            clasz,
+            true,
+            clasz.equals(Unit.class),
+            "",
+            vitamDescriptionResolver
+        );
     }
 
     public static List<Class<?>> getClasses() {
@@ -82,7 +87,6 @@ public enum MetadataCollections {
     void initialize(MongoDatabase db, boolean recreate) {
         vitamCollection.initialize(db, recreate);
     }
-
 
     /**
      * Initialize the collection

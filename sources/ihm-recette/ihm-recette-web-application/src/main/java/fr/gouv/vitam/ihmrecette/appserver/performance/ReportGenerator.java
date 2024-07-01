@@ -121,9 +121,13 @@ public class ReportGenerator implements AutoCloseable {
             }
         }
 
-        writer.write(String.format("%s,%s", operationId, map.values().stream()
-            .map(Interval::total)
-            .collect(Collectors.joining(","))));
+        writer.write(
+            String.format(
+                "%s,%s",
+                operationId,
+                map.values().stream().map(Interval::total).collect(Collectors.joining(","))
+            )
+        );
         writer.newLine();
     }
 
@@ -133,6 +137,7 @@ public class ReportGenerator implements AutoCloseable {
     }
 
     private static class Interval {
+
         private String startDate;
         private String endDate;
 
@@ -155,5 +160,4 @@ public class ReportGenerator implements AutoCloseable {
             }
         }
     }
-
 }

@@ -26,14 +26,13 @@
  */
 package fr.gouv.vitam.common.exception;
 
-
 public class ConflictClientException extends VitamException {
+
     private static final long serialVersionUID = -544990974532693321L;
 
     public ConflictClientException(String message) {
         super(message);
     }
-
 
     public ConflictClientException(Throwable cause) {
         super(cause);
@@ -42,6 +41,4 @@ public class ConflictClientException extends VitamException {
     public ConflictClientException(String messsage, Throwable cause) {
         super(messsage, cause);
     }
-
-
 }

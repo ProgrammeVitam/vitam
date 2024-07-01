@@ -39,7 +39,6 @@ import java.util.Optional;
  *
  */
 public interface QueueRepository {
-
     void add(QueueMessageEntity queueMessageEntity) throws QueueException;
 
     void addIfAbsent(List<QueryCriteria> criteria, QueueMessageEntity queueMessageEntity) throws QueueException;
@@ -57,7 +56,6 @@ public interface QueueRepository {
      */
     long complete(String queueMessageId) throws QueueException;
 
-
     /**
      * Mark queueEntity as Error
      *
@@ -66,7 +64,6 @@ public interface QueueRepository {
      * @throws QueueException
      */
     long markError(String queueMessageId) throws QueueException;
-
 
     /**
      * Mark queueEntity as READY
@@ -77,9 +74,7 @@ public interface QueueRepository {
      */
     long markReady(String queueMessageId) throws QueueException;
 
-
     long initializeOnBootstrap();
-
 
     <T> Optional<T> receive(QueueMessageType messageType) throws QueueException;
 
@@ -88,5 +83,4 @@ public interface QueueRepository {
     <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType) throws QueueException;
 
     <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType, boolean usePriority) throws QueueException;
-
 }

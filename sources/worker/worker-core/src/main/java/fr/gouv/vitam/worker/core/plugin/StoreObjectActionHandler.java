@@ -53,8 +53,7 @@ import java.util.Map;
  */
 public abstract class StoreObjectActionHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(StoreObjectActionHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreObjectActionHandler.class);
 
     private static final String FILE_NAME = "FileName";
     private static final String OFFERS = "Offers";
@@ -75,14 +74,15 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
      * @param itemStatus item status
      * @return StoredInfoResult
      */
-    protected StoredInfoResult storeObject(String strategyId, ObjectDescription description,
-        ItemStatus itemStatus) {
-
+    protected StoredInfoResult storeObject(String strategyId, ObjectDescription description, ItemStatus itemStatus) {
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data object
-            return storageClient.storeFileFromWorkspace(strategyId, description.getType(),
-                description.getObjectName(), description);
-
+            return storageClient.storeFileFromWorkspace(
+                strategyId,
+                description.getType(),
+                description.getObjectName(),
+                description
+            );
         } catch (StorageAlreadyExistsClientException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.KO);
@@ -98,16 +98,17 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
 
     protected BulkObjectStoreResponse storeObjects(String startegy, BulkObjectStoreRequest bulkObjectStoreRequest)
         throws StorageNotFoundClientException, StorageServerClientException, StorageAlreadyExistsClientException {
-
         try (final StorageClient storageClient = storageClientFactory.getClient()) {
             // store binary data objects
             return storageClient.bulkStoreFilesFromWorkspace(startegy, bulkObjectStoreRequest);
-
         }
     }
 
-    protected void storeStorageInfos(List<MapOfObjects> mapOfObjectsList,
-        Map<String, BulkObjectStoreResponse> resultByStrategy, Map<String, String> strategiesByObjectId) {
+    protected void storeStorageInfos(
+        List<MapOfObjects> mapOfObjectsList,
+        Map<String, BulkObjectStoreResponse> resultByStrategy,
+        Map<String, String> strategiesByObjectId
+    ) {
         LOGGER.debug("DEBUG storeStorageInfos");
 
         for (MapOfObjects mapOfObjects : mapOfObjectsList) {
@@ -132,9 +133,11 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
      * @param itemStatusByObjectList
      * @param itemStatusList
      */
-    protected void updateSubTasksAndTasksFromStorageInfos(Map<String, BulkObjectStoreResponse> resultsByStrategy,
-        List<Map<String, ItemStatus>> itemStatusByObjectList, List<ItemStatus> itemStatusList) {
-
+    protected void updateSubTasksAndTasksFromStorageInfos(
+        Map<String, BulkObjectStoreResponse> resultsByStrategy,
+        List<Map<String, ItemStatus>> itemStatusByObjectList,
+        List<ItemStatus> itemStatusList
+    ) {
         for (BulkObjectStoreResponse result : resultsByStrategy.values()) {
             for (Map.Entry<String, String> objectDigest : result.getObjectDigests().entrySet()) {
                 int pos = getElementPositionForObjectName(objectDigest.getKey(), itemStatusByObjectList);
@@ -149,14 +152,17 @@ public abstract class StoreObjectActionHandler extends ActionHandler {
                 itemStatusByObject.get(objectDigest.getKey()).setEvDetailData(JsonHandler.unprettyPrint(object));
 
                 // increment itemStatus with subtask
-                itemStatus.setSubTaskStatus(objectDigest.getKey(), itemStatusByObject.get(objectDigest.getKey()))
+                itemStatus
+                    .setSubTaskStatus(objectDigest.getKey(), itemStatusByObject.get(objectDigest.getKey()))
                     .increment(itemStatusByObject.get(objectDigest.getKey()).getGlobalStatus());
             }
         }
     }
 
-    private int getElementPositionForObjectName(String objectName,
-        List<Map<String, ItemStatus>> itemStatusByObjectList) {
+    private int getElementPositionForObjectName(
+        String objectName,
+        List<Map<String, ItemStatus>> itemStatusByObjectList
+    ) {
         for (int i = 0; i < itemStatusByObjectList.size(); i++) {
             if (itemStatusByObjectList.get(i).containsKey(objectName)) {
                 return i;

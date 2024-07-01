@@ -48,7 +48,6 @@ public class ElasticsearchMetadataIndexManagerTest {
 
     @Test
     public void testIndexAliasResolverWithDefaultOnlyConfig() throws Exception {
-
         // Given
         MetaDataConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config_defaults_only.yml")) {
@@ -56,16 +55,21 @@ public class ElasticsearchMetadataIndexManagerTest {
         }
         List<Integer> tenants = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22);
         MappingLoader mappingLoader = mock(MappingLoader.class);
-        doAnswer((args) -> new ByteArrayInputStream("{}".getBytes())).when(mappingLoader).loadMapping(any());
+        doAnswer(args -> new ByteArrayInputStream("{}".getBytes())).when(mappingLoader).loadMapping(any());
 
-        ElasticsearchMetadataIndexManager indexManager =
-            new ElasticsearchMetadataIndexManager(config, tenants, mappingLoader);
+        ElasticsearchMetadataIndexManager indexManager = new ElasticsearchMetadataIndexManager(
+            config,
+            tenants,
+            mappingLoader
+        );
 
         // When
-        ElasticsearchIndexAliasResolver unitIndexAliasResolver =
-            indexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT);
-        ElasticsearchIndexAliasResolver objectGroupIndexAliasResolver =
-            indexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP);
+        ElasticsearchIndexAliasResolver unitIndexAliasResolver = indexManager.getElasticsearchIndexAliasResolver(
+            MetadataCollections.UNIT
+        );
+        ElasticsearchIndexAliasResolver objectGroupIndexAliasResolver = indexManager.getElasticsearchIndexAliasResolver(
+            MetadataCollections.OBJECTGROUP
+        );
 
         // Then
         assertThat(unitIndexAliasResolver.resolveIndexName(0).getName()).isEqualTo("unit_0");
@@ -78,7 +82,6 @@ public class ElasticsearchMetadataIndexManagerTest {
 
     @Test
     public void testIndexAliasResolverWithCustomConfig() throws Exception {
-
         // Given
         MetaDataConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
@@ -86,16 +89,21 @@ public class ElasticsearchMetadataIndexManagerTest {
         }
         List<Integer> tenants = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22);
         MappingLoader mappingLoader = mock(MappingLoader.class);
-        doAnswer((args) -> new ByteArrayInputStream("{}".getBytes())).when(mappingLoader).loadMapping(any());
+        doAnswer(args -> new ByteArrayInputStream("{}".getBytes())).when(mappingLoader).loadMapping(any());
 
-        ElasticsearchMetadataIndexManager indexManager =
-            new ElasticsearchMetadataIndexManager(config, tenants, mappingLoader);
+        ElasticsearchMetadataIndexManager indexManager = new ElasticsearchMetadataIndexManager(
+            config,
+            tenants,
+            mappingLoader
+        );
 
         // When
-        ElasticsearchIndexAliasResolver unitIndexAliasResolver =
-            indexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT);
-        ElasticsearchIndexAliasResolver objectGroupIndexAliasResolver =
-            indexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP);
+        ElasticsearchIndexAliasResolver unitIndexAliasResolver = indexManager.getElasticsearchIndexAliasResolver(
+            MetadataCollections.UNIT
+        );
+        ElasticsearchIndexAliasResolver objectGroupIndexAliasResolver = indexManager.getElasticsearchIndexAliasResolver(
+            MetadataCollections.OBJECTGROUP
+        );
 
         // Then
         assertThat(unitIndexAliasResolver.resolveIndexName(0).getName()).isEqualTo("unit_0");
@@ -108,7 +116,6 @@ public class ElasticsearchMetadataIndexManagerTest {
 
     @Test
     public void testIndexSettingsWithDefaultOnlyConfig() throws Exception {
-
         // Given
         MetaDataConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config_defaults_only.yml")) {
@@ -116,24 +123,39 @@ public class ElasticsearchMetadataIndexManagerTest {
         }
         List<Integer> tenants = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22);
         MappingLoader mappingLoader = mock(MappingLoader.class);
-        doAnswer((args) -> new ByteArrayInputStream("{}".getBytes())).when(mappingLoader).loadMapping(any());
+        doAnswer(args -> new ByteArrayInputStream("{}".getBytes())).when(mappingLoader).loadMapping(any());
 
-        ElasticsearchMetadataIndexManager indexManager =
-            new ElasticsearchMetadataIndexManager(config, tenants, mappingLoader);
+        ElasticsearchMetadataIndexManager indexManager = new ElasticsearchMetadataIndexManager(
+            config,
+            tenants,
+            mappingLoader
+        );
 
         // When
-        ElasticsearchIndexSettings unit0IndexSettings =
-            indexManager.getElasticsearchIndexSettings(MetadataCollections.UNIT, 0);
-        ElasticsearchIndexSettings unit10IndexSettings =
-            indexManager.getElasticsearchIndexSettings(MetadataCollections.UNIT, 10);
-        ElasticsearchIndexSettings unit22IndexSettings =
-            indexManager.getElasticsearchIndexSettings(MetadataCollections.UNIT, 22);
-        ElasticsearchIndexSettings objectGroup0IndexSettings =
-            indexManager.getElasticsearchIndexSettings(MetadataCollections.OBJECTGROUP, 0);
-        ElasticsearchIndexSettings objectGroup10IndexSettings =
-            indexManager.getElasticsearchIndexSettings(MetadataCollections.OBJECTGROUP, 10);
-        ElasticsearchIndexSettings objectGroup22IndexSettings =
-            indexManager.getElasticsearchIndexSettings(MetadataCollections.OBJECTGROUP, 22);
+        ElasticsearchIndexSettings unit0IndexSettings = indexManager.getElasticsearchIndexSettings(
+            MetadataCollections.UNIT,
+            0
+        );
+        ElasticsearchIndexSettings unit10IndexSettings = indexManager.getElasticsearchIndexSettings(
+            MetadataCollections.UNIT,
+            10
+        );
+        ElasticsearchIndexSettings unit22IndexSettings = indexManager.getElasticsearchIndexSettings(
+            MetadataCollections.UNIT,
+            22
+        );
+        ElasticsearchIndexSettings objectGroup0IndexSettings = indexManager.getElasticsearchIndexSettings(
+            MetadataCollections.OBJECTGROUP,
+            0
+        );
+        ElasticsearchIndexSettings objectGroup10IndexSettings = indexManager.getElasticsearchIndexSettings(
+            MetadataCollections.OBJECTGROUP,
+            10
+        );
+        ElasticsearchIndexSettings objectGroup22IndexSettings = indexManager.getElasticsearchIndexSettings(
+            MetadataCollections.OBJECTGROUP,
+            22
+        );
 
         // Then
         assertThat(unit0IndexSettings.getShards()).isEqualTo(3);
@@ -153,7 +175,6 @@ public class ElasticsearchMetadataIndexManagerTest {
 
     @Test
     public void testIndexSettingsWithCustomConfig() throws Exception {
-
         // Given
         MetaDataConfiguration config;
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./metadata_test_config.yml")) {
@@ -161,25 +182,40 @@ public class ElasticsearchMetadataIndexManagerTest {
         }
         List<Integer> tenants = Arrays.asList(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 22);
         MappingLoader mappingLoader = mock(MappingLoader.class);
-        doAnswer((args) -> new ByteArrayInputStream("unit".getBytes())).when(mappingLoader).loadMapping("UNIT");
-        doAnswer((args) -> new ByteArrayInputStream("og".getBytes())).when(mappingLoader).loadMapping("OBJECTGROUP");
+        doAnswer(args -> new ByteArrayInputStream("unit".getBytes())).when(mappingLoader).loadMapping("UNIT");
+        doAnswer(args -> new ByteArrayInputStream("og".getBytes())).when(mappingLoader).loadMapping("OBJECTGROUP");
 
-        ElasticsearchMetadataIndexManager indexManager =
-            new ElasticsearchMetadataIndexManager(config, tenants, mappingLoader);
+        ElasticsearchMetadataIndexManager indexManager = new ElasticsearchMetadataIndexManager(
+            config,
+            tenants,
+            mappingLoader
+        );
 
         // When
-        ElasticsearchIndexSettings unit0IndexSettings =
-            indexManager.getElasticsearchIndexSettings(MetadataCollections.UNIT, 0);
-        ElasticsearchIndexSettings unit10IndexSettings =
-            indexManager.getElasticsearchIndexSettings(MetadataCollections.UNIT, 10);
-        ElasticsearchIndexSettings unit22IndexSettings =
-            indexManager.getElasticsearchIndexSettings(MetadataCollections.UNIT, 22);
-        ElasticsearchIndexSettings objectGroup0IndexSettings =
-            indexManager.getElasticsearchIndexSettings(MetadataCollections.OBJECTGROUP, 0);
-        ElasticsearchIndexSettings objectGroup10IndexSettings =
-            indexManager.getElasticsearchIndexSettings(MetadataCollections.OBJECTGROUP, 10);
-        ElasticsearchIndexSettings objectGroup22IndexSettings =
-            indexManager.getElasticsearchIndexSettings(MetadataCollections.OBJECTGROUP, 22);
+        ElasticsearchIndexSettings unit0IndexSettings = indexManager.getElasticsearchIndexSettings(
+            MetadataCollections.UNIT,
+            0
+        );
+        ElasticsearchIndexSettings unit10IndexSettings = indexManager.getElasticsearchIndexSettings(
+            MetadataCollections.UNIT,
+            10
+        );
+        ElasticsearchIndexSettings unit22IndexSettings = indexManager.getElasticsearchIndexSettings(
+            MetadataCollections.UNIT,
+            22
+        );
+        ElasticsearchIndexSettings objectGroup0IndexSettings = indexManager.getElasticsearchIndexSettings(
+            MetadataCollections.OBJECTGROUP,
+            0
+        );
+        ElasticsearchIndexSettings objectGroup10IndexSettings = indexManager.getElasticsearchIndexSettings(
+            MetadataCollections.OBJECTGROUP,
+            10
+        );
+        ElasticsearchIndexSettings objectGroup22IndexSettings = indexManager.getElasticsearchIndexSettings(
+            MetadataCollections.OBJECTGROUP,
+            22
+        );
 
         // Then
         assertThat(unit0IndexSettings.getShards()).isEqualTo(3);

@@ -43,10 +43,8 @@ public class PassiveExpiringCacheTest {
 
     @Test
     public void getNonExistingEntry() {
-
         // Given
-        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(
-            10L, TimeUnit.MINUTES);
+        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(10L, TimeUnit.MINUTES);
 
         // When
         String value = cache.get("key");
@@ -57,10 +55,8 @@ public class PassiveExpiringCacheTest {
 
     @Test
     public void getExistingNonExpiredEntry() {
-
         // Given
-        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(
-            10L, TimeUnit.MINUTES);
+        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(10L, TimeUnit.MINUTES);
 
         // When
         cache.put("key", "value");
@@ -73,10 +69,8 @@ public class PassiveExpiringCacheTest {
 
     @Test
     public void getExistingExpiredEntry() {
-
         // Given
-        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(
-            10L, TimeUnit.MINUTES);
+        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(10L, TimeUnit.MINUTES);
 
         // When
         cache.put("key", "value");
@@ -89,10 +83,8 @@ public class PassiveExpiringCacheTest {
 
     @Test
     public void replaceNonExpiredEntry() {
-
         // Given
-        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(
-            10L, TimeUnit.MINUTES);
+        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(10L, TimeUnit.MINUTES);
 
         // When
         cache.put("key", "value1");
@@ -107,10 +99,8 @@ public class PassiveExpiringCacheTest {
 
     @Test
     public void replaceExpiredEntry() {
-
         // Given
-        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(
-            10L, TimeUnit.MINUTES);
+        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(10L, TimeUnit.MINUTES);
 
         // When
         cache.put("key", "value1");
@@ -125,10 +115,8 @@ public class PassiveExpiringCacheTest {
 
     @Test
     public void replaceNonExpiredEntryAfterExpirationOfNewValue() {
-
         // Given
-        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(
-            10L, TimeUnit.MINUTES);
+        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(10L, TimeUnit.MINUTES);
 
         // When
         cache.put("key", "value1");
@@ -143,10 +131,8 @@ public class PassiveExpiringCacheTest {
 
     @Test
     public void replaceExpiredEntryAfterExpirationOfNewValue() {
-
         // Given
-        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(
-            10L, TimeUnit.MINUTES);
+        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(10L, TimeUnit.MINUTES);
 
         // When
         cache.put("key", "value1");
@@ -161,10 +147,8 @@ public class PassiveExpiringCacheTest {
 
     @Test
     public void testComplex() {
-
         // Given
-        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(
-            10L, TimeUnit.MINUTES);
+        PassiveExpiringCache<String, String> cache = new PassiveExpiringCache<>(10L, TimeUnit.MINUTES);
 
         // When
         cache.put("key1", "value1");

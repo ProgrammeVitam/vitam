@@ -46,8 +46,7 @@ class LogbookParametersSerializer extends JsonSerializer<AbstractParameters> {
     }
 
     @Override
-    public void serialize(AbstractParameters value, JsonGenerator gen,
-        SerializerProvider serializers)
+    public void serialize(AbstractParameters value, JsonGenerator gen, SerializerProvider serializers)
         throws IOException {
         gen.writeStartObject();
         for (final Entry<LogbookParameterName, String> item : value.getMapParameters().entrySet()) {
@@ -55,5 +54,4 @@ class LogbookParametersSerializer extends JsonSerializer<AbstractParameters> {
         }
         gen.writeEndObject();
     }
-
 }

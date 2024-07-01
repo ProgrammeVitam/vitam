@@ -32,15 +32,12 @@ import static org.junit.Assert.assertEquals;
 
 public class WorkerNotFoundExceptionTest {
 
-
     private static final String ERROR = "ERROR";
     private static final String EXCEPTION = "fr.gouv.vitam.processing.common.exception.WorkerNotFoundException";
 
     @Test
     public void testConstructor() {
-        assertEquals(EXCEPTION + ": " + ERROR,
-            new WorkerNotFoundException(ERROR, new Exception()).toString());
+        assertEquals(EXCEPTION + ": " + ERROR, new WorkerNotFoundException(ERROR, new Exception()).toString());
         assertEquals(ERROR, new WorkerNotFoundException(ERROR).getMessage());
     }
-
 }

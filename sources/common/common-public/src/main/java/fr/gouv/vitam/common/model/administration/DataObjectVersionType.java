@@ -32,7 +32,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import java.util.Arrays;
 
 public enum DataObjectVersionType {
-
     BINARY_MASTER("BinaryMaster"),
     DISSEMINATION("Dissemination"),
     THUMBNAIL("Thumbnail"),

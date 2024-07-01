@@ -36,6 +36,7 @@ import java.util.Set;
  * Class contains messages of response.
  */
 public class ExtractUriResponse extends ProcessResponse {
+
     private boolean errorDuplicateUri;
     // Set contains Uri for Binary Object
     private Set<URI> uriSetManifest;

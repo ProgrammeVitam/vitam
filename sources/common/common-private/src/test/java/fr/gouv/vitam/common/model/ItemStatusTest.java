@@ -37,12 +37,11 @@ import static org.junit.Assert.assertEquals;
 
 public class ItemStatusTest {
 
-    private final static String MESSAGE = "message";
-    private final static String ITEM_ID_1 = "id1";
+    private static final String MESSAGE = "message";
+    private static final String ITEM_ID_1 = "id1";
 
     @Test
     public void testItemStatus() throws Exception {
-
         final ItemStatus itemStatus1 = new ItemStatus(ITEM_ID_1);
         assertEquals(StatusCode.UNKNOWN, itemStatus1.getGlobalStatus());
 
@@ -74,8 +73,15 @@ public class ItemStatusTest {
 
         final List<Integer> statusMeter = Arrays.asList(0, 0, 1, 0, 0, 0);
 
-        final ItemStatus itemStatus4 = new ItemStatus(ITEM_ID_1, "message", StatusCode.OK,
-            statusMeter, new HashMap<>(), null, ProcessState.COMPLETED);
+        final ItemStatus itemStatus4 = new ItemStatus(
+            ITEM_ID_1,
+            "message",
+            StatusCode.OK,
+            statusMeter,
+            new HashMap<>(),
+            null,
+            ProcessState.COMPLETED
+        );
         assertEquals(StatusCode.OK, itemStatus4.getGlobalStatus());
     }
 
@@ -86,5 +92,4 @@ public class ItemStatusTest {
 
         assertThat(increment.shallStop(true)).isTrue();
     }
-
 }

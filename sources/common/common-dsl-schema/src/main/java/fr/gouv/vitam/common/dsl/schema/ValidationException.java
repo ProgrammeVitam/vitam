@@ -46,5 +46,4 @@ public class ValidationException extends VitamException {
             return super.getMessage();
         }
     }
-
 }

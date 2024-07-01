@@ -63,8 +63,6 @@ public class EventTypeModel {
     @JsonProperty("linkingAgentIdentifier")
     private List<LinkingAgentIdentifierTypeModel> linkingAgentIdentifier;
 
-
-
     public EventTypeModel() {
         // Empty constructor for deserialization
     }
@@ -154,8 +152,7 @@ public class EventTypeModel {
         return linkingAgentIdentifier;
     }
 
-    public EventTypeModel setLinkingAgentIdentifier(
-        List<LinkingAgentIdentifierTypeModel> linkingAgentIdentifier) {
+    public EventTypeModel setLinkingAgentIdentifier(List<LinkingAgentIdentifierTypeModel> linkingAgentIdentifier) {
         this.linkingAgentIdentifier = linkingAgentIdentifier;
         return this;
     }

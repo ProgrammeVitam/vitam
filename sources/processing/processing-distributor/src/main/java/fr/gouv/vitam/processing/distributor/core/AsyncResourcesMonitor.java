@@ -79,19 +79,28 @@ public class AsyncResourcesMonitor {
     private final MultiValuedMap<AccessRequestContext, AccessRequestValue> asyncResources;
 
     public AsyncResourcesMonitor(ServerConfiguration serverConfiguration) {
-        this(serverConfiguration, StorageClientFactory.getInstance(),
-            Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance()));
+        this(
+            serverConfiguration,
+            StorageClientFactory.getInstance(),
+            Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance())
+        );
     }
 
     @VisibleForTesting
-    public AsyncResourcesMonitor(ServerConfiguration serverConfiguration, StorageClientFactory storageClientFactory,
-        ScheduledExecutorService scheduledExecutorService) {
+    public AsyncResourcesMonitor(
+        ServerConfiguration serverConfiguration,
+        StorageClientFactory storageClientFactory,
+        ScheduledExecutorService scheduledExecutorService
+    ) {
         this.storageClientFactory = storageClientFactory;
         this.asyncResources = new ArrayListValuedHashMap<>();
 
-        scheduledExecutorService.scheduleWithFixedDelay(this::checkAsyncResourcesStatuses,
+        scheduledExecutorService.scheduleWithFixedDelay(
+            this::checkAsyncResourcesStatuses,
             serverConfiguration.getDelayAsyncResourceMonitor(),
-            serverConfiguration.getDelayAsyncResourceMonitor(), TimeUnit.SECONDS);
+            serverConfiguration.getDelayAsyncResourceMonitor(),
+            TimeUnit.SECONDS
+        );
     }
 
     /**
@@ -119,29 +128,34 @@ public class AsyncResourcesMonitor {
             }
 
             // Pre-filter async resources of interrupted (paused or canceled) workflows
-            Set<AsyncResourceBulkId> interruptedBulkIds =
-                abortAsyncResourcesOfInterruptedWorkflows(currentAsyncResources);
+            Set<AsyncResourceBulkId> interruptedBulkIds = abortAsyncResourcesOfInterruptedWorkflows(
+                currentAsyncResources
+            );
 
             MultiValuedMap<AccessRequestContext, AccessRequestValue> asyncResourcesOfActiveWorkflows =
                 new ArrayListValuedHashMap<>();
-            currentAsyncResources.entries().stream()
+            currentAsyncResources
+                .entries()
+                .stream()
                 .filter(entry -> !interruptedBulkIds.contains(entry.getValue().getBulkId()))
                 .forEach(entry -> asyncResourcesOfActiveWorkflows.put(entry.getKey(), entry.getValue()));
 
             // Check async resource statuses
-            MultiValuedMap<AccessRequestContext, AccessRequestValue>
-                accessRequestsToRemove = handleAsyncResourcesToCheck(asyncResourcesOfActiveWorkflows);
+            MultiValuedMap<AccessRequestContext, AccessRequestValue> accessRequestsToRemove =
+                handleAsyncResourcesToCheck(asyncResourcesOfActiveWorkflows);
 
             synchronized (this.asyncResources) {
-
                 // Remove interrupted async resources from map
-                currentAsyncResources.entries().stream()
+                currentAsyncResources
+                    .entries()
+                    .stream()
                     .filter(entry -> interruptedBulkIds.contains(entry.getValue().getBulkId()))
                     .forEach(entry -> asyncResources.removeMapping(entry.getKey(), entry.getValue()));
 
                 // Remove finished async resources from map
-                accessRequestsToRemove.entries().forEach(entry ->
-                    this.asyncResources.removeMapping(entry.getKey(), entry.getValue()));
+                accessRequestsToRemove
+                    .entries()
+                    .forEach(entry -> this.asyncResources.removeMapping(entry.getKey(), entry.getValue()));
             }
         } catch (Exception e) {
             LOGGER.error("An error occurred during async resource monitoring", e);
@@ -158,46 +172,60 @@ public class AsyncResourcesMonitor {
      * @return the set of bulkIds to remove
      */
     private Set<AsyncResourceBulkId> abortAsyncResourcesOfInterruptedWorkflows(
-        MultiValuedMap<AccessRequestContext, AccessRequestValue> currentAsyncResources) {
-
+        MultiValuedMap<AccessRequestContext, AccessRequestValue> currentAsyncResources
+    ) {
         // Map workflowInterruptionCheckers by bulkId
         Map<AsyncResourceBulkId, WorkflowInterruptionChecker> workflowInterruptionCheckerByBulkId =
-            currentAsyncResources.values().stream()
-                .collect(Collectors.toMap(
-                    AccessRequestValue::getBulkId,
-                    AccessRequestValue::getWorkflowInterruptionChecker,
-                    // Deduplicate workflowInterruptionCheckers (same per bulkId)
-                    (workflowInterruptionChecker1, workflowInterruptionChecker2) -> workflowInterruptionChecker1
-                ));
+            currentAsyncResources
+                .values()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        AccessRequestValue::getBulkId,
+                        AccessRequestValue::getWorkflowInterruptionChecker,
+                        // Deduplicate workflowInterruptionCheckers (same per bulkId)
+                        (workflowInterruptionChecker1, workflowInterruptionChecker2) -> workflowInterruptionChecker1
+                    )
+                );
 
         // Select bulkId of interrupted workflows
-        Set<AsyncResourceBulkId> interruptedBulkIds = workflowInterruptionCheckerByBulkId.entrySet().stream()
+        Set<AsyncResourceBulkId> interruptedBulkIds = workflowInterruptionCheckerByBulkId
+            .entrySet()
+            .stream()
             .filter(entry -> {
                 // accessRequestsByWorkerBulk map is guaranteed to have non-empty list of values
                 if (entry.getValue().isAlive()) {
                     LOGGER.debug("Workflow {} is still alive", entry.getKey().getRequestId());
                     return false;
                 }
-                LOGGER.info("Workflow {} has been interrupted (paused or canceled). Access requests will be removed.",
-                    entry.getKey().getRequestId());
+                LOGGER.info(
+                    "Workflow {} has been interrupted (paused or canceled). Access requests will be removed.",
+                    entry.getKey().getRequestId()
+                );
                 return true;
             })
             .map(Map.Entry::getKey)
             .collect(Collectors.toSet());
 
         // Map callbacks of interrupted workflows by bulkId
-        Map<AsyncResourceBulkId, AsyncResourceCallback> asyncCallbackOfInterruptedWorkflows =
-            currentAsyncResources.values().stream()
-                .filter(entry -> interruptedBulkIds.contains(entry.getBulkId()))
-                .collect(Collectors.toMap(
+        Map<AsyncResourceBulkId, AsyncResourceCallback> asyncCallbackOfInterruptedWorkflows = currentAsyncResources
+            .values()
+            .stream()
+            .filter(entry -> interruptedBulkIds.contains(entry.getBulkId()))
+            .collect(
+                Collectors.toMap(
                     AccessRequestValue::getBulkId,
                     AccessRequestValue::getCallback,
                     // Deduplicate callbacks (same per bulkId)
                     (callback1, callback2) -> callback1
-                ));
+                )
+            );
 
         // Notify callbacks
-        for (Map.Entry<AsyncResourceBulkId, AsyncResourceCallback> entry : asyncCallbackOfInterruptedWorkflows.entrySet()) {
+        for (Map.Entry<
+            AsyncResourceBulkId,
+            AsyncResourceCallback
+        > entry : asyncCallbackOfInterruptedWorkflows.entrySet()) {
             tryNotifyWorkflowCallback(entry.getValue());
         }
 
@@ -205,14 +233,15 @@ public class AsyncResourcesMonitor {
     }
 
     private MultiValuedMap<AccessRequestContext, AccessRequestValue> handleAsyncResourcesToCheck(
-        MultiValuedMap<AccessRequestContext, AccessRequestValue> activeAsyncResources) {
+        MultiValuedMap<AccessRequestContext, AccessRequestValue> activeAsyncResources
+    ) {
         // retrieve all
-        List<AccessRequestResult> accessRequestResults =
-            retrieveAccessRequestStatusesInStorage(activeAsyncResources);
+        List<AccessRequestResult> accessRequestResults = retrieveAccessRequestStatusesInStorage(activeAsyncResources);
 
         // group by bulk id and compute every bulk result
-        Map<AsyncResourceBulkId, List<AccessRequestResult>> accessRequestsByWorkerBulk =
-            accessRequestResults.stream().collect(Collectors.groupingBy(value -> value.getValue().getBulkId()));
+        Map<AsyncResourceBulkId, List<AccessRequestResult>> accessRequestsByWorkerBulk = accessRequestResults
+            .stream()
+            .collect(Collectors.groupingBy(value -> value.getValue().getBulkId()));
         MultiValuedMap<AccessRequestContext, AccessRequestValue> accessRequestsToRemove =
             new ArrayListValuedHashMap<>();
         for (AsyncResourceBulkId bulkId : accessRequestsByWorkerBulk.keySet()) {
@@ -241,46 +270,65 @@ public class AsyncResourcesMonitor {
      * @throws IllegalStateException when one of defined error cases
      */
     private MultiValuedMap<AccessRequestContext, AccessRequestValue> handleBulkResults(
-        List<AccessRequestResult> accessRequestResultsForBulk, AsyncResourceBulkId bulkId)
-        throws IllegalStateException {
+        List<AccessRequestResult> accessRequestResultsForBulk,
+        AsyncResourceBulkId bulkId
+    ) throws IllegalStateException {
         LOGGER.info("Handle results for bulk {} of request id {}", bulkId.getTaskId(), bulkId.getRequestId());
         MultiValuedMap<AccessRequestContext, AccessRequestValue> accessRequestsToRemove =
             new ArrayListValuedHashMap<>();
-        Set<AccessRequestStatus> bulkResults = accessRequestResultsForBulk.stream()
+        Set<AccessRequestStatus> bulkResults = accessRequestResultsForBulk
+            .stream()
             .map(AccessRequestResult::getStatus)
             .collect(Collectors.toSet());
         if (bulkResults.contains(null)) {
-            throw new IllegalStateException(String.format("At least one result is null for bulk %s of request id %s",
-                bulkId.getRequestId(), bulkId.getRequestId()));
+            throw new IllegalStateException(
+                String.format(
+                    "At least one result is null for bulk %s of request id %s",
+                    bulkId.getRequestId(),
+                    bulkId.getRequestId()
+                )
+            );
         }
         if (bulkResults.contains(EXPIRED) || bulkResults.contains(NOT_FOUND)) {
             // KO : remove and callback
-            LOGGER.warn("At least one access request EXPIRED or NOT_FOUND: {}",
-                accessRequestResultsForBulk.stream().collect(Collectors.toMap(
-                    accessRequestResult -> accessRequestResult.getValue().getAccessRequestId(),
-                    AccessRequestResult::getStatus))
+            LOGGER.warn(
+                "At least one access request EXPIRED or NOT_FOUND: {}",
+                accessRequestResultsForBulk
+                    .stream()
+                    .collect(
+                        Collectors.toMap(
+                            accessRequestResult -> accessRequestResult.getValue().getAccessRequestId(),
+                            AccessRequestResult::getStatus
+                        )
+                    )
             );
-            accessRequestResultsForBulk.forEach((accessRequestResult) ->
-                accessRequestsToRemove.put(accessRequestResult.getContext(), accessRequestResult.getValue()));
+            accessRequestResultsForBulk.forEach(
+                accessRequestResult ->
+                    accessRequestsToRemove.put(accessRequestResult.getContext(), accessRequestResult.getValue())
+            );
 
             tryNotifyWorkflowCallback(accessRequestResultsForBulk.stream().findFirst().orElseThrow().getCallback());
-
         } else if (bulkResults.contains(NOT_READY)) {
             // Nothing to do
             LOGGER.info("NOT_READY");
         } else if (bulkResults.contains(READY)) {
             // OK : remove and callback
             LOGGER.info("READY");
-            accessRequestResultsForBulk.forEach((accessRequestResult) ->
-                accessRequestsToRemove.put(accessRequestResult.getContext(), accessRequestResult.getValue()));
+            accessRequestResultsForBulk.forEach(
+                accessRequestResult ->
+                    accessRequestsToRemove.put(accessRequestResult.getContext(), accessRequestResult.getValue())
+            );
 
             tryNotifyWorkflowCallback(accessRequestResultsForBulk.stream().findFirst().orElseThrow().getCallback());
-
         } else if (bulkResults.size() > 0) {
             // default on  value : error
             throw new IllegalStateException(
-                String.format("At least one result contains an invalid status value for bulk %s of request id %s",
-                    bulkId.getTaskId(), bulkId.getRequestId()));
+                String.format(
+                    "At least one result contains an invalid status value for bulk %s of request id %s",
+                    bulkId.getTaskId(),
+                    bulkId.getRequestId()
+                )
+            );
         }
         return accessRequestsToRemove;
     }
@@ -300,29 +348,43 @@ public class AsyncResourcesMonitor {
      * @return list of results for async resources
      */
     private List<AccessRequestResult> retrieveAccessRequestStatusesInStorage(
-        MultiValuedMap<AccessRequestContext, AccessRequestValue> currentAsyncResources) {
+        MultiValuedMap<AccessRequestContext, AccessRequestValue> currentAsyncResources
+    ) {
         List<AccessRequestResult> accessRequestResults = new ArrayList<>();
         try (StorageClient storageClient = storageClientFactory.getClient()) {
-
             for (AccessRequestContext accessRequestGroupKey : currentAsyncResources.keySet()) {
-                Collection<AccessRequestValue> accessRequestGroupValues =
-                    currentAsyncResources.get(accessRequestGroupKey);
-                Iterator<List<AccessRequestValue>> accessRequestGroupValuesIterator =
-                    Iterators.partition(accessRequestGroupValues.iterator(), VitamConfiguration.getBatchSize());
+                Collection<AccessRequestValue> accessRequestGroupValues = currentAsyncResources.get(
+                    accessRequestGroupKey
+                );
+                Iterator<List<AccessRequestValue>> accessRequestGroupValuesIterator = Iterators.partition(
+                    accessRequestGroupValues.iterator(),
+                    VitamConfiguration.getBatchSize()
+                );
                 while (accessRequestGroupValuesIterator.hasNext()) {
                     List<AccessRequestValue> accessRequestValuesBulk = accessRequestGroupValuesIterator.next();
-                    List<String> accessRequestIdBulk = accessRequestValuesBulk.stream()
+                    List<String> accessRequestIdBulk = accessRequestValuesBulk
+                        .stream()
                         .map(AccessRequestValue::getAccessRequestId)
                         .collect(Collectors.toList());
                     Map<String, AccessRequestStatus> results = storageClient.checkAccessRequestStatuses(
                         accessRequestGroupKey.getStrategyId(),
                         accessRequestGroupKey.getOfferId(),
                         accessRequestIdBulk,
-                        true);
-                    accessRequestResults.addAll(accessRequestValuesBulk.stream().
-                        map(accessRequestValue -> new AccessRequestResult(accessRequestValue, accessRequestGroupKey,
-                            results.get(accessRequestValue.getAccessRequestId()))).
-                        collect(Collectors.toList()));
+                        true
+                    );
+                    accessRequestResults.addAll(
+                        accessRequestValuesBulk
+                            .stream()
+                            .map(
+                                accessRequestValue ->
+                                    new AccessRequestResult(
+                                        accessRequestValue,
+                                        accessRequestGroupKey,
+                                        results.get(accessRequestValue.getAccessRequestId())
+                                    )
+                            )
+                            .collect(Collectors.toList())
+                    );
                 }
             }
         } catch (StorageServerClientException | StorageIllegalOperationClientException e) {
@@ -342,15 +404,19 @@ public class AsyncResourcesMonitor {
      * @param workflowInterruptionChecker a non-blocking / stateless function that check workflow interruption status.
      * @param callback callback function called to notify the workflow execution waiting for the resource of its availability (or need to re-create)
      */
-    public void watchAsyncResourcesForBulk(Map<String, AccessRequestContext> asyncResources, String requestId,
+    public void watchAsyncResourcesForBulk(
+        Map<String, AccessRequestContext> asyncResources,
+        String requestId,
         String taskId,
         WorkflowInterruptionChecker workflowInterruptionChecker,
-        AsyncResourceCallback callback) {
+        AsyncResourceCallback callback
+    ) {
         MultiValuedMap<AccessRequestContext, AccessRequestValue> asyncResourcesForBulk = new ArrayListValuedHashMap<>();
         for (Map.Entry<String, AccessRequestContext> asyncResource : asyncResources.entrySet()) {
-            asyncResourcesForBulk.put(asyncResource.getValue(),
-                new AccessRequestValue(asyncResource.getKey(), requestId, taskId, workflowInterruptionChecker,
-                    callback));
+            asyncResourcesForBulk.put(
+                asyncResource.getValue(),
+                new AccessRequestValue(asyncResource.getKey(), requestId, taskId, workflowInterruptionChecker, callback)
+            );
         }
         synchronized (this.asyncResources) {
             this.asyncResources.putAll(asyncResourcesForBulk);

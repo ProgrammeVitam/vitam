@@ -40,5 +40,4 @@ public class MetaDataDocumentSizeExceptionTest {
         assertNotNull(new MetaDataDocumentSizeException(new Exception()).getCause());
         assertNotNull(new MetaDataDocumentSizeException("test", new Exception()).getCause());
     }
-
 }

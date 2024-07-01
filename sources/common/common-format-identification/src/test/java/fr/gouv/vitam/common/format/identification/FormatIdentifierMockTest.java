@@ -41,7 +41,6 @@ import static org.junit.Assert.assertNotNull;
  */
 public class FormatIdentifierMockTest {
 
-
     @Test
     public void testIdentifyFormatMock() throws Exception {
         final FormatIdentifierMock mock = new FormatIdentifierMock();
@@ -62,8 +61,5 @@ public class FormatIdentifierMockTest {
         assertNotNull(response);
         assertEquals("1.0", response.getVersion());
         assertEquals("FormatIdentifierMock", response.getSoftwareName());
-
     }
-
 }
-

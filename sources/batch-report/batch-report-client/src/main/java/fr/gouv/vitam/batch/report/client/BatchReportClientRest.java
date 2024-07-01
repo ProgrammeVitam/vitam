@@ -65,15 +65,14 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     private static final String STORE_EXTRACTED_METADATA_FOR_AU = "/storeExtractedMetadataForAu/";
     private static final String CREATE_DISTRIBUTION_FILE_FOR_AU = "/createExtractedMetadataDistributionFileForAu/";
 
-
     @VisibleForTesting
     BatchReportClientRest(VitamClientFactoryInterface<?> factory) {
         super(factory);
     }
 
     @Override
-    public void generatePurgeDistinctObjectGroupInUnitReport(String processId,
-        ReportExportRequest reportExportRequest) throws VitamClientInternalException {
+    public void generatePurgeDistinctObjectGroupInUnitReport(String processId, ReportExportRequest reportExportRequest)
+        throws VitamClientInternalException {
         ParametersChecker.checkParameter("processId should be filled", processId);
 
         VitamRequestBuilder request = post()
@@ -87,8 +86,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void appendReportEntries(ReportBody reportBody)
-        throws VitamClientInternalException {
+    public void appendReportEntries(ReportBody reportBody) throws VitamClientInternalException {
         VitamRequestBuilder request = post()
             .withPath(APPEND)
             .withBody(reportBody)
@@ -127,9 +125,8 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void generatePurgeAccessionRegisterReport(String processId,
-        ReportExportRequest reportExportRequest) throws VitamClientInternalException {
-
+    public void generatePurgeAccessionRegisterReport(String processId, ReportExportRequest reportExportRequest)
+        throws VitamClientInternalException {
         ParametersChecker.checkParameter("processId should be filled", processId);
 
         VitamRequestBuilder request = post()
@@ -143,8 +140,7 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
     }
 
     @Override
-    public void cleanupReport(String processId, ReportType reportType)
-        throws VitamClientInternalException {
+    public void cleanupReport(String processId, ReportType reportType) throws VitamClientInternalException {
         ParametersChecker.checkParameter("processId and reportType should be filled", processId, reportType);
 
         VitamRequestBuilder request = delete()
@@ -195,15 +191,18 @@ public class BatchReportClientRest extends DefaultClient implements BatchReportC
         }
     }
 
-
     private void check(Response response) throws VitamClientInternalException {
         Response.Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
 
-        throw new VitamClientInternalException(String
-            .format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                fromStatusCode(response.getStatus()).getReasonPhrase()));
+        throw new VitamClientInternalException(
+            String.format(
+                "Error with the response, get status: '%d' and reason '%s'.",
+                response.getStatus(),
+                fromStatusCode(response.getStatus()).getReasonPhrase()
+            )
+        );
     }
 }

@@ -139,7 +139,6 @@ public final class WorkerConfiguration extends DefaultVitamApplicationConfigurat
     public WorkerConfiguration setRegisterServerHost(String registerServerHost) {
         this.registerServerHost = registerServerHost;
         return this;
-
     }
 
     /**

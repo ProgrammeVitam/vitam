@@ -106,20 +106,21 @@ public class LogbookResourceTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
+
     private static final String LIFECYCLES_TRACEABILITY_CHECK = "/lifecycles/traceability/check/";
 
     @Rule
     @ClassRule
     public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
-
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final String LOGBOOK_CONF = "logbook-test.conf";
+
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
@@ -150,24 +151,26 @@ public class LogbookResourceTest {
     private static final JunitHelper junitHelper = JunitHelper.getInstance();
     private static final String FILE_QUERY_OFFSET_LIMIT = "logbook_request_offset_limit.json";
 
-
     private static LogbookConfiguration realLogbook;
 
     private static final int TENANT_ID = 0;
     private static final int ADMIN_TENANT_ID = 1;
     private static final List<Integer> tenantList = Collections.singletonList(TENANT_ID);
-    private final static ElasticsearchLogbookIndexManager indexManager = LogbookCollectionsTestUtils
-        .createTestIndexManager(tenantList, Collections.emptyMap());
+    private static final ElasticsearchLogbookIndexManager indexManager =
+        LogbookCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap());
 
     private static final int workspacePort = junitHelper.findAvailablePort();
     private static final int processingPort = junitHelper.findAvailablePort();
 
     @ClassRule
     public static WireMockClassRule workspaceWireMockRule = new WireMockClassRule(workspacePort);
+
     @Rule
     public WireMockClassRule workspaceInstanceRule = workspaceWireMockRule;
+
     @ClassRule
     public static WireMockClassRule processingWireMockRule = new WireMockClassRule(processingPort);
+
     @Rule
     public WireMockClassRule processingInstanceRule = processingWireMockRule;
 
@@ -175,11 +178,11 @@ public class LogbookResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
         elasticsearchAccess = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager);
         LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, elasticsearchAccess);
@@ -203,63 +206,115 @@ public class LogbookResourceTest {
         String configurationFile = file.getAbsolutePath();
         PropertiesUtils.writeYaml(file, realLogbook);
 
-
         try {
             application = new LogbookMain(configurationFile);
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Logbook Application Server", e);
+            throw new IllegalStateException("Cannot start the Logbook Application Server", e);
         }
 
         final GUID eip = GUIDFactory.newEventGUID(0);
 
         logbookParametersStart = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
+            eip,
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            eip
+        );
         logbookParametersAppend = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
         logbookParametersWrongStart = LogbookParameterHelper.newLogbookOperationParameters(
             eip,
-            "eventTypeValue2", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
+            "eventTypeValue2",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            eip
+        );
         logbookParametersWrongAppend = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue2", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue2",
+            GUIDFactory.newEventGUID(0),
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
 
         logbookParametersSelect = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, "eventTypeValueSelect", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
-            StatusCode.OK, "start ingest", eip);
+            eip,
+            "eventTypeValueSelect",
+            GUIDFactory.newEventGUID(0),
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "start ingest",
+            eip
+        );
 
         logbookParametersSelectId = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, "eventTypeValueSelectId", GUIDFactory.newEventGUID(0), LogbookTypeProcess.INGEST,
-            StatusCode.OK, "start ingest", eip);
+            eip,
+            "eventTypeValueSelectId",
+            GUIDFactory.newEventGUID(0),
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "start ingest",
+            eip
+        );
     }
 
     @Before
     public void setUp() {
-        workspaceInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
-            (WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
-        workspaceInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)/objects/(.*)"))
-            .willReturn(WireMock.aResponse().withStatus(201)
-                .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
-        workspaceInstanceRule.stubFor(WireMock.delete(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn
-            (WireMock.aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
-        processingInstanceRule.stubFor(WireMock.get(WireMock.urlMatching("/processing/v1/operations")).willReturn
-            (WireMock.aResponse().withStatus(200).withBody(JsonHandler.unprettyPrint(new RequestResponseOK<>()))
-                .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID)).withHeader(HttpHeaders
-                    .CONTENT_TYPE, MediaType.APPLICATION_JSON)));
-        processingInstanceRule.stubFor(WireMock.post(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
-            (WireMock.aResponse().withStatus(200)));
-        processingInstanceRule.stubFor(WireMock.put(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
-            (WireMock.aResponse().withStatus(202).withBody(JsonHandler.unprettyPrint(new RequestResponseOK<>()))
-                .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID)).withHeader(HttpHeaders
-                    .CONTENT_TYPE, MediaType.APPLICATION_JSON)));
+        workspaceInstanceRule.stubFor(
+            WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
+        workspaceInstanceRule.stubFor(
+            WireMock.post(WireMock.urlMatching("/workspace/v1/containers/(.*)/objects/(.*)")).willReturn(
+                WireMock.aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
+        workspaceInstanceRule.stubFor(
+            WireMock.delete(WireMock.urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                WireMock.aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
+        processingInstanceRule.stubFor(
+            WireMock.get(WireMock.urlMatching("/processing/v1/operations")).willReturn(
+                WireMock.aResponse()
+                    .withStatus(200)
+                    .withBody(JsonHandler.unprettyPrint(new RequestResponseOK<>()))
+                    .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+                    .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+            )
+        );
+        processingInstanceRule.stubFor(
+            WireMock.post(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn(
+                WireMock.aResponse().withStatus(200)
+            )
+        );
+        processingInstanceRule.stubFor(
+            WireMock.put(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn(
+                WireMock.aResponse()
+                    .withStatus(202)
+                    .withBody(JsonHandler.unprettyPrint(new RequestResponseOK<>()))
+                    .withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+                    .withHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON)
+            )
+        );
     }
 
     @AfterClass
@@ -284,7 +339,6 @@ public class LogbookResourceTest {
     public void tearDown() {
         LogbookCollectionsTestUtils.afterTest(indexManager);
     }
-
 
     @Test
     public final void testTraceability() {
@@ -319,63 +373,77 @@ public class LogbookResourceTest {
     @Test
     public final void testOperation() {
         // Creation OK
-        logbookParametersStart.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersStart.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        logbookParametersStart.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        logbookParametersStart.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(Stream.of(logbookParametersStart).toArray(LogbookOperationParameters[]::new))
             .when()
-            .post(OPERATIONS_URI + OPERATION_ID_URI,
-                logbookParametersStart.getParameterValue(
-                    LogbookParameterName.eventIdentifierProcess))
+            .post(
+                OPERATIONS_URI + OPERATION_ID_URI,
+                logbookParametersStart.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            )
             .then()
             .statusCode(Status.CREATED.getStatusCode());
         // Update OK
-        logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersAppend.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        logbookParametersAppend.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        logbookParametersAppend.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(Stream.of(logbookParametersAppend).toArray(LogbookOperationParameters[]::new))
             .when()
-            .put(OPERATIONS_URI + OPERATION_ID_URI,
-                logbookParametersAppend.getParameterValue(
-                    LogbookParameterName.eventIdentifierProcess))
+            .put(
+                OPERATIONS_URI + OPERATION_ID_URI,
+                logbookParametersAppend.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            )
             .then()
             .statusCode(Status.OK.getStatusCode());
         // Create KO since already exists
-        logbookParametersWrongStart.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersWrongStart.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        logbookParametersWrongStart.putParameterValue(
+            LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString()
+        );
+        logbookParametersWrongStart.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(Stream.of(logbookParametersWrongStart).toArray(LogbookOperationParameters[]::new))
             .when()
-            .post(OPERATIONS_URI + OPERATION_ID_URI,
-                logbookParametersWrongStart.getParameterValue(
-                    LogbookParameterName.eventIdentifierProcess))
+            .post(
+                OPERATIONS_URI + OPERATION_ID_URI,
+                logbookParametersWrongStart.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            )
             .then()
             .statusCode(Status.CONFLICT.getStatusCode());
         // Update KO since not found
-        logbookParametersWrongAppend.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersWrongAppend.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        logbookParametersWrongAppend.putParameterValue(
+            LogbookParameterName.eventDateTime,
+            LocalDateUtil.now().toString()
+        );
+        logbookParametersWrongAppend.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(Stream.of(logbookParametersWrongAppend).toArray(LogbookOperationParameters[]::new))
             .when()
-            .put(OPERATIONS_URI + OPERATION_ID_URI,
-                logbookParametersWrongAppend.getParameterValue(
-                    LogbookParameterName.eventIdentifierProcess))
+            .put(
+                OPERATIONS_URI + OPERATION_ID_URI,
+                logbookParametersWrongAppend.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            )
             .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
@@ -385,26 +453,45 @@ public class LogbookResourceTest {
         final GUID eip = GUIDFactory.newEventGUID(0);
         // Create
         final LogbookOperationParameters start = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
+            eip,
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            eip
+        );
         LogbookOperationParameters append = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
         final Queue<LogbookOperationParameters> queue = new ConcurrentLinkedQueue<>();
         queue.add(start);
         queue.add(append);
         append = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
         queue.add(append);
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(queue.toArray(LogbookOperationParameters[]::new))
-            .when().post(OPERATIONS_URI + OPERATION_ID_URI,
-                start.getParameterValue(LogbookParameterName.eventIdentifierProcess))
+            .when()
+            .post(
+                OPERATIONS_URI + OPERATION_ID_URI,
+                start.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            )
             .then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -412,26 +499,43 @@ public class LogbookResourceTest {
         queue.clear();
         append = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
         queue.add(append);
         append = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
         queue.add(append);
         append = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
         queue.add(append);
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(queue.toArray(LogbookOperationParameters[]::new))
             .when()
-            .put(OPERATIONS_URI + OPERATION_ID_URI,
-                start.getParameterValue(LogbookParameterName.eventIdentifierProcess))
+            .put(
+                OPERATIONS_URI + OPERATION_ID_URI,
+                start.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            )
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
@@ -463,8 +567,7 @@ public class LogbookResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersWrongStart.toString())
             .when()
-            .post(OPERATIONS_URI + OPERATION_ID_URI,
-                GUIDFactory.newEventGUID(0).getId())
+            .post(OPERATIONS_URI + OPERATION_ID_URI, GUIDFactory.newEventGUID(0).getId())
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
         given()
@@ -472,8 +575,7 @@ public class LogbookResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(logbookParametersWrongAppend.toString())
             .when()
-            .put(OPERATIONS_URI + OPERATION_ID_URI,
-                GUIDFactory.newEventGUID(0).getId())
+            .put(OPERATIONS_URI + OPERATION_ID_URI, GUIDFactory.newEventGUID(0).getId())
             .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
@@ -489,27 +591,45 @@ public class LogbookResourceTest {
         // Create
         final GUID eip = GUIDFactory.newEventGUID(TENANT_ID);
         final LogbookOperationParameters start = LogbookParameterHelper.newLogbookOperationParameters(
-            eip, "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.STARTED, "start ingest", eip);
+            eip,
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
+            "start ingest",
+            eip
+        );
         LogbookOperationParameters append = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
         final Queue<LogbookOperationParameters> queue = new ConcurrentLinkedQueue<>();
         queue.add(start);
         queue.add(append);
         append = LogbookParameterHelper.newLogbookOperationParameters(
             GUIDFactory.newEventGUID(0),
-            "eventTypeValue1", eip, LogbookTypeProcess.INGEST,
-            StatusCode.OK, "end ingest", eip);
+            "eventTypeValue1",
+            eip,
+            LogbookTypeProcess.INGEST,
+            StatusCode.OK,
+            "end ingest",
+            eip
+        );
         queue.add(append);
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(queue.toArray(LogbookOperationParameters[]::new))
             .when()
-            .post(OPERATIONS_URI + OPERATION_ID_URI,
-                start.getParameterValue(LogbookParameterName.eventIdentifierProcess))
+            .post(
+                OPERATIONS_URI + OPERATION_ID_URI,
+                start.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            )
             .then()
             .statusCode(Status.CREATED.getStatusCode());
         // When
@@ -521,8 +641,7 @@ public class LogbookResourceTest {
             .header(GlobalDataRest.X_EVENT_STATUS, LifeCycleStatusCode.LIFE_CYCLE_COMMITTED.toString())
             .body(queryJson)
             .when()
-            .get(OPERATIONS_URI + OPERATION_ID_URI + UNIT_LIFECYCLES,
-                eip.getId());
+            .get(OPERATIONS_URI + OPERATION_ID_URI + UNIT_LIFECYCLES, eip.getId());
         // Then
         response.then().statusCode(Status.OK.getStatusCode());
     }
@@ -530,18 +649,20 @@ public class LogbookResourceTest {
     @Test
     public void testOperationSelect() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        logbookParametersSelect.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersSelect.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        logbookParametersSelect.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        logbookParametersSelect.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(Stream.of(logbookParametersSelect).toArray(LogbookOperationParameters[]::new))
             .when()
-            .post(OPERATIONS_URI + OPERATION_ID_URI,
-                logbookParametersSelect.getParameterValue(
-                    LogbookParameterName.eventIdentifierProcess))
+            .post(
+                OPERATIONS_URI + OPERATION_ID_URI,
+                logbookParametersSelect.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            )
             .then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -558,20 +679,24 @@ public class LogbookResourceTest {
     @Test
     public void testSelectOperationId() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        logbookParametersSelectId.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParametersSelectId.putParameterValue(LogbookParameterName.agentIdentifier,
-            ServerIdentity.getInstance().getJsonIdentity());
+        logbookParametersSelectId.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        logbookParametersSelectId.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            ServerIdentity.getInstance().getJsonIdentity()
+        );
         with()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .contentType(ContentType.JSON)
             .body(Stream.of(logbookParametersSelectId).toArray(LogbookOperationParameters[]::new))
-            .pathParam("id_op",
-                logbookParametersSelectId.getParameterValue(LogbookParameterName.eventIdentifierProcess))
+            .pathParam(
+                "id_op",
+                logbookParametersSelectId.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            )
             .when()
-            .post(OPERATIONS_URI + OPERATION_ID_URI,
-                logbookParametersSelectId.getParameterValue(
-                    LogbookParameterName.eventIdentifierProcess))
+            .post(
+                OPERATIONS_URI + OPERATION_ID_URI,
+                logbookParametersSelectId.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            )
             .then()
             .statusCode(Status.CREATED.getStatusCode());
 
@@ -580,16 +705,22 @@ public class LogbookResourceTest {
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(BODY_QUERY_1))
             .when()
-            .get(OPERATIONS_URI + OPERATION_ID_URI, logbookParametersSelectId.getParameterValue(
-                LogbookParameterName.eventIdentifierProcess))
+            .get(
+                OPERATIONS_URI + OPERATION_ID_URI,
+                logbookParametersSelectId.getParameterValue(LogbookParameterName.eventIdentifierProcess)
+            )
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     public void indexCollectionNoBodyPreconditionFailed() {
-        given().contentType(MediaType.APPLICATION_JSON)
-            .when().post("/reindex").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .when()
+            .post("/reindex")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -599,8 +730,13 @@ public class LogbookResourceTest {
         indexParameters.setTenants(tenants);
         indexParameters.setCollectionName("fake");
 
-        given().contentType(MediaType.APPLICATION_JSON).body(indexParameters)
-            .when().post("/reindex").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(indexParameters)
+            .when()
+            .post("/reindex")
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
             .body("collectionName", equalTo("fake"))
             .body("KO.size()", equalTo(1))
             .body("KO.get(0).tenants.size()", equalTo(1))
@@ -611,8 +747,12 @@ public class LogbookResourceTest {
 
     @Test
     public void aliasCollectionNoBodyPreconditionFailed() {
-        given().contentType(MediaType.APPLICATION_JSON)
-            .when().post("/alias").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .when()
+            .post("/alias")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -620,8 +760,13 @@ public class LogbookResourceTest {
         SwitchIndexParameters parameters = new SwitchIndexParameters();
         parameters.setAlias("alias");
         parameters.setIndexName("indexName");
-        given().contentType(MediaType.APPLICATION_JSON).body(parameters)
-            .when().post("/alias").then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(parameters)
+            .when()
+            .post("/alias")
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
@@ -630,11 +775,13 @@ public class LogbookResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         // call the endpoint logbook check coherence
-        given().contentType(ContentType.JSON).
-            header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_LOGBOOK_COHERENCE_URI)
-            .then().statusCode(javax.ws.rs.core.Response.Status.OK.getStatusCode());
-
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .post(CHECK_LOGBOOK_COHERENCE_URI)
+            .then()
+            .statusCode(javax.ws.rs.core.Response.Status.OK.getStatusCode());
     }
 
     @Test
@@ -642,14 +789,20 @@ public class LogbookResourceTest {
     public void testCheckLifecycleTraceabilityStatus_NotFound() {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        processingInstanceRule.stubFor(WireMock.head(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
-            (WireMock.aResponse().withStatus(404)));
+        processingInstanceRule.stubFor(
+            WireMock.head(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn(
+                WireMock.aResponse().withStatus(404)
+            )
+        );
 
         // call the endpoint logbook check coherence
-        given().contentType(ContentType.JSON).
-            header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().get(LIFECYCLES_TRACEABILITY_CHECK + "unkownid")
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+        given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(LIFECYCLES_TRACEABILITY_CHECK + "unkownid")
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -659,21 +812,31 @@ public class LogbookResourceTest {
 
         String operationId = "mockId";
 
-        processingInstanceRule.stubFor(WireMock.head(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn
-            (WireMock.aResponse()
-                .withStatus(200)
-                .withHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED.name())
-                .withHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.WARNING.name())));
+        processingInstanceRule.stubFor(
+            WireMock.head(WireMock.urlMatching("/processing/v1/operations/(.*)")).willReturn(
+                WireMock.aResponse()
+                    .withStatus(200)
+                    .withHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED.name())
+                    .withHeader(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.WARNING.name())
+            )
+        );
 
         // call the endpoint logbook check coherence
-        JsonNode responseJson = given().contentType(ContentType.JSON).
-            header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().get(LIFECYCLES_TRACEABILITY_CHECK + operationId)
-            .then().statusCode(Status.OK.getStatusCode())
-            .extract().body().as(JsonNode.class);
+        JsonNode responseJson = given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .when()
+            .get(LIFECYCLES_TRACEABILITY_CHECK + operationId)
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .as(JsonNode.class);
 
-        LifecycleTraceabilityStatus status =
-            JsonHandler.getFromJsonNode(responseJson.get("$results").get(0), LifecycleTraceabilityStatus.class);
+        LifecycleTraceabilityStatus status = JsonHandler.getFromJsonNode(
+            responseJson.get("$results").get(0),
+            LifecycleTraceabilityStatus.class
+        );
 
         assertThat(status.isCompleted()).isTrue();
         assertThat(status.getOutcome()).isEqualTo("COMPLETED.WARNING");

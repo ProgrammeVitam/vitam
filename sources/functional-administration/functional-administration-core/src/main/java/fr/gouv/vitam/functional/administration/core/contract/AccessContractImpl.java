@@ -152,7 +152,6 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     private static final String CONTRACT_KEY = "AccessContract";
     private static final String CONTRACT_CHECK_KEY = "accessContractCheck";
 
-
     private final MongoDbAccessAdminImpl mongoAccess;
     private final LogbookOperationsClient logbookClient;
     private final VitamCounterService vitamCounterService;
@@ -166,9 +165,13 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
      * @param vitamCounterService
      */
     public AccessContractImpl(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService) {
-        this(mongoAccess, vitamCounterService, MetaDataClientFactory.getInstance().getClient(),
+        this(
+            mongoAccess,
+            vitamCounterService,
+            MetaDataClientFactory.getInstance().getClient(),
             LogbookOperationsClientFactory.getInstance().getClient(),
-            new FunctionalBackupService(vitamCounterService));
+            new FunctionalBackupService(vitamCounterService)
+        );
     }
 
     /**
@@ -181,10 +184,13 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
      * @param functionalBackupService
      */
     @VisibleForTesting
-    public AccessContractImpl(MongoDbAccessAdminImpl mongoAccess, VitamCounterService vitamCounterService,
+    public AccessContractImpl(
+        MongoDbAccessAdminImpl mongoAccess,
+        VitamCounterService vitamCounterService,
         MetaDataClient metaDataClient,
         LogbookOperationsClient logbookClient,
-        FunctionalBackupService functionalBackupService) {
+        FunctionalBackupService functionalBackupService
+    ) {
         this.mongoAccess = mongoAccess;
         this.vitamCounterService = vitamCounterService;
         this.metaDataClient = metaDataClient;
@@ -193,22 +199,28 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     }
 
     private static Optional<GenericRejectionCause> selectUnits(
-        MetaDataClient metaDataClient, AccessContractModel contract, String contractName, Set<String> checkUnits,
-        String unitType) {
-
+        MetaDataClient metaDataClient,
+        AccessContractModel contract,
+        String contractName,
+        Set<String> checkUnits,
+        String unitType
+    ) {
         String[] rootUnitArray = checkUnits.toArray(new String[0]);
 
         final Select select = new Select();
         try {
             select.setQuery(QueryHelper.in(PROJECTIONARGS.ID.exactToken(), rootUnitArray).setDepthLimit(0));
             select.setProjection(
-                JsonHandler.createObjectNode().set(PROJECTION.FIELDS.exactToken(),
-                    JsonHandler.createObjectNode()
-                        .put(PROJECTIONARGS.ID.exactToken(), 1)));
-        } catch (InvalidCreateOperationException |
-                 InvalidParseOperationException e) {
-            return Optional
-                .of(GenericRejectionCause.rejectExceptionOccurred(contract.getName(), "Error parse query", e));
+                JsonHandler.createObjectNode()
+                    .set(
+                        PROJECTION.FIELDS.exactToken(),
+                        JsonHandler.createObjectNode().put(PROJECTIONARGS.ID.exactToken(), 1)
+                    )
+            );
+        } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
+            return Optional.of(
+                GenericRejectionCause.rejectExceptionOccurred(contract.getName(), "Error parse query", e)
+            );
         }
 
         final JsonNode queryDsl = select.getFinalSelect();
@@ -221,32 +233,37 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 String guidArrayString = String.join(",", checkUnits);
                 switch (unitType) {
                     case "AllUnits":
-                        return Optional.of(GenericRejectionCause
-                            .rejectExcludedAndRootUnitsNotFound(contractName, guidArrayString));
+                        return Optional.of(
+                            GenericRejectionCause.rejectExcludedAndRootUnitsNotFound(contractName, guidArrayString)
+                        );
                     case AccessContractModel.EXCLUDED_ROOT_UNITS:
-                        return Optional.of(GenericRejectionCause
-                            .rejectExcludedRootUnitsNotFound(contractName, guidArrayString));
+                        return Optional.of(
+                            GenericRejectionCause.rejectExcludedRootUnitsNotFound(contractName, guidArrayString)
+                        );
                     case AccessContractModel.ROOT_UNITS:
                     default:
-                        return Optional.of(GenericRejectionCause
-                            .rejectRootUnitsNotFound(contractName, guidArrayString));
-
+                        return Optional.of(
+                            GenericRejectionCause.rejectRootUnitsNotFound(contractName, guidArrayString)
+                        );
                 }
-
             } else if (result.size() == checkUnits.size()) {
                 return Optional.empty();
             } else {
                 Set<String> notFoundRootUnits = new HashSet<>(checkUnits);
                 result.forEach(unit -> notFoundRootUnits.remove(unit.get(VitamFieldsHelper.id()).asText()));
-                return Optional.of(GenericRejectionCause
-                    .rejectRootUnitsNotFound(contractName, String.join(",", notFoundRootUnits)));
+                return Optional.of(
+                    GenericRejectionCause.rejectRootUnitsNotFound(contractName, String.join(",", notFoundRootUnits))
+                );
             }
-        } catch (InvalidParseOperationException |
-                 MetaDataExecutionException |
-                 MetaDataDocumentSizeException |
-                 MetaDataClientServerException e) {
-            return Optional.of(GenericRejectionCause
-                .rejectExceptionOccurred(contract.getName(), "Error while select units", e));
+        } catch (
+            InvalidParseOperationException
+            | MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException e
+        ) {
+            return Optional.of(
+                GenericRejectionCause.rejectExceptionOccurred(contract.getName(), "Error while select units", e)
+            );
         }
     }
 
@@ -258,32 +275,41 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         if (contractModelList.isEmpty()) {
             return new RequestResponseOK<>();
         }
-        boolean slaveMode = vitamCounterService
-            .isSlaveFunctionnalCollectionOnTenant(SequenceType.ACCESS_CONTRACT_SEQUENCE.getCollection(),
-                ParameterHelper.getTenantParameter());
+        boolean slaveMode = vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
+            SequenceType.ACCESS_CONTRACT_SEQUENCE.getCollection(),
+            ParameterHelper.getTenantParameter()
+        );
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         GUID eip = GUIDReader.getGUID(operationId);
 
         AccessContractValidationService validationService = new AccessContractValidationService(metaDataClient);
-        ContractLogbookService logbookService = new ContractLogbookService(logbookClient, eip, CONTRACTS_IMPORT_EVENT,
-            CONTRACT_UPDATE_EVENT, CONTRACT_KEY, CONTRACT_CHECK_KEY);
+        ContractLogbookService logbookService = new ContractLogbookService(
+            logbookClient,
+            eip,
+            CONTRACTS_IMPORT_EVENT,
+            CONTRACT_UPDATE_EVENT,
+            CONTRACT_KEY,
+            CONTRACT_CHECK_KEY
+        );
 
         logbookService.logStarted();
 
         ArrayNode contractsToPersist;
 
-        final VitamError<AccessContractModel> error =
-            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), "Access contract import error")
-                .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+        final VitamError<AccessContractModel> error = getVitamError(
+            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+            "Access contract import error"
+        ).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         try {
-
             for (final AccessContractModel acm : contractModelList) {
                 // if a contract have and id
                 if (acm.getId() != null) {
                     error.addToErrors(
-                        getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                            GenericRejectionCause.rejectIdNotAllowedInCreate(acm.getName())
-                                .getReason()));
+                        getVitamError(
+                            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            GenericRejectionCause.rejectIdNotAllowedInCreate(acm.getName()).getReason()
+                        )
+                    );
                     continue;
                 }
 
@@ -297,30 +323,44 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 }
 
                 if (slaveMode) {
-                    final Optional<GenericRejectionCause> result =
-                        validationService.checkEmptyIdentifierSlaveModeValidator().validate(acm, acm.getIdentifier());
-                    result.ifPresent(genericRejectionCause -> error
-                        .addToErrors(
-                            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), result.get().getReason()
-                            ).setMessage(EMPTY_REQUIRED_FIELD)));
+                    final Optional<GenericRejectionCause> result = validationService
+                        .checkEmptyIdentifierSlaveModeValidator()
+                        .validate(acm, acm.getIdentifier());
+                    result.ifPresent(
+                        genericRejectionCause ->
+                            error.addToErrors(
+                                getVitamError(
+                                    VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                    result.get().getReason()
+                                ).setMessage(EMPTY_REQUIRED_FIELD)
+                            )
+                    );
                 }
-
             }
             if (error.getErrors() != null && !error.getErrors().isEmpty()) {
                 // log book + application log
                 // stop
-                final String errorsDetails =
-                    error.getErrors().stream().map(VitamError::getDescription).collect(Collectors.joining(","));
-                logbookService.logValidationError(errorsDetails, CONTRACTS_IMPORT_EVENT,
-                    error.getErrors().get(0).getMessage());
+                final String errorsDetails = error
+                    .getErrors()
+                    .stream()
+                    .map(VitamError::getDescription)
+                    .collect(Collectors.joining(","));
+                logbookService.logValidationError(
+                    errorsDetails,
+                    CONTRACTS_IMPORT_EVENT,
+                    error.getErrors().get(0).getMessage()
+                );
                 return error;
             }
 
             contractsToPersist = JsonHandler.createArrayNode();
             for (final AccessContractModel acm : contractModelList) {
-
-                ContractHelper.setIdentifier(slaveMode, acm, vitamCounterService,
-                    SequenceType.ACCESS_CONTRACT_SEQUENCE);
+                ContractHelper.setIdentifier(
+                    slaveMode,
+                    acm,
+                    vitamCounterService,
+                    SequenceType.ACCESS_CONTRACT_SEQUENCE
+                );
                 acm.initializeDefaultValue();
 
                 final ObjectNode accessContractNode = (ObjectNode) JsonHandler.toJsonNode(acm);
@@ -348,25 +388,29 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 eip,
                 CONTRACT_BACKUP_EVENT,
                 FunctionalAdminCollections.ACCESS_CONTRACT,
-                eip.toString());
+                eip.toString()
+            );
 
             logbookService.logSuccess();
 
-            return new RequestResponseOK<AccessContractModel>().addAllResults(contractModelList)
+            return new RequestResponseOK<AccessContractModel>()
+                .addAllResults(contractModelList)
                 .setHttpCode(Response.Status.CREATED.getStatusCode());
-
         } catch (SchemaValidationException | BadRequestException exp) {
             LOGGER.error(exp);
             final String err = "Import access contracts error > " + exp.getMessage();
             logbookService.logValidationError(err, CONTRACTS_IMPORT_EVENT, CONTRACT_BAD_REQUEST);
-            return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), exp.getMessage()
-            ).setDescription(err).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+            return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), exp.getMessage())
+                .setDescription(err)
+                .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         } catch (final Exception exp) {
             LOGGER.error(exp);
             final String err = "Import access contracts error > " + exp.getMessage();
             logbookService.logFatalError(err, CONTRACTS_IMPORT_EVENT);
-            return error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err).setHttpCode(
-                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            return error
+                .setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
+                .setDescription(err)
+                .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
     }
 
@@ -374,8 +418,13 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     public AccessContractModel findByIdentifier(String identifier)
         throws ReferentialException, InvalidParseOperationException {
         SanityChecker.checkParameter(identifier);
-        try (DbRequestResult result = ContractHelper.findByIdentifier(identifier,
-            FunctionalAdminCollections.ACCESS_CONTRACT, mongoAccess)) {
+        try (
+            DbRequestResult result = ContractHelper.findByIdentifier(
+                identifier,
+                FunctionalAdminCollections.ACCESS_CONTRACT,
+                mongoAccess
+            )
+        ) {
             final List<AccessContractModel> list = result.getDocuments(AccessContract.class, AccessContractModel.class);
             if (list.isEmpty()) {
                 return null;
@@ -388,8 +437,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     public RequestResponseOK<AccessContractModel> findContracts(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException {
         SanityChecker.checkJsonAll(queryDsl);
-        try (DbRequestResult result =
-            mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ACCESS_CONTRACT)) {
+        try (DbRequestResult result = mongoAccess.findDocuments(queryDsl, FunctionalAdminCollections.ACCESS_CONTRACT)) {
             return result.getRequestResponseOK(queryDsl, AccessContract.class, AccessContractModel.class);
         }
     }
@@ -403,23 +451,34 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     public RequestResponse<AccessContractModel> updateContract(String identifier, JsonNode queryDsl)
         throws VitamException {
         ParametersChecker.checkParameter(UPDATE_ACCESS_CONTRACT_MANDATORY_PATAMETER, queryDsl);
-        VitamError<AccessContractModel> error =
-            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), "Access contract update error")
-                .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+        VitamError<AccessContractModel> error = getVitamError(
+            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+            "Access contract update error"
+        ).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
 
         final AccessContractModel accContractModel = findByIdentifier(identifier);
         Map<String, List<String>> updateDiffs;
         if (accContractModel == null) {
             error.setHttpCode(Response.Status.NOT_FOUND.getStatusCode());
-            return error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                ACCESS_CONTRACT_NOT_FOUND + identifier).setMessage(UPDATE_CONTRACT_NOT_FOUND));
+            return error.addToErrors(
+                getVitamError(
+                    VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                    ACCESS_CONTRACT_NOT_FOUND + identifier
+                ).setMessage(UPDATE_CONTRACT_NOT_FOUND)
+            );
         }
 
         String operationId = VitamThreadUtils.getVitamSession().getRequestId();
         GUID eip = GUIDReader.getGUID(operationId);
         AccessContractValidationService validationService = new AccessContractValidationService(metaDataClient);
-        ContractLogbookService logbookService = new ContractLogbookService(logbookClient, eip, CONTRACTS_IMPORT_EVENT,
-            CONTRACT_UPDATE_EVENT, CONTRACT_KEY, CONTRACT_CHECK_KEY);
+        ContractLogbookService logbookService = new ContractLogbookService(
+            logbookClient,
+            eip,
+            CONTRACTS_IMPORT_EVENT,
+            CONTRACT_UPDATE_EVENT,
+            CONTRACT_KEY,
+            CONTRACT_CHECK_KEY
+        );
 
         RequestResponseOK<AccessContractModel> response = new RequestResponseOK<>();
 
@@ -441,26 +500,35 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 }
 
                 ((ObjectNode) fieldName).remove(AbstractContractModel.TAG_CREATION_DATE);
-                ((ObjectNode) fieldName).put(AbstractContractModel.TAG_LAST_UPDATE,
-                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
+                ((ObjectNode) fieldName).put(
+                        AbstractContractModel.TAG_LAST_UPDATE,
+                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+                    );
             }
         }
 
         if (error.getErrors() != null && error.getErrors().size() > 0) {
-            final String errorsDetails =
-                error.getErrors().stream().map(VitamError::getDescription).collect(Collectors.joining(","));
-            logbookService.logValidationError(errorsDetails, CONTRACT_UPDATE_EVENT,
-                error.getErrors().get(0).getMessage());
+            final String errorsDetails = error
+                .getErrors()
+                .stream()
+                .map(VitamError::getDescription)
+                .collect(Collectors.joining(","));
+            logbookService.logValidationError(
+                errorsDetails,
+                CONTRACT_UPDATE_EVENT,
+                error.getErrors().get(0).getMessage()
+            );
 
             return error;
         }
 
         try {
-
-            try (DbRequestResult result = mongoAccess
-                .updateData(queryDsl, FunctionalAdminCollections.ACCESS_CONTRACT)) {
+            try (
+                DbRequestResult result = mongoAccess.updateData(queryDsl, FunctionalAdminCollections.ACCESS_CONTRACT)
+            ) {
                 updateDiffs = result.getDiffs();
-                response.addAllResults(result.getDocuments(AccessContract.class, AccessContractModel.class))
+                response
+                    .addAllResults(result.getDocuments(AccessContract.class, AccessContractModel.class))
                     .setTotal(result.getTotal())
                     .setQuery(queryDsl)
                     .setHttpCode(Response.Status.OK.getStatusCode());
@@ -470,40 +538,52 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 eip,
                 CONTRACT_BACKUP_EVENT,
                 FunctionalAdminCollections.ACCESS_CONTRACT,
-                accContractModel.getId());
+                accContractModel.getId()
+            );
 
-            logbookService.logUpdateSuccess(accContractModel.getId(), identifier,
-                updateDiffs.get(accContractModel.getId()));
+            logbookService.logUpdateSuccess(
+                accContractModel.getId(),
+                identifier,
+                updateDiffs.get(accContractModel.getId())
+            );
             return response;
-
         } catch (SchemaValidationException | BadRequestException exp) {
             LOGGER.error(exp);
-            final String err =
-                "Update access contract error > " + exp.getMessage();
+            final String err = "Update access contract error > " + exp.getMessage();
             logbookService.logValidationError(err, CONTRACT_UPDATE_EVENT, UPDATE_CONTRACT_BAD_REQUEST);
-            return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), exp.getMessage()
-            ).setDescription(err).setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
+            return getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(), exp.getMessage())
+                .setDescription(err)
+                .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode());
         } catch (Exception exp) {
             LOGGER.error(exp);
-            final String err =
-                "Update access contract error > " + exp.getMessage();
+            final String err = "Update access contract error > " + exp.getMessage();
             logbookService.logFatalError(err, CONTRACT_UPDATE_EVENT);
-            return error.setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem()).setDescription(err).setHttpCode(
-                Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            return error
+                .setCode(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR.getItem())
+                .setDescription(err)
+                .setHttpCode(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode());
         }
     }
 
-    private void validateUpdateAction(AccessContractValidationService validationService, String contractName,
+    private void validateUpdateAction(
+        AccessContractValidationService validationService,
+        String contractName,
         final VitamError<AccessContractModel> error,
-        final String field, final JsonNode value) {
-
+        final String field,
+        final JsonNode value
+    ) {
         switch (field) {
             case AccessContract.STATUS:
-                if (!(ActivationStatus.ACTIVE.name().equals(value.asText()) || ActivationStatus.INACTIVE
-                    .name().equals(value.asText()))) {
-                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText())
-                        .setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                if (
+                    !(ActivationStatus.ACTIVE.name().equals(value.asText()) ||
+                        ActivationStatus.INACTIVE.name().equals(value.asText()))
+                ) {
+                    error.addToErrors(
+                        getVitamError(
+                            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            THE_ACCESS_CONTRACT_STATUS_MUST_BE_ACTIVE_OR_INACTIVE_BUT_NOT + value.asText()
+                        ).setMessage(UPDATE_VALUE_NOT_IN_ENUM)
+                    );
                 }
                 break;
             case AccessContract.LAST_UPDATE:
@@ -513,129 +593,157 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 try {
                     LocalDateUtil.getFormattedDateForMongo(value.asText());
                 } catch (DateTimeParseException e) {
-                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        String.format("%s %s", field, DATE_MUST_BE_VALID))
-                        .setMessage(UPDATE_CONTRACT_BAD_REQUEST));
+                    error.addToErrors(
+                        getVitamError(
+                            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            String.format("%s %s", field, DATE_MUST_BE_VALID)
+                        ).setMessage(UPDATE_CONTRACT_BAD_REQUEST)
+                    );
                 }
                 break;
             case AccessContractModel.EVERY_ORIGINATINGAGENCY:
                 if (!(value instanceof BooleanNode)) {
-                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
-                            value.asText()
-                    ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                    error.addToErrors(
+                        getVitamError(
+                            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            THE_ACCESS_CONTRACT_EVERY_ORIGINATING_AGENCY_MUST_BE_TRUE_OR_FALSE_BUT_NOT + value.asText()
+                        ).setMessage(UPDATE_VALUE_NOT_IN_ENUM)
+                    );
                 }
                 break;
             case AccessContractModel.ORIGINATING_AGENCIES:
                 if (!value.isArray()) {
-                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        ORIGINATING_AGENCIES_INVALID +
-                            value.asText()
-                    ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                    error.addToErrors(
+                        getVitamError(
+                            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            ORIGINATING_AGENCIES_INVALID + value.asText()
+                        ).setMessage(UPDATE_VALUE_NOT_IN_ENUM)
+                    );
                 } else {
-
                     try {
-                        Set<String> originatingAgencies = JsonHandler.getFromJsonNode(value, new TypeReference<>() {
-                        });
+                        Set<String> originatingAgencies = JsonHandler.getFromJsonNode(value, new TypeReference<>() {});
                         AccessContractModel toValidate = new AccessContractModel();
                         toValidate.setOriginatingAgencies(originatingAgencies);
-                        Optional<GenericRejectionCause> rejection =
-                            validationService.checkExistenceOriginatingAgenciesValidator()
-                                .validate(toValidate, contractName);
+                        Optional<GenericRejectionCause> rejection = validationService
+                            .checkExistenceOriginatingAgenciesValidator()
+                            .validate(toValidate, contractName);
 
                         // Validation error
-                        rejection.ifPresent(genericRejectionCause -> error.addToErrors(
-                            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                                genericRejectionCause.getReason())
-                                .setMessage(UPDATE_AGENCY_NOT_FOUND)));
-
+                        rejection.ifPresent(
+                            genericRejectionCause ->
+                                error.addToErrors(
+                                    getVitamError(
+                                        VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                        genericRejectionCause.getReason()
+                                    ).setMessage(UPDATE_AGENCY_NOT_FOUND)
+                                )
+                        );
                     } catch (InvalidParseOperationException e) {
-                        error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                            ROOT_UNIT_INVALID +
-                                value.asText()
-                        ));
+                        error.addToErrors(
+                            getVitamError(
+                                VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                ROOT_UNIT_INVALID + value.asText()
+                            )
+                        );
                     }
                 }
                 break;
             case AccessContractModel.EVERY_DATA_OBJECT_VERSION:
                 if (!(value instanceof BooleanNode)) {
-                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT +
-                            value.asText()
-                    ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                    error.addToErrors(
+                        getVitamError(
+                            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            THE_ACCESS_CONTRACT_EVERY_DATA_OBJECT_VERSION_MUST_BE_TRUE_OR_FALSE_BUT_NOT + value.asText()
+                        ).setMessage(UPDATE_VALUE_NOT_IN_ENUM)
+                    );
                 }
                 break;
             case AccessContractModel.DATA_OBJECT_VERSION:
                 if (!validateObjectVersion(value)) {
-                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        DATA_OBJECT_VERSION_INVALID +
-                            value.asText()
-                    ).setMessage(UPDATE_VALUE_NOT_IN_ENUM));
+                    error.addToErrors(
+                        getVitamError(
+                            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            DATA_OBJECT_VERSION_INVALID + value.asText()
+                        ).setMessage(UPDATE_VALUE_NOT_IN_ENUM)
+                    );
                 }
                 break;
             case AccessContractModel.ROOT_UNITS:
                 // Validate that RootUnits if not empty exists in database
                 if (!value.isArray()) {
-                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        ROOT_UNIT_INVALID +
-                            value.asText()
-                    ).setMessage(UPDATE_KO));
+                    error.addToErrors(
+                        getVitamError(
+                            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            ROOT_UNIT_INVALID + value.asText()
+                        ).setMessage(UPDATE_KO)
+                    );
                 } else {
-
                     try {
                         Set<String> rootUnits = JsonHandler.getFromJsonNode(value, Set.class, String.class);
                         AccessContractModel toValidate = new AccessContractModel();
                         toValidate.setRootUnits(rootUnits);
-                        Optional<GenericRejectionCause> rejection =
-                            validationService.validateExistsArchiveUnits(metaDataClient)
-                                .validate(toValidate, contractName);
+                        Optional<GenericRejectionCause> rejection = validationService
+                            .validateExistsArchiveUnits(metaDataClient)
+                            .validate(toValidate, contractName);
 
                         // Validation error
-                        rejection.ifPresent(genericRejectionCause -> error.addToErrors(
-                            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                                genericRejectionCause.getReason())
-                                .setMessage(UPDATE_KO)));
-
+                        rejection.ifPresent(
+                            genericRejectionCause ->
+                                error.addToErrors(
+                                    getVitamError(
+                                        VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                        genericRejectionCause.getReason()
+                                    ).setMessage(UPDATE_KO)
+                                )
+                        );
                     } catch (InvalidParseOperationException e) {
-                        error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                            ROOT_UNIT_INVALID +
-                                value.asText()
-                        ).setMessage(UPDATE_KO));
+                        error.addToErrors(
+                            getVitamError(
+                                VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                ROOT_UNIT_INVALID + value.asText()
+                            ).setMessage(UPDATE_KO)
+                        );
                     }
                 }
                 break;
             case AccessContractModel.EXCLUDED_ROOT_UNITS:
                 // Validate that ExcludedRootUnits, if not empty, exists in database
                 if (!value.isArray()) {
-                    error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                        EXCLUDED_ROOT_UNIT_INVALID +
-                            value.asText()
-                    ).setMessage(UPDATE_KO));
+                    error.addToErrors(
+                        getVitamError(
+                            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            EXCLUDED_ROOT_UNIT_INVALID + value.asText()
+                        ).setMessage(UPDATE_KO)
+                    );
                 } else {
-
                     try {
                         Set<String> excludedRootUnits = JsonHandler.getFromJsonNode(value, Set.class, String.class);
                         AccessContractModel toValidate = new AccessContractModel();
                         toValidate.setExcludedRootUnits(excludedRootUnits);
-                        Optional<GenericRejectionCause> rejection =
-                            validationService.validateExistsArchiveUnits(metaDataClient)
-                                .validate(toValidate, contractName);
+                        Optional<GenericRejectionCause> rejection = validationService
+                            .validateExistsArchiveUnits(metaDataClient)
+                            .validate(toValidate, contractName);
 
                         // Validation error
-                        rejection.ifPresent(genericRejectionCause -> error.addToErrors(
-                            getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                                genericRejectionCause.getReason())
-                                .setMessage(UPDATE_KO)));
-
+                        rejection.ifPresent(
+                            genericRejectionCause ->
+                                error.addToErrors(
+                                    getVitamError(
+                                        VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                        genericRejectionCause.getReason()
+                                    ).setMessage(UPDATE_KO)
+                                )
+                        );
                     } catch (InvalidParseOperationException e) {
-                        error.addToErrors(getVitamError(VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                            ROOT_UNIT_INVALID +
-                                value.asText()
-                        ).setMessage(UPDATE_KO));
+                        error.addToErrors(
+                            getVitamError(
+                                VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                                ROOT_UNIT_INVALID + value.asText()
+                            ).setMessage(UPDATE_KO)
+                        );
                     }
                 }
                 break;
-
         }
     }
 
@@ -659,18 +767,21 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
     }
 
     private VitamError<AccessContractModel> getVitamError(String vitamCode, String error) {
-        return VitamErrorUtils.getVitamError(vitamCode, error, "AccessContract", StatusCode.KO,
-            AccessContractModel.class);
+        return VitamErrorUtils.getVitamError(
+            vitamCode,
+            error,
+            "AccessContract",
+            StatusCode.KO,
+            AccessContractModel.class
+        );
     }
-
 
     /**
      * Contract validator and logBook manager
      */
-    protected final static class AccessContractValidationService {
+    protected static final class AccessContractValidationService {
 
         private final Map<AccessContractValidator, String> validators;
-
 
         public AccessContractValidationService(MetaDataClient metaDataClient) {
             // Init validator
@@ -685,9 +796,11 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             };
         }
 
-        private boolean validateContract(AccessContractModel contract, String jsonFormat,
-            VitamError<AccessContractModel> error) {
-
+        private boolean validateContract(
+            AccessContractModel contract,
+            String jsonFormat,
+            VitamError<AccessContractModel> error
+        ) {
             for (final AccessContractValidator validator : validators.keySet()) {
                 final Optional<GenericRejectionCause> result = validator.validate(contract, jsonFormat);
                 if (result.isPresent()) {
@@ -695,12 +808,15 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     /* contract is valid, add it to the list to persist */
                     error.addToErrors(
                         VitamErrorUtils.getVitamError(
-                                VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
-                                result.get().getReason(),
-                                "AccessContract",
-                                StatusCode.KO, AccessContractModel.class)
+                            VitamCode.CONTRACT_VALIDATION_ERROR.getItem(),
+                            result.get().getReason(),
+                            "AccessContract",
+                            StatusCode.KO,
+                            AccessContractModel.class
+                        )
                             .setMessage(validators.get(validator))
-                            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode()));
+                            .setHttpCode(Response.Status.BAD_REQUEST.getStatusCode())
+                    );
                     // once a validation error is detected on a contract, jump to next contract
                     return false;
                 }
@@ -751,20 +867,21 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     if (contract.getActivationdate() == null || contract.getActivationdate().trim().isEmpty()) {
                         contract.setActivationdate(now);
                     } else {
-                        contract
-                            .setActivationdate(LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate()));
+                        contract.setActivationdate(
+                            LocalDateUtil.getFormattedDateForMongo(contract.getActivationdate())
+                        );
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error access contract parse dates", e);
                     rejection = GenericRejectionCause.rejectMandatoryMissing("ActivationDate");
                 }
                 try {
-
                     if (contract.getDeactivationdate() == null || contract.getDeactivationdate().trim().isEmpty()) {
                         contract.setDeactivationdate(null);
                     } else {
-                        contract.setDeactivationdate(LocalDateUtil.getFormattedDateForMongo(contract
-                            .getDeactivationdate()));
+                        contract.setDeactivationdate(
+                            LocalDateUtil.getFormattedDateForMongo(contract.getDeactivationdate())
+                        );
                     }
                 } catch (final Exception e) {
                     LOGGER.error("Error access contract parse dates", e);
@@ -785,8 +902,7 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
         private AccessContractValidator checkEmptyIdentifierSlaveModeValidator() {
             return (contract, contractName) -> {
                 if (contract.getIdentifier() == null || contract.getIdentifier().isEmpty()) {
-                    return Optional.of(GenericRejectionCause
-                        .rejectMandatoryMissing(AccessContract.IDENTIFIER));
+                    return Optional.of(GenericRejectionCause.rejectMandatoryMissing(AccessContract.IDENTIFIER));
                 }
                 return Optional.empty();
             };
@@ -801,9 +917,10 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
             return (contract, contractName) -> {
                 if (ParametersChecker.isNotEmpty(contract.getIdentifier())) {
                     final int tenant = ParameterHelper.getTenantParameter();
-                    final Bson clause =
-                        and(Filters.eq(VitamDocument.TENANT_ID, tenant),
-                            Filters.eq(AccessContract.IDENTIFIER, contract.getIdentifier()));
+                    final Bson clause = and(
+                        Filters.eq(VitamDocument.TENANT_ID, tenant),
+                        Filters.eq(AccessContract.IDENTIFIER, contract.getIdentifier())
+                    );
                     final boolean exist =
                         FunctionalAdminCollections.ACCESS_CONTRACT.getCollection().countDocuments(clause) > 0;
                     if (exist) {
@@ -827,13 +944,14 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
 
                 final int tenant = ParameterHelper.getTenantParameter();
 
-                final Bson clause =
-                    and(Filters.eq(VitamDocument.TENANT_ID, tenant),
-                        Filters.in(Agencies.IDENTIFIER, contract.getOriginatingAgencies()));
+                final Bson clause = and(
+                    Filters.eq(VitamDocument.TENANT_ID, tenant),
+                    Filters.in(Agencies.IDENTIFIER, contract.getOriginatingAgencies())
+                );
 
-                FindIterable<Agencies> find =
-                    FunctionalAdminCollections.AGENCIES.<Agencies>getCollection()
-                        .find(clause).projection(new BasicDBObject(Agencies.IDENTIFIER, 1));
+                FindIterable<Agencies> find = FunctionalAdminCollections.AGENCIES.<Agencies>getCollection()
+                    .find(clause)
+                    .projection(new BasicDBObject(Agencies.IDENTIFIER, 1));
 
                 MongoCursor<Agencies> it = find.iterator();
                 Set<String> notFound = new HashSet<>(contract.getOriginatingAgencies());
@@ -844,13 +962,13 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                 }
 
                 if (!notFound.isEmpty()) {
-                    return Optional.of(GenericRejectionCause
-                        .rejectRootUnitsNotFound(contractName, String.join(",", notFound)));
+                    return Optional.of(
+                        GenericRejectionCause.rejectRootUnitsNotFound(contractName, String.join(",", notFound))
+                    );
                 }
                 return Optional.empty();
             };
         }
-
 
         /**
          * Check if the contract have root Units and all ArchiveUnits corresponding to the rootUnits exists in database
@@ -858,12 +976,12 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
          * @return
          */
         private AccessContractValidator validateExistsArchiveUnits(MetaDataClient metaDataClient) {
-
             return (contract, contractName) -> {
                 Set<String> checkUnits = new HashSet<>();
                 Set<String> includeUnits = contract.getRootUnits() == null ? new HashSet<>() : contract.getRootUnits();
-                Set<String> excludeUnits =
-                    contract.getExcludedRootUnits() == null ? new HashSet<>() : contract.getExcludedRootUnits();
+                Set<String> excludeUnits = contract.getExcludedRootUnits() == null
+                    ? new HashSet<>()
+                    : contract.getExcludedRootUnits();
 
                 if (!includeUnits.isEmpty() && !excludeUnits.isEmpty()) {
                     checkUnits.addAll(includeUnits);
@@ -877,17 +995,26 @@ public class AccessContractImpl implements ContractService<AccessContractModel> 
                     return selectUnits(metaDataClient, contract, contractName, checkUnits, "AllUnits");
                 } else if (!excludeUnits.isEmpty()) {
                     checkUnits = excludeUnits;
-                    return selectUnits(metaDataClient, contract, contractName, checkUnits,
-                        AccessContractModel.EXCLUDED_ROOT_UNITS);
+                    return selectUnits(
+                        metaDataClient,
+                        contract,
+                        contractName,
+                        checkUnits,
+                        AccessContractModel.EXCLUDED_ROOT_UNITS
+                    );
                 } else if (!includeUnits.isEmpty()) {
                     checkUnits = includeUnits;
-                    return selectUnits(metaDataClient, contract, contractName, checkUnits,
-                        AccessContractModel.ROOT_UNITS);
+                    return selectUnits(
+                        metaDataClient,
+                        contract,
+                        contractName,
+                        checkUnits,
+                        AccessContractModel.ROOT_UNITS
+                    );
                 } else {
                     return Optional.empty();
                 }
             };
         }
     }
-
 }

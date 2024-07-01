@@ -55,14 +55,15 @@ public class MongoDbAccessMetadataFactory {
      * @return the MongoDbAccess
      * @throws IllegalArgumentException if argument is null
      */
-    public static MongoDbAccessMetadataImpl create(MetaDataConfiguration configuration,
-        ElasticsearchMetadataIndexManager elasticsearchMetadataIndexManager) {
+    public static MongoDbAccessMetadataImpl create(
+        MetaDataConfiguration configuration,
+        ElasticsearchMetadataIndexManager elasticsearchMetadataIndexManager
+    ) {
         ParametersChecker.checkParameter("configuration is a mandatory parameter", configuration);
 
         ElasticsearchAccessMetadata esClient;
         try {
             esClient = ElasticsearchAccessMetadataFactory.create(configuration, elasticsearchMetadataIndexManager);
-
         } catch (final MetaDataException e1) {
             throw new IllegalArgumentException(e1);
         }
@@ -87,7 +88,13 @@ public class MongoDbAccessMetadataFactory {
             objectCollection.setPrefix("");
         }
 
-        return new MongoDbAccessMetadataImpl(mongoClient, configuration.getDbName(), false, esClient, unitCollection,
-            objectCollection);
+        return new MongoDbAccessMetadataImpl(
+            mongoClient,
+            configuration.getDbName(),
+            false,
+            esClient,
+            unitCollection,
+            objectCollection
+        );
     }
 }

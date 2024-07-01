@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.security.internal.rest.service;
 
-
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
@@ -66,7 +65,8 @@ public class PersonalCertificateServiceTest {
     public static final String TEST_PERMISSION = "TEST_PERMISSION";
     public static final String CERTIFICATE_HASH = "336d23963cd039a856e2c24188cd15eb98b85cf7075a84c540a362e54fa6ae79";
     public static final String CERTIFICATE_FILE = "/certificate.pem";
-    private static final String evedetData = "{\n" +
+    private static final String evedetData =
+        "{\n" +
         "  \"Context\" : {\n" +
         "    \"CertificateSn\" : \"3\",\n" +
         "    \"CertificateSubjectDN\" : \"CN=userAdmin, O=VITAM, L=Paris, C=FR\",\n" +
@@ -75,8 +75,9 @@ public class PersonalCertificateServiceTest {
         "}";
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -92,13 +93,11 @@ public class PersonalCertificateServiceTest {
     @Before
     public void setUp() throws Exception {
         personalCertificateService = new PersonalCertificateService(logbookOperationsClientFactory, personalRepository);
-
     }
 
     @Test
     @RunWithCustomExecutor
-    public void should_fail_to_parse_invalid_certificate()
-        throws Exception {
+    public void should_fail_to_parse_invalid_certificate() throws Exception {
         // Given
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
         LogbookOperationsClient logbookOperationsClient = mock(LogbookOperationsClient.class);
@@ -106,8 +105,8 @@ public class PersonalCertificateServiceTest {
 
         // When /then
         assertThatThrownBy(
-            () -> personalCertificateService.checkPersonalCertificateExistence(new byte[3], TEST_PERMISSION))
-            .isInstanceOf(PersonalCertificateException.class);
+            () -> personalCertificateService.checkPersonalCertificateExistence(new byte[3], TEST_PERMISSION)
+        ).isInstanceOf(PersonalCertificateException.class);
         verify(logbookOperationsClient).create(captor.capture());
 
         LogbookOperationParameters parameters = captor.getValue();
@@ -117,7 +116,8 @@ public class PersonalCertificateServiceTest {
         assertThat(parameters.getParameterValue(eventTypeProcess)).isEqualTo("CHECK");
         assertThat(parameters.getParameterValue(outcome)).isEqualTo("KO");
 
-        String evedetDataInvalidCertificate = "{\n" +
+        String evedetDataInvalidCertificate =
+            "{\n" +
             "  \"Context\" : {\n" +
             "    \"Certificate\" : \"Invalid certificate\",\n" +
             "    \"Permission\" : \"TEST_PERMISSION\"\n" +
@@ -128,16 +128,16 @@ public class PersonalCertificateServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_fail_when_no_certificate_transmitted()
-        throws Exception {
+    public void should_fail_when_no_certificate_transmitted() throws Exception {
         // Given
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
         LogbookOperationsClient logbookOperationsClient = mock(LogbookOperationsClient.class);
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
 
         // When /then
-        assertThatThrownBy(() -> personalCertificateService.checkPersonalCertificateExistence(null, TEST_PERMISSION))
-            .hasMessageContaining("No certificate transmitted");
+        assertThatThrownBy(
+            () -> personalCertificateService.checkPersonalCertificateExistence(null, TEST_PERMISSION)
+        ).hasMessageContaining("No certificate transmitted");
         verify(logbookOperationsClient).create(captor.capture());
         LogbookOperationParameters parameters = captor.getValue();
 
@@ -147,7 +147,8 @@ public class PersonalCertificateServiceTest {
         assertThat(parameters.getParameterValue(eventTypeProcess)).isEqualTo("CHECK");
         assertThat(parameters.getParameterValue(outcome)).isEqualTo("KO");
 
-        String evedetDataNoCertificate = "{\n" +
+        String evedetDataNoCertificate =
+            "{\n" +
             "  \"Context\" : {\n" +
             "    \"Certificate\" : \"No certificate\",\n" +
             "    \"Permission\" : \"TEST_PERMISSION\"\n" +
@@ -158,8 +159,7 @@ public class PersonalCertificateServiceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_fail_when_no_valid_certificate_transmitted()
-        throws Exception {
+    public void should_fail_when_no_valid_certificate_transmitted() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream(CERTIFICATE_FILE);
         byte[] certificate = toByteArray(stream);
@@ -167,14 +167,14 @@ public class PersonalCertificateServiceTest {
 
         LogbookOperationsClient logbookOperationsClient = mock(LogbookOperationsClient.class);
         given(logbookOperationsClientFactory.getClient()).willReturn(logbookOperationsClient);
-        given(personalRepository.findPersonalCertificateByHash(any()))
-            .willReturn(Optional.empty());
+        given(personalRepository.findPersonalCertificateByHash(any())).willReturn(Optional.empty());
         // When /then
         assertThatThrownBy(
-            () -> personalCertificateService.checkPersonalCertificateExistence(certificate, TEST_PERMISSION))
-            .isInstanceOf(PersonalCertificateException.class).hasMessageContaining("Invalid certificate");
-        verify(personalRepository)
-            .findPersonalCertificateByHash(CERTIFICATE_HASH);
+            () -> personalCertificateService.checkPersonalCertificateExistence(certificate, TEST_PERMISSION)
+        )
+            .isInstanceOf(PersonalCertificateException.class)
+            .hasMessageContaining("Invalid certificate");
+        verify(personalRepository).findPersonalCertificateByHash(CERTIFICATE_HASH);
         verify(logbookOperationsClient).create(captor.capture());
         LogbookOperationParameters parameters = captor.getValue();
 
@@ -185,13 +185,11 @@ public class PersonalCertificateServiceTest {
         assertThat(parameters.getParameterValue(outcome)).isEqualTo("KO");
 
         assertThat(parameters.getParameterValue(eventDetailData)).isEqualTo(evedetData);
-
     }
 
     @Test
     @RunWithCustomExecutor
-    public void should_check_valid_certificate_transmitted()
-        throws Exception {
+    public void should_check_valid_certificate_transmitted() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream(CERTIFICATE_FILE);
         byte[] certificate = toByteArray(stream);
@@ -199,67 +197,60 @@ public class PersonalCertificateServiceTest {
         PersonalCertificateModel personalCertificateModel = new PersonalCertificateModel();
         personalCertificateModel.setCertificate(certificate);
         given(logbookOperationsClientFactory.getClient()).willReturn(mock(LogbookOperationsClient.class));
-        given(personalRepository.findPersonalCertificateByHash(any()))
-            .willReturn(Optional.of(personalCertificateModel));
+        given(personalRepository.findPersonalCertificateByHash(any())).willReturn(
+            Optional.of(personalCertificateModel)
+        );
         // When
 
         personalCertificateService.checkPersonalCertificateExistence(certificate, TEST_PERMISSION);
         ///then
-        verify(personalRepository)
-            .findPersonalCertificateByHash(CERTIFICATE_HASH);
+        verify(personalRepository).findPersonalCertificateByHash(CERTIFICATE_HASH);
         verifyNoMoreInteractions(logbookOperationsClientFactory, personalRepository);
     }
 
     @Test
-    public void should_create_certificate_transmitted_not_already_exists()
-        throws Exception {
+    public void should_create_certificate_transmitted_not_already_exists() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream(CERTIFICATE_FILE);
         byte[] certificate = toByteArray(stream);
         ArgumentCaptor<PersonalCertificateModel> argumentCaptor = forClass(PersonalCertificateModel.class);
-        given(personalRepository.findPersonalCertificateByHash(any()))
-            .willReturn(Optional.empty());
+        given(personalRepository.findPersonalCertificateByHash(any())).willReturn(Optional.empty());
         // When
         personalCertificateService.createPersonalCertificateIfNotPresent(certificate);
         ///then
-        verify(personalRepository).findPersonalCertificateByHash(
-            CERTIFICATE_HASH);
+        verify(personalRepository).findPersonalCertificateByHash(CERTIFICATE_HASH);
         verify(personalRepository).createPersonalCertificate(argumentCaptor.capture());
 
-        assertThat(argumentCaptor.getValue().getCertificateHash())
-            .isEqualTo(CERTIFICATE_HASH);
+        assertThat(argumentCaptor.getValue().getCertificateHash()).isEqualTo(CERTIFICATE_HASH);
         verifyNoMoreInteractions(logbookOperationsClientFactory, personalRepository);
     }
 
     @Test
-    public void should_create_certificate_transmitted_already_exists()
-        throws Exception {
+    public void should_create_certificate_transmitted_already_exists() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream(CERTIFICATE_FILE);
         byte[] certificate = toByteArray(stream);
         PersonalCertificateModel personalCertificateModel = new PersonalCertificateModel();
         personalCertificateModel.setCertificate(certificate);
-        given(personalRepository.findPersonalCertificateByHash(any()))
-            .willReturn(Optional.of(personalCertificateModel));
+        given(personalRepository.findPersonalCertificateByHash(any())).willReturn(
+            Optional.of(personalCertificateModel)
+        );
         // When
         personalCertificateService.createPersonalCertificateIfNotPresent(certificate);
         ///then
-        verify(personalRepository).findPersonalCertificateByHash(
-            CERTIFICATE_HASH);
+        verify(personalRepository).findPersonalCertificateByHash(CERTIFICATE_HASH);
         verifyNoMoreInteractions(logbookOperationsClientFactory, personalRepository);
     }
 
     @Test
-    public void should_delete_certificate()
-        throws Exception {
+    public void should_delete_certificate() throws Exception {
         // Given
         InputStream stream = getClass().getResourceAsStream(CERTIFICATE_FILE);
         byte[] certificate = toByteArray(stream);
         // When
         personalCertificateService.deletePersonalCertificateIfPresent(certificate);
         ///then
-        verify(personalRepository).deletePersonalCertificate(
-            CERTIFICATE_HASH);
+        verify(personalRepository).deletePersonalCertificate(CERTIFICATE_HASH);
         verifyNoMoreInteractions(logbookOperationsClientFactory, personalRepository);
     }
 }

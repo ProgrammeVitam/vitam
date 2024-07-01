@@ -37,15 +37,16 @@ import java.util.List;
 public class MappingLoaderTestUtils {
 
     public static MappingLoader getTestMappingLoader() {
-        List<ElasticsearchExternalMetadataMapping> mappingData =
-            Arrays.asList(
-                new ElasticsearchExternalMetadataMapping(MetadataCollections.UNIT.getName(),
-                    ElasticsearchTestHelper.loadUnitMapping()
-                ),
-                new ElasticsearchExternalMetadataMapping(MetadataCollections.OBJECTGROUP.getName(),
-                    ElasticsearchTestHelper.loadObjectGroupMapping()
-                )
-            );
+        List<ElasticsearchExternalMetadataMapping> mappingData = Arrays.asList(
+            new ElasticsearchExternalMetadataMapping(
+                MetadataCollections.UNIT.getName(),
+                ElasticsearchTestHelper.loadUnitMapping()
+            ),
+            new ElasticsearchExternalMetadataMapping(
+                MetadataCollections.OBJECTGROUP.getName(),
+                ElasticsearchTestHelper.loadObjectGroupMapping()
+            )
+        );
         return new MappingLoader(mappingData);
     }
 }

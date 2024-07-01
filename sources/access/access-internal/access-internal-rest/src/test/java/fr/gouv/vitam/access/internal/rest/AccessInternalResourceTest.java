@@ -90,8 +90,9 @@ import static org.mockito.Mockito.verify;
 public class AccessInternalResourceTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -119,7 +120,6 @@ public class AccessInternalResourceTest {
 
     @Before
     public void init() {
-
         GUID request = GUIDFactory.newGUID();
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(request);
@@ -131,9 +131,7 @@ public class AccessInternalResourceTest {
 
     @Test
     @RunWithCustomExecutor
-    public void should_create_logbook_when_export_dip()
-        throws Exception {
-
+    public void should_create_logbook_when_export_dip() throws Exception {
         // Given
         GUID request = GUIDFactory.newGUID();
         VitamThreadUtils.getVitamSession().setTenantId(0);
@@ -165,7 +163,6 @@ public class AccessInternalResourceTest {
     @Test
     @RunWithCustomExecutor
     public void testStartEliminationAnalysisWorkflow_ShouldStartWorkflow() throws Exception {
-
         // Given
         AccessContractModel contract = new AccessContractModel();
         contract.setEveryOriginatingAgency(true);
@@ -176,7 +173,9 @@ public class AccessInternalResourceTest {
         select.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-            "2011-01-23", select.getFinalSelect());
+            "2011-01-23",
+            select.getFinalSelect()
+        );
 
         doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
 
@@ -187,7 +186,6 @@ public class AccessInternalResourceTest {
         checkLogbookStarted(Contexts.ELIMINATION_ANALYSIS);
         checkWorkflowCreated(Contexts.ELIMINATION_ANALYSIS);
         checkSaveFileToWorkspace("request.json");
-
     }
 
     /*
@@ -196,7 +194,6 @@ public class AccessInternalResourceTest {
     @Test
     @RunWithCustomExecutor
     public void testStartEliminationActionWorkflow_ShouldStartWorkflow() throws Exception {
-
         // Given
         AccessContractModel contract = new AccessContractModel();
         contract.setEveryOriginatingAgency(true);
@@ -207,7 +204,9 @@ public class AccessInternalResourceTest {
         select.setQuery(QueryHelper.eq(VitamFieldsHelper.id(), "test"));
 
         EliminationRequestBody eliminationRequestBody = new EliminationRequestBody(
-            "2011-01-23", select.getFinalSelect());
+            "2011-01-23",
+            select.getFinalSelect()
+        );
 
         doReturn(new RequestResponseOK<>()).when(processingClient).executeOperationProcess(any(), any(), any());
 
@@ -218,9 +217,7 @@ public class AccessInternalResourceTest {
         checkLogbookStarted(Contexts.ELIMINATION_ACTION);
         checkWorkflowCreated(Contexts.ELIMINATION_ACTION);
         checkSaveFileToWorkspace("request.json");
-
     }
-
 
     /*
      * Bulk Atomic update
@@ -228,7 +225,6 @@ public class AccessInternalResourceTest {
     @Test
     @RunWithCustomExecutor
     public void testBuklAtomicUpdate_launchedOK() throws Exception {
-
         // Given
         AccessContractModel contract = new AccessContractModel();
         contract.setEveryOriginatingAgency(true);
@@ -254,13 +250,11 @@ public class AccessInternalResourceTest {
         checkLogbookStarted(Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC);
         checkWorkflowCreated(Contexts.BULK_ATOMIC_UPDATE_UNIT_DESC);
         checkSaveFileToWorkspace("query.json");
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void testBuklAtomicUpdate_whenWritinPermissionFalse_then_Unauthorized() throws Exception {
-
         // Given
         AccessContractModel contract = new AccessContractModel();
         contract.setEveryOriginatingAgency(true);
@@ -287,7 +281,6 @@ public class AccessInternalResourceTest {
     @Test
     @RunWithCustomExecutor
     public void testBuklAtomicUpdate_whenPermissionPermissionNull_then_Unauthorized() throws Exception {
-
         // Given
         AccessContractModel contract = new AccessContractModel();
         contract.setEveryOriginatingAgency(true);
@@ -314,7 +307,6 @@ public class AccessInternalResourceTest {
     @Test
     @RunWithCustomExecutor
     public void testBuklAtomicUpdate_whenWorkspaceError_then_ServerError() throws Exception {
-
         // Given
         AccessContractModel contract = new AccessContractModel();
         contract.setEveryOriginatingAgency(true);
@@ -344,7 +336,6 @@ public class AccessInternalResourceTest {
     @Test
     @RunWithCustomExecutor
     public void testBuklAtomicUpdate_whenProcessinBadRequest_then_BadRequest() throws Exception {
-
         // Given
         AccessContractModel contract = new AccessContractModel();
         contract.setEveryOriginatingAgency(true);
@@ -371,7 +362,6 @@ public class AccessInternalResourceTest {
         assertThat(response.getStatus()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
     }
 
-
     private void checkLogbookStarted(Contexts event)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         ArgumentCaptor<LogbookOperationParameters> logbookParamsCaptor = forClass(LogbookOperationParameters.class);
@@ -379,31 +369,33 @@ public class AccessInternalResourceTest {
         verify(logbookOperationsClient).create(logbookParamsCaptor.capture());
 
         assertThat(logbookParamsCaptor.getValue()).isNotNull();
-        assertThat(logbookParamsCaptor.getValue().getParameterValue(LogbookParameterName.outcomeDetailMessage))
-            .contains(VitamLogbookMessages.getLabelOp(event.name() + ".STARTED"));
-        assertThat(logbookParamsCaptor.getValue().getParameterValue(LogbookParameterName.eventIdentifierRequest))
-            .isEqualTo(VitamThreadUtils.getVitamSession().getRequestId());
+        assertThat(
+            logbookParamsCaptor.getValue().getParameterValue(LogbookParameterName.outcomeDetailMessage)
+        ).contains(VitamLogbookMessages.getLabelOp(event.name() + ".STARTED"));
+        assertThat(
+            logbookParamsCaptor.getValue().getParameterValue(LogbookParameterName.eventIdentifierRequest)
+        ).isEqualTo(VitamThreadUtils.getVitamSession().getRequestId());
     }
 
     private void checkWorkflowCreated(Contexts context)
-        throws BadRequestException, InternalServerException,
-        VitamClientException {
-
+        throws BadRequestException, InternalServerException, VitamClientException {
         ArgumentCaptor<ProcessingEntry> processingEntryArgumentCaptor = ArgumentCaptor.forClass(ProcessingEntry.class);
 
         verify(processingClient).initVitamProcess(processingEntryArgumentCaptor.capture());
 
         assertThat(processingEntryArgumentCaptor.getValue().getContainer()).isEqualTo(
-            VitamThreadUtils.getVitamSession().getRequestId());
+            VitamThreadUtils.getVitamSession().getRequestId()
+        );
         assertThat(processingEntryArgumentCaptor.getValue().getWorkflow()).isEqualTo(context.getEventType());
 
-        verify(processingClient)
-            .executeOperationProcess(VitamThreadUtils.getVitamSession().getRequestId(), context.name(),
-                ProcessAction.RESUME.getValue());
+        verify(processingClient).executeOperationProcess(
+            VitamThreadUtils.getVitamSession().getRequestId(),
+            context.name(),
+            ProcessAction.RESUME.getValue()
+        );
     }
 
     private void checkSaveFileToWorkspace(String s) throws ContentAddressableStorageServerException {
-        verify(workspaceClient)
-            .putObject(eq(VitamThreadUtils.getVitamSession().getRequestId()), eq(s), any());
+        verify(workspaceClient).putObject(eq(VitamThreadUtils.getVitamSession().getRequestId()), eq(s), any());
     }
 }

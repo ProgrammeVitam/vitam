@@ -84,14 +84,12 @@ public class UpdateActionHelperTest {
             final String longname = createLongString(GlobalDatas.getLimitParameter() + 100);
             add(longname, "id2");
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {
-        }
+        } catch (final InvalidCreateOperationException e) {}
         try {
             final String longvalue = createLongString(GlobalDatas.getLimitValue() + 100);
             add("var", longvalue);
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {
-        }
+        } catch (final InvalidCreateOperationException e) {}
     }
 
     @Test
@@ -163,8 +161,7 @@ public class UpdateActionHelperTest {
             action = min("var1", date);
             assertTrue(action.getCurrentAction().size() == 1);
             assertTrue(action.getCurrentObject().size() == 1);
-            final Date date2 = LocalDateUtil.getDate(
-                action.getCurrentObject().path("var1").get(Query.DATE).asText());
+            final Date date2 = LocalDateUtil.getDate(action.getCurrentObject().path("var1").get(Query.DATE).asText());
             assertTrue(date.equals(date2));
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -195,8 +192,7 @@ public class UpdateActionHelperTest {
             action = max("var1", date);
             assertTrue(action.getCurrentAction().size() == 1);
             assertTrue(action.getCurrentObject().size() == 1);
-            final Date date2 = LocalDateUtil.getDate(
-                action.getCurrentObject().path("var1").get(Query.DATE).asText());
+            final Date date2 = LocalDateUtil.getDate(action.getCurrentObject().path("var1").get(Query.DATE).asText());
             assertTrue(date.equals(date2));
         } catch (final InvalidCreateOperationException e) {
             e.printStackTrace();
@@ -368,5 +364,4 @@ public class UpdateActionHelperTest {
             fail(e.getMessage());
         }
     }
-
 }

@@ -58,9 +58,10 @@ public class LogbookRawResource {
      */
     private final LogbookRepositoryService logbookRepositoryService;
 
-
-    public LogbookRawResource(VitamRepositoryProvider vitamRepositoryProvider,
-        ElasticsearchLogbookIndexManager indexManager) {
+    public LogbookRawResource(
+        VitamRepositoryProvider vitamRepositoryProvider,
+        ElasticsearchLogbookIndexManager indexManager
+    ) {
         this.logbookRepositoryService = new LogbookRepositoryService(vitamRepositoryProvider, indexManager);
     }
 
@@ -107,5 +108,4 @@ public class LogbookRawResource {
         }
         return Response.status(Response.Status.CREATED).build();
     }
-
 }

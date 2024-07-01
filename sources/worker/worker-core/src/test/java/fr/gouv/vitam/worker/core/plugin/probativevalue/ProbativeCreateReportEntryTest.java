@@ -91,6 +91,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
 public class ProbativeCreateReportEntryTest {
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -153,7 +154,8 @@ public class ProbativeCreateReportEntryTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(FATAL);
         assertThat(objectMapper.readValue(handler.getFileFromWorkspace(objectGroupId), ProbativeReportEntry.class))
-            .extracting(ProbativeReportEntry::getObjectGroupId).isEqualTo(objectGroupId);
+            .extracting(ProbativeReportEntry::getObjectGroupId)
+            .isEqualTo(objectGroupId);
     }
 
     @Test
@@ -175,7 +177,8 @@ public class ProbativeCreateReportEntryTest {
         handler.setNewLocalFile(reportFile);
 
         given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(
-            getResponseWith("version_id", "storage_id", "default", "BinaryMaster_25", "OPI"));
+            getResponseWith("version_id", "storage_id", "default", "BinaryMaster_25", "OPI")
+        );
 
         // When
         ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);
@@ -183,7 +186,8 @@ public class ProbativeCreateReportEntryTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
         assertThat(objectMapper.readValue(handler.getFileFromWorkspace(objectGroupId), ProbativeReportEntry.class))
-            .extracting(ProbativeReportEntry::getObjectId).isEqualTo(NO_BINARY_ID);
+            .extracting(ProbativeReportEntry::getObjectId)
+            .isEqualTo(NO_BINARY_ID);
     }
 
     @Test
@@ -212,9 +216,18 @@ public class ProbativeCreateReportEntryTest {
 
         ObjectNode storageInformation = createStorageInformationWithDigest(storageId, "");
 
-        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
-        given(storageClient.getInformation(VitamConfiguration.getDefaultStrategy(), OBJECT, versionId,
-            Collections.singletonList(storageId), false)).willReturn(storageInformation);
+        given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(
+            getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI")
+        );
+        given(
+            storageClient.getInformation(
+                VitamConfiguration.getDefaultStrategy(),
+                OBJECT,
+                versionId,
+                Collections.singletonList(storageId),
+                false
+            )
+        ).willReturn(storageInformation);
 
         // When
         ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);
@@ -222,7 +235,8 @@ public class ProbativeCreateReportEntryTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
         assertThat(objectMapper.readValue(handler.getFileFromWorkspace(objectGroupId), ProbativeReportEntry.class))
-            .extracting(ProbativeReportEntry::getObjectId).isEqualTo(versionId);
+            .extracting(ProbativeReportEntry::getObjectId)
+            .isEqualTo(versionId);
     }
 
     @Test
@@ -250,10 +264,14 @@ public class ProbativeCreateReportEntryTest {
         String strategyId = "other_strategy";
 
         given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(
-            getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI"));
-        given(storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId),
-            false)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
-        given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(objectMapper.valueToTree(new LogbookLifecycle()));
+            getResponseWith(versionId, storageId, strategyId, usageVersion, "OPI")
+        );
+        given(
+            storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId), false)
+        ).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
+        given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(
+            objectMapper.valueToTree(new LogbookLifecycle())
+        );
 
         // When
         ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);
@@ -261,7 +279,8 @@ public class ProbativeCreateReportEntryTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(KO);
         assertThat(objectMapper.readValue(handler.getFileFromWorkspace(objectGroupId), ProbativeReportEntry.class))
-            .extracting(ProbativeReportEntry::getObjectId).isEqualTo(versionId);
+            .extracting(ProbativeReportEntry::getObjectId)
+            .isEqualTo(versionId);
     }
 
     @Test
@@ -289,36 +308,70 @@ public class ProbativeCreateReportEntryTest {
         String logbookLFCDate = "lastPersistedDate";
         String logbookOperationLastpersiteddate = "LOGBOOK_OPERATION_lastpersiteddate";
 
-        LogbookOperation logBookOperationWith =
-            createLogBookOperationWith("dateOp1", OBJECTGROUP_LFC_TRACEABILITY.getEventType(), "op1", "fileName");
-        LogbookOperation logBookOperationWith1 =
-            createLogBookOperationWith("dateOp2", LOGBOOK_TRACEABILITY.getEventType(), "op2", "fileName");
-
+        LogbookOperation logBookOperationWith = createLogBookOperationWith(
+            "dateOp1",
+            OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
+            "op1",
+            "fileName"
+        );
+        LogbookOperation logBookOperationWith1 = createLogBookOperationWith(
+            "dateOp2",
+            LOGBOOK_TRACEABILITY.getEventType(),
+            "op2",
+            "fileName"
+        );
 
         given(metaDataClient.getObjectGroupByIdRaw(objectGroupId)).willReturn(
-            getResponseWith(versionId, storageId, strategyId, usageVersion, opi));
-        given(storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId),
-            true)).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
+            getResponseWith(versionId, storageId, strategyId, usageVersion, opi)
+        );
+        given(
+            storageClient.getInformation(strategyId, OBJECT, versionId, Collections.singletonList(storageId), true)
+        ).willReturn(createStorageInformationWithDigest(storageId, "DIGEST_FROM_STORAGE"));
         given(logbookLifeCyclesClient.getRawObjectGroupLifeCycleById(objectGroupId)).willReturn(
-            objectMapper.valueToTree(createObjectGroupLifecycleFrom(versionId, "awesomedigest", logbookLFCDate)));
-        given(logbookOperationsClient.selectOperationById(opi)).willReturn(objectMapper.valueToTree(createOperation(
-            createLogBookOperationWith(logbookOperationLastpersiteddate, "INGEST_OPERATION", "opIngest"))));
+            objectMapper.valueToTree(createObjectGroupLifecycleFrom(versionId, "awesomedigest", logbookLFCDate))
+        );
+        given(logbookOperationsClient.selectOperationById(opi)).willReturn(
+            objectMapper.valueToTree(
+                createOperation(
+                    createLogBookOperationWith(logbookOperationLastpersiteddate, "INGEST_OPERATION", "opIngest")
+                )
+            )
+        );
 
-        given(logbookOperationsClient.selectOperation(
-            createSelectTraceabilityWith(OBJECTGROUP_LFC_TRACEABILITY.getEventType(), logbookLFCDate))).willReturn(
-            objectMapper.valueToTree(createOperation(logBookOperationWith)));
-        given(logbookOperationsClient.selectOperation(createSelectTraceabilityWith(LOGBOOK_TRACEABILITY.getEventType(),
-            logbookOperationLastpersiteddate))).willReturn(
-            objectMapper.valueToTree(createOperation(logBookOperationWith1)));
+        given(
+            logbookOperationsClient.selectOperation(
+                createSelectTraceabilityWith(OBJECTGROUP_LFC_TRACEABILITY.getEventType(), logbookLFCDate)
+            )
+        ).willReturn(objectMapper.valueToTree(createOperation(logBookOperationWith)));
+        given(
+            logbookOperationsClient.selectOperation(
+                createSelectTraceabilityWith(LOGBOOK_TRACEABILITY.getEventType(), logbookOperationLastpersiteddate)
+            )
+        ).willReturn(objectMapper.valueToTree(createOperation(logBookOperationWith1)));
 
-        given(logbookOperationsClient.selectOperation(
-            createSelectClosestTraceabilityWith(logBookOperationWith))).willReturn(objectMapper.valueToTree(
-            createOperation(createLogBookOperationWith("", OBJECTGROUP_LFC_TRACEABILITY.getEventType(), "op1Closest",
-                "fileName"))));
-        given(logbookOperationsClient.selectOperation(
-            createSelectClosestTraceabilityWith(logBookOperationWith1))).willReturn(objectMapper.valueToTree(
-            createOperation(
-                createLogBookOperationWith("", LOGBOOK_TRACEABILITY.getEventType(), "op2Closest", "fileName"))));
+        given(
+            logbookOperationsClient.selectOperation(createSelectClosestTraceabilityWith(logBookOperationWith))
+        ).willReturn(
+            objectMapper.valueToTree(
+                createOperation(
+                    createLogBookOperationWith(
+                        "",
+                        OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
+                        "op1Closest",
+                        "fileName"
+                    )
+                )
+            )
+        );
+        given(
+            logbookOperationsClient.selectOperation(createSelectClosestTraceabilityWith(logBookOperationWith1))
+        ).willReturn(
+            objectMapper.valueToTree(
+                createOperation(
+                    createLogBookOperationWith("", LOGBOOK_TRACEABILITY.getEventType(), "op2Closest", "fileName")
+                )
+            )
+        );
 
         // When
         ItemStatus itemStatus = probativeCreateReportEntry.execute(param, handler);
@@ -329,13 +382,14 @@ public class ProbativeCreateReportEntryTest {
 
     private JsonNode createSelectClosestTraceabilityWith(LogbookOperation operation) throws Exception {
         Select select = new Select();
-        BooleanQuery query = and().add(
-            eq(LogbookMongoDbName.eventType.getDbname(), operation.getEvType()),
-            in("events.outDetail", operation.getEvType() + ".OK", operation.getEvType() + ".WARNING"),
-            exists("events.evDetData.FileName"),
-            ne("#id", operation.getId()),
-            lte("events.evDetData.EndDate", operation.getEvDateTime())
-        );
+        BooleanQuery query = and()
+            .add(
+                eq(LogbookMongoDbName.eventType.getDbname(), operation.getEvType()),
+                in("events.outDetail", operation.getEvType() + ".OK", operation.getEvType() + ".WARNING"),
+                exists("events.evDetData.FileName"),
+                ne("#id", operation.getId()),
+                lte("events.evDetData.EndDate", operation.getEvDateTime())
+            );
 
         select.setQuery(query);
         select.setLimitFilter(0, 1);
@@ -361,22 +415,37 @@ public class ProbativeCreateReportEntryTest {
         operation.setLastPersistedDate(date);
         operation.setId(id);
         operation.setEvDateTime("Date operation");
-        TraceabilityEvent value =
-            new TraceabilityEvent(null, null, null, null, null, null, null, null, 1, fileName, 1, null, false, null,
-                null);
+        TraceabilityEvent value = new TraceabilityEvent(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            1,
+            fileName,
+            1,
+            null,
+            false,
+            null,
+            null
+        );
         operation.setEvDetData(objectMapper.writeValueAsString(value));
         return operation;
     }
 
     private JsonNode createSelectTraceabilityWith(String eventType, String lastPersistedDate) throws Exception {
         Select select = new Select();
-        BooleanQuery query = and().add(
-            eq(LogbookMongoDbName.eventType.getDbname(), eventType),
-            in("events.outDetail", eventType + ".OK", eventType + ".WARNING"),
-            exists("events.evDetData.FileName"),
-            lte("events.evDetData.StartDate", lastPersistedDate),
-            gte("events.evDetData.EndDate", lastPersistedDate)
-        );
+        BooleanQuery query = and()
+            .add(
+                eq(LogbookMongoDbName.eventType.getDbname(), eventType),
+                in("events.outDetail", eventType + ".OK", eventType + ".WARNING"),
+                exists("events.evDetData.FileName"),
+                lte("events.evDetData.StartDate", lastPersistedDate),
+                gte("events.evDetData.EndDate", lastPersistedDate)
+            );
 
         select.setQuery(query);
         select.setLimitFilter(0, 1);
@@ -391,7 +460,8 @@ public class ProbativeCreateReportEntryTest {
         o.setObId(versionId);
         o.setOutDetail(STORING_OBJECT_TASK_ID + EvidenceStatus.OK.name());
         o.setEvDetData(
-            objectMapper.writeValueAsString(objectMapper.createObjectNode().put(MESSAGE_DIGEST, messageDigest)));
+            objectMapper.writeValueAsString(objectMapper.createObjectNode().put(MESSAGE_DIGEST, messageDigest))
+        );
         o.setLastPersistedDate(lastPersistedDate);
         LogbookLifecycle fromValue = new LogbookLifecycle();
         fromValue.setEvents(Collections.singletonList(o));
@@ -404,8 +474,13 @@ public class ProbativeCreateReportEntryTest {
         return storageInformation;
     }
 
-    private RequestResponseOK<JsonNode> getResponseWith(String versionId, String storageId, String strategyId,
-        String usageVersion, String opi) {
+    private RequestResponseOK<JsonNode> getResponseWith(
+        String versionId,
+        String storageId,
+        String strategyId,
+        String usageVersion,
+        String opi
+    ) {
         DbVersionsModel versionsModel = new DbVersionsModel();
         versionsModel.setDataObjectVersion(usageVersion);
         versionsModel.setId(versionId);
@@ -423,5 +498,4 @@ public class ProbativeCreateReportEntryTest {
         responseOK.addResult(objectMapper.valueToTree(groupModel));
         return responseOK;
     }
-
 }

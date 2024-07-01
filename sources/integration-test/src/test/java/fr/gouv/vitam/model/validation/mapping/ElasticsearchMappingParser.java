@@ -37,15 +37,16 @@ import java.util.TreeMap;
 public class ElasticsearchMappingParser {
 
     public Map<String, ElasticsearchMappingType> parseMapping(JsonNode jsonNode) {
-
         Map<String, ElasticsearchMappingType> result = new TreeMap<>();
         parseAndValidateMappingFile(jsonNode, "", result);
         return result;
     }
 
-    private void parseAndValidateMappingFile(JsonNode jsonNode, String parentMappingPath,
-        Map<String, ElasticsearchMappingType> result) {
-
+    private void parseAndValidateMappingFile(
+        JsonNode jsonNode,
+        String parentMappingPath,
+        Map<String, ElasticsearchMappingType> result
+    ) {
         JsonNode enabled = jsonNode.get("enabled");
         if (enabled != null) {
             if (!enabled.asText().equals("false")) {
@@ -95,19 +96,26 @@ public class ElasticsearchMappingParser {
                 throw new IllegalStateException("dynamic template does not have a valid mapping");
             }
 
-            String[] availableMatchConditions =
-                {"match_mapping_type", "match", "match_pattern", "unmatch", "path_match", "path_unmatch"};
+            String[] availableMatchConditions = {
+                "match_mapping_type",
+                "match",
+                "match_pattern",
+                "unmatch",
+                "path_match",
+                "path_unmatch",
+            };
             if (((ObjectNode) templateProperties).retain(availableMatchConditions).size() == 0) {
                 throw new IllegalStateException("dynamic template does not have a valid match condition");
             }
-
-
         }
     }
 
-    private void parseType(JsonNode jsonNode, String parentMappingPath, Map<String, ElasticsearchMappingType> result,
-        JsonNode typeNode) {
-
+    private void parseType(
+        JsonNode jsonNode,
+        String parentMappingPath,
+        Map<String, ElasticsearchMappingType> result,
+        JsonNode typeNode
+    ) {
         ElasticsearchMappingType mappingType;
         switch (typeNode.asText()) {
             case "date":
@@ -142,15 +150,17 @@ public class ElasticsearchMappingParser {
                 break;
             default:
                 throw new IllegalStateException("Unexpected type " + typeNode.asText());
-
         }
 
         result.put(parentMappingPath, mappingType);
     }
 
-    private void parseProperties(String parentMappingPath, Map<String, ElasticsearchMappingType> result,
-        JsonNode properties) {
-        for (Iterator<Map.Entry<String, JsonNode>> it = properties.fields(); it.hasNext(); ) {
+    private void parseProperties(
+        String parentMappingPath,
+        Map<String, ElasticsearchMappingType> result,
+        JsonNode properties
+    ) {
+        for (Iterator<Map.Entry<String, JsonNode>> it = properties.fields(); it.hasNext();) {
             Map.Entry<String, JsonNode> entry = it.next();
 
             if ("dynamic_templates".equals(entry.getKey())) {

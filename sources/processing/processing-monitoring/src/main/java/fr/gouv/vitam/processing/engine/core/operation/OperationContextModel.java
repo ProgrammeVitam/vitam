@@ -33,14 +33,19 @@ public class OperationContextModel {
 
     @JsonProperty("accessContractIdentifier")
     private String accessContractIdentifier;
+
     @JsonProperty("contextIdentifier")
     private String contextIdentifier;
+
     @JsonProperty("applicationSessionId")
     private String applicationSessionId;
+
     @JsonProperty("requestId")
     private String requestId;
+
     @JsonProperty("tenant")
     private Integer tenant;
+
     @JsonProperty("request")
     private Object request;
 
@@ -60,7 +65,6 @@ public class OperationContextModel {
     public static OperationContextModel get(Object request) {
         return new OperationContextModel(request);
     }
-
 
     public String getAccessContractIdentifier() {
         return accessContractIdentifier;

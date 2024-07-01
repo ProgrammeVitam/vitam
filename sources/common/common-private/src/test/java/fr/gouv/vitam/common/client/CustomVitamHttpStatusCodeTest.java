@@ -40,7 +40,6 @@ public class CustomVitamHttpStatusCodeTest {
 
     @Test
     public void checkStatusCodeRanges() {
-
         List<IntRange> availableRanges = List.of(
             new IntRange(110, 199),
             new IntRange(230, 299),
@@ -50,8 +49,8 @@ public class CustomVitamHttpStatusCodeTest {
         );
 
         for (CustomVitamHttpStatusCode statusCode : CustomVitamHttpStatusCode.values()) {
-
-            boolean isValidStatusCode = availableRanges.stream()
+            boolean isValidStatusCode = availableRanges
+                .stream()
                 .anyMatch(range -> range.containsInteger(statusCode.getStatusCode()));
             assertThat(isValidStatusCode).isTrue();
         }
@@ -59,7 +58,6 @@ public class CustomVitamHttpStatusCodeTest {
 
     @Test
     public void checkStatusCodeDuplicates() {
-
         Set<Integer> existingStatusCodes = new HashSet<>();
         boolean uniqueStatusCodes = Arrays.stream(CustomVitamHttpStatusCode.values())
             .map(CustomVitamHttpStatusCode::getStatusCode)

@@ -81,7 +81,6 @@ public class DslScannerFilter implements ContainerRequestFilter {
         this.bulkUpdateSchemaValidator = new UpdateBulkSchemaValidator();
     }
 
-
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         try {
@@ -115,22 +114,24 @@ public class DslScannerFilter implements ContainerRequestFilter {
                     break;
                 default:
                     requestContext.abortWith(
-                        VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR,
-                                "Dsl schema is not valid.")
-                            .toResponse());
-
+                        VitamCodeHelper.toVitamError(
+                            VitamCode.GLOBAL_INTERNAL_SERVER_ERROR,
+                            "Dsl schema is not valid."
+                        ).toResponse()
+                    );
             }
             requestContext.setEntityStream(bout.toInputStream());
         } catch (ValidationException e) {
             LOGGER.warn(e);
-            requestContext.abortWith(
-                e.getVitamError().toResponse());
+            requestContext.abortWith(e.getVitamError().toResponse());
         } catch (InvalidParseOperationException e) {
             LOGGER.warn(e);
             requestContext.abortWith(
-                VitamCodeHelper.toVitamError(VitamCode.GLOBAL_INTERNAL_SERVER_ERROR,
-                    "Can not read Dsl query").toResponse());
-
+                VitamCodeHelper.toVitamError(
+                    VitamCode.GLOBAL_INTERNAL_SERVER_ERROR,
+                    "Can not read Dsl query"
+                ).toResponse()
+            );
         }
     }
 }

@@ -74,12 +74,15 @@ public class BusinessApplication extends ConfigurationApplication {
         singletons = new HashSet<>();
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final InternalSecurityConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, InternalSecurityConfiguration.class);
+            final InternalSecurityConfiguration configuration = PropertiesUtils.readYaml(
+                yamlIS,
+                InternalSecurityConfiguration.class
+            );
 
             final PersonalCertificatePermissionConfig personalCertificatePermissionConfig =
                 PersonalCertificatePermissionConfigLoader.loadPersonalCertificatePermissionConfig(
-                    configuration.getPersonalCertificatePermissionConfig());
+                    configuration.getPersonalCertificatePermissionConfig()
+                );
 
             MongoClient mongoClient = MongoDbAccess.createMongoClient(configuration);
             SimpleMongoDBAccess mongoDbAccess = new SimpleMongoDBAccess(mongoClient, configuration.getDbName());
@@ -89,7 +92,9 @@ public class BusinessApplication extends ConfigurationApplication {
 
             PersonalRepository personalRepository = new PersonalRepository(mongoDbAccess);
             PersonalCertificateService personalCertificateService = new PersonalCertificateService(
-                LogbookOperationsClientFactory.getInstance(), personalRepository);
+                LogbookOperationsClientFactory.getInstance(),
+                personalRepository
+            );
             PermissionService permissionService = new PermissionService(personalCertificatePermissionConfig);
 
             CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
@@ -104,7 +109,6 @@ public class BusinessApplication extends ConfigurationApplication {
             singletons.add(new JsonParseExceptionMapper());
             singletons.add(new PersonalCertificateExceptionMapper());
             singletons.add(new ApplicationStatusResource());
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -114,5 +118,4 @@ public class BusinessApplication extends ConfigurationApplication {
     public Set<Object> getSingletons() {
         return singletons;
     }
-
 }

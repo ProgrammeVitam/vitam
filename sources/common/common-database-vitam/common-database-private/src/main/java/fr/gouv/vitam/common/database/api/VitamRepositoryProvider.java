@@ -35,7 +35,6 @@ import fr.gouv.vitam.common.database.server.elasticsearch.ElasticsearchIndexAlia
  * Description of reconstruction service factory.
  */
 public interface VitamRepositoryProvider {
-
     /**
      * @param collection VitamCollection
      * @return VitamMongoRepository
@@ -46,6 +45,8 @@ public interface VitamRepositoryProvider {
      * @param collection VitamCollection
      * @return VitamElasticsearchRepository
      */
-    VitamElasticsearchRepository getVitamESRepository(VitamCollection collection,
-        ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver);
+    VitamElasticsearchRepository getVitamESRepository(
+        VitamCollection collection,
+        ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver
+    );
 }

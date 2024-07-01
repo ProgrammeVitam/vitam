@@ -42,41 +42,42 @@ import static org.junit.Assert.fail;
 public class MongoDBResponseFilterTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Test
     public void givenObjectGroupFilterIsDone() throws InvalidParseOperationException {
-        ObjectGroup group = new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/object_sp1_1.json")));
+        ObjectGroup group = new ObjectGroup(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp1_1.json"))
+        );
         MongoDbMetadataResponseFilter.filterFinalResponse(group);
         checkAllDocument(group);
 
-        group = new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/object_sp1_sp2_2.json")));
+        group = new ObjectGroup(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp1_sp2_2.json"))
+        );
         MongoDbMetadataResponseFilter.filterFinalResponse(group);
         checkAllDocument(group);
 
-        group = new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/object_sp2_4.json")));
+        group = new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp2_4.json")));
         MongoDbMetadataResponseFilter.filterFinalResponse(group);
         checkAllDocument(group);
 
-        group = new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/object_sp2.json")));
+        group = new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_sp2.json")));
         MongoDbMetadataResponseFilter.filterFinalResponse(group);
         checkAllDocument(group);
 
-        group = new ObjectGroup(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/object_group_full.json")));
+        group = new ObjectGroup(
+            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/object_group_full.json"))
+        );
         MongoDbMetadataResponseFilter.filterFinalResponse(group);
         checkAllDocument(group);
     }
 
     @Test
     public void givenUnitFilterIsDone() throws InvalidParseOperationException {
-        Unit unit = new Unit(JsonHandler.getFromInputStream(getClass().getResourceAsStream(
-            "/unit_full.json")));
+        Unit unit = new Unit(JsonHandler.getFromInputStream(getClass().getResourceAsStream("/unit_full.json")));
         MongoDbMetadataResponseFilter.filterFinalResponse(unit);
         checkAllDocument(unit);
     }
@@ -88,7 +89,6 @@ public class MongoDBResponseFilterTest {
             fail("report should be empty " + report.toString());
         }
     }
-
 
     private void checkDocument(Document document, ArrayList<String> report) {
         final Set<String> keys = document.keySet();

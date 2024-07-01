@@ -217,7 +217,6 @@ public class DbRequestResult implements VitamAutoCloseable {
                     filterFinalResponse(doc);
 
                     newList.add(BsonHelper.fromDocumentToObject(doc, clsFromJson));
-
                 }
                 cursor.close();
                 cursor = null;
@@ -275,7 +274,6 @@ public class DbRequestResult implements VitamAutoCloseable {
                     break;
                 default:
                     break;
-
             }
         }
     }
@@ -300,9 +298,11 @@ public class DbRequestResult implements VitamAutoCloseable {
      * @return a RequestResponseOK with Hits and Results sets (not request)
      * @throws InvalidParseOperationException
      */
-    public <T extends VitamDocument<T>, V> RequestResponseOK<V> getRequestResponseOK(JsonNode query, Class<T> cls,
-        Class<V> clsFromJson)
-        throws InvalidParseOperationException {
+    public <T extends VitamDocument<T>, V> RequestResponseOK<V> getRequestResponseOK(
+        JsonNode query,
+        Class<T> cls,
+        Class<V> clsFromJson
+    ) throws InvalidParseOperationException {
         final RequestResponseOK<V> response = new RequestResponseOK<>(query);
         // Save before addAll
         DatabaseCursor currentCursor = getDatabaseCursor();
@@ -330,5 +330,4 @@ public class DbRequestResult implements VitamAutoCloseable {
             cursor = null;
         }
     }
-
 }

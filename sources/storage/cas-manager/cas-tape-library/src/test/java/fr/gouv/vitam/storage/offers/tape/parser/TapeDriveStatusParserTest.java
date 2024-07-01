@@ -36,7 +36,6 @@ import org.junit.Test;
 
 public class TapeDriveStatusParserTest {
 
-
     @Test
     public void testParseTapeDriveStatusOnline() throws Exception {
         String statusOutPut = PropertiesUtils.getResourceAsString("output/tape-drive-status-online.txt");
@@ -49,9 +48,7 @@ public class TapeDriveStatusParserTest {
         String expected = "result/tape-drive-status-online.json";
         JsonNode initialJson = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(expected));
         JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(tapeDriveState), initialJson);
-
     }
-
 
     @Test
     public void testParseTapeDriveStatusOpen() throws Exception {
@@ -65,6 +62,5 @@ public class TapeDriveStatusParserTest {
         String expected = "result/tape-drive-status-open.json";
         JsonNode initialJson = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(expected));
         JsonAssert.assertJsonEquals(JsonHandler.toJsonNode(tapeDriveState), initialJson);
-
     }
 }

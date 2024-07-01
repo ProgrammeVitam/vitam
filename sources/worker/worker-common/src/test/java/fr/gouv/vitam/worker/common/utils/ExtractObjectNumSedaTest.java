@@ -75,8 +75,14 @@ public class ExtractObjectNumSedaTest {
         final HandlerIO handlerIO = mock(HandlerIO.class);
         when(handlerIO.getWorkspaceClientFactory()).thenReturn(workspaceClientFactory);
         when(handlerIO.isExistingFileInWorkspace(any())).thenReturn(true);
-        when(handlerIO.getJsonFromWorkspace(any())).thenReturn(JsonHandler.toJsonNode(
-            new SedaIngestParams(SupportedSedaVersions.SEDA_2_1.getVersion(), SupportedSedaVersions.SEDA_2_1.getNamespaceURI())));
+        when(handlerIO.getJsonFromWorkspace(any())).thenReturn(
+            JsonHandler.toJsonNode(
+                new SedaIngestParams(
+                    SupportedSedaVersions.SEDA_2_1.getVersion(),
+                    SupportedSedaVersions.SEDA_2_1.getNamespaceURI()
+                )
+            )
+        );
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(seda);
         utils = SedaUtilsFactory.getInstance().createSedaUtilsWithSedaIngestParams(handlerIO);
         final ExtractUriResponse extractUriResponse = utils.getAllDigitalObjectUriFromManifest();

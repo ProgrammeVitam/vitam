@@ -32,6 +32,5 @@ import fr.gouv.vitam.storage.offers.tape.exception.QueueException;
 import java.util.Optional;
 
 public interface TapeDriveOrderProducer {
-
     Optional<? extends ReadWriteOrder> produce(TapeDriveWorker driveWorker) throws QueueException;
 }

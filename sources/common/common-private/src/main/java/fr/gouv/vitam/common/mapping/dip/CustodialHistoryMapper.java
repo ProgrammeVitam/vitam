@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.mapping.dip;
 
-
 import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryItemType;
 import fr.gouv.culture.archivesdefrance.seda.v2.CustodialHistoryType;
 import fr.gouv.culture.archivesdefrance.seda.v2.DataObjectRefType;
@@ -49,7 +48,6 @@ public class CustodialHistoryMapper {
      * @return the custodial history as a {@link CustodialHistoryMapper} object
      */
     public CustodialHistoryType map(CustodialHistoryModel custodialHistoryModel) {
-
         if (custodialHistoryModel == null) {
             return null;
         }
@@ -62,7 +60,6 @@ public class CustodialHistoryMapper {
             CustodialHistoryItemType custodialHistoryItem = new CustodialHistoryItemType();
             custodialHistoryItem.setValue(item);
             custodialHistory.getCustodialHistoryItem().add(custodialHistoryItem);
-
         });
 
         DataObjectReference dataObjectReference = custodialHistoryModel.getCustodialHistoryFile();

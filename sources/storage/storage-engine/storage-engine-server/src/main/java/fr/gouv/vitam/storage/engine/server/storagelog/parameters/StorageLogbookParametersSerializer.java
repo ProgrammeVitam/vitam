@@ -54,5 +54,4 @@ class StorageLogbookParametersSerializer extends JsonSerializer<StorageLogbookPa
         }
         gen.writeEndObject();
     }
-
 }

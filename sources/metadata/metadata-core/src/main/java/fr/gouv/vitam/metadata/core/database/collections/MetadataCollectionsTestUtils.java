@@ -56,44 +56,58 @@ public final class MetadataCollectionsTestUtils {
     @VisibleForTesting
     public static ElasticsearchMetadataIndexManager createTestIndexManager(
         List<Integer> dedicatedTenants,
-        Map<String, List<Integer>> tenantGroups, MappingLoader mappingLoader) {
-
+        Map<String, List<Integer>> tenantGroups,
+        MappingLoader mappingLoader
+    ) {
         List<Integer> allTenants = Streams.concat(
             dedicatedTenants.stream(),
             tenantGroups.values().stream().flatMap(Collection::stream)
         ).collect(Collectors.toList());
 
-        List<GroupedTenantConfiguration> tenantGroupConfiguration =
-            tenantGroups.entrySet().stream()
-                .map(entry -> new GroupedTenantConfiguration()
-                    .setName(entry.getKey())
-                    .setTenants(entry.getValue().stream().map(Object::toString).collect(Collectors.joining(",")))
-                )
-                .collect(Collectors.toList());
+        List<GroupedTenantConfiguration> tenantGroupConfiguration = tenantGroups
+            .entrySet()
+            .stream()
+            .map(
+                entry ->
+                    new GroupedTenantConfiguration()
+                        .setName(entry.getKey())
+                        .setTenants(entry.getValue().stream().map(Object::toString).collect(Collectors.joining(",")))
+            )
+            .collect(Collectors.toList());
 
         MetaDataConfiguration metadataConfiguration = new MetaDataConfiguration()
-            .setIndexationConfiguration(new MetadataIndexationConfiguration()
-                .setDefaultCollectionConfiguration(new DefaultCollectionConfiguration()
-                    .setUnit(new CollectionConfiguration(1, 0))
-                    .setObjectgroup(new CollectionConfiguration(1, 0)))
-                .setGroupedTenantConfiguration(tenantGroupConfiguration)
+            .setIndexationConfiguration(
+                new MetadataIndexationConfiguration()
+                    .setDefaultCollectionConfiguration(
+                        new DefaultCollectionConfiguration()
+                            .setUnit(new CollectionConfiguration(1, 0))
+                            .setObjectgroup(new CollectionConfiguration(1, 0))
+                    )
+                    .setGroupedTenantConfiguration(tenantGroupConfiguration)
             );
         return new ElasticsearchMetadataIndexManager(metadataConfiguration, allTenants, mappingLoader);
     }
 
     @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, String prefix,
-        final ElasticsearchAccessMetadata esClient) {
+    public static void beforeTestClass(
+        final MongoDatabase db,
+        String prefix,
+        final ElasticsearchAccessMetadata esClient
+    ) {
         beforeTestClass(db, prefix, esClient, Lists.newArrayList(MetadataCollections.values()));
     }
 
     @VisibleForTesting
-    public static void beforeTestClass(final MongoDatabase db, String prefix,
+    public static void beforeTestClass(
+        final MongoDatabase db,
+        String prefix,
         final ElasticsearchAccessMetadata esClient,
-        Collection<MetadataCollections> metadataCollections) {
+        Collection<MetadataCollections> metadataCollections
+    ) {
         ParametersChecker.checkParameter("metadataCollections is required", metadataCollections);
         for (MetadataCollections collection : metadataCollections) {
-            collection.getVitamCollection()
+            collection
+                .getVitamCollection()
                 .setName(prefix + collection.getVitamCollection().getClasz().getSimpleName());
             collection.initialize(db, true);
             if (collection.getEsClient() == null) {
@@ -106,15 +120,16 @@ public final class MetadataCollectionsTestUtils {
     }
 
     @VisibleForTesting
-    public static void afterTestClass(ElasticsearchMetadataIndexManager indexManager,
-        boolean deleteEsIndexes) {
+    public static void afterTestClass(ElasticsearchMetadataIndexManager indexManager, boolean deleteEsIndexes) {
         afterTestClass(indexManager, Lists.newArrayList(MetadataCollections.values()), deleteEsIndexes);
     }
 
     @VisibleForTesting
-    public static void afterTestClass(ElasticsearchMetadataIndexManager indexManager,
+    public static void afterTestClass(
+        ElasticsearchMetadataIndexManager indexManager,
         Collection<MetadataCollections> metadataCollections,
-        boolean deleteEsIndexes) {
+        boolean deleteEsIndexes
+    ) {
         if (null == metadataCollections) {
             return;
         }
@@ -124,16 +139,23 @@ public final class MetadataCollectionsTestUtils {
                     collection.getVitamCollection().getCollection().deleteMany(new Document());
                 }
 
-                if (null != collection.getEsClient() &&
-                    (collection == MetadataCollections.UNIT || collection == MetadataCollections.OBJECTGROUP)) {
-
+                if (
+                    null != collection.getEsClient() &&
+                    (collection == MetadataCollections.UNIT || collection == MetadataCollections.OBJECTGROUP)
+                ) {
                     for (Integer tenant : indexManager.getDedicatedTenants()) {
                         if (deleteEsIndexes) {
-                           collection.getEsClient().deleteIndexByAliasForTesting(
-                               indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
+                            collection
+                                .getEsClient()
+                                .deleteIndexByAliasForTesting(
+                                    indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant)
+                                );
                         } else {
-                            collection.getEsClient().purgeIndexForTesting(
-                                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
+                            collection
+                                .getEsClient()
+                                .purgeIndexForTesting(
+                                    indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant)
+                                );
                         }
                     }
 
@@ -141,11 +163,17 @@ public final class MetadataCollectionsTestUtils {
                         // Select first tenant
                         Integer tenant = indexManager.getTenantGroupTenants(tenantGroupName).iterator().next();
                         if (deleteEsIndexes) {
-                            collection.getEsClient().deleteIndexByAliasForTesting(
-                                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
+                            collection
+                                .getEsClient()
+                                .deleteIndexByAliasForTesting(
+                                    indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant)
+                                );
                         } else {
-                            collection.getEsClient().purgeIndexForTesting(
-                                indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant));
+                            collection
+                                .getEsClient()
+                                .purgeIndexForTesting(
+                                    indexManager.getElasticsearchIndexAliasResolver(collection).resolveIndexName(tenant)
+                                );
                         }
                     }
                 }
@@ -161,9 +189,10 @@ public final class MetadataCollectionsTestUtils {
     }
 
     @VisibleForTesting
-    public static void afterTest(ElasticsearchMetadataIndexManager indexManager,
-        Collection<MetadataCollections> metadataCollections) {
+    public static void afterTest(
+        ElasticsearchMetadataIndexManager indexManager,
+        Collection<MetadataCollections> metadataCollections
+    ) {
         afterTestClass(indexManager, metadataCollections, false);
     }
 }
-

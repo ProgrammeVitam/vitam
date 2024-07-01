@@ -63,5 +63,4 @@ public class AccessUnauthorizedException extends VitamClientException {
     public AccessUnauthorizedException(String message, Throwable throwable) {
         super(message, throwable);
     }
-
 }

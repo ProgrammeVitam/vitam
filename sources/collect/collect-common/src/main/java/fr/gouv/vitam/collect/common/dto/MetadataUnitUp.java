@@ -39,8 +39,7 @@ public class MetadataUnitUp {
     @JsonProperty("MetadataValue")
     private String metadataValue;
 
-    public MetadataUnitUp() {
-    }
+    public MetadataUnitUp() {}
 
     public MetadataUnitUp(String unitUp, String metadataKey, String metadataValue) {
         this.unitUp = unitUp;

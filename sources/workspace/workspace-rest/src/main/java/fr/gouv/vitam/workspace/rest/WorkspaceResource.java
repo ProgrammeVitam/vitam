@@ -121,8 +121,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/" + FREESPACE)
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "get workspace free space",
-        description = "obtenir de l'espace libre du dossier workspace")
+    @Operation(summary = "get workspace free space", description = "obtenir de l'espace libre du dossier workspace")
     public Response getFreespacePercent() {
         JsonNode result = JsonHandler.createObjectNode().put(FREESPACE, workspace.getWorkspaceFreeSpace());
         return Response.ok(result).build();
@@ -137,12 +136,13 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Create one container",
-        description = "Permet de créer un nouveau container")
+    @Operation(summary = "Create one container", description = "Permet de créer un nouveau container")
     public Response createContainer(@PathParam(CONTAINER_NAME) String containerName) {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName
+            );
             workspace.checkWorkspaceContainerSanity(containerName);
             workspace.createContainer(containerName);
             return Response.status(Status.CREATED).build();
@@ -168,13 +168,16 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Delete container by name",
-        description = "Permet de supprimer un container")
-    public Response deleteContainer(@PathParam(CONTAINER_NAME) String containerName,
-        @HeaderParam(GlobalDataRest.X_RECURSIVE) boolean recursive) {
+    @Operation(summary = "Delete container by name", description = "Permet de supprimer un container")
+    public Response deleteContainer(
+        @PathParam(CONTAINER_NAME) String containerName,
+        @HeaderParam(GlobalDataRest.X_RECURSIVE) boolean recursive
+    ) {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName
+            );
             workspace.checkWorkspaceContainerSanity(containerName);
             workspace.deleteContainer(containerName, recursive);
         } catch (IllegalPathException | IllegalArgumentException e) {
@@ -197,17 +200,16 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/old_files")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Delete object this from container",
-        description = "Permet de supprimer un objet du container")
+    @Operation(summary = "Delete object this from container", description = "Permet de supprimer un objet du container")
     public Response purgeOldFilesInContainer(@PathParam(CONTAINER_NAME) String containerName, TimeToLive timeToLive) {
-
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName
+            );
             workspace.checkWorkspaceContainerSanity(containerName);
             workspace.purgeOldFilesInContainer(containerName, timeToLive);
             return Response.status(Status.NO_CONTENT).build();
-
         } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -229,12 +231,13 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}")
     @HEAD
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "test if this container exists",
-        description = "Permet de tester l'existence du Container")
+    @Operation(summary = "test if this container exists", description = "Permet de tester l'existence du Container")
     public Response isExistingContainer(@PathParam(CONTAINER_NAME) String containerName) {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName
+            );
             workspace.checkWorkspaceContainerSanity(containerName);
             final boolean exists = workspace.isExistingContainer(containerName);
             if (exists) {
@@ -260,12 +263,13 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/container/{containerName}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "get container informations",
-        description = "Permet d'accéder aux informations d'un container")
+    @Operation(summary = "get container informations", description = "Permet d'accéder aux informations d'un container")
     public Response getContainerInformation(@PathParam(CONTAINER_NAME) String containerName) {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName
+            );
             workspace.checkWorkspaceContainerSanity(containerName);
             final ContainerInformation containerInformation = workspace.getContainerInformation(containerName);
             return Response.status(Status.OK).entity(containerInformation).build();
@@ -291,13 +295,17 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/folders/{folderName:.*}")
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "create operation folder",
-        description = "Permet de créer un sous dossier dans le container")
-    public Response createFolder(@PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(FOLDER_NAME) String folderName) {
+    @Operation(summary = "create operation folder", description = "Permet de créer un sous dossier dans le container")
+    public Response createFolder(
+        @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(FOLDER_NAME) String folderName
+    ) {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, folderName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                folderName
+            );
             workspace.checkWorkspaceDirSanity(containerName, folderName);
             workspace.createFolder(containerName, folderName);
             return Response.status(Status.CREATED).entity(containerName + "/" + folderName).build();
@@ -326,14 +334,20 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/folders/{folderName:.*}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "delete operation folder",
-        description = "Permet de supprimer un sous dossier dans le container")
-    public Response deleteFolder(@PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(FOLDER_NAME) String folderName) {
-
+    @Operation(
+        summary = "delete operation folder",
+        description = "Permet de supprimer un sous dossier dans le container"
+    )
+    public Response deleteFolder(
+        @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(FOLDER_NAME) String folderName
+    ) {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, folderName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                folderName
+            );
             workspace.checkWorkspaceDirSanity(containerName, folderName);
             workspace.deleteFolder(containerName, folderName);
         } catch (IllegalPathException | IllegalArgumentException e) {
@@ -360,13 +374,20 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/folders/{folderName:.*}")
     @HEAD
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "test if operation folder exists",
-        description = "Permet de vérifier l'existance d'un sous dossier dans le container")
-    public Response isExistingFolder(@PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(FOLDER_NAME) String folderName) {
+    @Operation(
+        summary = "test if operation folder exists",
+        description = "Permet de vérifier l'existance d'un sous dossier dans le container"
+    )
+    public Response isExistingFolder(
+        @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(FOLDER_NAME) String folderName
+    ) {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, folderName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                folderName
+            );
             workspace.checkWorkspaceDirSanity(containerName, folderName);
             final boolean exists = workspace.isExistingFolder(containerName, folderName);
             if (exists) {
@@ -394,19 +415,27 @@ public class WorkspaceResource extends ApplicationStatusResource {
      */
     @Path("/containers/{containerName}/folders/{folderName:.*}")
     @PUT
-    @Consumes({CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP, CommonMediaType.TAR,
-        CommonMediaType.BZIP2})
+    @Consumes(
+        { CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP, CommonMediaType.TAR, CommonMediaType.BZIP2 }
+    )
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "upload zip or tar into that folder",
-        description = "Permet d'uploader un ZIP ou TAR avec un unzip/untar automatique sous ce folder, incluant la création de sous-folders")
-    public Response uncompressObject(InputStream stream,
+    @Operation(
+        summary = "upload zip or tar into that folder",
+        description = "Permet d'uploader un ZIP ou TAR avec un unzip/untar automatique sous ce folder, incluant la création de sous-folders"
+    )
+    public Response uncompressObject(
+        InputStream stream,
         @PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(FOLDER_NAME) String folderName, @HeaderParam(HttpHeaders.CONTENT_TYPE) String archiveType) {
-
+        @PathParam(FOLDER_NAME) String folderName,
+        @HeaderParam(HttpHeaders.CONTENT_TYPE) String archiveType
+    ) {
         try {
             workspace.checkWorkspaceDirSanity(containerName, folderName);
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, folderName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                folderName
+            );
             workspace.uncompressObject(containerName, folderName, archiveType, stream);
             return Response.status(Status.CREATED).build();
         } catch (final IllegalArgumentException | IllegalPathException e) {
@@ -421,29 +450,26 @@ public class WorkspaceResource extends ApplicationStatusResource {
         } catch (final ZipFilesNameNotAllowedException e) {
             LOGGER.error(e);
             final VitamError vitamError = getVitamError(VitamCode.WORKSPACE_NOT_ACCEPTABLE_FILES, e.getMessage());
-            return Response.status(Status.NOT_ACCEPTABLE)
-                .entity(vitamError)
-                .build();
+            return Response.status(Status.NOT_ACCEPTABLE).entity(vitamError).build();
         } catch (final ContentAddressableStorageCompressedFileException e) {
             LOGGER.error(e);
             final Status status = Status.BAD_REQUEST;
             final VitamError vitamError = getVitamError(VitamCode.WORKSPACE_BAD_REQUEST, e.getMessage());
-            return Response.status(status)
-                .entity(vitamError)
-                .build();
-
+            return Response.status(status).entity(vitamError).build();
         } catch (final ContentAddressableStorageException e) {
             LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
             return Response.status(Status.INTERNAL_SERVER_ERROR).build();
         } finally {
             StreamUtils.closeSilently(stream);
         }
-
     }
 
     private VitamError getVitamError(VitamCode vitamCode, String msg) {
-        return new VitamError(vitamCode.name()).setMessage(msg).setState("ko")
-            .setHttpCode(vitamCode.getStatus().getStatusCode()).setDescription(msg)
+        return new VitamError(vitamCode.name())
+            .setMessage(msg)
+            .setState("ko")
+            .setHttpCode(vitamCode.getStatus().getStatusCode())
+            .setDescription(msg)
             .setContext(vitamCode.getService().getName());
     }
 
@@ -456,16 +482,24 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "upload zip or tar into that folder",
-        description = "Permet d'uploader un ZIP ou TAR avec un unzip/untar automatique sous ce folder, incluant la création de sous-folders")
+    @Operation(
+        summary = "upload zip or tar into that folder",
+        description = "Permet d'uploader un ZIP ou TAR avec un unzip/untar automatique sous ce folder, incluant la création de sous-folders"
+    )
     public Response compress(@PathParam(CONTAINER_NAME) String containerName, CompressInformation compressInformation) {
-
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, compressInformation);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                compressInformation
+            );
             workspace.checkWorkspaceContainerSanity(containerName);
-            workspace.compress(containerName, compressInformation.getFiles(), compressInformation.getOutputFile(),
-                compressInformation.getOutputContainer());
+            workspace.compress(
+                containerName,
+                compressInformation.getFiles(),
+                compressInformation.getOutputFile(),
+                compressInformation.getOutputContainer()
+            );
             return Response.status(Status.CREATED).build();
         } catch (IOException | IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
@@ -486,18 +520,23 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/folders/{folderName:.*}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "get object list from folder",
-        description = "Permet de récupérer la liste des objets du dossier du container")
-    public Response getUriDigitalObjectListByFolder(@PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(FOLDER_NAME) String folderName) {
-
+    @Operation(
+        summary = "get object list from folder",
+        description = "Permet de récupérer la liste des objets du dossier du container"
+    )
+    public Response getUriDigitalObjectListByFolder(
+        @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(FOLDER_NAME) String folderName
+    ) {
         List<URI> uriList;
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, folderName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                folderName
+            );
             workspace.checkWorkspaceDirSanity(containerName, folderName);
             uriList = workspace.getListUriDigitalObjectFromFolder(containerName, folderName);
-
         } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -513,23 +552,28 @@ public class WorkspaceResource extends ApplicationStatusResource {
             return Response.status(Status.NO_CONTENT).entity(Collections.<URI>emptyList()).build();
         }
         return Response.status(Status.OK).entity(uriList).build();
-
     }
 
     @Path("/containers/{containerName}/folders/{folderName:.*}/filesWithParams")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get Map of files with params from folder", description = "Permet de récupérer une Map des objets du dossier du container avec ses propres paramétres")
-    public Response getFilesWithParamsFromFolder(@PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(FOLDER_NAME) String folderName) {
-
+    @Operation(
+        summary = "Get Map of files with params from folder",
+        description = "Permet de récupérer une Map des objets du dossier du container avec ses propres paramétres"
+    )
+    public Response getFilesWithParamsFromFolder(
+        @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(FOLDER_NAME) String folderName
+    ) {
         Map<String, FileParams> filesWithParamsMap;
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, folderName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                folderName
+            );
             workspace.checkWorkspaceDirSanity(containerName, folderName);
             filesWithParamsMap = workspace.getFilesWithParamsFromFolder(containerName, folderName);
-
         } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -545,7 +589,6 @@ public class WorkspaceResource extends ApplicationStatusResource {
             return Response.status(Status.NO_CONTENT).entity(Collections.<URI>emptyList()).build();
         }
         return Response.status(Status.OK).entity(filesWithParamsMap).build();
-
     }
 
     /**
@@ -560,13 +603,21 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "create new object in container",
-        description = "Permet de créer un nouvel objet dans le container")
-    public Response putObject(InputStream stream, @PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(OBJECT_NAME) String objectName) {
+    @Operation(
+        summary = "create new object in container",
+        description = "Permet de créer un nouvel objet dans le container"
+    )
+    public Response putObject(
+        InputStream stream,
+        @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(OBJECT_NAME) String objectName
+    ) {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                objectName
+            );
             workspace.checkWorkspaceFileSanity(containerName, objectName);
             workspace.putObject(containerName, objectName, stream);
             return Response.status(Status.CREATED).entity(containerName + "/" + objectName).build();
@@ -596,14 +647,22 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "create new atomic object in container",
-        description = "Permet de créer un nouvel objet atomique dans le container")
-    public Response putAtomicObject(InputStream stream, @PathParam(CONTAINER_NAME) String containerName,
+    @Operation(
+        summary = "create new atomic object in container",
+        description = "Permet de créer un nouvel objet atomique dans le container"
+    )
+    public Response putAtomicObject(
+        InputStream stream,
+        @PathParam(CONTAINER_NAME) String containerName,
         @PathParam(OBJECT_NAME) String objectName,
-        @HeaderParam(GlobalDataRest.X_CONTENT_LENGTH) long size) {
+        @HeaderParam(GlobalDataRest.X_CONTENT_LENGTH) long size
+    ) {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                objectName
+            );
             workspace.checkWorkspaceFileSanity(containerName, objectName);
             if (size < 0L) {
                 throw new IllegalArgumentException("Invalid stream size " + size);
@@ -634,14 +693,20 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "delete an object in container",
-        description = "Permet de supprimer un objet dans le container")
-    public Response deleteObject(@PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(OBJECT_NAME) String objectName) {
-
+    @Operation(
+        summary = "delete an object in container",
+        description = "Permet de supprimer un objet dans le container"
+    )
+    public Response deleteObject(
+        @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(OBJECT_NAME) String objectName
+    ) {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                objectName
+            );
             workspace.checkWorkspaceFileSanity(containerName, objectName);
             workspace.deleteObject(containerName, objectName);
         } catch (IllegalPathException | IllegalArgumentException e) {
@@ -668,12 +733,16 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Operation(summary = "retrieve an object in container",
-        description = "Permet de récupérer un objet dans le container")
-    public Response getObject(@PathParam(CONTAINER_NAME) String containerName,
+    @Operation(
+        summary = "retrieve an object in container",
+        description = "Permet de récupérer un objet dans le container"
+    )
+    public Response getObject(
+        @PathParam(CONTAINER_NAME) String containerName,
         @PathParam(OBJECT_NAME) String objectName,
         @HeaderParam(GlobalDataRest.X_CHUNK_OFFSET) Long chunkOffset,
-        @HeaderParam(GlobalDataRest.X_CHUNK_MAX_SIZE) Long maxChunkSize) {
+        @HeaderParam(GlobalDataRest.X_CHUNK_MAX_SIZE) Long maxChunkSize
+    ) {
         return getObjectResponse(containerName, objectName, chunkOffset, maxChunkSize);
     }
 
@@ -688,11 +757,11 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @GET
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "retrieve an object in container as multiplexed stream",
-        description = "Permet de récupérer un objet dans le container")
-    public Response getBulkObjects(@PathParam(CONTAINER_NAME) String containerName,
-        List<String> objectURIs) {
-
+    @Operation(
+        summary = "retrieve an object in container as multiplexed stream",
+        description = "Permet de récupérer un objet dans le container"
+    )
+    public Response getBulkObjects(@PathParam(CONTAINER_NAME) String containerName, List<String> objectURIs) {
         // Check file existence & compute total stream size
         List<Long> fileSizes = new ArrayList<>();
         for (String objectId : objectURIs) {
@@ -716,22 +785,20 @@ public class WorkspaceResource extends ApplicationStatusResource {
         // Return response as StreamingOutput instance
         StreamingOutput streamingOutput = output -> {
             try {
-
                 MultiplexedStreamWriter multiplexedStreamWriter = new MultiplexedStreamWriter(output);
 
                 // Write object contents
                 for (String objectURI : objectURIs) {
-
                     Response objResponse = null;
                     try {
                         objResponse = workspace.getObject(containerName, objectURI, null, null);
 
-                        long size =
-                            Long.parseLong(objResponse.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
+                        long size = Long.parseLong(
+                            objResponse.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName())
+                        );
                         try (InputStream inputStream = (InputStream) objResponse.getEntity()) {
                             multiplexedStreamWriter.appendEntry(size, inputStream);
                         }
-
                     } finally {
                         if (objResponse != null) {
                             consumeAnyEntityAndClose(objResponse);
@@ -740,17 +807,13 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 }
 
                 multiplexedStreamWriter.appendEndOfFile();
-
             } catch (Exception e) {
                 LOGGER.error("Could not return bulk objects", e);
                 throw new WebApplicationException("Could not return bulk objects", e);
             }
         };
 
-        return Response
-            .ok(streamingOutput)
-            .header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), totalStreamSize)
-            .build();
+        return Response.ok(streamingOutput).header(VitamHttpHeader.X_CONTENT_LENGTH.getName(), totalStreamSize).build();
     }
 
     /**
@@ -764,14 +827,21 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "retrieve an object in container as json",
-        description = "Permet de récupérer un objet dans le container")
-    public Response getObjectInformation(@PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(OBJECT_NAME) String objectName) {
+    @Operation(
+        summary = "retrieve an object in container as json",
+        description = "Permet de récupérer un objet dans le container"
+    )
+    public Response getObjectInformation(
+        @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(OBJECT_NAME) String objectName
+    ) {
         JsonNode jsonResultNode;
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                objectName
+            );
             workspace.checkWorkspaceFileSanity(containerName, objectName);
             jsonResultNode = workspace.getObjectInformation(containerName, objectName);
         } catch (final IllegalPathException | IllegalArgumentException e) {
@@ -799,14 +869,21 @@ public class WorkspaceResource extends ApplicationStatusResource {
     @Path("/containers/{containerName}/objects/{objectName:.*}")
     @HEAD
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "check if object in container exists",
-        description = "Permet de vérifier l'existance de l'objet dans le container")
-    public Response computeObjectDigest(@PathParam(CONTAINER_NAME) String containerName,
-        @PathParam(OBJECT_NAME) String objectName, @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String algo) {
-
+    @Operation(
+        summary = "check if object in container exists",
+        description = "Permet de vérifier l'existance de l'objet dans le container"
+    )
+    public Response computeObjectDigest(
+        @PathParam(CONTAINER_NAME) String containerName,
+        @PathParam(OBJECT_NAME) String objectName,
+        @HeaderParam(GlobalDataRest.X_DIGEST_ALGORITHM) String algo
+    ) {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                objectName
+            );
             workspace.checkWorkspaceFileSanity(containerName, objectName);
         } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
@@ -820,9 +897,7 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 messageDigest = workspace.computeObjectDigest(containerName, objectName, DigestType.fromValue(algo));
             } catch (final ContentAddressableStorageNotFoundException e) {
                 LOGGER.error(ErrorMessage.OBJECT_NOT_FOUND.getMessage() + containerName, e);
-                return Response.status(Status.NOT_FOUND)
-                    .header(GlobalDataRest.X_DIGEST_ALGORITHM, algo)
-                    .build();
+                return Response.status(Status.NOT_FOUND).header(GlobalDataRest.X_DIGEST_ALGORITHM, algo).build();
             } catch (final ContentAddressableStorageException e) {
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR)
@@ -832,7 +907,8 @@ public class WorkspaceResource extends ApplicationStatusResource {
 
             return Response.status(Status.OK)
                 .header(GlobalDataRest.X_DIGEST_ALGORITHM, algo)
-                .header(GlobalDataRest.X_DIGEST, messageDigest).build();
+                .header(GlobalDataRest.X_DIGEST, messageDigest)
+                .build();
         } else {
             try {
                 boolean exists = workspace.isExistingObject(containerName, objectName);
@@ -846,28 +922,31 @@ public class WorkspaceResource extends ApplicationStatusResource {
                 LOGGER.error(ErrorMessage.INTERNAL_SERVER_ERROR.getMessage(), e);
                 return Response.status(Status.INTERNAL_SERVER_ERROR).build();
             }
-
         }
     }
 
-    private Response getObjectResponse(String containerName, String objectName, Long chunkOffset,
-        Long maxChunkSize) {
+    private Response getObjectResponse(String containerName, String objectName, Long chunkOffset, Long maxChunkSize) {
         try {
-            ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-                containerName, objectName);
+            ParametersChecker.checkParameter(
+                ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+                containerName,
+                objectName
+            );
 
             workspace.checkWorkspaceFileSanity(containerName, objectName);
             Response response = workspace.getObject(containerName, objectName, chunkOffset, maxChunkSize);
 
             Map<String, String> headers = new HashMap<>();
             headers.put(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM);
-            headers.put(VitamHttpHeader.X_CONTENT_LENGTH.getName(),
-                response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName()));
-            headers.put(VitamHttpHeader.X_CHUNK_LENGTH.getName(),
-                response.getHeaderString(VitamHttpHeader.X_CHUNK_LENGTH.getName()));
-            return new VitamAsyncInputStreamResponse(response,
-                Status.OK, headers);
-
+            headers.put(
+                VitamHttpHeader.X_CONTENT_LENGTH.getName(),
+                response.getHeaderString(VitamHttpHeader.X_CONTENT_LENGTH.getName())
+            );
+            headers.put(
+                VitamHttpHeader.X_CHUNK_LENGTH.getName(),
+                response.getHeaderString(VitamHttpHeader.X_CHUNK_LENGTH.getName())
+            );
+            return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
         } catch (IllegalPathException | IllegalArgumentException e) {
             LOGGER.error(e);
             return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
@@ -880,4 +959,3 @@ public class WorkspaceResource extends ApplicationStatusResource {
         }
     }
 }
-

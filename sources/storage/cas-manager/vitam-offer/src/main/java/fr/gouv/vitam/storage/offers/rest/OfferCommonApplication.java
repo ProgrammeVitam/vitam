@@ -65,7 +65,6 @@ public class OfferCommonApplication {
 
     synchronized void initialize(String configurationFile) {
         try (InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-
             OfferConfiguration configuration = PropertiesUtils.readYaml(yamlIS, OfferConfiguration.class);
 
             if (configuration.getOfferLogCompactionConfiguration() == null) {
@@ -77,13 +76,14 @@ public class OfferCommonApplication {
 
             MongoDatabase mongoDatabase = mongoClient.getDatabase(configuration.getDbName());
 
-            OfferSequenceDatabaseService offerSequenceDatabaseService =
-                new OfferSequenceDatabaseService(mongoDatabase.getCollection(OFFER_SEQUENCE.getName()));
-            OfferLogDatabaseService offerDatabaseService =
-                new OfferLogDatabaseService(mongoDatabase.getCollection(OFFER_LOG.getName()));
+            OfferSequenceDatabaseService offerSequenceDatabaseService = new OfferSequenceDatabaseService(
+                mongoDatabase.getCollection(OFFER_SEQUENCE.getName())
+            );
+            OfferLogDatabaseService offerDatabaseService = new OfferLogDatabaseService(
+                mongoDatabase.getCollection(OFFER_LOG.getName())
+            );
             OfferLogCompactionDatabaseService offerLogCompactionDatabaseService = new OfferLogCompactionDatabaseService(
-                mongoDatabase.getCollection(
-                    COMPACTED_OFFER_LOG.getName())
+                mongoDatabase.getCollection(COMPACTED_OFFER_LOG.getName())
             );
             OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService =
                 new OfferLogAndCompactedOfferLogService(
@@ -91,18 +91,22 @@ public class OfferCommonApplication {
                     mongoDatabase.getCollection(COMPACTED_OFFER_LOG.getName())
                 );
 
-            this.storageConfiguration =
-                PropertiesUtils.readYaml(PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME), StorageConfiguration.class);
+            this.storageConfiguration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(STORAGE_CONF_FILE_NAME),
+                StorageConfiguration.class
+            );
             if (Strings.isNullOrEmpty(storageConfiguration.getStoragePath())) {
-                this.storageConfiguration
-                    .setStoragePath(FileUtil.getFileCanonicalPath(configuration.getStoragePath()));
+                this.storageConfiguration.setStoragePath(FileUtil.getFileCanonicalPath(configuration.getStoragePath()));
             } else {
-                this.storageConfiguration
-                    .setStoragePath(FileUtil.getFileCanonicalPath(this.storageConfiguration.getStoragePath()));
+                this.storageConfiguration.setStoragePath(
+                        FileUtil.getFileCanonicalPath(this.storageConfiguration.getStoragePath())
+                    );
             }
 
-            this.contentAddressableStorage =
-                StoreContextBuilder.newStoreContext(this.storageConfiguration, mongoDatabase);
+            this.contentAddressableStorage = StoreContextBuilder.newStoreContext(
+                this.storageConfiguration,
+                mongoDatabase
+            );
 
             DefaultOfferServiceImpl defaultOfferServiceImpl = new DefaultOfferServiceImpl(
                 contentAddressableStorage,
@@ -116,9 +120,10 @@ public class OfferCommonApplication {
                 configuration.getBatchMetadataComputationTimeout()
             );
             // Decorate default offer service with a sanity check wrapper
-            this.defaultOfferService =
-                new SanityCheckOfferServiceDecorator(defaultOfferServiceImpl, storageConfiguration);
-
+            this.defaultOfferService = new SanityCheckOfferServiceDecorator(
+                defaultOfferServiceImpl,
+                storageConfiguration
+            );
         } catch (Exception e) {
             throw new VitamRuntimeException(e);
         }

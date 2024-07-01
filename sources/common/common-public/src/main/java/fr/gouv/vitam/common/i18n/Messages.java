@@ -50,6 +50,7 @@ import java.util.ResourceBundle.Control;
  * Internationalization Messages support
  */
 public class Messages {
+
     private static final String LFC_PREFIX = "LFC.";
 
     private final String bundleName;
@@ -87,6 +88,7 @@ public class Messages {
      * Enable UTF-8 Property files
      */
     private static final class UTF8Control extends Control {
+
         /**
          * Specific constructor of RessourceBundler
          *
@@ -97,9 +99,13 @@ public class Messages {
          * @param reload if reaload ot not
          */
         @Override
-        public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader,
-            boolean reload)
-            throws IllegalAccessException, InstantiationException, IOException {
+        public ResourceBundle newBundle(
+            String baseName,
+            Locale locale,
+            String format,
+            ClassLoader loader,
+            boolean reload
+        ) throws IllegalAccessException, InstantiationException, IOException {
             // The below is a copy of the default implementation.
             final String bundleName = toBundleName(baseName, locale);
             final String resourceName = toResourceName(bundleName, "properties");
@@ -138,8 +144,9 @@ public class Messages {
         }
         // First check if this file is in config directory
         VitamResourceBundle vitamResourceBundle = null;
-        final File bundleFile =
-            PropertiesUtils.fileFromConfigFolder(bundleName + "_" + locale.toLanguageTag() + ".properties");
+        final File bundleFile = PropertiesUtils.fileFromConfigFolder(
+            bundleName + "_" + locale.toLanguageTag() + ".properties"
+        );
         if (bundleFile.canRead()) {
             try (FileInputStream inputStream = new FileInputStream(bundleFile)) {
                 vitamResourceBundle = new VitamResourceBundle(new InputStreamReader(inputStream, CharsetUtils.UTF8));
@@ -156,7 +163,6 @@ public class Messages {
 
         return vitamResourceBundle;
     }
-
 
     /**
      * Retrieve all the messages

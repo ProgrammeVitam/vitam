@@ -35,6 +35,7 @@ import static org.junit.Assert.assertEquals;
  * Test for StorageResult
  */
 public class StorageResultTest {
+
     private static StorageResult storageResult;
     private static final Integer TENANT_ID = 0;
 
@@ -52,5 +53,4 @@ public class StorageResultTest {
     public void testGetType() throws Exception {
         assertEquals("object", storageResult.getType());
     }
-
 }

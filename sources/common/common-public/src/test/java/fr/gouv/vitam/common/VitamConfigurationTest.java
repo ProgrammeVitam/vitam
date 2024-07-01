@@ -74,21 +74,24 @@ public class VitamConfigurationTest {
         assertEquals(vitamConfiguration.getTmp(), vitamConfiguration2.getTmp());
         assertNotEquals(vitamConfiguration, vitamConfiguration2);
 
-        VitamConfiguration.setConfiguration(vitamConfiguration.getConfig(),
+        VitamConfiguration.setConfiguration(
+            vitamConfiguration.getConfig(),
             vitamConfiguration.getLog(),
             vitamConfiguration.getData(),
-            vitamConfiguration.getTmp());
+            vitamConfiguration.getTmp()
+        );
         assertEquals(vitamConfiguration.getConfig(), vitamConfiguration2.getConfig());
         assertEquals(vitamConfiguration.getLog(), vitamConfiguration2.getLog());
         assertEquals(vitamConfiguration.getData(), vitamConfiguration2.getData());
         assertEquals(vitamConfiguration.getTmp(), vitamConfiguration2.getTmp());
         assertNotEquals(vitamConfiguration, vitamConfiguration2);
 
-        vitamConfiguration2 =
-            new VitamConfiguration(vitamConfiguration.getConfig(),
-                vitamConfiguration.getLog(),
-                vitamConfiguration.getData(),
-                vitamConfiguration.getTmp());
+        vitamConfiguration2 = new VitamConfiguration(
+            vitamConfiguration.getConfig(),
+            vitamConfiguration.getLog(),
+            vitamConfiguration.getData(),
+            vitamConfiguration.getTmp()
+        );
         assertEquals(vitamConfiguration.getConfig(), vitamConfiguration2.getConfig());
         assertEquals(vitamConfiguration.getLog(), vitamConfiguration2.getLog());
         assertEquals(vitamConfiguration.getData(), vitamConfiguration2.getData());
@@ -103,7 +106,6 @@ public class VitamConfigurationTest {
         assertEquals(10, VitamConfiguration.getAcceptableRequestTime());
         assertEquals(DigestType.SHA256, VitamConfiguration.getSecurityDigestType());
         assertEquals(DigestType.SHA512, VitamConfiguration.getDefaultDigestType());
-
 
         try {
             vitamConfiguration2.setConfig(null);
@@ -142,8 +144,10 @@ public class VitamConfigurationTest {
     @Test
     public void testConfiguration() throws Exception {
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(VITAM_CONF_FILE_NAME)) {
-            final VitamConfigurationParameters vitamConfigurationParameters =
-                PropertiesUtils.readYaml(yamlIS, VitamConfigurationParameters.class);
+            final VitamConfigurationParameters vitamConfigurationParameters = PropertiesUtils.readYaml(
+                yamlIS,
+                VitamConfigurationParameters.class
+            );
 
             VitamConfiguration.setSecret(vitamConfigurationParameters.getSecret());
             VitamConfiguration.setFilterActivation(vitamConfigurationParameters.isFilterActivation());
@@ -158,5 +162,4 @@ public class VitamConfigurationTest {
             assertThat(VitamConfiguration.getEnvironmentName()).isEqualTo("ENV");
         }
     }
-
 }

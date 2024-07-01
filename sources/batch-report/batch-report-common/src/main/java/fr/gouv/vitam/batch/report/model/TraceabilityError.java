@@ -62,5 +62,5 @@ public enum TraceabilityError {
     INVALID_FINGERPRINT,
     HASH_NOT_FOUND,
     INVALID_TIMESTAMP,
-    INEQUAL_TIMESTAMP;
+    INEQUAL_TIMESTAMP,
 }

@@ -39,7 +39,6 @@ import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 import java.io.IOException;
 
 /**
@@ -57,24 +56,28 @@ public class WriteProtectionForbiddenFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-
-        String message = "SECURITY ALERT. Illegal Write API invocation on secondary site : " +
-            requestContext.getMethod() + " " + requestContext.getUriInfo().getRequestUri();
+        String message =
+            "SECURITY ALERT. Illegal Write API invocation on secondary site : " +
+            requestContext.getMethod() +
+            " " +
+            requestContext.getUriInfo().getRequestUri();
 
         LOGGER.error(message);
         alertService.createAlert(VitamLogLevel.ERROR, message);
 
-        final VitamError vitamError =
-            new VitamError(VitamCodeHelper.getCode(VitamCode.STORAGE_ILLEGAL_WRITE_ON_SECONDARY_SITE));
+        final VitamError vitamError = new VitamError(
+            VitamCodeHelper.getCode(VitamCode.STORAGE_ILLEGAL_WRITE_ON_SECONDARY_SITE)
+        );
 
-        vitamError.setContext(ServerIdentity.getInstance().getJsonIdentity())
+        vitamError
+            .setContext(ServerIdentity.getInstance().getJsonIdentity())
             .setMessage(VitamCode.STORAGE_ILLEGAL_WRITE_ON_SECONDARY_SITE.getMessage())
             .setDescription(VitamCode.STORAGE_ILLEGAL_WRITE_ON_SECONDARY_SITE.getMessage())
             .setState(VitamCode.STORAGE_ILLEGAL_WRITE_ON_SECONDARY_SITE.name())
             .setHttpCode(VitamCode.STORAGE_ILLEGAL_WRITE_ON_SECONDARY_SITE.getStatus().getStatusCode());
 
         requestContext.abortWith(
-            Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE)
-                .build());
+            Response.status(vitamError.getHttpCode()).entity(vitamError).type(MediaType.APPLICATION_JSON_TYPE).build()
+        );
     }
 }

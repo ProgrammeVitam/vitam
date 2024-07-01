@@ -56,7 +56,6 @@ import java.util.List;
  * MongoDbAccess interface
  */
 public interface LogbookDbAccess {
-
     /**
      * Close database access
      */
@@ -115,7 +114,6 @@ public interface LogbookDbAccess {
     boolean existsLogbookLifeCycleObjectGroup(final String lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException;
 
-
     /**
      * Get one Operation
      *
@@ -140,9 +138,12 @@ public interface LogbookDbAccess {
      * @throws LogbookNotFoundException
      * @throws VitamDBException
      */
-    LogbookOperation getLogbookOperationById(String eventIdentifierProcess, JsonNode query, boolean slice,
-        boolean crossTenant) throws LogbookDatabaseException, LogbookNotFoundException;
-
+    LogbookOperation getLogbookOperationById(
+        String eventIdentifierProcess,
+        JsonNode query,
+        boolean slice,
+        boolean crossTenant
+    ) throws LogbookDatabaseException, LogbookNotFoundException;
 
     /**
      * Update one Logbook LifeCycle <br>
@@ -157,9 +158,11 @@ public interface LogbookDbAccess {
      * @throws LogbookAlreadyExistsException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    void updateLogbookLifeCycleUnit(final String idOperation, final String idLfc,
-        LogbookLifeCycleUnitParameters lifecycleItem)
-        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
+    void updateLogbookLifeCycleUnit(
+        final String idOperation,
+        final String idLfc,
+        LogbookLifeCycleUnitParameters lifecycleItem
+    ) throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
 
     /**
      * Update one Logbook LifeCycle (in progress or committed <br>
@@ -175,9 +178,12 @@ public interface LogbookDbAccess {
      * @throws LogbookAlreadyExistsException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    void updateLogbookLifeCycleUnit(final String idOperation, final String idLfc,
-        LogbookLifeCycleUnitParameters lifecycleItem, boolean commit)
-        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
+    void updateLogbookLifeCycleUnit(
+        final String idOperation,
+        final String idLfc,
+        LogbookLifeCycleUnitParameters lifecycleItem,
+        boolean commit
+    ) throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
 
     /**
      * Update one Logbook LifeCycle <br>
@@ -192,9 +198,11 @@ public interface LogbookDbAccess {
      * @throws LogbookAlreadyExistsException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    void updateLogbookLifeCycleObjectGroup(final String idOperation, final String idLfc,
-        LogbookLifeCycleObjectGroupParameters lifecycleItem)
-        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
+    void updateLogbookLifeCycleObjectGroup(
+        final String idOperation,
+        final String idLfc,
+        LogbookLifeCycleObjectGroupParameters lifecycleItem
+    ) throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
 
     /**
      * Update one Logbook LifeCycle <br>
@@ -210,10 +218,12 @@ public interface LogbookDbAccess {
      * @throws LogbookAlreadyExistsException
      * @throws IllegalArgumentException if parameter has null or empty mandatory values
      */
-    void updateLogbookLifeCycleObjectGroup(final String idOperation, final String idLfc,
+    void updateLogbookLifeCycleObjectGroup(
+        final String idOperation,
+        final String idLfc,
         LogbookLifeCycleObjectGroupParameters lifecycleItem,
-        boolean commit)
-        throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
+        boolean commit
+    ) throws LogbookDatabaseException, LogbookNotFoundException, LogbookAlreadyExistsException;
 
     /**
      * Rollback one Logbook LifeCycle <br>
@@ -242,7 +252,6 @@ public interface LogbookDbAccess {
      */
     void rollbackLogbookLifeCycleObjectGroup(final String idOperation, String lifecycleItem)
         throws LogbookDatabaseException, LogbookNotFoundException;
-
 
     /**
      * Create one Logbook Operation with already multiple sub-events
@@ -274,8 +283,7 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookAlreadyExistsException
      */
-    void createLogbookLifeCycleObjectGroup(String operationId,
-        LogbookLifeCycleObjectGroupParameters... lifecycleItems)
+    void createLogbookLifeCycleObjectGroup(String operationId, LogbookLifeCycleObjectGroupParameters... lifecycleItems)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
 
     /**
@@ -363,9 +371,11 @@ public interface LogbookDbAccess {
      * @throws LogbookDatabaseException
      * @throws LogbookNotFoundException
      */
-    MongoCursor<LogbookLifeCycle<?>> getLogbookLifeCycles(JsonNode select, boolean sliced,
-        LogbookCollections collection)
-        throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
+    MongoCursor<LogbookLifeCycle<?>> getLogbookLifeCycles(
+        JsonNode select,
+        boolean sliced,
+        LogbookCollections collection
+    ) throws LogbookDatabaseException, LogbookNotFoundException, VitamDBException;
 
     /**
      * Get a list of Logbook LifeCycle through Closeable MongoCursor
@@ -390,9 +400,10 @@ public interface LogbookDbAccess {
      * @throws IllegalArgumentException if argument is null or empty
      * @throws LogbookDatabaseException
      */
-    MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroupsFull(LogbookCollections collection,
-        Select select)
-        throws LogbookDatabaseException;
+    MongoCursor<LogbookLifeCycleObjectGroup> getLogbookLifeCycleObjectGroupsFull(
+        LogbookCollections collection,
+        Select select
+    ) throws LogbookDatabaseException;
 
     /**
      * Delete logbook collection
@@ -446,8 +457,6 @@ public interface LogbookDbAccess {
      */
     void createLogbookLifeCycleObjectGroup(LogbookLifeCycleObjectGroupInProcess logbookLifeCycleObjectGrouptInProcess)
         throws LogbookDatabaseException, LogbookAlreadyExistsException;
-
-
 
     /**
      * Updates Unit lifeCycle from a LogbookLifeCycleUnitInProcess instance
@@ -530,10 +539,14 @@ public interface LogbookDbAccess {
      */
     String getInfo();
 
-    void bulkInsert(String idOp, LogbookCollections lifecycleUnit,
-        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels)
-        throws DatabaseException;
+    void bulkInsert(
+        String idOp,
+        LogbookCollections lifecycleUnit,
+        List<? extends LogbookLifeCycleModel> logbookLifeCycleModels
+    ) throws DatabaseException;
 
-    void updateLogbookLifeCycleBulk(LogbookCollections collection,
-        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk);
+    void updateLogbookLifeCycleBulk(
+        LogbookCollections collection,
+        List<LogbookLifeCycleParametersBulk> logbookLifeCycleParametersBulk
+    );
 }

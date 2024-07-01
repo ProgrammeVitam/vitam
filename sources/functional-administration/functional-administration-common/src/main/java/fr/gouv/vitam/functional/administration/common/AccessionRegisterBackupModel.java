@@ -67,5 +67,4 @@ public class AccessionRegisterBackupModel {
     public void setOffset(Long offset) {
         this.offset = offset;
     }
-
 }

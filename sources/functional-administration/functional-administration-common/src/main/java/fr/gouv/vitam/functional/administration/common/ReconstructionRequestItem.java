@@ -104,7 +104,6 @@ public class ReconstructionRequestItem {
         return this;
     }
 
-
     /**
      * Get the limit
      *
@@ -124,5 +123,4 @@ public class ReconstructionRequestItem {
         this.limit = limit;
         return this;
     }
-
 }

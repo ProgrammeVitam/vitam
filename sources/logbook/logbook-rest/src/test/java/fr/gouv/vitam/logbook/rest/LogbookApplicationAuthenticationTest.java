@@ -54,8 +54,7 @@ public class LogbookApplicationAuthenticationTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -74,11 +73,15 @@ public class LogbookApplicationAuthenticationTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        LogbookCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
 
         logbook = PropertiesUtils.findFile(LOGBOOK_CONF);
         realLogbook = PropertiesUtils.readYaml(logbook, LogbookConfiguration.class);
@@ -100,5 +103,4 @@ public class LogbookApplicationAuthenticationTest {
     public void testApplicationLaunch() {
         new LogbookMain(configurationFile);
     }
-
 }

@@ -59,6 +59,7 @@ import static fr.gouv.vitam.worker.core.plugin.preservation.PreservationActionPl
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusSubItems;
 
 public class PreservationGenerateBinaryHash extends ActionHandler {
+
     private final VitamLogger logger = VitamLoggerFactory.getInstance(PreservationGenerateBinaryHash.class);
 
     public static final DigestType digestPreservationGeneration = SHA512;
@@ -76,7 +77,8 @@ public class PreservationGenerateBinaryHash extends ActionHandler {
         List<WorkflowBatchResult> workflowBatchResults = new ArrayList<>();
 
         for (WorkflowBatchResult workflowBatchResult : results.getWorkflowBatchResults()) {
-            List<OutputExtra> outputExtras = workflowBatchResult.getOutputExtras()
+            List<OutputExtra> outputExtras = workflowBatchResult
+                .getOutputExtras()
                 .stream()
                 .filter(OutputExtra::isOkAndGenerated)
                 .map(a -> getOutputExtra(results, a))
@@ -92,13 +94,15 @@ public class PreservationGenerateBinaryHash extends ActionHandler {
 
             itemStatuses.add(getItemStatus(outputExtras));
 
-            Stream<OutputExtra> otherActions = workflowBatchResult.getOutputExtras()
+            Stream<OutputExtra> otherActions = workflowBatchResult
+                .getOutputExtras()
                 .stream()
                 .filter(o -> !o.isOkAndGenerated());
 
-            List<OutputExtra> previousAndNewExtras =
-                Stream.concat(otherActions, outputExtras.stream().filter(outputExtra -> !outputExtra.isInError()))
-                    .collect(Collectors.toList());
+            List<OutputExtra> previousAndNewExtras = Stream.concat(
+                otherActions,
+                outputExtras.stream().filter(outputExtra -> !outputExtra.isInError())
+            ).collect(Collectors.toList());
             workflowBatchResults.add(WorkflowBatchResult.of(workflowBatchResult, previousAndNewExtras));
         }
 
@@ -109,28 +113,36 @@ public class PreservationGenerateBinaryHash extends ActionHandler {
 
     private ItemStatus getItemStatus(List<OutputExtra> outputExtras) {
         Stream<String> subBinaryItemIds = outputExtras.stream().map(OutputExtra::getBinaryGUID);
-        String error = outputExtras.stream()
+        String error = outputExtras
+            .stream()
             .filter(o -> o.getError().isPresent())
             .map(o -> o.getError().get())
             .collect(Collectors.joining(","));
         if (outputExtras.stream().allMatch(OutputExtra::isInError)) {
             return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, KO, EventDetails.of(error)).disableLfc();
         }
-        Map<String, BinaryEventData> digests = outputExtras.stream()
+        Map<String, BinaryEventData> digests = outputExtras
+            .stream()
             .filter(o -> o.getBinaryHash().isPresent())
             .collect(Collectors.toMap(OutputExtra::getBinaryGUID, o -> BinaryEventData.from(o.getBinaryHash().get())));
         if (outputExtras.stream().noneMatch(OutputExtra::isInError)) {
             return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, OK, digests);
         }
-        return buildItemStatusSubItems(ITEM_ID, subBinaryItemIds, WARNING,
-            EventDetails.of(error, String.join(", ", digests.keySet())));
+        return buildItemStatusSubItems(
+            ITEM_ID,
+            subBinaryItemIds,
+            WARNING,
+            EventDetails.of(error, String.join(", ", digests.keySet()))
+        );
     }
 
     private OutputExtra getOutputExtra(WorkflowBatchResults results, OutputExtra extra) {
         Digest digest = new Digest(digestPreservationGeneration);
         try {
-            Path outputPath =
-                results.getBatchDirectory().resolve(OUTPUT_FILES).resolve(extra.getOutput().getOutputName());
+            Path outputPath = results
+                .getBatchDirectory()
+                .resolve(OUTPUT_FILES)
+                .resolve(extra.getOutput().getOutputName());
             InputStream binaryFile = Files.newInputStream(outputPath);
             digest.update(binaryFile);
             String binaryHash = digest.digestHex();

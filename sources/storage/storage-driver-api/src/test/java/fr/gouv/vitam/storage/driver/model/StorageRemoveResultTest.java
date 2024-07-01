@@ -36,6 +36,7 @@ import static org.junit.Assert.assertTrue;
  * Test for StorageRemoveResultTest
  */
 public class StorageRemoveResultTest {
+
     private static StorageRemoveResult storageRemoveResult;
     private static final Integer TENANT_ID = 0;
 
@@ -59,11 +60,8 @@ public class StorageRemoveResultTest {
         assertEquals("guid", storageRemoveResult.getGuid());
     }
 
-
-
     @Test
     public void testIsObjectDeleted() throws Exception {
         assertTrue(storageRemoveResult.isObjectDeleted());
     }
-
 }

@@ -44,5 +44,4 @@ public class BasicVitamStatusServiceImpl implements VitamStatusService {
     public ObjectNode getAdminStatus() throws InvalidParseOperationException {
         return JsonHandler.createObjectNode();
     }
-
 }

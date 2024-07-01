@@ -74,6 +74,7 @@ import static fr.gouv.vitam.common.model.StatusCode.OK;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class ProbativeCreateDistributionFile extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeCreateDistributionFile.class);
 
     private static final String HANDLER_ID = "PROBATIVE_VALUE_CREATE_DISTRIBUTION_FILE";
@@ -93,19 +94,27 @@ public class ProbativeCreateDistributionFile extends ActionHandler {
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         File objectGroupsToCheck = handler.getNewLocalFile("OBJECT_GROUP_TO_CHECK.jsonl");
 
-        try (MetaDataClient metadataClient = metaDataClientFactory.getClient();
+        try (
+            MetaDataClient metadataClient = metaDataClientFactory.getClient();
             FileOutputStream outputStream = new FileOutputStream(objectGroupsToCheck);
             JsonLineWriter writer = new JsonLineWriter(outputStream);
-            InputStream request = handler.getInputStreamFromWorkspace("request")) {
-
-            ProbativeValueRequest probativeValueRequest =
-                JsonHandler.getFromInputStream(request, ProbativeValueRequest.class);
-            String usageVersion =
-                String.format("%s_%s", probativeValueRequest.getUsage(), probativeValueRequest.getVersion());
+            InputStream request = handler.getInputStreamFromWorkspace("request")
+        ) {
+            ProbativeValueRequest probativeValueRequest = JsonHandler.getFromInputStream(
+                request,
+                ProbativeValueRequest.class
+            );
+            String usageVersion = String.format(
+                "%s_%s",
+                probativeValueRequest.getUsage(),
+                probativeValueRequest.getVersion()
+            );
 
             SelectMultiQuery select = constructSelectMultiQuery(probativeValueRequest);
-            ScrollSpliterator<JsonNode> scrollRequest =
-                ScrollSpliteratorHelper.createUnitScrollSplitIterator(metadataClient, select);
+            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createUnitScrollSplitIterator(
+                metadataClient,
+                select
+            );
             SpliteratorIterator<JsonNode> iterator = new SpliteratorIterator<>(scrollRequest);
 
             MultiValuedMap<String, String> unitsByObjectId = new HashSetValuedHashMap<>();
@@ -124,7 +133,6 @@ public class ProbativeCreateDistributionFile extends ActionHandler {
                 JsonLineModel jsonLine = toJsonLineDistribution(entry.getKey(), usageVersion, entry.getValue());
                 writeLines(jsonLine, writer);
             }
-
         } catch (Exception e) {
             LOGGER.error(e);
             return buildItemStatus(HANDLER_ID, KO, EventDetails.of("Creation of distribution file error."));
@@ -166,11 +174,10 @@ public class ProbativeCreateDistributionFile extends ActionHandler {
         List<Query> queryList = new ArrayList<>(select.getQueries());
         if (queryList.isEmpty()) {
             select.getQueries().add(QueryHelper.exists(VitamFieldsHelper.object()).setDepthLimit(0));
-
         } else {
             Query lastQuery = queryList.get(queryList.size() - 1);
-            Query queryExistObject =
-                and().add(lastQuery, QueryHelper.exists(VitamFieldsHelper.object()).setDepthLimit(0));
+            Query queryExistObject = and()
+                .add(lastQuery, QueryHelper.exists(VitamFieldsHelper.object()).setDepthLimit(0));
             select.getQueries().set(queryList.size() - 1, queryExistObject);
         }
         select.addUsedProjection(VitamFieldsHelper.id(), VitamFieldsHelper.object());

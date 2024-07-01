@@ -32,7 +32,6 @@ package fr.gouv.vitam.storage.driver.model;
  */
 public class StorageRemoveRequest extends StorageObjectRequest {
 
-
     /**
      * Initialize the needed parameters for delete requests of an object.
      *
@@ -43,5 +42,4 @@ public class StorageRemoveRequest extends StorageObjectRequest {
     public StorageRemoveRequest(Integer tenantId, String type, String guid) {
         super(tenantId, type, guid);
     }
-
 }

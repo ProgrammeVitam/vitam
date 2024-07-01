@@ -36,13 +36,15 @@ public class BulkObjectAvailabilityRequest {
 
     @JsonProperty("type")
     private final DataCategory type;
+
     @JsonProperty("objectNames")
     private final List<String> objectNames;
 
     @JsonCreator
     public BulkObjectAvailabilityRequest(
         @JsonProperty("type") DataCategory type,
-        @JsonProperty("objectNames") List<String> objectNames) {
+        @JsonProperty("objectNames") List<String> objectNames
+    ) {
         this.type = type;
         this.objectNames = objectNames;
     }

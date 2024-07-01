@@ -63,8 +63,9 @@ public class BackgroundObjectDigestValidatorTest {
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private ContentAddressableStorage contentAddressableStorage;
@@ -78,10 +79,12 @@ public class BackgroundObjectDigestValidatorTest {
     @Test
     @RunWithCustomExecutor
     public void testNoObjectAdded() throws ContentAddressableStorageException {
-
         // Given
-        BackgroundObjectDigestValidator instance = new BackgroundObjectDigestValidator(contentAddressableStorage,
-            CONTAINER_NAME, DIGEST_TYPE);
+        BackgroundObjectDigestValidator instance = new BackgroundObjectDigestValidator(
+            contentAddressableStorage,
+            CONTAINER_NAME,
+            DIGEST_TYPE
+        );
 
         // When (no object added)
         instance.awaitTermination();
@@ -97,20 +100,21 @@ public class BackgroundObjectDigestValidatorTest {
     @Test
     @RunWithCustomExecutor
     public void testMultipleObjects() throws ContentAddressableStorageException {
-
         // Given
-        BackgroundObjectDigestValidator instance = new BackgroundObjectDigestValidator(contentAddressableStorage,
-            CONTAINER_NAME, DIGEST_TYPE);
+        BackgroundObjectDigestValidator instance = new BackgroundObjectDigestValidator(
+            contentAddressableStorage,
+            CONTAINER_NAME,
+            DIGEST_TYPE
+        );
 
-        doNothing().when(contentAddressableStorage)
+        doNothing()
+            .when(contentAddressableStorage)
             .checkObjectDigestAndStoreDigest(CONTAINER_NAME, "obj1", "digest1", DIGEST_TYPE, 1001L);
-        doNothing().when(contentAddressableStorage)
+        doNothing()
+            .when(contentAddressableStorage)
             .checkObjectDigestAndStoreDigest(CONTAINER_NAME, "obj2", "digest2", DIGEST_TYPE, 1001L);
-        doReturn("digest3").when(contentAddressableStorage)
-            .getObjectDigest(CONTAINER_NAME, "obj3", DIGEST_TYPE, true);
-        doReturn("digest4").when(contentAddressableStorage)
-            .getObjectDigest(CONTAINER_NAME, "obj4", DIGEST_TYPE, true);
-
+        doReturn("digest3").when(contentAddressableStorage).getObjectDigest(CONTAINER_NAME, "obj3", DIGEST_TYPE, true);
+        doReturn("digest4").when(contentAddressableStorage).getObjectDigest(CONTAINER_NAME, "obj4", DIGEST_TYPE, true);
 
         // When
         instance.addWrittenObjectToCheck("obj1", "digest1", 1001L);
@@ -132,34 +136,35 @@ public class BackgroundObjectDigestValidatorTest {
             );
 
         InOrder inOrder = inOrder(contentAddressableStorage);
-        inOrder.verify(contentAddressableStorage)
+        inOrder
+            .verify(contentAddressableStorage)
             .checkObjectDigestAndStoreDigest(CONTAINER_NAME, "obj1", "digest1", DIGEST_TYPE, 1001L);
-        inOrder.verify(contentAddressableStorage)
+        inOrder
+            .verify(contentAddressableStorage)
             .checkObjectDigestAndStoreDigest(CONTAINER_NAME, "obj2", "digest2", DIGEST_TYPE, 1002L);
-        inOrder.verify(contentAddressableStorage)
-            .getObjectDigest(CONTAINER_NAME, "obj3", DIGEST_TYPE, true);
-        inOrder.verify(contentAddressableStorage)
-            .getObjectDigest(CONTAINER_NAME, "obj4", DIGEST_TYPE, true);
+        inOrder.verify(contentAddressableStorage).getObjectDigest(CONTAINER_NAME, "obj3", DIGEST_TYPE, true);
+        inOrder.verify(contentAddressableStorage).getObjectDigest(CONTAINER_NAME, "obj4", DIGEST_TYPE, true);
         inOrder.verifyNoMoreInteractions();
     }
 
     @Test
     @RunWithCustomExecutor
     public void testInvalidWrittenObjectDigest() throws ContentAddressableStorageException {
-
         // Given
-        BackgroundObjectDigestValidator instance = new BackgroundObjectDigestValidator(contentAddressableStorage,
-            CONTAINER_NAME, DIGEST_TYPE);
+        BackgroundObjectDigestValidator instance = new BackgroundObjectDigestValidator(
+            contentAddressableStorage,
+            CONTAINER_NAME,
+            DIGEST_TYPE
+        );
 
-        doThrow(new ContentAddressableStorageException("error")).when(contentAddressableStorage)
+        doThrow(new ContentAddressableStorageException("error"))
+            .when(contentAddressableStorage)
             .checkObjectDigestAndStoreDigest(CONTAINER_NAME, "obj1", "digest1", DIGEST_TYPE, 1001L);
-        doNothing().when(contentAddressableStorage)
+        doNothing()
+            .when(contentAddressableStorage)
             .checkObjectDigestAndStoreDigest(CONTAINER_NAME, "obj2", "digest2", DIGEST_TYPE, 1001L);
-        doReturn("digest3").when(contentAddressableStorage)
-            .getObjectDigest(CONTAINER_NAME, "obj3", DIGEST_TYPE, true);
-        doReturn("digest4").when(contentAddressableStorage)
-            .getObjectDigest(CONTAINER_NAME, "obj4", DIGEST_TYPE, true);
-
+        doReturn("digest3").when(contentAddressableStorage).getObjectDigest(CONTAINER_NAME, "obj3", DIGEST_TYPE, true);
+        doReturn("digest4").when(contentAddressableStorage).getObjectDigest(CONTAINER_NAME, "obj4", DIGEST_TYPE, true);
 
         // When
         instance.addWrittenObjectToCheck("obj1", "digest1", 1001L);
@@ -181,44 +186,50 @@ public class BackgroundObjectDigestValidatorTest {
             );
 
         InOrder inOrder = inOrder(contentAddressableStorage);
-        inOrder.verify(contentAddressableStorage)
+        inOrder
+            .verify(contentAddressableStorage)
             .checkObjectDigestAndStoreDigest(CONTAINER_NAME, "obj1", "digest1", DIGEST_TYPE, 1001L);
-        inOrder.verify(contentAddressableStorage)
+        inOrder
+            .verify(contentAddressableStorage)
             .checkObjectDigestAndStoreDigest(CONTAINER_NAME, "obj2", "digest2", DIGEST_TYPE, 1002L);
-        inOrder.verify(contentAddressableStorage)
-            .getObjectDigest(CONTAINER_NAME, "obj3", DIGEST_TYPE, true);
-        inOrder.verify(contentAddressableStorage)
-            .getObjectDigest(CONTAINER_NAME, "obj4", DIGEST_TYPE, true);
+        inOrder.verify(contentAddressableStorage).getObjectDigest(CONTAINER_NAME, "obj3", DIGEST_TYPE, true);
+        inOrder.verify(contentAddressableStorage).getObjectDigest(CONTAINER_NAME, "obj4", DIGEST_TYPE, true);
         inOrder.verifyNoMoreInteractions();
     }
 
     @Test
     @RunWithCustomExecutor
     public void testInvalidObjectDigest() throws ContentAddressableStorageException {
-
         // Given
-        BackgroundObjectDigestValidator instance = new BackgroundObjectDigestValidator(contentAddressableStorage,
-            CONTAINER_NAME, DIGEST_TYPE);
+        BackgroundObjectDigestValidator instance = new BackgroundObjectDigestValidator(
+            contentAddressableStorage,
+            CONTAINER_NAME,
+            DIGEST_TYPE
+        );
 
         doAnswer(ags -> {
             Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
             return false;
-        }).when(contentAddressableStorage)
+        })
+            .when(contentAddressableStorage)
             .checkObjectDigestAndStoreDigest(CONTAINER_NAME, "obj1", "digest1", DIGEST_TYPE, 1001L);
         doAnswer(ags -> {
             Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
             return false;
-        }).when(contentAddressableStorage)
+        })
+            .when(contentAddressableStorage)
             .checkObjectDigestAndStoreDigest(CONTAINER_NAME, "obj2", "digest2", DIGEST_TYPE, 1001L);
         doAnswer(ags -> {
             Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
             return "BAD_DIGEST";
-        }).when(contentAddressableStorage)
+        })
+            .when(contentAddressableStorage)
             .getObjectDigest(CONTAINER_NAME, "obj3", DIGEST_TYPE, true);
         doAnswer(ags -> {
             Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
             return "digest4";
-        }).when(contentAddressableStorage)
+        })
+            .when(contentAddressableStorage)
             .getObjectDigest(CONTAINER_NAME, "obj4", DIGEST_TYPE, true);
 
         // When
@@ -239,15 +250,14 @@ public class BackgroundObjectDigestValidatorTest {
                 new StorageBulkPutResultEntry("obj4", "digest4", 1004L)
             );
         InOrder inOrder = inOrder(contentAddressableStorage);
-        inOrder.verify(contentAddressableStorage)
+        inOrder
+            .verify(contentAddressableStorage)
             .checkObjectDigestAndStoreDigest(CONTAINER_NAME, "obj1", "digest1", DIGEST_TYPE, 1001L);
-        inOrder.verify(contentAddressableStorage)
+        inOrder
+            .verify(contentAddressableStorage)
             .checkObjectDigestAndStoreDigest(CONTAINER_NAME, "obj2", "digest2", DIGEST_TYPE, 1002L);
-        inOrder.verify(contentAddressableStorage)
-            .getObjectDigest(CONTAINER_NAME, "obj3", DIGEST_TYPE, true);
-        inOrder.verify(contentAddressableStorage)
-            .getObjectDigest(CONTAINER_NAME, "obj4", DIGEST_TYPE, true);
+        inOrder.verify(contentAddressableStorage).getObjectDigest(CONTAINER_NAME, "obj3", DIGEST_TYPE, true);
+        inOrder.verify(contentAddressableStorage).getObjectDigest(CONTAINER_NAME, "obj4", DIGEST_TYPE, true);
         inOrder.verifyNoMoreInteractions();
     }
 }
-

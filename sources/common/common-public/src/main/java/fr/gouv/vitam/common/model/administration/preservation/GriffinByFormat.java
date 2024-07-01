@@ -39,6 +39,7 @@ import java.util.Set;
  * GriffinByFormat class
  */
 public class GriffinByFormat {
+
     @NotEmpty(message = ConstraintConstants.NOT_EMPTY_ERROR_MSG)
     @JsonProperty("FormatList")
     private Set<String> formatList;
@@ -79,7 +80,8 @@ public class GriffinByFormat {
     public GriffinByFormat(
         @NotEmpty Set<String> formatList,
         @NotEmpty String griffinIdentifier,
-        @NotEmpty List<ActionPreservation> actionDetail) {
+        @NotEmpty List<ActionPreservation> actionDetail
+    ) {
         this.formatList = formatList;
         this.griffinIdentifier = griffinIdentifier;
         this.actionDetail = actionDetail;
@@ -136,13 +138,22 @@ public class GriffinByFormat {
 
     @Override
     public String toString() {
-        return "GriffinByFormat{" +
-            "formatList=" + formatList +
-            ", griffinIdentifier='" + griffinIdentifier + '\'' +
-            ", timeOut=" + timeOut +
-            ", maxSize=" + maxSize +
-            ", debug=" + debug +
-            ", actionDetail=" + actionDetail +
-            '}';
+        return (
+            "GriffinByFormat{" +
+            "formatList=" +
+            formatList +
+            ", griffinIdentifier='" +
+            griffinIdentifier +
+            '\'' +
+            ", timeOut=" +
+            timeOut +
+            ", maxSize=" +
+            maxSize +
+            ", debug=" +
+            debug +
+            ", actionDetail=" +
+            actionDetail +
+            '}'
+        );
     }
 }

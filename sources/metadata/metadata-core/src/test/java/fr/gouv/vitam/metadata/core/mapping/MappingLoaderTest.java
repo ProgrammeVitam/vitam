@@ -51,7 +51,6 @@ public class MappingLoaderTest {
     @Before
     public void setup() throws Exception {
         mappingLoader = MappingLoaderTestUtils.getTestMappingLoader();
-
     }
 
     @Test
@@ -71,8 +70,7 @@ public class MappingLoaderTest {
         try {
             mappingLoader.loadMapping(FAKE_COLLECTION);
             fail("Should raise an exception");
-        } catch (final VitamRuntimeException e) {
-        }
+        } catch (final VitamRuntimeException e) {}
     }
 
     @Test
@@ -82,8 +80,7 @@ public class MappingLoaderTest {
         try {
             fakeMappingLoader.loadMapping(UNIT.toUpperCase());
             fail("should raise an exception");
-        } catch (final FileNotFoundException e) {
-        }
+        } catch (final FileNotFoundException e) {}
     }
 
     @Test
@@ -93,7 +90,6 @@ public class MappingLoaderTest {
         try {
             fakeMappingLoader.loadMapping(OBJECTGROUP.toUpperCase());
             fail("should raise an exception");
-        } catch (final FileNotFoundException e) {
-        }
+        } catch (final FileNotFoundException e) {}
     }
 }

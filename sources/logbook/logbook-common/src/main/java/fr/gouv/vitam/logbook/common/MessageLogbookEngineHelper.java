@@ -83,8 +83,10 @@ public class MessageLogbookEngineHelper {
      * @return the outcome detail (key)
      */
     public String getOutcomeDetail(String stepOrHandler, StatusCode code) {
-        String wfKey = logbookTypeProcess.name() + VitamLogbookMessages.getSeparator() + VitamLogbookMessages
-            .getOutcomeDetail(stepOrHandler, code);
+        String wfKey =
+            logbookTypeProcess.name() +
+            VitamLogbookMessages.getSeparator() +
+            VitamLogbookMessages.getOutcomeDetail(stepOrHandler, code);
         LOGGER.debug("Searching for key {}", wfKey);
         if (VitamLogbookMessages.containsKey(wfKey)) {
             LOGGER.debug("Key found : {}", wfKey);
@@ -104,8 +106,10 @@ public class MessageLogbookEngineHelper {
      * @return the outcome detail (key)
      */
     public String getOutcomeDetail(String stepOrHandler, String transaction, StatusCode code) {
-        String wfKey = logbookTypeProcess.name() + VitamLogbookMessages.getSeparator() + VitamLogbookMessages
-            .getOutcomeDetail(stepOrHandler, transaction, code);
+        String wfKey =
+            logbookTypeProcess.name() +
+            VitamLogbookMessages.getSeparator() +
+            VitamLogbookMessages.getOutcomeDetail(stepOrHandler, transaction, code);
         LOGGER.debug("Searching for key {}", wfKey);
         if (VitamLogbookMessages.containsKey(wfKey)) {
             LOGGER.debug("Key found : {}", wfKey);

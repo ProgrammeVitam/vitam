@@ -114,7 +114,6 @@ public final class HttpHeaderHelper {
         checkVitamHeadersMap(requestHeaders);
     }
 
-
     /**
      * Check specific vitam headers values with regular expression from the (define in {@link VitamHttpHeader}) At the
      * first wrong value, treatment stops and throws an {@link IllegalStateException} Note that, the regular expression
@@ -127,10 +126,13 @@ public final class HttpHeaderHelper {
         if (requestHeaders != null && !requestHeaders.isEmpty()) {
             for (final VitamHttpHeader vitamHttpHeader : VitamHttpHeader.values()) {
                 final List<String> values = requestHeaders.get(vitamHttpHeader.getName());
-                if (values != null && !values.stream()
-                    .anyMatch(value -> value.matches(CASE_INSENSITIVE + vitamHttpHeader.getRegExp()))) {
-                    throw new IllegalStateException(String.format("%s header has wrong value", vitamHttpHeader
-                        .getName()));
+                if (
+                    values != null &&
+                    !values.stream().anyMatch(value -> value.matches(CASE_INSENSITIVE + vitamHttpHeader.getRegExp()))
+                ) {
+                    throw new IllegalStateException(
+                        String.format("%s header has wrong value", vitamHttpHeader.getName())
+                    );
                 }
             }
         }
@@ -168,29 +170,48 @@ public final class HttpHeaderHelper {
             } else {
                 tmpHeadersValues = toLowerCaseList(headersValues);
                 if (vitamHeader != null) {
-                    errorDetails
-                        .addAll(collectNonMatchingItems(vitamHeader, wantedValues, wantedHeaderName, "Wanted " +
-                            "value %s for header %s does not match with define regular %s"));
-                    errorDetails
-                        .addAll(collectNonMatchingItems(vitamHeader, headersValues, wantedHeaderName, "Found " +
-                            "value %s for header %s does not match with define regular %s"));
+                    errorDetails.addAll(
+                        collectNonMatchingItems(
+                            vitamHeader,
+                            wantedValues,
+                            wantedHeaderName,
+                            "Wanted " + "value %s for header %s does not match with define regular %s"
+                        )
+                    );
+                    errorDetails.addAll(
+                        collectNonMatchingItems(
+                            vitamHeader,
+                            headersValues,
+                            wantedHeaderName,
+                            "Found " + "value %s for header %s does not match with define regular %s"
+                        )
+                    );
                 }
                 tmpHeadersValues.removeAll(wantedValues);
                 tmpWantedValues.removeAll(headersValues);
                 if (!tmpHeadersValues.isEmpty()) {
                     // error ?
-                    LOGGER.warn("Some values ({}) from header {} were not check (not asked)",
-                        Joiner.on(", ").join(tmpHeadersValues), wantedHeaderName);
+                    LOGGER.warn(
+                        "Some values ({}) from header {} were not check (not asked)",
+                        Joiner.on(", ").join(tmpHeadersValues),
+                        wantedHeaderName
+                    );
                 }
             }
             if (!tmpWantedValues.isEmpty()) {
-                errorDetails.add(String.format("Some WANTED values from header %s were not found (%s)",
-                    wantedHeaderName, Joiner.on(", ").join(tmpWantedValues)));
+                errorDetails.add(
+                    String.format(
+                        "Some WANTED values from header %s were not found (%s)",
+                        wantedHeaderName,
+                        Joiner.on(", ").join(tmpWantedValues)
+                    )
+                );
             }
         }
         if (!errorDetails.isEmpty()) {
             throw new IllegalArgumentException(
-                String.format("There are %d errors %n%s", errorDetails.size(), Joiner.on("\n").join(errorDetails)));
+                String.format("There are %d errors %n%s", errorDetails.size(), Joiner.on("\n").join(errorDetails))
+            );
         }
     }
 
@@ -207,17 +228,25 @@ public final class HttpHeaderHelper {
         return list.stream().map(String::toLowerCase).collect(Collectors.toList());
     }
 
-    private static List<String> collectNonMatchingItems(VitamHttpHeader vitamHeader, List<String> valuesTocheck,
-        String wantedHeaderName, String messageTemplate) {
+    private static List<String> collectNonMatchingItems(
+        VitamHttpHeader vitamHeader,
+        List<String> valuesTocheck,
+        String wantedHeaderName,
+        String messageTemplate
+    ) {
         final List<String> result = new ArrayList<>();
         if (vitamHeader != null && valuesTocheck != null) {
-            result.addAll(valuesTocheck.stream()
-                .filter(headerValue -> !headerValue.matches(CASE_INSENSITIVE + vitamHeader.getRegExp()))
-                .map(headerValue -> String.format(messageTemplate, headerValue, wantedHeaderName,
-                    vitamHeader.getRegExp()))
-                .collect(Collectors.toList()));
+            result.addAll(
+                valuesTocheck
+                    .stream()
+                    .filter(headerValue -> !headerValue.matches(CASE_INSENSITIVE + vitamHeader.getRegExp()))
+                    .map(
+                        headerValue ->
+                            String.format(messageTemplate, headerValue, wantedHeaderName, vitamHeader.getRegExp())
+                    )
+                    .collect(Collectors.toList())
+            );
         }
         return result;
     }
 }
-

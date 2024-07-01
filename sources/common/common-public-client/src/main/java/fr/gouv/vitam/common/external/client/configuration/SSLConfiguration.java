@@ -57,6 +57,7 @@ import java.util.List;
  * SSL Configuration
  */
 public class SSLConfiguration {
+
     private static final String PARAMETERS = "SSLConfiguration parameters";
     private List<SSLKey> truststore;
     private List<SSLKey> keystore;
@@ -109,7 +110,8 @@ public class SSLConfiguration {
             trustManagers = readTrustManagers();
         } else {
             throw new VitamException(
-                "NO TrustStore specified: any remote certifcates would have been allowed, which is not acceptable!");
+                "NO TrustStore specified: any remote certifcates would have been allowed, which is not acceptable!"
+            );
         }
         SSLContext sslContext;
         try {
@@ -162,7 +164,6 @@ public class SSLConfiguration {
      * @throws IllegalArgumentException if filePath/pwd is null or empty
      */
     private TrustManager[] loadTrustManagers(String filePath, String pwd) throws VitamException {
-
         ParametersChecker.checkParameter(PARAMETERS, filePath, pwd);
         final char[] password = readPassword(pwd);
         try (InputStream trustInputStream = readInputStream(filePath)) {
@@ -174,7 +175,6 @@ public class SSLConfiguration {
         } catch (IOException | KeyStoreException | NoSuchAlgorithmException | CertificateException e) {
             throw new VitamException(e);
         }
-
     }
 
     /**
@@ -195,8 +195,13 @@ public class SSLConfiguration {
             final KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
             kmf.init(keyStore, password);
             return kmf.getKeyManagers();
-        } catch (IOException | NoSuchAlgorithmException | CertificateException | UnrecoverableKeyException |
-            KeyStoreException e) {
+        } catch (
+            IOException
+            | NoSuchAlgorithmException
+            | CertificateException
+            | UnrecoverableKeyException
+            | KeyStoreException e
+        ) {
             throw new VitamException(e);
         }
     }
@@ -213,7 +218,6 @@ public class SSLConfiguration {
         ParametersChecker.checkParameter(PARAMETERS, pwd);
         return pwd.toCharArray();
     }
-
 
     /**
      * get the File associated with this filename, trying in this order: as fullpath, as in Vitam Config Folder, as

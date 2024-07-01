@@ -34,8 +34,10 @@ public class GroupedTenantConfiguration {
 
     @JsonProperty("tenants")
     private String tenants;
+
     @JsonProperty("name")
     private String name;
+
     @JsonProperty("logbookoperation")
     private CollectionConfiguration logbookoperation;
 
@@ -43,8 +45,7 @@ public class GroupedTenantConfiguration {
         // Default constructor for deserialization
     }
 
-    public GroupedTenantConfiguration(String tenants, String name,
-        CollectionConfiguration logbookoperation) {
+    public GroupedTenantConfiguration(String tenants, String name, CollectionConfiguration logbookoperation) {
         this.tenants = tenants;
         this.name = name;
         this.logbookoperation = logbookoperation;
@@ -72,18 +73,24 @@ public class GroupedTenantConfiguration {
         return logbookoperation;
     }
 
-    public GroupedTenantConfiguration setLogbookoperation(
-        CollectionConfiguration logbookoperation) {
+    public GroupedTenantConfiguration setLogbookoperation(CollectionConfiguration logbookoperation) {
         this.logbookoperation = logbookoperation;
         return this;
     }
 
     @Override
     public String toString() {
-        return "GroupedTenantConfiguration{" +
-            "tenants='" + tenants + '\'' +
-            ", name='" + name + '\'' +
-            ", logbookoperation=" + logbookoperation +
-            '}';
+        return (
+            "GroupedTenantConfiguration{" +
+            "tenants='" +
+            tenants +
+            '\'' +
+            ", name='" +
+            name +
+            '\'' +
+            ", logbookoperation=" +
+            logbookoperation +
+            '}'
+        );
     }
 }

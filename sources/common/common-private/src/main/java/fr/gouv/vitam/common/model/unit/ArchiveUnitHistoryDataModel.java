@@ -57,5 +57,4 @@ public class ArchiveUnitHistoryDataModel {
     public void setManagement(ManagementModel management) {
         this.management = management;
     }
-
 }

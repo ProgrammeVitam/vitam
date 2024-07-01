@@ -56,13 +56,12 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 public class VitamCounterServiceTest {
-
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final Integer TENANT_ID = 1;
 
@@ -70,22 +69,24 @@ public class VitamCounterServiceTest {
     static VitamCounterService vitamCounterService;
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(VitamSequence.class));
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(VitamSequence.class));
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection().setName(
-            PREFIX + FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection().getClasz().getSimpleName());
+        FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection()
+            .setName(
+                PREFIX + FunctionalAdminCollections.VITAM_SEQUENCE.getVitamCollection().getClasz().getSimpleName()
+            );
         List tenants = new ArrayList<>();
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
-        dbImpl =
-            MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
-                    FunctionalAdminCollectionsTestUtils.createTestIndexManager());
+        dbImpl = MongoDbAccessAdminFactory.create(
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+            Collections::emptyList,
+            FunctionalAdminCollectionsTestUtils.createTestIndexManager()
+        );
         tenants.add(new Integer(TENANT_ID));
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant0 = new ArrayList<>();
@@ -110,21 +111,17 @@ public class VitamCounterServiceTest {
         VitamClientFactory.resetConnections();
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void testSequences() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        String ic =
-            vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE);
-        String ac =
-            vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.ACCESS_CONTRACT_SEQUENCE);
+        String ic = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE);
+        String ac = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.ACCESS_CONTRACT_SEQUENCE);
         String pr = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.PROFILE_SEQUENCE);
         assertThat(ic).isEqualTo("IC-000001");
         assertThat(ac).isEqualTo("AC-000001");
         assertThat(pr).isEqualTo("PR-000001");
-
 
         ic = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE);
         ac = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.ACCESS_CONTRACT_SEQUENCE);
@@ -133,32 +130,42 @@ public class VitamCounterServiceTest {
 
         vitamCounterService.getNextBackupSequenceDocument(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE);
         vitamCounterService.getNextBackupSequenceDocument(TENANT_ID, SequenceType.SECURITY_PROFILE_SEQUENCE);
-        Integer backUpSequence =
-            vitamCounterService.getNextBackupSequenceDocument(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE)
-                .getCounter();
+        Integer backUpSequence = vitamCounterService
+            .getNextBackupSequenceDocument(TENANT_ID, SequenceType.INGEST_CONTRACT_SEQUENCE)
+            .getCounter();
         assertThat(ic).isEqualTo("IC-000003");
         assertThat(ac).isEqualTo("AC-000002");
         assertThat(pr).isEqualTo("PR-000002");
         assertThat(vitamCounterService.getSequence(TENANT_ID, SequenceType.PROFILE_SEQUENCE)).isEqualTo(2);
 
-        assertThat(vitamCounterService
-            .isSlaveFunctionnalCollectionOnTenant(SequenceType.ACCESS_CONTRACT_SEQUENCE.getCollection(), 1)).isTrue();
-        assertThat(vitamCounterService
-            .isSlaveFunctionnalCollectionOnTenant(SequenceType.ACCESS_CONTRACT_SEQUENCE.getCollection(), 0)).isFalse();
         assertThat(
-            vitamCounterService.isSlaveFunctionnalCollectionOnTenant(SequenceType.RULES_SEQUENCE.getCollection(), 0))
-            .isFalse();
+            vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
+                SequenceType.ACCESS_CONTRACT_SEQUENCE.getCollection(),
+                1
+            )
+        ).isTrue();
         assertThat(
-            vitamCounterService.isSlaveFunctionnalCollectionOnTenant(SequenceType.AGENCIES_SEQUENCE.getCollection(), 0))
-            .isFalse();
-        assertThat(vitamCounterService
-            .isSlaveFunctionnalCollectionOnTenant(FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, 0)).isFalse();
+            vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
+                SequenceType.ACCESS_CONTRACT_SEQUENCE.getCollection(),
+                0
+            )
+        ).isFalse();
+        assertThat(
+            vitamCounterService.isSlaveFunctionnalCollectionOnTenant(SequenceType.RULES_SEQUENCE.getCollection(), 0)
+        ).isFalse();
+        assertThat(
+            vitamCounterService.isSlaveFunctionnalCollectionOnTenant(SequenceType.AGENCIES_SEQUENCE.getCollection(), 0)
+        ).isFalse();
+        assertThat(
+            vitamCounterService.isSlaveFunctionnalCollectionOnTenant(
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY,
+                0
+            )
+        ).isFalse();
 
         assertThat(backUpSequence).isEqualTo(2);
 
-        VitamSequence test =
-            vitamCounterService.getSequenceDocument(TENANT_ID, SequenceType.PROFILE_SEQUENCE);
-
+        VitamSequence test = vitamCounterService.getSequenceDocument(TENANT_ID, SequenceType.PROFILE_SEQUENCE);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -168,5 +175,4 @@ public class VitamCounterServiceTest {
 
         String ic = vitamCounterService.getNextSequenceAsString(TENANT_ID, SequenceType.valueOf("ABB"));
     }
-
 }

@@ -77,7 +77,6 @@ public class ValidationXsdUtils {
      */
     public boolean checkWithXSD(InputStream xmlFile, String xsdFile)
         throws SAXException, IOException, XMLStreamException {
-
         final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile);
         try {
@@ -101,7 +100,6 @@ public class ValidationXsdUtils {
      */
     public boolean checkFileXSD(InputStream xmlFile, File xsdFile)
         throws SAXException, IOException, XMLStreamException {
-
         final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
         final XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlFile, "UTF-8");
         try {
@@ -135,12 +133,11 @@ public class ValidationXsdUtils {
 
     private Schema getSchema(String xsdFile) throws SAXException {
         // Was XMLConstants.W3C_XML_SCHEMA_NS_URI
-        final SchemaFactory factory =
-            SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
+        final SchemaFactory factory = SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
 
         // Load catalog to resolve external schemas even offline.
         final URL catalogUrl = ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME);
-        factory.setResourceResolver(new XMLCatalogResolver(new String[] {catalogUrl.toString()}, false));
+        factory.setResourceResolver(new XMLCatalogResolver(new String[] { catalogUrl.toString() }, false));
 
         return factory.newSchema(ValidationXsdUtils.class.getClassLoader().getResource(xsdFile));
     }
@@ -148,8 +145,7 @@ public class ValidationXsdUtils {
     public static Schema getSchema(File file) throws SAXException {
         SchemaFactory factory;
         if (file.getName().endsWith(RNG_SUFFIX)) {
-            System.setProperty(RNG_PROPERTY_KEY,
-                RNG_FACTORY);
+            System.setProperty(RNG_PROPERTY_KEY, RNG_FACTORY);
             factory = SchemaFactory.newInstance(XMLConstants.RELAXNG_NS_URI);
         } else {
             factory = SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
@@ -157,9 +153,8 @@ public class ValidationXsdUtils {
 
         // Load catalog to resolve external schemas even offline.
         final URL catalogUrl = ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME);
-        factory.setResourceResolver(new XMLCatalogResolver(new String[] {catalogUrl.toString()}, false));
+        factory.setResourceResolver(new XMLCatalogResolver(new String[] { catalogUrl.toString() }, false));
 
         return factory.newSchema(file);
     }
-
 }

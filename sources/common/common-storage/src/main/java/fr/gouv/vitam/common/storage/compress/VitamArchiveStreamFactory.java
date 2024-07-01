@@ -56,7 +56,6 @@ public class VitamArchiveStreamFactory {
      */
     public ArchiveInputStream createArchiveInputStream(final MediaType mediaType, final InputStream in)
         throws ArchiveException, IOException {
-
         if (mediaType == null) {
             throw new IllegalArgumentException("archiverMediaType must not be null.");
         }

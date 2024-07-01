@@ -37,6 +37,7 @@ import static org.junit.Assert.assertEquals;
  * Test for StoragePutRequest
  */
 public class StoragePutRequestTest {
+
     private static final ByteArrayInputStream BYTES = new ByteArrayInputStream("dsds".getBytes());
     private static StoragePutRequest storagePutRequest;
     private static final Integer TENANT_ID = 0;
@@ -70,5 +71,4 @@ public class StoragePutRequestTest {
     public void testGetDataStream() throws Exception {
         assertEquals(BYTES, storagePutRequest.getDataStream());
     }
-
 }

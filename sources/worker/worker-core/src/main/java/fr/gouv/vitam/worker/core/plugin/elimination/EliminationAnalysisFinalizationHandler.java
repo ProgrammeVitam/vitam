@@ -37,27 +37,24 @@ import fr.gouv.vitam.worker.core.handler.ActionHandler;
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-
 /**
  * Elimination analysis finalization handler.
  */
 public class EliminationAnalysisFinalizationHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(EliminationAnalysisFinalizationHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        EliminationAnalysisFinalizationHandler.class
+    );
 
     private static final String ELIMINATION_ANALYSIS_FINALIZATION = "ELIMINATION_ANALYSIS_FINALIZATION";
 
     /**
      * Default constructor
      */
-    public EliminationAnalysisFinalizationHandler() {
-    }
+    public EliminationAnalysisFinalizationHandler() {}
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         LOGGER.info("Elimination analysis finalization succeeded");
 
         return buildItemStatus(ELIMINATION_ANALYSIS_FINALIZATION, StatusCode.OK, null);

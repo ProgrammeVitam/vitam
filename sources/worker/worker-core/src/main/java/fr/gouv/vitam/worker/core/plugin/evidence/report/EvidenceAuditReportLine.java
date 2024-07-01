@@ -41,6 +41,7 @@ public class EvidenceAuditReportLine {
 
     @JsonProperty("identifier")
     private String identifier;
+
     @JsonProperty("status")
     private EvidenceStatus evidenceStatus;
 
@@ -138,8 +139,7 @@ public class EvidenceAuditReportLine {
     /**
      * setter for objectsReports
      **/
-    public void setObjectsReports(
-        ArrayList<EvidenceAuditReportObject> objectsReports) {
+    public void setObjectsReports(ArrayList<EvidenceAuditReportObject> objectsReports) {
         this.objectsReports = objectsReports;
     }
 

@@ -39,13 +39,13 @@ import java.util.Map;
  * SchemaBuilder
  */
 public class SchemaBuilder {
-    private static final TypeReference<Map<String, Format>> MAP_TYPE_REFERENCE =
-        new TypeReference<Map<String, Format>>() {
-        };
+
+    private static final TypeReference<Map<String, Format>> MAP_TYPE_REFERENCE = new TypeReference<
+        Map<String, Format>
+    >() {};
     private Map<String, Format> types = new HashMap<>();
 
-    protected SchemaBuilder() {
-    }
+    protected SchemaBuilder() {}
 
     public SchemaBuilder loadTypes(InputStream schemaStream) {
         try {

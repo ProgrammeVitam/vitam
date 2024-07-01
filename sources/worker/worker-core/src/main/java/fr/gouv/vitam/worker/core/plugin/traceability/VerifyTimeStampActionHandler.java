@@ -134,8 +134,7 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters params, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
         if (handler.isExistingFileInWorkspace(params.getObjectName() + File.separator + ERROR_FLAG)) {
             return buildItemStatus(HANDLER_ID, KO);
         }
@@ -143,8 +142,9 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
 
         // 1- Get TraceabilityEventDetail from Workspace
         try {
-            JsonNode traceabilityEvent =
-                JsonHandler.getFromFile((File) handler.getInput(TRACEABILITY_EVENT_DETAIL_RANK));
+            JsonNode traceabilityEvent = JsonHandler.getFromFile(
+                (File) handler.getInput(TRACEABILITY_EVENT_DETAIL_RANK)
+            );
 
             String encodedTimeStampToken = getEncodedTimeStampToken(params, handler);
 
@@ -152,16 +152,26 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             final ItemStatus subItemStatusTokenComparison = new ItemStatus(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP);
             try {
                 compareTimeStamps(encodedTimeStampToken, traceabilityEvent);
-                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP,
-                    subItemStatusTokenComparison.increment(StatusCode.OK));
+                itemStatus.setItemsStatus(
+                    HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP,
+                    subItemStatusTokenComparison.increment(StatusCode.OK)
+                );
             } catch (ProcessingException e) {
                 LOGGER.error("Timestamps are not equal", e);
                 // lets stop the process and return an error
-                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP,
-                    subItemStatusTokenComparison.increment(StatusCode.KO));
-                updateReport(params, handler, t -> t.setStatus(itemStatus.getGlobalStatus().name()).setError(
-                        TraceabilityError.INEQUAL_TIMESTAMP)
-                    .setMessage("Timestamps are not equal"));
+                itemStatus.setItemsStatus(
+                    HANDLER_SUB_ACTION_COMPARE_TOKEN_TIMESTAMP,
+                    subItemStatusTokenComparison.increment(StatusCode.KO)
+                );
+                updateReport(
+                    params,
+                    handler,
+                    t ->
+                        t
+                            .setStatus(itemStatus.getGlobalStatus().name())
+                            .setError(TraceabilityError.INEQUAL_TIMESTAMP)
+                            .setMessage("Timestamps are not equal")
+                );
                 HandlerUtils.save(handler, "", params.getObjectName() + File.separator + ERROR_FLAG);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
@@ -170,16 +180,26 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             final ItemStatus subItemStatusTokenValidation = new ItemStatus(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP);
             try {
                 validateTimestamp(encodedTimeStampToken);
-                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP,
-                    subItemStatusTokenValidation.increment(StatusCode.OK));
+                itemStatus.setItemsStatus(
+                    HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP,
+                    subItemStatusTokenValidation.increment(StatusCode.OK)
+                );
             } catch (ProcessingException e) {
                 LOGGER.error("Timestamps is not valid", e);
                 // lets stop the process and return an error
-                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP,
-                    subItemStatusTokenValidation.increment(StatusCode.KO));
-                updateReport(params, handler, t -> t.setStatus(itemStatus.getGlobalStatus().name()).setError(
-                        TraceabilityError.INVALID_TIMESTAMP)
-                    .setMessage("Timestamps is not valid"));
+                itemStatus.setItemsStatus(
+                    HANDLER_SUB_ACTION_VALIDATE_TOKEN_TIMESTAMP,
+                    subItemStatusTokenValidation.increment(StatusCode.KO)
+                );
+                updateReport(
+                    params,
+                    handler,
+                    t ->
+                        t
+                            .setStatus(itemStatus.getGlobalStatus().name())
+                            .setError(TraceabilityError.INVALID_TIMESTAMP)
+                            .setMessage("Timestamps is not valid")
+                );
                 HandlerUtils.save(handler, "", params.getObjectName() + File.separator + ERROR_FLAG);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
@@ -187,27 +207,48 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             final ItemStatus subItemStatusTokenVerification = new ItemStatus(HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP);
             try {
                 String computingInformationPath =
-                    TRACEABILITY_OPERATION_DIRECTORY + File.separator + params.getObjectName() + File.separator +
-                        TRACEABILITY_COMPUTING_INFORMATION;
+                    TRACEABILITY_OPERATION_DIRECTORY +
+                    File.separator +
+                    params.getObjectName() +
+                    File.separator +
+                    TRACEABILITY_COMPUTING_INFORMATION;
                 String merkleTreePath =
-                    TRACEABILITY_OPERATION_DIRECTORY + File.separator + params.getObjectName() + File.separator +
-                        TRACEABILITY_MERKLE_TREE;
+                    TRACEABILITY_OPERATION_DIRECTORY +
+                    File.separator +
+                    params.getObjectName() +
+                    File.separator +
+                    TRACEABILITY_MERKLE_TREE;
                 verifyTimestamp(encodedTimeStampToken, computingInformationPath, merkleTreePath, handler);
-                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP,
-                    subItemStatusTokenVerification.increment(StatusCode.OK));
+                itemStatus.setItemsStatus(
+                    HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP,
+                    subItemStatusTokenVerification.increment(StatusCode.OK)
+                );
             } catch (ProcessingException e) {
                 LOGGER.error("Timestamps is not valid", e);
                 // lets stop the process and return an error
-                itemStatus.setItemsStatus(HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP,
-                    subItemStatusTokenVerification.increment(StatusCode.KO));
-                updateReport(params, handler, t -> t.setStatus(itemStatus.getGlobalStatus().name()).setError(
-                        TraceabilityError.INVALID_TIMESTAMP)
-                    .setMessage("Timestamps is not valid"));
+                itemStatus.setItemsStatus(
+                    HANDLER_SUB_ACTION_VERIFY_TOKEN_TIMESTAMP,
+                    subItemStatusTokenVerification.increment(StatusCode.KO)
+                );
+                updateReport(
+                    params,
+                    handler,
+                    t ->
+                        t
+                            .setStatus(itemStatus.getGlobalStatus().name())
+                            .setError(TraceabilityError.INVALID_TIMESTAMP)
+                            .setMessage("Timestamps is not valid")
+                );
                 HandlerUtils.save(handler, "", params.getObjectName() + File.separator + ERROR_FLAG);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
             updateReport(params, handler, t -> t.setStatus(itemStatus.getGlobalStatus().name()));
-        } catch (InvalidParseOperationException | ContentAddressableStorageNotFoundException | IOException | ContentAddressableStorageServerException e) {
+        } catch (
+            InvalidParseOperationException
+            | ContentAddressableStorageNotFoundException
+            | IOException
+            | ContentAddressableStorageServerException e
+        ) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
@@ -218,8 +259,10 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
     private void updateReport(WorkerParameters param, HandlerIO handlerIO, Consumer<TraceabilityReportEntry> updater)
         throws IOException, ProcessingException, InvalidParseOperationException {
         String path = param.getObjectName() + File.separator + WorkspaceConstants.REPORT;
-        TraceabilityReportEntry traceabilityReportEntry =
-            JsonHandler.getFromJsonNode(handlerIO.getJsonFromWorkspace(path), TraceabilityReportEntry.class);
+        TraceabilityReportEntry traceabilityReportEntry = JsonHandler.getFromJsonNode(
+            handlerIO.getJsonFromWorkspace(path),
+            TraceabilityReportEntry.class
+        );
         updater.accept(traceabilityReportEntry);
         HandlerUtils.save(handlerIO, traceabilityReportEntry, path);
     }
@@ -227,19 +270,26 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
     private String getEncodedTimeStampToken(WorkerParameters param, HandlerIO handler)
         throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         String operationFilePath =
-            TRACEABILITY_OPERATION_DIRECTORY + File.separator + param.getObjectName() + File.separator +
-                TIMESTAMP_FILENAME;
+            TRACEABILITY_OPERATION_DIRECTORY +
+            File.separator +
+            param.getObjectName() +
+            File.separator +
+            TIMESTAMP_FILENAME;
         try (InputStream tokenFile = handler.getInputStreamFromWorkspace(operationFilePath)) {
             return IOUtils.toString(tokenFile, StandardCharsets.UTF_8);
         }
     }
 
-    private void verifyTimestamp(String encodedTimeStampToken, String computingInformationPath, String merkleTreePath,
-        HandlerIO handler)
-        throws ProcessingException {
-        try (InputStream computingInformation = handler.getInputStreamFromWorkspace(computingInformationPath);
-            InputStream merkleTreeInformation = handler.getInputStreamFromWorkspace(merkleTreePath)) {
-
+    private void verifyTimestamp(
+        String encodedTimeStampToken,
+        String computingInformationPath,
+        String merkleTreePath,
+        HandlerIO handler
+    ) throws ProcessingException {
+        try (
+            InputStream computingInformation = handler.getInputStreamFromWorkspace(computingInformationPath);
+            InputStream merkleTreeInformation = handler.getInputStreamFromWorkspace(merkleTreePath)
+        ) {
             Properties computingProperties = new Properties();
             computingProperties.load(computingInformation);
 
@@ -248,30 +298,41 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
 
             if (!Objects.equals(merkleTreeDigest, computingCurrentDigest)) {
                 throw new ProcessingException(
-                    String.format("Not same digest %s %s.", merkleTreeDigest, computingCurrentDigest));
+                    String.format("Not same digest %s %s.", merkleTreeDigest, computingCurrentDigest)
+                );
             }
 
             TimeStampService timeStampService = new TimeStampService();
 
             byte[] rootMerkleTree = timeStampService.getDigestAsBytes(computingCurrentDigest);
-            byte[] prevTimeStampToken =
-                timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampToken));
-            byte[] prevTimestampTokenMinusOneMonth =
-                timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneMonth));
-            byte[] prevTimestampTokenMinusOneYear =
-                timeStampService.getDigestAsBytes(computingProperties.getProperty(previousTimestampTokenMinusOneYear));
+            byte[] prevTimeStampToken = timeStampService.getDigestAsBytes(
+                computingProperties.getProperty(previousTimestampToken)
+            );
+            byte[] prevTimestampTokenMinusOneMonth = timeStampService.getDigestAsBytes(
+                computingProperties.getProperty(previousTimestampTokenMinusOneMonth)
+            );
+            byte[] prevTimestampTokenMinusOneYear = timeStampService.getDigestAsBytes(
+                computingProperties.getProperty(previousTimestampTokenMinusOneYear)
+            );
 
             TimeStampToken timeStampToken = timeStampService.getTimeStampFrom(encodedTimeStampToken);
 
             byte[] timeStampDataFromFile = timeStampToken.getTimeStampInfo().getMessageImprintDigest();
-            byte[] computedTimeStampData =
-                timeStampService.getDigestFrom(rootMerkleTree, prevTimeStampToken, prevTimestampTokenMinusOneMonth,
-                    prevTimestampTokenMinusOneYear);
+            byte[] computedTimeStampData = timeStampService.getDigestFrom(
+                rootMerkleTree,
+                prevTimeStampToken,
+                prevTimestampTokenMinusOneMonth,
+                prevTimestampTokenMinusOneYear
+            );
 
             if (!Arrays.equals(timeStampDataFromFile, computedTimeStampData)) {
                 throw new ProcessingException(
-                    String.format("Not same digest %s %s.", BaseXx.getBase16(timeStampDataFromFile),
-                        BaseXx.getBase16(computedTimeStampData)));
+                    String.format(
+                        "Not same digest %s %s.",
+                        BaseXx.getBase16(timeStampDataFromFile),
+                        BaseXx.getBase16(computedTimeStampData)
+                    )
+                );
             }
         } catch (Exception e) {
             throw new ProcessingException(e);
@@ -298,11 +359,11 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
             SigningCertificateV2 sigCertV2 = SigningCertificateV2.getInstance(attribute.getAttributeValues()[0]);
 
             try {
-
                 X509CertificateHolder x509Certificate = retriveCertificate(tsToken);
 
-                SignerInformationVerifier sigVerifier =
-                    new JcaSimpleSignerInfoVerifierBuilder().setProvider(PROVIDER_NAME).build(x509Certificate);
+                SignerInformationVerifier sigVerifier = new JcaSimpleSignerInfoVerifierBuilder()
+                    .setProvider(PROVIDER_NAME)
+                    .build(x509Certificate);
                 if (tsToken.isSignatureValid(sigVerifier)) {
                     tsToken.validate(sigVerifier);
                 } else {
@@ -311,9 +372,9 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
                 }
 
                 DigestCalculatorProvider digestCalculatorProvider = new BcDigestCalculatorProvider();
-                DigestCalculator digCalc =
-                    digestCalculatorProvider
-                        .get(new AlgorithmIdentifier(tsToken.getTimeStampInfo().getMessageImprintAlgOID()));
+                DigestCalculator digCalc = digestCalculatorProvider.get(
+                    new AlgorithmIdentifier(tsToken.getTimeStampInfo().getMessageImprintAlgOID())
+                );
                 OutputStream dOut = digCalc.getOutputStream();
                 dOut.write(x509Certificate.getEncoded());
                 dOut.close();
@@ -322,7 +383,6 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
                     LOGGER.error("Hash from certificates are different");
                     throw new ProcessingException("Hash from certificates are different");
                 }
-
             } catch (TSPValidationException e) {
                 LOGGER.error(e);
                 throw new ProcessingException("TimeStampToken fails to validate", e);
@@ -343,7 +403,6 @@ public class VerifyTimeStampActionHandler extends ActionHandler {
         Iterator<X509CertificateHolder> certIt2 = collTt.iterator();
         return certIt2.next();
     }
-
 
     @Override
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {

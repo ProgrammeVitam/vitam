@@ -52,14 +52,18 @@ public class MetadataJsonResponseUtilsTest {
 
     @Test
     public void given_resultwith_nbreresult_0_thenReturn_JsonNode() throws Exception {
-        final JsonNode jsonNode =
-            MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(0), new SelectParserMultiple());
+        final JsonNode jsonNode = MetadataJsonResponseUtils.populateJSONObjectResponse(
+            buildResult(0),
+            new SelectParserMultiple()
+        );
         assertNotNull(jsonNode);
     }
 
     @Test
     public void given_resultwith_nbreresult_2_thenthrow_InvalidParseOperationException() throws Exception {
         assertEquals(
-            MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(2), new SelectParserMultiple()).size(), 0);
+            MetadataJsonResponseUtils.populateJSONObjectResponse(buildResult(2), new SelectParserMultiple()).size(),
+            0
+        );
     }
 }

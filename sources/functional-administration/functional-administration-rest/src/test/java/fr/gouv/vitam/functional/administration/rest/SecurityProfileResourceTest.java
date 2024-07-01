@@ -86,8 +86,7 @@ public class SecurityProfileResourceTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -115,19 +114,24 @@ public class SecurityProfileResourceTest {
     public static WireMockClassRule workspaceWireMock = new WireMockClassRule(workspacePort);
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
 
         File tmpFolder = tempFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
@@ -135,10 +139,11 @@ public class SecurityProfileResourceTest {
 
         LogbookOperationsClientFactory.changeMode(null);
 
-
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+        final AdminManagementConfiguration realAdminConfig = PropertiesUtils.readYaml(
+            adminConfig,
+            AdminManagementConfiguration.class
+        );
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
@@ -148,9 +153,11 @@ public class SecurityProfileResourceTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
-        mongoDbAccess =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
-                Collections::emptyList, indexManager);
+        mongoDbAccess = MongoDbAccessAdminFactory.create(
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+            Collections::emptyList,
+            indexManager
+        );
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -163,17 +170,20 @@ public class SecurityProfileResourceTest {
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the AdminManagement Application Server", e);
+            throw new IllegalStateException("Cannot start the AdminManagement Application Server", e);
         }
 
         // Mock workspace API
-        workspaceWireMock.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(
-                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
-        workspaceWireMock.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(
-                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        workspaceWireMock.stubFor(
+            WireMock.post(urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
+        workspaceWireMock.stubFor(
+            WireMock.delete(urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
     }
 
     @AfterClass
@@ -208,34 +218,48 @@ public class SecurityProfileResourceTest {
         MetaDataClientFactory.changeMode(null);
 
         // transform to json
-        given().contentType(ContentType.JSON).body(json)
+        given()
+            .contentType(ContentType.JSON)
+            .body(json)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post(SecurityProfileResource.SECURITY_PROFILE_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(SecurityProfileResource.SECURITY_PROFILE_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         // we update an existing security profile -> OK
         File updateSecurityProfile = PropertiesUtils.getResourceFile("updateSecurityProfile.json");
         JsonNode updateSecurityProfileJson = JsonHandler.getFromFile(updateSecurityProfile);
-        given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
+        given()
+            .contentType(ContentType.JSON)
+            .body(updateSecurityProfileJson)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().put(SecurityProfileResource.SECURITY_PROFILE_URI + "/SEC_PROFILE-000001")
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .put(SecurityProfileResource.SECURITY_PROFILE_URI + "/SEC_PROFILE-000001")
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         // we update an unexisting security profile -> 404
-        given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
+        given()
+            .contentType(ContentType.JSON)
+            .body(updateSecurityProfileJson)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().put(SecurityProfileResource.SECURITY_PROFILE_URI + "/wrongId")
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .when()
+            .put(SecurityProfileResource.SECURITY_PROFILE_URI + "/wrongId")
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
 
-        given().contentType(ContentType.JSON).body(updateSecurityProfileJson)
+        given()
+            .contentType(ContentType.JSON)
+            .body(updateSecurityProfileJson)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().put(SecurityProfileResource.SECURITY_PROFILE_URI + "/wrongId")
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
-
-
+            .when()
+            .put(SecurityProfileResource.SECURITY_PROFILE_URI + "/wrongId")
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 }

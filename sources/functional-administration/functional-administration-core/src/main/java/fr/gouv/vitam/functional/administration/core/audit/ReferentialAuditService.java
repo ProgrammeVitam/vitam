@@ -77,7 +77,6 @@ import java.util.stream.StreamSupport;
 import static fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService.DEFAULT_EXTENSION;
 import static fr.gouv.vitam.functional.administration.core.backup.FunctionalBackupService.FIELD_COLLECTION;
 
-
 public class ReferentialAuditService {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ReferentialAuditService.class);
@@ -93,8 +92,10 @@ public class ReferentialAuditService {
     }
 
     @VisibleForTesting
-    ReferentialAuditService(StorageClientFactory storageClientFactory,
-        FunctionalBackupService functionalBackupService) {
+    ReferentialAuditService(
+        StorageClientFactory storageClientFactory,
+        FunctionalBackupService functionalBackupService
+    ) {
         this.storageClientFactory = storageClientFactory;
         this.functionalBackupService = functionalBackupService;
     }
@@ -104,9 +105,7 @@ public class ReferentialAuditService {
     }
 
     public void runAudit(String collectionName, int tenant)
-        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException,
-        StorageNotFoundClientException, BadRequestException, AuditVitamException,
-        StorageUnavailableDataFromAsyncOfferClientException {
+        throws StorageServerClientException, StorageNotFoundException, InvalidParseOperationException, StorageNotFoundClientException, BadRequestException, AuditVitamException, StorageUnavailableDataFromAsyncOfferClientException {
         FunctionalAdminCollections collection = FunctionalAdminCollections.getFromValue(collectionName);
 
         if (Objects.isNull(collection)) {
@@ -117,9 +116,12 @@ public class ReferentialAuditService {
             throw new BadRequestException("admin tenant required");
         }
 
-        Optional<ObjectEntry> objectEntryToAudit =
-            StreamSupport.stream(iteratorToIterable(listObjectEntry()).spliterator(), false)
-                .filter(e -> matcherFilter(e, collection)).reduce(this::getLastBackupFile);
+        Optional<ObjectEntry> objectEntryToAudit = StreamSupport.stream(
+            iteratorToIterable(listObjectEntry()).spliterator(),
+            false
+        )
+            .filter(e -> matcherFilter(e, collection))
+            .reduce(this::getLastBackupFile);
 
         ArrayNode documentsInDB = findDocuments(tenant, collection);
 
@@ -129,60 +131,78 @@ public class ReferentialAuditService {
             Map<String, String> hashMap = isHashesEquals(offersIds, next);
             verifyCoherence(offersIds, documentsInDB, next, hashMap, collectionName, tenant);
         } else if (!documentsInDB.isEmpty()) {
-            String message = String
-                .format("[KO] collection=%s, tenant=%s file not present in default offer (referent offer)",
-                    collectionName, tenant);
+            String message = String.format(
+                "[KO] collection=%s, tenant=%s file not present in default offer (referent offer)",
+                collectionName,
+                tenant
+            );
             alertService.createAlert(VitamLogLevel.ERROR, message);
             throw new AuditVitamException(message);
         }
     }
 
-    private void verifyCoherence(List<String> offerIds, ArrayNode documentsInDB, ObjectEntry next,
+    private void verifyCoherence(
+        List<String> offerIds,
+        ArrayNode documentsInDB,
+        ObjectEntry next,
         Map<String, String> mapOfHashes,
-        String collectionName, int tenant)
-        throws StorageNotFoundException, StorageServerClientException, AuditVitamException,
-        StorageUnavailableDataFromAsyncOfferClientException {
-
+        String collectionName,
+        int tenant
+    )
+        throws StorageNotFoundException, StorageServerClientException, AuditVitamException, StorageUnavailableDataFromAsyncOfferClientException {
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             boolean hasUniqueHash = (new HashSet<>(mapOfHashes.values())).size() == 1;
             if (hasUniqueHash && mapOfHashes.keySet().containsAll(offerIds)) { // All offers are synchronized
-                Response response = storageClient
-                    .getContainerAsync(VitamConfiguration.getDefaultStrategy(), next.getObjectId(), DataCategory.BACKUP,
-                        AccessLogUtils.getNoLogAccessLog());
+                Response response = storageClient.getContainerAsync(
+                    VitamConfiguration.getDefaultStrategy(),
+                    next.getObjectId(),
+                    DataCategory.BACKUP,
+                    AccessLogUtils.getNoLogAccessLog()
+                );
                 try {
                     InputStream is = response.readEntity(InputStream.class);
-                    ArrayNode documentsInJson = JsonHandler
-                        .getFromJsonNode(JsonHandler.getFromInputStream(is).get(FIELD_COLLECTION),
-                            new TypeReference<>() {
-                            });
+                    ArrayNode documentsInJson = JsonHandler.getFromJsonNode(
+                        JsonHandler.getFromInputStream(is).get(FIELD_COLLECTION),
+                        new TypeReference<>() {}
+                    );
 
                     List<String> list = diff(documentsInDB, documentsInJson);
 
                     if (!list.isEmpty()) {
-                        String message = String
-                            .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
-                                collectionName,
-                                tenant);
+                        String message = String.format(
+                            "[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
+                            collectionName,
+                            tenant
+                        );
                         alertService.createAlert(VitamLogLevel.ERROR, message);
                         throw new AuditVitamException(message);
                     }
                 } catch (InvalidParseOperationException e) {
-                    String message = String
-                        .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
-                            collectionName,
-                            tenant);
+                    String message = String.format(
+                        "[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
+                        collectionName,
+                        tenant
+                    );
                     alertService.createAlert(VitamLogLevel.ERROR, message);
                     throw new AuditVitamException(message);
                 }
             } else {
                 Map<String, Response> offersData = new HashMap<>();
                 for (String offer : mapOfHashes.keySet()) {
-                    offersData.put(offer, storageClient
-                        .getContainerAsync(VitamConfiguration.getDefaultStrategy(), offer, next.getObjectId(),
-                            DataCategory.BACKUP, AccessLogUtils.getNoLogAccessLog()));
+                    offersData.put(
+                        offer,
+                        storageClient.getContainerAsync(
+                            VitamConfiguration.getDefaultStrategy(),
+                            offer,
+                            next.getObjectId(),
+                            DataCategory.BACKUP,
+                            AccessLogUtils.getNoLogAccessLog()
+                        )
+                    );
                 }
 
-                Map<String, InputStream> collect = offersData.entrySet()
+                Map<String, InputStream> collect = offersData
+                    .entrySet()
                     .stream()
                     .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().readEntity(InputStream.class)))
                     .collect(Collectors.toMap(SimpleEntry::getKey, SimpleEntry::getValue));
@@ -192,11 +212,11 @@ public class ReferentialAuditService {
                 collect.forEach((offerId, is) -> {
                     try {
                         JsonNode fileJson = JsonHandler.getFromInputStream(is);
-                        if (fileJson != null && !(fileJson instanceof NullNode) &&
-                            fileJson.has(FIELD_COLLECTION)) {
-                            documentsByOffer.put(offerId,
-                                JsonHandler.getFromJsonNode(fileJson.get(FIELD_COLLECTION), new TypeReference<>() {
-                                }));
+                        if (fileJson != null && !(fileJson instanceof NullNode) && fileJson.has(FIELD_COLLECTION)) {
+                            documentsByOffer.put(
+                                offerId,
+                                JsonHandler.getFromJsonNode(fileJson.get(FIELD_COLLECTION), new TypeReference<>() {})
+                            );
                         } else {
                             listOffersThatContainsCorruptedFile.add(offerId);
                         }
@@ -205,28 +225,31 @@ public class ReferentialAuditService {
                     }
                 });
 
-                Set<String> offersWhichCoherentWithDB = documentsByOffer.entrySet()
+                Set<String> offersWhichCoherentWithDB = documentsByOffer
+                    .entrySet()
                     .stream()
                     .filter(e -> !listOffersThatContainsCorruptedFile.contains(e.getKey()))
                     .filter(e -> diff(documentsInDB, e.getValue()).isEmpty())
                     .map(Map.Entry::getKey)
                     .collect(Collectors.toSet());
                 if (offersWhichCoherentWithDB.isEmpty()) {
-                    String message = String
-                        .format("[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
-                            collectionName,
-                            tenant);
+                    String message = String.format(
+                        "[KO] collectionName=%s, tenant=%s all offers are incoherent with database",
+                        collectionName,
+                        tenant
+                    );
                     alertService.createAlert(VitamLogLevel.ERROR, message);
                     throw new AuditVitamException(message);
                 } else {
-                    String message = String
-                        .format("[KO] collectionName=%s, tenant=%s some offers are incoherent with database\n\r" +
-                                "coherent offers = %s\n\r" +
-                                "incoherent offers = %s\n\r",
-                            collectionName, tenant,
-                            offersWhichCoherentWithDB,
-                            Sets.difference(new HashSet<>(offerIds), offersWhichCoherentWithDB)
-                        );
+                    String message = String.format(
+                        "[KO] collectionName=%s, tenant=%s some offers are incoherent with database\n\r" +
+                        "coherent offers = %s\n\r" +
+                        "incoherent offers = %s\n\r",
+                        collectionName,
+                        tenant,
+                        offersWhichCoherentWithDB,
+                        Sets.difference(new HashSet<>(offerIds), offersWhichCoherentWithDB)
+                    );
                     alertService.createAlert(VitamLogLevel.ERROR, message);
                     throw new AuditVitamException(message);
                 }
@@ -242,7 +265,8 @@ public class ReferentialAuditService {
     private List<String> diff(ArrayNode source, ArrayNode target) {
         return VitamDocument.getUnifiedDiff(
             JsonHandler.prettyPrint(new String(CanonicalJsonFormatter.serializeToByteArray(source))),
-            JsonHandler.prettyPrint(new String(CanonicalJsonFormatter.serializeToByteArray(target))));
+            JsonHandler.prettyPrint(new String(CanonicalJsonFormatter.serializeToByteArray(target)))
+        );
     }
 
     private List<String> getOffers(String strategyId)
@@ -253,15 +277,12 @@ public class ReferentialAuditService {
     }
 
     private ObjectEntry getLastBackupFile(ObjectEntry objectEntry, ObjectEntry objectEntry1) {
-        if (objectEntry.getObjectId().compareTo(objectEntry1.getObjectId()) > 0)
-            return objectEntry;
-        else
-            return objectEntry1;
+        if (objectEntry.getObjectId().compareTo(objectEntry1.getObjectId()) > 0) return objectEntry;
+        else return objectEntry1;
     }
 
     private boolean matcherFilter(ObjectEntry next, FunctionalAdminCollections collection) {
-        Pattern pattern =
-            Pattern.compile("(\\d+)_([A-z0-9]+)_(\\d+)(\\." + DEFAULT_EXTENSION + ")");
+        Pattern pattern = Pattern.compile("(\\d+)_([A-z0-9]+)_(\\d+)(\\." + DEFAULT_EXTENSION + ")");
         Matcher matcher = pattern.matcher(next.getObjectId());
         return matcher.matches() && matcher.group(2).equals(collection.getName());
     }
@@ -279,19 +300,23 @@ public class ReferentialAuditService {
         String strategyId = VitamConfiguration.getDefaultStrategy();
 
         try (StorageClient storageClient = storageClientFactory.getClient()) {
+            JsonNode information = storageClient.getInformation(
+                strategyId,
+                DataCategory.BACKUP,
+                next.getObjectId(),
+                offerIds,
+                false
+            );
 
-            JsonNode information =
-                storageClient.getInformation(strategyId, DataCategory.BACKUP, next.getObjectId(),
-                    offerIds, false);
-
-            return offerIds.stream()
+            return offerIds
+                .stream()
                 .map(e -> new SimpleEntry<>(e, information.get(e)))
                 .filter(e -> Objects.nonNull(e.getValue()))
                 .filter(e -> !e.getValue().isMissingNode())
                 .filter(e -> !e.getValue().isNull())
                 .filter(e -> e.getValue().has(DIGEST))
-                .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().get(DIGEST).textValue())
-                ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().get(DIGEST).textValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         }
     }
 }

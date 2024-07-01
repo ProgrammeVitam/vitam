@@ -30,7 +30,6 @@ package fr.gouv.vitam.functional.administration.common;
  * Ontology Import ErrorCode enumeration
  */
 public enum OntologyErrorCode {
-
     /**
      * File not in json format
      */
@@ -73,7 +72,6 @@ public enum OntologyErrorCode {
      */
     STP_IMPORT_ONTOLOGIES_NOT_AUTHORIZED_FOR_TENANT,
 
-
     /**
      * Delete not authorized
      */
@@ -87,5 +85,5 @@ public enum OntologyErrorCode {
     /**
      * Conflict merging internal and external at initialization
      */
-    STP_IMPORT_ONTOLOGIES_INTERNAL_EXTERNAL_CONFLICT_EXCEPTION
+    STP_IMPORT_ONTOLOGIES_INTERNAL_EXTERNAL_CONFLICT_EXCEPTION,
 }

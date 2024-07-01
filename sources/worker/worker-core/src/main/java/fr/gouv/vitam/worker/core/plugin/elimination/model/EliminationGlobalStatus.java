@@ -27,7 +27,6 @@
 package fr.gouv.vitam.worker.core.plugin.elimination.model;
 
 public enum EliminationGlobalStatus {
-
     /**
      * Unit should be kept
      */
@@ -41,5 +40,5 @@ public enum EliminationGlobalStatus {
     /**
      * Unit is to be destroyed according to some originating agencies, and kept according to some others.
      */
-    CONFLICT
+    CONFLICT,
 }

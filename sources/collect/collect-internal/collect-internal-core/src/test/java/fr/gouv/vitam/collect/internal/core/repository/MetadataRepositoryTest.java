@@ -72,14 +72,19 @@ public class MetadataRepositoryTest {
 
     private final String TRANSACTION_ID = "TRANSACTION_ID";
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @InjectMocks private MetadataRepository metadataRepository;
+    @InjectMocks
+    private MetadataRepository metadataRepository;
 
-    @Mock private MetaDataClientFactory metaDataCollectClientFactory;
-    @Mock private MetaDataClient metaDataCollectClient;
+    @Mock
+    private MetaDataClientFactory metaDataCollectClientFactory;
+
+    @Mock
+    private MetaDataClient metaDataCollectClient;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
-
 
     @Before
     public void setUp() throws Exception {
@@ -93,12 +98,15 @@ public class MetadataRepositoryTest {
         JsonNode query = select.getFinalSelect();
 
         when(metaDataCollectClient.selectUnits(any())).thenAnswer(
-            a -> JsonHandler.toJsonNode(new RequestResponseOK<>().setQuery(a.getArgument(0))));
+            a -> JsonHandler.toJsonNode(new RequestResponseOK<>().setQuery(a.getArgument(0)))
+        );
         // When
         RequestResponseOK<JsonNode> jsonNode = metadataRepository.selectUnits(query, TRANSACTION_ID);
         // Then
-        assertEquals("[{\"$in\":{\"#opi\":[\"" + TRANSACTION_ID + "\"]}}]",
-            jsonNode.getQuery().get("$query").toString());
+        assertEquals(
+            "[{\"$in\":{\"#opi\":[\"" + TRANSACTION_ID + "\"]}}]",
+            jsonNode.getQuery().get("$query").toString()
+        );
     }
 
     @Test
@@ -107,7 +115,8 @@ public class MetadataRepositoryTest {
         SelectMultiQuery select = new SelectMultiQuery();
         List<JsonNode> results = List.of(JsonHandler.createObjectNode());
         when(metaDataCollectClient.selectUnits(any())).thenAnswer(
-            a -> JsonHandler.toJsonNode(new RequestResponseOK<>(a.getArgument(0), results, 1)));
+            a -> JsonHandler.toJsonNode(new RequestResponseOK<>(a.getArgument(0), results, 1))
+        );
         // When
         final ScrollSpliterator<JsonNode> scrollSpliterator = metadataRepository.selectUnits(select, TRANSACTION_ID);
         // Then
@@ -119,7 +128,8 @@ public class MetadataRepositoryTest {
         // Given
         final String UNIT_ID = "UNIT_ID";
         when(metaDataCollectClient.selectUnitbyId(any(), eq(UNIT_ID))).thenReturn(
-            JsonHandler.toJsonNode(new RequestResponseOK<>().addResult(JsonHandler.createObjectNode())));
+            JsonHandler.toJsonNode(new RequestResponseOK<>().addResult(JsonHandler.createObjectNode()))
+        );
         // When
         metadataRepository.selectUnitById(UNIT_ID);
         // Then
@@ -133,12 +143,15 @@ public class MetadataRepositoryTest {
         JsonNode query = select.getFinalSelect();
 
         when(metaDataCollectClient.selectObjectGroups(any())).thenAnswer(
-            a -> JsonHandler.toJsonNode(new RequestResponseOK<>().setQuery(a.getArgument(0))));
+            a -> JsonHandler.toJsonNode(new RequestResponseOK<>().setQuery(a.getArgument(0)))
+        );
         // When
         final JsonNode jsonNode = metadataRepository.selectObjectGroups(query, TRANSACTION_ID);
         // Then
-        assertEquals("[{\"$in\":{\"#opi\":[\"" + TRANSACTION_ID + "\"]}}]",
-            jsonNode.get("$context").get("$query").toString());
+        assertEquals(
+            "[{\"$in\":{\"#opi\":[\"" + TRANSACTION_ID + "\"]}}]",
+            jsonNode.get("$context").get("$query").toString()
+        );
     }
 
     @Test
@@ -155,23 +168,26 @@ public class MetadataRepositoryTest {
     public void selectObjectGroupById() throws Exception {
         // Given
         given(metaDataCollectClient.getObjectGroupByIdRaw("1")).willReturn(
-            getResponseWith("version_id", "storage_id", "default", "BinaryMaster_25", "OPI"));
+            getResponseWith("version_id", "storage_id", "default", "BinaryMaster_25", "OPI")
+        );
         // When
         JsonNode jsonNode = metadataRepository.selectObjectGroupById("1", true);
         // Then
         Assertions.assertThat(jsonNode).isNotNull();
-        Assertions.assertThat(jsonNode.get("_qualifiers").get(0).get("versions").get(0).get("_id").asText())
-            .isEqualTo("version_id");
+        Assertions.assertThat(jsonNode.get("_qualifiers").get(0).get("versions").get(0).get("_id").asText()).isEqualTo(
+            "version_id"
+        );
         Assertions.assertThat(
-                jsonNode.get("_qualifiers").get(0).get("versions").get(0).get("DataObjectVersion").asText())
-            .isEqualTo("BinaryMaster_25");
+            jsonNode.get("_qualifiers").get(0).get("versions").get(0).get("DataObjectVersion").asText()
+        ).isEqualTo("BinaryMaster_25");
     }
 
     @Test
     public void selectObjectGroupById_without_raw() throws Exception {
         // Given
         when(metaDataCollectClient.selectObjectGrouptbyId(any(), any())).thenReturn(
-            JsonHandler.createObjectNode().put("test", true));
+            JsonHandler.createObjectNode().put("test", true)
+        );
         // When
         JsonNode jsonNode = metadataRepository.selectObjectGroupById("1", false);
         // Then
@@ -184,7 +200,9 @@ public class MetadataRepositoryTest {
         // Given
         ArrayNode arrayNode = objectMapper.createArrayNode();
         arrayNode.add("aeaqaaaaaagbcaacaa3woak5by7by4aaaaba");
-        ObjectNode objectNode = JsonHandler.createObjectNode().put("#id", "1").put("Identifier", "value" + 1)
+        ObjectNode objectNode = JsonHandler.createObjectNode()
+            .put("#id", "1")
+            .put("Identifier", "value" + 1)
             .put("Name", "Lorem ipsum dolor sit amet, consectetur adipiscing elit");
         objectNode.set("#unitups", arrayNode);
         when(metaDataCollectClient.insertUnitBulk(any())).thenReturn(JsonHandler.getFromString("{\"test\":\"true\"}"));
@@ -198,7 +216,9 @@ public class MetadataRepositoryTest {
     @Test
     public void saveArchiveUnit_without_unit_up() throws Exception {
         // Given
-        ObjectNode objectNode = JsonHandler.createObjectNode().put("#id", "1").put("Identifier", "value" + 1)
+        ObjectNode objectNode = JsonHandler.createObjectNode()
+            .put("#id", "1")
+            .put("Identifier", "value" + 1)
             .put("Name", "Lorem ipsum dolor sit amet, consectetur adipiscing elit");
         when(metaDataCollectClient.insertUnitBulk(any())).thenReturn(JsonHandler.getFromString("{\"test\":\"true\"}"));
         // When
@@ -211,10 +231,13 @@ public class MetadataRepositoryTest {
     @Test
     public void saveObjectGroup() throws Exception {
         // Given
-        ObjectNode objectNode = JsonHandler.createObjectNode().put("#id", "1").put("Identifier", "value" + 1)
+        ObjectNode objectNode = JsonHandler.createObjectNode()
+            .put("#id", "1")
+            .put("Identifier", "value" + 1)
             .put("Name", "Lorem ipsum dolor sit amet, consectetur adipiscing elit");
         when(metaDataCollectClient.insertObjectGroup(any())).thenReturn(
-            JsonHandler.getFromString("{\"test\":\"true\"}"));
+            JsonHandler.getFromString("{\"test\":\"true\"}")
+        );
         // When
         JsonNode jsonNode = metadataRepository.saveObjectGroup(objectNode);
         // Then
@@ -228,9 +251,12 @@ public class MetadataRepositoryTest {
         ArgumentCaptor<JsonNode> jsonNodeArgumentCaptor = ArgumentCaptor.forClass(JsonNode.class);
         DbObjectGroupModel objectGroupModel = new DbObjectGroupModel();
         objectGroupModel.setQualifiers(new ArrayList<>());
-        UpdateMultiQuery query =
-            QueryHandler.getQualifiersAddMultiQuery(objectGroupModel, DataObjectVersionType.BINARY_MASTER, 1,
-                new ObjectDto("1", new FileInfoDto("filename", "lastModified")));
+        UpdateMultiQuery query = QueryHandler.getQualifiersAddMultiQuery(
+            objectGroupModel,
+            DataObjectVersionType.BINARY_MASTER,
+            1,
+            new ObjectDto("1", new FileInfoDto("filename", "lastModified"))
+        );
         // When
         metadataRepository.updateObjectGroupById(query, "1", "1");
         // Then
@@ -253,8 +279,13 @@ public class MetadataRepositoryTest {
         verify(metaDataCollectClient).deleteObjectGroupBulk(Arrays.asList("1", "2"));
     }
 
-    private RequestResponseOK<JsonNode> getResponseWith(String versionId, String storageId, String strategyId,
-        String usageVersion, String opi) {
+    private RequestResponseOK<JsonNode> getResponseWith(
+        String versionId,
+        String storageId,
+        String strategyId,
+        String usageVersion,
+        String opi
+    ) {
         DbVersionsModel versionsModel = new DbVersionsModel();
         versionsModel.setDataObjectVersion(usageVersion);
         versionsModel.setId(versionId);
@@ -272,5 +303,4 @@ public class MetadataRepositoryTest {
         responseOK.addResult(objectMapper.valueToTree(groupModel));
         return responseOK;
     }
-
 }

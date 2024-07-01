@@ -34,11 +34,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public class ProcessingUri {
+
     @JsonProperty("prefix")
     private UriPrefix prefix;
+
     @JsonProperty("path")
     private String path;
-
 
     /**
      * Empty Constructor

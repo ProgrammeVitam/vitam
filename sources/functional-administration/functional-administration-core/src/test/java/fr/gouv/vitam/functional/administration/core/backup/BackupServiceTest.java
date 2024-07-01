@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.core.backup;
 
-
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.VitamConfiguration;
 import fr.gouv.vitam.functional.administration.common.exception.BackupServiceException;
@@ -79,27 +78,28 @@ public class BackupServiceTest {
         given(workspaceClientFactory.getClient()).willReturn(workspaceClient);
         given(storageClientFactory.getClient()).willReturn(storageClient);
         inputStream = PropertiesUtils.getResourceAsStream(FILE_TO_SAVE);
-
     }
 
     @Test
     public void should_store_file() throws Exception {
-
         //Given
         final String uri = URI;
-        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor =
-            ArgumentCaptor.forClass(ObjectDescription.class);
+        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor = ArgumentCaptor.forClass(
+            ObjectDescription.class
+        );
         //When
         backupService.backup(inputStream, REPORT, uri);
 
         //Then
         ArgumentCaptor<String> containerArgCaptor = ArgumentCaptor.forClass(String.class);
-        verify(workspaceClient)
-            .putObject(containerArgCaptor.capture(), eq(uri), eq(inputStream));
+        verify(workspaceClient).putObject(containerArgCaptor.capture(), eq(uri), eq(inputStream));
 
-        verify(storageClient)
-            .storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()), eq(REPORT), eq(uri),
-                objectDescriptionArgumentCaptor.capture());
+        verify(storageClient).storeFileFromWorkspace(
+            eq(VitamConfiguration.getDefaultStrategy()),
+            eq(REPORT),
+            eq(uri),
+            objectDescriptionArgumentCaptor.capture()
+        );
         ObjectDescription description = objectDescriptionArgumentCaptor.getValue();
         assertThat(description.getWorkspaceContainerGUID()).isEqualTo(containerArgCaptor.getValue());
         assertThat(description.getWorkspaceObjectURI()).isEqualTo(uri);
@@ -107,25 +107,26 @@ public class BackupServiceTest {
         verify(workspaceClient).deleteContainer(containerArgCaptor.getValue(), true);
     }
 
-
     @Test
     public void should_store_file_strategy() throws Exception {
-
         //Given
         final String uri = URI;
-        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor =
-            ArgumentCaptor.forClass(ObjectDescription.class);
+        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor = ArgumentCaptor.forClass(
+            ObjectDescription.class
+        );
         //When
         backupService.backup(inputStream, UNIT, uri, "other_strategy");
 
         //Then
         ArgumentCaptor<String> containerArgCaptor = ArgumentCaptor.forClass(String.class);
-        verify(workspaceClient)
-            .putObject(containerArgCaptor.capture(), eq(uri), eq(inputStream));
+        verify(workspaceClient).putObject(containerArgCaptor.capture(), eq(uri), eq(inputStream));
 
-        verify(storageClient)
-            .storeFileFromWorkspace(eq("other_strategy"), eq(UNIT), eq(uri),
-                objectDescriptionArgumentCaptor.capture());
+        verify(storageClient).storeFileFromWorkspace(
+            eq("other_strategy"),
+            eq(UNIT),
+            eq(uri),
+            objectDescriptionArgumentCaptor.capture()
+        );
         ObjectDescription description = objectDescriptionArgumentCaptor.getValue();
         assertThat(description.getWorkspaceContainerGUID()).isEqualTo(containerArgCaptor.getValue());
         assertThat(description.getWorkspaceObjectURI()).isEqualTo(uri);
@@ -148,23 +149,23 @@ public class BackupServiceTest {
         assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
             .isInstanceOf(BackupServiceException.class)
             .hasMessageContaining(description);
-
     }
 
     @Test
     public void should_fail_when_storing_from_workSpace() throws Exception {
-
         //Given
         final String message = "Unable to store file from workSpace";
 
-        willThrow(StorageAlreadyExistsClientException.class).given(storageClient)
+        willThrow(StorageAlreadyExistsClientException.class)
+            .given(storageClient)
             .storeFileFromWorkspace(any(), any(), any(), any());
         //When
         assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
             .isInstanceOf(BackupServiceException.class)
             .hasMessageContaining(message);
         //Given
-        willThrow(StorageNotFoundClientException.class).given(storageClient)
+        willThrow(StorageNotFoundClientException.class)
+            .given(storageClient)
             .storeFileFromWorkspace(any(), any(), any(), any());
         //When
         assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
@@ -172,20 +173,20 @@ public class BackupServiceTest {
             .hasMessageContaining(message);
 
         //Given
-        willThrow(StorageServerClientException.class).given(storageClient)
+        willThrow(StorageServerClientException.class)
+            .given(storageClient)
             .storeFileFromWorkspace(any(), any(), any(), any());
         //When
         assertThatThrownBy(() -> backupService.backup(inputStream, REPORT, URI))
             .isInstanceOf(BackupServiceException.class)
             .hasMessageContaining(message);
-
     }
 
     @Test
     public void should_not_fail_clean_file_workSpace() throws Exception {
-
         //Given
-        doThrow(ContentAddressableStorageNotFoundException.class).when(workspaceClient)
+        doThrow(ContentAddressableStorageNotFoundException.class)
+            .when(workspaceClient)
             .deleteContainer(any(), anyBoolean());
 
         //When

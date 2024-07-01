@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TapeLibraryState implements TapeLibrarySpec {
+
     private String device;
     private int driveCount;
     private int slotsCount;

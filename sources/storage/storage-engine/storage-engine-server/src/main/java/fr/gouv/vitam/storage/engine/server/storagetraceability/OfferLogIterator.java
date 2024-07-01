@@ -51,10 +51,14 @@ public class OfferLogIterator extends BulkBufferingEntryIterator<OfferLog> {
     private final int chunkSize;
     private Long lastOffset;
 
-    public OfferLogIterator(String strategyId, Order order, DataCategory dataCategory,
-        StorageDistribution distribution, int chunkSize) {
+    public OfferLogIterator(
+        String strategyId,
+        Order order,
+        DataCategory dataCategory,
+        StorageDistribution distribution,
+        int chunkSize
+    ) {
         super(chunkSize);
-
         this.strategyId = strategyId;
         this.order = order;
         this.dataCategory = dataCategory;
@@ -65,10 +69,15 @@ public class OfferLogIterator extends BulkBufferingEntryIterator<OfferLog> {
 
     @Override
     protected List<OfferLog> loadNextChunk(int chunkSize) {
-
         try {
-            RequestResponse<OfferLog> response = this.distribution.getOfferLogs(this.strategyId,
-                this.dataCategory, this.lastOffset, this.chunkSize, this.order);
+            RequestResponse<OfferLog> response =
+                this.distribution.getOfferLogs(
+                        this.strategyId,
+                        this.dataCategory,
+                        this.lastOffset,
+                        this.chunkSize,
+                        this.order
+                    );
 
             if (!response.isOk()) {
                 throw new VitamRuntimeException("Could not list offer log");
@@ -78,7 +87,6 @@ public class OfferLogIterator extends BulkBufferingEntryIterator<OfferLog> {
 
             if (CollectionUtils.isNotEmpty(buffer)) {
                 switch (this.order) {
-
                     case ASC:
                         this.lastOffset = buffer.get(buffer.size() - 1).getSequence() + 1;
                         break;

@@ -35,19 +35,23 @@ import fr.gouv.vitam.common.model.administration.ActivationStatus;
 
 public class OfferReference {
 
-
     public OfferReference(String id) {
         this.id = id;
     }
 
-    public OfferReference() { /* nothing */ }
+    public OfferReference() {
+        /* nothing */
+    }
 
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("referent")
     private boolean referent;
+
     @JsonProperty("status")
     private ActivationStatus status = ActivationStatus.ACTIVE;
+
     @JsonProperty("rank")
     private Integer rank;
 

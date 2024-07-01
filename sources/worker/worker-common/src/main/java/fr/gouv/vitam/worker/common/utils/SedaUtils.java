@@ -28,7 +28,6 @@ package fr.gouv.vitam.worker.common.utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.base.Strings;
-import fr.gouv.vitam.common.CharsetUtils;
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.SedaConfiguration;
 import fr.gouv.vitam.common.SedaConstants;
@@ -114,8 +113,9 @@ public class SedaUtils {
 
     private final HandlerIO handlerIO;
 
-    private static final Pattern namespacePattern =
-        Pattern.compile("^fr:gouv:culture:archivesdefrance:seda:v([0-9]\\.[0-9]+)$");
+    private static final Pattern namespacePattern = Pattern.compile(
+        "^fr:gouv:culture:archivesdefrance:seda:v([0-9]\\.[0-9]+)$"
+    );
     private static final String SEDA_PARAMS_ARE_NOT_VALID = "Seda params are not valid!";
 
     private SedaIngestParams sedaIngestParams;
@@ -153,7 +153,6 @@ public class SedaUtils {
             if (sedaComment.length() > 0) {
                 mandatoryValueMap.put(SedaConstants.TAG_COMMENT, sedaComment.toString());
             }
-
         } catch (final XMLStreamException | IOException e) {
             LOGGER.error(CANNOT_READ_SEDA, e);
             throw new ProcessingException(e);
@@ -192,24 +191,31 @@ public class SedaUtils {
     private InputStream loadIngestManifest() throws ProcessingException {
         try {
             return this.handlerIO.getInputStreamFromWorkspace(
-                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-                 IOException e) {
+                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+                );
+        } catch (
+            ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e
+        ) {
             LOGGER.error(MANIFEST_NOT_FOUND);
             throw new ProcessingException(e);
         }
     }
 
-    private void manageMandatoryFields(Map<String, String> madatoryValueMap, XMLEventReader reader,
+    private void manageMandatoryFields(
+        Map<String, String> madatoryValueMap,
+        XMLEventReader reader,
         StringBuilder sedaComment,
-        StartElement element) throws XMLStreamException {
+        StartElement element
+    ) throws XMLStreamException {
         final QName contractName = new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_ARCHIVAL_AGREEMENT);
         if (element.getName().equals(contractName)) {
             madatoryValueMap.put(SedaConstants.TAG_ARCHIVAL_AGREEMENT, reader.getElementText());
         }
 
-        final QName messageObjectName =
-            new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_MESSAGE_IDENTIFIER);
+        final QName messageObjectName = new QName(
+            sedaIngestParams.getNamespaceURI(),
+            SedaConstants.TAG_MESSAGE_IDENTIFIER
+        );
         if (element.getName().equals(messageObjectName)) {
             madatoryValueMap.put(SedaConstants.TAG_MESSAGE_IDENTIFIER, reader.getElementText());
         }
@@ -219,8 +225,10 @@ public class SedaUtils {
             madatoryValueMap.put(SedaConstants.TAG_ARCHIVE_PROFILE, reader.getElementText());
         }
 
-        final QName submissionAgencyName =
-            new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER);
+        final QName submissionAgencyName = new QName(
+            sedaIngestParams.getNamespaceURI(),
+            SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER
+        );
         if (element.getName().equals(submissionAgencyName)) {
             madatoryValueMap.put(SedaConstants.TAG_SUBMISSIONAGENCYIDENTIFIER, reader.getElementText());
         }
@@ -233,14 +241,18 @@ public class SedaUtils {
             sedaComment.append(reader.getElementText());
         }
 
-        final QName originatingAgencyName =
-            new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER);
+        final QName originatingAgencyName = new QName(
+            sedaIngestParams.getNamespaceURI(),
+            SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER
+        );
         if (element.getName().equals(originatingAgencyName)) {
             madatoryValueMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, reader.getElementText());
         }
 
-        final QName acquisitionInformationName =
-            new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_ACQUISITIONINFORMATION);
+        final QName acquisitionInformationName = new QName(
+            sedaIngestParams.getNamespaceURI(),
+            SedaConstants.TAG_ACQUISITIONINFORMATION
+        );
         if (element.getName().equals(acquisitionInformationName)) {
             madatoryValueMap.put(SedaConstants.TAG_ACQUISITIONINFORMATION, reader.getElementText());
         }
@@ -251,13 +263,17 @@ public class SedaUtils {
         }
     }
 
-    private void extractAndSaveSedaIngestParams(HandlerIO handlerIO, int sedaIngestParamsOutputRank,
-        String xmLNameSpace) throws ProcessingException {
+    private void extractAndSaveSedaIngestParams(
+        HandlerIO handlerIO,
+        int sedaIngestParamsOutputRank,
+        String xmLNameSpace
+    ) throws ProcessingException {
         try {
-            Pair<String, String> extractedNameSpaceAndSerdaVersion =
-                validateNameSpaceAndSedaVersion(xmLNameSpace);
-            sedaIngestParams = new SedaIngestParams(extractedNameSpaceAndSerdaVersion.getRight(),
-                extractedNameSpaceAndSerdaVersion.getLeft());
+            Pair<String, String> extractedNameSpaceAndSerdaVersion = validateNameSpaceAndSedaVersion(xmLNameSpace);
+            sedaIngestParams = new SedaIngestParams(
+                extractedNameSpaceAndSerdaVersion.getRight(),
+                extractedNameSpaceAndSerdaVersion.getLeft()
+            );
             File tempFile = handlerIO.getNewLocalFile(handlerIO.getOutput(sedaIngestParamsOutputRank).getPath());
             JsonHandler.writeAsFile(sedaIngestParams, tempFile);
             handlerIO.addOutputResult(sedaIngestParamsOutputRank, tempFile, true, false);
@@ -296,13 +312,15 @@ public class SedaUtils {
                 return CheckSedaValidationStatus.MORE_THAN_ONE_FOLDER_CONTENT;
             }
             // Implement version check for every supported Seda version
-            Optional<SupportedSedaVersions> sedaSupportedVersionModel =
-                getSupportedSedaModelByVersion(sedaIngestParams.getVersion());
+            Optional<SupportedSedaVersions> sedaSupportedVersionModel = getSupportedSedaModelByVersion(
+                sedaIngestParams.getVersion()
+            );
             if (sedaSupportedVersionModel.isEmpty()) {
                 LOGGER.warn(sedaIngestParams.getVersion() + " is not supported by Vitam!");
                 return CheckSedaValidationStatus.UNSUPPORTED_SEDA_VERSION;
             }
-            ValidationXsdUtils.getInstance().checkWithXSD(input, sedaSupportedVersionModel.get().getVitamValidatorXSD());
+            ValidationXsdUtils.getInstance()
+                .checkWithXSD(input, sedaSupportedVersionModel.get().getVitamValidatorXSD());
 
             return CheckSedaValidationStatus.VALID;
         } catch (ProcessingException | IOException e) {
@@ -360,18 +378,18 @@ public class SedaUtils {
         /**
          * If seda version is not supported by Vitam
          */
-        UNSUPPORTED_SEDA_VERSION
+        UNSUPPORTED_SEDA_VERSION,
     }
 
     /**
      * check if there is manifest.xml file in the SIP
      */
-    private InputStream checkExistenceManifest()
-        throws IOException, ProcessingException {
+    private InputStream checkExistenceManifest() throws IOException, ProcessingException {
         InputStream manifest;
         try {
             manifest = handlerIO.getInputStreamFromWorkspace(
-                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+            );
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.debug("Manifest not found");
             throw new ProcessingException("Manifest not found", e);
@@ -386,7 +404,8 @@ public class SedaUtils {
      */
     private boolean checkFolderContentNumber() throws ProcessingException {
         List<URI> list = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
-        return list.stream()
+        return list
+            .stream()
             .filter(uri -> uri.toString().contains(URL_ENCODED_SEPARATOR))
             .map(content -> content.toString().split(URL_ENCODED_SEPARATOR)[0])
             .allMatch(x -> x.equalsIgnoreCase("content"));
@@ -400,16 +419,14 @@ public class SedaUtils {
     private boolean checkMultiManifest() throws ProcessingException {
         List<URI> listURI = handlerIO.getUriList(handlerIO.getContainerName(), IngestWorkflowConstants.SEDA_FOLDER);
 
-        return listURI.stream()
-            .filter(uri -> !uri.toString().contains(URL_ENCODED_SEPARATOR)).count() > 1;
+        return listURI.stream().filter(uri -> !uri.toString().contains(URL_ENCODED_SEPARATOR)).count() > 1;
     }
 
     /**
      * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
      * @throws ProcessingException - throw when error in execution.
      */
-    public ExtractUriResponse getAllDigitalObjectUriFromManifest()
-        throws ProcessingException {
+    public ExtractUriResponse getAllDigitalObjectUriFromManifest() throws ProcessingException {
         return parsingUriSEDAWithWorkspaceClient();
     }
 
@@ -418,8 +435,7 @@ public class SedaUtils {
      *
      * @return ExtractUriResponse - Object ExtractUriResponse contains listURI, listMessages and value boolean(error).
      */
-    private ExtractUriResponse parsingUriSEDAWithWorkspaceClient()
-        throws ProcessingException {
+    private ExtractUriResponse parsingUriSEDAWithWorkspaceClient() throws ProcessingException {
         InputStream xmlFile = null;
         LOGGER.debug(SedaUtils.MSG_PARSING_BDO);
 
@@ -439,15 +455,19 @@ public class SedaUtils {
 
         xmlOutputFactory.setProperty(SedaConstants.STAX_PROPERTY_PREFIX_OUTPUT_SIDE, Boolean.TRUE);
 
-        final QName binaryDataObject =
-            new QName(sedaIngestParams.getNamespaceURI(), SedaConstants.TAG_BINARY_DATA_OBJECT);
+        final QName binaryDataObject = new QName(
+            sedaIngestParams.getNamespaceURI(),
+            SedaConstants.TAG_BINARY_DATA_OBJECT
+        );
         XMLEventReader eventReader = null;
         try {
             try {
                 xmlFile = handlerIO.getInputStreamFromWorkspace(
-                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-                     IOException e1) {
+                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+                );
+            } catch (
+                ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e1
+            ) {
                 LOGGER.error("Workspace error: Can not get file", e1);
                 throw new ProcessingException(e1);
             }
@@ -471,7 +491,6 @@ public class SedaUtils {
                 }
             }
             LOGGER.debug("End of extracting  Uri from manifest");
-
         } catch (XMLStreamException | UnsupportedEncodingException e) {
             LOGGER.error(e);
             throw new ProcessingException(e);
@@ -494,7 +513,6 @@ public class SedaUtils {
 
     private void getUri(ExtractUriResponse extractUriResponse, XMLEventReader evenReader)
         throws XMLStreamException, URISyntaxException, UnsupportedEncodingException {
-
         while (evenReader.hasNext()) {
             XMLEvent event = evenReader.nextEvent();
 
@@ -515,7 +533,6 @@ public class SedaUtils {
     }
 
     private void checkDuplicatedUri(ExtractUriResponse extractUriResponse, String uriString) throws URISyntaxException {
-
         if (extractUriResponse.getUriSetManifest().contains(new URI(uriString))) {
             extractUriResponse.setErrorNumber(extractUriResponse.getErrorNumber() + 1);
         }
@@ -541,9 +558,11 @@ public class SedaUtils {
         try {
             try {
                 xmlFile = handlerIO.getInputStreamFromWorkspace(
-                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE);
-            } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-                     IOException e) {
+                    IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+                );
+            } catch (
+                ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e
+            ) {
                 LOGGER.error(MANIFEST_NOT_FOUND);
                 throw new ProcessingException(e);
             }
@@ -573,8 +592,7 @@ public class SedaUtils {
      * @return Seda Info object
      * @throws ProcessingException if cannot get BinaryObject info
      */
-    public SedaUtilInfo getDataObjectInfo(XMLEventReader evenReader)
-        throws ProcessingException {
+    public SedaUtilInfo getDataObjectInfo(XMLEventReader evenReader) throws ProcessingException {
         final SedaUtilInfo sedaUtilInfo = new SedaUtilInfo();
         DataObjectInfo dataObjectInfo = new DataObjectInfo();
         while (evenReader.hasNext()) {
@@ -612,12 +630,14 @@ public class SedaUtils {
                                         dataObjectInfo.setVersion(version);
                                         break;
                                     case SedaConstants.TAG_DIGEST:
-                                        dataObjectInfo.setAlgo(DigestType
-                                            .fromValue(StringUtils
-                                                .trimToEmpty(
-                                                    startElement.getAttributes().next().getValue())));
-                                        final String messageDigest =
-                                            StringUtils.trimToEmpty(evenReader.getElementText());
+                                        dataObjectInfo.setAlgo(
+                                            DigestType.fromValue(
+                                                StringUtils.trimToEmpty(startElement.getAttributes().next().getValue())
+                                            )
+                                        );
+                                        final String messageDigest = StringUtils.trimToEmpty(
+                                            evenReader.getElementText()
+                                        );
                                         dataObjectInfo.setMessageDigest(messageDigest);
                                         break;
                                     case SedaConstants.TAG_SIZE:
@@ -627,9 +647,12 @@ public class SedaUtils {
                                 }
                             }
 
-                            if (event.isEndElement() &&
-                                SedaConstants.TAG_BINARY_DATA_OBJECT
-                                    .equals(event.asEndElement().getName().getLocalPart())) {
+                            if (
+                                event.isEndElement() &&
+                                SedaConstants.TAG_BINARY_DATA_OBJECT.equals(
+                                    event.asEndElement().getName().getLocalPart()
+                                )
+                            ) {
                                 sedaUtilInfo.setDataObjectMap(dataObjectInfo);
                                 dataObjectInfo = new DataObjectInfo();
                                 break;
@@ -655,9 +678,12 @@ public class SedaUtils {
                                 }
                             }
 
-                            if (event.isEndElement() &&
-                                SedaConstants.TAG_PHYSICAL_DATA_OBJECT
-                                    .equals(event.asEndElement().getName().getLocalPart())) {
+                            if (
+                                event.isEndElement() &&
+                                SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(
+                                    event.asEndElement().getName().getLocalPart()
+                                )
+                            ) {
                                 sedaUtilInfo.setDataObjectMap(dataObjectInfo);
                                 dataObjectInfo = new DataObjectInfo();
                                 break;
@@ -670,7 +696,6 @@ public class SedaUtils {
                 throw new ProcessingException(e);
             } catch (DigestTypeException d) {
                 throw new SedaUtilsException(d);
-
             }
         }
         return sedaUtilInfo;
@@ -682,8 +707,7 @@ public class SedaUtils {
      * @throws ProcessingException when error in execution
      */
 
-    public Map<String, List<DataObjectInfo>> manifestVersionList(XMLEventReader evenReader)
-        throws ProcessingException {
+    public Map<String, List<DataObjectInfo>> manifestVersionList(XMLEventReader evenReader) throws ProcessingException {
         final Map<String, List<DataObjectInfo>> versionListByType = new HashMap<>();
         final SedaUtilInfo sedaUtilInfo = getDataObjectInfo(evenReader);
         final Map<String, DataObjectInfo> dataObjectMap = sedaUtilInfo.getDataObjectMap();
@@ -691,7 +715,6 @@ public class SedaUtils {
         // init
         List<DataObjectInfo> physicalObjectsVersion = new ArrayList<>();
         List<DataObjectInfo> binaryObjectsVersion = new ArrayList<>();
-
 
         for (final String mapKey : dataObjectMap.keySet()) {
             if (SedaConstants.TAG_PHYSICAL_DATA_OBJECT.equals(dataObjectMap.get(mapKey).getType())) {
@@ -712,9 +735,7 @@ public class SedaUtils {
      * @return map containing the error code and the unsupported version
      * @throws ProcessingException when error in execution
      */
-    public Map<String, Map<String, String>> compareVersionList(XMLEventReader eventReader)
-        throws ProcessingException {
-
+    public Map<String, Map<String, String>> compareVersionList(XMLEventReader eventReader) throws ProcessingException {
         SedaVersion sedaVersion;
         try {
             sedaVersion = SedaConfiguration.getSupportedVerion();
@@ -735,8 +756,9 @@ public class SedaUtils {
                     final String[] versionParts = doi.getVersion().split("_");
                     String errorCode = manifestVersionEntry.getKey();
                     if (versionParts.length > 2 || !fileVersions.contains(versionParts[USAGE_POSITION])) {
-                        List<String> otherFileVersions =
-                            sedaVersion.getVersionForOtherType(manifestVersionEntry.getKey());
+                        List<String> otherFileVersions = sedaVersion.getVersionForOtherType(
+                            manifestVersionEntry.getKey()
+                        );
                         if (otherFileVersions.contains(versionParts[USAGE_POSITION])) {
                             errorCode += CONTAINS_OTHER_TYPE;
                         } else {
@@ -751,26 +773,34 @@ public class SedaUtils {
                         try {
                             int currentVersion = Integer.parseInt(versionParts[VERSION_POSITION]);
                             if (currentVersion < 0) {
-                                invalidVersionMap.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_VERSION_FORMAT,
-                                    doi.getVersion());
+                                invalidVersionMap.put(
+                                    doi.getId() + "_" + errorCode + "_" + INCORRECT_VERSION_FORMAT,
+                                    doi.getVersion()
+                                );
                                 validVersionMap.remove(doi.getId());
                             }
                         } catch (NumberFormatException e) {
                             LOGGER.warn("Wrong version ", e);
-                            invalidVersionMap.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_VERSION_FORMAT,
-                                doi.getVersion());
+                            invalidVersionMap.put(
+                                doi.getId() + "_" + errorCode + "_" + INCORRECT_VERSION_FORMAT,
+                                doi.getVersion()
+                            );
                             validVersionMap.remove(doi.getId());
                         }
                     }
                     if (SedaConstants.TAG_BINARY_DATA_OBJECT.equals(doi.getType())) {
                         if (Strings.isNullOrEmpty(doi.getUri())) {
-                            invalidVersionMap.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_URI,
-                                SedaConstants.TAG_URI);
+                            invalidVersionMap.put(
+                                doi.getId() + "_" + errorCode + "_" + INCORRECT_URI,
+                                SedaConstants.TAG_URI
+                            );
                             validVersionMap.remove(doi.getId());
                         }
                     } else if (Strings.isNullOrEmpty(doi.getPhysicalId())) {
-                        invalidVersionMap.put(doi.getId() + "_" + errorCode + "_" + INCORRECT_PHYSICAL_ID,
-                            SedaConstants.TAG_PHYSICAL_ID);
+                        invalidVersionMap.put(
+                            doi.getId() + "_" + errorCode + "_" + INCORRECT_PHYSICAL_ID,
+                            SedaConstants.TAG_PHYSICAL_ID
+                        );
                         validVersionMap.remove(doi.getId());
                     }
                 }
@@ -787,13 +817,14 @@ public class SedaUtils {
      * @return SedaUtilInfo
      * @throws ProcessingException throws when error occurs
      */
-    private SedaUtilInfo getSedaUtilInfo()
-        throws ProcessingException {
-
+    private SedaUtilInfo getSedaUtilInfo() throws ProcessingException {
         SedaUtilInfo sedaUtilInfo;
         XMLEventReader reader = null;
-        try (InputStream xmlFile = handlerIO.getInputStreamFromWorkspace(
-            IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE)) {
+        try (
+            InputStream xmlFile = handlerIO.getInputStreamFromWorkspace(
+                IngestWorkflowConstants.SEDA_FOLDER + "/" + IngestWorkflowConstants.SEDA_FILE
+            )
+        ) {
             final XMLInputFactory xmlInputFactory = XMLInputFactoryUtils.newInstance();
             reader = xmlInputFactory.createXMLEventReader(xmlFile);
             sedaUtilInfo = getDataObjectInfo(reader);
@@ -801,8 +832,9 @@ public class SedaUtils {
         } catch (final XMLStreamException e) {
             LOGGER.error(CANNOT_READ_SEDA);
             throw new ProcessingException(e);
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-                 IOException e) {
+        } catch (
+            ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e
+        ) {
             LOGGER.error(MANIFEST_NOT_FOUND);
             throw new ProcessingException(e);
         } finally {
@@ -815,7 +847,6 @@ public class SedaUtils {
                 LOGGER.debug("Can not close XML reader SEDA", e);
             }
         }
-
     }
 
     /**
@@ -825,8 +856,7 @@ public class SedaUtils {
      * @return the computed size of all BinaryObjects
      * @throws ProcessingException when error in getting binary object info
      */
-    public long computeTotalSizeOfObjectsInManifest(WorkerParameters params)
-        throws ProcessingException {
+    public long computeTotalSizeOfObjectsInManifest(WorkerParameters params) throws ProcessingException {
         ParametersChecker.checkNullOrEmptyParameters(params);
         final String containerId = params.getContainerName();
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
@@ -840,8 +870,7 @@ public class SedaUtils {
      * @throws ProcessingException when error in getting binary object info
      */
 
-    private long computeBinaryObjectsSizeFromManifest()
-        throws ProcessingException {
+    private long computeBinaryObjectsSizeFromManifest() throws ProcessingException {
         long size = 0;
         final SedaUtilInfo sedaUtilInfo = getSedaUtilInfo();
         final Map<String, DataObjectInfo> dataObjectMap = sedaUtilInfo.getDataObjectMap();
@@ -861,5 +890,4 @@ public class SedaUtils {
     public void setSedaIngestParams(SedaIngestParams sedaIngestParams) {
         this.sedaIngestParams = sedaIngestParams;
     }
-
 }

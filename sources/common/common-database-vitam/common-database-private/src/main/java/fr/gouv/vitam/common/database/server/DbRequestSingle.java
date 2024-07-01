@@ -122,8 +122,11 @@ public class DbRequestSingle {
     /**
      * Constructor with VitamCollection
      */
-    public DbRequestSingle(VitamCollection<VitamDocument<?>> collection, OntologyLoader ontologyLoader,
-        ElasticsearchIndexAlias elasticsearchIndexAlias) {
+    public DbRequestSingle(
+        VitamCollection<VitamDocument<?>> collection,
+        OntologyLoader ontologyLoader,
+        ElasticsearchIndexAlias elasticsearchIndexAlias
+    ) {
         this.vitamCollection = collection;
         this.ontologyLoader = ontologyLoader;
         this.elasticsearchIndexAlias = elasticsearchIndexAlias;
@@ -131,39 +134,37 @@ public class DbRequestSingle {
     }
 
     public DbRequestResult execute(Select request)
-        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
-        VitamDBException, SchemaValidationException {
-        DynamicParserTokens parserTokens =
-            new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException, VitamDBException, SchemaValidationException {
+        DynamicParserTokens parserTokens = new DynamicParserTokens(
+            vitamCollection.getVitamDescriptionResolver(),
+            ontologyLoader.loadOntologies()
+        );
         return findDocuments(request.getFinalSelect(), parserTokens);
     }
 
-    public DbRequestResult execute(Insert request, Integer version,
-        DocumentValidator documentValidator)
-        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
-        VitamDBException, SchemaValidationException {
+    public DbRequestResult execute(Insert request, Integer version, DocumentValidator documentValidator)
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException, VitamDBException, SchemaValidationException {
         ArrayNode data = request.getDatas();
         return insertDocuments(data, version, documentValidator);
     }
 
     public DbRequestResult execute(Delete request)
-        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
-        VitamDBException, SchemaValidationException {
-        DynamicParserTokens parserTokens =
-            new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException, VitamDBException, SchemaValidationException {
+        DynamicParserTokens parserTokens = new DynamicParserTokens(
+            vitamCollection.getVitamDescriptionResolver(),
+            ontologyLoader.loadOntologies()
+        );
         return deleteDocuments(request.getFinalDelete(), parserTokens);
     }
 
     public DbRequestResult execute(Update request, DocumentValidator documentValidator)
-        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
-        VitamDBException, SchemaValidationException {
-
-        DynamicParserTokens parserTokens =
-            new DynamicParserTokens(vitamCollection.getVitamDescriptionResolver(), ontologyLoader.loadOntologies());
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException, VitamDBException, SchemaValidationException {
+        DynamicParserTokens parserTokens = new DynamicParserTokens(
+            vitamCollection.getVitamDescriptionResolver(),
+            ontologyLoader.loadOntologies()
+        );
         return updateDocuments(request.getFinalUpdate(), documentValidator, parserTokens);
     }
-
-
 
     /**
      * Main method for Multiple Insert
@@ -175,13 +176,10 @@ public class DbRequestSingle {
      * @throws InvalidParseOperationException
      * @throws DatabaseException
      */
-    private DbRequestResult insertDocuments(ArrayNode arrayNode, Integer version,
-        DocumentValidator documentValidator)
+    private DbRequestResult insertDocuments(ArrayNode arrayNode, Integer version, DocumentValidator documentValidator)
         throws InvalidParseOperationException, SchemaValidationException, DatabaseException {
-
         final List<VitamDocument<?>> vitamDocumentList = new ArrayList<>();
         for (final JsonNode objNode : arrayNode) {
-
             VitamDocument<?> obj = JsonHandler.getFromJsonNode(objNode, vitamCollection.getClasz());
             obj.remove(VitamDocument.SCORE);
             obj.append(VitamDocument.VERSION, version);
@@ -222,8 +220,7 @@ public class DbRequestSingle {
         if (vitamCollection.getEsClient() == null) {
             return;
         }
-        this.vitamCollection.getEsClient()
-            .indexEntries(this.elasticsearchIndexAlias, vitamDocumentList);
+        this.vitamCollection.getEsClient().indexEntries(this.elasticsearchIndexAlias, vitamDocumentList);
     }
 
     /**
@@ -237,8 +234,12 @@ public class DbRequestSingle {
     private DbRequestResult findDocuments(JsonNode select, DynamicParserTokens parserTokens)
         throws DatabaseException, BadRequestException, VitamDBException {
         MongoCursor<VitamDocument<?>> cursor = search(select, parserTokens);
-        return new DbRequestResult().setCursor(cursor).setTotal(total > 0 ? total : count).setCount(count)
-            .setLimit(limit).setOffset(offset);
+        return new DbRequestResult()
+            .setCursor(cursor)
+            .setTotal(total > 0 ? total : count)
+            .setCount(count)
+            .setLimit(limit)
+            .setOffset(offset);
     }
 
     /**
@@ -281,18 +282,27 @@ public class DbRequestSingle {
      * @throws DatabaseException
      * @throws BadRequestException
      */
-    private MongoCursor<VitamDocument<?>> selectElasticsearchExecute(SelectParserSingle parser,
-        DynamicParserTokens parserTokens)
-        throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException, BadRequestException,
-        VitamDBException {
+    private MongoCursor<VitamDocument<?>> selectElasticsearchExecute(
+        SelectParserSingle parser,
+        DynamicParserTokens parserTokens
+    )
+        throws InvalidParseOperationException, InvalidCreateOperationException, DatabaseException, BadRequestException, VitamDBException {
         SelectToElasticsearch requestToEs = new SelectToElasticsearch(parser);
-        QueryBuilder query =
-            QueryToElasticsearch.getCommand(requestToEs.getNthQuery(0), parser.getAdapter(), parserTokens);
+        QueryBuilder query = QueryToElasticsearch.getCommand(
+            requestToEs.getNthQuery(0),
+            parser.getAdapter(),
+            parserTokens
+        );
         List<SortBuilder<?>> sorts = requestToEs.getFinalOrderBy(vitamCollection.isUseScore(), parserTokens);
         offset = requestToEs.getFinalOffset();
         limit = requestToEs.getFinalLimit();
-        SearchResponse elasticSearchResponse =
-            search(query, null, sorts, requestToEs.getFinalOffset(), requestToEs.getFinalLimit());
+        SearchResponse elasticSearchResponse = search(
+            query,
+            null,
+            sorts,
+            requestToEs.getFinalOffset(),
+            requestToEs.getFinalLimit()
+        );
         if (elasticSearchResponse.status() != RestStatus.OK) {
             return new EmptyMongoCursor<>();
         }
@@ -312,7 +322,6 @@ public class DbRequestSingle {
         }
         parser.getRequest().setQuery(new NopQuery());
         return selectMongoDbExecute(parser, list, listFloat);
-
     }
 
     /**
@@ -324,11 +333,12 @@ public class DbRequestSingle {
      * @throws InvalidParseOperationException when query is not correct
      * @throws InvalidCreateOperationException
      */
-    private MongoCursor<VitamDocument<?>> selectMongoDbExecute(SelectParserSingle parser, List<String> list,
-        List<Float> score)
-        throws InvalidParseOperationException, VitamDBException {
-        return DbRequestHelper.selectMongoDbExecuteThroughFakeMongoCursor(vitamCollection, parser,
-            list, score);
+    private MongoCursor<VitamDocument<?>> selectMongoDbExecute(
+        SelectParserSingle parser,
+        List<String> list,
+        List<Float> score
+    ) throws InvalidParseOperationException, VitamDBException {
+        return DbRequestHelper.selectMongoDbExecuteThroughFakeMongoCursor(vitamCollection, parser, list, score);
     }
 
     /**
@@ -389,12 +399,16 @@ public class DbRequestSingle {
      * @throws DatabaseException
      * @throws BadRequestException
      */
-    private SearchResponse search(final QueryBuilder query,
-        final QueryBuilder filter, List<SortBuilder<?>> sorts, final int offset, final int limit)
-        throws DatabaseException, BadRequestException {
-        return vitamCollection.getEsClient()
-            .search(elasticsearchIndexAlias, query, filter, VitamDocument.ES_FILTER_OUT, sorts,
-                offset, limit);
+    private SearchResponse search(
+        final QueryBuilder query,
+        final QueryBuilder filter,
+        List<SortBuilder<?>> sorts,
+        final int offset,
+        final int limit
+    ) throws DatabaseException, BadRequestException {
+        return vitamCollection
+            .getEsClient()
+            .search(elasticsearchIndexAlias, query, filter, VitamDocument.ES_FILTER_OUT, sorts, offset, limit);
     }
 
     /**
@@ -407,10 +421,12 @@ public class DbRequestSingle {
      * @throws BadRequestException
      * @throws InvalidCreateOperationException
      */
-    private DbRequestResult updateDocuments(JsonNode request, DocumentValidator documentValidator,
-        DynamicParserTokens parserTokens)
-        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException,
-        VitamDBException, SchemaValidationException {
+    private DbRequestResult updateDocuments(
+        JsonNode request,
+        DocumentValidator documentValidator,
+        DynamicParserTokens parserTokens
+    )
+        throws InvalidParseOperationException, DatabaseException, BadRequestException, InvalidCreateOperationException, VitamDBException, SchemaValidationException {
         final UpdateParserSingle parser = new UpdateParserSingle(vaNameAdapter);
         parser.parse(request);
         if (vitamCollection.isMultiTenant()) {
@@ -446,7 +462,6 @@ public class DbRequestSingle {
             boolean updated = false;
 
             while (!updated && nbTry < VitamConfiguration.getOptimisticLockRetryNumber()) {
-
                 if (nbTry > 0) {
                     document = collection.find(eq(VitamDocument.ID, documentId)).first();
                     documentBeforeUpdate = JsonHandler.prettyPrint(document);
@@ -461,8 +476,11 @@ public class DbRequestSingle {
                 JsonNode jsonDocument = JsonHandler.toJsonNode(document);
 
                 MongoDbInMemory mongoInMemory = new MongoDbInMemory(jsonDocument, parserTokens);
-                ObjectNode updatedJsonDocument =
-                    (ObjectNode) mongoInMemory.getUpdateJson(request, false, vaNameAdapter);
+                ObjectNode updatedJsonDocument = (ObjectNode) mongoInMemory.getUpdateJson(
+                    request,
+                    false,
+                    vaNameAdapter
+                );
 
                 documentValidator.validateDocument(updatedJsonDocument);
 
@@ -470,8 +488,10 @@ public class DbRequestSingle {
                 if (!document.equals(updatedDocument)) {
                     modified = true;
                     updatedDocument.put(VitamDocument.VERSION, document.getVersion() + 1);
-                    Bson condition =
-                        and(eq(VitamDocument.ID, documentId), eq(VitamDocument.VERSION, document.getVersion()));
+                    Bson condition = and(
+                        eq(VitamDocument.ID, documentId),
+                        eq(VitamDocument.VERSION, document.getVersion())
+                    );
                     // Note: cannot do bulk since we need to check each and every update
                     try {
                         UpdateResult result = collection.replaceOne(condition, updatedDocument);
@@ -480,22 +500,26 @@ public class DbRequestSingle {
                         LOGGER.warn("Update Document error : " + e.getMessage());
                     }
 
-
                     if (!updated) {
                         LOGGER.error(
-                            "[Optimistic_Lock]: optimistic lock occurs while update document with id (" + documentId +
-                                ") of the collection " + vitamCollection.getName() + " retry number = " + nbTry);
+                            "[Optimistic_Lock]: optimistic lock occurs while update document with id (" +
+                            documentId +
+                            ") of the collection " +
+                            vitamCollection.getName() +
+                            " retry number = " +
+                            nbTry
+                        );
 
                         try {
                             TimeUnit.MILLISECONDS.sleep(
-                                ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime()));
+                                ThreadLocalRandom.current().nextInt(VitamConfiguration.getOptimisticLockSleepTime())
+                            );
                         } catch (InterruptedException e1) {
                             Thread.currentThread().interrupt();
                             SysErrLogger.FAKE_LOGGER.ignoreLog(e1);
                             throw new DatabaseException(e1);
                         }
                     }
-
                 } else {
                     break;
                 }
@@ -508,15 +532,16 @@ public class DbRequestSingle {
             if (modified) {
                 listUpdatedDocuments.add(updatedDocument);
                 final String documentAfterUpdate = JsonHandler.prettyPrint(updatedDocument);
-                diffs.put(documentId,
-                    getConcernedDiffLines(getUnifiedDiff(documentBeforeUpdate, documentAfterUpdate)));
+                diffs.put(documentId, getConcernedDiffLines(getUnifiedDiff(documentBeforeUpdate, documentAfterUpdate)));
             }
         }
         if (!listUpdatedDocuments.isEmpty()) {
             insertToElasticsearch(listUpdatedDocuments);
         }
 
-        return new DbRequestResult().setCount(listUpdatedDocuments.size()).setTotal(listUpdatedDocuments.size())
+        return new DbRequestResult()
+            .setCount(listUpdatedDocuments.size())
+            .setTotal(listUpdatedDocuments.size())
             .setDiffs(diffs);
     }
 
@@ -531,8 +556,7 @@ public class DbRequestSingle {
      * @throws InvalidParseOperationException
      */
     private DbRequestResult deleteDocuments(JsonNode request, DynamicParserTokens parserTokens)
-        throws DatabaseException, BadRequestException, InvalidCreateOperationException, InvalidParseOperationException,
-        VitamDBException {
+        throws DatabaseException, BadRequestException, InvalidCreateOperationException, InvalidParseOperationException, VitamDBException {
         final SelectParserSingle parser = new SelectParserSingle(vaNameAdapter);
         parser.parse(request);
         parser.addProjection(JsonHandler.createObjectNode(), JsonHandler.createObjectNode().put(VitamDocument.ID, 1));
@@ -560,7 +584,6 @@ public class DbRequestSingle {
         return new DbRequestResult().setCount(result.getDeletedCount()).setTotal(result.getDeletedCount());
     }
 
-
     /**
      * Private method for delete in Elasticsearch
      *
@@ -576,16 +599,20 @@ public class DbRequestSingle {
         vitamCollection.getEsClient().delete(elasticsearchIndexAlias, list);
     }
 
-    public void replaceDocument(JsonNode document, String identifierValue, String identifierKey,
-        VitamCollection<VitamDocument<?>> vitamCollection) throws DatabaseException {
-
-        replaceDocuments(Collections.singletonMap(identifierValue, document),
-            identifierKey, vitamCollection);
+    public void replaceDocument(
+        JsonNode document,
+        String identifierValue,
+        String identifierKey,
+        VitamCollection<VitamDocument<?>> vitamCollection
+    ) throws DatabaseException {
+        replaceDocuments(Collections.singletonMap(identifierValue, document), identifierKey, vitamCollection);
     }
 
-    public void replaceDocuments(Map<String, JsonNode> documentByIdentifiers, String identifierKey,
-        VitamCollection<VitamDocument<?>> vitamCollection) throws DatabaseException {
-
+    public void replaceDocuments(
+        Map<String, JsonNode> documentByIdentifiers,
+        String identifierKey,
+        VitamCollection<VitamDocument<?>> vitamCollection
+    ) throws DatabaseException {
         MongoCollection<VitamDocument<?>> collection = vitamCollection.getCollection();
 
         if (documentByIdentifiers.isEmpty()) {
@@ -593,31 +620,43 @@ public class DbRequestSingle {
         }
 
         Bson documentCondition = getDocumentSelectionQuery(
-            documentByIdentifiers.keySet(), identifierKey, vitamCollection);
+            documentByIdentifiers.keySet(),
+            identifierKey,
+            vitamCollection
+        );
 
         List<VitamDocument<?>> dbDocuments;
-        Bson projection =
-            Projections.include(Set.of(VitamDocument.ID, VitamDocument.VERSION, identifierKey).toArray(String[]::new));
-        try (MongoCursor<VitamDocument<?>> documentsInDataBase = vitamCollection.getCollection().find(documentCondition)
-            .projection(projection).cursor()) {
+        Bson projection = Projections.include(
+            Set.of(VitamDocument.ID, VitamDocument.VERSION, identifierKey).toArray(String[]::new)
+        );
+        try (
+            MongoCursor<VitamDocument<?>> documentsInDataBase = vitamCollection
+                .getCollection()
+                .find(documentCondition)
+                .projection(projection)
+                .cursor()
+        ) {
             dbDocuments = IteratorUtils.toList(documentsInDataBase);
         }
 
-        Map<String, VitamDocument<?>> dbDocumentsByIdentifiers = dbDocuments.stream()
+        Map<String, VitamDocument<?>> dbDocumentsByIdentifiers = dbDocuments
+            .stream()
             .collect(Collectors.toMap(doc -> (String) doc.get(identifierKey), doc -> doc));
 
-        Set<String> missingIdentifiers =
-            SetUtils.difference(documentByIdentifiers.keySet(), dbDocumentsByIdentifiers.keySet());
+        Set<String> missingIdentifiers = SetUtils.difference(
+            documentByIdentifiers.keySet(),
+            dbDocumentsByIdentifiers.keySet()
+        );
 
         if (!missingIdentifiers.isEmpty()) {
             throw new DatabaseException(
-                "Documents not found with " + identifierKey + " in [" + missingIdentifiers + "]");
+                "Documents not found with " + identifierKey + " in [" + missingIdentifiers + "]"
+            );
         }
 
         List<ReplaceOneModel<VitamDocument<?>>> replaceOneModels = new ArrayList<>();
         List<VitamDocument<?>> updatedDocuments = new ArrayList<>();
         for (String identifier : dbDocumentsByIdentifiers.keySet()) {
-
             VitamDocument<?> dbDocument = dbDocumentsByIdentifiers.get(identifier);
             JsonNode document = documentByIdentifiers.get(identifier);
 
@@ -629,17 +668,24 @@ public class DbRequestSingle {
 
             Bson condition = and(
                 eq(VitamDocument.ID, dbDocument.getId()),
-                eq(VitamDocument.VERSION, dbDocument.getVersion()));
+                eq(VitamDocument.VERSION, dbDocument.getVersion())
+            );
             replaceOneModels.add(new ReplaceOneModel<>(condition, updatedDocument));
         }
 
         try {
-            BulkWriteResult bulkWriteResult = collection.bulkWrite(replaceOneModels,
-                new BulkWriteOptions().ordered(false));
+            BulkWriteResult bulkWriteResult = collection.bulkWrite(
+                replaceOneModels,
+                new BulkWriteOptions().ordered(false)
+            );
             if (bulkWriteResult.getMatchedCount() != dbDocumentsByIdentifiers.size()) {
                 throw new DatabaseException(
-                    String.format("Error while bulk update document count : %s != size : %s :",
-                        bulkWriteResult.getModifiedCount(), dbDocumentsByIdentifiers.size()));
+                    String.format(
+                        "Error while bulk update document count : %s != size : %s :",
+                        bulkWriteResult.getModifiedCount(),
+                        dbDocumentsByIdentifiers.size()
+                    )
+                );
             }
         } catch (MongoException e) {
             throw new DatabaseException("Could not update documents in DB", e);
@@ -648,9 +694,11 @@ public class DbRequestSingle {
         insertToElasticsearch(updatedDocuments);
     }
 
-    private Bson getDocumentSelectionQuery(Collection<String> identifierValues, String identifierKey,
-        VitamCollection<VitamDocument<?>> vitamCollection) {
-
+    private Bson getDocumentSelectionQuery(
+        Collection<String> identifierValues,
+        String identifierKey,
+        VitamCollection<VitamDocument<?>> vitamCollection
+    ) {
         if (vitamCollection.isMultiTenant()) {
             return and(
                 in(identifierKey, identifierValues),

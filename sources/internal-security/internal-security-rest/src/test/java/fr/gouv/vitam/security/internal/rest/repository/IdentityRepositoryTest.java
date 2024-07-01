@@ -51,7 +51,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class IdentityRepositoryTest {
 
-    private final static String CERTIFICATE_COLLECTION = "Certificate" + GUIDFactory.newGUID().getId();
+    private static final String CERTIFICATE_COLLECTION = "Certificate" + GUIDFactory.newGUID().getId();
 
     @Rule
     public MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), CERTIFICATE_COLLECTION);
@@ -106,16 +106,20 @@ public class IdentityRepositoryTest {
         identityRepository.createIdentity(identityModel);
 
         // When
-        Optional<IdentityModel> result =
-            identityRepository.findIdentity("distinguishedName", String.valueOf(BigInteger.TEN));
+        Optional<IdentityModel> result = identityRepository.findIdentity(
+            "distinguishedName",
+            String.valueOf(BigInteger.TEN)
+        );
 
         // Then
-        assertThat(result).isPresent().hasValueSatisfying(identity -> {
-            assertThat(identity.getIssuerDN()).isEqualTo("issuerDN");
-            assertThat(identity.getSubjectDN()).isEqualTo("distinguishedName");
-            assertThat(identity.getSerialNumber()).isEqualTo(String.valueOf(BigInteger.TEN));
-            assertThat(identity.getId()).isEqualTo(id.toString());
-        });
+        assertThat(result)
+            .isPresent()
+            .hasValueSatisfying(identity -> {
+                assertThat(identity.getIssuerDN()).isEqualTo("issuerDN");
+                assertThat(identity.getSubjectDN()).isEqualTo("distinguishedName");
+                assertThat(identity.getSerialNumber()).isEqualTo(String.valueOf(BigInteger.TEN));
+                assertThat(identity.getId()).isEqualTo(id.toString());
+            });
     }
 
     @Test
@@ -143,19 +147,19 @@ public class IdentityRepositoryTest {
 
         // When
         identityModel.setContextId(contextId);
-        identityRepository.linkContextToIdentity(identityModel.getSubjectDN(), identityModel.getContextId(),
-            identityModel.getSerialNumber());
+        identityRepository.linkContextToIdentity(
+            identityModel.getSubjectDN(),
+            identityModel.getContextId(),
+            identityModel.getSerialNumber()
+        );
 
         // Then
         Document document = certificateCollection.find(eq("_id", id.toString())).first();
-        assertThat(document)
-            .isNotNull()
-            .containsEntry("ContextId", contextId);
+        assertThat(document).isNotNull().containsEntry("ContextId", contextId);
     }
 
     @Test
     public void shouldFindContextIsUsed() throws InvalidParseOperationException {
-
         final String CONTEXT_ID = "1";
 
         // Given
@@ -197,5 +201,4 @@ public class IdentityRepositoryTest {
             .containsEntry("SubjectDN", "distinguishedName")
             .containsEntry("SerialNumber", "127890284121982523460526876445101669455454");
     }
-
 }

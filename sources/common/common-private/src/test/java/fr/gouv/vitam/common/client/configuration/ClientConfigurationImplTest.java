@@ -36,52 +36,40 @@ public class ClientConfigurationImplTest {
 
     @Test
     public void testFailed() {
-        ClientConfigurationImpl clientConfigurationImpl0 =
-            new ClientConfigurationImpl();
+        ClientConfigurationImpl clientConfigurationImpl0 = new ClientConfigurationImpl();
         try {
             clientConfigurationImpl0.setServerPort(0);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             clientConfigurationImpl0.setServerPort(-1);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             clientConfigurationImpl0.setServerHost(null);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
             clientConfigurationImpl0.setServerHost("");
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
-            clientConfigurationImpl0 =
-                new ClientConfigurationImpl(null, 10);
+            clientConfigurationImpl0 = new ClientConfigurationImpl(null, 10);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
-            clientConfigurationImpl0 =
-                new ClientConfigurationImpl("", 10);
+            clientConfigurationImpl0 = new ClientConfigurationImpl("", 10);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
         try {
-            clientConfigurationImpl0 =
-                new ClientConfigurationImpl("test", -10);
+            clientConfigurationImpl0 = new ClientConfigurationImpl("test", -10);
             fail("Expecting exception: IllegalArgumentException");
-        } catch (final IllegalArgumentException e) {
-        }
+        } catch (final IllegalArgumentException e) {}
     }
 
     @Test
     public void testBuildOk() {
-        ClientConfigurationImpl clientConfigurationImpl0 =
-            new ClientConfigurationImpl("H.Y", 75);
+        ClientConfigurationImpl clientConfigurationImpl0 = new ClientConfigurationImpl("H.Y", 75);
         assertEquals(75, clientConfigurationImpl0.getServerPort());
         clientConfigurationImpl0 = new ClientConfigurationImpl();
         final int int0 = clientConfigurationImpl0.getServerPort();
@@ -90,18 +78,15 @@ public class ClientConfigurationImplTest {
 
     @Test
     public void testSetterPort() {
-        final ClientConfigurationImpl clientConfigurationImpl0 =
-            new ClientConfigurationImpl();
-        final ClientConfigurationImpl clientConfigurationImpl1 =
-            clientConfigurationImpl0.setServerPort(470);
+        final ClientConfigurationImpl clientConfigurationImpl0 = new ClientConfigurationImpl();
+        final ClientConfigurationImpl clientConfigurationImpl1 = clientConfigurationImpl0.setServerPort(470);
         final int int0 = clientConfigurationImpl1.getServerPort();
         assertEquals(470, int0);
     }
 
     @Test
     public void testSetterHost() {
-        final ClientConfigurationImpl clientConfigurationImpl0 =
-            new ClientConfigurationImpl();
+        final ClientConfigurationImpl clientConfigurationImpl0 = new ClientConfigurationImpl();
         final String string0 = clientConfigurationImpl0.getServerHost();
         assertNull(string0);
         clientConfigurationImpl0.setServerHost("test");

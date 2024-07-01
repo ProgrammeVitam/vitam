@@ -51,5 +51,4 @@ public class ServerConfigurationTest {
     public void testSetUrlMetadataNull() {
         new ServerConfiguration().setUrlMetadata(null);
     }
-
 }

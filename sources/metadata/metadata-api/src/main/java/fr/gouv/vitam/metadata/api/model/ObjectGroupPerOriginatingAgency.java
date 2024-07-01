@@ -41,7 +41,6 @@ public class ObjectGroupPerOriginatingAgency {
 
     private long size = 0L;
 
-
     /**
      * Constructor
      */
@@ -58,15 +57,19 @@ public class ObjectGroupPerOriginatingAgency {
      * @param numberOfGOT total of objects groups
      * @param size size of al objects
      */
-    public ObjectGroupPerOriginatingAgency(String operation, String agency, long numberOfObject, long numberOfGOT,
-        long size) {
+    public ObjectGroupPerOriginatingAgency(
+        String operation,
+        String agency,
+        long numberOfObject,
+        long numberOfGOT,
+        long size
+    ) {
         this.operation = operation;
         this.agency = agency;
         this.numberOfObject = numberOfObject;
         this.numberOfGOT = numberOfGOT;
         this.size = size;
     }
-
 
     /**
      * Getter

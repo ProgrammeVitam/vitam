@@ -36,12 +36,11 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
 /**
  * Class ProcessEngineFactory Goal : create an instance of ProcessEngineImpl
  */
-final public class ProcessEngineFactory {
+public final class ProcessEngineFactory {
 
-    private final static ProcessEngineFactory INSTANCE = new ProcessEngineFactory();
+    private static final ProcessEngineFactory INSTANCE = new ProcessEngineFactory();
 
-    private ProcessEngineFactory() {
-    }
+    private ProcessEngineFactory() {}
 
     public static ProcessEngineFactory get() {
         return INSTANCE;
@@ -54,16 +53,27 @@ final public class ProcessEngineFactory {
      */
     public ProcessEngineImpl create(WorkerParameters workParams, ProcessDistributor processDistributor) {
         ParametersChecker.checkParameter("ProcessDistributor cannot be null", processDistributor);
-        return new ProcessEngineImpl(workParams, processDistributor, LogbookOperationsClientFactory.getInstance(),
-            WorkspaceClientFactory.getInstance());
+        return new ProcessEngineImpl(
+            workParams,
+            processDistributor,
+            LogbookOperationsClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
-    public ProcessEngineImpl create(WorkerParameters workParams, ProcessDistributor processDistributor,
-        LogbookOperationsClientFactory logbookOperationsClientFactory, WorkspaceClientFactory workspaceClientFactory) {
-        ParametersChecker
-            .checkParameter("Params cannot be null", processDistributor, logbookOperationsClientFactory);
-        return new ProcessEngineImpl(workParams, processDistributor, logbookOperationsClientFactory,
-            workspaceClientFactory);
+    public ProcessEngineImpl create(
+        WorkerParameters workParams,
+        ProcessDistributor processDistributor,
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        WorkspaceClientFactory workspaceClientFactory
+    ) {
+        ParametersChecker.checkParameter("Params cannot be null", processDistributor, logbookOperationsClientFactory);
+        return new ProcessEngineImpl(
+            workParams,
+            processDistributor,
+            logbookOperationsClientFactory,
+            workspaceClientFactory
+        );
     }
 }

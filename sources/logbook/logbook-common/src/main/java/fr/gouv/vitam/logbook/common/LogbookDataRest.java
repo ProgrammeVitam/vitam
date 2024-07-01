@@ -30,6 +30,7 @@ package fr.gouv.vitam.logbook.common;
  * Global Variables and eventually method used by REST services
  */
 public class LogbookDataRest {
+
     /**
      * Header Parameter X_SLICED_OPERATIONS: used to get sliced operations
      */
@@ -43,5 +44,4 @@ public class LogbookDataRest {
     private LogbookDataRest() {
         // empty
     }
-
 }

@@ -64,13 +64,19 @@ public class ProjectModel {
     @JsonProperty("_tenant")
     private Integer tenant;
 
+    public ProjectModel() {}
 
-    public ProjectModel() {
-    }
-
-
-    public ProjectModel(String id, String name, ManifestContext manifestContext, ProjectStatus status,
-        String creationDate, String lastUpdate, String unitUp, List<MetadataUnitUp> unitUps, Integer tenant) {
+    public ProjectModel(
+        String id,
+        String name,
+        ManifestContext manifestContext,
+        ProjectStatus status,
+        String creationDate,
+        String lastUpdate,
+        String unitUp,
+        List<MetadataUnitUp> unitUps,
+        Integer tenant
+    ) {
         this.id = id;
         this.name = name;
         this.manifestContext = manifestContext;
@@ -156,10 +162,8 @@ public class ProjectModel {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         ProjectModel that = (ProjectModel) o;
         return Objects.equals(id, that.id);
     }
@@ -168,5 +172,4 @@ public class ProjectModel {
     public int hashCode() {
         return Objects.hash(id);
     }
-
 }

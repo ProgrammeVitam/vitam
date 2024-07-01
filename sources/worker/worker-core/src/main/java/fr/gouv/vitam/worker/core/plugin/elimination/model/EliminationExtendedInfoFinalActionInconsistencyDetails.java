@@ -43,7 +43,6 @@ public class EliminationExtendedInfoFinalActionInconsistencyDetails {
         this.originatingAgencies = originatingAgency;
     }
 
-
     public Set<String> getOriginatingAgencies() {
         return originatingAgencies;
     }

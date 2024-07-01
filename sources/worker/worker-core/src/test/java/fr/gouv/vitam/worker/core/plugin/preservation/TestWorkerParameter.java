@@ -44,6 +44,7 @@ import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.requ
 import static fr.gouv.vitam.processing.common.parameter.WorkerParameterName.workflowStatusKo;
 
 public class TestWorkerParameter implements WorkerParameters {
+
     public final Map<String, Object> params;
 
     public TestWorkerParameter(Map<String, Object> params) {
@@ -270,10 +271,10 @@ public class TestWorkerParameter implements WorkerParameters {
     }
 
     public static final class TestWorkerParameterBuilder {
+
         public Map<String, Object> params = new HashMap<>();
 
-        private TestWorkerParameterBuilder() {
-        }
+        private TestWorkerParameterBuilder() {}
 
         public static TestWorkerParameterBuilder workerParameterBuilder() {
             return new TestWorkerParameterBuilder();

@@ -101,6 +101,7 @@ public class PluginHelper {
     }
 
     public static class EventDetails {
+
         public String event;
         public String secondEvent;
 
@@ -126,8 +127,11 @@ public class PluginHelper {
         return buildItemStatus(action, statusCode, null);
     }
 
-    public static <TEventDetails> ItemStatus buildItemStatus(String action, StatusCode statusCode,
-        TEventDetails eventDetails) {
+    public static <TEventDetails> ItemStatus buildItemStatus(
+        String action,
+        StatusCode statusCode,
+        TEventDetails eventDetails
+    ) {
         final ItemStatus itemStatus = new ItemStatus(action);
         itemStatus.increment(statusCode);
         setEvDetData(itemStatus, eventDetails);
@@ -142,8 +146,12 @@ public class PluginHelper {
         return new ItemStatus(action).setItemsStatus(action, itemStatus).setMessage(message);
     }
 
-    public static <TEventDetails> ItemStatus buildItemStatusWithMasterData(String action, StatusCode statusCode,
-        TEventDetails eventDetails, Object masterDataValue) {
+    public static <TEventDetails> ItemStatus buildItemStatusWithMasterData(
+        String action,
+        StatusCode statusCode,
+        TEventDetails eventDetails,
+        Object masterDataValue
+    ) {
         final ItemStatus itemStatus = new ItemStatus(action);
         itemStatus.increment(statusCode);
         setEvDetData(itemStatus, eventDetails);
@@ -151,8 +159,12 @@ public class PluginHelper {
         return new ItemStatus(action).setItemsStatus(action, itemStatus);
     }
 
-    public static <T> ItemStatus buildItemStatusSubItems(String itemId, Stream<String> subItemIds,
-        StatusCode statusCode, T eventDetails) {
+    public static <T> ItemStatus buildItemStatusSubItems(
+        String itemId,
+        Stream<String> subItemIds,
+        StatusCode statusCode,
+        T eventDetails
+    ) {
         final ItemStatus itemStatus = new ItemStatus(itemId);
         itemStatus.increment(statusCode);
         setEvDetData(itemStatus, eventDetails);
@@ -181,15 +193,18 @@ public class PluginHelper {
         for (int i = 0; i < param.getObjectNameList().size(); i++) {
             final ItemStatus itemStatus = new ItemStatus(action);
             itemStatus.increment(statusCode);
-            ItemStatus itemsStatus = new ItemStatus(action)
-                .setItemsStatus(action, itemStatus);
+            ItemStatus itemsStatus = new ItemStatus(action).setItemsStatus(action, itemStatus);
             itemStatuses.add(itemsStatus);
         }
         return itemStatuses;
     }
 
-    public static <TEventDetails> List<ItemStatus> buildBulkItemStatus(WorkerParameters param, String action,
-        StatusCode statusCode, TEventDetails eventDetails) {
+    public static <TEventDetails> List<ItemStatus> buildBulkItemStatus(
+        WorkerParameters param,
+        String action,
+        StatusCode statusCode,
+        TEventDetails eventDetails
+    ) {
         List<ItemStatus> itemStatuses = new ArrayList<>();
 
         for (int i = 0; i < param.getObjectNameList().size(); i++) {
@@ -202,22 +217,32 @@ public class PluginHelper {
         return itemStatuses;
     }
 
-    public static <TEventDetails> LogbookLifeCycleUnitParameters createParameters(GUID eventIdentifierProcess,
-        StatusCode logbookOutcome, GUID objectIdentifier, String action, TEventDetails eventDetails,
-        LogbookTypeProcess logbookTypeProcess) {
-
+    public static <TEventDetails> LogbookLifeCycleUnitParameters createParameters(
+        GUID eventIdentifierProcess,
+        StatusCode logbookOutcome,
+        GUID objectIdentifier,
+        String action,
+        TEventDetails eventDetails,
+        LogbookTypeProcess logbookTypeProcess
+    ) {
         final GUID updateGuid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
-        LogbookLifeCycleUnitParameters parameters = newLogbookLifeCycleUnitParameters(updateGuid,
+        LogbookLifeCycleUnitParameters parameters = newLogbookLifeCycleUnitParameters(
+            updateGuid,
             VitamLogbookMessages.getEventTypeLfc(action),
             eventIdentifierProcess,
-            logbookTypeProcess, logbookOutcome,
+            logbookTypeProcess,
+            logbookOutcome,
             VitamLogbookMessages.getOutcomeDetailLfc(action, logbookOutcome),
-            VitamLogbookMessages.getCodeLfc(action, logbookOutcome), objectIdentifier);
+            VitamLogbookMessages.getCodeLfc(action, logbookOutcome),
+            objectIdentifier
+        );
 
         if (eventDetails != null) {
             try {
-                parameters.putParameterValue(LogbookParameterName.eventDetailData,
-                    (JsonHandler.unprettyPrint(JsonHandler.toJsonNode(eventDetails))));
+                parameters.putParameterValue(
+                    LogbookParameterName.eventDetailData,
+                    (JsonHandler.unprettyPrint(JsonHandler.toJsonNode(eventDetails)))
+                );
             } catch (InvalidParseOperationException e1) {
                 throw new VitamRuntimeException("Could not serialize event details" + eventDetails);
             }
@@ -225,15 +250,19 @@ public class PluginHelper {
         return parameters;
     }
 
-    public static InputStream createUnitsByGotFile(MetaDataClient metaDataClient,
-        DeleteGotVersionsRequest deleteGotVersionsRequest, HandlerIO handler)
-        throws VitamException {
+    public static InputStream createUnitsByGotFile(
+        MetaDataClient metaDataClient,
+        DeleteGotVersionsRequest deleteGotVersionsRequest,
+        HandlerIO handler
+    ) throws VitamException {
         SelectMultiQuery selectMultiQuery = prepareUnitsWithObjectGroupsQuery(deleteGotVersionsRequest.getDslQuery());
         ScrollSpliterator<JsonNode> scrollRequest = createUnitScrollSplitIterator(metaDataClient, selectMultiQuery);
         Iterator<JsonNode> iterator = new SpliteratorIterator<>(scrollRequest);
         Iterator<Pair<String, String>> gotIdUnitIdIterator = getGotIdUnitIdIterator(iterator);
-        Iterator<List<Pair<String, List<String>>>> bulksUnitsByObjectGroup =
-            Iterators.partition(new GroupByObjectIterator(gotIdUnitIdIterator), VitamConfiguration.getBatchSize());
+        Iterator<List<Pair<String, List<String>>>> bulksUnitsByObjectGroup = Iterators.partition(
+            new GroupByObjectIterator(gotIdUnitIdIterator),
+            VitamConfiguration.getBatchSize()
+        );
         return generateUnitsByGotFile(bulksUnitsByObjectGroup, handler);
     }
 
@@ -264,24 +293,25 @@ public class PluginHelper {
     private static Iterator<Pair<String, String>> getGotIdUnitIdIterator(Iterator<JsonNode> iterator) {
         return IteratorUtils.transformedIterator(
             iterator,
-            item -> new ImmutablePair<>(
-                item.get(OBJECT.exactToken()).asText(),
-                item.get(ID.exactToken()).asText()
-            )
+            item -> new ImmutablePair<>(item.get(OBJECT.exactToken()).asText(), item.get(ID.exactToken()).asText())
         );
     }
 
-    private static InputStream generateUnitsByGotFile(Iterator<List<Pair<String, List<String>>>> unitsByObjectGroup,
-        HandlerIO handler)
-        throws VitamException {
+    private static InputStream generateUnitsByGotFile(
+        Iterator<List<Pair<String, List<String>>>> unitsByObjectGroup,
+        HandlerIO handler
+    ) throws VitamException {
         File unitsByGotTempFile = handler.getNewLocalFile("unitsByGotTempFile.jsonl");
-        try (final OutputStream outputStream = new FileOutputStream(unitsByGotTempFile);
-            JsonLineWriter writer = new JsonLineWriter(outputStream)) {
+        try (
+            final OutputStream outputStream = new FileOutputStream(unitsByGotTempFile);
+            JsonLineWriter writer = new JsonLineWriter(outputStream)
+        ) {
             while (unitsByObjectGroup.hasNext()) {
                 List<Pair<String, List<String>>> unitsByObjectGroupByRange = unitsByObjectGroup.next();
                 for (Pair<String, List<String>> unitsByGot : unitsByObjectGroupByRange) {
                     writer.addEntry(
-                        new JsonLineModel(unitsByGot.getLeft(), null, JsonHandler.toJsonNode(unitsByGot.getRight())));
+                        new JsonLineModel(unitsByGot.getLeft(), null, JsonHandler.toJsonNode(unitsByGot.getRight()))
+                    );
                 }
             }
             return new FileInputStream(unitsByGotTempFile);
@@ -299,18 +329,25 @@ public class PluginHelper {
             ObjectNode finalSelect = select.getFinalSelect();
             JsonNode response = metadataClient.selectObjectGroups(finalSelect);
 
-            List<ObjectGroupResponse> resultsResponse =
-                JsonHandler.getFromJsonNode(response.get("$results"), new TypeReference<>() {
-                });
+            List<ObjectGroupResponse> resultsResponse = JsonHandler.getFromJsonNode(
+                response.get("$results"),
+                new TypeReference<>() {}
+            );
 
             if (resultsResponse.isEmpty() || resultsResponse.size() != gotIds.length) {
                 throw new IllegalStateException("Object groups are missing from database!");
             }
 
-            return resultsResponse.stream().collect(Collectors
-                .toMap(ObjectGroupResponse::getId, objectGroup -> objectGroup));
-        } catch (InvalidParseOperationException | MetaDataExecutionException |
-            MetaDataDocumentSizeException | MetaDataClientServerException | InvalidCreateOperationException e) {
+            return resultsResponse
+                .stream()
+                .collect(Collectors.toMap(ObjectGroupResponse::getId, objectGroup -> objectGroup));
+        } catch (
+            InvalidParseOperationException
+            | MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException
+            | InvalidCreateOperationException e
+        ) {
             throw new ProcessingException("A problem occured when retrieving ObjectGroups :  " + e.getMessage());
         }
     }

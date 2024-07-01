@@ -90,7 +90,6 @@ import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMo
  */
 public class LogbookLFCAdministration {
 
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLFCAdministration.class);
     private static final String LAST_LFC_TRACEABILITY_OPERATION_FILENAME = "lastOperation.json";
 
@@ -111,32 +110,43 @@ public class LogbookLFCAdministration {
      * @param lifecycleTraceabilityTemporizationDelay
      * @param lifecycleTraceabilityMaxEntries
      */
-    public LogbookLFCAdministration(LogbookOperations logbookOperations,
+    public LogbookLFCAdministration(
+        LogbookOperations logbookOperations,
         LogbookLifeCycles logbookLifeCycles,
         ProcessingManagementClientFactory processingManagementClientFactory,
-        WorkspaceClientFactory workspaceClientFactory, Integer lifecycleTraceabilityTemporizationDelay,
+        WorkspaceClientFactory workspaceClientFactory,
+        Integer lifecycleTraceabilityTemporizationDelay,
         Integer lifecycleTraceabilityMaxRenewalDelay,
         ChronoUnit lifecycleTraceabilityMaxRenewalDelayUnit,
-        Integer lifecycleTraceabilityMaxEntries) {
+        Integer lifecycleTraceabilityMaxEntries
+    ) {
         this.logbookOperations = logbookOperations;
         this.logbookLifeCycles = logbookLifeCycles;
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.workspaceClientFactory = workspaceClientFactory;
         this.lifecycleTraceabilityTemporizationDelayInSeconds = validateAndGetLifecycleTraceabilityTemporizationDelay(
-            lifecycleTraceabilityTemporizationDelay);
+            lifecycleTraceabilityTemporizationDelay
+        );
 
-        ParametersChecker.checkParameter("Missing max renewal delay or unit",
-            lifecycleTraceabilityMaxRenewalDelay, lifecycleTraceabilityMaxRenewalDelayUnit);
+        ParametersChecker.checkParameter(
+            "Missing max renewal delay or unit",
+            lifecycleTraceabilityMaxRenewalDelay,
+            lifecycleTraceabilityMaxRenewalDelayUnit
+        );
         ParametersChecker.checkValue("Invalid max renewal delay", lifecycleTraceabilityMaxRenewalDelay, 1);
 
-        this.traceabilityExpirationInSeconds = (int)
-            Duration.of(lifecycleTraceabilityMaxRenewalDelay, lifecycleTraceabilityMaxRenewalDelayUnit).toSeconds();
+        this.traceabilityExpirationInSeconds = (int) Duration.of(
+            lifecycleTraceabilityMaxRenewalDelay,
+            lifecycleTraceabilityMaxRenewalDelayUnit
+        ).toSeconds();
         this.lifecycleTraceabilityMaxEntries = validateAndGetLifecycleTraceabilityMaxEntries(
-            lifecycleTraceabilityMaxEntries);
+            lifecycleTraceabilityMaxEntries
+        );
     }
 
     private static int validateAndGetLifecycleTraceabilityTemporizationDelay(
-        Integer lifecycleTraceabilityTemporizationDelay) {
+        Integer lifecycleTraceabilityTemporizationDelay
+    ) {
         if (lifecycleTraceabilityTemporizationDelay == null) {
             return 0;
         }
@@ -161,9 +171,8 @@ public class LogbookLFCAdministration {
      */
     public synchronized boolean generateSecureLogbookLFC(
         GUID traceabilityOperationGUID,
-        LfcTraceabilityType lfcTraceabilityType)
-        throws VitamException {
-
+        LfcTraceabilityType lfcTraceabilityType
+    ) throws VitamException {
         Contexts workflowContext = getWorkflowContext(lfcTraceabilityType);
 
         if (isTraceabilityInProgress(workflowContext)) {
@@ -171,26 +180,30 @@ public class LogbookLFCAdministration {
             return false;
         }
 
-        LogbookOperation lastLfcTraceabilityOperation =
-            getLastTraceability(lfcTraceabilityType);
-        LogbookOperation lastLfcTraceabilityOperationWithZip =
-            getLastTraceabilityWithZip(lfcTraceabilityType, lastLfcTraceabilityOperation);
+        LogbookOperation lastLfcTraceabilityOperation = getLastTraceability(lfcTraceabilityType);
+        LogbookOperation lastLfcTraceabilityOperationWithZip = getLastTraceabilityWithZip(
+            lfcTraceabilityType,
+            lastLfcTraceabilityOperation
+        );
 
-        if (!isNewTraceabilityRequired(lfcTraceabilityType, lastLfcTraceabilityOperation,
-            lastLfcTraceabilityOperationWithZip)) {
+        if (
+            !isNewTraceabilityRequired(
+                lfcTraceabilityType,
+                lastLfcTraceabilityOperation,
+                lastLfcTraceabilityOperationWithZip
+            )
+        ) {
             LOGGER.info("Traceability operation not required...");
             return false;
         }
 
         // Start traceability workflow
-        startTraceabilityWorkflow(traceabilityOperationGUID, workflowContext,
-            lastLfcTraceabilityOperationWithZip);
+        startTraceabilityWorkflow(traceabilityOperationGUID, workflowContext, lastLfcTraceabilityOperationWithZip);
         return true;
     }
 
     private boolean isTraceabilityInProgress(Contexts workflowContext) throws VitamClientException {
         try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
-
             ProcessQuery query = new ProcessQuery();
             // Non completed processes
             query.setStates(
@@ -202,13 +215,14 @@ public class LogbookLFCAdministration {
             // Workflow id
             query.setWorkflows(List.of(workflowContext.name()));
 
-            RequestResponse<ProcessDetail> processDetailRequestResponse =
-                processManagementClient.listOperationsDetails(query);
+            RequestResponse<ProcessDetail> processDetailRequestResponse = processManagementClient.listOperationsDetails(
+                query
+            );
             if (!processDetailRequestResponse.isOk()) {
-
                 VitamError error = (VitamError) processDetailRequestResponse;
                 throw new VitamClientException(
-                    "Could not check concurrent workflows " + error.getDescription() + " - " + error.getMessage());
+                    "Could not check concurrent workflows " + error.getDescription() + " - " + error.getMessage()
+                );
             }
 
             return !((RequestResponseOK<ProcessDetail>) processDetailRequestResponse).getResults().isEmpty();
@@ -217,12 +231,15 @@ public class LogbookLFCAdministration {
 
     private LogbookOperation getLastTraceability(LfcTraceabilityType lfcTraceabilityType) throws VitamException {
         return logbookOperations.findLastLifecycleTraceabilityOperation(
-            getWorkflowContext(lfcTraceabilityType).getEventType(), false);
+            getWorkflowContext(lfcTraceabilityType).getEventType(),
+            false
+        );
     }
 
-    private LogbookOperation getLastTraceabilityWithZip(LfcTraceabilityType lfcTraceabilityType,
-        LogbookOperation lastLfcTraceabilityOperation) throws VitamException {
-
+    private LogbookOperation getLastTraceabilityWithZip(
+        LfcTraceabilityType lfcTraceabilityType,
+        LogbookOperation lastLfcTraceabilityOperation
+    ) throws VitamException {
         if (lastLfcTraceabilityOperation == null) {
             LOGGER.info("No traceability with Zip. This is the very first traceability operation");
             return null;
@@ -237,21 +254,25 @@ public class LogbookLFCAdministration {
 
         // Retrieve last traceability with zip file
         return logbookOperations.findLastLifecycleTraceabilityOperation(
-            getWorkflowContext(lfcTraceabilityType).getEventType(), true);
+            getWorkflowContext(lfcTraceabilityType).getEventType(),
+            true
+        );
     }
 
-    private boolean isNewTraceabilityRequired(LfcTraceabilityType lfcTraceabilityType,
-        LogbookOperation lastLfcTraceabilityOperation, LogbookOperation lastLfcTraceabilityOperationWithZip)
-        throws InvalidParseOperationException {
-
+    private boolean isNewTraceabilityRequired(
+        LfcTraceabilityType lfcTraceabilityType,
+        LogbookOperation lastLfcTraceabilityOperation,
+        LogbookOperation lastLfcTraceabilityOperationWithZip
+    ) throws InvalidParseOperationException {
         if (lastLfcTraceabilityOperation == null) {
             LOGGER.info("Very first traceability operation. Traceability required");
             return true;
         }
 
         if (isLastTraceabilityOperationTooOld(lastLfcTraceabilityOperation)) {
-            LOGGER.info(lfcTraceabilityType + " LFC traceability required. " +
-                "Last traceability operation is too old.");
+            LOGGER.info(
+                lfcTraceabilityType + " LFC traceability required. " + "Last traceability operation is too old."
+            );
             return true;
         }
 
@@ -260,24 +281,29 @@ public class LogbookLFCAdministration {
             return true;
         }
 
-        if (checkNewLifeCyclesSinceLastTraceabilityOperation(lfcTraceabilityType,
-            lastLfcTraceabilityOperationWithZip)) {
-            LOGGER.info(lfcTraceabilityType + " LFC traceability required. " +
-                "New LFCs found since last traceability operation");
+        if (
+            checkNewLifeCyclesSinceLastTraceabilityOperation(lfcTraceabilityType, lastLfcTraceabilityOperationWithZip)
+        ) {
+            LOGGER.info(
+                lfcTraceabilityType +
+                " LFC traceability required. " +
+                "New LFCs found since last traceability operation"
+            );
             return true;
         }
 
-        LOGGER.info("Skipping " + lfcTraceabilityType + " LFC traceability. " +
-            "No activity since last traceability operation");
+        LOGGER.info(
+            "Skipping " + lfcTraceabilityType + " LFC traceability. " + "No activity since last traceability operation"
+        );
         return false;
-
     }
 
     private boolean isLastTraceabilityOperationTooOld(LogbookOperation lastLfcTraceabilityOperation) {
         final String evDateTimeStr = (String) lastLfcTraceabilityOperation.get(eventDateTime.getDbname());
         LocalDateTime lastTraceabilityDate = LocalDateUtil.parseMongoFormattedDate(evDateTimeStr);
-        LocalDateTime lastTraceabilityOperationValidityDateTime
-            = lastTraceabilityDate.plusSeconds(this.traceabilityExpirationInSeconds);
+        LocalDateTime lastTraceabilityOperationValidityDateTime = lastTraceabilityDate.plusSeconds(
+            this.traceabilityExpirationInSeconds
+        );
         return lastTraceabilityOperationValidityDateTime.isBefore(LocalDateUtil.now());
     }
 
@@ -287,9 +313,10 @@ public class LogbookLFCAdministration {
         return lastLfcTraceabilityDetails != null && lastLfcTraceabilityDetails.isMaxEntriesReached();
     }
 
-    private boolean checkNewLifeCyclesSinceLastTraceabilityOperation(LfcTraceabilityType lfcTraceabilityType,
-        LogbookOperation lastLfcTraceabilityOperationWithZip) throws InvalidParseOperationException {
-
+    private boolean checkNewLifeCyclesSinceLastTraceabilityOperation(
+        LfcTraceabilityType lfcTraceabilityType,
+        LogbookOperation lastLfcTraceabilityOperationWithZip
+    ) throws InvalidParseOperationException {
         LocalDateTime traceabilityStartDate = getTraceabilityStartDate(lastLfcTraceabilityOperationWithZip);
 
         LocalDateTime traceabilityEndDate = LocalDateUtil.now()
@@ -298,13 +325,14 @@ public class LogbookLFCAdministration {
         switch (lfcTraceabilityType) {
             case Unit:
                 return this.logbookLifeCycles.checkUnitLifecycleEntriesExistenceByLastPersistedDate(
-                    LocalDateUtil.getFormattedDateForMongo(traceabilityStartDate),
-                    LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate));
-
+                        LocalDateUtil.getFormattedDateForMongo(traceabilityStartDate),
+                        LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate)
+                    );
             case ObjectGroup:
                 return this.logbookLifeCycles.checkObjectGroupLifecycleEntriesExistenceByLastPersistedDate(
-                    LocalDateUtil.getFormattedDateForMongo(traceabilityStartDate),
-                    LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate));
+                        LocalDateUtil.getFormattedDateForMongo(traceabilityStartDate),
+                        LocalDateUtil.getFormattedDateForMongo(traceabilityEndDate)
+                    );
             default:
                 throw new IllegalStateException("Unexpected value: " + lfcTraceabilityType);
         }
@@ -316,74 +344,86 @@ public class LogbookLFCAdministration {
         if (lastLfcTraceabilityOperationWithZip == null) {
             traceabilityStartDate = LogbookTraceabilityHelper.INITIAL_START_DATE;
         } else {
-
-            TraceabilityEvent lastLfcTraceabilityWithZipEventDetails =
-                getTraceabilityEvent(lastLfcTraceabilityOperationWithZip);
+            TraceabilityEvent lastLfcTraceabilityWithZipEventDetails = getTraceabilityEvent(
+                lastLfcTraceabilityOperationWithZip
+            );
 
             if (lastLfcTraceabilityWithZipEventDetails == null) {
-                throw new IllegalStateException("Last traceability with zip must have event details " +
-                    lastLfcTraceabilityOperationWithZip.getId());
+                throw new IllegalStateException(
+                    "Last traceability with zip must have event details " + lastLfcTraceabilityOperationWithZip.getId()
+                );
             }
             traceabilityStartDate = LocalDateUtil.parseMongoFormattedDate(
-                lastLfcTraceabilityWithZipEventDetails.getEndDate());
+                lastLfcTraceabilityWithZipEventDetails.getEndDate()
+            );
         }
         return traceabilityStartDate;
     }
 
-    private void startTraceabilityWorkflow(GUID traceabilityOperationGUID, Contexts workflowContext,
-        LogbookOperation lastLfcTraceabilityOperationWithZip)
-        throws VitamClientException, InternalServerException, BadRequestException, LogbookException {
+    private void startTraceabilityWorkflow(
+        GUID traceabilityOperationGUID,
+        Contexts workflowContext,
+        LogbookOperation lastLfcTraceabilityOperationWithZip
+    ) throws VitamClientException, InternalServerException, BadRequestException, LogbookException {
         createContainer(traceabilityOperationGUID.getId());
 
         persistLastLfcTraceability(traceabilityOperationGUID.getId(), lastLfcTraceabilityOperationWithZip);
 
-        try (ProcessingManagementClient processManagementClient =
-            processingManagementClientFactory.getClient()) {
-            final LogbookOperationParameters logbookUpdateParametersStart = LogbookParameterHelper
-                .newLogbookOperationParameters(traceabilityOperationGUID, workflowContext.getEventType(),
+        try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
+            final LogbookOperationParameters logbookUpdateParametersStart =
+                LogbookParameterHelper.newLogbookOperationParameters(
+                    traceabilityOperationGUID,
+                    workflowContext.getEventType(),
                     traceabilityOperationGUID,
                     LogbookTypeProcess.TRACEABILITY,
                     StatusCode.STARTED,
                     VitamLogbookMessages.getCodeOp(workflowContext.getEventType(), StatusCode.STARTED),
-                    traceabilityOperationGUID);
+                    traceabilityOperationGUID
+                );
             LogbookOperationsClientHelper.checkLogbookParameters(logbookUpdateParametersStart);
             logbookOperations.create(traceabilityOperationGUID.getId(), logbookUpdateParametersStart);
             try {
-
-                ProcessingEntry processingEntry =
-                    new ProcessingEntry(traceabilityOperationGUID.getId(), workflowContext.name());
-                processingEntry.getExtraParams().put(
-                    WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds.name(),
-                    Integer.toString(lifecycleTraceabilityTemporizationDelayInSeconds));
-                processingEntry.getExtraParams().put(
-                    WorkerParameterName.lifecycleTraceabilityMaxEntries.name(),
-                    Integer.toString(lifecycleTraceabilityMaxEntries));
+                ProcessingEntry processingEntry = new ProcessingEntry(
+                    traceabilityOperationGUID.getId(),
+                    workflowContext.name()
+                );
+                processingEntry
+                    .getExtraParams()
+                    .put(
+                        WorkerParameterName.lifecycleTraceabilityTemporizationDelayInSeconds.name(),
+                        Integer.toString(lifecycleTraceabilityTemporizationDelayInSeconds)
+                    );
+                processingEntry
+                    .getExtraParams()
+                    .put(
+                        WorkerParameterName.lifecycleTraceabilityMaxEntries.name(),
+                        Integer.toString(lifecycleTraceabilityMaxEntries)
+                    );
 
                 // No need to backup operation context.
                 processManagementClient.initVitamProcess(processingEntry);
 
                 LOGGER.debug("Started Traceability in Resource");
-                RequestResponse<ItemStatus> ret =
-                    processManagementClient
-                        .updateOperationActionProcess(ProcessAction.RESUME.getValue(),
-                            traceabilityOperationGUID.getId());
+                RequestResponse<ItemStatus> ret = processManagementClient.updateOperationActionProcess(
+                    ProcessAction.RESUME.getValue(),
+                    traceabilityOperationGUID.getId()
+                );
 
                 if (Status.ACCEPTED.getStatusCode() != ret.getStatus()) {
                     throw new VitamClientException("Process could not be executed");
                 }
-
             } catch (InternalServerException | VitamClientException | BadRequestException e) {
                 LOGGER.error(e);
                 final LogbookOperationParameters logbookUpdateParametersEnd =
-                    LogbookParameterHelper
-                        .newLogbookOperationParameters(traceabilityOperationGUID,
-                            workflowContext.getEventType(),
-                            traceabilityOperationGUID,
-                            LogbookTypeProcess.TRACEABILITY,
-                            StatusCode.KO,
-                            VitamLogbookMessages.getCodeOp(workflowContext.getEventType(),
-                                StatusCode.KO),
-                            traceabilityOperationGUID);
+                    LogbookParameterHelper.newLogbookOperationParameters(
+                        traceabilityOperationGUID,
+                        workflowContext.getEventType(),
+                        traceabilityOperationGUID,
+                        LogbookTypeProcess.TRACEABILITY,
+                        StatusCode.KO,
+                        VitamLogbookMessages.getCodeOp(workflowContext.getEventType(), StatusCode.KO),
+                        traceabilityOperationGUID
+                    );
                 LogbookOperationsClientHelper.checkLogbookParameters(logbookUpdateParametersEnd);
                 logbookOperations.update(traceabilityOperationGUID.getId(), logbookUpdateParametersEnd);
                 throw e;
@@ -424,9 +464,7 @@ public class LogbookLFCAdministration {
 
     private void persistLastLfcTraceability(String containerName, LogbookOperation lastLfcTraceabilityOperation)
         throws VitamClientException {
-
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
-
             JsonNode traceabilityOperationJson;
             if (lastLfcTraceabilityOperation == null) {
                 // empty json file
@@ -435,8 +473,11 @@ public class LogbookLFCAdministration {
                 traceabilityOperationJson = JsonHandler.toJsonNode(lastLfcTraceabilityOperation);
             }
 
-            workspaceClient.putObject(containerName, LAST_LFC_TRACEABILITY_OPERATION_FILENAME,
-                JsonHandler.fromPojoToBytes(traceabilityOperationJson));
+            workspaceClient.putObject(
+                containerName,
+                LAST_LFC_TRACEABILITY_OPERATION_FILENAME,
+                JsonHandler.fromPojoToBytes(traceabilityOperationJson)
+            );
         } catch (ContentAddressableStorageServerException | InvalidParseOperationException e) {
             throw new VitamClientException(e);
         }
@@ -450,9 +491,7 @@ public class LogbookLFCAdministration {
      */
     public LifecycleTraceabilityStatus checkLifecycleTraceabilityStatus(String operationId)
         throws VitamException, InvalidCreateOperationException {
-
         try (ProcessingManagementClient processManagementClient = processingManagementClientFactory.getClient()) {
-
             ItemStatus processStatus = processManagementClient.getOperationProcessStatus(operationId);
 
             boolean isCompleted = (processStatus.getGlobalState() == ProcessState.COMPLETED);
@@ -462,15 +501,14 @@ public class LogbookLFCAdministration {
             LifecycleTraceabilityStatus lifecycleTraceabilityStatus = new LifecycleTraceabilityStatus();
             lifecycleTraceabilityStatus.setCompleted(isCompleted);
             lifecycleTraceabilityStatus.setPaused(isPaused);
-            lifecycleTraceabilityStatus
-                .setOutcome(processStatus.getGlobalState().name() + "." + processStatus.getGlobalStatus().name());
+            lifecycleTraceabilityStatus.setOutcome(
+                processStatus.getGlobalState().name() + "." + processStatus.getGlobalStatus().name()
+            );
 
             if (isCompleted && isOK) {
-
                 Select selectQuery = new Select();
                 selectQuery.setQuery(QueryHelper.eq(LogbookMongoDbName.eventIdentifier.getDbname(), operationId));
-                List<LogbookOperation> operations
-                    = logbookOperations.selectOperations(selectQuery.getFinalSelect());
+                List<LogbookOperation> operations = logbookOperations.selectOperations(selectQuery.getFinalSelect());
 
                 if (operations.isEmpty()) {
                     throw new LogbookNotFoundException("Could not find logbook operation " + operationId);

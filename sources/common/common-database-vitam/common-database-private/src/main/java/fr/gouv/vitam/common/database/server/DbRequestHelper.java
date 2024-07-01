@@ -67,8 +67,7 @@ public class DbRequestHelper {
      * VitamLogger
      */
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestHelper.class);
-    public static final String
-        CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
+    public static final String CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S =
         "[Consistency Error] : The document guid=%s in ES is not in MongoDB anymore, tenant : %s, requestId : %s";
 
     /**
@@ -77,7 +76,6 @@ public class DbRequestHelper {
     private DbRequestHelper() {
         // Empty
     }
-
 
     /**
      * Helper to detect if document already exists so update needed instead of insert
@@ -89,13 +87,17 @@ public class DbRequestHelper {
             return isDuplicateKeyException(e);
         }
 
-        if (e instanceof DatabaseException &&
-            (e.getCause() instanceof MongoBulkWriteException || e.getCause() instanceof MongoWriteException)) {
+        if (
+            e instanceof DatabaseException &&
+            (e.getCause() instanceof MongoBulkWriteException || e.getCause() instanceof MongoWriteException)
+        ) {
             return isDuplicateKeyException(e.getCause());
         }
         Throwable d = e.getCause();
-        if (d instanceof DatabaseException &&
-            (d.getCause() instanceof MongoBulkWriteException || d.getCause() instanceof MongoWriteException)) {
+        if (
+            d instanceof DatabaseException &&
+            (d.getCause() instanceof MongoBulkWriteException || d.getCause() instanceof MongoWriteException)
+        ) {
             return isDuplicateKeyException(e.getCause());
         }
         return false;
@@ -110,7 +112,9 @@ public class DbRequestHelper {
 
         if (exception instanceof MongoBulkWriteException) {
             MongoBulkWriteException mongoException = (MongoBulkWriteException) exception;
-            return mongoException.getWriteErrors().stream()
+            return mongoException
+                .getWriteErrors()
+                .stream()
                 .allMatch(o -> ErrorCategory.DUPLICATE_KEY.equals(o.getCategory()));
         }
 
@@ -129,8 +133,11 @@ public class DbRequestHelper {
      * @throws InvalidCreateOperationException
      */
     public static <T extends VitamDocument<?>> MongoCursor<T> selectMongoDbExecuteThroughFakeMongoCursor(
-        VitamCollection<T> collection, RequestParserSingle parser, List<String> list, List<Float> scores)
-        throws InvalidParseOperationException, VitamDBException {
+        VitamCollection<T> collection,
+        RequestParserSingle parser,
+        List<String> list,
+        List<Float> scores
+    ) throws InvalidParseOperationException, VitamDBException {
         final SelectToMongodb selectToMongoDb = new SelectToMongodb(parser);
         final Bson projection = selectToMongoDb.getFinalProjection();
         final boolean isIdIncluded = selectToMongoDb.idWasInProjection();
@@ -143,7 +150,6 @@ public class DbRequestHelper {
             }
         }
 
-
         FindIterable<T> find = collection.getCollection().find(initialCondition);
         if (projection != null) {
             find = find.projection(projection);
@@ -151,7 +157,8 @@ public class DbRequestHelper {
         // Build aggregate $project condition
         final int nb = list.size();
         @SuppressWarnings("unchecked")
-        List<T> firstList = IntStream.range(0, nb).mapToObj(e -> (T) new FakeVitamDocument<>())
+        List<T> firstList = IntStream.range(0, nb)
+            .mapToObj(e -> (T) new FakeVitamDocument<>())
             .collect(Collectors.toList());
 
         ServerAddress serverAddress;
@@ -170,8 +177,12 @@ public class DbRequestHelper {
             }
         }
         final List<T> finalList = new ArrayList<>(nbFinal);
-        if (VitamConfiguration.isExportScore() && scores != null
-            && collection.isUseScore() && selectToMongoDb.isScoreIncluded()) {
+        if (
+            VitamConfiguration.isExportScore() &&
+            scores != null &&
+            collection.isUseScore() &&
+            selectToMongoDb.isScoreIncluded()
+        ) {
             for (int i = 0; i < nb; i++) {
                 T vitamDocument = firstList.get(i);
                 if (!(vitamDocument instanceof FakeVitamDocument)) {
@@ -206,19 +217,27 @@ public class DbRequestHelper {
         }
 
         // log synchronization errors between elasticSearch and MongoDB.
-        listDesynchronizedResults.forEach(
-            x -> {
-                VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
-                    String.valueOf(ParameterHelper.getTenantParameter()), "DbRequest").inc();
-                LOGGER.error(String.format(
-                    CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S, x,
-                    ParameterHelper.getTenantParameter(), VitamThreadUtils.getVitamSession().getRequestId()));
-            });
+        listDesynchronizedResults.forEach(x -> {
+            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                String.valueOf(ParameterHelper.getTenantParameter()),
+                "DbRequest"
+            ).inc();
+            LOGGER.error(
+                String.format(
+                    CONSISTENCY_ERROR_THE_DOCUMENT_GUID_S_IN_ES_IS_NOT_IN_MONGO_DB_ANYMORE_TENANT_S_REQUEST_ID_S,
+                    x,
+                    ParameterHelper.getTenantParameter(),
+                    VitamThreadUtils.getVitamSession().getRequestId()
+                )
+            );
+        });
 
         // As soon as we detect a synchronization error MongoDB / ES, we return an error.
         if (!listDesynchronizedResults.isEmpty()) {
-            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()),
-                "DbRequest").inc();
+            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                String.valueOf(ParameterHelper.getTenantParameter()),
+                "DbRequest"
+            ).inc();
             throw new VitamDBException("[Consistency ERROR] : An internal data consistency error has been detected !");
         }
 
@@ -275,5 +294,4 @@ public class DbRequestHelper {
             }
         };
     }
-
 }

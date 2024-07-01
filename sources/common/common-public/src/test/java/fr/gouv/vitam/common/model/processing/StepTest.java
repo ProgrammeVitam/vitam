@@ -45,9 +45,13 @@ public class StepTest {
         assertEquals("DefaultWorker", new Step().getWorkerGroupId());
         assertEquals(true, new Step().getActions().isEmpty());
         assertEquals(DistributionKind.REF, new Step().getDistribution().getKind());
-        assertEquals(DistributionKind.LIST_ORDERING_IN_FILE,
-            new Step().setDistribution(new Distribution().setKind(DistributionKind.LIST_ORDERING_IN_FILE))
-                .getDistribution().getKind());
+        assertEquals(
+            DistributionKind.LIST_ORDERING_IN_FILE,
+            new Step()
+                .setDistribution(new Distribution().setKind(DistributionKind.LIST_ORDERING_IN_FILE))
+                .getDistribution()
+                .getKind()
+        );
 
         final List<Action> actions = new ArrayList<>();
         actions.add(new Action());
@@ -65,8 +69,8 @@ public class StepTest {
 
         Action action = new Action();
         action.setActionDefinition(
-            new ActionDefinition("actionKey", ProcessBehavior.NOBLOCKING, null, new ArrayList<>(),
-                new ArrayList<>()));
+            new ActionDefinition("actionKey", ProcessBehavior.NOBLOCKING, null, new ArrayList<>(), new ArrayList<>())
+        );
         ArrayList<Action> actions = new ArrayList<>();
         actions.add(action);
         Step step = new Step(null, "workerId", "stepName", ProcessBehavior.NOBLOCKING, distribution, actions, null);

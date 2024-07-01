@@ -42,11 +42,10 @@ public class JsonSchemaFieldParser {
 
     public static Map<String, JsonSchemaField> parseJsonSchemaFields(InputStream jsonSchemaInputStream)
         throws InvalidParseOperationException {
-
         JsonNode externalSchema = JsonHandler.getFromInputStream(jsonSchemaInputStream);
 
         if (externalSchema.has("definitions")) {
-            for (Iterator<String> it = externalSchema.get("definitions").fieldNames(); it.hasNext(); ) {
+            for (Iterator<String> it = externalSchema.get("definitions").fieldNames(); it.hasNext();) {
                 String fieldName = it.next();
                 if (!fieldName.equals("date-opt-time") && !fieldName.equals("nullable-date-opt-time")) {
                     throw new IllegalStateException("Unknown definition type " + fieldName);
@@ -56,13 +55,10 @@ public class JsonSchemaFieldParser {
 
         List<JsonSchemaField> schemaFields = new ArrayList<>();
         processObject(externalSchema, "", schemaFields);
-        return schemaFields.stream()
-            .collect(toMap(JsonSchemaField::getFullPath, e -> e));
+        return schemaFields.stream().collect(toMap(JsonSchemaField::getFullPath, e -> e));
     }
 
-    private static void processObject(JsonNode objectDefinition, String basePath,
-        List<JsonSchemaField> schemaFields) {
-
+    private static void processObject(JsonNode objectDefinition, String basePath, List<JsonSchemaField> schemaFields) {
         if (!objectDefinition.has("additionalProperties") || objectDefinition.get("additionalProperties").asBoolean()) {
             throw new IllegalStateException("Expected additionalProperties=false node for " + basePath);
         }
@@ -74,9 +70,7 @@ public class JsonSchemaFieldParser {
         processProperties(objectDefinition.get("properties"), basePath, schemaFields);
     }
 
-    private static void processProperties(JsonNode currentJson, String basePath,
-        List<JsonSchemaField> schemaFields) {
-
+    private static void processProperties(JsonNode currentJson, String basePath, List<JsonSchemaField> schemaFields) {
         final Iterator<Map.Entry<String, JsonNode>> iterator = currentJson.fields();
 
         while (iterator.hasNext()) {
@@ -87,12 +81,14 @@ public class JsonSchemaFieldParser {
 
             processType(value, fullPath, schemaFields, false);
         }
-
     }
 
-    private static void processType(JsonNode value, String fullPath, List<JsonSchemaField> schemaFields,
-        boolean isArray) {
-
+    private static void processType(
+        JsonNode value,
+        String fullPath,
+        List<JsonSchemaField> schemaFields,
+        boolean isArray
+    ) {
         if (value.has("type") && value.get("type").textValue().equals("array")) {
             if (isArray) {
                 throw new IllegalStateException("Arrays of arrays not supported for " + fullPath);
@@ -103,15 +99,16 @@ public class JsonSchemaFieldParser {
 
         JsonSchemaFieldType jsonSchemaFieldType;
         if (value.has("$ref")) {
-            if (!value.get("$ref").textValue().equals("#/definitions/date-opt-time")
-                && !value.get("$ref").textValue().equals("#/definitions/nullable-date-opt-time")) {
+            if (
+                !value.get("$ref").textValue().equals("#/definitions/date-opt-time") &&
+                !value.get("$ref").textValue().equals("#/definitions/nullable-date-opt-time")
+            ) {
                 throw new IllegalStateException("Invalid reference $ref " + value.get("$ref"));
             }
             jsonSchemaFieldType = JsonSchemaFieldType.DATE;
         } else if (value.has("enum")) {
             jsonSchemaFieldType = JsonSchemaFieldType.ENUM;
         } else if (value.has("type")) {
-
             switch (value.get("type").textValue()) {
                 case "object": {
                     jsonSchemaFieldType = JsonSchemaFieldType.OBJECT;

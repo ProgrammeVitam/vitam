@@ -43,7 +43,6 @@ import static org.mockito.Mockito.mock;
 
 public class HelloWorldPluginTest {
 
-
     @Test
     public void testExecuteThenOK() {
         HelloWorldPlugin helloWorldPlugin = new HelloWorldPlugin();

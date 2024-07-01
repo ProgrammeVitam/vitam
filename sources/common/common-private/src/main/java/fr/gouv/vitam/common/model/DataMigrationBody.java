@@ -44,8 +44,7 @@ public class DataMigrationBody {
     @JsonProperty("model")
     private JsonNode model;
 
-    public DataMigrationBody() {
-    }
+    public DataMigrationBody() {}
 
     public DataMigrationBody(String collection, List<String> fields, JsonNode model) {
         this.collection = collection;

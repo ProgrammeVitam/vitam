@@ -88,13 +88,11 @@ public class StoreContextBuilderTest {
         File resourceFile = PropertiesUtils.getResourceFile("3500.txt");
 
         // When
-        contentAddressableStorage
-            .putObject("testContainer", uuid, new FileInputStream(resourceFile), SHA512, 3500L);
+        contentAddressableStorage.putObject("testContainer", uuid, new FileInputStream(resourceFile), SHA512, 3500L);
 
         // Then
         ObjectContent response = contentAddressableStorage.getObject("testContainer", uuid);
         try (InputStream is = response.getInputStream()) {
-
             File fileDownloaded = tempFolder.newFile();
 
             FileOutputStream fileOutputStream = new FileOutputStream(fileDownloaded);
@@ -105,7 +103,8 @@ public class StoreContextBuilderTest {
         }
 
         String objectDigest = new Digest(SHA512).update(resourceFile).digestHex();
-        assertThat(contentAddressableStorage.getObjectMetadata("testContainer", uuid, false).getDigest())
-            .isEqualTo(objectDigest);
+        assertThat(contentAddressableStorage.getObjectMetadata("testContainer", uuid, false).getDigest()).isEqualTo(
+            objectDigest
+        );
     }
 }

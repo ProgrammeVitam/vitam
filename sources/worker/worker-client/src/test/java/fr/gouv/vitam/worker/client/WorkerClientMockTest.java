@@ -45,6 +45,7 @@ import static org.junit.Assert.assertNotNull;
  * Mock client implementation for worker
  */
 public class WorkerClientMockTest {
+
     private WorkerClientConfiguration workerClientConfiguration;
 
     @Test
@@ -56,11 +57,10 @@ public class WorkerClientMockTest {
     }
 
     @Test
-    public void createSteps() throws WorkerNotFoundClientException,
-        WorkerServerClientException, ProcessingRetryAsyncException {
+    public void createSteps()
+        throws WorkerNotFoundClientException, WorkerServerClientException, ProcessingRetryAsyncException {
         WorkerClientFactory.changeMode(null);
-        final WorkerClient client = WorkerClientFactory.getInstance(null)
-            .getClient();
+        final WorkerClient client = WorkerClientFactory.getInstance(null).getClient();
 
         final Step step = new Step();
         final DefaultWorkerParameters workParams = WorkerParametersFactory.newWorkerParameters();

@@ -61,16 +61,17 @@ public class BackupFileStorageTest {
 
     @Test
     public void testWriteFile() throws Exception {
-
         InputStream backupStream = PropertiesUtils.getResourceAsStream("backup.zip");
         String objectId = "2019-01-01.backup.mongoc.zip";
 
         // Given
         BackupFileStorage backupFileStorage = new BackupFileStorage(
-            archiveReferentialRepository, writeOrderCreator,
+            archiveReferentialRepository,
+            writeOrderCreator,
             BucketTopologyHelper.BACKUP_BUCKET,
             BucketTopologyHelper.BACKUP_FILE_BUCKET,
-            temporaryFolder.getRoot().getAbsolutePath());
+            temporaryFolder.getRoot().getAbsolutePath()
+        );
 
         // When
         backupFileStorage.writeFile(objectId, backupStream);
@@ -79,8 +80,8 @@ public class BackupFileStorageTest {
         ArgumentCaptor<TapeArchiveReferentialEntity> tapeArchiveReferentialEntityArgumentCaptor =
             ArgumentCaptor.forClass(TapeArchiveReferentialEntity.class);
         verify(archiveReferentialRepository).insert(tapeArchiveReferentialEntityArgumentCaptor.capture());
-        TapeArchiveReferentialEntity tapeArchiveReferentialEntity
-            = tapeArchiveReferentialEntityArgumentCaptor.getValue();
+        TapeArchiveReferentialEntity tapeArchiveReferentialEntity =
+            tapeArchiveReferentialEntityArgumentCaptor.getValue();
         assertThat(tapeArchiveReferentialEntity.getArchiveId()).isEqualTo(objectId);
         assertThat(tapeArchiveReferentialEntity.getEntryTape()).isEqualTo(EntryType.BACKUP);
 
@@ -88,11 +89,13 @@ public class BackupFileStorageTest {
         verify(writeOrderCreator).addToQueue(writeOrderArgumentCaptor.capture());
 
         assertThat(writeOrderArgumentCaptor.getValue().getBucket()).isEqualTo(BucketTopologyHelper.BACKUP_BUCKET);
-        assertThat(writeOrderArgumentCaptor.getValue().getFileBucketId())
-            .isEqualTo(BucketTopologyHelper.BACKUP_FILE_BUCKET);
+        assertThat(writeOrderArgumentCaptor.getValue().getFileBucketId()).isEqualTo(
+            BucketTopologyHelper.BACKUP_FILE_BUCKET
+        );
         assertThat(writeOrderArgumentCaptor.getValue().getSize()).isEqualTo(10240L);
         assertThat(writeOrderArgumentCaptor.getValue().getDigest()).isEqualTo(
-            "4f68ecd1a386def8129359761b774e56207875be2da4e2d6b29c75a61b006243a183576111e9d26bdae3666319eb5add714e845bd16dde3a35eab39ae8cf7c9f");
+            "4f68ecd1a386def8129359761b774e56207875be2da4e2d6b29c75a61b006243a183576111e9d26bdae3666319eb5add714e845bd16dde3a35eab39ae8cf7c9f"
+        );
         assertThat(writeOrderArgumentCaptor.getValue().getMessageType()).isEqualTo(QueueMessageType.WriteBackupOrder);
         assertThat(writeOrderArgumentCaptor.getValue().getArchiveId()).isEqualTo(objectId);
 

@@ -89,16 +89,15 @@ public class CollectStep extends CommonStep {
     public void init_project() throws Throwable {
         ProjectDto queryJSON = JsonHandler.getFromString(world.getQuery(), ProjectDto.class);
 
-        RequestResponse<JsonNode> resultedRequestResponse =
-            world.getCollectExternalClient().initProject(new VitamContext(
-                world.getTenantId()), queryJSON);
+        RequestResponse<JsonNode> resultedRequestResponse = world
+            .getCollectExternalClient()
+            .initProject(new VitamContext(world.getTenantId()), queryJSON);
 
         if (resultedRequestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) resultedRequestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
             world.setResults(requestResponseOK.getResults());
-            ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
-                ProjectDto.class);
+            ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(), ProjectDto.class);
             world.setProjectId(projectDto.getId());
         } else {
             VitamError vitamError = (VitamError) resultedRequestResponse;
@@ -119,13 +118,12 @@ public class CollectStep extends CommonStep {
         world.setQuery(json);
     }
 
-
     @When("^je recherche le projet")
     public void find_project() throws Throwable {
-        ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
-            ProjectDto.class);
-        RequestResponse<JsonNode> requestResponse = world.getCollectExternalClient().getProjectById(new VitamContext(
-            world.getTenantId()), projectDto.getId());
+        ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(), ProjectDto.class);
+        RequestResponse<JsonNode> requestResponse = world
+            .getCollectExternalClient()
+            .getProjectById(new VitamContext(world.getTenantId()), projectDto.getId());
 
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
@@ -145,17 +143,19 @@ public class CollectStep extends CommonStep {
      */
     @When("^je met a jour le projet avec le nom (.*)$")
     public void update_project(String name) throws Throwable {
-        ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
-            ProjectDto.class);
+        ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(), ProjectDto.class);
         projectDto.setName(name);
-        RequestResponse<JsonNode> requestResponse = world.getCollectExternalClient().updateProject(new VitamContext(
-            world.getTenantId()), projectDto);
+        RequestResponse<JsonNode> requestResponse = world
+            .getCollectExternalClient()
+            .updateProject(new VitamContext(world.getTenantId()), projectDto);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
             world.setResults(requestResponseOK.getResults());
-            ProjectDto updatedProjectDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
-                ProjectDto.class);
+            ProjectDto updatedProjectDto = JsonHandler.getFromString(
+                world.getResults().get(0).toString(),
+                ProjectDto.class
+            );
             assertThat(updatedProjectDto.getName()).isEqualTo(projectDto.getName());
             assertThat(updatedProjectDto.getId()).isEqualTo(projectDto.getId());
         } else {
@@ -171,25 +171,28 @@ public class CollectStep extends CommonStep {
      */
     @When("^je met a jour la transaction avec le nom (.*)$")
     public void update_transaction(String name) throws Exception {
-        TransactionDto transactionDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
-            TransactionDto.class);
+        TransactionDto transactionDto = JsonHandler.getFromString(
+            world.getResults().get(0).toString(),
+            TransactionDto.class
+        );
         transactionDto.setName(name);
-        RequestResponse<JsonNode> requestResponse = world.getCollectExternalClient().updateTransaction(new VitamContext(
-            world.getTenantId()), transactionDto);
+        RequestResponse<JsonNode> requestResponse = world
+            .getCollectExternalClient()
+            .updateTransaction(new VitamContext(world.getTenantId()), transactionDto);
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
             world.setResults(requestResponseOK.getResults());
-            TransactionDto updatedTransactionDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
-                TransactionDto.class);
+            TransactionDto updatedTransactionDto = JsonHandler.getFromString(
+                world.getResults().get(0).toString(),
+                TransactionDto.class
+            );
             assertThat(updatedTransactionDto.getName()).isEqualTo(transactionDto.getName());
             assertThat(updatedTransactionDto.getId()).isEqualTo(transactionDto.getId());
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request update project return an error: " + vitamError.getCode());
         }
-
-
     }
 
     /**
@@ -199,10 +202,10 @@ public class CollectStep extends CommonStep {
      */
     @When("^je supprime le projet")
     public void purge_project() throws Throwable {
-        ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
-            ProjectDto.class);
-        RequestResponse<JsonNode> requestResponse = world.getCollectExternalClient().deleteProjectById(new VitamContext(
-            world.getTenantId()), projectDto.getId());
+        ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(), ProjectDto.class);
+        RequestResponse<JsonNode> requestResponse = world
+            .getCollectExternalClient()
+            .deleteProjectById(new VitamContext(world.getTenantId()), projectDto.getId());
         if (requestResponse.getHttpCode() != 200) {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail("request purge project return an error: " + vitamError.getCode());
@@ -216,8 +219,7 @@ public class CollectStep extends CommonStep {
      */
     @Then("^le projet est (.*) en succès$")
     public void checkOperationProject(String action) throws InvalidParseOperationException {
-        ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
-            ProjectDto.class);
+        ProjectDto projectDto = JsonHandler.getFromString(world.getResults().get(0).toString(), ProjectDto.class);
         switch (action) {
             case CREATED:
                 checkCreatedProject(projectDto);
@@ -232,20 +234,26 @@ public class CollectStep extends CommonStep {
     }
 
     private void checkDeletedProject(ProjectDto projectDto) {
-        assertThatThrownBy(() -> world.getCollectExternalClient().getProjectById(new VitamContext(
-            world.getTenantId()), projectDto.getId())).isInstanceOf(VitamClientException.class);
+        assertThatThrownBy(
+            () ->
+                world
+                    .getCollectExternalClient()
+                    .getProjectById(new VitamContext(world.getTenantId()), projectDto.getId())
+        ).isInstanceOf(VitamClientException.class);
     }
 
     private void checkCreatedProject(ProjectDto projectDto) throws InvalidParseOperationException {
         try {
-            RequestResponse<JsonNode> requestResponse =
-                world.getCollectExternalClient().getProjectById(new VitamContext(
-                    world.getTenantId()), projectDto.getId());
+            RequestResponse<JsonNode> requestResponse = world
+                .getCollectExternalClient()
+                .getProjectById(new VitamContext(world.getTenantId()), projectDto.getId());
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
             world.setResults(requestResponseOK.getResults());
-            ProjectDto createdProject = JsonHandler.getFromString(world.getResults().get(0).toString(),
-                ProjectDto.class);
+            ProjectDto createdProject = JsonHandler.getFromString(
+                world.getResults().get(0).toString(),
+                ProjectDto.class
+            );
             assertThat(createdProject.getId()).isEqualTo(projectDto.getId());
             assertThat(createdProject.getName()).isEqualTo(projectDto.getName());
         } catch (VitamClientException e) {
@@ -257,8 +265,9 @@ public class CollectStep extends CommonStep {
     public void init_transaction() throws Throwable {
         TransactionDto queryJSON = JsonHandler.getFromString(world.getQuery(), TransactionDto.class);
 
-        RequestResponse<JsonNode> requestResponse = world.getCollectExternalClient().initTransaction(new VitamContext(
-            world.getTenantId()), queryJSON, world.getProjectId());
+        RequestResponse<JsonNode> requestResponse = world
+            .getCollectExternalClient()
+            .initTransaction(new VitamContext(world.getTenantId()), queryJSON, world.getProjectId());
 
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
@@ -272,18 +281,22 @@ public class CollectStep extends CommonStep {
 
     @When("^je recherche la transaction")
     public void find_transaction() throws Throwable {
-        TransactionDto transactionDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
-            TransactionDto.class);
-        RequestResponse<JsonNode> requestResponse =
-            world.getCollectExternalClient().getTransactionById(new VitamContext(
-                world.getTenantId()), transactionDto.getId());
+        TransactionDto transactionDto = JsonHandler.getFromString(
+            world.getResults().get(0).toString(),
+            TransactionDto.class
+        );
+        RequestResponse<JsonNode> requestResponse = world
+            .getCollectExternalClient()
+            .getTransactionById(new VitamContext(world.getTenantId()), transactionDto.getId());
 
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
             world.setResults(requestResponseOK.getResults());
-            TransactionDto myTransactionDto = JsonHandler.getFromString(world.getResults().get(0).toString(),
-                TransactionDto.class);
+            TransactionDto myTransactionDto = JsonHandler.getFromString(
+                world.getResults().get(0).toString(),
+                TransactionDto.class
+            );
             world.setTransactionId(myTransactionDto.getId());
             assertThat(myTransactionDto.getStatus()).isEqualTo("OPEN");
         } else {
@@ -296,9 +309,9 @@ public class CollectStep extends CommonStep {
     public void uploadUnit() throws Exception {
         String transactionId = world.getTransactionId();
         JsonNode archiveUnitJson = JsonHandler.getFromString(world.getQuery());
-        RequestResponse<JsonNode> response =
-            world.getCollectExternalClient().uploadArchiveUnit(new VitamContext(
-                world.getTenantId()), archiveUnitJson, transactionId);
+        RequestResponse<JsonNode> response = world
+            .getCollectExternalClient()
+            .uploadArchiveUnit(new VitamContext(world.getTenantId()), archiveUnitJson, transactionId);
         assertThat(response.isOk()).isTrue();
         assertThat(((RequestResponseOK) response).getFirstResult()).isNotNull();
         assertThat(((RequestResponseOK<JsonNode>) response).getFirstResult().get("#id")).isNotNull();
@@ -312,9 +325,13 @@ public class CollectStep extends CommonStep {
         String unitDsl =
             "{\"$roots\": [],\"$query\": [{\"$eq\" : {\"Title\":\"My title3\"}}],\"$filter\": {\"$offset\": 0,\"$limit\": 100},\"$projection\": {}}";
 
-        RequestResponse<JsonNode> response =
-            world.getCollectExternalClient().getUnitsByTransaction(new VitamContext(
-                world.getTenantId()), transactionId, JsonHandler.getFromString(unitDsl));
+        RequestResponse<JsonNode> response = world
+            .getCollectExternalClient()
+            .getUnitsByTransaction(
+                new VitamContext(world.getTenantId()),
+                transactionId,
+                JsonHandler.getFromString(unitDsl)
+            );
         assertThat(response.getStatus()).isEqualTo(200);
         assertThat(((RequestResponseOK) response).getFirstResult()).isNotNull();
         assertThat(((RequestResponseOK) response).getHits().getTotal()).isEqualTo(1);
@@ -327,9 +344,9 @@ public class CollectStep extends CommonStep {
         String usage = "TextContent";
 
         JsonNode gotJson = JsonHandler.getFromString(world.getQuery());
-        RequestResponse<JsonNode> response =
-            world.getCollectExternalClient().addObjectGroup(new VitamContext(
-                world.getTenantId()), unitId, version, gotJson, usage);
+        RequestResponse<JsonNode> response = world
+            .getCollectExternalClient()
+            .addObjectGroup(new VitamContext(world.getTenantId()), unitId, version, gotJson, usage);
         assertThat(response.isOk()).isTrue();
         assertThat(((RequestResponseOK) response).getFirstResult()).isNotNull();
         assertThat(((RequestResponseOK<JsonNode>) response).getFirstResult().get("_id")).isNotNull();
@@ -342,10 +359,10 @@ public class CollectStep extends CommonStep {
         Integer version = 1;
         String usage = "TextContent";
 
-        try (InputStream inputStream =
-            Files.newInputStream(Paths.get(world.getBaseDirectory(), binaryFilename))) {
-            Response response = world.getCollectExternalClient().addBinary(new VitamContext(
-                world.getTenantId()), unitId, version, inputStream, usage);
+        try (InputStream inputStream = Files.newInputStream(Paths.get(world.getBaseDirectory(), binaryFilename))) {
+            Response response = world
+                .getCollectExternalClient()
+                .addBinary(new VitamContext(world.getTenantId()), unitId, version, inputStream, usage);
             Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
     }
@@ -353,19 +370,21 @@ public class CollectStep extends CommonStep {
     @When("^je clôture et je constate son statut (.*)$")
     public void closeTransaction(String status) throws Exception {
         String transactionId = world.getTransactionId();
-        RequestResponse response = world.getCollectExternalClient().closeTransaction(new VitamContext(
-            world.getTenantId()), transactionId);
+        RequestResponse response = world
+            .getCollectExternalClient()
+            .closeTransaction(new VitamContext(world.getTenantId()), transactionId);
         Assertions.assertThat(response.getStatus()).isEqualTo(200);
 
-        RequestResponse<JsonNode> requestResponse =
-            world.getCollectExternalClient().getTransactionById(new VitamContext(
-                world.getTenantId()), world.getTransactionId());
+        RequestResponse<JsonNode> requestResponse = world
+            .getCollectExternalClient()
+            .getTransactionById(new VitamContext(world.getTenantId()), world.getTransactionId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
-            TransactionDto myTransactionDto =
-                JsonHandler.getFromString(requestResponseOK.getResults().get(0).toString(),
-                    TransactionDto.class);
+            TransactionDto myTransactionDto = JsonHandler.getFromString(
+                requestResponseOK.getResults().get(0).toString(),
+                TransactionDto.class
+            );
             assertThat(myTransactionDto.getStatus()).isEqualTo(status);
         } else {
             VitamError vitamError = (VitamError) requestResponse;
@@ -375,21 +394,23 @@ public class CollectStep extends CommonStep {
 
     @When("^j'envoie le SIP et je constate son statut (.*)$")
     public void sentSip(String status) throws Exception {
-        RequestResponse response = world.getCollectExternalClient().ingest(new VitamContext(
-            world.getTenantId()), world.getTransactionId());
+        RequestResponse response = world
+            .getCollectExternalClient()
+            .ingest(new VitamContext(world.getTenantId()), world.getTransactionId());
         if (SUCCESSFUL.equals((response).getStatus())) {
             Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
 
-        RequestResponse<JsonNode> requestResponse =
-            world.getCollectExternalClient().getTransactionById(new VitamContext(
-                world.getTenantId()), world.getTransactionId());
+        RequestResponse<JsonNode> requestResponse = world
+            .getCollectExternalClient()
+            .getTransactionById(new VitamContext(world.getTenantId()), world.getTransactionId());
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
-            TransactionDto myTransactionDto =
-                JsonHandler.getFromString(requestResponseOK.getResults().get(0).toString(),
-                    TransactionDto.class);
+            TransactionDto myTransactionDto = JsonHandler.getFromString(
+                requestResponseOK.getResults().get(0).toString(),
+                TransactionDto.class
+            );
             assertThat(myTransactionDto.getStatus()).isEqualTo(status);
             assertThat(myTransactionDto.getVitamOperationId()).isNotNull();
             assertThat(myTransactionDto.getVitamOperationId()).isNotEmpty();
@@ -401,10 +422,9 @@ public class CollectStep extends CommonStep {
 
     @When("^j'envoie l'arborescence bureautique suivante (.*)$")
     public void should_upload_project_zip(String arboFileName) throws Exception {
-
-        try (InputStream inputStream =
-            Files.newInputStream(Paths.get(world.getBaseDirectory(), arboFileName))) {
-            RequestResponse<JsonNode> response = world.getCollectExternalClient()
+        try (InputStream inputStream = Files.newInputStream(Paths.get(world.getBaseDirectory(), arboFileName))) {
+            RequestResponse<JsonNode> response = world
+                .getCollectExternalClient()
                 .uploadProjectZip(new VitamContext(world.getTenantId()), world.getTransactionId(), inputStream);
             Assertions.assertThat(response.getStatus()).isEqualTo(200);
         }
@@ -412,21 +432,26 @@ public class CollectStep extends CommonStep {
 
     @When("^je constate qu'une AU ainsi qu'un GOT sont créés")
     public void should_find_au() throws Exception {
-
-        RequestResponse<JsonNode> requestResponse = world.getCollectExternalClient()
-            .getUnitsByTransaction(new VitamContext(world.getTenantId()), world.getTransactionId(),
-                new SelectMultiQuery().getFinalSelect());
+        RequestResponse<JsonNode> requestResponse = world
+            .getCollectExternalClient()
+            .getUnitsByTransaction(
+                new VitamContext(world.getTenantId()),
+                world.getTransactionId(),
+                new SelectMultiQuery().getFinalSelect()
+            );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
             assertThat(requestResponseOK.getFirstResult().get("#id")).isNotNull();
-            Optional<JsonNode> got = requestResponseOK.getResults().stream()
-                .filter(jsonNode -> "Item".equals(jsonNode.get("DescriptionLevel").asText())).findFirst();
+            Optional<JsonNode> got = requestResponseOK
+                .getResults()
+                .stream()
+                .filter(jsonNode -> "Item".equals(jsonNode.get("DescriptionLevel").asText()))
+                .findFirst();
             assertThat(got).isNotNull();
         } else {
             VitamError vitamError = (VitamError) requestResponse;
             Fail.fail(TRANSACTION_RETURN_AN_ERROR + vitamError.getCode());
         }
     }
-
 }

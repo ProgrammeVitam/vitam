@@ -72,6 +72,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @param <T> MockOrRestClient class
  */
 public abstract class VitamClientFactory<T extends MockOrRestClient> implements VitamClientFactoryInterface<T> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamClientFactory.class);
 
     static final AtomicBoolean INIT_STATIC_CONFIG = new AtomicBoolean(false);
@@ -79,8 +80,10 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     /**
      * Global configuration for Apache: Pooling connection
      */
-    static final PoolingHttpClientConnectionManager POOLING_CONNECTION_MANAGER =
-        new PoolingHttpClientConnectionManager(VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
+    static final PoolingHttpClientConnectionManager POOLING_CONNECTION_MANAGER = new PoolingHttpClientConnectionManager(
+        VitamConfiguration.getMaxDelayUnusedConnection(),
+        TimeUnit.MILLISECONDS
+    );
     /**
      * Global configuration for Apache: Pooling connection
      */
@@ -100,17 +103,25 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * Specific Socket Configuration
      */
     static final SocketConfig SOCKETCONFIG = SocketConfig.custom()
-        .setRcvBufSize(VitamConfiguration.getRecvBufferSize()).setSndBufSize(VitamConfiguration.getChunkSize())
-        .setSoKeepAlive(true).setSoReuseAddress(true).setTcpNoDelay(true)
-        .setSoTimeout(VitamConfiguration.getReadTimeout()).build();
+        .setRcvBufSize(VitamConfiguration.getRecvBufferSize())
+        .setSndBufSize(VitamConfiguration.getChunkSize())
+        .setSoKeepAlive(true)
+        .setSoReuseAddress(true)
+        .setTcpNoDelay(true)
+        .setSoTimeout(VitamConfiguration.getReadTimeout())
+        .build();
 
     /**
      * Specific Socket Configuration not chunked
      */
     static final SocketConfig SOCKETCONFIG_NONCHUNKED = SocketConfig.custom()
-        .setRcvBufSize(VitamConfiguration.getRecvBufferSize()).setSndBufSize(0)
-        .setSoKeepAlive(true).setSoReuseAddress(true).setTcpNoDelay(true)
-        .setSoTimeout(VitamConfiguration.getReadTimeout()).build();
+        .setRcvBufSize(VitamConfiguration.getRecvBufferSize())
+        .setSndBufSize(0)
+        .setSoKeepAlive(true)
+        .setSoReuseAddress(true)
+        .setTcpNoDelay(true)
+        .setSoTimeout(VitamConfiguration.getReadTimeout())
+        .build();
 
     static {
         if (INIT_STATIC_CONFIG.compareAndSet(false, true)) {
@@ -122,7 +133,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             allManagers.add(POOLING_CONNECTION_MANAGER_NOT_CHUNKED);
         }
     }
-
 
     /**
      * Global configuration for Apache: Idle Monitor
@@ -138,7 +148,8 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     private Client givenClientNotChunked;
     private VitamClientType vitamClientType = VitamClientType.MOCK;
     private final RequestConfig requestConfig = RequestConfig.custom()
-        .setConnectionRequestTimeout(VitamConfiguration.getDelayGetClient()).build();
+        .setConnectionRequestTimeout(VitamConfiguration.getDelayGetClient())
+        .build();
     PoolingHttpClientConnectionManager chunkedPoolingManager;
     PoolingHttpClientConnectionManager notChunkedPoolingManager;
     ExecutorService threadPoolExecutor = Executors.newCachedThreadPool();
@@ -147,8 +158,9 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     private boolean allowGzipDecoded = VitamConfiguration.isAllowGzipDecoding();
 
     private final Map<VitamRestEasyConfiguration, Object> config = new EnumMap<>(VitamRestEasyConfiguration.class);
-    private final Map<VitamRestEasyConfiguration, Object> configNotChunked =
-        new EnumMap<>(VitamRestEasyConfiguration.class);
+    private final Map<VitamRestEasyConfiguration, Object> configNotChunked = new EnumMap<>(
+        VitamRestEasyConfiguration.class
+    );
 
     /**
      * Constructor with standard configuration
@@ -168,8 +180,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * @param resourcePath the resource path of the server for the client calls
      * @throws UnsupportedOperationException HTTPS not implemented yet
      */
-    protected VitamClientFactory(ClientConfiguration configuration, String resourcePath,
-        boolean chunkedMode) {
+    protected VitamClientFactory(ClientConfiguration configuration, String resourcePath, boolean chunkedMode) {
         initialisation(configuration, resourcePath);
         this.chunkedMode = chunkedMode;
         givenClient = null;
@@ -252,9 +263,11 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         if (this.resourcePath.codePointAt(0) != '/') {
             this.resourcePath = "/" + this.resourcePath;
         }
-        serviceUrl = (clientConfiguration.isSecure() ? "https://"
-            : "http://") + clientConfiguration.getServerHost() + ":" + clientConfiguration.getServerPort() +
-            this.resourcePath;
+        serviceUrl = (clientConfiguration.isSecure() ? "https://" : "http://") +
+        clientConfiguration.getServerHost() +
+        ":" +
+        clientConfiguration.getServerPort() +
+        this.resourcePath;
         if (chunkedPoolingManager != null && chunkedPoolingManager != POOLING_CONNECTION_MANAGER) {
             allManagers.remove(chunkedPoolingManager);
             chunkedPoolingManager.close();
@@ -279,14 +292,26 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
                 LOGGER.error(e);
                 throw new IllegalArgumentException("SSLConfiguration issue while reading KeyStore or TrustStore", e);
             }
-            PoolingHttpClientConnectionManager pool = new PoolingHttpClientConnectionManager(registry, null, null, null,
-                VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
+            PoolingHttpClientConnectionManager pool = new PoolingHttpClientConnectionManager(
+                registry,
+                null,
+                null,
+                null,
+                VitamConfiguration.getMaxDelayUnusedConnection(),
+                TimeUnit.MILLISECONDS
+            );
             setupApachePool(pool);
             pool.setDefaultSocketConfig(SOCKETCONFIG);
             chunkedPoolingManager = pool;
             allManagers.add(chunkedPoolingManager);
-            pool = new PoolingHttpClientConnectionManager(registry, null, null, null,
-                VitamConfiguration.getMaxDelayUnusedConnection(), TimeUnit.MILLISECONDS);
+            pool = new PoolingHttpClientConnectionManager(
+                registry,
+                null,
+                null,
+                null,
+                VitamConfiguration.getMaxDelayUnusedConnection(),
+                TimeUnit.MILLISECONDS
+            );
             setupApachePool(pool);
             pool.setDefaultSocketConfig(SOCKETCONFIG_NONCHUNKED);
             notChunkedPoolingManager = pool;
@@ -314,7 +339,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
         }
         this.initialisation(clientConfiguration.setServerPort(port), getResourcePath());
     }
-
 
     @Override
     public VitamClientType getVitamClientType() {
@@ -368,7 +392,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             return givenClient;
         } else if (!useChunkedMode && givenClientNotChunked != null) {
             return givenClientNotChunked;
-
         }
         if (useChunkedMode) {
             Client client = buildClient(config);
@@ -380,7 +403,6 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
             Client client = buildClient(configNotChunked);
             if (!VitamConfiguration.isUseNewJaxrClient()) {
                 givenClientNotChunked = client;
-
             }
             return client;
         }
@@ -399,12 +421,17 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
     @Override
     public String toString() {
         return new StringBuilder("VitamFactory: { ")
-            .append("ServiceUrl: ").append(serviceUrl)
-            .append(", ResourcePath: ").append(resourcePath)
-            .append(", ChunkedMode: ").append(chunkedMode)
-            .append(", Configuration: { Properties: \"").append(config)
+            .append("ServiceUrl: ")
+            .append(serviceUrl)
+            .append(", ResourcePath: ")
+            .append(resourcePath)
+            .append(", ChunkedMode: ")
+            .append(chunkedMode)
+            .append(", Configuration: { Properties: \"")
+            .append(config)
             .append("\" }")
-            .append(" }").toString();
+            .append(" }")
+            .toString();
     }
 
     @Override
@@ -476,17 +503,24 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * @param config
      * @return the ResteasyClientBuilder
      */
-    private ResteasyClientBuilder configureRestEasy(Map<VitamRestEasyConfiguration, Object> config,
-        ClientHttpEngine engine) {
+    private ResteasyClientBuilder configureRestEasy(
+        Map<VitamRestEasyConfiguration, Object> config,
+        ClientHttpEngine engine
+    ) {
         ResteasyClientBuilder clientBuilder = (ResteasyClientBuilder) ClientBuilder.newBuilder();
         clientBuilder.httpEngine(engine);
         clientBuilder.connectionCheckoutTimeout(
             VitamRestEasyConfiguration.CONNECTIONREQUESTTIMEOUT.getInt(config, 1000),
-            TimeUnit.MILLISECONDS);
-        clientBuilder.connectTimeout(VitamRestEasyConfiguration.CONNECT_TIMEOUT.getInt(config, 1000),
-            TimeUnit.MILLISECONDS);
-        clientBuilder.readTimeout(VitamRestEasyConfiguration.READ_TIMEOUT.getInt(config, 100000),
-            TimeUnit.MILLISECONDS);
+            TimeUnit.MILLISECONDS
+        );
+        clientBuilder.connectTimeout(
+            VitamRestEasyConfiguration.CONNECT_TIMEOUT.getInt(config, 1000),
+            TimeUnit.MILLISECONDS
+        );
+        clientBuilder.readTimeout(
+            VitamRestEasyConfiguration.READ_TIMEOUT.getInt(config, 100000),
+            TimeUnit.MILLISECONDS
+        );
         clientBuilder.executorService(threadPoolExecutor);
         if (isAllowGzipDecoded()) {
             clientBuilder.register(AcceptEncodingGZIPFilter.class);
@@ -529,6 +563,7 @@ public abstract class VitamClientFactory<T extends MockOrRestClient> implements 
      * Monitor to check Expired Connection (staled). Idle connections are managed directly in the Pool
      */
     private static class ExpiredConnectionMonitorThread extends Thread {
+
         volatile boolean shutdown;
 
         /**

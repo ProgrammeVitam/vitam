@@ -38,10 +38,9 @@ import fr.gouv.vitam.workspace.client.WorkspaceClientFactory;
  */
 public class StateMachineFactory {
 
-    private final static StateMachineFactory INSTANCE = new StateMachineFactory();
+    private static final StateMachineFactory INSTANCE = new StateMachineFactory();
 
-    private StateMachineFactory() {
-    }
+    private StateMachineFactory() {}
 
     public static StateMachineFactory get() {
         return INSTANCE;
@@ -59,9 +58,12 @@ public class StateMachineFactory {
     }
 
     @VisibleForTesting
-    public StateMachine create(ProcessWorkflow processWorkflow, ProcessEngine processEngine,
+    public StateMachine create(
+        ProcessWorkflow processWorkflow,
+        ProcessEngine processEngine,
         ProcessDataManagement dataManagement,
-        WorkspaceClientFactory workspaceClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory
+    ) {
         ParametersChecker.checkParameter("ProcessWorkflow cannot be null", processWorkflow);
         ParametersChecker.checkParameter("ProcessEngine cannot be null", processEngine);
         ParametersChecker.checkParameter("dataManagement cannot be null", dataManagement);
@@ -69,5 +71,4 @@ public class StateMachineFactory {
 
         return new StateMachine(processWorkflow, processEngine, dataManagement, workspaceClientFactory);
     }
-
 }

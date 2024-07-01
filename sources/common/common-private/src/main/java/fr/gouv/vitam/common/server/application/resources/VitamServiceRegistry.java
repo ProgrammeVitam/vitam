@@ -47,6 +47,7 @@ import java.util.List;
  * VItam Service Registry that contains all dependencies for the current Application
  */
 public class VitamServiceRegistry {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamServiceRegistry.class);
 
     private static final String SERVICE_IS_UNAVAILABLE = " service is unavailable";
@@ -179,7 +180,8 @@ public class VitamServiceRegistry {
      * @return ServerIdentity
      */
     public ObjectNode getAutotestStatus() {
-        final VitamError status = new VitamError("000000").setDescription(ServerIdentity.getInstance().getName())
+        final VitamError status = new VitamError("000000")
+            .setDescription(ServerIdentity.getInstance().getName())
             .setContext(ServerIdentity.getInstance().getRole());
         int test = 0;
         boolean globalStatus = true;
@@ -190,14 +192,20 @@ public class VitamServiceRegistry {
             final VitamError sub = new VitamError(Integer.toString(test)).setContext(name);
             try (MockOrRestClient client = factory.getClient()) {
                 client.checkStatus();
-                sub.setDescription(name + SERVICE_IS_AVAILABLE)
-                    .setHttpCode(Status.OK.getStatusCode()).setMessage("Sub" + SERVICE_IS_AVAILABLE)
+                sub
+                    .setDescription(name + SERVICE_IS_AVAILABLE)
+                    .setHttpCode(Status.OK.getStatusCode())
+                    .setMessage("Sub" + SERVICE_IS_AVAILABLE)
                     .setState(Status.OK.getReasonPhrase());
             } catch (final VitamApplicationServerException e) {
                 LOGGER.warn(
-                    "Can't connect to factory: [" + name + "] " + factory.getServiceUrl() + "\n\t" + e.getMessage(), e);
-                sub.setDescription(name + SERVICE_IS_UNAVAILABLE)
-                    .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage("Sub" + SERVICE_IS_UNAVAILABLE)
+                    "Can't connect to factory: [" + name + "] " + factory.getServiceUrl() + "\n\t" + e.getMessage(),
+                    e
+                );
+                sub
+                    .setDescription(name + SERVICE_IS_UNAVAILABLE)
+                    .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode())
+                    .setMessage("Sub" + SERVICE_IS_UNAVAILABLE)
                     .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
                 globalStatus = false;
             }
@@ -209,14 +217,23 @@ public class VitamServiceRegistry {
             final VitamError sub = new VitamError(Integer.toString(test)).setContext(name);
             try (MockOrRestClient client = factory.getClient()) {
                 client.checkStatus();
-                sub.setDescription(name + SERVICE_IS_AVAILABLE)
-                    .setHttpCode(Status.OK.getStatusCode()).setMessage("Optional Sub" + SERVICE_IS_AVAILABLE)
+                sub
+                    .setDescription(name + SERVICE_IS_AVAILABLE)
+                    .setHttpCode(Status.OK.getStatusCode())
+                    .setMessage("Optional Sub" + SERVICE_IS_AVAILABLE)
                     .setState(Status.OK.getReasonPhrase());
             } catch (final VitamApplicationServerException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                LOGGER.warn("Can't connect to Optional factory: [" + name + "] " + factory.getServiceUrl() + "\n\t" +
-                    e.getMessage());
-                sub.setDescription(name + SERVICE_IS_UNAVAILABLE)
+                LOGGER.warn(
+                    "Can't connect to Optional factory: [" +
+                    name +
+                    "] " +
+                    factory.getServiceUrl() +
+                    "\n\t" +
+                    e.getMessage()
+                );
+                sub
+                    .setDescription(name + SERVICE_IS_UNAVAILABLE)
                     .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode())
                     .setMessage("Optional Sub" + SERVICE_IS_UNAVAILABLE)
                     .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
@@ -229,13 +246,17 @@ public class VitamServiceRegistry {
             final String name = StringUtils.getClassName(database);
             final VitamError sub = new VitamError(Integer.toString(test)).setContext(name);
             if (database.checkConnection()) {
-                sub.setDescription(name + SERVICE_IS_AVAILABLE)
-                    .setHttpCode(Status.OK.getStatusCode()).setMessage("Sub" + SERVICE_IS_AVAILABLE)
+                sub
+                    .setDescription(name + SERVICE_IS_AVAILABLE)
+                    .setHttpCode(Status.OK.getStatusCode())
+                    .setMessage("Sub" + SERVICE_IS_AVAILABLE)
                     .setState(Status.OK.getReasonPhrase());
             } else {
                 LOGGER.warn("Can't connect to database: [" + name + "] " + database.toString());
-                sub.setDescription(name + SERVICE_IS_UNAVAILABLE)
-                    .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage("Sub" + SERVICE_IS_UNAVAILABLE)
+                sub
+                    .setDescription(name + SERVICE_IS_UNAVAILABLE)
+                    .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode())
+                    .setMessage("Sub" + SERVICE_IS_UNAVAILABLE)
                     .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
                 globalStatus = false;
             }
@@ -244,24 +265,32 @@ public class VitamServiceRegistry {
         test++;
         final VitamError sub = new VitamError(Integer.toString(test)).setContext(status.getContext());
         if (applicationStatus.getResourcesStatus()) {
-            sub.setHttpCode(Status.OK.getStatusCode()).setMessage("Internal" + SERVICE_IS_AVAILABLE)
+            sub
+                .setHttpCode(Status.OK.getStatusCode())
+                .setMessage("Internal" + SERVICE_IS_AVAILABLE)
                 .setDescription(status.getDescription() + SERVICE_IS_AVAILABLE)
                 .setState(Status.OK.getReasonPhrase());
         } else {
             LOGGER.warn(sub.getContext() + SERVICE_IS_UNAVAILABLE);
-            sub.setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage("Internal" + SERVICE_IS_UNAVAILABLE)
+            sub
+                .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode())
+                .setMessage("Internal" + SERVICE_IS_UNAVAILABLE)
                 .setDescription(status.getDescription() + SERVICE_IS_UNAVAILABLE)
                 .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
         }
         list.add(sub);
         status.addAllErrors(list);
         if (globalStatus) {
-            status.setDescription("All services are available")
-                .setHttpCode(Status.OK.getStatusCode()).setMessage("All services are available")
+            status
+                .setDescription("All services are available")
+                .setHttpCode(Status.OK.getStatusCode())
+                .setMessage("All services are available")
                 .setState(Status.OK.getReasonPhrase());
         } else {
-            status.setDescription("Some services are unavailable")
-                .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode()).setMessage("Some services are unavailable")
+            status
+                .setDescription("Some services are unavailable")
+                .setHttpCode(Status.SERVICE_UNAVAILABLE.getStatusCode())
+                .setMessage("Some services are unavailable")
                 .setState(Status.SERVICE_UNAVAILABLE.getReasonPhrase());
         }
         return (ObjectNode) status.toJsonNode();

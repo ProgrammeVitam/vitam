@@ -59,14 +59,20 @@ public class MetadataAuditResource {
     private final MetadataAuditService metadataAuditService;
 
     public MetadataAuditResource(MetaDataConfiguration metaDataConfiguration) {
-        this.metadataAuditService = new MetadataAuditService(WorkspaceClientFactory.getInstance(),
-            LogbookOperationsClientFactory.getInstance(), VitamRepositoryFactory.get(),
-            new ElasticsearchMetadataIndexManager(metaDataConfiguration, VitamConfiguration.getTenants(),
-                new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings())),
+        this.metadataAuditService = new MetadataAuditService(
+            WorkspaceClientFactory.getInstance(),
+            LogbookOperationsClientFactory.getInstance(),
+            VitamRepositoryFactory.get(),
+            new ElasticsearchMetadataIndexManager(
+                metaDataConfiguration,
+                VitamConfiguration.getTenants(),
+                new MappingLoader(metaDataConfiguration.getElasticsearchExternalMetadataMappings())
+            ),
             metaDataConfiguration.getIsDataConsistencyAuditRunnable(),
             metaDataConfiguration.getDataConsistencyAuditOplogMaxSize(),
             metaDataConfiguration.getMongodShardsConf(),
-            metaDataConfiguration.isDbAuthentication());
+            metaDataConfiguration.isDbAuthentication()
+        );
         LOGGER.info("init MetaData Audit Resource server");
         ProcessingManagementClientFactory.changeConfigurationUrl(metaDataConfiguration.getUrlProcessing());
     }
@@ -85,5 +91,4 @@ public class MetadataAuditResource {
             return Response.serverError().build();
         }
     }
-
 }

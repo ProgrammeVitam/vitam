@@ -33,5 +33,4 @@ import javax.ws.rs.Path;
 
 @Path("/batchreport/v1")
 @Tag(name = "Batch-Report")
-public class AdminBatchReportResource extends AdminStatusResource {
-}
+public class AdminBatchReportResource extends AdminStatusResource {}

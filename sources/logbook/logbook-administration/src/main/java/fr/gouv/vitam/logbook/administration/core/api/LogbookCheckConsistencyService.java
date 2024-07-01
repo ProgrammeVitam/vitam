@@ -33,7 +33,6 @@ import fr.gouv.vitam.logbook.common.model.coherence.LogbookCheckResult;
  * Check consistency logbook service.<br>
  */
 public interface LogbookCheckConsistencyService {
-
     /**
      * Logbook coherence check by tenant.
      *
@@ -42,5 +41,4 @@ public interface LogbookCheckConsistencyService {
      * @throws VitamException if an error is encountered
      */
     LogbookCheckResult logbookCoherenceCheckByTenant(final Integer tenant) throws VitamException;
-
 }

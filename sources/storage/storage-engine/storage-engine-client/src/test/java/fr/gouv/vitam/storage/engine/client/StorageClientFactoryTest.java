@@ -42,6 +42,7 @@ import static org.junit.Assert.fail;
  *
  */
 public class StorageClientFactoryTest {
+
     private final ClientConfiguration configuration = new ClientConfigurationImpl();
 
     @Before
@@ -112,5 +113,4 @@ public class StorageClientFactoryTest {
         assertTrue(client3 instanceof StorageClientRest);
         assertEquals(VitamClientType.PRODUCTION, StorageClientFactory.getInstance().getVitamClientType());
     }
-
 }

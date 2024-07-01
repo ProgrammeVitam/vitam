@@ -59,8 +59,9 @@ import static org.mockito.Mockito.verify;
 public class PurgeDetachObjectGroupPluginTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -77,12 +78,12 @@ public class PurgeDetachObjectGroupPluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
-        params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+        params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectName("id_got_1")
@@ -93,26 +94,26 @@ public class PurgeDetachObjectGroupPluginTest {
     }
 
     @After
-    public void tearDown() throws Exception {
-    }
+    public void tearDown() throws Exception {}
 
     @Test
     @RunWithCustomExecutor
     public void testExecute_OK() throws Exception {
-
         ItemStatus itemStatus = instance.execute(params, handler);
 
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
-        verify(purgeDeleteService)
-            .detachObjectGroupFromDeleteParentUnits(eq("id_got_1"), eq(new HashSet<>(singletonList("id_unit_1"))));
+        verify(purgeDeleteService).detachObjectGroupFromDeleteParentUnits(
+            eq("id_got_1"),
+            eq(new HashSet<>(singletonList("id_unit_1")))
+        );
     }
 
     @Test
     @RunWithCustomExecutor
     public void testExecute_WhenExceptionExpectFatal() throws Exception {
-
-        doThrow(new ProcessingStatusException(StatusCode.FATAL, null)).when(purgeDeleteService)
+        doThrow(new ProcessingStatusException(StatusCode.FATAL, null))
+            .when(purgeDeleteService)
             .detachObjectGroupFromDeleteParentUnits(any(), any());
 
         ItemStatus itemStatus = instance.execute(params, handler);

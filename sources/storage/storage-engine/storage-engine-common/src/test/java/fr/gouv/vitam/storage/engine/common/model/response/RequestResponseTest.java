@@ -37,6 +37,7 @@ import static org.junit.Assert.assertEquals;
  *
  */
 public class RequestResponseTest {
+
     private static RequestResponseStorage requestResponse = new RequestResponseStorage();
 
     @Test

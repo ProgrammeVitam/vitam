@@ -81,14 +81,24 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ChecksSecureTraceabilityDataStoragelogPluginTest extends ActionHandler {
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-    @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Mock StorageClientFactory storageClientFactory;
-    @Mock StorageClient storageClient;
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock HandlerIO handler;
-    @Mock WorkerParameters param;
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Mock
+    StorageClientFactory storageClientFactory;
+
+    @Mock
+    StorageClient storageClient;
+
+    @Mock
+    HandlerIO handler;
+
+    @Mock
+    WorkerParameters param;
 
     private ChecksSecureTraceabilityDataStoragelogPlugin checksSecureTraceabilityDataStoragelogPlugin;
     private File reportTempFile;
@@ -112,16 +122,17 @@ public class ChecksSecureTraceabilityDataStoragelogPluginTest extends ActionHand
         "10e06b990d44de0091a2113fd95c92fc905166af147aa7632639c41aa7f26b1620c47443813c605b924c05591c161ecc35944fc69c4433a49d10fc6b04a33611";
     private static final String DIGEST = "digest";
 
-
     @Before
     public void setUp() throws Exception {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
-        checksSecureTraceabilityDataStoragelogPlugin =
-            new ChecksSecureTraceabilityDataStoragelogPlugin(storageClientFactory);
+        checksSecureTraceabilityDataStoragelogPlugin = new ChecksSecureTraceabilityDataStoragelogPlugin(
+            storageClientFactory
+        );
 
         lenient().when(param.getObjectName()).thenReturn(OBJECT_NAME);
-        lenient().when(handler.getJsonFromWorkspace(eq(param.getObjectName() + separator + WorkspaceConstants.REPORT)))
+        lenient()
+            .when(handler.getJsonFromWorkspace(eq(param.getObjectName() + separator + WorkspaceConstants.REPORT)))
             .thenReturn(createObjectNode());
 
         final File dummy = temporaryFolder.newFile();
@@ -129,24 +140,36 @@ public class ChecksSecureTraceabilityDataStoragelogPluginTest extends ActionHand
 
         reportTempFile = temporaryFolder.newFile(REPORT_FILENAME);
         lenient().when(handler.getNewLocalFile(endsWith(WorkspaceConstants.REPORT))).thenReturn(reportTempFile);
-
     }
 
     private void preapre() throws Exception {
         final File traceabilityFile = PropertiesUtils.getResourceFile(TRACEABILITY_STORAGE_EVENT_JSON_FILE);
         when(handler.getInput(eq(0))).thenReturn(traceabilityFile);
 
-        TraceabilityEvent event = new TraceabilityEvent(TraceabilityType.OPERATION, null, null, HASH,
-            null, null, null,
-            null, 1, FILE_NAME, 0,
-            null, false, null,
-            null);
-        when(handler.getJsonFromWorkspace(
-            eq(TRACEABILITY_OPERATION_DIRECTORY + separator + param.getObjectName() + separator + DATA_FILE)))
-            .thenReturn(JsonHandler.toJsonNode(event));
+        TraceabilityEvent event = new TraceabilityEvent(
+            TraceabilityType.OPERATION,
+            null,
+            null,
+            HASH,
+            null,
+            null,
+            null,
+            null,
+            1,
+            FILE_NAME,
+            0,
+            null,
+            false,
+            null,
+            null
+        );
+        when(
+            handler.getJsonFromWorkspace(
+                eq(TRACEABILITY_OPERATION_DIRECTORY + separator + param.getObjectName() + separator + DATA_FILE)
+            )
+        ).thenReturn(JsonHandler.toJsonNode(event));
 
-        when(storageClient.getOffers(VitamConfiguration.getDefaultStrategy()))
-            .thenReturn(OFFER_IDS);
+        when(storageClient.getOffers(VitamConfiguration.getDefaultStrategy())).thenReturn(OFFER_IDS);
     }
 
     @Test
@@ -161,16 +184,18 @@ public class ChecksSecureTraceabilityDataStoragelogPluginTest extends ActionHand
         verify(storageClient, times(0)).getContainerAsync(anyString(), anyString(), any(DataCategory.class), any());
     }
 
-
-
     @Test
     public void test_when_security_file_doesnt_exists() throws Exception {
         preapre();
         // Given
-        when(storageClient
-            .exists(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.STORAGELOG), eq(FILE_NAME),
-                eq(OFFER_IDS)))
-            .thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, false), Map.entry(SECONDARY_OFFER_ID, true)));
+        when(
+            storageClient.exists(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.STORAGELOG),
+                eq(FILE_NAME),
+                eq(OFFER_IDS)
+            )
+        ).thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, false), Map.entry(SECONDARY_OFFER_ID, true)));
         // When
         ItemStatus itemStatus = checksSecureTraceabilityDataStoragelogPlugin.execute(param, handler);
 
@@ -188,15 +213,23 @@ public class ChecksSecureTraceabilityDataStoragelogPluginTest extends ActionHand
         preapre();
 
         // Given
-        when(storageClient
-            .exists(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.STORAGELOG), eq(FILE_NAME),
-                eq(OFFER_IDS)))
-            .thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
-        when(storageClient
-            .getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.STORAGELOG), eq(FILE_NAME),
-                eq(OFFER_IDS), anyBoolean())).thenReturn(
-            createObjectNode()
-        );
+        when(
+            storageClient.exists(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.STORAGELOG),
+                eq(FILE_NAME),
+                eq(OFFER_IDS)
+            )
+        ).thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
+        when(
+            storageClient.getInformation(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.STORAGELOG),
+                eq(FILE_NAME),
+                eq(OFFER_IDS),
+                anyBoolean()
+            )
+        ).thenReturn(createObjectNode());
         // When
         ItemStatus itemStatus = checksSecureTraceabilityDataStoragelogPlugin.execute(param, handler);
 
@@ -213,21 +246,34 @@ public class ChecksSecureTraceabilityDataStoragelogPluginTest extends ActionHand
     public void test_when_hashes_are_not_similar() throws Exception {
         preapre();
 
-        when(storageClient
-            .exists(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.STORAGELOG), eq(FILE_NAME),
-                eq(OFFER_IDS)))
-            .thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
+        when(
+            storageClient.exists(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.STORAGELOG),
+                eq(FILE_NAME),
+                eq(OFFER_IDS)
+            )
+        ).thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
         String fakeHash = "HASH";
-        when(storageClient
-            .getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.STORAGELOG), eq(FILE_NAME),
-                eq(Arrays.asList(DEFAULT_OFFER_ID, SECONDARY_OFFER_ID)), anyBoolean())).thenReturn(
-            createObjectNode().setAll(
-                Map.of(DEFAULT_OFFER_ID,
-                    createObjectNode().put(DIGEST, HASH),
-                    SECONDARY_OFFER_ID,
-                    createObjectNode().put(DIGEST, fakeHash)
+        when(
+            storageClient.getInformation(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.STORAGELOG),
+                eq(FILE_NAME),
+                eq(Arrays.asList(DEFAULT_OFFER_ID, SECONDARY_OFFER_ID)),
+                anyBoolean()
+            )
+        ).thenReturn(
+            createObjectNode()
+                .setAll(
+                    Map.of(
+                        DEFAULT_OFFER_ID,
+                        createObjectNode().put(DIGEST, HASH),
+                        SECONDARY_OFFER_ID,
+                        createObjectNode().put(DIGEST, fakeHash)
+                    )
                 )
-            ));
+        );
 
         // When
         ItemStatus itemStatus = checksSecureTraceabilityDataStoragelogPlugin.execute(param, handler);
@@ -241,35 +287,49 @@ public class ChecksSecureTraceabilityDataStoragelogPluginTest extends ActionHand
         assertEquals(KO.name(), reportEntry.getStatus());
     }
 
-
     @Test
     public void should_verify_storage_operation_event_without_error() throws Exception {
         preapre();
 
-        when(storageClient
-            .exists(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.STORAGELOG), eq(FILE_NAME),
-                eq(OFFER_IDS)))
-            .thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
-        when(storageClient
-            .getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.STORAGELOG), eq(FILE_NAME),
-                eq(OFFER_IDS), anyBoolean())).thenReturn(
-            createObjectNode().setAll(
-                Map.of(DEFAULT_OFFER_ID,
-                    createObjectNode().put(DIGEST, HASH),
-                    SECONDARY_OFFER_ID,
-                    createObjectNode().put(DIGEST, HASH)
+        when(
+            storageClient.exists(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.STORAGELOG),
+                eq(FILE_NAME),
+                eq(OFFER_IDS)
+            )
+        ).thenReturn(Map.ofEntries(Map.entry(DEFAULT_OFFER_ID, true), Map.entry(SECONDARY_OFFER_ID, true)));
+        when(
+            storageClient.getInformation(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.STORAGELOG),
+                eq(FILE_NAME),
+                eq(OFFER_IDS),
+                anyBoolean()
+            )
+        ).thenReturn(
+            createObjectNode()
+                .setAll(
+                    Map.of(
+                        DEFAULT_OFFER_ID,
+                        createObjectNode().put(DIGEST, HASH),
+                        SECONDARY_OFFER_ID,
+                        createObjectNode().put(DIGEST, HASH)
+                    )
                 )
-            ));
-
-
-        Response response = mock(Response.class);
-        when(response.readEntity(eq(InputStream.class))).thenReturn(
-            new ByteArrayInputStream(FILE_CONTENT.getBytes())
         );
 
-        when(storageClient
-            .getContainerAsync(anyString(), eq(FILE_NAME), eq(DataCategory.STORAGELOG), any(AccessLogInfoModel.class)))
-            .thenReturn(response);
+        Response response = mock(Response.class);
+        when(response.readEntity(eq(InputStream.class))).thenReturn(new ByteArrayInputStream(FILE_CONTENT.getBytes()));
+
+        when(
+            storageClient.getContainerAsync(
+                anyString(),
+                eq(FILE_NAME),
+                eq(DataCategory.STORAGELOG),
+                any(AccessLogInfoModel.class)
+            )
+        ).thenReturn(response);
         // When
         ItemStatus itemStatus = checksSecureTraceabilityDataStoragelogPlugin.execute(param, handler);
 
@@ -282,5 +342,4 @@ public class ChecksSecureTraceabilityDataStoragelogPluginTest extends ActionHand
         TraceabilityReportEntry reportEntry = JsonHandler.getFromJsonNode(report, TraceabilityReportEntry.class);
         assertEquals(OK.name(), reportEntry.getStatus());
     }
-
 }

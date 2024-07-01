@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.error.VitamError;
  * Exception indicating the resource server has an internal error.
  */
 public class IngestExternalClientServerException extends IngestExternalClientException {
+
     private static final long serialVersionUID = -988106617135087796L;
 
     public IngestExternalClientServerException(String message) {

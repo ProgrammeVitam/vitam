@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 public class MultiplexedStreamTransferThread implements Callable<StorageBulkPutResult> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MultiplexedStreamTransferThread.class);
 
     private final int tenantId;
@@ -55,9 +56,17 @@ public class MultiplexedStreamTransferThread implements Callable<StorageBulkPutR
     private final DigestType digestType;
     private final String requestId;
 
-    public MultiplexedStreamTransferThread(int tenantId,
-        String requestId, DataCategory dataCategory, List<String> objectIds, InputStream inputStream,
-        long size, Driver driver, StorageOffer storageOffer, DigestType digestType) {
+    public MultiplexedStreamTransferThread(
+        int tenantId,
+        String requestId,
+        DataCategory dataCategory,
+        List<String> objectIds,
+        InputStream inputStream,
+        long size,
+        Driver driver,
+        StorageOffer storageOffer,
+        DigestType digestType
+    ) {
         this.tenantId = tenantId;
         this.requestId = requestId;
         this.dataCategory = dataCategory;
@@ -87,15 +96,19 @@ public class MultiplexedStreamTransferThread implements Callable<StorageBulkPutR
     }
 
     private StorageBulkPutResult storeInOffer() throws Exception {
-
         try (Connection connection = driver.connect(storageOffer.getId())) {
-
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedException();
             }
 
-            StorageBulkPutRequest storageBulkPutRequest = new StorageBulkPutRequest(this.tenantId,
-                this.dataCategory.getFolder(), this.objectIds, this.digestType, this.inputStream, this.size);
+            StorageBulkPutRequest storageBulkPutRequest = new StorageBulkPutRequest(
+                this.tenantId,
+                this.dataCategory.getFolder(),
+                this.objectIds,
+                this.digestType,
+                this.inputStream,
+                this.size
+            );
             LOGGER.debug("Bulk put request {}", storageBulkPutRequest);
 
             StorageBulkPutResult bulkPutObjectResult = connection.bulkPutObjects(storageBulkPutRequest);

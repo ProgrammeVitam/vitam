@@ -102,11 +102,9 @@ public abstract class RequestToElasticsearch extends RequestToAbstract {
         throws IllegalAccessError, InvalidParseOperationException {
         final List<Query> list = requestParser.getRequest().getQueries();
         if (nth >= list.size()) {
-            throw new IllegalAccessError(
-                "This Query has not enough item to get the position: " + nth);
+            throw new IllegalAccessError("This Query has not enough item to get the position: " + nth);
         }
         final Query query = list.get(nth);
         return QueryToElasticsearch.getCommand(query, adapter, parserTokens);
     }
 }
-

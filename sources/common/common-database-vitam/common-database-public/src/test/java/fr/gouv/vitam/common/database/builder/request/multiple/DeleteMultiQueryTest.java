@@ -63,10 +63,12 @@ public class DeleteMultiQueryTest {
         assertTrue(delete.queries.isEmpty());
         try {
             delete.addQueries(
-                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA"))
-                    .setRelativeDepthLimit(5));
-            delete.addQueries(new PathQuery("path1", "path2"),
-                new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10));
+                new BooleanQuery(QUERY.AND).add(new ExistsQuery(QUERY.EXISTS, "varA")).setRelativeDepthLimit(5)
+            );
+            delete.addQueries(
+                new PathQuery("path1", "path2"),
+                new ExistsQuery(QUERY.EXISTS, "varB").setExactDepthLimit(10)
+            );
             delete.addQueries(new PathQuery("path3"));
             assertEquals(4, delete.queries.size());
             delete.resetQueries();

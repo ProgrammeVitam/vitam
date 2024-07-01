@@ -43,10 +43,10 @@ import java.io.File;
  * EvidenceAuditExtractFromZip class
  */
 public class EvidenceAuditExtractFromZip extends ActionHandler {
+
     private static final String EVIDENCE_AUDIT_EXTRACT_ZIP_FILE = "EVIDENCE_AUDIT_EXTRACT_ZIP_FILE";
     private final EvidenceService evidenceService;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditExtractFromZip.class);
-
 
     @VisibleForTesting
     EvidenceAuditExtractFromZip(EvidenceService evidenceService) {
@@ -59,29 +59,23 @@ public class EvidenceAuditExtractFromZip extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException {
-
         ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_EXTRACT_ZIP_FILE);
 
         String secureDataFileName = param.getObjectName();
         File file = null;
 
         try {
-            file = evidenceService.downloadAndExtractDataFromStorage(secureDataFileName, "data.txt",
-                "zip", true);
+            file = evidenceService.downloadAndExtractDataFromStorage(secureDataFileName, "data.txt", "zip", true);
 
-            handlerIO.transferFileToWorkspace("zip" + File.separator + secureDataFileName,
-                file, true, false);
+            handlerIO.transferFileToWorkspace("zip" + File.separator + secureDataFileName, file, true, false);
             itemStatus.increment(StatusCode.OK);
-            return new ItemStatus(EVIDENCE_AUDIT_EXTRACT_ZIP_FILE)
-                .setItemsStatus(EVIDENCE_AUDIT_EXTRACT_ZIP_FILE, itemStatus);
-
+            return new ItemStatus(EVIDENCE_AUDIT_EXTRACT_ZIP_FILE).setItemsStatus(
+                EVIDENCE_AUDIT_EXTRACT_ZIP_FILE,
+                itemStatus
+            );
         } catch (EvidenceAuditException e) {
             LOGGER.error(e);
             return itemStatus.increment(StatusCode.FATAL);
-
         }
-
     }
-
-
 }

@@ -34,16 +34,17 @@ import java.util.List;
  * Facet Result
  */
 public class FacetResult {
+
     @JsonProperty("name")
     private String name;
+
     @JsonProperty("buckets")
     private List<FacetBucket> buckets;
 
     /**
      * Constructor
      */
-    public FacetResult() {
-    }
+    public FacetResult() {}
 
     /**
      * Constructor
@@ -84,5 +85,4 @@ public class FacetResult {
     public void setBuckets(List<FacetBucket> buckets) {
         this.buckets = buckets;
     }
-
 }

@@ -176,8 +176,12 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
-    public void transferInputStreamToWorkspace(String workspacePath, InputStream inputStream, Path filePath,
-        boolean asyncIO) {
+    public void transferInputStreamToWorkspace(
+        String workspacePath,
+        InputStream inputStream,
+        Path filePath,
+        boolean asyncIO
+    ) {
         this.inputStreamMap.put(workspacePath, inputStream);
     }
 
@@ -227,16 +231,24 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     @Override
-    public void transferJsonToWorkspace(String collectionName, String workspacePath, JsonNode jsonNode,
-        boolean toDelete, boolean asyncIO)
-        throws ProcessingException {
+    public void transferJsonToWorkspace(
+        String collectionName,
+        String workspacePath,
+        JsonNode jsonNode,
+        boolean toDelete,
+        boolean asyncIO
+    ) throws ProcessingException {
         throw new RuntimeException("Not implemented");
     }
 
     @Override
-    public void unzipInputStreamOnWorkspace(String container, String folderName, String archiveMimeType,
-        InputStream uploadedInputStream, boolean asyncIO)
-        throws ContentAddressableStorageException {
+    public void unzipInputStreamOnWorkspace(
+        String container,
+        String folderName,
+        String archiveMimeType,
+        InputStream uploadedInputStream,
+        boolean asyncIO
+    ) throws ContentAddressableStorageException {
         throw new RuntimeException("Not implemented");
     }
 
@@ -265,7 +277,7 @@ public class TestHandlerIO implements HandlerIO {
     }
 
     public void setNewLocalFile(File newLocalFile) {
-        this.newLocalFileProvider = (f) -> newLocalFile;
+        this.newLocalFileProvider = f -> newLocalFile;
     }
 
     public void setNewLocalFileProvider(Function<String, File> newLocalFileProvider) {

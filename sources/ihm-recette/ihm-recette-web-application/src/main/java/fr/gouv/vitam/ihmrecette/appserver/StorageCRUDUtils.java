@@ -46,6 +46,7 @@ import java.util.Collections;
  * this class is a tool for crud operation for storage
  */
 public class StorageCRUDUtils {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StorageCRUDUtils.class);
 
     StorageClient storageClient;
@@ -56,18 +57,15 @@ public class StorageCRUDUtils {
 
     @VisibleForTesting
     public StorageCRUDUtils(StorageClient storageClient) {
-
         this.storageClient = storageClient;
     }
 
     /**
      * get the list of strategies containing the offers
      */
-    public RequestResponse<StorageStrategy> getStrategies()
-        throws StorageServerClientException {
+    public RequestResponse<StorageStrategy> getStrategies() throws StorageServerClientException {
         return storageClient.getStorageStrategies();
     }
-
 
     /**
      * deleteFile
@@ -91,9 +89,14 @@ public class StorageCRUDUtils {
      * @param offerId offerID
      * @param stream stream
      */
-    public void storeInOffer(DataCategory dataCategory, String uid, String strategyId, String offerId, Long size,
-        InputStream stream)
-        throws BackupServiceException {
+    public void storeInOffer(
+        DataCategory dataCategory,
+        String uid,
+        String strategyId,
+        String offerId,
+        Long size,
+        InputStream stream
+    ) throws BackupServiceException {
         boolean delete = false;
 
         try {
@@ -101,7 +104,6 @@ public class StorageCRUDUtils {
             if (!delete) {
                 throw new BackupServiceException("file do not exits or can not deleted ");
             }
-
         } catch (StorageServerClientException e) {
             LOGGER.error("error when deleting file ", e);
         }

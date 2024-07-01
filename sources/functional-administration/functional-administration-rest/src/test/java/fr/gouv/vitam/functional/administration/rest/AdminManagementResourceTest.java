@@ -109,8 +109,7 @@ public class AdminManagementResourceTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -158,9 +157,11 @@ public class AdminManagementResourceTest {
     private static AdminManagementMain application;
 
     private static int workspacePort = junitHelper.findAvailablePort();
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @ClassRule
     public static WireMockClassRule wireMockRule = new WireMockClassRule(workspacePort);
@@ -171,7 +172,7 @@ public class AdminManagementResourceTest {
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    private final static String originatingAgency = "OriginatingAgency";
+    private static final String originatingAgency = "OriginatingAgency";
 
     private static final ElasticsearchFunctionalAdminIndexManager indexManager =
         FunctionalAdminCollectionsTestUtils.createTestIndexManager();
@@ -180,12 +181,15 @@ public class AdminManagementResourceTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
-                esNodes, indexManager));
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
 
         File tempFolder = temporaryFolder.newFolder();
         System.setProperty(VitamConfiguration.getVitamTmpProperty(), tempFolder.getAbsolutePath());
@@ -194,8 +198,10 @@ public class AdminManagementResourceTest {
         LogbookOperationsClientFactory.changeMode(null);
 
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+        final AdminManagementConfiguration realAdminConfig = PropertiesUtils.readYaml(
+            adminConfig,
+            AdminManagementConfiguration.class
+        );
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
@@ -204,13 +210,13 @@ public class AdminManagementResourceTest {
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
 
-
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
-        mongoDbAccess =
-            MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
-                    indexManager);
+        mongoDbAccess = MongoDbAccessAdminFactory.create(
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+            Collections::emptyList,
+            indexManager
+        );
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -218,15 +224,12 @@ public class AdminManagementResourceTest {
         RestAssured.basePath = RESOURCE_URI;
 
         try {
-
             application = new AdminManagementMain(adminConfigFile.getAbsolutePath());
             application.start();
             JunitHelper.unsetJettyPortSystemProperty();
-
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Logbook Application Server", e);
+            throw new IllegalStateException("Cannot start the Logbook Application Server", e);
         }
     }
 
@@ -252,12 +255,16 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        instanceRule.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(
-                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
-        instanceRule.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(
-                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        instanceRule.stubFor(
+            WireMock.post(urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
+        instanceRule.stubFor(
+            WireMock.delete(urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
     }
 
     @After
@@ -278,9 +285,13 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
         stream = PropertiesUtils.getResourceAsStream(PRONOM_FILE);
-        given().contentType(ContentType.BINARY).body(stream)
-            .when().post(CHECK_FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
+            .when()
+            .post(CHECK_FORMAT_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -289,9 +300,13 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         stream = PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
-        given().contentType(ContentType.BINARY).body(stream)
-            .when().post(CHECK_FORMAT_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
+            .when()
+            .post(CHECK_FORMAT_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -299,56 +314,77 @@ public class AdminManagementResourceTest {
     public void insertAPronomFile() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream(PRONOM_FILE);
-        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_FILENAME, PRONOM_FILE)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
-            .when().post(IMPORT_FORMAT_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_FORMAT_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream("FF-vitam-format-KO.xml");
-        given().contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_FILENAME, "FF-vitam-format-KO.xml")
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post(IMPORT_FORMAT_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(IMPORT_FORMAT_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     @RunWithCustomExecutor
     public void createAccessionRegister() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
-        final AccessionRegisterDetailModel register =
-            JsonHandler.getFromInputStream(stream, AccessionRegisterDetailModel.class);
+        final AccessionRegisterDetailModel register = JsonHandler.getFromInputStream(
+            stream,
+            AccessionRegisterDetailModel.class
+        );
         GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(TENANT_ID);
         register.setId(guid.toString());
-        given().contentType(ContentType.JSON).body(register)
+        given()
+            .contentType(ContentType.JSON)
+            .body(register)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CREATE_FUND_REGISTER_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(CREATE_FUND_REGISTER_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         // Already exists --> created
-        given().contentType(ContentType.JSON).body(register)
+        given()
+            .contentType(ContentType.JSON)
+            .body(register)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CREATE_FUND_REGISTER_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(CREATE_FUND_REGISTER_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         // Invalid request (bad format) --> bad request
         register.setTotalObjects(null);
-        given().contentType(ContentType.JSON).body(register)
+        given()
+            .contentType(ContentType.JSON)
+            .body(register)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CREATE_FUND_REGISTER_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(CREATE_FUND_REGISTER_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
     @RunWithCustomExecutor
     public void findAccessionRegisterDetail() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID1);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID1));
 
@@ -363,26 +399,36 @@ public class AdminManagementResourceTest {
         contractModel.setLastupdate("2019-02-12T14:51:23.567");
         contractModel.initializeDefaultValue();
 
-        mongoDbAccess.insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT)
+        mongoDbAccess
+            .insertDocument(JsonHandler.toJsonNode(contractModel), FunctionalAdminCollections.ACCESS_CONTRACT)
             .close();
 
         stream = PropertiesUtils.getResourceAsStream("accession-register.json");
-        final AccessionRegisterDetailModel register =
-            JsonHandler.getFromInputStream(stream, AccessionRegisterDetailModel.class);
+        final AccessionRegisterDetailModel register = JsonHandler.getFromInputStream(
+            stream,
+            AccessionRegisterDetailModel.class
+        );
         GUID guid = GUIDFactory.newAccessionRegisterDetailGUID(TENANT_ID1);
         register.setId(guid.toString());
-        given().contentType(ContentType.JSON).body(register)
+        given()
+            .contentType(ContentType.JSON)
+            .body(register)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID1)
-            .when().post(CREATE_FUND_REGISTER_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(CREATE_FUND_REGISTER_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
         register.setTotalObjects(null);
 
         Select select = new Select();
 
-        given().contentType(ContentType.JSON).body(select.getFinalSelect())
+        given()
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID1)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, contractId)
-            .when().post("accession-register/detail/" + originatingAgency)
+            .when()
+            .post("accession-register/detail/" + originatingAgency)
             .then()
             .body("$results.size()", equalTo(1))
             .statusCode(Status.OK.getStatusCode());
@@ -398,55 +444,63 @@ public class AdminManagementResourceTest {
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
-            .contentType(ContentType.BINARY).body(stream)
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
             .header(GlobalDataRest.X_FILENAME, PRONOM_FILE)
-            .when().post(IMPORT_FORMAT_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_FORMAT_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
-        final String document =
-            given()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .body(select.getFinalSelect())
-                .when().post(GET_DOCUMENT_FORMAT_URI).getBody().asString();
+        final String document = given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(select.getFinalSelect())
+            .when()
+            .post(GET_DOCUMENT_FORMAT_URI)
+            .getBody()
+            .asString();
         final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
-
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
             .pathParam("id_format", jsonDocument.get(0).get("PUID").asText())
-            .when().get(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .get(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void givenFileFormatByIDWhenNotFoundThenThrowReferentialException()
-        throws Exception {
+    public void givenFileFormatByIDWhenNotFoundThenThrowReferentialException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream(PRONOM_FILE);
         final Select select = new Select();
         select.setQuery(eq("PUID", "x-fmt/2"));
         with()
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .contentType(ContentType.BINARY).body(stream)
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_FILENAME, PRONOM_FILE)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+            .when()
+            .post(IMPORT_FORMAT_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
-            .when().post(IMPORT_FORMAT_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
-
-        final String document =
-            given()
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .contentType(ContentType.JSON)
-                .body(select.getFinalSelect())
-                .when().post(GET_DOCUMENT_FORMAT_URI).getBody().asString();
+        final String document = given()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .contentType(ContentType.JSON)
+            .body(select.getFinalSelect())
+            .when()
+            .post(GET_DOCUMENT_FORMAT_URI)
+            .getBody()
+            .asString();
         final JsonNode jsonDocument = JsonHandler.getFromString(document);
 
         given()
@@ -454,10 +508,11 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(jsonDocument)
             .pathParam("id_format", "fake_identifier")
-            .when().get(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .when()
+            .get(GET_BYID_FORMAT_URI + FORMAT_ID_URI)
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -467,45 +522,53 @@ public class AdminManagementResourceTest {
         select.setQuery(eq("PUID", "x-fmt/2"));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         with()
-            .contentType(ContentType.BINARY).body(stream).header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .contentType(ContentType.BINARY)
+            .body(stream)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_FILENAME, PRONOM_FILE)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post(IMPORT_FORMAT_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_FORMAT_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelect())
-            .when().post(GET_DOCUMENT_FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .post(GET_DOCUMENT_FORMAT_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
-
 
     @Test
     @RunWithCustomExecutor
-    public void givenFindDocumentWhenNotFoundThenReturnZeroResult()
-        throws Exception {
-
+    public void givenFindDocumentWhenNotFoundThenReturnZeroResult() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream(PRONOM_FILE);
         final Select select = new Select();
         select.setQuery(eq("fakeName", "fakeValue"));
         with()
-            .contentType(ContentType.BINARY).body(stream)
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .header(GlobalDataRest.X_FILENAME, PRONOM_FILE)
-            .when().post(IMPORT_FORMAT_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_FORMAT_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .body(select.getFinalSelect())
-            .when().post(GET_DOCUMENT_FORMAT_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .post(GET_DOCUMENT_FORMAT_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -515,11 +578,15 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
 
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .post(CHECK_RULES_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -531,9 +598,12 @@ public class AdminManagementResourceTest {
 
         streamErrorReport = PropertiesUtils.getResourceAsStream(ERROR_REPORT_CONTENT);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_DuplicatedReference.csv");
-        Response rr = given().contentType(ContentType.BINARY).body(stream)
+        Response rr = given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI);
+            .when()
+            .post(CHECK_RULES_URI);
         rr.then().statusCode(Status.BAD_REQUEST.getStatusCode());
         JsonNode responseInputStream = JsonHandler.getFromInputStream(rr.asInputStream());
         ArrayNode responseArrayNode = (ArrayNode) responseInputStream.get("error").get("line 3");
@@ -547,10 +617,14 @@ public class AdminManagementResourceTest {
     public void givenADecadeMeasureCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Decade_Measure.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(CHECK_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -558,10 +632,14 @@ public class AdminManagementResourceTest {
     public void givenAnANarchyRuleTypeCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_AnarchyRule.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(CHECK_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -569,10 +647,14 @@ public class AdminManagementResourceTest {
     public void givenWrongDurationTypeCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_90000_YEAR.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(CHECK_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -581,10 +663,14 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_DuplicatedReference.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(CHECK_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -592,10 +678,14 @@ public class AdminManagementResourceTest {
     public void givenNegativeDurationCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_Negative_Duration.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(CHECK_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -603,22 +693,29 @@ public class AdminManagementResourceTest {
     public void givenReferenceWithWrongCommaCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_ReferenceWithWrongComma.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(CHECK_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
-
 
     @Test
     @RunWithCustomExecutor
     public void givenUnknownDurationCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_UNKNOWN_Duration.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(CHECK_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -626,10 +723,14 @@ public class AdminManagementResourceTest {
     public void given15000JoursCSVInputstreamCheckThenReturnOK() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV_15000Jours.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .post(CHECK_RULES_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -637,10 +738,14 @@ public class AdminManagementResourceTest {
     public void givenUnlimitedDurationCSVInputstreamCheckThenReturnOK() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_OK_regles_CSV_unLimiTEd.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .post(CHECK_RULES_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -648,10 +753,14 @@ public class AdminManagementResourceTest {
     public void given600000DAYCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_600000_DAY.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(CHECK_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -659,10 +768,14 @@ public class AdminManagementResourceTest {
     public void given90000YEARCSVInputstreamCheckThenReturnKO() throws FileNotFoundException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         stream = PropertiesUtils.getResourceAsStream("jeu_donnees_KO_regles_CSV_90000_YEAR.csv");
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().post(CHECK_RULES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(CHECK_RULES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -671,20 +784,28 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
-            .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_RULES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
         resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
-            .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_RULES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -693,24 +814,32 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
-            .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_RULES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         mongoDbAccess.deleteCollectionForTesting(FunctionalAdminCollections.RULES).close();
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID1);
         resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
-        given().contentType(ContentType.BINARY).body(stream)
+        given()
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID1)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
-            .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_RULES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -722,21 +851,26 @@ public class AdminManagementResourceTest {
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
-            .contentType(ContentType.BINARY).body(stream)
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
-            .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_RULES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
-        final String document =
-            given()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .header(GlobalDataRest.X_REQUEST_ID, resquestId)
-                .body(select.getFinalSelect())
-                .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
+        final String document = given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
+            .body(select.getFinalSelect())
+            .when()
+            .post(GET_DOCUMENT_RULES_URI)
+            .getBody()
+            .asString();
         final JsonNode jsonDocument = JsonHandler.getFromString(document).get(RESULTS);
 
         resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
@@ -746,35 +880,41 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .body(jsonDocument)
             .pathParam("id_rule", jsonDocument.get(0).get("RuleId").asText())
-            .when().get(GET_BYID_RULES_URI + RULES_ID_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .get(GET_BYID_RULES_URI + RULES_ID_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void givenFakeRuleByIDTheReturnNotFound()
-        throws Exception {
+    public void givenFakeRuleByIDTheReturnNotFound() throws Exception {
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         with()
-            .contentType(ContentType.BINARY).body(stream)
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
-            .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_RULES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
-        final String document =
-            given()
-                .contentType(ContentType.JSON)
-                .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-                .header(GlobalDataRest.X_REQUEST_ID, resquestId)
-                .body(select.getFinalSelect())
-                .when().post(GET_DOCUMENT_RULES_URI).getBody().asString();
+        final String document = given()
+            .contentType(ContentType.JSON)
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .header(GlobalDataRest.X_REQUEST_ID, resquestId)
+            .body(select.getFinalSelect())
+            .when()
+            .post(GET_DOCUMENT_RULES_URI)
+            .getBody()
+            .asString();
         final JsonNode jsonDocument = JsonHandler.getFromString(document);
 
         given()
@@ -782,10 +922,11 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .body(jsonDocument)
-            .when().get(GET_BYID_RULES_URI + "/fake_identifier")
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .when()
+            .get(GET_BYID_RULES_URI + "/fake_identifier")
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -796,12 +937,15 @@ public class AdminManagementResourceTest {
         final Select select = new Select();
         select.setQuery(eq("RuleId", "APP-00001"));
         with()
-            .contentType(ContentType.BINARY).body(stream)
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
-            .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_RULES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         given()
@@ -809,8 +953,10 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .body(select.getFinalSelect())
-            .when().post(GET_DOCUMENT_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .post(GET_DOCUMENT_RULES_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
@@ -821,12 +967,15 @@ public class AdminManagementResourceTest {
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
 
         with()
-            .contentType(ContentType.BINARY).body(stream)
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
-            .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_RULES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
 
@@ -839,8 +988,10 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .body(selectOrderByNonAnalyzed.getFinalSelect())
-            .when().post(GET_DOCUMENT_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .post(GET_DOCUMENT_RULES_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         final Select selectOrderByAnalyzed = new Select();
         selectOrderByAnalyzed.setQuery(eq("RuleId", "APP-00001"));
@@ -851,8 +1002,10 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .body(selectOrderByAnalyzed.getFinalSelect())
-            .when().post(GET_DOCUMENT_RULES_URI)
-            .then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
+            .when()
+            .post(GET_DOCUMENT_RULES_URI)
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
@@ -865,12 +1018,15 @@ public class AdminManagementResourceTest {
         select.setQuery(eq("RuleId", "APP-00001"));
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         with()
-            .contentType(ContentType.BINARY).body(stream)
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
-            .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_RULES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID1).toString();
         given()
@@ -878,15 +1034,15 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID1)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .body(select.getFinalSelect())
-            .when().post(GET_DOCUMENT_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .post(GET_DOCUMENT_RULES_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void givenFindDocumentRulesFileWhenNotFoundThenReturnNotFound()
-        throws Exception {
-
+    public void givenFindDocumentRulesFileWhenNotFoundThenReturnNotFound() throws Exception {
         String resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         stream = PropertiesUtils.getResourceAsStream(FILE_TEST_OK);
         final Select select = new Select();
@@ -894,12 +1050,15 @@ public class AdminManagementResourceTest {
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         with()
-            .contentType(ContentType.BINARY).body(stream)
+            .contentType(ContentType.BINARY)
+            .body(stream)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .header(GlobalDataRest.X_FILENAME, FILE_TEST_OK)
-            .when().post(IMPORT_RULES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(IMPORT_RULES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         resquestId = GUIDFactory.newOperationLogbookGUID(TENANT_ID).toString();
         given()
@@ -907,10 +1066,11 @@ public class AdminManagementResourceTest {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, resquestId)
             .body(select.getFinalSelect())
-            .when().post(GET_DOCUMENT_RULES_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .when()
+            .post(GET_DOCUMENT_RULES_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -919,70 +1079,95 @@ public class AdminManagementResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(request);
 
+        LogbookOperationParameters logbook = fillLogbookParameters(
+            newOperationLogbookGUID(TENANT_ID).getId(),
+            newOperationLogbookGUID(TENANT_ID).getId()
+        );
 
-        LogbookOperationParameters logbook =
-            fillLogbookParameters(newOperationLogbookGUID(TENANT_ID).getId(),
-                newOperationLogbookGUID(TENANT_ID).getId());
-
-
-        given().contentType(ContentType.JSON).body(JsonHandler.toJsonNode(logbook))
+        given()
+            .contentType(ContentType.JSON)
+            .body(JsonHandler.toJsonNode(logbook))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, request.getId())
-            .when().post(CREATE_EXTERNAL_LOGBOOK_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(CREATE_EXTERNAL_LOGBOOK_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
-        given().contentType(ContentType.JSON)
+        given()
+            .contentType(ContentType.JSON)
             .body(JsonHandler.toJsonNode(LogbookParameterHelper.newLogbookOperationParameters()))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, request.getId())
-            .when().post(CREATE_EXTERNAL_LOGBOOK_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(CREATE_EXTERNAL_LOGBOOK_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
 
         logbook.setTypeProcess(LogbookTypeProcess.AUDIT);
-        given().contentType(ContentType.JSON)
+        given()
+            .contentType(ContentType.JSON)
             .body(JsonHandler.toJsonNode(JsonHandler.toJsonNode(logbook)))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, request.getId())
-            .when().post(CREATE_EXTERNAL_LOGBOOK_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
-
-
+            .when()
+            .post(CREATE_EXTERNAL_LOGBOOK_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
-
 
     private LogbookOperationParameters fillLogbookParameters(String guid, String evIdProc) {
         LogbookOperationParameters logbookParamaters = LogbookParameterHelper.newLogbookOperationParameters();
-        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifier,
-            guid);
-        logbookParamaters
-            .putParameterValue(LogbookParameterName.eventType, "EXT_" + LogbookParameterName.eventType.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            evIdProc != null ? evIdProc : guid);
+        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifier, guid);
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.eventType,
+            "EXT_" + LogbookParameterName.eventType.name()
+        );
+        logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            evIdProc != null ? evIdProc : guid
+        );
         logbookParamaters.setTypeProcess(LogbookTypeProcess.EXTERNAL_LOGBOOK);
         logbookParamaters.putParameterValue(LogbookParameterName.outcome, LogbookParameterName.outcome.name());
-        logbookParamaters
-            .putParameterValue(LogbookParameterName.outcomeDetail, LogbookParameterName.outcomeDetail.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            LogbookParameterName.outcomeDetailMessage.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.agentIdentifier,
-            LogbookParameterName.agentIdentifier.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.agentIdentifierApplicationSession,
-            LogbookParameterName.agentIdentifierApplicationSession.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierRequest,
-            LogbookParameterName.eventIdentifierRequest.name());
-        logbookParamaters
-            .putParameterValue(LogbookParameterName.agIdExt, JsonHandler.unprettyPrint(JsonHandler.createObjectNode()));
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            LogbookParameterName.outcomeDetail.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            LogbookParameterName.outcomeDetailMessage.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            LogbookParameterName.agentIdentifier.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.agentIdentifierApplicationSession,
+            LogbookParameterName.agentIdentifierApplicationSession.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.eventIdentifierRequest,
+            LogbookParameterName.eventIdentifierRequest.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.agIdExt,
+            JsonHandler.unprettyPrint(JsonHandler.createObjectNode())
+        );
 
-        logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifier,
-            LogbookParameterName.objectIdentifier.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierRequest,
-            LogbookParameterName.objectIdentifierRequest.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
-            LogbookParameterName.objectIdentifierIncome.name());
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.objectIdentifier,
+            LogbookParameterName.objectIdentifier.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.objectIdentifierRequest,
+            LogbookParameterName.objectIdentifierRequest.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.objectIdentifierIncome,
+            LogbookParameterName.objectIdentifierIncome.name()
+        );
 
         return logbookParamaters;
     }
-
 }

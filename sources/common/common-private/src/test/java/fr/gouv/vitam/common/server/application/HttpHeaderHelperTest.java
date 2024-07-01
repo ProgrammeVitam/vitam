@@ -100,8 +100,9 @@ public class HttpHeaderHelperTest {
 
     @Test
     public void getHeaderValuesTest() {
-        Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(Collections
-            .singletonList("get"));
+        Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(
+            Collections.singletonList("get")
+        );
         final List<String> values = HttpHeaderHelper.getHeaderValues(httpHeadersMock, VitamHttpHeader.METHOD_OVERRIDE);
         assertNotNull(values);
         assertEquals(1, values.size());
@@ -138,8 +139,9 @@ public class HttpHeaderHelperTest {
 
     @Test
     public void validateHeaderValueTest() {
-        Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(Collections
-            .singletonList("get"));
+        Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(
+            Collections.singletonList("get")
+        );
         final MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
         wanted.add(VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET);
 
@@ -148,8 +150,9 @@ public class HttpHeaderHelperTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void validateHeaderValueWantedMatchErrorTest() {
-        Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(Collections
-            .singletonList("get"));
+        Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(
+            Collections.singletonList("get")
+        );
         final MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
         wanted.add(VitamHttpHeader.METHOD_OVERRIDE.getName(), "got");
         HttpHeaderHelper.validateHeaderValue(httpHeadersMock, wanted);
@@ -157,8 +160,9 @@ public class HttpHeaderHelperTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void validateHeaderValueMatchErrorTest() {
-        Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(Collections
-            .singletonList("got"));
+        Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(
+            Collections.singletonList("got")
+        );
         final MultivaluedHashMap<String, String> wanted = new MultivaluedHashMap<>();
         wanted.add(VitamHttpHeader.METHOD_OVERRIDE.getName(), HttpMethod.GET);
         HttpHeaderHelper.validateHeaderValue(httpHeadersMock, wanted);
@@ -172,9 +176,8 @@ public class HttpHeaderHelperTest {
     @Test
     public void hasValueForTest() {
         Mockito.when(httpHeadersMock.getRequestHeader(VitamHttpHeader.METHOD_OVERRIDE.getName())).thenReturn(
-            Collections.singletonList("get"));
+            Collections.singletonList("get")
+        );
         assertTrue(HttpHeaderHelper.hasValuesFor(httpHeadersMock, VitamHttpHeader.METHOD_OVERRIDE));
     }
-
-
 }

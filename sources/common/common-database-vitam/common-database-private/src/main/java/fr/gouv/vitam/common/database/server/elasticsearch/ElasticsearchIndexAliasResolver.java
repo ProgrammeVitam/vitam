@@ -29,7 +29,5 @@ package fr.gouv.vitam.common.database.server.elasticsearch;
 
 @FunctionalInterface
 public interface ElasticsearchIndexAliasResolver {
-
     ElasticsearchIndexAlias resolveIndexName(Integer tenantId);
-
 }

@@ -39,5 +39,4 @@ public class IngestInternalConfigurationTest {
         assertEquals("workspaceUrl", config.setWorkspaceUrl("workspaceUrl").getWorkspaceUrl());
         assertEquals("jettyConfig", config.setJettyConfig("jettyConfig").getJettyConfig());
     }
-
 }

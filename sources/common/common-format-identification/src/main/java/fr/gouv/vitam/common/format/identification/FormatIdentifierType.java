@@ -37,5 +37,5 @@ public enum FormatIdentifierType {
     /**
      * SIEGFRIED
      */
-    SIEGFRIED
+    SIEGFRIED,
 }

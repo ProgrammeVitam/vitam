@@ -44,5 +44,5 @@ public enum UriPrefix {
     /**
      * Fixe value based argument
      */
-    VALUE
+    VALUE,
 }

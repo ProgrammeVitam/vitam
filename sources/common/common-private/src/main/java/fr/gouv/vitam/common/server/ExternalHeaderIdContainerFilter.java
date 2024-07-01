@@ -49,8 +49,9 @@ public class ExternalHeaderIdContainerFilter implements ContainerRequestFilter {
      */
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
-        HeaderIdHelper.putVitamIdFromExternalHeaderInSession(requestContext.getHeaders(),
-            HeaderIdHelper.Context.REQUEST);
+        HeaderIdHelper.putVitamIdFromExternalHeaderInSession(
+            requestContext.getHeaders(),
+            HeaderIdHelper.Context.REQUEST
+        );
     }
-
 }

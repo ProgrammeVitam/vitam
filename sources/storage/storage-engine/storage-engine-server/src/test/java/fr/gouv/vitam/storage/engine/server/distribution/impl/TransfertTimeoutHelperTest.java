@@ -37,13 +37,15 @@ public class TransfertTimeoutHelperTest {
     private static final int MIN_TIMEOUT = 60_000;
     private static final int MIN_TIMEOUT_PER_OBJECT = 10_000;
 
-    private final TransfertTimeoutHelper instance =
-        new TransfertTimeoutHelper(TIMEOUT_PER_KB, MIN_TIMEOUT, MIN_TIMEOUT_PER_OBJECT);
+    private final TransfertTimeoutHelper instance = new TransfertTimeoutHelper(
+        TIMEOUT_PER_KB,
+        MIN_TIMEOUT,
+        MIN_TIMEOUT_PER_OBJECT
+    );
 
     @Test
     public void getTransferTimeoutSmallObject() {
-        assertThat(instance.getTransferTimeout(1L))
-            .isEqualTo(MIN_TIMEOUT);
+        assertThat(instance.getTransferTimeout(1L)).isEqualTo(MIN_TIMEOUT);
     }
 
     @Test

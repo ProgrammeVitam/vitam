@@ -59,14 +59,14 @@ public class UnitValidatorTest {
 
     @Test
     public void givenComplexArchiveUnitJsonThenValidateJsonObjectBirthPlaceOK() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
         CachedSchemaValidatorLoader schemaValidatorLoader = mock(CachedSchemaValidatorLoader.class);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(OBJECT_BIRTH_PLACE_JSON_FILE)).get(TAG_ARCHIVE_UNIT);
+            PropertiesUtils.getResourceAsStream(OBJECT_BIRTH_PLACE_JSON_FILE)
+        ).get(TAG_ARCHIVE_UNIT);
 
         // When / Then
         unitValidator.validateUnit(unitJson);
@@ -74,15 +74,14 @@ public class UnitValidatorTest {
 
     @Test
     public void givenComplexArchiveUnitJsonThenValidateJsonObjectOrganizationDescriptiveMetadataOK() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
         CachedSchemaValidatorLoader schemaValidatorLoader = mock(CachedSchemaValidatorLoader.class);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-                PropertiesUtils.getResourceAsStream(OBJECT_ORGANIZATION_DESCRIPTIVE_METADATA_JSON_FILE))
-            .get(TAG_ARCHIVE_UNIT);
+            PropertiesUtils.getResourceAsStream(OBJECT_ORGANIZATION_DESCRIPTIVE_METADATA_JSON_FILE)
+        ).get(TAG_ARCHIVE_UNIT);
 
         // When / Then
         unitValidator.validateUnit(unitJson);
@@ -90,14 +89,14 @@ public class UnitValidatorTest {
 
     @Test
     public void givenComplexArchiveUnitJsonThenValidateJsonObjectBirthPlaceKO() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
         CachedSchemaValidatorLoader schemaValidatorLoader = mock(CachedSchemaValidatorLoader.class);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(STRING_BIRTH_PLACE_JSON_FILE)).get(TAG_ARCHIVE_UNIT);
+            PropertiesUtils.getResourceAsStream(STRING_BIRTH_PLACE_JSON_FILE)
+        ).get(TAG_ARCHIVE_UNIT);
 
         // When / Then
         assertThatThrownBy(() -> unitValidator.validateUnit(unitJson))
@@ -108,14 +107,14 @@ public class UnitValidatorTest {
 
     @Test
     public void givenConstructorWithCorrectSchemaThenValidateJsonOK() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
         CachedSchemaValidatorLoader schemaValidatorLoader = mock(CachedSchemaValidatorLoader.class);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(AU_JSON_FILE)).get(TAG_ARCHIVE_UNIT);
+            PropertiesUtils.getResourceAsStream(AU_JSON_FILE)
+        ).get(TAG_ARCHIVE_UNIT);
 
         // When / Then
         unitValidator.validateUnit(unitJson);
@@ -123,14 +122,14 @@ public class UnitValidatorTest {
 
     @Test
     public void givenComplexArchiveUnitJsonThenValidateJsonOK() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
         CachedSchemaValidatorLoader schemaValidatorLoader = mock(CachedSchemaValidatorLoader.class);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE)).get(TAG_ARCHIVE_UNIT);
+            PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE)
+        ).get(TAG_ARCHIVE_UNIT);
 
         // When / Then
         unitValidator.validateUnit(unitJson);
@@ -138,14 +137,14 @@ public class UnitValidatorTest {
 
     @Test
     public void givenInvalidJsonFileThenValidateKO() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
         CachedSchemaValidatorLoader schemaValidatorLoader = mock(CachedSchemaValidatorLoader.class);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(AU_INVALID_JSON_FILE)).get(TAG_ARCHIVE_UNIT);
+            PropertiesUtils.getResourceAsStream(AU_INVALID_JSON_FILE)
+        ).get(TAG_ARCHIVE_UNIT);
 
         // When / Then
         assertThatThrownBy(() -> unitValidator.validateUnit(unitJson))
@@ -157,14 +156,14 @@ public class UnitValidatorTest {
 
     @Test
     public void givenInvalidDateKO() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
         CachedSchemaValidatorLoader schemaValidatorLoader = mock(CachedSchemaValidatorLoader.class);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(AU_INVALID_DATE_JSON_FILE));
+            PropertiesUtils.getResourceAsStream(AU_INVALID_DATE_JSON_FILE)
+        );
 
         // When / Then
         assertThatThrownBy(() -> unitValidator.validateUnit(unitJson))
@@ -176,14 +175,14 @@ public class UnitValidatorTest {
 
     @Test
     public void givenMissingTitleThenValidationKO() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
         CachedSchemaValidatorLoader schemaValidatorLoader = mock(CachedSchemaValidatorLoader.class);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(SIMPLE_UNIT_JSON_FILE));
+            PropertiesUtils.getResourceAsStream(SIMPLE_UNIT_JSON_FILE)
+        );
 
         // When / Then
         assertThatThrownBy(() -> unitValidator.validateUnit(unitJson))
@@ -195,14 +194,14 @@ public class UnitValidatorTest {
 
     @Test
     public void givenSameDatesOK() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
         CachedSchemaValidatorLoader schemaValidatorLoader = mock(CachedSchemaValidatorLoader.class);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(AU_SAME_DATES_JSON_FILE)).get(TAG_ARCHIVE_UNIT);
+            PropertiesUtils.getResourceAsStream(AU_SAME_DATES_JSON_FILE)
+        ).get(TAG_ARCHIVE_UNIT);
 
         // When / Then
         unitValidator.validateUnit(unitJson);
@@ -210,20 +209,20 @@ public class UnitValidatorTest {
 
     @Test
     public void givenEmptyArchiveUnitProfileThenValidationKO() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
-        doReturn(Optional.of(
-            new ArchiveUnitProfileModel()
-                .setControlSchema("{}")
-                .setStatus(ArchiveUnitProfileStatus.ACTIVE)
-        )).when(archiveUnitProfileLoader).loadArchiveUnitProfile("MyArchiveUnitProfile");
+        doReturn(
+            Optional.of(new ArchiveUnitProfileModel().setControlSchema("{}").setStatus(ArchiveUnitProfileStatus.ACTIVE))
+        )
+            .when(archiveUnitProfileLoader)
+            .loadArchiveUnitProfile("MyArchiveUnitProfile");
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(10, 6);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE)).get(TAG_ARCHIVE_UNIT);
+            PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE)
+        ).get(TAG_ARCHIVE_UNIT);
         unitJson.put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, "MyArchiveUnitProfile");
 
         // When / Then
@@ -235,29 +234,35 @@ public class UnitValidatorTest {
 
     @Test
     public void givenInactiveArchiveUnitProfileThenValidationKO() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
-        doReturn(Optional.of(
-            new ArchiveUnitProfileModel()
-                .setControlSchema("{\n" +
-                    "  \"$schema\": \"http://vitam-json-schema.org/draft-04/schema#\",\n" +
-                    "  \"id\": \"http://example.com/root.json\",\n" +
-                    "  \"type\": \"object\",\n" +
-                    "  \"properties\": {\n" +
-                    "    \"_id\": {\n" +
-                    "      \"type\": \"string\"\n" +
-                    "    }\n" +
-                    "  }\n" +
-                    "}\n")
-                .setStatus(ArchiveUnitProfileStatus.INACTIVE)
-        )).when(archiveUnitProfileLoader).loadArchiveUnitProfile("MyArchiveUnitProfile");
+        doReturn(
+            Optional.of(
+                new ArchiveUnitProfileModel()
+                    .setControlSchema(
+                        "{\n" +
+                        "  \"$schema\": \"http://vitam-json-schema.org/draft-04/schema#\",\n" +
+                        "  \"id\": \"http://example.com/root.json\",\n" +
+                        "  \"type\": \"object\",\n" +
+                        "  \"properties\": {\n" +
+                        "    \"_id\": {\n" +
+                        "      \"type\": \"string\"\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}\n"
+                    )
+                    .setStatus(ArchiveUnitProfileStatus.INACTIVE)
+            )
+        )
+            .when(archiveUnitProfileLoader)
+            .loadArchiveUnitProfile("MyArchiveUnitProfile");
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(10, 6);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE)).get(TAG_ARCHIVE_UNIT);
+            PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE)
+        ).get(TAG_ARCHIVE_UNIT);
         unitJson.put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, "MyArchiveUnitProfile");
 
         // When / Then
@@ -269,29 +274,35 @@ public class UnitValidatorTest {
 
     @Test
     public void givenArchiveUnitProfileAndValidUnitThenValidationOK() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
-        doReturn(Optional.of(
-            new ArchiveUnitProfileModel()
-                .setControlSchema("{\n" +
-                    "  \"$schema\": \"http://vitam-json-schema.org/draft-04/schema#\",\n" +
-                    "  \"id\": \"http://example.com/root.json\",\n" +
-                    "  \"type\": \"object\",\n" +
-                    "  \"properties\": {\n" +
-                    "    \"_id\": {\n" +
-                    "      \"type\": \"string\"\n" +
-                    "    }\n" +
-                    "  }\n" +
-                    "}\n")
-                .setStatus(ArchiveUnitProfileStatus.ACTIVE)
-        )).when(archiveUnitProfileLoader).loadArchiveUnitProfile("MyArchiveUnitProfile");
+        doReturn(
+            Optional.of(
+                new ArchiveUnitProfileModel()
+                    .setControlSchema(
+                        "{\n" +
+                        "  \"$schema\": \"http://vitam-json-schema.org/draft-04/schema#\",\n" +
+                        "  \"id\": \"http://example.com/root.json\",\n" +
+                        "  \"type\": \"object\",\n" +
+                        "  \"properties\": {\n" +
+                        "    \"_id\": {\n" +
+                        "      \"type\": \"string\"\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}\n"
+                    )
+                    .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+            )
+        )
+            .when(archiveUnitProfileLoader)
+            .loadArchiveUnitProfile("MyArchiveUnitProfile");
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(10, 6);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE)).get(TAG_ARCHIVE_UNIT);
+            PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE)
+        ).get(TAG_ARCHIVE_UNIT);
         unitJson.put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, "MyArchiveUnitProfile");
 
         // When / Then
@@ -300,38 +311,44 @@ public class UnitValidatorTest {
 
     @Test
     public void givenArchiveUnitProfileAndInvalidUnitThenValidationKO() throws Exception {
-
         // Given
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
-        doReturn(Optional.of(
-            new ArchiveUnitProfileModel()
-                .setControlSchema("{\n" +
-                    "  \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n" +
-                    "  \"id\": \"http://example.com/root.json\",\n" +
-                    "  \"type\": \"object\",\n" +
-                    "  \"additionalProperties\": false,\n" +
-                    "  \"anyOf\": [\n" +
-                    "    {\n" +
-                    "      \"required\": [\n" +
-                    "        \"_id\",\n" +
-                    "        \"Title\"\n" +
-                    "      ]\n" +
-                    "    }\n" +
-                    "  ],\n" +
-                    "  \"properties\": {\n" +
-                    "    \"_id\": {\n" +
-                    "      \"type\": \"string\"\n" +
-                    "    }\n" +
-                    "  }\n" +
-                    "}")
-                .setStatus(ArchiveUnitProfileStatus.ACTIVE)
-        )).when(archiveUnitProfileLoader).loadArchiveUnitProfile("MyArchiveUnitProfile");
+        doReturn(
+            Optional.of(
+                new ArchiveUnitProfileModel()
+                    .setControlSchema(
+                        "{\n" +
+                        "  \"$schema\": \"http://json-schema.org/draft-04/schema#\",\n" +
+                        "  \"id\": \"http://example.com/root.json\",\n" +
+                        "  \"type\": \"object\",\n" +
+                        "  \"additionalProperties\": false,\n" +
+                        "  \"anyOf\": [\n" +
+                        "    {\n" +
+                        "      \"required\": [\n" +
+                        "        \"_id\",\n" +
+                        "        \"Title\"\n" +
+                        "      ]\n" +
+                        "    }\n" +
+                        "  ],\n" +
+                        "  \"properties\": {\n" +
+                        "    \"_id\": {\n" +
+                        "      \"type\": \"string\"\n" +
+                        "    }\n" +
+                        "  }\n" +
+                        "}"
+                    )
+                    .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+            )
+        )
+            .when(archiveUnitProfileLoader)
+            .loadArchiveUnitProfile("MyArchiveUnitProfile");
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(10, 6);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
 
         ObjectNode unitJson = (ObjectNode) JsonHandler.getFromInputStream(
-            PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE)).get(TAG_ARCHIVE_UNIT);
+            PropertiesUtils.getResourceAsStream(COMPLEX_JSON_FILE)
+        ).get(TAG_ARCHIVE_UNIT);
         unitJson.put(SedaConstants.TAG_ARCHIVE_UNIT_PROFILE, "MyArchiveUnitProfile");
 
         // When / Then
@@ -343,17 +360,21 @@ public class UnitValidatorTest {
 
     @Test
     public void givenComplexArchiveUnitProfileAndValidUnitThenValidationOK() throws Exception {
-
         // Given
-        JsonNode schemaMail =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SCHEMA_JSON_MAIL_FILE));
+        JsonNode schemaMail = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(SCHEMA_JSON_MAIL_FILE)
+        );
 
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
-        doReturn(Optional.of(
-            new ArchiveUnitProfileModel()
-                .setControlSchema(JsonHandler.unprettyPrint(schemaMail))
-                .setStatus(ArchiveUnitProfileStatus.ACTIVE)
-        )).when(archiveUnitProfileLoader).loadArchiveUnitProfile("AUP-000001");
+        doReturn(
+            Optional.of(
+                new ArchiveUnitProfileModel()
+                    .setControlSchema(JsonHandler.unprettyPrint(schemaMail))
+                    .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+            )
+        )
+            .when(archiveUnitProfileLoader)
+            .loadArchiveUnitProfile("AUP-000001");
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(10, 6);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);
@@ -366,17 +387,21 @@ public class UnitValidatorTest {
 
     @Test
     public void givenComplexArchiveUnitProfileAndInvalidUnitThenValidationKO() throws Exception {
-
         // Given
-        JsonNode schemaMail =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(SCHEMA_JSON_MAIL_FILE));
+        JsonNode schemaMail = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream(SCHEMA_JSON_MAIL_FILE)
+        );
 
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = mock(CachedArchiveUnitProfileLoader.class);
-        doReturn(Optional.of(
-            new ArchiveUnitProfileModel()
-                .setControlSchema(JsonHandler.unprettyPrint(schemaMail))
-                .setStatus(ArchiveUnitProfileStatus.ACTIVE)
-        )).when(archiveUnitProfileLoader).loadArchiveUnitProfile("AUP-000001");
+        doReturn(
+            Optional.of(
+                new ArchiveUnitProfileModel()
+                    .setControlSchema(JsonHandler.unprettyPrint(schemaMail))
+                    .setStatus(ArchiveUnitProfileStatus.ACTIVE)
+            )
+        )
+            .when(archiveUnitProfileLoader)
+            .loadArchiveUnitProfile("AUP-000001");
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(10, 6);
         UnitValidator unitValidator = new UnitValidator(archiveUnitProfileLoader, schemaValidatorLoader);

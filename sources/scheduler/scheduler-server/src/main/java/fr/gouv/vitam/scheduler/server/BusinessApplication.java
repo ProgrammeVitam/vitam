@@ -31,7 +31,6 @@ import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.server.application.resources.ApplicationStatusResource;
 import fr.gouv.vitam.common.serverv2.ConfigurationApplication;
 import fr.gouv.vitam.common.serverv2.application.CommonBusinessApplication;
-import fr.gouv.vitam.scheduler.server.util.VitamJobsDataProcessorPlugin;
 
 import javax.servlet.ServletConfig;
 import javax.ws.rs.core.Context;
@@ -52,8 +51,7 @@ public class BusinessApplication extends ConfigurationApplication {
         singletons = new HashSet<>();
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final SchedulerConfiguration configuration =
-                PropertiesUtils.readYaml(yamlIS, SchedulerConfiguration.class);
+            final SchedulerConfiguration configuration = PropertiesUtils.readYaml(yamlIS, SchedulerConfiguration.class);
 
             CommonBusinessApplication commonBusinessApplication = new CommonBusinessApplication();
 

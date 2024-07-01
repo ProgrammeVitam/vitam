@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
-
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
@@ -52,27 +51,33 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 public class EvidenceAuditFinalizeTest {
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
+
     @InjectMocks
     private EvidenceAuditFinalize evidenceAuditFinalize;
+
     @Mock
     public HandlerIO handlerIO;
+
     @Mock
     WorkerParameters defaultWorkerParameters;
+
     @Mock
     private EvidenceAuditReportService evidenceAuditReportService;
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @RunWithCustomExecutor
     @Test
     public void shouldFinalizeAuditWhenReportFound() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         String containerName = GUIDFactory.newGUID().getId();
@@ -93,7 +98,6 @@ public class EvidenceAuditFinalizeTest {
     @RunWithCustomExecutor
     @Test
     public void shouldFinalizeAuditWhenReportNotFound() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         String containerName = GUIDFactory.newGUID().getId();

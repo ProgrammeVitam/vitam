@@ -51,7 +51,6 @@ public class JsonLineWriter implements AutoCloseable {
     }
 
     public void addEntry(JsonLineModel line) throws IOException {
-
         if (!isEmpty) {
             writer.append("\n");
         }

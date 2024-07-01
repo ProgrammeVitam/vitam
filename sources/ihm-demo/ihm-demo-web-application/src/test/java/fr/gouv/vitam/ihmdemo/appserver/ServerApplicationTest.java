@@ -76,8 +76,12 @@ public class ServerApplicationTest {
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
-        given().contentType(ContentType.JSON).body(CREDENTIALS)
-            .expect().statusCode(Status.OK.getStatusCode()).when()
+        given()
+            .contentType(ContentType.JSON)
+            .body(CREDENTIALS)
+            .expect()
+            .statusCode(Status.OK.getStatusCode())
+            .when()
             .post("login");
         application.stop();
         newConf.delete();

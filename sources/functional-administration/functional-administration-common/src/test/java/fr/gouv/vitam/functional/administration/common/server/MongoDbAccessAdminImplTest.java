@@ -100,24 +100,28 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 
 public class MongoDbAccessAdminImplTest {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccessAdminImplTest.class);
     private static final ElasticsearchFunctionalAdminIndexManager indexManager =
         FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     public static final String PREFIX = GUIDFactory.newGUID().getId();
+
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(FunctionalAdminCollections.getClasses()));
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(FunctionalAdminCollections.getClasses())
+    );
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
-
 
     private static final String REUSE_RULE = "ReuseRule";
     private static final String RULE_ID_VALUE = "APK-485";
@@ -146,16 +150,16 @@ public class MongoDbAccessAdminImplTest {
     @BeforeClass
     @RunWithCustomExecutor
     public static void setUpBeforeClass() throws Exception {
-
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         esClient = new ElasticsearchAccessFunctionalAdmin(elasticsearchRule.getClusterName(), esNodes, indexManager);
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", mongoRule.getDataBasePort()));
-        mongoAccess =
-            MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
-                    indexManager);
+        mongoAccess = MongoDbAccessAdminFactory.create(
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+            Collections::emptyList,
+            indexManager
+        );
 
         final List<String> testList = new ArrayList<>();
         testList.add("test1");
@@ -221,7 +225,6 @@ public class MongoDbAccessAdminImplTest {
         context = createContext();
 
         FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX, esClient);
-
     }
 
     @AfterClass
@@ -248,8 +251,9 @@ public class MongoDbAccessAdminImplTest {
         final FunctionalAdminCollections formatCollection = FunctionalAdminCollections.FORMATS;
         mongoAccess.insertDocuments(arrayNode, formatCollection).close();
         assertEquals(PREFIX + "FileFormat", formatCollection.getName());
-        final MongoCollection<Document> collection =
-            mongoRule.getMongoCollection(FunctionalAdminCollections.FORMATS.getName());
+        final MongoCollection<Document> collection = mongoRule.getMongoCollection(
+            FunctionalAdminCollections.FORMATS.getName()
+        );
         assertEquals(3, collection.countDocuments());
 
         // find all
@@ -259,11 +263,8 @@ public class MongoDbAccessAdminImplTest {
 
         // find one by id
         final Select select = new Select();
-        select.setQuery(and()
-            .add(match(FileFormat.NAME, "name"))
-            .add(eq(FileFormat.PUID, FILEFORMAT_PUID)));
-        final DbRequestResult fileList =
-            mongoAccess.findDocuments(select.getFinalSelect(), formatCollection);
+        select.setQuery(and().add(match(FileFormat.NAME, "name")).add(eq(FileFormat.PUID, FILEFORMAT_PUID)));
+        final DbRequestResult fileList = mongoAccess.findDocuments(select.getFinalSelect(), formatCollection);
         final FileFormat f1 = fileList.getDocuments(FileFormat.class).get(0);
         final String id = f1.getString("#id");
         final FileFormat f2 = (FileFormat) mongoAccess.getDocumentById(id, formatCollection);
@@ -272,7 +273,8 @@ public class MongoDbAccessAdminImplTest {
         final String puid = f1.getString(FileFormat.PUID);
         final FileFormat f3 = (FileFormat) mongoAccess.getDocumentByUniqueId(puid, formatCollection, FileFormat.PUID);
         assertEquals(f3.get("#id"), f1.getId());
-        formatCollection.getEsClient()
+        formatCollection
+            .getEsClient()
             .refreshIndex(indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null));
         assertEquals(1, fileList.getCount());
         fileList.close();
@@ -281,9 +283,11 @@ public class MongoDbAccessAdminImplTest {
         final Select selectWithSortName = new Select();
         selectWithSortName.setQuery(and().add(match(FileFormat.NAME, "acrobat")));
         selectWithSortName.addOrderByDescFilter(FileFormat.NAME);
-        final DbRequestSingle dbrequestSort =
-            new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList,
-                indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null));
+        final DbRequestSingle dbrequestSort = new DbRequestSingle(
+            formatCollection.getVitamCollection(),
+            Collections::emptyList,
+            indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null)
+        );
         final DbRequestResult selectSortResult = dbrequestSort.execute(selectWithSortName);
         final List<FileFormat> selectSortList = selectSortResult.getDocuments(FileFormat.class);
         assertFalse(selectSortList.isEmpty());
@@ -298,9 +302,11 @@ public class MongoDbAccessAdminImplTest {
         final Select selectWithSortId = new Select();
         selectWithSortId.setQuery(match(FileFormat.NAME, "acrobat"));
         selectWithSortName.addOrderByAscFilter(FileFormat.PUID);
-        final DbRequestSingle dbrequestSortId =
-            new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList,
-                indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null));
+        final DbRequestSingle dbrequestSortId = new DbRequestSingle(
+            formatCollection.getVitamCollection(),
+            Collections::emptyList,
+            indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null)
+        );
         final DbRequestResult selectSortIdResult = dbrequestSortId.execute(selectWithSortId);
         final List<FileFormat> selectSortIdList = selectSortIdResult.getDocuments(FileFormat.class);
         assertFalse(selectSortIdList.isEmpty());
@@ -315,12 +321,15 @@ public class MongoDbAccessAdminImplTest {
         final Update update = new Update();
         update.setQuery(match(FileFormat.NAME, "name"));
         update.addActions(UpdateActionHelper.set(FileFormat.COMMENT, "new comment"));
-        final DbRequestSingle dbrequest =
-            new DbRequestSingle(formatCollection.getVitamCollection(), Collections::emptyList,
-                indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null));
+        final DbRequestSingle dbrequest = new DbRequestSingle(
+            formatCollection.getVitamCollection(),
+            Collections::emptyList,
+            indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null)
+        );
         final DbRequestResult updateResult = dbrequest.execute(update, mock(DocumentValidator.class));
         assertEquals(1, updateResult.getCount());
-        formatCollection.getEsClient()
+        formatCollection
+            .getEsClient()
             .refreshIndex(indexManager.getElasticsearchIndexAliasResolver(formatCollection).resolveIndexName(null));
         updateResult.close();
 
@@ -346,35 +355,36 @@ public class MongoDbAccessAdminImplTest {
         final FunctionalAdminCollections rulesCollection = FunctionalAdminCollections.RULES;
         mongoAccess.insertDocuments(arrayNode, rulesCollection).close();
         assertEquals(PREFIX + "FileRules", rulesCollection.getName());
-        final MongoCollection<Document> collection =
-            mongoRule.getMongoCollection(FunctionalAdminCollections.RULES.getName());
+        final MongoCollection<Document> collection = mongoRule.getMongoCollection(
+            FunctionalAdminCollections.RULES.getName()
+        );
         assertEquals(2, collection.countDocuments());
 
         final Select select = new Select();
-        select.setQuery(and()
-            .add(and()
-                .add(match(FileRules.RULEVALUE, "10/10/2000"))
-                .add(match(FileRules.RULEVALUE, "3D"))
-                .add(match(FileRules.RULEVALUE, "17"))
-                .add(match(FileRules.RULEVALUE, "siecle"))
-                .add(match(FileRules.RULEVALUE, "acte"))
-                .add(match(FileRules.RULEVALUE, "42020"))
-                .add(match(FileRules.RULEVALUE, "NFZ")))
-            .add(or()
-                .add(eq(FileRules.RULETYPE, REUSE_RULE))
-                .add(eq(FileRules.RULETYPE, "AccessRule"))));
-        final DbRequestResult fileList =
-            mongoAccess.findDocuments(select.getFinalSelect(), rulesCollection);
+        select.setQuery(
+            and()
+                .add(
+                    and()
+                        .add(match(FileRules.RULEVALUE, "10/10/2000"))
+                        .add(match(FileRules.RULEVALUE, "3D"))
+                        .add(match(FileRules.RULEVALUE, "17"))
+                        .add(match(FileRules.RULEVALUE, "siecle"))
+                        .add(match(FileRules.RULEVALUE, "acte"))
+                        .add(match(FileRules.RULEVALUE, "42020"))
+                        .add(match(FileRules.RULEVALUE, "NFZ"))
+                )
+                .add(or().add(eq(FileRules.RULETYPE, REUSE_RULE)).add(eq(FileRules.RULETYPE, "AccessRule")))
+        );
+        final DbRequestResult fileList = mongoAccess.findDocuments(select.getFinalSelect(), rulesCollection);
         final FileRules f1 = fileList.getDocuments(FileRules.class).get(0);
         LOGGER.debug(JsonHandler.prettyPrint(f1));
         assertEquals(RULE_ID_VALUE, f1.getString(RULE_ID));
-        rulesCollection.getEsClient()
+        rulesCollection
+            .getEsClient()
             .refreshIndex(indexManager.getElasticsearchIndexAliasResolver(rulesCollection).resolveIndexName(null));
 
         final QueryBuilder query = QueryBuilders.matchAllQuery();
-        final SearchResponse requestResponse =
-            rulesCollection.getEsClient()
-                .search(rulesCollection, query, null);
+        final SearchResponse requestResponse = rulesCollection.getEsClient().search(rulesCollection, query, null);
         fileList.close();
         assertEquals(2, requestResponse.getHits().getTotalHits().value);
         mongoAccess.deleteCollectionForTesting(rulesCollection).close();
@@ -385,11 +395,13 @@ public class MongoDbAccessAdminImplTest {
     @RunWithCustomExecutor
     public void testAccessionRegister() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final JsonNode jsonNode =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("accession_register_detail_OK.json"));
+        final JsonNode jsonNode = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("accession_register_detail_OK.json")
+        );
         mongoAccess.insertDocument(jsonNode, FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
-        final MongoCollection<Document> collection =
-            mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName());
+        final MongoCollection<Document> collection = mongoRule.getMongoCollection(
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()
+        );
         assertEquals(1, collection.countDocuments());
         mongoAccess.deleteCollectionForTesting(FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL).close();
         assertEquals(0, collection.countDocuments());
@@ -406,15 +418,18 @@ public class MongoDbAccessAdminImplTest {
         ((ObjectNode) jsonContract).put("Identifier", contract.getName());
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonContract);
-        final MongoCollection<Document> collection =
-            mongoRule.getMongoCollection(FunctionalAdminCollections.INGEST_CONTRACT.getName());
+        final MongoCollection<Document> collection = mongoRule.getMongoCollection(
+            FunctionalAdminCollections.INGEST_CONTRACT.getName()
+        );
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
         assertEquals(1, collection.countDocuments());
 
         try {
             JsonNode update = JsonHandler.getFromString(
-                "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
-                    "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Status\":\"ACTIVE\"}}]}");
+                "{\"$query\":{\"$eq\":{\"_id\":\"" +
+                id +
+                "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Status\":\"ACTIVE\"}}]}"
+            );
             mongoAccess.updateData(update, FunctionalAdminCollections.INGEST_CONTRACT);
             fail("This should fail, as no changes is made");
         } catch (BadRequestException e) {
@@ -423,8 +438,10 @@ public class MongoDbAccessAdminImplTest {
 
         try {
             JsonNode update = JsonHandler.getFromString(
-                "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
-                    "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Status\":\"BLOP\"}}]}");
+                "{\"$query\":{\"$eq\":{\"_id\":\"" +
+                id +
+                "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Status\":\"BLOP\"}}]}"
+            );
             mongoAccess.updateData(update, FunctionalAdminCollections.INGEST_CONTRACT);
             fail("This should fail, as schema validation is not ok");
         } catch (SchemaValidationException e) {
@@ -433,7 +450,6 @@ public class MongoDbAccessAdminImplTest {
         mongoAccess.deleteCollectionForTesting(contractCollection).close();
         assertEquals(0, collection.countDocuments());
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -450,15 +466,18 @@ public class MongoDbAccessAdminImplTest {
         ((ObjectNode) jsonContract).put("AccessLog", "INACTIVE");
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonContract);
-        final MongoCollection<Document> collection =
-            mongoRule.getMongoCollection(FunctionalAdminCollections.ACCESS_CONTRACT.getName());
+        final MongoCollection<Document> collection = mongoRule.getMongoCollection(
+            FunctionalAdminCollections.ACCESS_CONTRACT.getName()
+        );
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
         assertEquals(1, collection.countDocuments());
 
         try {
             JsonNode update = JsonHandler.getFromString(
-                "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
-                    "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Status\":\"ACTIVE\"}}]}");
+                "{\"$query\":{\"$eq\":{\"_id\":\"" +
+                id +
+                "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Status\":\"ACTIVE\"}}]}"
+            );
             mongoAccess.updateData(update, FunctionalAdminCollections.ACCESS_CONTRACT);
             fail("This should fail, as no changes is made");
         } catch (BadRequestException e) {
@@ -467,8 +486,10 @@ public class MongoDbAccessAdminImplTest {
 
         try {
             JsonNode update = JsonHandler.getFromString(
-                "{\"$query\":{\"$eq\":{\"_id\":\"" + id +
-                    "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Status\":\"BLOP\"}}]}");
+                "{\"$query\":{\"$eq\":{\"_id\":\"" +
+                id +
+                "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Status\":\"BLOP\"}}]}"
+            );
             mongoAccess.updateData(update, FunctionalAdminCollections.ACCESS_CONTRACT);
             fail("This should fail, as schema validation is not ok");
         } catch (SchemaValidationException e) {
@@ -489,22 +510,19 @@ public class MongoDbAccessAdminImplTest {
         final JsonNode jsonprofile = JsonHandler.toJsonNode(profile);
         final ArrayNode arrayNode = JsonHandler.createArrayNode();
         arrayNode.add(jsonprofile);
-        final MongoCollection<Document> collection =
-            mongoRule.getMongoCollection(FunctionalAdminCollections.PROFILE.getName());
+        final MongoCollection<Document> collection = mongoRule.getMongoCollection(
+            FunctionalAdminCollections.PROFILE.getName()
+        );
         mongoAccess.insertDocuments(arrayNode, profileCollection).close();
         assertEquals(1, collection.countDocuments());
         mongoAccess.deleteCollectionForTesting(profileCollection).close();
         assertEquals(0, collection.countDocuments());
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void testFindContract()
-        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
-        DatabaseException, SchemaValidationException {
-
-
+        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException, DatabaseException, SchemaValidationException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections contractCollection = FunctionalAdminCollections.INGEST_CONTRACT;
         final String id = GUIDFactory.newContractGUID(TENANT_ID).getId();
@@ -516,26 +534,20 @@ public class MongoDbAccessAdminImplTest {
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
 
         final Select select = new Select();
-        select.setQuery(and()
-            .add(eq(IngestContract.NAME, "aName"))
-            .add(or()
-                .add(eq(IngestContract.CREATIONDATE, DEFAULT_DATE))));
-        final DbRequestResult contracts =
-            mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
+        select.setQuery(
+            and().add(eq(IngestContract.NAME, "aName")).add(or().add(eq(IngestContract.CREATIONDATE, DEFAULT_DATE)))
+        );
+        final DbRequestResult contracts = mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
         final IngestContract foundContract = contracts.getDocuments(IngestContract.class).get(0);
         contracts.close();
         assertEquals("aName", foundContract.getString(IngestContract.NAME));
         mongoAccess.deleteCollectionForTesting(contractCollection).close();
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void testFindAccessContract()
-        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
-        DatabaseException, SchemaValidationException {
-
-
+        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException, DatabaseException, SchemaValidationException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections contractCollection = FunctionalAdminCollections.ACCESS_CONTRACT;
         final String id = GUIDFactory.newContractGUID(TENANT_ID).getId();
@@ -555,25 +567,20 @@ public class MongoDbAccessAdminImplTest {
         mongoAccess.insertDocuments(arrayNode, contractCollection).close();
 
         final Select select = new Select();
-        select.setQuery(and()
-            .add(eq(AccessContract.NAME, "aName"))
-            .add(or()
-                .add(eq(AccessContract.CREATIONDATE, DEFAULT_DATE))));
-        final DbRequestResult contracts =
-            mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
+        select.setQuery(
+            and().add(eq(AccessContract.NAME, "aName")).add(or().add(eq(AccessContract.CREATIONDATE, DEFAULT_DATE)))
+        );
+        final DbRequestResult contracts = mongoAccess.findDocuments(select.getFinalSelect(), contractCollection);
         final AccessContract foundContract = contracts.getDocuments(AccessContract.class).get(0);
         contracts.close();
         assertEquals("aName", foundContract.getString(AccessContract.NAME));
         mongoAccess.deleteCollectionForTesting(contractCollection).close();
-
     }
-
 
     @Test
     @RunWithCustomExecutor
     public void testFindProfile()
-        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
-        DatabaseException, SchemaValidationException {
+        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException, DatabaseException, SchemaValidationException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections profileCollection = FunctionalAdminCollections.PROFILE;
         final String id = GUIDFactory.newProfileGUID(TENANT_ID).getId();
@@ -584,26 +591,20 @@ public class MongoDbAccessAdminImplTest {
         mongoAccess.insertDocuments(arrayNode, profileCollection).close();
 
         final Select select = new Select();
-        select.setQuery(and()
-            .add(eq(Profile.IDENTIFIER, "FakeId"))
-            .add(or()
-                .add(eq(Profile.CREATIONDATE, DEFAULT_DATE))));
-        final DbRequestResult profiles =
-            mongoAccess.findDocuments(select.getFinalSelect(), profileCollection);
+        select.setQuery(
+            and().add(eq(Profile.IDENTIFIER, "FakeId")).add(or().add(eq(Profile.CREATIONDATE, DEFAULT_DATE)))
+        );
+        final DbRequestResult profiles = mongoAccess.findDocuments(select.getFinalSelect(), profileCollection);
         final Profile foundProfile = profiles.getDocuments(Profile.class).get(0);
         profiles.close();
         assertEquals("FakeId", foundProfile.getString(Profile.IDENTIFIER));
         mongoAccess.deleteCollectionForTesting(profileCollection).close();
-
     }
-
 
     @Test
     @RunWithCustomExecutor
     public void testDeleteContext()
-        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException,
-        DatabaseException, SchemaValidationException, BadRequestException {
-
+        throws ReferentialException, InvalidCreateOperationException, InvalidParseOperationException, DatabaseException, SchemaValidationException, BadRequestException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final FunctionalAdminCollections contextCollection = FunctionalAdminCollections.CONTEXT;
         final JsonNode jsonContext = JsonHandler.toJsonNode(context);
@@ -623,7 +624,6 @@ public class MongoDbAccessAdminImplTest {
         mongoAccess.deleteCollectionForTesting(contextCollection).close();
     }
 
-
     private static IngestContract createContract() {
         final IngestContract contract = new IngestContract(TENANT_ID);
         final String name = "aName";
@@ -631,7 +631,8 @@ public class MongoDbAccessAdminImplTest {
         final String lastupdate = DEFAULT_DATE;
         contract
             .setName(name)
-            .setDescription(description).setStatus(ActivationStatus.ACTIVE)
+            .setDescription(description)
+            .setStatus(ActivationStatus.ACTIVE)
             .setCheckParentLink(IngestContractCheckState.AUTHORIZED)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
@@ -654,11 +655,13 @@ public class MongoDbAccessAdminImplTest {
 
         contract
             .setName(name)
-            .setDescription(description).setStatus(ActivationStatus.ACTIVE)
+            .setDescription(description)
+            .setStatus(ActivationStatus.ACTIVE)
             .setOriginatingAgencies(originatingAgencies)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
-            .setActivationdate(lastupdate).setDeactivationdate(lastupdate);
+            .setActivationdate(lastupdate)
+            .setDeactivationdate(lastupdate);
         return contract;
     }
 
@@ -675,7 +678,8 @@ public class MongoDbAccessAdminImplTest {
             .setFormat(ProfileFormat.XSD)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
-            .setActivationdate(lastupdate).setDeactivationdate(lastupdate);
+            .setActivationdate(lastupdate)
+            .setDeactivationdate(lastupdate);
         return profile;
     }
 

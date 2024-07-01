@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.PropertiesUtils;
 import fr.gouv.vitam.common.SystemPropertyUtil;
@@ -90,10 +89,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class EvidenceServiceTest {
+
     private static final Integer TENANT_ID = 0;
     private static final String RESULT_SELECT_ISLAST = "evidenceAudit/RESULT_SELECT.json";
+
     @ClassRule
     public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     private static JsonNode OFFERS_INFO;
     private static String RESULT_SELECT_LOGBOOK_SECUR_OP = "evidenceAudit/RESULT_SELECT_LOGBOOK_SECUR_OP.json";
     private static String result = "evidenceAudit/result.json";
@@ -101,25 +103,41 @@ public class EvidenceServiceTest {
 
     static {
         try {
-            OFFERS_INFO =
-                JsonHandler.getFromFile(PropertiesUtils.getResourceFile(offersInfo));
-        } catch (InvalidParseOperationException | FileNotFoundException e) {
-        }
+            OFFERS_INFO = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(offersInfo));
+        } catch (InvalidParseOperationException | FileNotFoundException e) {}
     }
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    @Mock MetaDataClientFactory metaDataClientFactory;
-    @Mock MetaDataClient metaDataClient;
-    @Mock LogbookOperationsClientFactory logbookOperationsClientFactory;
-    @Mock LogbookOperationsClient logbookOperationsClient;
-    @Mock LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-    @Mock LogbookLifeCyclesClient logbookLifeCyclesClient;
-    @Mock StorageClientFactory storageClientFactory;
-    @Mock StorageClient storageClient;
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
+    @Mock
+    MetaDataClientFactory metaDataClientFactory;
+
+    @Mock
+    MetaDataClient metaDataClient;
+
+    @Mock
+    LogbookOperationsClientFactory logbookOperationsClientFactory;
+
+    @Mock
+    LogbookOperationsClient logbookOperationsClient;
+
+    @Mock
+    LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
+    @Mock
+    LogbookLifeCyclesClient logbookLifeCyclesClient;
+
+    @Mock
+    StorageClientFactory storageClientFactory;
+
+    @Mock
+    StorageClient storageClient;
 
     @Before
     public void setUp() throws Exception {
@@ -132,112 +150,122 @@ public class EvidenceServiceTest {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
     }
 
-
-    @RunWithCustomExecutor()
+    @RunWithCustomExecutor
     @Test
-    public void auditEvidenceNominalCaseForUnit()
-        throws Exception {
+    public void auditEvidenceNominalCaseForUnit() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         //GIVEN
-        EvidenceService evidenceService =
-            new EvidenceService(metaDataClientFactory, logbookOperationsClientFactory, logbookLifeCyclesClientFactory,
-                storageClientFactory);
+        EvidenceService evidenceService = new EvidenceService(
+            metaDataClientFactory,
+            logbookOperationsClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
         JsonNode unitMd = getUnitMd();
         JsonNode liceCycle = getLifcycle();
         JsonNode logbook = getLogbook();
 
-
         //WHEN
         RequestResponseOK<JsonNode> response1 = new RequestResponseOK<JsonNode>().addResult(unitMd);
 
         when(metaDataClient.getUnitByIdRaw("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq")).thenReturn(response1);
-        when(logbookLifeCyclesClient.getRawUnitLifeCycleById("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq"))
-            .thenReturn(liceCycle);
+        when(logbookLifeCyclesClient.getRawUnitLifeCycleById("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq")).thenReturn(
+            liceCycle
+        );
 
         JsonNode select = getSelectlogbookLCsecure();
 
         JsonNode select2 = getSelect2();
 
         when(logbookOperationsClient.selectOperationById(anyString())).thenReturn(logbook);
-        when(logbookOperationsClient.selectOperation(select))
-            .thenReturn(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(RESULT_SELECT_LOGBOOK_SECUR_OP)));
+        when(logbookOperationsClient.selectOperation(select)).thenReturn(
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(RESULT_SELECT_LOGBOOK_SECUR_OP))
+        );
 
-        when(logbookOperationsClient.selectOperation(select2))
-            .thenReturn(JsonHandler.getFromFile(PropertiesUtils.getResourceFile(RESULT_SELECT_ISLAST)));
-        when(storageClient.getInformation(anyString(), eq(DataCategory.UNIT), anyString(), any(), eq(true)))
-            .thenReturn(OFFERS_INFO);
+        when(logbookOperationsClient.selectOperation(select2)).thenReturn(
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(RESULT_SELECT_ISLAST))
+        );
+        when(storageClient.getInformation(anyString(), eq(DataCategory.UNIT), anyString(), any(), eq(true))).thenReturn(
+            OFFERS_INFO
+        );
 
-
-        EvidenceAuditParameters parameters =
-            evidenceService.evidenceAuditsChecks("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq", MetadataType.UNIT,
-                loadStorageStrategiesMock());
-        EvidenceAuditParameters expected =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(result), EvidenceAuditParameters.class);
+        EvidenceAuditParameters parameters = evidenceService.evidenceAuditsChecks(
+            "aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq",
+            MetadataType.UNIT,
+            loadStorageStrategiesMock()
+        );
+        EvidenceAuditParameters expected = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile(result),
+            EvidenceAuditParameters.class
+        );
         assertThat(parameters.getHashLfcFromDatabase()).isEqualTo(expected.getHashLfcFromDatabase());
         assertThat(parameters.getHashMdFromDatabase()).isEqualTo(expected.getHashMdFromDatabase());
         assertThat(parameters.getLfcVersion()).isEqualTo(expected.getLfcVersion());
 
         assertThat(parameters.getObjectStorageMetadataResultMap()).isNull();
         assertThat(parameters.getMdOptimisticStorageInfo().getStrategy()).isEqualTo("default");
-
-
     }
 
-    @RunWithCustomExecutor()
+    @RunWithCustomExecutor
     @Test
-    public void auditEvidenceWhenUnitNotSecure()
-        throws Exception {
+    public void auditEvidenceWhenUnitNotSecure() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         //GIVEN
-        EvidenceService evidenceService =
-            new EvidenceService(metaDataClientFactory, logbookOperationsClientFactory, logbookLifeCyclesClientFactory,
-                storageClientFactory);
+        EvidenceService evidenceService = new EvidenceService(
+            metaDataClientFactory,
+            logbookOperationsClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
         JsonNode unitMd = getUnitMd();
         JsonNode liceCycle = getLifcycle();
         JsonNode logbook = getLogbook();
 
-
         //WHEN
         RequestResponseOK<JsonNode> response1 = new RequestResponseOK<JsonNode>().addResult(unitMd);
 
         when(metaDataClient.getUnitByIdRaw("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq")).thenReturn(response1);
-        when(logbookLifeCyclesClient.getRawUnitLifeCycleById("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq"))
-            .thenReturn(liceCycle);
+        when(logbookLifeCyclesClient.getRawUnitLifeCycleById("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq")).thenReturn(
+            liceCycle
+        );
 
         JsonNode select = getSelectlogbookLCsecure();
 
-
         when(logbookOperationsClient.selectOperationById(anyString())).thenReturn(logbook);
 
-        when(logbookOperationsClient.selectOperation(select))
-            .thenReturn(JsonHandler.toJsonNode(new RequestResponseOK<JsonNode>()));
+        when(logbookOperationsClient.selectOperation(select)).thenReturn(
+            JsonHandler.toJsonNode(new RequestResponseOK<JsonNode>())
+        );
 
-        EvidenceAuditParameters parameters =
-            evidenceService.evidenceAuditsChecks("aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq", MetadataType.UNIT,
-                loadStorageStrategiesMock());
+        EvidenceAuditParameters parameters = evidenceService.evidenceAuditsChecks(
+            "aeaqaaaaaaguu2zzaazsualbwlwdgwaaaaaq",
+            MetadataType.UNIT,
+            loadStorageStrategiesMock()
+        );
 
         assertThat(parameters.getEvidenceStatus()).isEqualTo(EvidenceStatus.WARN);
         assertThat(parameters.getAuditMessage()).contains("No traceability operation found matching date");
         assertThat(parameters.getMdOptimisticStorageInfo().getStrategy()).isEqualTo("default");
-
     }
 
-
     private JsonNode getSelectlogbookLCsecure() throws Exception {
-
         Select select = new Select();
-        BooleanQuery query = and().add(
-            QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), "LOGBOOK_UNIT_LFC_TRACEABILITY"),
-            QueryHelper
-                .in("events.outDetail", "LOGBOOK_UNIT_LFC_TRACEABILITY.OK", "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING"),
-            QueryHelper.exists("events.evDetData.FileName"),
-            lte("events.evDetData.StartDate", "2018-02-20T11:14:54.872"),
-            gte("events.evDetData.EndDate", "2018-02-20T11:14:54.872")
-        );
+        BooleanQuery query = and()
+            .add(
+                QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), "LOGBOOK_UNIT_LFC_TRACEABILITY"),
+                QueryHelper.in(
+                    "events.outDetail",
+                    "LOGBOOK_UNIT_LFC_TRACEABILITY.OK",
+                    "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING"
+                ),
+                QueryHelper.exists("events.evDetData.FileName"),
+                lte("events.evDetData.StartDate", "2018-02-20T11:14:54.872"),
+                gte("events.evDetData.EndDate", "2018-02-20T11:14:54.872")
+            );
 
         select.setQuery(query);
         select.setLimitFilter(0, 1);
@@ -246,15 +274,18 @@ public class EvidenceServiceTest {
     }
 
     private JsonNode getSelect2() throws Exception {
-
         Select select = new Select();
 
-        BooleanQuery query = and().add(
-            QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), "LOGBOOK_UNIT_LFC_TRACEABILITY"),
-            QueryHelper
-                .in("events.outDetail", "LOGBOOK_UNIT_LFC_TRACEABILITY.OK", "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING"),
-            QueryHelper.exists("events.evDetData.FileName")
-        );
+        BooleanQuery query = and()
+            .add(
+                QueryHelper.eq(LogbookMongoDbName.eventType.getDbname(), "LOGBOOK_UNIT_LFC_TRACEABILITY"),
+                QueryHelper.in(
+                    "events.outDetail",
+                    "LOGBOOK_UNIT_LFC_TRACEABILITY.OK",
+                    "LOGBOOK_UNIT_LFC_TRACEABILITY.WARNING"
+                ),
+                QueryHelper.exists("events.evDetData.FileName")
+            );
 
         select.setQuery(query);
         select.setLimitFilter(0, 1);
@@ -277,28 +308,49 @@ public class EvidenceServiceTest {
 
     @Test
     public void downloadAndExtractDataFromStorage() throws Exception {
-        EvidenceService evidenceService =
-            new EvidenceService(metaDataClientFactory, logbookOperationsClientFactory, logbookLifeCyclesClientFactory,
-                storageClientFactory);
+        EvidenceService evidenceService = new EvidenceService(
+            metaDataClientFactory,
+            logbookOperationsClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
 
-        try (InputStream in = PropertiesUtils
-            .getResourceAsStream("evidenceAudit/0_LogbookLifecycles_20180220_111512.zip")) {
+        try (
+            InputStream in = PropertiesUtils.getResourceAsStream(
+                "evidenceAudit/0_LogbookLifecycles_20180220_111512.zip"
+            )
+        ) {
             Response responseMock = mock(BuiltResponse.class);
             doReturn(in).when(responseMock).readEntity(eq(InputStream.class));
-            when(storageClient.getContainerAsync(eq(VitamConfiguration.getDefaultStrategy()), anyString(),
-                eq(DataCategory.LOGBOOK), any()))
-                .thenReturn(responseMock);
-            assertThat(evidenceService.downloadAndExtractDataFromStorage("0_LogbookLifecycles_20180220_111512.zip",
-                "data.txt", ".zip", true))
-                .isNotNull();
+            when(
+                storageClient.getContainerAsync(
+                    eq(VitamConfiguration.getDefaultStrategy()),
+                    anyString(),
+                    eq(DataCategory.LOGBOOK),
+                    any()
+                )
+            ).thenReturn(responseMock);
+            assertThat(
+                evidenceService.downloadAndExtractDataFromStorage(
+                    "0_LogbookLifecycles_20180220_111512.zip",
+                    "data.txt",
+                    ".zip",
+                    true
+                )
+            ).isNotNull();
 
-            when(storageClient
-                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), "test", DataCategory.LOGBOOK,
-                    AccessLogUtils.getNoLogAccessLog()))
-                .thenThrow(StorageNotFoundException.class);
+            when(
+                storageClient.getContainerAsync(
+                    VitamConfiguration.getDefaultStrategy(),
+                    "test",
+                    DataCategory.LOGBOOK,
+                    AccessLogUtils.getNoLogAccessLog()
+                )
+            ).thenThrow(StorageNotFoundException.class);
 
-            assertThatThrownBy(() -> evidenceService.downloadAndExtractDataFromStorage("test", "data.txt",
-                ".zip", true))
+            assertThatThrownBy(
+                () -> evidenceService.downloadAndExtractDataFromStorage("test", "data.txt", ".zip", true)
+            )
                 .isInstanceOf(EvidenceAuditException.class)
                 .hasMessage("Could not retrieve traceability zip file 'test'");
         }

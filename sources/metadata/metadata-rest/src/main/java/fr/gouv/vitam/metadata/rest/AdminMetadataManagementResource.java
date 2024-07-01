@@ -27,7 +27,6 @@
 package fr.gouv.vitam.metadata.rest;
 
 import fr.gouv.vitam.common.database.api.VitamRepositoryProvider;
-import fr.gouv.vitam.common.database.offset.OffsetRepository;
 import fr.gouv.vitam.metadata.core.MetaDataImpl;
 import fr.gouv.vitam.metadata.core.config.ElasticsearchMetadataIndexManager;
 import fr.gouv.vitam.metadata.core.config.MetaDataConfiguration;
@@ -44,8 +43,8 @@ public class AdminMetadataManagementResource extends MetadataManagementResource 
         VitamRepositoryProvider vitamRepositoryProvider,
         MetaDataImpl metadata,
         MetaDataConfiguration configuration,
-        ElasticsearchMetadataIndexManager indexManager) {
+        ElasticsearchMetadataIndexManager indexManager
+    ) {
         super(vitamRepositoryProvider, metadata, configuration, indexManager);
     }
-
 }

@@ -74,8 +74,9 @@ public class MetadataRepositoryService {
      */
     public JsonNode getDocumentById(MetadataCollections collection, String id, Integer tenant)
         throws DatabaseException, MetaDataNotFoundException, InvalidParseOperationException {
-        Optional<Document> document =
-            vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection()).getByID(id, tenant);
+        Optional<Document> document = vitamRepositoryProvider
+            .getVitamMongoRepository(collection.getVitamCollection())
+            .getByID(id, tenant);
         if (document.isPresent()) {
             switch (collection) {
                 case UNIT:
@@ -86,8 +87,14 @@ public class MetadataRepositoryService {
                     throw new IllegalArgumentException("Metadata collection invalid");
             }
         } else {
-            throw new MetaDataNotFoundException(String
-                .format("Could not find document of type %s by id %s for tenant %d", collection.getName(), id, tenant));
+            throw new MetaDataNotFoundException(
+                String.format(
+                    "Could not find document of type %s by id %s for tenant %d",
+                    collection.getName(),
+                    id,
+                    tenant
+                )
+            );
         }
     }
 
@@ -102,12 +109,10 @@ public class MetadataRepositoryService {
      */
     public List<JsonNode> getDocumentsByIds(MetadataCollections collection, Collection<String> ids, Integer tenant)
         throws InvalidParseOperationException {
-
-        MongoCursor<Document>
-            documents = vitamRepositoryProvider.getVitamMongoRepository(collection.getVitamCollection()).findDocuments(
-            and(
-                in(ID, ids),
-                eq(TENANT_ID, tenant)), VitamConfiguration.getBatchSize()).iterator();
+        MongoCursor<Document> documents = vitamRepositoryProvider
+            .getVitamMongoRepository(collection.getVitamCollection())
+            .findDocuments(and(in(ID, ids), eq(TENANT_ID, tenant)), VitamConfiguration.getBatchSize())
+            .iterator();
 
         List<JsonNode> entries = new ArrayList<>();
 

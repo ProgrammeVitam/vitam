@@ -65,14 +65,16 @@ public class PersonalCertificateService extends SecurityService {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateService.class);
 
     private static final String INVALID_CERTIFICATE = "Invalid certificate";
-    private final static String NO_CERTIFICATE_MESSAGE = "No certificate transmitted";
+    private static final String NO_CERTIFICATE_MESSAGE = "No certificate transmitted";
     private static final String PERSONAL_LOGBOOK_EVENT = "STP_PERSONAL_CERTIFICATE_CHECK";
 
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final PersonalRepository personalRepository;
 
-    public PersonalCertificateService(LogbookOperationsClientFactory logbookOperationsClientFactory,
-        PersonalRepository personalRepository) {
+    public PersonalCertificateService(
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        PersonalRepository personalRepository
+    ) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.personalRepository = personalRepository;
     }
@@ -85,7 +87,6 @@ public class PersonalCertificateService extends SecurityService {
      */
     public void createPersonalCertificateIfNotPresent(byte[] certificate)
         throws PersonalCertificateException, InvalidParseOperationException {
-
         ParsedCertificate parsedCertificate = ParsedCertificate.parseCertificate(certificate);
 
         if (findPersonalCertificateByHash(parsedCertificate.getCertificateHash()).isPresent()) {
@@ -105,8 +106,11 @@ public class PersonalCertificateService extends SecurityService {
         personalModel.setSerialNumber(String.valueOf(parsedCertificate.getX509Certificate().getSerialNumber()));
 
         personalModel.setCertificateHash(parsedCertificate.getCertificateHash());
-        personalModel.setExpirationDate(LocalDateUtil.getFormattedDateForMongo(
-            LocalDateUtil.fromDate(parsedCertificate.getX509Certificate().getNotAfter())));
+        personalModel.setExpirationDate(
+            LocalDateUtil.getFormattedDateForMongo(
+                LocalDateUtil.fromDate(parsedCertificate.getX509Certificate().getNotAfter())
+            )
+        );
 
         personalRepository.createPersonalCertificate(personalModel);
     }
@@ -117,9 +121,7 @@ public class PersonalCertificateService extends SecurityService {
      * @param certificate the certificate to delete
      * @throws PersonalCertificateException thrown if certificate parse fail
      */
-    public void deletePersonalCertificateIfPresent(byte[] certificate)
-        throws PersonalCertificateException {
-
+    public void deletePersonalCertificateIfPresent(byte[] certificate) throws PersonalCertificateException {
         ParsedCertificate parsedCertificate = ParsedCertificate.parseCertificate(certificate);
 
         personalRepository.deletePersonalCertificate(parsedCertificate.getCertificateHash());
@@ -148,14 +150,18 @@ public class PersonalCertificateService extends SecurityService {
             createInvalidPersonalCertificateLogbook(permission);
             throw e;
         }
-        Optional<PersonalCertificateModel> model
-            = findPersonalCertificateByHash(parsedCertificate.getCertificateHash());
+        Optional<PersonalCertificateModel> model = findPersonalCertificateByHash(
+            parsedCertificate.getCertificateHash()
+        );
 
         if (model.isPresent()) {
             // Access  OK
             // FIXME story a creer : tracer certificat corrects identifiés.
-            LOGGER.debug("Access OK for permission {0} with valid personal certificate {1}",
-                permission, parsedCertificate.getCertificateHash());
+            LOGGER.debug(
+                "Access OK for permission {0} with valid personal certificate {1}",
+                permission,
+                parsedCertificate.getCertificateHash()
+            );
             return;
         }
 
@@ -167,8 +173,8 @@ public class PersonalCertificateService extends SecurityService {
     private Optional<PersonalCertificateModel> findPersonalCertificateByHash(String certificateHash)
         throws InvalidParseOperationException, PersonalCertificateException {
         //check validity of the  retrieved certificate from VITAM DB
-        Optional<PersonalCertificateModel> personalCertificateModelOptional
-            = personalRepository.findPersonalCertificateByHash(certificateHash);
+        Optional<PersonalCertificateModel> personalCertificateModelOptional =
+            personalRepository.findPersonalCertificateByHash(certificateHash);
 
         //check certificate validity
         if (personalCertificateModelOptional.isPresent()) {
@@ -179,11 +185,8 @@ public class PersonalCertificateService extends SecurityService {
             }
         }
 
-
         return personalCertificateModelOptional;
-
     }
-
 
     /**
      * @return list of identity models
@@ -194,9 +197,7 @@ public class PersonalCertificateService extends SecurityService {
     }
 
     private void createNoPersonalCertificateLogbook(String permission)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        InvalidParseOperationException {
-
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException, InvalidParseOperationException {
         final LogbookOperationParameters logbookParameters = getLogbookParametersKo();
 
         final ObjectNode evDetData = JsonHandler.createObjectNode();
@@ -211,9 +212,7 @@ public class PersonalCertificateService extends SecurityService {
     }
 
     private void createInvalidPersonalCertificateLogbook(String permission)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        InvalidParseOperationException {
-
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException, InvalidParseOperationException {
         final LogbookOperationParameters logbookParameters = getLogbookParametersKo();
 
         final ObjectNode evDetData = JsonHandler.createObjectNode();
@@ -227,8 +226,7 @@ public class PersonalCertificateService extends SecurityService {
     }
 
     private void createInvalidPersonalCertificateLogbook(ParsedCertificate parsedCertificate, String permission)
-        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException,
-        InvalidParseOperationException {
+        throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException, InvalidParseOperationException {
         final LogbookOperationParameters logbookParameters = getLogbookParametersKo();
         final ObjectNode evDetData = JsonHandler.createObjectNode();
         final ObjectNode msg = JsonHandler.createObjectNode();
@@ -247,9 +245,15 @@ public class PersonalCertificateService extends SecurityService {
     private LogbookOperationParameters getLogbookParametersKo() {
         GUID eip = GUIDFactory.newGUID();
 
-        return LogbookParameterHelper
-            .newLogbookOperationParameters(eip, PERSONAL_LOGBOOK_EVENT, eip, LogbookTypeProcess.CHECK,
-                StatusCode.KO, VitamLogbookMessages.getCodeOp(PERSONAL_LOGBOOK_EVENT, StatusCode.KO), eip);
+        return LogbookParameterHelper.newLogbookOperationParameters(
+            eip,
+            PERSONAL_LOGBOOK_EVENT,
+            eip,
+            LogbookTypeProcess.CHECK,
+            StatusCode.KO,
+            VitamLogbookMessages.getCodeOp(PERSONAL_LOGBOOK_EVENT, StatusCode.KO),
+            eip
+        );
     }
 
     @Override

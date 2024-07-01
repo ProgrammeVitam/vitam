@@ -51,5 +51,4 @@ public class ReportExportRequest {
     public void setFilename(String filename) {
         this.filename = filename;
     }
-
 }

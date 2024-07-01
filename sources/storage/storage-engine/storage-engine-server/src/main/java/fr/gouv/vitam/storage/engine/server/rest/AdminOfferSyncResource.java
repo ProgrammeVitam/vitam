@@ -80,9 +80,7 @@ public class AdminOfferSyncResource {
      * Constructor.
      */
     public AdminOfferSyncResource(StorageDistribution distribution, StorageConfiguration storageConfiguration) {
-
-        this(new OfferSyncService(distribution,
-            storageConfiguration));
+        this(new OfferSyncService(distribution, storageConfiguration));
     }
 
     /**
@@ -91,8 +89,7 @@ public class AdminOfferSyncResource {
      * @param offerSyncService
      */
     @VisibleForTesting
-    public AdminOfferSyncResource(
-        OfferSyncService offerSyncService) {
+    public AdminOfferSyncResource(OfferSyncService offerSyncService) {
         this.offerSyncService = offerSyncService;
     }
 
@@ -112,14 +109,18 @@ public class AdminOfferSyncResource {
         VitamThreadUtils.getVitamSession()
             .setRequestId(GUIDFactory.newRequestIdGUID(VitamConfiguration.getAdminTenant()));
 
-        if (null == offerPartialSyncRequest.getItemsToSynchronize() ||
-            offerPartialSyncRequest.getItemsToSynchronize().isEmpty()) {
+        if (
+            null == offerPartialSyncRequest.getItemsToSynchronize() ||
+            offerPartialSyncRequest.getItemsToSynchronize().isEmpty()
+        ) {
             LOGGER.info("Items to synchronize is empty");
             return Response.status(Response.Status.BAD_REQUEST)
                 .header(X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-                .entity(JsonHandler
-                    .unprettyPrint(
-                        JsonHandler.createObjectNode().put("Error", "ItemsToSynchronize parameter is empty")))
+                .entity(
+                    JsonHandler.unprettyPrint(
+                        JsonHandler.createObjectNode().put("Error", "ItemsToSynchronize parameter is empty")
+                    )
+                )
                 .build();
         }
 
@@ -130,9 +131,12 @@ public class AdminOfferSyncResource {
             throw new IllegalArgumentException(validateRequestMsg);
         }
 
-        boolean started = offerSyncService
-            .startSynchronization(offerPartialSyncRequest.getSourceOffer(), offerPartialSyncRequest.getTargetOffer(),
-                offerPartialSyncRequest.getStrategyId(), offerPartialSyncRequest.getItemsToSynchronize());
+        boolean started = offerSyncService.startSynchronization(
+            offerPartialSyncRequest.getSourceOffer(),
+            offerPartialSyncRequest.getTargetOffer(),
+            offerPartialSyncRequest.getStrategyId(),
+            offerPartialSyncRequest.getItemsToSynchronize()
+        );
 
         Response.Status status;
         if (started) {
@@ -142,9 +146,7 @@ public class AdminOfferSyncResource {
             LOGGER.warn("Another synchronization process is already running");
             status = Response.Status.CONFLICT;
         }
-        return Response.status(status)
-            .header(X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .build();
+        return Response.status(status).header(X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId()).build();
     }
 
     private String validateRequest(OfferPartialSyncRequest offerPartialSyncRequest) {
@@ -160,11 +162,13 @@ public class AdminOfferSyncResource {
             if (null == o.getFilenames() || o.getFilenames().isEmpty()) {
                 sb.append("filenames is required; ");
             } else {
-                o.getFilenames().forEach(f -> {
-                    if (Strings.isNullOrEmpty(f)) {
-                        sb.append("File is required; ");
-                    }
-                });
+                o
+                    .getFilenames()
+                    .forEach(f -> {
+                        if (Strings.isNullOrEmpty(f)) {
+                            sb.append("File is required; ");
+                        }
+                    });
             }
         }
 
@@ -179,11 +183,12 @@ public class AdminOfferSyncResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    @Operation(summary = "Start offer synchronization",
-        description = "Démarre la synchronisation des offres. Une seule synchronisation peut être démarré à la fois.")
+    @Operation(
+        summary = "Start offer synchronization",
+        description = "Démarre la synchronisation des offres. Une seule synchronisation peut être démarré à la fois."
+    )
     @WriteProtection(true)
     public Response startSynchronization(OfferSyncRequest offerSyncRequest) {
-
         ParametersChecker.checkParameter("source offer is mandatory.", offerSyncRequest.getSourceOffer());
         ParametersChecker.checkParameter("target offer is mandatory.", offerSyncRequest.getTargetOffer());
         if (offerSyncRequest.getSourceOffer().equals(offerSyncRequest.getTargetOffer())) {
@@ -197,19 +202,26 @@ public class AdminOfferSyncResource {
             throw new IllegalArgumentException("Invalid tenant " + offerSyncRequest.getTenantId());
         }
         VitamThreadUtils.getVitamSession().setTenantId(offerSyncRequest.getTenantId());
-        VitamThreadUtils.getVitamSession()
-            .setRequestId(GUIDFactory.newRequestIdGUID(offerSyncRequest.getTenantId()));
+        VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(offerSyncRequest.getTenantId()));
 
         DataCategory dataCategory = DataCategory.getByCollectionName(offerSyncRequest.getContainer());
 
-        LOGGER.info(String.format("Starting %s offer synchronization from the %s source offer with %d%n offset.",
-            offerSyncRequest.getTargetOffer(), offerSyncRequest.getSourceOffer(),
-            offerSyncRequest.getOffset()));
+        LOGGER.info(
+            String.format(
+                "Starting %s offer synchronization from the %s source offer with %d%n offset.",
+                offerSyncRequest.getTargetOffer(),
+                offerSyncRequest.getSourceOffer(),
+                offerSyncRequest.getOffset()
+            )
+        );
 
-        boolean started = offerSyncService
-            .startSynchronization(offerSyncRequest.getSourceOffer(), offerSyncRequest.getTargetOffer(),
-                offerSyncRequest.getStrategyId(), dataCategory,
-                offerSyncRequest.getOffset());
+        boolean started = offerSyncService.startSynchronization(
+            offerSyncRequest.getSourceOffer(),
+            offerSyncRequest.getTargetOffer(),
+            offerSyncRequest.getStrategyId(),
+            dataCategory,
+            offerSyncRequest.getOffset()
+        );
 
         Response.Status status;
         if (started) {
@@ -219,9 +231,7 @@ public class AdminOfferSyncResource {
             LOGGER.warn("Another synchronization process is already running");
             status = Response.Status.CONFLICT;
         }
-        return Response.status(status)
-            .header(X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .build();
+        return Response.status(status).header(X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId()).build();
     }
 
     /**
@@ -230,8 +240,10 @@ public class AdminOfferSyncResource {
     @Path(OFFER_SYNC_URI)
     @HEAD
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    @Operation(summary = "return if offer synchronization is running",
-        description = "Permet de récupérer le status de la synchronisation des offres (en cours ou non)")
+    @Operation(
+        summary = "return if offer synchronization is running",
+        description = "Permet de récupérer le status de la synchronisation des offres (en cours ou non)"
+    )
     @WriteProtection(true)
     public Response isOfferSynchronizationRunning() {
         return Response.ok().header("Running", this.offerSyncService.isRunning()).build();
@@ -244,8 +256,10 @@ public class AdminOfferSyncResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
-    @Operation(summary = "return last offer synchronization status",
-        description = "Permet de récupérer le status de la dernière synchronisation des offres (terminée ou en cours)")
+    @Operation(
+        summary = "return last offer synchronization status",
+        description = "Permet de récupérer le status de la dernière synchronisation des offres (terminée ou en cours)"
+    )
     @WriteProtection(true)
     public Response getLastOfferSynchronizationStatus() {
         OfferSyncStatus lastSynchronizationStatus = this.offerSyncService.getLastSynchronizationStatus();

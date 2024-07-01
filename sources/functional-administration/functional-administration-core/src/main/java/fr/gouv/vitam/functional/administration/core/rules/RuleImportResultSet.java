@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.functional.administration.core.rules;
 
-
 import fr.gouv.vitam.common.model.administration.FileRulesModel;
 
 import java.util.List;
@@ -40,10 +39,13 @@ public class RuleImportResultSet {
     private final List<FileRulesModel> usedRulesToUpdate;
     private final List<FileRulesModel> usedUpdateRulesForUpdateUnit;
 
-    public RuleImportResultSet(List<FileRulesModel> rulesToInsert,
+    public RuleImportResultSet(
+        List<FileRulesModel> rulesToInsert,
         List<FileRulesModel> rulesToUpdate,
-        List<FileRulesModel> unusedRulesToDelete, List<FileRulesModel> usedRulesToUpdate,
-        List<FileRulesModel> usedUpdateRulesForUpdateUnit) {
+        List<FileRulesModel> unusedRulesToDelete,
+        List<FileRulesModel> usedRulesToUpdate,
+        List<FileRulesModel> usedUpdateRulesForUpdateUnit
+    ) {
         this.rulesToInsert = rulesToInsert;
         this.rulesToUpdate = rulesToUpdate;
         this.usedRulesToUpdate = usedRulesToUpdate;

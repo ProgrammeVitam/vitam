@@ -49,6 +49,7 @@ public class CountingIterator<T> implements Iterator<CountingIterator.EntryWithI
     }
 
     public static class EntryWithIndex<T> {
+
         private final T value;
         private final int index;
 

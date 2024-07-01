@@ -31,16 +31,13 @@ import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-
 public class BackUpServiceWorkSpaceExceptionTest {
 
     @Test
     public final void backUpServiceWorkSpace() {
-
         assertEquals("", new BackupServiceException("").getMessage());
         assertEquals("test", new BackupServiceException("test").getMessage());
         assertNotNull(new BackupServiceException(new Exception()).getCause());
         assertNotNull(new BackupServiceException("test", new Exception()).getCause());
     }
-
 }

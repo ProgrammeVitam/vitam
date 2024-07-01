@@ -42,12 +42,14 @@ public class ProcessEngineTest extends ProcessEngineImpl {
 
     private CompletableFuture<ItemStatus> currentTask;
 
-    public ProcessEngineTest(WorkerParameters workerParameters, ProcessDistributor processDistributor,
+    public ProcessEngineTest(
+        WorkerParameters workerParameters,
+        ProcessDistributor processDistributor,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory
+    ) {
         super(workerParameters, processDistributor, logbookOperationsClientFactory, workspaceClientFactory);
     }
-
 
     @Override
     public CompletableFuture<ItemStatus> start(ProcessStep step, WorkerParameters workerParameters)
@@ -59,5 +61,4 @@ public class ProcessEngineTest extends ProcessEngineImpl {
     public CompletableFuture<ItemStatus> getCurrentTask() {
         return currentTask;
     }
-
 }

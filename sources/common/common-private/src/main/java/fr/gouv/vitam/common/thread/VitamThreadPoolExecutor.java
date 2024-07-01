@@ -41,7 +41,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-
 public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements ThreadPool {
 
     // KWA TODO: SPLIT this class into two : the Jetty ThreadPool & the override of the ThreadPoolExecutor ; but first
@@ -50,15 +49,24 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
     private static final VitamThreadPoolExecutor VITAM_THREAD_POOL_EXECUTOR = new VitamThreadPoolExecutor();
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamThreadPoolExecutor.class);
 
-
-    public VitamThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
-        BlockingQueue<Runnable> workQueue) {
+    public VitamThreadPoolExecutor(
+        int corePoolSize,
+        int maximumPoolSize,
+        long keepAliveTime,
+        TimeUnit unit,
+        BlockingQueue<Runnable> workQueue
+    ) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, VitamThreadFactory.getInstance());
     }
 
     public VitamThreadPoolExecutor() {
-        this(VitamConfiguration.getMinimumThreadPoolSize(), Integer.MAX_VALUE, 60L, TimeUnit.SECONDS,
-            new SynchronousQueue<>());
+        this(
+            VitamConfiguration.getMinimumThreadPoolSize(),
+            Integer.MAX_VALUE,
+            60L,
+            TimeUnit.SECONDS,
+            new SynchronousQueue<>()
+        );
     }
 
     /**
@@ -70,7 +78,6 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
         this(minimumAvailableThreads, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
     }
 
-
     /**
      * Default instance
      *
@@ -79,7 +86,6 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
     public static VitamThreadPoolExecutor getDefaultExecutor() {
         return VITAM_THREAD_POOL_EXECUTOR;
     }
-
 
     //////// ThreadPoolExecutor part of this class ////////
 
@@ -90,8 +96,6 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
      */
     @Override
     public void execute(Runnable command) {
-
-
         final Thread currentThread = Thread.currentThread();
 
         if (LOGGER.isDebugEnabled()) {
@@ -107,8 +111,12 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
         if (currentThread instanceof VitamThread) {
             final VitamSession session = VitamSession.from(((VitamThread) currentThread).getVitamSession());
             vitamRunnable = new VitamRunnable(command, session);
-            LOGGER.debug("VitamSession {} propagated from thread {} to runnable {}", session, currentThread.getName(),
-                vitamRunnable);
+            LOGGER.debug(
+                "VitamSession {} propagated from thread {} to runnable {}",
+                session,
+                currentThread.getName(),
+                vitamRunnable
+            );
         } else {
             vitamRunnable = new VitamRunnable(command);
         }
@@ -158,7 +166,6 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
         }
     }
 
-
     /**
      * <p>
      * Extract VitamSession from the given runnable, and sets it into the target (aka. current) Thread.
@@ -181,17 +188,23 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
                     LOGGER.debug("VitamSession was null in runnable {} ; nothing to propagate.", r);
                 } else {
                     ((VitamThread) currentThread).getVitamSession().mutateFrom(session);
-                    LOGGER.debug("VitamSession {} propagated from runnable {} to thread {}", session, r,
-                        currentThread.getName());
+                    LOGGER.debug(
+                        "VitamSession {} propagated from runnable {} to thread {}",
+                        session,
+                        r,
+                        currentThread.getName()
+                    );
                 }
             } else {
                 LOGGER.warn(
                     "Wrong state, eventually coding error : found a thread {} that was not a VitamThread in a VitamThreadPoolExecutor...",
-                    currentThread.getName());
+                    currentThread.getName()
+                );
             }
         } else {
             LOGGER.warn(
-                "Wrong state, eventually coding error : inside a VitamThreadPoolExecutor, trying to setUp a thread with a Runnable that was not a VitamRunnable ...");
+                "Wrong state, eventually coding error : inside a VitamThreadPoolExecutor, trying to setUp a thread with a Runnable that was not a VitamRunnable ..."
+            );
         }
         super.beforeExecute(t, r);
     }
@@ -215,13 +228,17 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
         final Thread currentThread = Thread.currentThread();
         if (currentThread instanceof VitamThread) {
             final VitamThread vitamThread = (VitamThread) currentThread;
-            LOGGER.debug("VitamSession {} unregistered in thread {}", vitamThread.getVitamSession(),
-                currentThread.getName());
+            LOGGER.debug(
+                "VitamSession {} unregistered in thread {}",
+                vitamThread.getVitamSession(),
+                currentThread.getName()
+            );
             vitamThread.getVitamSession().erase();
         } else {
             LOGGER.warn(
                 "Wrong state, eventually coding error : found a thread {} that was not a VitamThread in a VitamThreadPoolExecutor...",
-                currentThread.getName());
+                currentThread.getName()
+            );
         }
     }
 
@@ -248,5 +265,4 @@ public class VitamThreadPoolExecutor extends ThreadPoolExecutor implements Threa
     public boolean isLowOnThreads() {
         return false;
     }
-
 }

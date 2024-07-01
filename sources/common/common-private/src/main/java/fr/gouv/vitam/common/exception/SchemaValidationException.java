@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.exception;
  * Exception to be thrown when validation error occurs
  **/
 public class SchemaValidationException extends VitamException {
+
     private static final long serialVersionUID = -944197890309351793L;
 
     /**

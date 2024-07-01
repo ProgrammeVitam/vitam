@@ -40,8 +40,7 @@ public class MapOfObjects {
     private Map<String, String> binaryObjectsToStore;
     private Map<String, JsonNode> objectStorageInfos;
 
-    public MapOfObjects() {
-    }
+    public MapOfObjects() {}
 
     public JsonNode getJsonOG() {
         return jsonOG;

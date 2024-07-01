@@ -78,5 +78,4 @@ public class PluginConfiguration {
             throw new InvocationPluginException("could not instance plugin", e);
         }
     }
-
 }

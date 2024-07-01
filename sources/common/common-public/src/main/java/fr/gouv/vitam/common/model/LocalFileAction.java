@@ -32,7 +32,6 @@ package fr.gouv.vitam.common.model;
  * Different constants handling local file after ingest
  */
 public enum LocalFileAction {
-
     /**
      * DELETE : the local file will be deleted
      */

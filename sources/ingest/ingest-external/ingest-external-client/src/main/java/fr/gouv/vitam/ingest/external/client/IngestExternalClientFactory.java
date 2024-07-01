@@ -39,17 +39,16 @@ import java.io.IOException;
  * Ingest external client factory use to get client by type "rest" or "mock"
  */
 public class IngestExternalClientFactory extends VitamClientFactory<IngestExternalClient> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestExternalClientFactory.class);
     private static final IngestExternalClientFactory INGEST_EXTERNAL_CLIENT_FACTORY = new IngestExternalClientFactory();
     private static final String CONFIGURATION_FILENAME = "ingest-external-client.conf";
-
 
     private static final String RESOURCE_PATH = "/ingest-external/v1";
 
     private IngestExternalClientFactory() {
         super(changeConfigurationFile(CONFIGURATION_FILENAME), RESOURCE_PATH);
     }
-
 
     /**
      * Change client configuration from a Yaml files
@@ -59,17 +58,15 @@ public class IngestExternalClientFactory extends VitamClientFactory<IngestExtern
     static SecureClientConfiguration changeConfigurationFile(String configurationPath) {
         SecureClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                SecureClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                SecureClientConfigurationImpl.class
+            );
         } catch (final IOException fnf) {
-            LOGGER
-                .debug("Error when retrieving configuration file {}, using mock",
-                    CONFIGURATION_FILENAME,
-                    fnf);
+            LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME, fnf);
         }
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file {}, using mock",
-                CONFIGURATION_FILENAME);
+            LOGGER.error("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME);
         }
         return configuration;
     }

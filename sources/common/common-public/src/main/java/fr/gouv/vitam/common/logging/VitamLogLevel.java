@@ -49,5 +49,5 @@ public enum VitamLogLevel {
     /**
      * 'ERROR' log level.
      */
-    ERROR
+    ERROR,
 }

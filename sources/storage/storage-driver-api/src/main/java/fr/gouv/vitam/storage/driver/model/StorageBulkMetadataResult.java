@@ -43,14 +43,12 @@ public class StorageBulkMetadataResult {
         return objectMetadata;
     }
 
-    public StorageBulkMetadataResult setObjectMetadata(
-        List<StorageBulkMetadataResultEntry> objectMetadata) {
+    public StorageBulkMetadataResult setObjectMetadata(List<StorageBulkMetadataResultEntry> objectMetadata) {
         this.objectMetadata = objectMetadata;
         return this;
     }
 
-    public StorageBulkMetadataResult(
-        List<StorageBulkMetadataResultEntry> objectMetadata) {
+    public StorageBulkMetadataResult(List<StorageBulkMetadataResultEntry> objectMetadata) {
         this.objectMetadata = objectMetadata;
     }
 }

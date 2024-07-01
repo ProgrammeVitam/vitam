@@ -47,28 +47,23 @@ public class ParametersCheckerTest {
         try {
             ParametersChecker.checkParameter("test message", (String[]) null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             ParametersChecker.checkParameter("test message", null, "notnull");
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             ParametersChecker.checkParameter("test message", "notnull", null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             ParametersChecker.checkParameter("test message", "", "notnull");
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             ParametersChecker.checkParameter("test message", "notnull", "");
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             ParametersChecker.checkParameter("test message", "notNull", "notnull");
             ParametersChecker.checkParameter("test message", "notnull");
@@ -86,18 +81,15 @@ public class ParametersCheckerTest {
         try {
             ParametersChecker.checkParameterNullOnly("test message", (String[]) null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             ParametersChecker.checkParameterNullOnly("test message", null, "notnull");
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             ParametersChecker.checkParameterNullOnly("test message", "notnull", null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             ParametersChecker.checkParameterNullOnly("test message", "", "notnull");
         } catch (final IllegalArgumentException e) { // NOSONAR
@@ -125,19 +117,16 @@ public class ParametersCheckerTest {
         try {
             ParametersChecker.checkParameter("test message", (Object[]) null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         final List<String> list = new ArrayList<>();
         try {
             ParametersChecker.checkParameter("test message", null, list);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             ParametersChecker.checkParameter("test message", list, null);
             fail(ResourcesPublicUtilTest.SHOULD_RAIZED_ILLEGAL_ARGUMENT_EXCEPTION);
-        } catch (final IllegalArgumentException e) { // NOSONAR
-        }
+        } catch (final IllegalArgumentException e) {} // NOSONAR
         try {
             ParametersChecker.checkParameter("test message", list, list);
             ParametersChecker.checkParameter("test message", list);

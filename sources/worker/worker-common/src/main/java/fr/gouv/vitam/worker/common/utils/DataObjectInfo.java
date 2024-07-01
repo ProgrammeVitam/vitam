@@ -34,6 +34,7 @@ import fr.gouv.vitam.common.digest.DigestType;
  * The class DataObjectInfo is stored all information of the DataObjectInfo
  */
 public final class DataObjectInfo {
+
     private String id;
     private String version;
     private int rank = 1;
@@ -136,7 +137,6 @@ public final class DataObjectInfo {
     public DigestType getAlgo() {
         return algo;
     }
-
 
     /**
      * @param algo digest algorithm

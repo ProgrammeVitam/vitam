@@ -47,5 +47,4 @@ public enum LifecycleState {
     public boolean isEnabled() {
         return this == TEMPORARY || this == FINAL || this == FLUSH_LFC;
     }
-
 }

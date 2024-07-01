@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
  */
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class InheritedRule {
+
     private static final String MAX_END_DATE = "MaxEndDate";
     private static final String END_DATES = "EndDates";
     private static final String RULES = "Rules";
@@ -67,16 +68,19 @@ public class InheritedRule {
 
     @JsonProperty(END_DATES)
     private Map<String, LocalDate> ruleIdToRule = new HashMap<>();
+
     @JsonProperty(RULES)
     private List<ComputedInheritedRuleModel> rules = new ArrayList<>();
 
-    public InheritedRule() {
+    public InheritedRule() {}
 
-    }
-
-    public InheritedRule(LocalDate maxEndDate, Map<String, LocalDate> ruleIdToRule,
-        List<ComputedInheritedRuleModel> rules, RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin,
-        Set<String> inheritedRuleIds) {
+    public InheritedRule(
+        LocalDate maxEndDate,
+        Map<String, LocalDate> ruleIdToRule,
+        List<ComputedInheritedRuleModel> rules,
+        RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin,
+        Set<String> inheritedRuleIds
+    ) {
         this.maxEndDate = maxEndDate;
         this.ruleIdToRule = MapUtils.emptyIfNull(ruleIdToRule);
         this.rules = ListUtils.emptyIfNull(rules);
@@ -99,7 +103,9 @@ public class InheritedRule {
     List<String> parsePropertiesByName(String propertyName, Properties properties) {
         PropertyValue property = properties.getPropertyValue(propertyName);
         if (property != null) {
-            return property.getValues().stream()
+            return property
+                .getValues()
+                .stream()
                 .map(object -> Objects.toString(object, null))
                 .collect(Collectors.toList());
         }
@@ -127,8 +133,7 @@ public class InheritedRule {
         return ruleCategoryInheritanceOrigin;
     }
 
-    public InheritedRule setRuleCategoryInheritanceOrigin(
-        RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin) {
+    public InheritedRule setRuleCategoryInheritanceOrigin(RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin) {
         this.ruleCategoryInheritanceOrigin = ruleCategoryInheritanceOrigin;
         return this;
     }

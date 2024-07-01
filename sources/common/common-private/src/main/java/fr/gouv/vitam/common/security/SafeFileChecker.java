@@ -90,12 +90,11 @@ public class SafeFileChecker {
      */
     public static void checkSafeRessourceFilePath(String resourceName) throws IllegalPathException {
         // Validate ressource name using dummy root path
-        checkSafePath(VitamConfiguration.getVitamConfigFolder(), new String[] {resourceName}, false);
+        checkSafePath(VitamConfiguration.getVitamConfigFolder(), new String[] { resourceName }, false);
     }
 
     private static File checkSafePath(String safeRootPath, String[] subPaths, boolean isDirectory)
         throws IllegalPathException {
-
         if (StringUtils.isEmpty(safeRootPath)) {
             throw new IllegalPathException("Null or empty root path");
         }
@@ -115,7 +114,6 @@ public class SafeFileChecker {
         finalPath = finalPath + Joiner.on(File.separator).join(subPaths);
 
         try {
-
             // Check filename
             if (!isDirectory) {
                 if (ArrayUtils.isEmpty(subPaths)) {
@@ -141,15 +139,16 @@ public class SafeFileChecker {
             File sanityCheckedFile = doSanityCheck(finalPath);
 
             // Avoid canonical path check for local environment due to symbolic link used for conf files
-            if (VitamConfiguration.getEnvironmentName() != null &&
-                VitamConfiguration.getEnvironmentName().equals(LOCAL_ENVIRONMENT)) {
+            if (
+                VitamConfiguration.getEnvironmentName() != null &&
+                VitamConfiguration.getEnvironmentName().equals(LOCAL_ENVIRONMENT)
+            ) {
                 return sanityCheckedFile;
             }
 
             // Path Traversal check
             doCanonicalPathCheck(sanityCheckedFile);
             return sanityCheckedFile;
-
         } catch (Exception e) {
             String error = "Check path traversal error: '" + finalPath + "'";
             alertService.createAlert(error);
@@ -177,8 +176,7 @@ public class SafeFileChecker {
         String canonicalPath = file.getCanonicalPath();
 
         if (!path.equals(canonicalPath)) {
-            throw new IOException(
-                String.format("Invalid path (%s) did not match canonical : %s", path, canonicalPath));
+            throw new IOException(String.format("Invalid path (%s) did not match canonical : %s", path, canonicalPath));
         }
     }
 }

@@ -33,26 +33,39 @@ import fr.gouv.vitam.common.model.objectgroup.StorageJson;
  * AuditObject
  */
 public class AuditObject {
+
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("opi")
     private String opi;
+
     @JsonProperty("qualifier")
     private String qualifier;
+
     @JsonProperty("version")
     private String version;
+
     @JsonProperty("MessageDigest")
     private String messageDigest;
+
     @JsonProperty("Algorithm")
     private String algorithm;
+
     @JsonProperty("storage")
     private StorageJson storage;
 
-    public AuditObject() {
-    }
+    public AuditObject() {}
 
-    public AuditObject(String id, String opi, String qualifier, String version, String messageDigest,
-        String algorithm, StorageJson storage) {
+    public AuditObject(
+        String id,
+        String opi,
+        String qualifier,
+        String version,
+        String messageDigest,
+        String algorithm,
+        StorageJson storage
+    ) {
         super();
         this.id = id;
         this.opi = opi;
@@ -118,5 +131,4 @@ public class AuditObject {
     public void setStorage(StorageJson storage) {
         this.storage = storage;
     }
-
 }

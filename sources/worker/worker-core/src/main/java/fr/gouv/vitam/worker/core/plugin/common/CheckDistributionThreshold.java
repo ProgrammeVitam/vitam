@@ -43,15 +43,12 @@ public class CheckDistributionThreshold extends CheckDistributionThresholdBase {
     }
 
     @VisibleForTesting
-    public CheckDistributionThreshold(
-        MetaDataClientFactory metaDataClientFactory) {
+    public CheckDistributionThreshold(MetaDataClientFactory metaDataClientFactory) {
         super(metaDataClientFactory);
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-        return checkThreshold(handler, VitamConfiguration.getDistributionThreshold(),
-            CHECK_DISTRIBUTION_THRESHOLD);
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
+        return checkThreshold(handler, VitamConfiguration.getDistributionThreshold(), CHECK_DISTRIBUTION_THRESHOLD);
     }
 }

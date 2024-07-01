@@ -28,5 +28,5 @@ package fr.gouv.vitam.collect.common.dto;
 
 public enum BulkAtomicUpdateStatus {
     OK,
-    KO
+    KO,
 }

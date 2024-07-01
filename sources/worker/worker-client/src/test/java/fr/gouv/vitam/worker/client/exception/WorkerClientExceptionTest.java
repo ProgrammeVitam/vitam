@@ -58,5 +58,4 @@ public class WorkerClientExceptionTest {
         assertNotNull(new WorkerNotFoundClientException(exception));
         assertNotNull(new WorkerNotFoundClientException(MESSAGE, exception));
     }
-
 }

@@ -59,25 +59,24 @@ public class BusinessApplication extends Application {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final WebApplicationConfig configuration =
-                PropertiesUtils.readYaml(yamlIS, WebApplicationConfig.class);
+            final WebApplicationConfig configuration = PropertiesUtils.readYaml(yamlIS, WebApplicationConfig.class);
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
 
             Set<String> permissions = getMethodsAnnotatedWith(WebApplicationResource.class, RequiresPermissions.class);
 
-            Set<String> methodsAnnotatedWith =
-                getMethodsAnnotatedWith(WebPreservationResource.class, RequiresPermissions.class);
+            Set<String> methodsAnnotatedWith = getMethodsAnnotatedWith(
+                WebPreservationResource.class,
+                RequiresPermissions.class
+            );
             permissions.addAll(methodsAnnotatedWith);
 
             singletons.add(new WebApplicationResource(permissions, configuration));
             singletons.add(new WebPreservationResource());
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Override

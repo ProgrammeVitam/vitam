@@ -90,6 +90,7 @@ import static org.elasticsearch.index.query.QueryBuilders.termQuery;
  * Implementation for Elasticsearch
  */
 public class VitamElasticsearchRepository {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VitamElasticsearchRepository.class);
     /**
      * Identifier
@@ -112,8 +113,10 @@ public class VitamElasticsearchRepository {
      * @param client the es client
      * @param elasticsearchIndexAliasResolver the name of the index
      */
-    public VitamElasticsearchRepository(RestHighLevelClient client,
-        ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver) {
+    public VitamElasticsearchRepository(
+        RestHighLevelClient client,
+        ElasticsearchIndexAliasResolver elasticsearchIndexAliasResolver
+    ) {
         this.client = client;
         this.elasticsearchIndexAliasResolver = elasticsearchIndexAliasResolver;
     }
@@ -133,7 +136,8 @@ public class VitamElasticsearchRepository {
                 .source(source, XContentType.JSON)
                 .setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE)
                 .timeout(
-                    TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()))
+                    TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds())
+                )
                 .opType(DocWriteRequest.OpType.INDEX);
 
             IndexResponse indexResponse;
@@ -150,7 +154,6 @@ public class VitamElasticsearchRepository {
             }
 
             return handleFailures(indexResponse);
-
         } finally {
             internalDocument.put(VitamDocument.ID, id);
             if (Objects.nonNull(score)) {
@@ -163,9 +166,11 @@ public class VitamElasticsearchRepository {
         String error = null;
         ReplicationResponse.ShardInfo shardInfo = indexResponse.getShardInfo();
         if (shardInfo.getTotal() != shardInfo.getSuccessful()) {
-            error = String
-                .format("Exception occurred : total shards %s, successful shards %s", shardInfo.getTotal(),
-                    shardInfo.getSuccessful());
+            error = String.format(
+                "Exception occurred : total shards %s, successful shards %s",
+                shardInfo.getTotal(),
+                shardInfo.getSuccessful()
+            );
         }
         if (shardInfo.getFailed() > 0) {
             StringBuilder failures = new StringBuilder();
@@ -176,10 +181,8 @@ public class VitamElasticsearchRepository {
             error = String.format("Exception occurred caused by : %s", failures.toString());
         }
 
-
         if (null == error) {
-            error =
-                String.format("Insert Documents Exception caused by : %s", indexResponse.getResult().toString());
+            error = String.format("Insert Documents Exception caused by : %s", indexResponse.getResult().toString());
         }
 
         LOGGER.error(error);
@@ -206,9 +209,7 @@ public class VitamElasticsearchRepository {
 
             String aliasName = this.elasticsearchIndexAliasResolver.resolveIndexName(tenant).getName();
 
-            bulkRequest.add(new IndexRequest(aliasName)
-                .id(id)
-                .source(source, XContentType.JSON));
+            bulkRequest.add(new IndexRequest(aliasName).id(id).source(source, XContentType.JSON));
         });
 
         if (bulkRequest.numberOfActions() != 0) {
@@ -249,9 +250,7 @@ public class VitamElasticsearchRepository {
 
             final String source = BsonHelper.stringify(internalDocument);
 
-            bulkRequest.add(new IndexRequest(aliasName)
-                .id(id)
-                .source(source, XContentType.JSON));
+            bulkRequest.add(new IndexRequest(aliasName).id(id).source(source, XContentType.JSON));
         });
 
         if (bulkRequest.numberOfActions() != 0) {
@@ -296,14 +295,12 @@ public class VitamElasticsearchRepository {
             }
         }
         if (vitamDocument.get(RIGHT_STATE_ID) != null) {
-            String rightsStatementIdentifier =
-                (String) vitamDocument.get(RIGHT_STATE_ID);
+            String rightsStatementIdentifier = (String) vitamDocument.get(RIGHT_STATE_ID);
             LOGGER.debug(rightsStatementIdentifier);
             try {
                 JsonNode rightsStatementIdentifierNode = JsonHandler.getFromString(rightsStatementIdentifier);
                 vitamDocument.remove(RIGHT_STATE_ID);
-                vitamDocument.put(RIGHT_STATE_ID,
-                    rightsStatementIdentifierNode);
+                vitamDocument.put(RIGHT_STATE_ID, rightsStatementIdentifierNode);
             } catch (InvalidParseOperationException e) {
                 LOGGER.warn("rightsStatementIdentifier is not a json compatible field", e);
             }
@@ -312,22 +309,19 @@ public class VitamElasticsearchRepository {
         if (eventDocuments != null) {
             for (Document eventDocument : eventDocuments) {
                 if (eventDocument.getString(EV_DET_DATA) != null) {
-                    String eventEvDetDataString =
-                        eventDocument.getString(EV_DET_DATA);
+                    String eventEvDetDataString = eventDocument.getString(EV_DET_DATA);
                     Document eventEvDetDataDocument = Document.parse(eventEvDetDataString);
                     eventDocument.remove(EV_DET_DATA);
                     eventDocument.put(EV_DET_DATA, eventEvDetDataDocument);
                 }
                 if (eventDocument.getString(RIGHT_STATE_ID) != null) {
-                    String eventrightsStatementIdentifier =
-                        eventDocument.getString(RIGHT_STATE_ID);
+                    String eventrightsStatementIdentifier = eventDocument.getString(RIGHT_STATE_ID);
                     Document eventEvDetDataDocument = Document.parse(eventrightsStatementIdentifier);
                     eventDocument.remove(RIGHT_STATE_ID);
                     eventDocument.put(RIGHT_STATE_ID, eventEvDetDataDocument);
                 }
                 if (eventDocument.getString(AG_ID_EXT) != null) {
-                    String eventagIdExt =
-                        eventDocument.getString(AG_ID_EXT);
+                    String eventagIdExt = eventDocument.getString(AG_ID_EXT);
                     Document eventEvDetDataDocument = Document.parse(eventagIdExt);
                     eventDocument.remove(AG_ID_EXT);
                     eventDocument.put(AG_ID_EXT, eventEvDetDataDocument);
@@ -351,15 +345,13 @@ public class VitamElasticsearchRepository {
         try {
             deleteResponse = client.delete(request, RequestOptions.DEFAULT);
         } catch (IOException | ElasticsearchException e) {
-            if (e instanceof ElasticsearchException &&
-                ((ElasticsearchException) e).status() == RestStatus.NOT_FOUND) {
+            if (e instanceof ElasticsearchException && ((ElasticsearchException) e).status() == RestStatus.NOT_FOUND) {
                 //Nothing to do
                 return;
             }
 
             throw new DatabaseException(e);
         }
-
 
         DocWriteResponse.Result result = deleteResponse.getResult();
         switch (result) {
@@ -369,7 +361,6 @@ public class VitamElasticsearchRepository {
             default:
                 handleFailures(deleteResponse);
         }
-
     }
 
     public long purge(Integer tenant) throws DatabaseException {
@@ -389,14 +380,15 @@ public class VitamElasticsearchRepository {
             request.setConflicts("proceed");
             request.setQuery(qb);
             request.setBatchSize(VitamConfiguration.getMaxElasticsearchBulk());
-            request
-                .setScroll(TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds()));
-            request.setTimeout(TimeValue.timeValueMillis(
-                VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds()));
+            request.setScroll(
+                TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds())
+            );
+            request.setTimeout(
+                TimeValue.timeValueMillis(VitamConfiguration.getElasticSearchTimeoutWaitRequestInMilliseconds())
+            );
             request.setRefresh(true);
 
-            BulkByScrollResponse bulkResponse =
-                client.deleteByQuery(request, RequestOptions.DEFAULT);
+            BulkByScrollResponse bulkResponse = client.deleteByQuery(request, RequestOptions.DEFAULT);
 
             TimeValue timeTaken = bulkResponse.getTook();
             boolean timedOut = bulkResponse.isTimedOut();
@@ -408,15 +400,35 @@ public class VitamElasticsearchRepository {
             long bulkRetries = bulkResponse.getBulkRetries();
             long searchRetries = bulkResponse.getSearchRetries();
             TimeValue throttledMillis = bulkResponse.getStatus().getThrottled();
-            TimeValue throttledUntilMillis =
-                bulkResponse.getStatus().getThrottledUntil();
+            TimeValue throttledUntilMillis = bulkResponse.getStatus().getThrottledUntil();
 
             LOGGER.debug(
-                "Purge : timeTaken (" + timeTaken + "), timedOut (" + timedOut + "), totalDocs (" + totalDocs + ")," +
-                    " deletedDocs (" + deletedDocs + "), batches (" + batches + "), noops (" + noops +
-                    "), versionConflicts (" + versionConflicts + ")" +
-                    "bulkRetries (" + bulkRetries + "), searchRetries (" + searchRetries + "),  throttledMillis(" +
-                    throttledMillis + "), throttledUntilMillis(" + throttledUntilMillis + ")");
+                "Purge : timeTaken (" +
+                timeTaken +
+                "), timedOut (" +
+                timedOut +
+                "), totalDocs (" +
+                totalDocs +
+                ")," +
+                " deletedDocs (" +
+                deletedDocs +
+                "), batches (" +
+                batches +
+                "), noops (" +
+                noops +
+                "), versionConflicts (" +
+                versionConflicts +
+                ")" +
+                "bulkRetries (" +
+                bulkRetries +
+                "), searchRetries (" +
+                searchRetries +
+                "),  throttledMillis(" +
+                throttledMillis +
+                "), throttledUntilMillis(" +
+                throttledUntilMillis +
+                ")"
+            );
 
             List<ScrollableHitSource.SearchFailure> searchFailures = bulkResponse.getSearchFailures();
             if (CollectionUtils.isNotEmpty(searchFailures)) {
@@ -434,7 +446,6 @@ public class VitamElasticsearchRepository {
         }
     }
 
-
     public long purge() throws DatabaseException {
         String index = this.elasticsearchIndexAliasResolver.resolveIndexName(null).getName();
         QueryBuilder qb = matchAllQuery();
@@ -445,9 +456,7 @@ public class VitamElasticsearchRepository {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, id);
 
         String index = this.elasticsearchIndexAliasResolver.resolveIndexName(tenant).getName();
-        GetRequest request = new GetRequest(index)
-            .id(id)
-            .fetchSourceContext(FetchSourceContext.FETCH_SOURCE);
+        GetRequest request = new GetRequest(index).id(id).fetchSourceContext(FetchSourceContext.FETCH_SOURCE);
         GetResponse response;
         try {
             response = client.get(request, RequestOptions.DEFAULT);
@@ -498,20 +507,19 @@ public class VitamElasticsearchRepository {
         return Optional.empty();
     }
 
-    public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant)
-        throws DatabaseException {
+    public Optional<Document> findByIdentifierAndTenant(String identifier, Integer tenant) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED, tenant);
 
         try {
             String aliasName = this.elasticsearchIndexAliasResolver.resolveIndexName(tenant).getName();
-            QueryBuilder qb = boolQuery().must(termQuery(IDENTIFIER, identifier))
+            QueryBuilder qb = boolQuery()
+                .must(termQuery(IDENTIFIER, identifier))
                 .must(termQuery(VitamDocument.TENANT_ID, tenant));
 
             return handleSearch(aliasName, qb);
         } catch (IOException e) {
             throw new DatabaseException("Search by identifier and tenant exception", e);
         }
-
     }
 
     private Optional<Document> handleSearch(String index, QueryBuilder qb) throws IOException, DatabaseException {
@@ -529,9 +537,10 @@ public class VitamElasticsearchRepository {
     }
 
     public SearchResponse search(String index, QueryBuilder qb) throws IOException {
-        SearchSourceBuilder searchSourceBuilder =
-            SearchSourceBuilder.searchSource().query(qb).size(GlobalDatas.LIMIT_LOAD)
-                .sort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC);
+        SearchSourceBuilder searchSourceBuilder = SearchSourceBuilder.searchSource()
+            .query(qb)
+            .size(GlobalDatas.LIMIT_LOAD)
+            .sort(FieldSortBuilder.DOC_FIELD_NAME, SortOrder.ASC);
 
         SearchRequest searchRequest = new SearchRequest()
             .indices(index)
@@ -542,8 +551,7 @@ public class VitamElasticsearchRepository {
         return client.search(searchRequest, RequestOptions.DEFAULT);
     }
 
-    public Optional<Document> findByIdentifier(String identifier)
-        throws DatabaseException {
+    public Optional<Document> findByIdentifier(String identifier) throws DatabaseException {
         ParametersChecker.checkParameter(ALL_PARAMS_REQUIRED);
         String index = this.elasticsearchIndexAliasResolver.resolveIndexName(null).getName();
         try {
@@ -551,25 +559,24 @@ public class VitamElasticsearchRepository {
         } catch (IOException e) {
             throw new DatabaseException("Search by identifier exception", e);
         }
-
     }
 
     public void delete(List<String> ids, int tenant) throws DatabaseException {
-
         String index = this.elasticsearchIndexAliasResolver.resolveIndexName(tenant).getName();
-        Iterator<List<String>> idIterator =
-            Iterators.partition(ids.iterator(), VitamConfiguration.getMaxElasticsearchBulk());
+        Iterator<List<String>> idIterator = Iterators.partition(
+            ids.iterator(),
+            VitamConfiguration.getMaxElasticsearchBulk()
+        );
 
         while (idIterator.hasNext()) {
-
             BulkRequest bulkRequest = new BulkRequest();
             for (String id : idIterator.next()) {
                 bulkRequest.add(new DeleteRequest(index, id));
             }
 
-            WriteRequest.RefreshPolicy refreshPolicy = idIterator.hasNext() ?
-                WriteRequest.RefreshPolicy.NONE :
-                WriteRequest.RefreshPolicy.IMMEDIATE;
+            WriteRequest.RefreshPolicy refreshPolicy = idIterator.hasNext()
+                ? WriteRequest.RefreshPolicy.NONE
+                : WriteRequest.RefreshPolicy.IMMEDIATE;
 
             bulkRequest.setRefreshPolicy(refreshPolicy);
 
@@ -583,7 +590,6 @@ public class VitamElasticsearchRepository {
 
                 if (bulkResponse.hasFailures()) {
                     throw new DatabaseException("ES delete in error: " + bulkResponse.buildFailureMessage());
-
                 }
             }
         }

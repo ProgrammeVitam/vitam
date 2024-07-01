@@ -71,7 +71,6 @@ public class RuleMapper {
      */
     public <T extends CommonRule> T fillCommonRule(RuleCategoryModel ruleCategory, Supplier<T> commonRuleSupplier)
         throws DatatypeConfigurationException {
-
         if (ruleCategory == null) {
             return null;
         }
@@ -113,8 +112,8 @@ public class RuleMapper {
             crt.setNeedReassessingAuthorization(ruleCategory.isNeedReassessingAuthorization());
             String classificationReassessingDate = ruleCategory.getClassificationReassessingDate();
             if (ParametersChecker.isNotEmpty(classificationReassessingDate)) {
-                XMLGregorianCalendar xmlGregorianCalendar =
-                    newInstance().newXMLGregorianCalendar(classificationReassessingDate);
+                XMLGregorianCalendar xmlGregorianCalendar = newInstance()
+                    .newXMLGregorianCalendar(classificationReassessingDate);
                 crt.setClassificationReassessingDate(xmlGregorianCalendar);
             }
         }
@@ -138,9 +137,7 @@ public class RuleMapper {
         return commonRule;
     }
 
-    public HoldRuleType fillHoldRule(RuleCategoryModel ruleCategory)
-        throws DatatypeConfigurationException {
-
+    public HoldRuleType fillHoldRule(RuleCategoryModel ruleCategory) throws DatatypeConfigurationException {
         if (ruleCategory == null) {
             return null;
         }
@@ -156,7 +153,6 @@ public class RuleMapper {
         }
 
         for (RuleModel rule : ruleCategory.getRules()) {
-
             // RuleId
             RuleIdType ruleIdType = objectFactory.createRuleIdType();
             ruleIdType.setValue(rule.getRule());
@@ -164,14 +160,24 @@ public class RuleMapper {
 
             // StartDate
             if (rule.getStartDate() != null) {
-                holdRuleType.getHoldRuleDefGroup().add(objectFactory.createHoldRuleTypeStartDate(
-                    newInstance().newXMLGregorianCalendar(rule.getStartDate())));
+                holdRuleType
+                    .getHoldRuleDefGroup()
+                    .add(
+                        objectFactory.createHoldRuleTypeStartDate(
+                            newInstance().newXMLGregorianCalendar(rule.getStartDate())
+                        )
+                    );
             }
 
             // HoldEndDate
             if (rule.getHoldEndDate() != null) {
-                holdRuleType.getHoldRuleDefGroup().add(objectFactory.createHoldRuleTypeHoldEndDate(
-                    newInstance().newXMLGregorianCalendar(rule.getHoldEndDate())));
+                holdRuleType
+                    .getHoldRuleDefGroup()
+                    .add(
+                        objectFactory.createHoldRuleTypeHoldEndDate(
+                            newInstance().newXMLGregorianCalendar(rule.getHoldEndDate())
+                        )
+                    );
             }
 
             // HoldOwner
@@ -181,20 +187,27 @@ public class RuleMapper {
 
             // HoldReassessingDate
             if (rule.getHoldReassessingDate() != null) {
-                holdRuleType.getHoldRuleDefGroup().add(objectFactory.createHoldRuleTypeHoldReassessingDate(
-                    newInstance().newXMLGregorianCalendar(rule.getHoldReassessingDate())));
+                holdRuleType
+                    .getHoldRuleDefGroup()
+                    .add(
+                        objectFactory.createHoldRuleTypeHoldReassessingDate(
+                            newInstance().newXMLGregorianCalendar(rule.getHoldReassessingDate())
+                        )
+                    );
             }
 
             // HoldReason
             if (rule.getHoldReason() != null) {
-                holdRuleType.getHoldRuleDefGroup()
+                holdRuleType
+                    .getHoldRuleDefGroup()
                     .add(objectFactory.createHoldRuleTypeHoldReason(rule.getHoldReason()));
             }
 
             // PreventRearrangement
             if (rule.getPreventRearrangement() != null) {
-                holdRuleType.getHoldRuleDefGroup().add(objectFactory.createHoldRuleTypePreventRearrangement(
-                    rule.getPreventRearrangement()));
+                holdRuleType
+                    .getHoldRuleDefGroup()
+                    .add(objectFactory.createHoldRuleTypePreventRearrangement(rule.getPreventRearrangement()));
             }
         }
 
@@ -202,11 +215,14 @@ public class RuleMapper {
     }
 
     private List<RuleIdType> mapPreventRuleIds(InheritanceModel inheritance) {
-        return inheritance.getPreventRulesId().stream().map(ruleId -> {
-            RuleIdType ruleIdType = new RuleIdType();
-            ruleIdType.setValue(ruleId);
-            return ruleIdType;
-        }).collect(Collectors.toList());
+        return inheritance
+            .getPreventRulesId()
+            .stream()
+            .map(ruleId -> {
+                RuleIdType ruleIdType = new RuleIdType();
+                ruleIdType.setValue(ruleId);
+                return ruleIdType;
+            })
+            .collect(Collectors.toList());
     }
-
 }

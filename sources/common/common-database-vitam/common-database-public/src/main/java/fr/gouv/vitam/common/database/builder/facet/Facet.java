@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * Facet component
  */
 public class Facet {
+
     private String name;
     protected ObjectNode currentFacet;
     protected FACET currentTokenFACET;
@@ -107,5 +108,4 @@ public class Facet {
     public String toString() {
         return JsonHandler.unprettyPrint(getCurrentFacet());
     }
-
 }

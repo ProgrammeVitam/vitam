@@ -33,8 +33,6 @@ import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
  * Process Monitoring Interface offers services in order to monitor workflows
  */
 public interface ProcessMonitoring {
-
-
     /**
      * Gets Process Workflow by operation Id
      *

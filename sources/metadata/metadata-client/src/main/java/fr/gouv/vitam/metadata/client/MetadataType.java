@@ -31,5 +31,5 @@ package fr.gouv.vitam.metadata.client;
  */
 public enum MetadataType {
     VITAM,
-    COLLECT;
+    COLLECT,
 }

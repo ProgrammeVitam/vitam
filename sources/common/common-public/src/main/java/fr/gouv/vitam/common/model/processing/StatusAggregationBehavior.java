@@ -28,5 +28,5 @@ package fr.gouv.vitam.common.model.processing;
 
 public enum StatusAggregationBehavior {
     DEFAULT,
-    KO_CAUSES_WARNING
+    KO_CAUSES_WARNING,
 }

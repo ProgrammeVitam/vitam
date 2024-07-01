@@ -79,8 +79,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 public class FormatIdentificationActionPluginTest {
+
     private FormatIdentificationActionPlugin plugin;
     private static final String FILE_FORMAT = "FILE_FORMAT";
 
@@ -111,7 +111,6 @@ public class FormatIdentificationActionPluginTest {
     private AdminManagementClientFactory adminManagementClientFactory;
     private AdminManagementClient adminManagementClient;
 
-
     private HandlerIOImpl handlerIO;
     private GUID guid;
 
@@ -125,7 +124,6 @@ public class FormatIdentificationActionPluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
         workspaceClient = mock(WorkspaceClient.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
@@ -139,8 +137,13 @@ public class FormatIdentificationActionPluginTest {
         when(formatIdentifierFactory.getFormatIdentifierFor(any())).thenReturn(formatIdentifier);
 
         guid = GUIDFactory.newGUID();
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, mock(LogbookLifeCyclesClientFactory.class), guid.getId(),
-            "workerId", Lists.newArrayList());
+        handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            mock(LogbookLifeCyclesClientFactory.class),
+            guid.getId(),
+            "workerId",
+            Lists.newArrayList()
+        );
         deleteFiles();
     }
 
@@ -151,8 +154,9 @@ public class FormatIdentificationActionPluginTest {
 
     @Test
     public void getFormatIdentifierNotFound() throws Exception {
-        when(formatIdentifierFactory.getFormatIdentifierFor(any()))
-            .thenThrow(new FormatIdentifierNotFoundException(""));
+        when(formatIdentifierFactory.getFormatIdentifierFor(any())).thenThrow(
+            new FormatIdentifierNotFoundException("")
+        );
 
         plugin = new FormatIdentificationActionPlugin(adminManagementClientFactory, formatIdentifierFactory);
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -182,8 +186,9 @@ public class FormatIdentificationActionPluginTest {
         plugin = new FormatIdentificationActionPlugin(adminManagementClientFactory, formatIdentifierFactory);
         final WorkerParameters params = getDefaultWorkerParameters();
 
-        when(formatIdentifierFactory.getFormatIdentifierFor(any()))
-            .thenThrow(new FormatIdentifierTechnicalException(""));
+        when(formatIdentifierFactory.getFormatIdentifierFor(any())).thenThrow(
+            new FormatIdentifierTechnicalException("")
+        );
 
         handlerIO.getInput().add(null);
         handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
@@ -209,13 +214,13 @@ public class FormatIdentificationActionPluginTest {
         assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT));
         ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
         assertEquals(StatusCode.KO, taskItemStatus.getGlobalStatus());
-        taskItemStatus.getSubTaskStatus().values().forEach(
-            subTaskItemStatus -> {
+        taskItemStatus
+            .getSubTaskStatus()
+            .values()
+            .forEach(subTaskItemStatus -> {
                 assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
                 assertTrue(subTaskItemStatus.getGlobalOutcomeDetailSubcode().contains("UNCHARTED"));
-            }
-        );
-
+            });
     }
 
     @Test
@@ -233,19 +238,23 @@ public class FormatIdentificationActionPluginTest {
 
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.WARNING, response.getGlobalStatus());
-        assertFalse(response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT)
-            .getEvDetailData().isEmpty());
+        assertFalse(
+            response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT).getEvDetailData().isEmpty()
+        );
 
         //check all different warning (only in case of PUID diff)
-        LinkedHashMap<String, ItemStatus> subTaskStatusMap =
-            response.getItemsStatus().get(FormatIdentificationActionPlugin.FILE_FORMAT).getSubTaskStatus();
+        LinkedHashMap<String, ItemStatus> subTaskStatusMap = response
+            .getItemsStatus()
+            .get(FormatIdentificationActionPlugin.FILE_FORMAT)
+            .getSubTaskStatus();
 
         assertFalse(subTaskStatusMap.isEmpty());
 
-        List<ItemStatus> subTaskWithWarningStatusList =
-            subTaskStatusMap.values().stream().filter(item -> item.getGlobalStatus().equals(StatusCode.WARNING))
-                .collect(
-                    Collectors.toList());
+        List<ItemStatus> subTaskWithWarningStatusList = subTaskStatusMap
+            .values()
+            .stream()
+            .filter(item -> item.getGlobalStatus().equals(StatusCode.WARNING))
+            .collect(Collectors.toList());
         assertThat(subTaskWithWarningStatusList).hasSize(3);
         subTaskWithWarningStatusList.forEach(objectItem -> {
             objectItem.getEvDetailData().contains("+ PUID : fmt/293");
@@ -302,12 +311,13 @@ public class FormatIdentificationActionPluginTest {
         assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT));
         ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
         assertEquals(StatusCode.KO, taskItemStatus.getGlobalStatus());
-        taskItemStatus.getSubTaskStatus().values().forEach(
-            subTaskItemStatus -> {
+        taskItemStatus
+            .getSubTaskStatus()
+            .values()
+            .forEach(subTaskItemStatus -> {
                 assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
                 assertTrue(subTaskItemStatus.getGlobalOutcomeDetailSubcode().contains("UNKNOWN"));
-            }
-        );
+            });
     }
 
     @Test
@@ -316,7 +326,8 @@ public class FormatIdentificationActionPluginTest {
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
-        handlerIO.getInput()
+        handlerIO
+            .getInput()
             .add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_FORMAT_UNIDENTIFIED_AUTHORIZED));
 
         plugin = new FormatIdentificationActionPlugin(adminManagementClientFactory, formatIdentifierFactory);
@@ -327,11 +338,12 @@ public class FormatIdentificationActionPluginTest {
         assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT));
         ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
         assertEquals(StatusCode.WARNING, taskItemStatus.getGlobalStatus());
-        taskItemStatus.getSubTaskStatus().values().forEach(
-            subTaskItemStatus -> {
+        taskItemStatus
+            .getSubTaskStatus()
+            .values()
+            .forEach(subTaskItemStatus -> {
                 assertEquals(StatusCode.WARNING, subTaskItemStatus.getGlobalStatus());
-            }
-        );
+            });
     }
 
     @Test
@@ -340,7 +352,8 @@ public class FormatIdentificationActionPluginTest {
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
-        handlerIO.getInput()
+        handlerIO
+            .getInput()
             .add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_RESTRICTED_FORMAT_LIST_KO));
 
         plugin = new FormatIdentificationActionPlugin(adminManagementClientFactory, formatIdentifierFactory);
@@ -352,54 +365,68 @@ public class FormatIdentificationActionPluginTest {
         ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
         assertEquals(StatusCode.KO, taskItemStatus.getGlobalStatus());
         assertEquals("REJECTED_FORMAT", taskItemStatus.getGlobalOutcomeDetailSubcode());
-        taskItemStatus.getSubTaskStatus().values().forEach(
-            subTaskItemStatus -> {
+        taskItemStatus
+            .getSubTaskStatus()
+            .values()
+            .forEach(subTaskItemStatus -> {
                 assertEquals("REJECTED", subTaskItemStatus.getGlobalOutcomeDetailSubcode());
                 assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
-            }
-        );
+            });
     }
 
     @Test
     public void formatUnidentifiedAuthorizedRestrictedFormatListOK() throws Exception {
-        final String puid[] = {"fmt/293", "fmt/18", "fmt/11", "x-fmt/111"};
-        final String mimetype[] = {"application/vnd.oasis.opendocument.presentation", "application/pdf", "image/png",
-            "text/plain"};
-        final String literal[] = {"OpenDocument Presentation", "Acrobat PDF 1.4 - Portable Document Format",
-            "Portable Network Graphics", "Plain Text File"};
+        final String puid[] = { "fmt/293", "fmt/18", "fmt/11", "x-fmt/111" };
+        final String mimetype[] = {
+            "application/vnd.oasis.opendocument.presentation",
+            "application/pdf",
+            "image/png",
+            "text/plain",
+        };
+        final String literal[] = {
+            "OpenDocument Presentation",
+            "Acrobat PDF 1.4 - Portable Document Format",
+            "Portable Network Graphics",
+            "Plain Text File",
+        };
 
-        when(formatIdentifier.analysePath(any())).thenAnswer(new Answer() {
-            private int count = 0;
+        when(formatIdentifier.analysePath(any())).thenAnswer(
+            new Answer() {
+                private int count = 0;
 
-            public List<FormatIdentifierResponse> answer(InvocationOnMock invocation) {
-                FormatIdentifierResponse response = mock(FormatIdentifierResponse.class);
-                when(response.getPuid()).thenReturn(puid[count]);
-                when(response.getMimetype()).thenReturn(mimetype[count]);
-                when(response.getFormatLiteral()).thenReturn(literal[count]);
-                when(response.getMatchedNamespace()).thenReturn("pronom");
-                ++count;
-                return new ArrayList<>(Arrays.asList(response));
+                public List<FormatIdentifierResponse> answer(InvocationOnMock invocation) {
+                    FormatIdentifierResponse response = mock(FormatIdentifierResponse.class);
+                    when(response.getPuid()).thenReturn(puid[count]);
+                    when(response.getMimetype()).thenReturn(mimetype[count]);
+                    when(response.getFormatLiteral()).thenReturn(literal[count]);
+                    when(response.getMatchedNamespace()).thenReturn("pronom");
+                    ++count;
+                    return new ArrayList<>(Arrays.asList(response));
+                }
             }
-        });
+        );
 
-        when(adminManagementClient.getFormats(any())).thenAnswer(new Answer() {
-            private int count = 0;
+        when(adminManagementClient.getFormats(any())).thenAnswer(
+            new Answer() {
+                private int count = 0;
 
-            public RequestResponse<FileFormatModel> answer(InvocationOnMock invocation) {
-                RequestResponseOK<FileFormatModel> response = new RequestResponseOK<>();
-                FileFormatModel fileFormat = mock(FileFormatModel.class);
-                when(fileFormat.getPuid()).thenReturn(puid[count]);
-                when(fileFormat.getName()).thenReturn(literal[count]);
-                when(fileFormat.getMimeType()).thenReturn(mimetype[count]);
-                ++count;
-                response.getResults().add(fileFormat);
-                return response;
+                public RequestResponse<FileFormatModel> answer(InvocationOnMock invocation) {
+                    RequestResponseOK<FileFormatModel> response = new RequestResponseOK<>();
+                    FileFormatModel fileFormat = mock(FileFormatModel.class);
+                    when(fileFormat.getPuid()).thenReturn(puid[count]);
+                    when(fileFormat.getName()).thenReturn(literal[count]);
+                    when(fileFormat.getMimeType()).thenReturn(mimetype[count]);
+                    ++count;
+                    response.getResults().add(fileFormat);
+                    return response;
+                }
             }
-        });
+        );
 
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
-        handlerIO.getInput()
+        handlerIO
+            .getInput()
             .add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_RESTRICTED_FORMAT_LIST_OK));
 
         plugin = new FormatIdentificationActionPlugin(adminManagementClientFactory, formatIdentifierFactory);
@@ -410,11 +437,12 @@ public class FormatIdentificationActionPluginTest {
         assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT));
         ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
         assertEquals(StatusCode.OK, taskItemStatus.getGlobalStatus());
-        taskItemStatus.getSubTaskStatus().values().forEach(
-            subTaskItemStatus -> {
+        taskItemStatus
+            .getSubTaskStatus()
+            .values()
+            .forEach(subTaskItemStatus -> {
                 assertEquals(StatusCode.OK, subTaskItemStatus.getGlobalStatus());
-            }
-        );
+            });
     }
 
     @Test
@@ -424,8 +452,7 @@ public class FormatIdentificationActionPluginTest {
         handlerIO.getInput().clear();
         handlerIO.getInput().add(og);
         handlerIO.getInput().add(PropertiesUtils.getResourceFile(REFERENTIAL_INGEST_CONTRACT_DEFAULT_CONFIG));
-        when(adminManagementClient.getFormats(any()))
-            .thenThrow(new ReferentialException("Test Referential Exception"));
+        when(adminManagementClient.getFormats(any())).thenThrow(new ReferentialException("Test Referential Exception"));
 
         plugin = new FormatIdentificationActionPlugin(adminManagementClientFactory, formatIdentifierFactory);
         final WorkerParameters params = getDefaultWorkerParameters();
@@ -435,12 +462,13 @@ public class FormatIdentificationActionPluginTest {
         assertTrue(response.getItemsStatus().containsKey(FILE_FORMAT));
         ItemStatus taskItemStatus = response.getItemsStatus().get(FILE_FORMAT);
         assertEquals(StatusCode.KO, taskItemStatus.getGlobalStatus());
-        taskItemStatus.getSubTaskStatus().values().forEach(
-            subTaskItemStatus -> {
+        taskItemStatus
+            .getSubTaskStatus()
+            .values()
+            .forEach(subTaskItemStatus -> {
                 assertEquals(StatusCode.KO, subTaskItemStatus.getGlobalStatus());
                 assertTrue(subTaskItemStatus.getGlobalOutcomeDetailSubcode().contains("UNCHARTED"));
-            }
-        );
+            });
     }
 
     @Test
@@ -474,20 +502,31 @@ public class FormatIdentificationActionPluginTest {
     }
 
     private DefaultWorkerParameters getDefaultWorkerParameters() {
-        return WorkerParametersFactory.newWorkerParameters("pId", "stepId", guid.getId(),
-            "currentStep", Lists.newArrayList("objName"), "metadataURL", "workspaceURL");
+        return WorkerParametersFactory.newWorkerParameters(
+            "pId",
+            "stepId",
+            guid.getId(),
+            "currentStep",
+            Lists.newArrayList("objName"),
+            "metadataURL",
+            "workspaceURL"
+        );
     }
 
     private List<FormatIdentifierResponse> getFormatIdentifierResponseList() {
         final List<FormatIdentifierResponse> list = new ArrayList<>();
-        list.add(new FormatIdentifierResponse("OpenDocument Presentation", "application/vnd.oasis.opendocument" +
-            ".presentation",
-            "fmt/293", "pronom"));
+        list.add(
+            new FormatIdentifierResponse(
+                "OpenDocument Presentation",
+                "application/vnd.oasis.opendocument" + ".presentation",
+                "fmt/293",
+                "pronom"
+            )
+        );
         return list;
     }
 
     private RequestResponse<FileFormatModel> getAdminManagementJson() {
-
         RequestResponseOK<FileFormatModel> responseOK = new RequestResponseOK<>();
         FileFormatModel fileFormatModel = new FileFormatModel();
         fileFormatModel.setPuid("fmt/293");
@@ -501,7 +540,6 @@ public class FormatIdentificationActionPluginTest {
     private RequestResponse<FileFormatModel> getAdminManagementJson2Result() {
         return new RequestResponseOK<>();
     }
-
 
     private void deleteFiles() {
         final String fileName1 = "containerNameobjNameaeaaaaaaaaaam7myaaaamakxfgivurqaaaaq";
@@ -526,5 +564,4 @@ public class FormatIdentificationActionPluginTest {
         }
         handlerIO.partialClose();
     }
-
 }

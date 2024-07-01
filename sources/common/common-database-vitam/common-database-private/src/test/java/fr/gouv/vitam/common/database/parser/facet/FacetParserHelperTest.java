@@ -61,21 +61,16 @@ public class FacetParserHelperTest {
     VarNameAdapter noAdapter = new VarNameAdapter();
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-    }
+    public static void setUpBeforeClass() throws Exception {}
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-    }
+    public static void tearDownAfterClass() throws Exception {}
 
     @Before
-    public void setUp() throws Exception {
-    }
+    public void setUp() throws Exception {}
 
     @After
-    public void tearDown() throws Exception {
-    }
-
+    public void tearDown() throws Exception {}
 
     @Test
     public void testTerms() {
@@ -83,17 +78,26 @@ public class FacetParserHelperTest {
             // basic terms
             Facet facet1 = terms("facet1", "var1", 2, FacetOrder.ASC);
             Facet facet2 = terms(facet1.getCurrentFacet(), noAdapter);
-            assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
-                facet2.getCurrentFacet().toString());
+            assertEquals(
+                "String shall be equal",
+                facet1.getCurrentFacet().toString(),
+                facet2.getCurrentFacet().toString()
+            );
             // terms with size
             facet1 = terms("facet1", "var1", 1, FacetOrder.ASC);
             facet2 = terms(facet1.getCurrentFacet(), noAdapter);
-            assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
-                facet2.getCurrentFacet().toString());
+            assertEquals(
+                "String shall be equal",
+                facet1.getCurrentFacet().toString(),
+                facet2.getCurrentFacet().toString()
+            );
             // different facet by size
             facet1 = terms("facet1", "var1", 3, FacetOrder.ASC);
-            assertNotEquals("String shall be equal", facet1.getCurrentFacet().toString(),
-                facet2.getCurrentFacet().toString());
+            assertNotEquals(
+                "String shall be equal",
+                facet1.getCurrentFacet().toString(),
+                facet2.getCurrentFacet().toString()
+            );
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -106,8 +110,11 @@ public class FacetParserHelperTest {
             // basic terms
             Facet facet1 = terms("facet1", "path.to.var1", "path.to", 2, FacetOrder.ASC);
             Facet facet2 = terms(facet1.getCurrentFacet(), noAdapter);
-            assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
-                facet2.getCurrentFacet().toString());
+            assertEquals(
+                "String shall be equal",
+                facet1.getCurrentFacet().toString(),
+                facet2.getCurrentFacet().toString()
+            );
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -122,13 +129,15 @@ public class FacetParserHelperTest {
         filters.put("query_2", QueryHelper.and().add(QueryHelper.match("var2", "value")));
         Facet facet1 = filters("facet1", filters);
         Facet facet2 = filters(facet1.getCurrentFacet(), noAdapter);
-        assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
-            facet2.getCurrentFacet().toString());
+        assertEquals("String shall be equal", facet1.getCurrentFacet().toString(), facet2.getCurrentFacet().toString());
         // different facet by query number
         filters.remove("query_2");
         facet1 = filters("facet1", filters);
-        assertNotEquals("String shall be equal", facet1.getCurrentFacet().toString(),
-            facet2.getCurrentFacet().toString());
+        assertNotEquals(
+            "String shall be equal",
+            facet1.getCurrentFacet().toString(),
+            facet2.getCurrentFacet().toString()
+        );
         // null filters
         assertThatThrownBy(() -> {
             filters("facet1", null);
@@ -137,7 +146,6 @@ public class FacetParserHelperTest {
         assertThatThrownBy(() -> {
             filters("facet1", new HashMap<>());
         }).isInstanceOf(InvalidCreateOperationException.class);
-
     }
 
     @Test
@@ -147,11 +155,13 @@ public class FacetParserHelperTest {
             ranges.add(new RangeFacetValue("from", null));
             Facet facet1 = dateRange("facet1", "EndDate", "yyyy", ranges);
             Facet facet2 = dateRange(facet1.getCurrentFacet(), noAdapter);
-            assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
-                facet2.getCurrentFacet().toString());
+            assertEquals(
+                "String shall be equal",
+                facet1.getCurrentFacet().toString(),
+                facet2.getCurrentFacet().toString()
+            );
             assertEquals("$date_range", facet1.getCurrentTokenFACET().exactToken());
             assertEquals("$date_range", facet2.getCurrentTokenFACET().exactToken());
-
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -165,8 +175,11 @@ public class FacetParserHelperTest {
             ranges.add(new RangeFacetValue("from", null));
             Facet facet1 = dateRange("facet1", "path.to.EndDate", "path.to", "yyyy", ranges);
             Facet facet2 = dateRange(facet1.getCurrentFacet(), noAdapter);
-            assertEquals("String shall be equal", facet1.getCurrentFacet().toString(),
-                facet2.getCurrentFacet().toString());
+            assertEquals(
+                "String shall be equal",
+                facet1.getCurrentFacet().toString(),
+                facet2.getCurrentFacet().toString()
+            );
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());

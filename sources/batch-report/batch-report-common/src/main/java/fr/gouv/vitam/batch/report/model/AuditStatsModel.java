@@ -51,11 +51,15 @@ public class AuditStatsModel {
     @JsonProperty("originatingAgencyResults")
     private Map<String, AuditFullStatusCount> originatingAgencyResults;
 
-    public AuditStatsModel() {
-    }
+    public AuditStatsModel() {}
 
-    public AuditStatsModel(int nbObjectGroups, int nbObjects, Set<String> opis, AuditFullStatusCount globalResults,
-        Map<String, AuditFullStatusCount> originatingAgencyResults) {
+    public AuditStatsModel(
+        int nbObjectGroups,
+        int nbObjects,
+        Set<String> opis,
+        AuditFullStatusCount globalResults,
+        Map<String, AuditFullStatusCount> originatingAgencyResults
+    ) {
         super();
         this.nbObjectGroups = nbObjectGroups;
         this.nbObjects = nbObjects;
@@ -103,5 +107,4 @@ public class AuditStatsModel {
     public void setOriginatingAgencyResults(Map<String, AuditFullStatusCount> originatingAgencyResults) {
         this.originatingAgencyResults = originatingAgencyResults;
     }
-
 }

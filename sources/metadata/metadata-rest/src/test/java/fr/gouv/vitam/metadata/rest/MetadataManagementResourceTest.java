@@ -66,33 +66,36 @@ import static org.mockito.Mockito.when;
 public class MetadataManagementResourceTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private GraphComputeService graphBuilderService;
     private MetadataManagementResource metadataManagementResource;
     private ExportsPurgeService exportsPurgeService;
     private static final String DIP_CONTAINER = "DIP";
 
-
     private static final int tenant = VitamConfiguration.getAdminTenant();
 
     @Before
     public void setup() {
         graphBuilderService = mock(GraphComputeService.class);
-        ReclassificationDistributionService reclassificationDistributionService =
-            mock(ReclassificationDistributionService.class);
+        ReclassificationDistributionService reclassificationDistributionService = mock(
+            ReclassificationDistributionService.class
+        );
         MetaDataConfiguration configuration = new MetaDataConfiguration();
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
         configuration.setContextPath("/metadata");
         exportsPurgeService = mock(ExportsPurgeService.class);
-        metadataManagementResource =
-            new MetadataManagementResource(graphBuilderService,
-                reclassificationDistributionService,
-                ProcessingManagementClientFactory.getInstance(),
-                LogbookOperationsClientFactory.getInstance(),
-                WorkspaceClientFactory.getInstance(),
-                configuration, exportsPurgeService);
+        metadataManagementResource = new MetadataManagementResource(
+            graphBuilderService,
+            reclassificationDistributionService,
+            ProcessingManagementClientFactory.getInstance(),
+            LogbookOperationsClientFactory.getInstance(),
+            WorkspaceClientFactory.getInstance(),
+            configuration,
+            exportsPurgeService
+        );
         VitamConfiguration.setTenants(Arrays.asList(0, 1, 2));
     }
 
@@ -111,7 +114,8 @@ public class MetadataManagementResourceTest {
     public void should_return_ok_when__graph_compute_by_dsl_handled() throws MetaDataException {
         // Given
         when(graphBuilderService.computeGraph(JsonHandler.createObjectNode())).thenReturn(
-            new GraphComputeResponse(10, 3));
+            new GraphComputeResponse(10, 3)
+        );
         // When
         Response response = metadataManagementResource.computeGraphByDSL(0, JsonHandler.createObjectNode());
 
@@ -123,14 +127,14 @@ public class MetadataManagementResourceTest {
         assertThat(resp.getGotCount()).isEqualTo(3);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void should_return_ko_when_graph_compute_by_dsl_handled() throws MetaDataException {
         // Given
         String errorMessage = "Error in graph builder";
-        when(graphBuilderService.computeGraph(JsonHandler.createObjectNode()))
-            .thenThrow(new RuntimeException(errorMessage));
+        when(graphBuilderService.computeGraph(JsonHandler.createObjectNode())).thenThrow(
+            new RuntimeException(errorMessage)
+        );
 
         // When
         Response response = metadataManagementResource.computeGraphByDSL(0, JsonHandler.createObjectNode());
@@ -146,11 +150,14 @@ public class MetadataManagementResourceTest {
     @RunWithCustomExecutor
     public void should_return_ok_when__graph_handled() {
         // Given
-        when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false, true))
-            .thenReturn(new GraphComputeResponse(10, 3));
+        when(
+            graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false, true)
+        ).thenReturn(new GraphComputeResponse(10, 3));
         // When
-        Response response =
-            metadataManagementResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
+        Response response = metadataManagementResource.computeGraph(
+            GraphComputeResponse.GraphComputeAction.UNIT,
+            Sets.newHashSet("fake")
+        );
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
@@ -160,17 +167,19 @@ public class MetadataManagementResourceTest {
         assertThat(resp.getGotCount()).isEqualTo(3);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void should_return_ko_when_graph_compute_handled() {
         // Given
         String errorMessage = "Error in graph builder";
-        when(graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false, true))
-            .thenThrow(new RuntimeException(errorMessage));
+        when(
+            graphBuilderService.computeGraph(MetadataCollections.UNIT, Sets.newHashSet("fake"), false, true)
+        ).thenThrow(new RuntimeException(errorMessage));
         // When
-        Response response =
-            metadataManagementResource.computeGraph(GraphComputeResponse.GraphComputeAction.UNIT, Sets.newHashSet("fake"));
+        Response response = metadataManagementResource.computeGraph(
+            GraphComputeResponse.GraphComputeAction.UNIT,
+            Sets.newHashSet("fake")
+        );
 
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.INTERNAL_SERVER_ERROR.getStatusCode());
@@ -182,7 +191,6 @@ public class MetadataManagementResourceTest {
     @Test
     @RunWithCustomExecutor
     public void purgeExpiredDipFilesShouldReturnOKWhenServiceOK() throws Exception {
-
         // Given
 
         // When
@@ -196,9 +204,9 @@ public class MetadataManagementResourceTest {
     @Test
     @RunWithCustomExecutor
     public void purgeExpiredDipFilesShouldReturnInternalServerWhenServiceError() throws Exception {
-
         // Given
-        doThrow(new ContentAddressableStorageServerException("")).when(exportsPurgeService)
+        doThrow(new ContentAddressableStorageServerException(""))
+            .when(exportsPurgeService)
             .purgeExpiredFiles(DIP_CONTAINER);
 
         // When
@@ -211,7 +219,6 @@ public class MetadataManagementResourceTest {
     @Test
     @RunWithCustomExecutor
     public void migrationPurgeDipFilesFromOffersTest() throws Exception {
-
         // When
         Response response = metadataManagementResource.migrationPurgeDipFilesFromOffers();
 

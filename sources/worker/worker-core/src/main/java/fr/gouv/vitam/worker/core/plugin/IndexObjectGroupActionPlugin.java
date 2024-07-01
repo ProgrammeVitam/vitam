@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.IntNode;
@@ -77,6 +76,7 @@ import static fr.gouv.vitam.metadata.core.database.collections.MetadataDocument.
  * IndexObjectGroupAction Plugin
  */
 public class IndexObjectGroupActionPlugin extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IndexObjectGroupActionPlugin.class);
     private static final String OG_INDEXATION = "OG_INDEXATION";
     private static final int OG_INPUT_RANK = 0;
@@ -97,12 +97,10 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
     @Override
     public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
         throws ProcessingException {
-
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             List<ItemStatus> aggregateItemStatus = new ArrayList<>();
             List<JsonNode> objectGroups = new ArrayList<>();
             for (String objectId : workerParameters.getObjectNameList()) {
-
                 workerParameters.setObjectName(objectId);
                 handler.setCurrentObjectId(objectId);
 
@@ -117,7 +115,6 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
                     if (objectNode != null) {
                         objectGroups.add(objectNode);
                     }
-
                 } catch (final StepAlreadyExecutedException e) {
                     LOGGER.warn(e);
                     // FIXME (US 5769) : StepAlreadyExecutedException not thrown
@@ -145,16 +142,17 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
 
                     List<ItemStatus> aggregateItemStatusBis = new ArrayList<>();
                     for (ItemStatus ignored : aggregateItemStatus) {
-                        aggregateItemStatusBis.add(new ItemStatus(OG_INDEXATION).setItemsStatus(OG_INDEXATION,
-                            new ItemStatus(OG_INDEXATION).increment(StatusCode.FATAL)));
+                        aggregateItemStatusBis.add(
+                            new ItemStatus(OG_INDEXATION).setItemsStatus(
+                                OG_INDEXATION,
+                                new ItemStatus(OG_INDEXATION).increment(StatusCode.FATAL)
+                            )
+                        );
                     }
                     aggregateItemStatus = aggregateItemStatusBis;
-
-
                 }
             }
             return aggregateItemStatus;
-
         } finally {
             handler.setCurrentObjectId(null);
         }
@@ -164,7 +162,6 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
     public ItemStatus execute(WorkerParameters params, HandlerIO param) {
         throw new RuntimeException();
     }
-
 
     /**
      * The function is used for retrieving ObjectGroup in workspace and use metadata client to index ObjectGroup
@@ -188,17 +185,21 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         }
     }
 
-    private ObjectNode handleExistingObjectGroup(ObjectNode json, MetaDataClient metadataClient,
-        WorkerParameters params, ItemStatus itemStatus)
-        throws MetaDataExecutionException,
-        MetaDataClientServerException, InvalidParseOperationException,
-        InvalidCreateOperationException, VitamClientException {
-
+    private ObjectNode handleExistingObjectGroup(
+        ObjectNode json,
+        MetaDataClient metadataClient,
+        WorkerParameters params,
+        ItemStatus itemStatus
+    )
+        throws MetaDataExecutionException, MetaDataClientServerException, InvalidParseOperationException, InvalidCreateOperationException, VitamClientException {
         removeTemporaryObjectVersionWorkFields(json);
 
         JsonNode work = json.remove(SedaConstants.PREFIX_WORK);
-        if (work != null && work.get(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID) != null &&
-            !work.get(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID).asText().isEmpty()) {
+        if (
+            work != null &&
+            work.get(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID) != null &&
+            !work.get(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID).asText().isEmpty()
+        ) {
             // this means object group is existing, so we will update and not insert
             String existingOg = work.get(SedaConstants.TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID).asText();
             RequestResponse<JsonNode> requestResponse = metadataClient.getObjectGroupByIdRaw(existingOg);
@@ -214,11 +215,12 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
                 // lets create an update query
                 UpdateMultiQuery query = new UpdateMultiQuery();
                 query.addHintFilter(BuilderToken.FILTERARGS.OBJECTGROUPS.exactToken());
-                JsonNode newUpdateQuery =
-                    query
-                        .addActions(UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()),
-                            generateQualifiersUpdate(originQualifiers, newQualifiers, infoNode))
-                        .getFinalUpdate();
+                JsonNode newUpdateQuery = query
+                    .addActions(
+                        UpdateActionHelper.push(VitamFieldsHelper.operations(), params.getContainerName()),
+                        generateQualifiersUpdate(originQualifiers, newQualifiers, infoNode)
+                    )
+                    .getFinalUpdate();
 
                 metadataClient.updateObjectGroupById(newUpdateQuery, ogInDB.get(ID).asText());
 
@@ -237,7 +239,6 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
     }
 
     private void removeTemporaryObjectVersionWorkFields(ObjectNode jsonOG) {
-
         final JsonNode qualifiers = jsonOG.get(SedaConstants.PREFIX_QUALIFIERS);
         if (qualifiers == null || !qualifiers.isArray()) {
             LOGGER.error(INVALID_OR_MISSING_QUALIFIERS + " : " + JsonHandler.unprettyPrint(jsonOG));
@@ -271,8 +272,10 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         ObjectNode updatedQualifiers = JsonHandler.createObjectNode();
         for (int i = 0; i < originQualifiers.size(); i++) {
             JsonNode qualifierNode = originQualifiers.get(i);
-            listOrigin.put(qualifierNode.get(SedaConstants.PREFIX_QUALIFIER).asText(),
-                (ArrayNode) qualifierNode.get(SedaConstants.TAG_VERSIONS));
+            listOrigin.put(
+                qualifierNode.get(SedaConstants.PREFIX_QUALIFIER).asText(),
+                (ArrayNode) qualifierNode.get(SedaConstants.TAG_VERSIONS)
+            );
         }
         for (int i = 0; i < newQualifiers.size(); i++) {
             JsonNode qualifierNode = newQualifiers.get(i);
@@ -280,16 +283,21 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
             if (listOrigin.containsKey(qualifType)) {
                 for (int j = 0; j < finalQualifiers.size(); j++) {
                     ObjectNode current = (ObjectNode) finalQualifiers.get(j);
-                    if (current.get(SedaConstants.PREFIX_QUALIFIER).asText()
-                        .equals(qualifierNode.get(SedaConstants.PREFIX_QUALIFIER).asText())) {
+                    if (
+                        current
+                            .get(SedaConstants.PREFIX_QUALIFIER)
+                            .asText()
+                            .equals(qualifierNode.get(SedaConstants.PREFIX_QUALIFIER).asText())
+                    ) {
                         ArrayNode versionsNode = (ArrayNode) qualifierNode.get(SedaConstants.TAG_VERSIONS);
                         for (JsonNode versionNode : versionsNode) {
                             int nbCopy = current.get(NBCHILD).asInt() + 1;
                             current.put(NBCHILD, current.get(NBCHILD).asInt() + 1);
                             ArrayNode currentArray = (ArrayNode) current.get(SedaConstants.TAG_VERSIONS);
                             ((ObjectNode) versionNode).put(
-                                SedaConstants.TAG_DO_VERSION,
-                                current.get(SedaConstants.PREFIX_QUALIFIER).asText() + "_" + nbCopy);
+                                    SedaConstants.TAG_DO_VERSION,
+                                    current.get(SedaConstants.PREFIX_QUALIFIER).asText() + "_" + nbCopy
+                                );
                             currentArray.add(versionNode);
                             IntNode version = new IntNode(nbCopy);
                             updatedQualifiers.set(current.get(SedaConstants.PREFIX_QUALIFIER).asText(), version);
@@ -313,5 +321,4 @@ public class IndexObjectGroupActionPlugin extends ActionHandler {
         // TODO P0 Add objectGroup.json add input and check it
 
     }
-
 }

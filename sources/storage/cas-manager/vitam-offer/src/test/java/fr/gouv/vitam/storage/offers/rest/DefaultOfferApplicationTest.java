@@ -30,11 +30,11 @@ import org.junit.Test;
 
 import static org.junit.Assert.fail;
 
-
 /**
  * DefaultOfferMain Test
  */
 public class DefaultOfferApplicationTest {
+
     private static final String SHOULD_NOT_RAIZED_AN_EXCEPTION = "Should not raized an exception";
 
     private static final String DEFAULT_OFFER_CONF = "storage-default-offer.conf";

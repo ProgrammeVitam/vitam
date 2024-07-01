@@ -82,14 +82,18 @@ public class DeferredFileBufferingInputStreamTest {
 
     @Test
     public void testNoTempFileWhenEmpty() throws IOException {
-
         // Given
         InputStream sourceInputStream = new NullInputStream(0);
 
         // When
-        try (DeferredFileBufferingInputStream deferredFileBufferingInputStream =
-            new DeferredFileBufferingInputStream(sourceInputStream, 0, 1000, tempFolder.getRoot())) {
-
+        try (
+            DeferredFileBufferingInputStream deferredFileBufferingInputStream = new DeferredFileBufferingInputStream(
+                sourceInputStream,
+                0,
+                1000,
+                tempFolder.getRoot()
+            )
+        ) {
             // Then
             assertThat(tempFolder.getRoot().list()).isNullOrEmpty();
         }
@@ -97,14 +101,18 @@ public class DeferredFileBufferingInputStreamTest {
 
     @Test
     public void testNoTempFileWhenSmallSize() throws IOException {
-
         // Given
         InputStream sourceInputStream = new NullInputStream(100);
 
         // When
-        try (DeferredFileBufferingInputStream deferredFileBufferingInputStream =
-            new DeferredFileBufferingInputStream(sourceInputStream, 100, 1000, tempFolder.getRoot())) {
-
+        try (
+            DeferredFileBufferingInputStream deferredFileBufferingInputStream = new DeferredFileBufferingInputStream(
+                sourceInputStream,
+                100,
+                1000,
+                tempFolder.getRoot()
+            )
+        ) {
             // Then
             assertThat(tempFolder.getRoot().list()).isNullOrEmpty();
         }
@@ -112,14 +120,18 @@ public class DeferredFileBufferingInputStreamTest {
 
     @Test
     public void testNoTempFileWhenSizeEqualsMaxInMemorySize() throws IOException {
-
         // Given
         InputStream sourceInputStream = new NullInputStream(1000);
 
         // When
-        try (DeferredFileBufferingInputStream deferredFileBufferingInputStream =
-            new DeferredFileBufferingInputStream(sourceInputStream, 1000, 1000, tempFolder.getRoot())) {
-
+        try (
+            DeferredFileBufferingInputStream deferredFileBufferingInputStream = new DeferredFileBufferingInputStream(
+                sourceInputStream,
+                1000,
+                1000,
+                tempFolder.getRoot()
+            )
+        ) {
             // Then
             assertThat(tempFolder.getRoot().list()).isNullOrEmpty();
         }
@@ -127,14 +139,18 @@ public class DeferredFileBufferingInputStreamTest {
 
     @Test
     public void testTempFileWhenBigSize() throws IOException {
-
         // Given
         InputStream sourceInputStream = new NullInputStream(10000);
 
         // When
-        try (DeferredFileBufferingInputStream deferredFileBufferingInputStream =
-            new DeferredFileBufferingInputStream(sourceInputStream, 10000, 1000, tempFolder.getRoot())) {
-
+        try (
+            DeferredFileBufferingInputStream deferredFileBufferingInputStream = new DeferredFileBufferingInputStream(
+                sourceInputStream,
+                10000,
+                1000,
+                tempFolder.getRoot()
+            )
+        ) {
             // Then
             assertThat(tempFolder.getRoot().list()).hasSize(1);
         }
@@ -145,14 +161,13 @@ public class DeferredFileBufferingInputStreamTest {
 
     @Test
     public void testIOExceptionWhenImMemoryBufferingWithSizeMismatches() throws IOException {
-
         // Given
         InputStream sourceInputStream = new NullInputStream(100);
 
         // When
         assertThatThrownBy(
-            () -> new DeferredFileBufferingInputStream(sourceInputStream, 123, 1000, tempFolder.getRoot()))
-            .isInstanceOf(IOException.class);
+            () -> new DeferredFileBufferingInputStream(sourceInputStream, 123, 1000, tempFolder.getRoot())
+        ).isInstanceOf(IOException.class);
 
         // Ensure any tmp file deleted
         assertThat(tempFolder.getRoot().list()).isNullOrEmpty();
@@ -160,38 +175,32 @@ public class DeferredFileBufferingInputStreamTest {
 
     @Test
     public void testIOExceptionWhenInMemoryBufferingWithBrokenSource() throws IOException {
-
         // Given
-        InputStream sourceInputStream = new SequenceInputStream(
-            new NullInputStream(50),
-            new BrokenInputStream()
-        );
+        InputStream sourceInputStream = new SequenceInputStream(new NullInputStream(50), new BrokenInputStream());
 
         // When
         assertThatThrownBy(
-            () -> new DeferredFileBufferingInputStream(sourceInputStream, 100, 1000, tempFolder.getRoot()))
-            .isInstanceOf(IOException.class);
+            () -> new DeferredFileBufferingInputStream(sourceInputStream, 100, 1000, tempFolder.getRoot())
+        ).isInstanceOf(IOException.class);
         // Ensure tmp file deleted
         assertThat(tempFolder.getRoot().list()).isNullOrEmpty();
     }
 
     @Test
     public void testIOExceptionWhenOnDiskBufferingWithSizeMismatches() throws IOException {
-
         // Given
         InputStream sourceInputStream = new NullInputStream(10000);
 
         // When
         assertThatThrownBy(
-            () -> new DeferredFileBufferingInputStream(sourceInputStream, 12345, 1000, tempFolder.getRoot()))
-            .isInstanceOf(IOException.class);
+            () -> new DeferredFileBufferingInputStream(sourceInputStream, 12345, 1000, tempFolder.getRoot())
+        ).isInstanceOf(IOException.class);
         // Ensure tmp file deleted
         assertThat(tempFolder.getRoot().list()).isNullOrEmpty();
     }
 
     @Test
     public void testIOExceptionWhenOnDiskBufferingWithBrokenSource() throws IOException {
-
         // Given
         InputStream brokenInputStream = mock(InputStream.class);
         doThrow(IOException.class).when(brokenInputStream).read();
@@ -199,29 +208,29 @@ public class DeferredFileBufferingInputStreamTest {
         doThrow(IOException.class).when(brokenInputStream).read(any(), anyInt(), anyInt());
         doThrow(IOException.class).when(brokenInputStream).close();
 
-        InputStream sourceInputStream = new SequenceInputStream(
-            new NullInputStream(100),
-            brokenInputStream
-        );
+        InputStream sourceInputStream = new SequenceInputStream(new NullInputStream(100), brokenInputStream);
 
         // When
         assertThatThrownBy(
-            () -> new DeferredFileBufferingInputStream(sourceInputStream, 10000, 1000, tempFolder.getRoot()))
-            .isInstanceOf(IOException.class);
+            () -> new DeferredFileBufferingInputStream(sourceInputStream, 10000, 1000, tempFolder.getRoot())
+        ).isInstanceOf(IOException.class);
         // Ensure tmp file deleted
         assertThat(tempFolder.getRoot().list()).isNullOrEmpty();
     }
 
     private void verifyReadByte(int size, int maxInMemoryBufferSize) throws IOException {
-
         // Given
         InputStream sourceInputStream = new FakeInputStream(size);
         Digest digest = new Digest(DigestType.SHA512);
         InputStream digestInputStream = digest.getDigestInputStream(sourceInputStream);
 
         // When
-        DeferredFileBufferingInputStream deferredFileBufferingInputStream =
-            new DeferredFileBufferingInputStream(digestInputStream, size, maxInMemoryBufferSize, tempFolder.getRoot());
+        DeferredFileBufferingInputStream deferredFileBufferingInputStream = new DeferredFileBufferingInputStream(
+            digestInputStream,
+            size,
+            maxInMemoryBufferSize,
+            tempFolder.getRoot()
+        );
 
         // Then
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -234,15 +243,18 @@ public class DeferredFileBufferingInputStreamTest {
     }
 
     private void verifyReadByteArray(int size, int maxInMemoryBufferSize) throws IOException {
-
         // Given
         InputStream sourceInputStream = new FakeInputStream(size);
         Digest digest = new Digest(DigestType.SHA512);
         InputStream digestInputStream = digest.getDigestInputStream(sourceInputStream);
 
         // When
-        DeferredFileBufferingInputStream deferredFileBufferingInputStream =
-            new DeferredFileBufferingInputStream(digestInputStream, size, maxInMemoryBufferSize, tempFolder.getRoot());
+        DeferredFileBufferingInputStream deferredFileBufferingInputStream = new DeferredFileBufferingInputStream(
+            digestInputStream,
+            size,
+            maxInMemoryBufferSize,
+            tempFolder.getRoot()
+        );
 
         // Then
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -256,15 +268,18 @@ public class DeferredFileBufferingInputStreamTest {
     }
 
     private void verifyReadByteArrayWithOffset(int size, int maxInMemoryBufferSize) throws IOException {
-
         // Given
         InputStream sourceInputStream = new FakeInputStream(size);
         Digest digest = new Digest(DigestType.SHA512);
         InputStream digestInputStream = digest.getDigestInputStream(sourceInputStream);
 
         // When
-        DeferredFileBufferingInputStream deferredFileBufferingInputStream =
-            new DeferredFileBufferingInputStream(digestInputStream, size, maxInMemoryBufferSize, tempFolder.getRoot());
+        DeferredFileBufferingInputStream deferredFileBufferingInputStream = new DeferredFileBufferingInputStream(
+            digestInputStream,
+            size,
+            maxInMemoryBufferSize,
+            tempFolder.getRoot()
+        );
 
         // Then
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();

@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.model.unit;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum DetachedSigningRoleType {
-
     @JsonProperty("Timestamp")
     TIMESTAMP,
 
@@ -37,5 +36,5 @@ public enum DetachedSigningRoleType {
     SIGNATURE,
 
     @JsonProperty("AdditionalProof")
-    ADDITIONAL_PROOF
+    ADDITIONAL_PROOF,
 }

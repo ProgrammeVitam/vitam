@@ -522,5 +522,4 @@ public class StorageConfiguration extends DefaultVitamApplicationConfiguration {
     public String getBaseUrl() {
         return contextPath;
     }
-
 }

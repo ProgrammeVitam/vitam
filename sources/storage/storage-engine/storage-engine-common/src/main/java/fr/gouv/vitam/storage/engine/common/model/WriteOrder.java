@@ -62,8 +62,15 @@ public class WriteOrder extends QueueMessageEntity implements ReadWriteOrder {
         super(GUIDFactory.newGUID().getId(), QueueMessageType.WriteOrder);
     }
 
-    public WriteOrder(String bucket, String fileBucketId, String filePath, long size, String digest, String archiveId,
-        QueueMessageType queueMessageType) {
+    public WriteOrder(
+        String bucket,
+        String fileBucketId,
+        String filePath,
+        long size,
+        String digest,
+        String archiveId,
+        QueueMessageType queueMessageType
+    ) {
         this();
         this.setMessageType(queueMessageType);
         this.bucket = bucket;

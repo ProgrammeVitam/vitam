@@ -35,6 +35,7 @@ import java.util.Map;
  * FakeVitamDocument
  */
 class FakeVitamDocument<T> extends VitamDocument<T> {
+
     private static final long serialVersionUID = 3625295152272714919L;
 
     /**
@@ -53,5 +54,4 @@ class FakeVitamDocument<T> extends VitamDocument<T> {
     public VitamDocument<T> newInstance(JsonNode content) {
         return null;
     }
-
 }

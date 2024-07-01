@@ -61,8 +61,9 @@ public class OfferDiffServiceTest {
     private static final int TENANT_ID = 2;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -79,12 +80,10 @@ public class OfferDiffServiceTest {
     @Test
     @RunWithCustomExecutor
     public void startDiffShouldSucceedOnFirstStart() {
-
         // Given
         OfferDiffProcess offerDiffProcess = mock(OfferDiffProcess.class);
         OfferDiffService instance = spy(new OfferDiffService(distribution));
-        when(instance.createOfferDiffProcess(OFFER1, OFFER2, DATA_CATEGORY))
-            .thenReturn(offerDiffProcess);
+        when(instance.createOfferDiffProcess(OFFER1, OFFER2, DATA_CATEGORY)).thenReturn(offerDiffProcess);
 
         // When
         boolean result = instance.startOfferDiff(OFFER1, OFFER2, DATA_CATEGORY);
@@ -97,7 +96,6 @@ public class OfferDiffServiceTest {
     @Test
     @RunWithCustomExecutor
     public void startDiffShouldFailIfAnotherProcessIsAlreadyRunning() {
-
         // Given
         OfferDiffProcess offerDiffProcess1 = mock(OfferDiffProcess.class);
         OfferDiffProcess offerDiffProcess2 = mock(OfferDiffProcess.class);
@@ -105,8 +103,10 @@ public class OfferDiffServiceTest {
 
         OfferDiffService instance = spy(new OfferDiffService(distribution));
         doNothing().when(instance).runDiffAsync(offerDiffProcess1);
-        when(instance.createOfferDiffProcess(OFFER1, OFFER2, DATA_CATEGORY))
-            .thenReturn(offerDiffProcess1, offerDiffProcess2);
+        when(instance.createOfferDiffProcess(OFFER1, OFFER2, DATA_CATEGORY)).thenReturn(
+            offerDiffProcess1,
+            offerDiffProcess2
+        );
 
         // When
         boolean result1 = instance.startOfferDiff(OFFER1, OFFER2, DATA_CATEGORY);
@@ -122,7 +122,6 @@ public class OfferDiffServiceTest {
     @Test
     @RunWithCustomExecutor
     public void startDiffShouldSuccessIfPreviousProcessEnded() {
-
         // Given
         OfferDiffProcess offerDiffProcess1 = mock(OfferDiffProcess.class);
         OfferDiffProcess offerDiffProcess2 = mock(OfferDiffProcess.class);
@@ -130,8 +129,10 @@ public class OfferDiffServiceTest {
 
         OfferDiffService instance = spy(new OfferDiffService(distribution));
         doNothing().when(instance).runDiffAsync(offerDiffProcess1);
-        when(instance.createOfferDiffProcess(OFFER1, OFFER2, DATA_CATEGORY))
-            .thenReturn(offerDiffProcess1, offerDiffProcess2);
+        when(instance.createOfferDiffProcess(OFFER1, OFFER2, DATA_CATEGORY)).thenReturn(
+            offerDiffProcess1,
+            offerDiffProcess2
+        );
 
         // When
         boolean result1 = instance.startOfferDiff(OFFER1, OFFER2, DATA_CATEGORY);
@@ -147,7 +148,6 @@ public class OfferDiffServiceTest {
     @Test
     @RunWithCustomExecutor
     public void isRunningShouldReturnFalseWhenNoProcessStarted() {
-
         // Given
         OfferDiffService instance = new OfferDiffService(distribution);
 
@@ -161,7 +161,6 @@ public class OfferDiffServiceTest {
     @Test
     @RunWithCustomExecutor
     public void isRunningShouldReturnTrueWhenProcessRunning() {
-
         // Given
         OfferDiffProcess offerDiffProcess = mock(OfferDiffProcess.class);
         when(offerDiffProcess.isRunning()).thenReturn(true);
@@ -182,7 +181,6 @@ public class OfferDiffServiceTest {
     @Test
     @RunWithCustomExecutor
     public void isRunningShouldReturnFalseWhenPreviousProcessEnded() {
-
         // Given
         OfferDiffProcess offerDiffProcess = mock(OfferDiffProcess.class);
         when(offerDiffProcess.isRunning()).thenReturn(false);
@@ -203,7 +201,6 @@ public class OfferDiffServiceTest {
     @Test
     @RunWithCustomExecutor
     public void getLastDiffStatusShouldNullWhenNoProcessStarted() {
-
         // Given
         OfferDiffService instance = spy(new OfferDiffService(distribution));
 
@@ -217,13 +214,11 @@ public class OfferDiffServiceTest {
     @Test
     @RunWithCustomExecutor
     public void getLastDiffStatusShouldReturnStatusWhenProcessRunning() {
-
         // Given
         OfferDiffStatus offerDiffStatus = mock(OfferDiffStatus.class);
         OfferDiffProcess offerDiffProcess = mock(OfferDiffProcess.class);
         when(offerDiffProcess.isRunning()).thenReturn(true);
         when(offerDiffProcess.getOfferDiffStatus()).thenReturn(offerDiffStatus);
-
 
         OfferDiffService instance = spy(new OfferDiffService(distribution));
         doNothing().when(instance).runDiffAsync(offerDiffProcess);
@@ -241,13 +236,11 @@ public class OfferDiffServiceTest {
     @Test
     @RunWithCustomExecutor
     public void getLastDiffStatusShouldReturnStatusWhenProcessEnded() {
-
         // Given
         OfferDiffStatus offerDiffStatus = mock(OfferDiffStatus.class);
         OfferDiffProcess offerDiffProcess = mock(OfferDiffProcess.class);
         when(offerDiffProcess.isRunning()).thenReturn(false);
         when(offerDiffProcess.getOfferDiffStatus()).thenReturn(offerDiffStatus);
-
 
         OfferDiffService instance = spy(new OfferDiffService(distribution));
         doNothing().when(instance).runDiffAsync(offerDiffProcess);
@@ -265,14 +258,15 @@ public class OfferDiffServiceTest {
     @Test
     @RunWithCustomExecutor
     public void runDiffAsyncShouldStartDiff() throws Exception {
-
         // Given
         CountDownLatch countDownLatch = new CountDownLatch(1);
         OfferDiffProcess offerDiffProcess = mock(OfferDiffProcess.class);
-        doAnswer((args) -> {
+        doAnswer(args -> {
             countDownLatch.countDown();
             return null;
-        }).when(offerDiffProcess).run();
+        })
+            .when(offerDiffProcess)
+            .run();
 
         OfferDiffService instance = new OfferDiffService(distribution);
 

@@ -81,14 +81,14 @@ public class DbQualifiersModel {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         DbQualifiersModel that = (DbQualifiersModel) o;
-        return nbc == that.nbc
-            && qualifier.equals(that.qualifier)
-            && CollectionUtils.isEqualCollection(versions, that.versions);
+        return (
+            nbc == that.nbc &&
+            qualifier.equals(that.qualifier) &&
+            CollectionUtils.isEqualCollection(versions, that.versions)
+        );
     }
 
     @Override

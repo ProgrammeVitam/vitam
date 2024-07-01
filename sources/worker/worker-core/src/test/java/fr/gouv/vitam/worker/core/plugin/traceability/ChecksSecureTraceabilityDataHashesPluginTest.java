@@ -65,14 +65,24 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ChecksSecureTraceabilityDataHashesPluginTest {
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
-    @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Mock StorageClientFactory storageClientFactory;
-    @Mock StorageClient storageClient;
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock HandlerIO handler;
-    @Mock WorkerParameters param;
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+    @Mock
+    StorageClientFactory storageClientFactory;
+
+    @Mock
+    StorageClient storageClient;
+
+    @Mock
+    HandlerIO handler;
+
+    @Mock
+    WorkerParameters param;
 
     private ChecksSecureTraceabilityDataHashesPlugin checksSecureTraceabilityDataHashesPlugin;
 
@@ -89,16 +99,31 @@ public class ChecksSecureTraceabilityDataHashesPluginTest {
     public void setUp() throws Exception {
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
-        checksSecureTraceabilityDataHashesPlugin =
-            new ChecksSecureTraceabilityDataHashesPlugin(storageClientFactory);
+        checksSecureTraceabilityDataHashesPlugin = new ChecksSecureTraceabilityDataHashesPlugin(storageClientFactory);
 
         when(param.getObjectName()).thenReturn(OBJECT_NAME);
-        when(handler.getJsonFromWorkspace(eq(param.getObjectName() + separator + WorkspaceConstants.REPORT)))
-            .thenReturn(createObjectNode());
+        when(
+            handler.getJsonFromWorkspace(eq(param.getObjectName() + separator + WorkspaceConstants.REPORT))
+        ).thenReturn(createObjectNode());
 
         final File traceabilityFile = temporaryFolder.newFile();
-        final TraceabilityEvent traceabilityEvent = new TraceabilityEvent(TraceabilityType.OPERATION,
-            "", "", HASH, null, "", "", "", 1L, FILE_NAME, 30L, DigestType.SHA512, false, "", null);
+        final TraceabilityEvent traceabilityEvent = new TraceabilityEvent(
+            TraceabilityType.OPERATION,
+            "",
+            "",
+            HASH,
+            null,
+            "",
+            "",
+            "",
+            1L,
+            FILE_NAME,
+            30L,
+            DigestType.SHA512,
+            false,
+            "",
+            null
+        );
         JsonHandler.writeAsFile(traceabilityEvent, traceabilityFile);
         when(handler.getInput(eq(0))).thenReturn(traceabilityFile);
 
@@ -111,20 +136,22 @@ public class ChecksSecureTraceabilityDataHashesPluginTest {
 
     @Test
     public void should_verify_hashes_without_error() throws Exception {
-
         when(handler.getInput(1)).thenReturn(HASH);
 
         final File file = temporaryFolder.newFile();
         FileUtils.writeStringToFile(file, FILE_CONTENT, Charset.defaultCharset());
 
         Response response = mock(Response.class);
-        when(response.readEntity(eq(File.class))).thenReturn(
-            file
-        );
+        when(response.readEntity(eq(File.class))).thenReturn(file);
 
-        when(storageClient
-            .getContainerAsync(anyString(), eq(FILE_NAME), eq(DataCategory.LOGBOOK), any(AccessLogInfoModel.class)))
-            .thenReturn(response);
+        when(
+            storageClient.getContainerAsync(
+                anyString(),
+                eq(FILE_NAME),
+                eq(DataCategory.LOGBOOK),
+                any(AccessLogInfoModel.class)
+            )
+        ).thenReturn(response);
 
         ItemStatus itemStatus = checksSecureTraceabilityDataHashesPlugin.execute(param, handler);
 
@@ -133,24 +160,25 @@ public class ChecksSecureTraceabilityDataHashesPluginTest {
 
     @Test
     public void test_when_hashes_are_not_equal_then_KO() throws Exception {
-
         when(handler.getInput(1)).thenReturn("FAKE_HASH");
 
         final File file = temporaryFolder.newFile();
         FileUtils.writeStringToFile(file, FILE_CONTENT, Charset.defaultCharset());
 
         Response response = mock(Response.class);
-        when(response.readEntity(eq(File.class))).thenReturn(
-            file
-        );
+        when(response.readEntity(eq(File.class))).thenReturn(file);
 
-        when(storageClient
-            .getContainerAsync(anyString(), eq(FILE_NAME), eq(DataCategory.LOGBOOK), any(AccessLogInfoModel.class)))
-            .thenReturn(response);
+        when(
+            storageClient.getContainerAsync(
+                anyString(),
+                eq(FILE_NAME),
+                eq(DataCategory.LOGBOOK),
+                any(AccessLogInfoModel.class)
+            )
+        ).thenReturn(response);
 
         ItemStatus itemStatus = checksSecureTraceabilityDataHashesPlugin.execute(param, handler);
 
         assertEquals(KO, itemStatus.getGlobalStatus());
     }
-
 }

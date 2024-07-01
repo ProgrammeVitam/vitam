@@ -72,11 +72,11 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMasterData;
 
 public class ProbativeCreateReport extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ProbativeCreateReport.class);
 
     private static final String HANDLER_ID = "PROBATIVE_VALUE_CREATE_REPORT";
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {
-    };
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {};
     private static final ReportVersion2 REPORT_VERSION_2 = new ReportVersion2();
 
     private final BackupService backupService;
@@ -91,9 +91,7 @@ public class ProbativeCreateReport extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
             if (!handler.isExistingFileInWorkspace("distributionFile.jsonl")) {
                 return buildItemStatus(HANDLER_ID, StatusCode.WARNING);
@@ -105,8 +103,12 @@ public class ProbativeCreateReport extends ActionHandler {
 
             storeReportToOffers(handler, reportFileName);
 
-            return buildItemStatusWithMasterData(HANDLER_ID, StatusCode.OK,
-                EventDetails.of("Probative value report success."), JsonHandler.unprettyPrint(REPORT_VERSION_2));
+            return buildItemStatusWithMasterData(
+                HANDLER_ID,
+                StatusCode.OK,
+                EventDetails.of("Probative value report success."),
+                JsonHandler.unprettyPrint(REPORT_VERSION_2)
+            );
         } catch (Exception e) {
             LOGGER.error(e);
             return buildItemStatus(HANDLER_ID, StatusCode.FATAL, EventDetails.of("Probative value report error."));
@@ -114,21 +116,20 @@ public class ProbativeCreateReport extends ActionHandler {
     }
 
     private void generateReportToWorkspace(WorkerParameters param, HandlerIO handler, String reportFileName)
-        throws IOException, InvalidParseOperationException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, ProcessingException {
-
+        throws IOException, InvalidParseOperationException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, ProcessingException {
         if (handler.isExistingFileInWorkspace(reportFileName)) {
             // Report already stored in workspace (idempotency)
             return;
         }
 
-
         File reportFile = handler.getNewLocalFile(reportFileName);
-        try (InputStream inputStream = handler.getInputStreamFromWorkspace("distributionFile.jsonl");
-            JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE)) {
-
+        try (
+            InputStream inputStream = handler.getInputStreamFromWorkspace("distributionFile.jsonl");
+            JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE)
+        ) {
             JsonNode context = JsonHandler.getFromFile(handler.getFileFromWorkspace("request"));
-            List<ProbativeReportEntry> probativeEntries = lines.stream()
+            List<ProbativeReportEntry> probativeEntries = lines
+                .stream()
                 .map(line -> getFromFile(handler, line))
                 .collect(Collectors.toList());
 
@@ -138,22 +139,18 @@ public class ProbativeCreateReport extends ActionHandler {
                 (int) probativeEntries.stream().filter(e -> e.getStatus().equals(StatusCode.WARNING)).count()
             );
 
-            String startDate = probativeEntries.stream()
+            String startDate = probativeEntries
+                .stream()
                 .min(Comparator.comparing(ProbativeReportEntry::getEvStartDateTime))
                 .map(ProbativeReportEntry::getEvStartDateTime)
                 .orElse("NO_START_DATE_FOUND");
-            String endDate = probativeEntries.stream()
+            String endDate = probativeEntries
+                .stream()
                 .max(Comparator.comparing(ProbativeReportEntry::getEvEndDateTime))
                 .map(ProbativeReportEntry::getEvEndDateTime)
                 .orElse("NO_END_DATE_FOUND");
 
-            ReportSummary reportSummary = new ReportSummary(
-                startDate,
-                endDate,
-                PROBATIVE_VALUE,
-                reportResults,
-                null
-            );
+            ReportSummary reportSummary = new ReportSummary(startDate, endDate, PROBATIVE_VALUE, reportResults, null);
 
             StatusCode outcome = getOutcome(reportResults);
             String evType = param.getWorkflowIdentifier();
@@ -169,8 +166,12 @@ public class ProbativeCreateReport extends ActionHandler {
                 null
             );
 
-            ProbativeReportV2 probativeReportV2 =
-                new ProbativeReportV2(operationSummary, reportSummary, context, probativeEntries);
+            ProbativeReportV2 probativeReportV2 = new ProbativeReportV2(
+                operationSummary,
+                reportSummary,
+                context,
+                probativeEntries
+            );
 
             JsonHandler.writeAsFile(probativeReportV2, reportFile);
 
@@ -181,8 +182,13 @@ public class ProbativeCreateReport extends ActionHandler {
     }
 
     private void storeReportToOffers(HandlerIO handler, String reportFileName) throws BackupServiceException {
-        backupService.storeIntoOffers(handler.getContainerName(), reportFileName, REPORT, reportFileName,
-            VitamConfiguration.getDefaultStrategy());
+        backupService.storeIntoOffers(
+            handler.getContainerName(),
+            reportFileName,
+            REPORT,
+            reportFileName,
+            VitamConfiguration.getDefaultStrategy()
+        );
     }
 
     private String getOutMsg(StatusCode outcome, String probativeValue) {
@@ -210,12 +216,18 @@ public class ProbativeCreateReport extends ActionHandler {
     private ProbativeReportEntry getFromFile(HandlerIO handler, JsonLineModel line) {
         try {
             return JsonHandler.getFromFile(handler.getFileFromWorkspace(line.getId()), ProbativeReportEntry.class);
-        } catch (InvalidParseOperationException | IOException | ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
+        } catch (
+            InvalidParseOperationException
+            | IOException
+            | ContentAddressableStorageNotFoundException
+            | ContentAddressableStorageServerException e
+        ) {
             throw new VitamRuntimeException(e);
         }
     }
 
     protected static class ReportVersion2 {
+
         @JsonProperty("probativeReportVersion")
         private final int probativeReportVersion = 2;
     }

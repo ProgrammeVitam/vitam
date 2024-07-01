@@ -38,7 +38,6 @@ public class FileInfoDto implements Serializable {
     @JsonProperty("Filename")
     private String fileName;
 
-
     @JsonProperty("LastModified")
     private String lastModified;
 
@@ -61,10 +60,8 @@ public class FileInfoDto implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         FileInfoDto that = (FileInfoDto) o;
         return Objects.equals(fileName, that.fileName);
     }
@@ -84,8 +81,6 @@ public class FileInfoDto implements Serializable {
 
     @Override
     public String toString() {
-        return "FileInfoDto{" +
-            "fileName='" + fileName + '\'' +
-            '}';
+        return "FileInfoDto{" + "fileName='" + fileName + '\'' + '}';
     }
 }

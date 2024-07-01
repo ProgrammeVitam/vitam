@@ -63,12 +63,10 @@ public class LogbookReconstructionResourceTest {
     @Test
     public void should_return_ok_when_request_item_full() throws DatabaseException {
         // given
-        ReconstructionResponseItem responseItem =
-            new ReconstructionResponseItem(requestItem, StatusCode.OK);
+        ReconstructionResponseItem responseItem = new ReconstructionResponseItem(requestItem, StatusCode.OK);
 
         when(reconstructionService.reconstruct(requestItem)).thenReturn(responseItem);
-        LogbookReconstructionResource reconstructionResource =
-            new LogbookReconstructionResource(reconstructionService);
+        LogbookReconstructionResource reconstructionResource = new LogbookReconstructionResource(reconstructionService);
         // when
         Response response = reconstructionResource.reconstructCollection(Arrays.asList(requestItem));
         // then
@@ -83,8 +81,7 @@ public class LogbookReconstructionResourceTest {
     @Test
     public void should_return_empty_response_when_that_request_empty() {
         // given
-        LogbookReconstructionResource reconstructionResource =
-            new LogbookReconstructionResource(reconstructionService);
+        LogbookReconstructionResource reconstructionResource = new LogbookReconstructionResource(reconstructionService);
         // when
         Response response = reconstructionResource.reconstructCollection(new ArrayList<>());
         // then
@@ -97,11 +94,10 @@ public class LogbookReconstructionResourceTest {
     @Test
     public void should_return_ok_when__request_item_no_offset() {
         // given
-        LogbookReconstructionResource reconstructionResource =
-            new LogbookReconstructionResource(reconstructionService);
+        LogbookReconstructionResource reconstructionResource = new LogbookReconstructionResource(reconstructionService);
         // when + then
-        assertThatCode(() -> reconstructionResource.reconstructCollection(null))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatCode(() -> reconstructionResource.reconstructCollection(null)).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
-
 }

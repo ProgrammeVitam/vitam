@@ -30,6 +30,7 @@ package fr.gouv.vitam.worker.common.utils;
  * The class DataObjectDetail is stored all information of the DataObject (Physical or Binary)
  */
 public class DataObjectDetail {
+
     private String version;
     private boolean physical;
 
@@ -68,7 +69,4 @@ public class DataObjectDetail {
     public void setPhysical(boolean physical) {
         this.physical = physical;
     }
-
-
-
 }

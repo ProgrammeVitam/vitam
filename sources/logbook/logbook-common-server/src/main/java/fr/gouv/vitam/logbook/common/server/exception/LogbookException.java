@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.VitamException;
  * Main Logbook Exception
  */
 public class LogbookException extends VitamException {
+
     private static final long serialVersionUID = 4065509976806112481L;
 
     /**

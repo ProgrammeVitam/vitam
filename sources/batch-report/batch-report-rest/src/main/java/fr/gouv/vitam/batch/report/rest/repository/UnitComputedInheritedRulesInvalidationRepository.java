@@ -63,31 +63,31 @@ public class UnitComputedInheritedRulesInvalidationRepository extends ReportComm
 
     public void bulkAppendReport(List<UnitComputedInheritedRulesInvalidationModel> reports) {
         Set<UnitComputedInheritedRulesInvalidationModel> reportsWithoutDuplicate = new HashSet<>(reports);
-        List<Document> entries = reportsWithoutDuplicate.stream()
-            .map(ReportCommonRepository::pojoToDocument).collect(Collectors.toList());
+        List<Document> entries = reportsWithoutDuplicate
+            .stream()
+            .map(ReportCommonRepository::pojoToDocument)
+            .collect(Collectors.toList());
         super.bulkAppendReport(entries, collection);
     }
 
     public CloseableIterator<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
-
-        MongoCursor<Document> cursor = collection.aggregate(
+        MongoCursor<Document> cursor = collection
+            .aggregate(
                 Arrays.asList(
-                    Aggregates.match(and(
-                        eq(UnitComputedInheritedRulesInvalidationModel.PROCESS_ID, processId),
-                        eq(UnitComputedInheritedRulesInvalidationModel.TENANT, tenantId)
-                    )),
-                    Aggregates.project(Projections.fields(
-                            new Document("_id", 0),
-                            new Document("id", "$_metadata.id")
+                    Aggregates.match(
+                        and(
+                            eq(UnitComputedInheritedRulesInvalidationModel.PROCESS_ID, processId),
+                            eq(UnitComputedInheritedRulesInvalidationModel.TENANT, tenantId)
                         )
-                    ))
+                    ),
+                    Aggregates.project(Projections.fields(new Document("_id", 0), new Document("id", "$_metadata.id")))
+                )
             )
             // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)
             .iterator();
 
         return new CloseableIterator<Document>() {
-
             @Override
             public void close() {
                 cursor.close();

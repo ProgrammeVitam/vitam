@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.logbook.common.server.database.collections;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import fr.gouv.vitam.common.ParametersChecker;
@@ -38,15 +37,14 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 
 /**
  * Logbook Operation item
  */
 public class LogbookOperation extends VitamDocument<LogbookOperation> {
+
     private static final long serialVersionUID = -8343195329673741173L;
 
     /**
@@ -131,13 +129,11 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         final Map<LogbookParameterName, String> map = parameters.getMapParameters();
         if (object instanceof BasicDBObject) {
             for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
-                map.put(name.getLogbookParameterName(),
-                    ((BasicDBObject) object).getString(name.getDbname()));
+                map.put(name.getLogbookParameterName(), ((BasicDBObject) object).getString(name.getDbname()));
             }
         } else if (object instanceof Document) {
             for (final LogbookMongoDbName name : LogbookMongoDbName.values()) {
-                map.put(name.getLogbookParameterName(),
-                    ((Document) object).getString(name.getDbname()));
+                map.put(name.getLogbookParameterName(), ((Document) object).getString(name.getDbname()));
             }
         }
         return parameters;
@@ -168,5 +164,4 @@ public class LogbookOperation extends VitamDocument<LogbookOperation> {
         }
         return list;
     }
-
 }

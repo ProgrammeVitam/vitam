@@ -32,6 +32,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Logbook Common event model
  */
 public class LogbookEvent {
+
     public static final String EV_ID = "evId";
     public static final String EV_PARENT_ID = "evParentId";
     public static final String EV_TYPE = "evType";

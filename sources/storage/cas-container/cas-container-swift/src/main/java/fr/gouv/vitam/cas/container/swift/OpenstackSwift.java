@@ -90,11 +90,14 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
      */
     public OpenstackSwift(StorageConfiguration configuration) {
         super(configuration);
-
     }
 
-    public OpenstackSwift(StorageConfiguration configuration, SwiftApi swiftApi, ContainerApi containerApi,
-        AccountApi accountApi) {
+    public OpenstackSwift(
+        StorageConfiguration configuration,
+        SwiftApi swiftApi,
+        ContainerApi containerApi,
+        AccountApi accountApi
+    ) {
         super(configuration);
         this.swiftApi = swiftApi;
         this.containerApi = containerApi;
@@ -146,12 +149,18 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
             overrides.setProperty(KeystoneProperties.CREDENTIAL_TYPE, "tempAuthCredentials");
             overrides.setProperty("jclouds.swift.tempAuth.headerUser", "X-Auth-User");
             overrides.setProperty("jclouds.swift.tempAuth.headerPass", "X-Auth-Key");
-            overrides.setProperty(PROPERTY_MAX_CONNECTIONS_PER_CONTEXT,
-                String.valueOf(configuration.getSwiftMaxConnectionsPerRoute()));
-            overrides
-                .setProperty(PROPERTY_MAX_CONNECTIONS_PER_HOST, String.valueOf(configuration.getSwiftMaxConnections()));
-            overrides
-                .setProperty(PROPERTY_CONNECTION_TIMEOUT, String.valueOf(configuration.getSwiftConnectionTimeout()));
+            overrides.setProperty(
+                PROPERTY_MAX_CONNECTIONS_PER_CONTEXT,
+                String.valueOf(configuration.getSwiftMaxConnectionsPerRoute())
+            );
+            overrides.setProperty(
+                PROPERTY_MAX_CONNECTIONS_PER_HOST,
+                String.valueOf(configuration.getSwiftMaxConnections())
+            );
+            overrides.setProperty(
+                PROPERTY_CONNECTION_TIMEOUT,
+                String.valueOf(configuration.getSwiftConnectionTimeout())
+            );
             overrides.setProperty(PROPERTY_SO_TIMEOUT, String.valueOf(configuration.getSwiftReadTimeout()));
             overrides.setProperty(PROPERTY_USER_THREADS, String.valueOf(configuration.getSwiftMaxConnections()));
 
@@ -164,15 +173,16 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
     @Override
     public void createContainer(String containerName) {
         LOGGER.info("- create container CEPH : " + containerName);
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
         try {
             // create container in region default region
             getContainerApi().create(containerName);
         } finally {
             closeContext();
         }
-
     }
 
     /**
@@ -241,19 +251,21 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
     @Override
     public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException {
-
-
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectId);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectId
+        );
         MetadatasStorageObject result = new MetadatasStorageObject();
         result.setType(containerName.split("_")[1]);
         result.setLastAccessDate(null);
-        SwiftObject swiftobject =
-            getSwiftAPi().getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName)
-                .get(objectId);
+        SwiftObject swiftobject = getSwiftAPi()
+            .getObjectApi(swiftApi.getConfiguredRegions().iterator().next(), containerName)
+            .get(objectId);
         if (swiftobject == null) {
-            throw new ContentAddressableStorageNotFoundException("The Object" + objectId +
-                " can not be found for the container " + containerName);
+            throw new ContentAddressableStorageNotFoundException(
+                "The Object" + objectId + " can not be found for the container " + containerName
+            );
         }
         result.setObjectName(objectId);
         // TODO To be reviewed with the X-DIGEST-ALGORITHM parameter
@@ -263,7 +275,4 @@ public class OpenstackSwift extends ContentAddressableStorageJcloudsAbstract {
 
         return result;
     }
-
-
-
 }

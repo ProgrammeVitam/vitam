@@ -72,8 +72,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
     /**
      * Empty Constructor
      */
-    public AccessionRegisterDetail() {
-    }
+    public AccessionRegisterDetail() {}
 
     /**
      * Constructor
@@ -250,8 +249,10 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public RegisterValueDetailModel getTotalUnits() {
         try {
-            return JsonHandler
-                .getFromJsonNode(JsonHandler.toJsonNode(this.get(TOTAL_UNITS)), RegisterValueDetailModel.class);
+            return JsonHandler.getFromJsonNode(
+                JsonHandler.toJsonNode(this.get(TOTAL_UNITS)),
+                RegisterValueDetailModel.class
+            );
         } catch (InvalidParseOperationException e) {
             throw new IllegalStateException(e);
         }
@@ -276,8 +277,10 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public RegisterValueDetailModel getTotalObjectGroups() {
         try {
-            return JsonHandler
-                .getFromJsonNode(JsonHandler.toJsonNode(this.get(TOTAL_OBJECTGROUPS)), RegisterValueDetailModel.class);
+            return JsonHandler.getFromJsonNode(
+                JsonHandler.toJsonNode(this.get(TOTAL_OBJECTGROUPS)),
+                RegisterValueDetailModel.class
+            );
         } catch (InvalidParseOperationException e) {
             throw new IllegalStateException(e);
         }
@@ -297,8 +300,10 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public RegisterValueDetailModel getTotalObjects() {
         try {
-            return JsonHandler
-                .getFromJsonNode(JsonHandler.toJsonNode(this.get(TOTAL_OBJECTS)), RegisterValueDetailModel.class);
+            return JsonHandler.getFromJsonNode(
+                JsonHandler.toJsonNode(this.get(TOTAL_OBJECTS)),
+                RegisterValueDetailModel.class
+            );
         } catch (InvalidParseOperationException e) {
             throw new IllegalStateException(e);
         }
@@ -333,8 +338,10 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
      */
     public RegisterValueDetailModel getTotalObjectSize() {
         try {
-            return JsonHandler
-                .getFromJsonNode(JsonHandler.toJsonNode(this.get(OBJECT_SIZE)), RegisterValueDetailModel.class);
+            return JsonHandler.getFromJsonNode(
+                JsonHandler.toJsonNode(this.get(OBJECT_SIZE)),
+                RegisterValueDetailModel.class
+            );
         } catch (InvalidParseOperationException e) {
             throw new IllegalStateException(e);
         }
@@ -351,8 +358,7 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
 
     public AccessionRegisterStatus getStatus() {
         try {
-            return JsonHandler
-                .getFromJsonNode(JsonHandler.toJsonNode(this.get(STATUS)), AccessionRegisterStatus.class);
+            return JsonHandler.getFromJsonNode(JsonHandler.toJsonNode(this.get(STATUS)), AccessionRegisterStatus.class);
         } catch (InvalidParseOperationException e) {
             throw new IllegalStateException(e);
         }
@@ -396,10 +402,10 @@ public class AccessionRegisterDetail extends VitamDocument<AccessionRegisterDeta
 
     public List<RegisterValueEventModel> getEvents() {
         try {
-            return JsonHandler
-                .getFromJsonNode(JsonHandler.toJsonNode(this.get(EVENTS)),
-                    new TypeReference<List<RegisterValueEventModel>>() {
-                    });
+            return JsonHandler.getFromJsonNode(
+                JsonHandler.toJsonNode(this.get(EVENTS)),
+                new TypeReference<List<RegisterValueEventModel>>() {}
+            );
         } catch (InvalidParseOperationException e) {
             throw new IllegalStateException(e);
         }

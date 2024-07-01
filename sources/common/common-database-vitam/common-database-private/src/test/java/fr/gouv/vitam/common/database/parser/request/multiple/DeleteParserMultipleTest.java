@@ -73,6 +73,7 @@ import static org.junit.Assert.fail;
 
 @SuppressWarnings("javadoc")
 public class DeleteParserMultipleTest {
+
     private static JsonNode exampleBothEsMd;
 
     private static JsonNode exampleMd;
@@ -82,71 +83,96 @@ public class DeleteParserMultipleTest {
     @BeforeClass
     public static void init() throws InvalidParseOperationException {
         VitamLoggerFactory.setLogLevel(VitamLogLevel.INFO);
-        exampleMd = JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-            "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
+        exampleMd = JsonHandler.getFromString(
+            "{ $roots : [ 'id0' ], $query : [ " +
+            "{ $path : [ 'id1', 'id2'] }," +
+            "{ $and : [ " +
+            "{$exists : 'mavar1'}, " +
+            "{$missing : 'mavar2'}, " +
+            "{$isNull : 'mavar3'}, " +
             "{ $or : [ " +
-            "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-            "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
-            "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, " +
+            "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " +
+            "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
+            "{ $not : [ " +
+            "{ $size : { 'mavar5' : 5 } }, " +
+            "{ $gt : { 'mavar6' : 7 } }, " +
+            "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
+            "{ $not : [ " +
+            "{ $eq : { 'mavar8' : 5 } }, " +
             "{ $ne : { 'mavar9' : 'ab' } }, " +
             "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
             "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
-            "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " + "$filter : {$mult : false } }");
-        exampleBothEsMd =
-            JsonHandler.getFromString("{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-                "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " +
-                "{ $or : [ " +
-                "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-                "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
-                "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, { " +
-                "$ne : { 'mavar9' : 'ab' } }, { " +
-                "$range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}," +
-                "{ $match_phrase : { 'mavar11' : 'ceci est une phrase' }, $depth : 0}," +
-                "{ $match_phrase_prefix : { 'mavar11' : 'ceci est une phrase', $max_expansions : 10 }, $depth : 0}," +
-                "{ $flt : { $fields : [ 'mavar12', 'mavar13' ], $like : 'ceci est une phrase' }, $depth : 1}," +
-                "{ $and : [ " +
-                "{ $search : { 'mavar13' : 'ceci est une phrase' } }, " +
-                "{ $regex : { 'mavar14' : '^start?aa.*' } } ] }," +
-                "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " + "{ $and : [ " +
-                "{ $term : { 'mavar16' : 'motMajuscule', 'mavar17' : 'simplemot' } }, " +
-                "{ $or : [ {$eq : { 'mavar19' : 'abcd' } }, { $match : { 'mavar18' : 'quelques mots' } } ] } ] }, " +
-                "{ $regex : { 'mavar14' : '^start?aa.*' } } " + "], " + "$filter : {$mult : false } }");
-
+            "{ $regex : { 'mavar14' : '^start?aa.*' } } " +
+            "], " +
+            "$filter : {$mult : false } }"
+        );
+        exampleBothEsMd = JsonHandler.getFromString(
+            "{ $roots : [ 'id0' ], $query : [ " +
+            "{ $path : [ 'id1', 'id2'] }," +
+            "{ $and : [ " +
+            "{$exists : 'mavar1'}, " +
+            "{$missing : 'mavar2'}, " +
+            "{$isNull : 'mavar3'}, " +
+            "{ $or : [ " +
+            "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " +
+            "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
+            "{ $not : [ " +
+            "{ $size : { 'mavar5' : 5 } }, " +
+            "{ $gt : { 'mavar6' : 7 } }, " +
+            "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
+            "{ $not : [ " +
+            "{ $eq : { 'mavar8' : 5 } }, { " +
+            "$ne : { 'mavar9' : 'ab' } }, { " +
+            "$range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}," +
+            "{ $match_phrase : { 'mavar11' : 'ceci est une phrase' }, $depth : 0}," +
+            "{ $match_phrase_prefix : { 'mavar11' : 'ceci est une phrase', $max_expansions : 10 }, $depth : 0}," +
+            "{ $flt : { $fields : [ 'mavar12', 'mavar13' ], $like : 'ceci est une phrase' }, $depth : 1}," +
+            "{ $and : [ " +
+            "{ $search : { 'mavar13' : 'ceci est une phrase' } }, " +
+            "{ $regex : { 'mavar14' : '^start?aa.*' } } ] }," +
+            "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
+            "{ $and : [ " +
+            "{ $term : { 'mavar16' : 'motMajuscule', 'mavar17' : 'simplemot' } }, " +
+            "{ $or : [ {$eq : { 'mavar19' : 'abcd' } }, { $match : { 'mavar18' : 'quelques mots' } } ] } ] }, " +
+            "{ $regex : { 'mavar14' : '^start?aa.*' } } " +
+            "], " +
+            "$filter : {$mult : false } }"
+        );
 
         nestedSearchQuery = JsonHandler.getFromString(
             "{\n" +
-                "  \"$query\": [\n" +
-                "    {\n" +
-                "      \"$and\": [\n" +
-                "        {\n" +
-                "          \"$match\": {\n" +
-                "            \"FileInfo.FileName\": \"Monfichier\"\n" +
-                "          }\n" +
-                "        },\n" +
-                "        {\n" +
-                "          \"$subobject\": {\n" +
-                "            \"#qualifiers.versions\": {\n" +
-                "              \"$and\": [\n" +
-                "                {\n" +
-                "                  \"$eq\": {\n" +
-                "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
-                "                  }\n" +
-                "                },\n" +
-                "                {\n" +
-                "                  \"$lte\": {\n" +
-                "                    \"version.size\": 20000\n" +
-                "                  }\n" +
-                "                }\n" +
-                "              ]\n" +
-                "            }\n" +
-                "          }\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  ],\n" +
-                "  \"$projection\": {},\n" +
-                "  \"$filters\": {}\n" +
-                "}"
+            "  \"$query\": [\n" +
+            "    {\n" +
+            "      \"$and\": [\n" +
+            "        {\n" +
+            "          \"$match\": {\n" +
+            "            \"FileInfo.FileName\": \"Monfichier\"\n" +
+            "          }\n" +
+            "        },\n" +
+            "        {\n" +
+            "          \"$subobject\": {\n" +
+            "            \"#qualifiers.versions\": {\n" +
+            "              \"$and\": [\n" +
+            "                {\n" +
+            "                  \"$eq\": {\n" +
+            "                    \"#qualifiers.versions.FormatIdentification.MimeType\": \"text.pdf\"\n" +
+            "                  }\n" +
+            "                },\n" +
+            "                {\n" +
+            "                  \"$lte\": {\n" +
+            "                    \"version.size\": 20000\n" +
+            "                  }\n" +
+            "                }\n" +
+            "              ]\n" +
+            "            }\n" +
+            "          }\n" +
+            "        }\n" +
+            "      ]\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"$projection\": {},\n" +
+            "  \"$filters\": {}\n" +
+            "}"
         );
     }
 
@@ -155,49 +181,46 @@ public class DeleteParserMultipleTest {
         try {
             final DeleteParserMultiple request1 = new DeleteParserMultiple();
             request1.parse(exampleBothEsMd.deepCopy());
-            assertTrue("Should refuse the request since ES is not allowed",
-                request1.hasFullTextQuery());
+            assertTrue("Should refuse the request since ES is not allowed", request1.hasFullTextQuery());
             request1.parse(exampleMd.deepCopy());
-            assertFalse("Should accept the request since ES is not allowed",
-                request1.hasFullTextQuery());
-        } catch (final Exception e) {
-        }
+            assertFalse("Should accept the request since ES is not allowed", request1.hasFullTextQuery());
+        } catch (final Exception e) {}
         try {
             final DeleteParserMultiple request1 = new DeleteParserMultiple();
             request1.parse(exampleBothEsMd.deepCopy());
             assertNotNull(request1);
-            assertTrue("Should refuse the request since ES is not allowed",
-                request1.hasFullTextQuery());
+            assertTrue("Should refuse the request since ES is not allowed", request1.hasFullTextQuery());
             final DeleteMultiQuery delete = new DeleteMultiQuery();
             delete.addRoots("id0");
             delete.addQueries(path("id1", "id2"));
             delete.addQueries(
-                and().add(exists("mavar1"), missing("mavar2"), isNull("mavar3"),
-                    or().add(in("mavar4", 1, 2).add("maval1"),
-                        nin("mavar5", "maval2").add(true))));
+                and()
+                    .add(
+                        exists("mavar1"),
+                        missing("mavar2"),
+                        isNull("mavar3"),
+                        or().add(in("mavar4", 1, 2).add("maval1"), nin("mavar5", "maval2").add(true))
+                    )
+            );
+            delete.addQueries(not().add(size("mavar5", 5), gt("mavar6", 7), lte("mavar7", 8)).setExactDepthLimit(4));
             delete.addQueries(
-                not().add(size("mavar5", 5), gt("mavar6", 7), lte("mavar7", 8))
-                    .setExactDepthLimit(4));
-            delete.addQueries(not()
-                .add(eq("mavar8", 5), ne("mavar9", "ab"),
-                    range("mavar10", 12, true, 20, true))
-                .setDepthLimit(1));
-            delete.addQueries(matchPhrase("mavar11", "ceci est une phrase")
-                .setRelativeDepthLimit(0));
-            delete.addQueries(matchPhrasePrefix("mavar11", "ceci est une phrase")
-                .setMatchMaxExpansions(10)
-                .setDepthLimit(0));
-            delete.addQueries(flt("ceci est une phrase", "mavar12", "mavar13")
-                .setRelativeDepthLimit(1));
-            delete.addQueries(and().add(search("mavar13", "ceci est une phrase"),
-                regex("mavar14", "^start?aa.*")));
+                not().add(eq("mavar8", 5), ne("mavar9", "ab"), range("mavar10", 12, true, 20, true)).setDepthLimit(1)
+            );
+            delete.addQueries(matchPhrase("mavar11", "ceci est une phrase").setRelativeDepthLimit(0));
+            delete.addQueries(
+                matchPhrasePrefix("mavar11", "ceci est une phrase").setMatchMaxExpansions(10).setDepthLimit(0)
+            );
+            delete.addQueries(flt("ceci est une phrase", "mavar12", "mavar13").setRelativeDepthLimit(1));
+            delete.addQueries(and().add(search("mavar13", "ceci est une phrase"), regex("mavar14", "^start?aa.*")));
 
-            delete.addQueries(and()
-                .add(term("mavar14", "motMajuscule").add("mavar15", "simplemot")));
+            delete.addQueries(and().add(term("mavar14", "motMajuscule").add("mavar15", "simplemot")));
             delete.addQueries(
-                and().add(term("mavar16", "motMajuscule").add("mavar17", "simplemot"),
-                    or().add(eq("mavar19", "abcd"),
-                        match("mavar18", "quelques mots"))));
+                and()
+                    .add(
+                        term("mavar16", "motMajuscule").add("mavar17", "simplemot"),
+                        or().add(eq("mavar19", "abcd"), match("mavar18", "quelques mots"))
+                    )
+            );
             delete.addQueries(regex("mavar14", "^start?aa.*"));
 
             delete.setMult(false);
@@ -211,20 +234,20 @@ public class DeleteParserMultipleTest {
                     System.err.println(query1.get(i));
                     System.err.println(query2.get(i));
                 }
-                assertEquals("TypeRequest should be equal",
-                    query1.get(i).toString(), query2.get(i).toString());
+                assertEquals("TypeRequest should be equal", query1.get(i).toString(), query2.get(i).toString());
             }
-            assertTrue("Filter should be equal",
-                request1.getRequest().getFilter().toString()
-                    .equals(request2.getRequest().getFilter().toString()));
+            assertTrue(
+                "Filter should be equal",
+                request1.getRequest().getFilter().toString().equals(request2.getRequest().getFilter().toString())
+            );
             assertEquals(request1.getLastDepth(), request2.getLastDepth());
             assertEquals(request1.hasFullTextQuery(), request2.hasFullTextQuery());
-            assertEquals(request1.getRequest().getRoots().toString(),
-                request2.getRequest().getRoots().toString());
-            assertEquals(request1.getRequest().getFinalDelete().toString(),
-                request2.getRequest().getFinalDelete().toString());
-            assertTrue("Command should be equal",
-                request1.toString().equals(request2.toString()));
+            assertEquals(request1.getRequest().getRoots().toString(), request2.getRequest().getRoots().toString());
+            assertEquals(
+                request1.getRequest().getFinalDelete().toString(),
+                request2.getRequest().getFinalDelete().toString()
+            );
+            assertTrue("Command should be equal", request1.toString().equals(request2.toString()));
         } catch (final Exception e) {
             e.printStackTrace();
             fail(e.getMessage());
@@ -247,38 +270,33 @@ public class DeleteParserMultipleTest {
         try {
             // empty
             request.filterParse(delete.getFilter());
-            assertNull("Hint should be null",
-                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
-            assertNull("Limit should be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.LIMIT.exactToken()));
-            assertNull("Offset should be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.OFFSET.exactToken()));
-            assertNull("OrderBy should be null", request.getRequest().getFilter()
-                .get(SELECTFILTER.ORDERBY.exactToken()));
-            assertNull("Mult should be null",
-                request.getRequest().getFilter().get(MULTIFILTER.MULT.exactToken()));
+            assertNull("Hint should be null", request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
+            assertNull("Limit should be null", request.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken()));
+            assertNull("Offset should be null", request.getRequest().getFilter().get(SELECTFILTER.OFFSET.exactToken()));
+            assertNull(
+                "OrderBy should be null",
+                request.getRequest().getFilter().get(SELECTFILTER.ORDERBY.exactToken())
+            );
+            assertNull("Mult should be null", request.getRequest().getFilter().get(MULTIFILTER.MULT.exactToken()));
             // hint set
             delete.addHintFilter(FILTERARGS.CACHE.exactToken());
             request.filterParse(delete.getFilter());
-            assertEquals("Hint should be True", FILTERARGS.CACHE.exactToken(),
-                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken())
-                    .get(0).asText());
+            assertEquals(
+                "Hint should be True",
+                FILTERARGS.CACHE.exactToken(),
+                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()).get(0).asText()
+            );
             // hint reset
             delete.resetHintFilter();
             request.filterParse(delete.getFilter());
-            assertNull("Hint should be null",
-                request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
+            assertNull("Hint should be null", request.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken()));
             // multi set
             delete.setMult(false);
             request.filterParse(delete.getFilter());
-            assertEquals(false,
-                request.getRequest().getFilter().get(MULTIFILTER.MULT.exactToken())
-                    .asBoolean());
+            assertEquals(false, request.getRequest().getFilter().get(MULTIFILTER.MULT.exactToken()).asBoolean());
             delete.setMult(true);
             request.filterParse(delete.getFilter());
-            assertEquals(true,
-                request.getRequest().getFilter().get(MULTIFILTER.MULT.exactToken())
-                    .asBoolean());
+            assertEquals(true, request.getRequest().getFilter().get(MULTIFILTER.MULT.exactToken()).asBoolean());
         } catch (final InvalidParseOperationException e) {
             e.printStackTrace();
             fail(e.getMessage());

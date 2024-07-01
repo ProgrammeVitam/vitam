@@ -57,8 +57,7 @@ public class TraceabilityStorageService {
      * @return list of last saved files as iterator
      */
     public Iterator<OfferLog> getLastSavedStorageLogIterator(String strategyId) {
-        return new OfferLogIterator(
-            strategyId, Order.DESC, DataCategory.STORAGELOG, this.distribution, GET_LAST_BASE);
+        return new OfferLogIterator(strategyId, Order.DESC, DataCategory.STORAGELOG, this.distribution, GET_LAST_BASE);
     }
 
     /**
@@ -69,7 +68,12 @@ public class TraceabilityStorageService {
      */
     public String getLastTraceabilityZip(String strategyId) {
         Iterator<OfferLog> offerLogIterator = new OfferLogIterator(
-            strategyId, Order.DESC, DataCategory.STORAGETRACEABILITY, this.distribution, 1);
+            strategyId,
+            Order.DESC,
+            DataCategory.STORAGETRACEABILITY,
+            this.distribution,
+            1
+        );
 
         if (!offerLogIterator.hasNext()) {
             return null;
@@ -87,8 +91,12 @@ public class TraceabilityStorageService {
      * @throws StorageException if some error technical problem while call StorageDistribution
      */
     public Response getObject(String strategyId, String objectId, DataCategory category) throws StorageException {
-        return this.distribution
-            .getContainerByCategory(strategyId, TRACEABILITY_ORIGIN, objectId, category,
-                AccessLogUtils.getNoLogAccessLog());
+        return this.distribution.getContainerByCategory(
+                strategyId,
+                TRACEABILITY_ORIGIN,
+                objectId,
+                category,
+                AccessLogUtils.getNoLogAccessLog()
+            );
     }
 }

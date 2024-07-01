@@ -47,7 +47,6 @@ public final class MetaDataConfigurationValidator {
     }
 
     public static void validateConfiguration(MetaDataConfiguration metaDataConfiguration) {
-
         if (metaDataConfiguration == null) {
             throw new IllegalStateException("Invalid configuration. Null config");
         }
@@ -56,8 +55,8 @@ public final class MetaDataConfigurationValidator {
     }
 
     private static void validateElasticsearchIndexationConfiguration(
-        MetadataIndexationConfiguration indexationConfiguration) {
-
+        MetadataIndexationConfiguration indexationConfiguration
+    ) {
         if (indexationConfiguration == null) {
             throw new IllegalStateException("Invalid configuration. Missing ES tenant indexation");
         }
@@ -71,73 +70,73 @@ public final class MetaDataConfigurationValidator {
         validateCollectionConfiguration(indexationConfiguration);
     }
 
-    private static void validateDefaultConfig(
-        MetadataIndexationConfiguration config)
-        throws IllegalStateException {
-
+    private static void validateDefaultConfig(MetadataIndexationConfiguration config) throws IllegalStateException {
         if (config.getDefaultCollectionConfiguration() == null) {
             throw new IllegalStateException("Invalid configuration. Missing default configuration");
         }
 
-        CollectionConfigurationUtils.validate(
-            config.getDefaultCollectionConfiguration().getUnit(), false);
-        CollectionConfigurationUtils.validate(
-            config.getDefaultCollectionConfiguration().getObjectgroup(), false);
+        CollectionConfigurationUtils.validate(config.getDefaultCollectionConfiguration().getUnit(), false);
+        CollectionConfigurationUtils.validate(config.getDefaultCollectionConfiguration().getObjectgroup(), false);
     }
 
-    private static void validateTenantGroupNames(
-        MetadataIndexationConfiguration indexationConfiguration) {
-
+    private static void validateTenantGroupNames(MetadataIndexationConfiguration indexationConfiguration) {
         if (CollectionUtils.isEmpty(indexationConfiguration.getGroupedTenantConfiguration())) {
             return;
         }
 
         Set<Object> tenantGroupNames = new HashSet<>();
 
-        indexationConfiguration.getGroupedTenantConfiguration().stream()
+        indexationConfiguration
+            .getGroupedTenantConfiguration()
+            .stream()
             .map(GroupedTenantConfiguration::getName)
-            .forEach(
-                name -> {
-
-                    if (name == null) {
-                        throw new IllegalStateException("Invalid configuration. Missing tenant group name");
-                    }
-
-                    if (!name.matches(TENANT_GROUP_NAME_PATTERN)) {
-                        throw new IllegalStateException(
-                            "Invalid configuration. Tenant group name '" + name + "' does not match regex " +
-                                TENANT_GROUP_NAME_PATTERN);
-                    }
-
-                    if (!tenantGroupNames.add(name)) {
-                        throw new IllegalStateException("Invalid configuration. Duplicate tenant group name " + name);
-                    }
+            .forEach(name -> {
+                if (name == null) {
+                    throw new IllegalStateException("Invalid configuration. Missing tenant group name");
                 }
-            );
+
+                if (!name.matches(TENANT_GROUP_NAME_PATTERN)) {
+                    throw new IllegalStateException(
+                        "Invalid configuration. Tenant group name '" +
+                        name +
+                        "' does not match regex " +
+                        TENANT_GROUP_NAME_PATTERN
+                    );
+                }
+
+                if (!tenantGroupNames.add(name)) {
+                    throw new IllegalStateException("Invalid configuration. Duplicate tenant group name " + name);
+                }
+            });
     }
 
-    private static void validateTenantRanges(
-        MetadataIndexationConfiguration indexationConfiguration) {
+    private static void validateTenantRanges(MetadataIndexationConfiguration indexationConfiguration) {
         List<String> tenantRangeStrings = new ArrayList<>();
 
         if (CollectionUtils.isNotEmpty(indexationConfiguration.getGroupedTenantConfiguration())) {
-            indexationConfiguration.getGroupedTenantConfiguration().stream()
+            indexationConfiguration
+                .getGroupedTenantConfiguration()
+                .stream()
                 .map(GroupedTenantConfiguration::getTenants)
                 .forEach(tenantRangeStrings::add);
         }
 
         if (CollectionUtils.isNotEmpty(indexationConfiguration.getDedicatedTenantConfiguration())) {
-            indexationConfiguration.getDedicatedTenantConfiguration().stream()
+            indexationConfiguration
+                .getDedicatedTenantConfiguration()
+                .stream()
                 .map(DedicatedTenantConfiguration::getTenants)
                 .forEach(tenantRangeStrings::add);
         }
 
         if (tenantRangeStrings.contains(null)) {
             throw new IllegalStateException(
-                "Invalid configuration. Missing tenants from dedicated tenant or grouped tenant configuration");
+                "Invalid configuration. Missing tenants from dedicated tenant or grouped tenant configuration"
+            );
         }
 
-        List<TenantRange> tenantRanges = tenantRangeStrings.stream()
+        List<TenantRange> tenantRanges = tenantRangeStrings
+            .stream()
             .flatMap(tenantRangeString -> TenantRangeParser.parseTenantRanges(tenantRangeString).stream())
             .collect(Collectors.toList());
 
@@ -146,39 +145,35 @@ public final class MetaDataConfigurationValidator {
             for (int j = i + 1; j < tenantRanges.size(); j++) {
                 if (TenantRangeParser.doRangesIntersect(tenantRanges.get(i), tenantRanges.get(j))) {
                     throw new IllegalStateException(
-                        "Invalid configuration. Overlapping tenant ranges " + tenantRanges.get(i) + " and " +
-                            tenantRanges.get(j));
+                        "Invalid configuration. Overlapping tenant ranges " +
+                        tenantRanges.get(i) +
+                        " and " +
+                        tenantRanges.get(j)
+                    );
                 }
             }
         }
     }
 
-    private static void validateCollectionConfiguration(
-        MetadataIndexationConfiguration indexationConfiguration) {
+    private static void validateCollectionConfiguration(MetadataIndexationConfiguration indexationConfiguration) {
         if (CollectionUtils.isNotEmpty(indexationConfiguration.getDedicatedTenantConfiguration())) {
-            for (DedicatedTenantConfiguration dedicatedTenantConfiguration : indexationConfiguration
-                .getDedicatedTenantConfiguration()) {
+            for (DedicatedTenantConfiguration dedicatedTenantConfiguration : indexationConfiguration.getDedicatedTenantConfiguration()) {
                 if (dedicatedTenantConfiguration.getUnit() != null) {
-                    CollectionConfigurationUtils.validate(
-                        dedicatedTenantConfiguration.getUnit(), true);
+                    CollectionConfigurationUtils.validate(dedicatedTenantConfiguration.getUnit(), true);
                 }
                 if (dedicatedTenantConfiguration.getObjectgroup() != null) {
-                    CollectionConfigurationUtils.validate(
-                        dedicatedTenantConfiguration.getObjectgroup(), true);
+                    CollectionConfigurationUtils.validate(dedicatedTenantConfiguration.getObjectgroup(), true);
                 }
             }
         }
 
         if (CollectionUtils.isNotEmpty(indexationConfiguration.getGroupedTenantConfiguration())) {
-            for (GroupedTenantConfiguration groupedTenantConfiguration : indexationConfiguration
-                .getGroupedTenantConfiguration()) {
+            for (GroupedTenantConfiguration groupedTenantConfiguration : indexationConfiguration.getGroupedTenantConfiguration()) {
                 if (groupedTenantConfiguration.getUnit() != null) {
-                    CollectionConfigurationUtils.validate(
-                        groupedTenantConfiguration.getUnit(), true);
+                    CollectionConfigurationUtils.validate(groupedTenantConfiguration.getUnit(), true);
                 }
                 if (groupedTenantConfiguration.getObjectgroup() != null) {
-                    CollectionConfigurationUtils.validate(
-                        groupedTenantConfiguration.getObjectgroup(), true);
+                    CollectionConfigurationUtils.validate(groupedTenantConfiguration.getObjectgroup(), true);
                 }
             }
         }

@@ -34,7 +34,6 @@ import java.util.List;
  * Common rule Interface
  */
 public interface CommonRule extends CommonRuleBase {
-
     /**
      * Gets the value of the refNonRuleId property.
      *

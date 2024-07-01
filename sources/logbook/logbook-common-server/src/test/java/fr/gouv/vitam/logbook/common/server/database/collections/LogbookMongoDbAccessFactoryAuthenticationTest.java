@@ -61,14 +61,15 @@ import java.util.List;
 import static org.junit.Assert.assertNotNull;
 
 // FIXME: 30/01/19 "Already tested in @see MongoDbAccessMetadataFactoryTest. This test should be reactivated when mongo docker with an authenticated user is used"
-@Ignore("Already tested in @see MongoDbAccessMetadataFactoryTest. This test should be reactivated when mongo docker with an authenticated user is used")
+@Ignore(
+    "Already tested in @see MongoDbAccessMetadataFactoryTest. This test should be reactivated when mongo docker with an authenticated user is used"
+)
 public class LogbookMongoDbAccessFactoryAuthenticationTest {
 
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -84,16 +85,21 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
         LogbookCollectionsTestUtils.createTestIndexManager(tenantList, Collections.emptyMap());
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        LogbookCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
     }
 
     @AfterClass
@@ -110,12 +116,19 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
         // es
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        LogbookConfiguration config =
-            new LogbookConfiguration(nodes, mongoRule.getMongoDatabase().getName(), ElasticsearchRule.VITAM_CLUSTER,
-                esNodes, true, user, pwd);
+        LogbookConfiguration config = new LogbookConfiguration(
+            nodes,
+            mongoRule.getMongoDatabase().getName(),
+            ElasticsearchRule.VITAM_CLUSTER,
+            esNodes,
+            true,
+            user,
+            pwd
+        );
         VitamConfiguration.setTenants(tenantList);
         new LogbookMongoDbAccessFactory();
         mongoDbAccess = LogbookMongoDbAccessFactory.create(config, Collections::emptyList, indexManager);
@@ -126,12 +139,10 @@ public class LogbookMongoDbAccessFactoryAuthenticationTest {
             if (LogbookParameterName.eventDateTime.equals(name)) {
                 parameters.putParameterValue(name, LocalDateUtil.now().toString());
             } else {
-                parameters.putParameterValue(name,
-                    GUIDFactory.newEventGUID(0).getId());
+                parameters.putParameterValue(name, GUIDFactory.newEventGUID(0).getId());
             }
         }
         mongoDbAccess.createLogbookOperation(eip, parameters);
         mongoDbAccess.close();
     }
-
 }

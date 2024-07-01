@@ -77,13 +77,11 @@ public class ProfileModel {
     @JsonProperty(TAG_STATUS)
     private ProfileStatus status;
 
-
     @JsonProperty(TAG_FORMAT)
     private ProfileFormat format;
 
     @JsonProperty(TAG_PATH)
     private String path;
-
 
     @JsonProperty(CREATION_DATE)
     private String creationdate;
@@ -210,7 +208,6 @@ public class ProfileModel {
         return this;
     }
 
-
     /**
      * Get the profile status
      *
@@ -219,7 +216,6 @@ public class ProfileModel {
     public ProfileStatus getStatus() {
         return status;
     }
-
 
     /**
      * Set or change the profile status
@@ -240,7 +236,6 @@ public class ProfileModel {
     public ProfileFormat getFormat() {
         return format;
     }
-
 
     /**
      * Set the profile file format (xsd, rng, ...)
@@ -334,6 +329,4 @@ public class ProfileModel {
         this.deactivationdate = activationdate;
         return this;
     }
-
-
 }

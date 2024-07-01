@@ -69,7 +69,6 @@ public class WorkspaceTransferTaskTest {
         new WorkspaceTransferTask(null, workspaceQueue);
     }
 
-
     @Test
     public void whenGetThenOK() {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
@@ -89,37 +88,32 @@ public class WorkspaceTransferTaskTest {
         workspaceTransferTask.get();
     }
 
-
     @Test(expected = RuntimeException.class)
     public void whenGetTransferThenKO() throws ProcessingException {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
         doThrow(new ProcessingException(""))
-            .when(handlerIO).transferInputStreamToWorkspace(any(), any(), any(), anyBoolean());
+            .when(handlerIO)
+            .transferInputStreamToWorkspace(any(), any(), any(), anyBoolean());
         WorkspaceQueue workspaceQueue = mock(WorkspaceQueue.class);
         when(workspaceQueue.getAction()).thenReturn(WorkspaceAction.TRANSFER);
         WorkspaceTransferTask workspaceTransferTask = new WorkspaceTransferTask(handlerIO, workspaceQueue);
         workspaceTransferTask.get();
     }
 
-
     @Test
     public void whenGetUnzipThenOK() throws ContentAddressableStorageException {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
-        doAnswer(o -> o)
-            .when(handlerIO)
-            .unzipInputStreamOnWorkspace(any(), any(), any(), any(), anyBoolean());
+        doAnswer(o -> o).when(handlerIO).unzipInputStreamOnWorkspace(any(), any(), any(), any(), anyBoolean());
         WorkspaceQueue workspaceQueue = mock(WorkspaceQueue.class);
         when(workspaceQueue.getAction()).thenReturn(WorkspaceAction.UNZIP);
         WorkspaceTransferTask workspaceTransferTask = new WorkspaceTransferTask(handlerIO, workspaceQueue);
         workspaceTransferTask.get();
     }
 
-
     @Test
     public void whenGetTransferThenOK() throws ProcessingException {
         HandlerIO handlerIO = mock(HandlerIOImpl.class);
-        doAnswer(o -> o)
-            .when(handlerIO).transferInputStreamToWorkspace(any(), any(), any(), anyBoolean());
+        doAnswer(o -> o).when(handlerIO).transferInputStreamToWorkspace(any(), any(), any(), anyBoolean());
         WorkspaceQueue workspaceQueue = mock(WorkspaceQueue.class);
         when(workspaceQueue.getAction()).thenReturn(WorkspaceAction.TRANSFER);
         WorkspaceTransferTask workspaceTransferTask = new WorkspaceTransferTask(handlerIO, workspaceQueue);

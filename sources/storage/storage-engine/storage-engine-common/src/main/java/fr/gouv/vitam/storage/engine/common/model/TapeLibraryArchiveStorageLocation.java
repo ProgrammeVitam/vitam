@@ -29,14 +29,14 @@ package fr.gouv.vitam.storage.engine.common.model;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-@JsonTypeInfo(
-    use = JsonTypeInfo.Id.NAME,
-    property = "type")
-@JsonSubTypes({
-    @JsonSubTypes.Type(value = TapeLibraryBuildingOnDiskArchiveStorageLocation.class, name = "building_on_disk"),
-    @JsonSubTypes.Type(value = TapeLibraryReadyOnDiskArchiveStorageLocation.class, name = "ready_on_disk"),
-    @JsonSubTypes.Type(value = TapeLibraryOnTapeArchiveStorageLocation.class, name = "on_tape")
-})
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
+@JsonSubTypes(
+    {
+        @JsonSubTypes.Type(value = TapeLibraryBuildingOnDiskArchiveStorageLocation.class, name = "building_on_disk"),
+        @JsonSubTypes.Type(value = TapeLibraryReadyOnDiskArchiveStorageLocation.class, name = "ready_on_disk"),
+        @JsonSubTypes.Type(value = TapeLibraryOnTapeArchiveStorageLocation.class, name = "on_tape"),
+    }
+)
 public abstract class TapeLibraryArchiveStorageLocation {
 
     public TapeLibraryArchiveStorageLocation() {

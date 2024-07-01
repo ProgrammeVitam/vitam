@@ -65,33 +65,41 @@ public class RuleImportDiffTest {
 
     @Test
     public void shouldHaveOneInsertOneUpdateOneDelete() {
-        FileRulesModel ruleToDelete = new FileRulesModel("APP-00001",
+        FileRulesModel ruleToDelete = new FileRulesModel(
+            "APP-00001",
             AppraisalRule,
             "Dossier individuel d’agent civil",
             "ruleDescription",
             "80",
-            YEAR);
+            YEAR
+        );
 
-        FileRulesModel ruleToUpdate = new FileRulesModel("APP-00002",
+        FileRulesModel ruleToUpdate = new FileRulesModel(
+            "APP-00002",
             AppraisalRule,
             "Dossier individuel d’agent civil",
             "ruleDescription",
             "80",
-            YEAR);
+            YEAR
+        );
 
-        FileRulesModel ruleUpdated = new FileRulesModel("APP-00002",
+        FileRulesModel ruleUpdated = new FileRulesModel(
+            "APP-00002",
             AppraisalRule,
             "Dossier individuel d’agent civil",
             "new rule description",
             "80",
-            YEAR);
+            YEAR
+        );
 
-        FileRulesModel ruleToInsert = new FileRulesModel("APP-00003",
+        FileRulesModel ruleToInsert = new FileRulesModel(
+            "APP-00003",
             AppraisalRule,
             "Dossier individuel d’agent civil",
             "ruleDescription",
             "80",
-            YEAR);
+            YEAR
+        );
         List<FileRulesModel> ruleInDatabase = new ArrayList<>();
         List<FileRulesModel> ruleInFile = new ArrayList<>();
 
@@ -122,26 +130,32 @@ public class RuleImportDiffTest {
 
     @Test
     public void shouldHaveOneUpdateOneUpdateUnsafely() {
-        FileRulesModel ruleThatAlreadyExists = new FileRulesModel("APP-00003",
+        FileRulesModel ruleThatAlreadyExists = new FileRulesModel(
+            "APP-00003",
             AppraisalRule,
             "Dossier individuel d’agent civil",
             "ruleDescription",
             "80",
-            YEAR);
+            YEAR
+        );
 
-        FileRulesModel ruleToUpdate = new FileRulesModel("APP-00002",
+        FileRulesModel ruleToUpdate = new FileRulesModel(
+            "APP-00002",
             AppraisalRule,
             "Dossier individuel d’agent civil",
             "ruleDescription",
             "80",
-            YEAR);
+            YEAR
+        );
 
-        FileRulesModel ruleUpdated = new FileRulesModel("APP-00002",
+        FileRulesModel ruleUpdated = new FileRulesModel(
+            "APP-00002",
             AppraisalRule,
             "Dossier individuel d’agent civil",
             "ruleDescription",
             "100",
-            YEAR);
+            YEAR
+        );
 
         List<FileRulesModel> ruleInDatabase = new ArrayList<>();
         List<FileRulesModel> ruleInFile = new ArrayList<>();

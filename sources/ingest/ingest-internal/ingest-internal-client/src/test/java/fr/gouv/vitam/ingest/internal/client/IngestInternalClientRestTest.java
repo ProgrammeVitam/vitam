@@ -108,15 +108,19 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
     private static final String WROKFLOW_IDENTIFIER = "DEFAULT_WORKFLOW";
     private static final String X_ACTION = "RESUME";
     private static final String ID = "id1";
-    private final static ExpectedResults mock = mock(ExpectedResults.class);
-    private final static ExpectedResults mockLogbook = mock(ExpectedResults.class);
+    private static final ExpectedResults mock = mock(ExpectedResults.class);
+    private static final ExpectedResults mockLogbook = mock(ExpectedResults.class);
+
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     static IngestInternalClientFactory factory = IngestInternalClientFactory.getInstance();
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
-        new VitamServerTestRunner(IngestInternalClientRestTest.class, factory);
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        IngestInternalClientRestTest.class,
+        factory
+    );
     private static IngestInternalClientRest client;
 
     @BeforeClass
@@ -143,7 +147,6 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void givenStartedServerWhenUploadSipThenReturnOK() throws Exception {
-
         final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
         final GUID ingestGuid = GUIDFactory.newGUID();
@@ -156,7 +159,8 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.STARTED,
                 "Start Ingest external",
-                containerGuid);
+                containerGuid
+            );
 
         final LogbookOperationParameters externalOperationParameters2 =
             LogbookParameterHelper.newLogbookOperationParameters(
@@ -166,25 +170,26 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.OK,
                 "End Ingest external",
-                containerGuid);
+                containerGuid
+            );
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
         InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml");
         when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
-        when(mock.post())
-            .thenReturn(Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build());
-        final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
+        when(mock.post()).thenReturn(
+            Response.status(Status.OK).entity(FileUtil.readInputStream(inputStreamATR)).build()
+        );
+        final InputStream inputStream = PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip");
         client.uploadInitialLogbook(operationList);
         WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-        assertThatCode(() -> client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION)
+        ).doesNotThrowAnyException();
     }
 
     @Test
     public void givenVirusWhenUploadSipThenReturnKO() throws Exception {
-
         final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
         final GUID ingestGuid = GUIDFactory.newGUID();
@@ -197,7 +202,8 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.STARTED,
                 "Start Ingest external",
-                conatinerGuid);
+                conatinerGuid
+            );
 
         final LogbookOperationParameters externalOperationParameters2 =
             LogbookParameterHelper.newLogbookOperationParameters(
@@ -207,29 +213,30 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.KO,
                 "End Ingest external",
-                conatinerGuid);
+                conatinerGuid
+            );
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
 
         try (InputStream inputStreamATR = PropertiesUtils.getResourceAsStream("ATR_example.xml")) {
             when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
             when(mock.post()).thenReturn(
-                Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build());
+                Response.status(Status.INTERNAL_SERVER_ERROR).entity(FileUtil.readInputStream(inputStreamATR)).build()
+            );
             client.uploadInitialLogbook(operationList);
-            try (final InputStream inputStream =
-                PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")) {
+            try (
+                final InputStream inputStream = PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")
+            ) {
                 WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-                ThrowingCallable throwingCallable =
-                    () -> client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
-                assertThatThrownBy(throwingCallable)
-                    .isInstanceOf(IngestInternalClientServerException.class);
+                ThrowingCallable throwingCallable = () ->
+                    client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
+                assertThatThrownBy(throwingCallable).isInstanceOf(IngestInternalClientServerException.class);
             }
         }
     }
 
     @Test
     public void givenServerErrorWhenPostSipThenRaiseAnException() throws Exception {
-
         final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
         final GUID ingestGuid = GUIDFactory.newGUID();
@@ -242,7 +249,8 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.STARTED,
                 "Start Ingest external",
-                conatinerGuid);
+                conatinerGuid
+            );
 
         final LogbookOperationParameters externalOperationParameters2 =
             LogbookParameterHelper.newLogbookOperationParameters(
@@ -252,27 +260,24 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.OK,
                 "End Ingest external",
-                conatinerGuid);
+                conatinerGuid
+            );
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
         when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
 
-        try (final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")) {
+        try (final InputStream inputStream = PropertiesUtils.getResourceAsStream("SIP_bordereau_avec_objet_OK.zip")) {
             client.uploadInitialLogbook(operationList);
             WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-            ThrowingCallable throwingCallable =
-                () -> client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
-            assertThatThrownBy(throwingCallable)
-                .isInstanceOf(IngestInternalClientServerException.class);
+            ThrowingCallable throwingCallable = () ->
+                client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
+            assertThatThrownBy(throwingCallable).isInstanceOf(IngestInternalClientServerException.class);
         }
-
     }
 
     @Test
     public void givenStartedServerWhenUploadSipNonZipThenReturnKO() throws Exception {
-
         final List<LogbookOperationParameters> operationList = new ArrayList<>();
 
         final GUID ingestGuid = GUIDFactory.newGUID();
@@ -285,7 +290,8 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.STARTED,
                 "Start Ingest external",
-                conatinerGuid);
+                conatinerGuid
+            );
 
         final LogbookOperationParameters externalOperationParameters2 =
             LogbookParameterHelper.newLogbookOperationParameters(
@@ -295,34 +301,31 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
                 LogbookTypeProcess.INGEST,
                 StatusCode.OK,
                 "End Ingest external",
-                conatinerGuid);
+                conatinerGuid
+            );
         operationList.add(externalOperationParameters1);
         operationList.add(externalOperationParameters2);
         when(mockLogbook.post()).thenReturn(Response.status(Status.CREATED).build());
         when(mock.post()).thenReturn(Response.status(Status.NOT_ACCEPTABLE).build());
-        try (final InputStream inputStream =
-            PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf")) {
+        try (final InputStream inputStream = PropertiesUtils.getResourceAsStream("SIP_mauvais_format.pdf")) {
             client.uploadInitialLogbook(operationList);
             WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
-            ThrowingCallable throwingCallable =
-                () -> client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
-            assertThatThrownBy(throwingCallable)
-                .isInstanceOf(IllegalZipFileNameException.class);
+            ThrowingCallable throwingCallable = () ->
+                client.upload(inputStream, CommonMediaType.ZIP_TYPE, workflow, X_ACTION);
+            assertThatThrownBy(throwingCallable).isInstanceOf(IllegalZipFileNameException.class);
         }
-
     }
 
     @Test
-    public void givenInputstreamWhenDownloadObjectThenReturnOK()
-        throws Exception {
-
+    public void givenInputstreamWhenDownloadObjectThenReturnOK() throws Exception {
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
 
-        try (final InputStream fakeUploadResponseInputStream =
-            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class)) {
-
-            assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
-                StreamUtils.toInputStream("test")));
+        try (
+            final InputStream fakeUploadResponseInputStream = client
+                .downloadObjectAsync("1", IngestCollection.MANIFESTS)
+                .readEntity(InputStream.class)
+        ) {
+            assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream, StreamUtils.toInputStream("test")));
         } catch (final IOException e) {
             e.printStackTrace();
             fail();
@@ -332,28 +335,25 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
     @Test
     public void givenNotFoundWhenDownloadObjectThenReturnKo() {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND.getStatusCode()).build());
-        ThrowingCallable throwingCallable =
-            () -> client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(IngestInternalClientNotFoundException.class);
+        ThrowingCallable throwingCallable = () ->
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(IngestInternalClientNotFoundException.class);
     }
 
     @Test
     public void givenInternalServerErrorWhenDownloadObjectThenThrowIngestInternalClientServerException() {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR.getStatusCode()).build());
-        ThrowingCallable throwingCallable =
-            () -> client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(IngestInternalClientServerException.class);
+        ThrowingCallable throwingCallable = () ->
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(IngestInternalClientServerException.class);
     }
 
     @Test
     public void givenBadRequestWhenDownloadObjectThenThrowInvalidParseOperationException() {
         when(mock.get()).thenReturn(Response.status(Status.BAD_REQUEST.getStatusCode()).build());
-        ThrowingCallable throwingCallable =
-            () -> client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(InvalidParseOperationException.class);
+        ThrowingCallable throwingCallable = () ->
+            client.downloadObjectAsync("1", IngestCollection.MANIFESTS).readEntity(InputStream.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(InvalidParseOperationException.class);
     }
 
     @Test
@@ -361,8 +361,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         // 404
         when(mock.head()).thenReturn(Response.status(Status.NOT_FOUND).build());
         ThrowingCallable throwingCallable = () -> client.getOperationProcessStatus(ID);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
     }
 
     @Test
@@ -370,8 +369,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         // 412
         when(mock.head()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         ThrowingCallable throwingCallable = () -> client.getOperationProcessStatus(ID);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
     }
 
     @Test
@@ -380,8 +378,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATE, ProcessState.COMPLETED)
             .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, StatusCode.OK)
             .header(GlobalDataRest.X_CONTEXT_ID, LogbookTypeProcess.INGEST.toString());
-        when(mock.head())
-            .thenReturn(builder.build());
+        when(mock.head()).thenReturn(builder.build());
         assertThatCode(() -> client.getOperationProcessStatus(ID)).doesNotThrowAnyException();
     }
 
@@ -390,8 +387,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         // 500
         when(mock.head()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         ThrowingCallable throwingCallable = () -> client.getOperationProcessStatus(ID);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
     }
 
     @Test
@@ -399,73 +395,66 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         // 401
         when(mock.head()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         ThrowingCallable throwingCallable = () -> client.getOperationProcessStatus(ID);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
     }
 
     @Test
     public void testPreconditionFailedWhenGetOperationProcessExecutionDetails() {
-
-        VitamError vitamError =
-            new VitamError("code").setMessage("msg")
-                .setDescription("desc").setContext("ctx").setState("st");
+        VitamError vitamError = new VitamError("code")
+            .setMessage("msg")
+            .setDescription("desc")
+            .setContext("ctx")
+            .setState("st");
         ThrowingCallable throwingCallable;
 
         // 412
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).entity(vitamError).build());
         throwingCallable = () -> client.getOperationProcessExecutionDetails(ID);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
 
         // 500
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(vitamError).build());
         throwingCallable = () -> client.getOperationProcessExecutionDetails(ID);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
 
         // 404
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).entity(vitamError).build());
         throwingCallable = () -> client.getOperationProcessExecutionDetails(ID);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
     }
 
     @Test
     public void givenDeleteOperationStatusErrors() {
-
-        VitamError vitamError =
-            new VitamError("code").setMessage("msg")
-                .setDescription("desc").setContext("ctx").setState("st");
+        VitamError vitamError = new VitamError("code")
+            .setMessage("msg")
+            .setDescription("desc")
+            .setContext("ctx")
+            .setState("st");
         ThrowingCallable throwingCallable;
 
         // 500
         when(mock.delete()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).entity(vitamError).build());
         throwingCallable = () -> client.cancelOperationProcessExecution(ID);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
 
         // 409
         when(mock.delete()).thenReturn(Response.status(Status.CONFLICT).entity(vitamError).build());
         throwingCallable = () -> client.cancelOperationProcessExecution(ID);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
 
         // 412
         when(mock.delete()).thenReturn(Response.status(Status.PRECONDITION_FAILED).entity(vitamError).build());
         throwingCallable = () -> client.cancelOperationProcessExecution(ID);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
 
         // 404
         when(mock.delete()).thenReturn(Response.status(Status.NOT_FOUND).entity(vitamError).build());
         throwingCallable = () -> client.cancelOperationProcessExecution(ID);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
     }
 
     @Test
-    public void givenDeleteOKThenOK()
-        throws Exception {
+    public void givenDeleteOKThenOK() throws Exception {
         ItemStatus result = new ItemStatus();
         result.setGlobalState(ProcessState.COMPLETED);
         result.increment(StatusCode.FATAL);
@@ -474,9 +463,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         RequestResponseOK<ItemStatus> responseOK = new RequestResponseOK<ItemStatus>().addResult(result);
         responseOK.setHttpCode(Status.ACCEPTED.getStatusCode());
 
-
-        when(mock.delete())
-            .thenReturn(Response.status(Status.ACCEPTED).entity(responseOK).build());
+        when(mock.delete()).thenReturn(Response.status(Status.ACCEPTED).entity(responseOK).build());
         RequestResponse<ItemStatus> response = client.cancelOperationProcessExecution(ID);
         assertEquals(response.isOk(), true);
         RequestResponseOK<ItemStatus> respOK = (RequestResponseOK<ItemStatus>) response;
@@ -491,8 +478,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         ThrowingCallable throwingCallable = () -> client.initWorkflow(workflow);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientException.class);
     }
 
     @Test
@@ -509,8 +495,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.NOT_FOUND).build());
         WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         ThrowingCallable throwingCallable = () -> client.initWorkflow(workflow);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientException.class);
     }
 
     @Test
@@ -519,8 +504,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
         when(mock.post()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         WorkFlow workflow = WorkFlow.of(WROKFLOW_ID, WROKFLOW_IDENTIFIER, INGEST);
         ThrowingCallable throwingCallable = () -> client.initWorkflow(workflow);
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientException.class);
     }
 
     @Test
@@ -540,8 +524,7 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
     public void givenNotFoundWhenDefinitionsWorkflowThenReturnVitamError() {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         ThrowingCallable throwingCallable = () -> client.getWorkflowDefinitions();
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
     }
 
     @Test
@@ -555,36 +538,29 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
     public void givenNotFoundWhenListOperationsThenReturnVitamError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.NOT_FOUND).build());
         ThrowingCallable throwingCallable = () -> client.listOperationsDetails(new ProcessQuery());
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
     }
 
     @Test
     public void givenPreconditionFailedWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.PRECONDITION_FAILED).build());
         ThrowingCallable throwingCallable = () -> client.getWorkflowDefinitions();
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
-
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
     }
 
     @Test
     public void givenUnauthaurizedWhenDefinitionsWorkflowThenReturnVitamError() throws Exception {
         when(mock.get()).thenReturn(Response.status(Status.UNAUTHORIZED).build());
         ThrowingCallable throwingCallable = () -> client.getWorkflowDefinitions();
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
-
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
     }
 
     @Test
     public void givenInternalServerErrorWhenDefinitionsWorkflowThenReturnVitamError() {
         when(mock.get()).thenReturn(Response.status(Status.INTERNAL_SERVER_ERROR).build());
         ThrowingCallable throwingCallable = () -> client.getWorkflowDefinitions();
-        assertThatThrownBy(throwingCallable)
-            .isInstanceOf(VitamClientInternalException.class);
+        assertThatThrownBy(throwingCallable).isInstanceOf(VitamClientInternalException.class);
     }
-
 
     @Path(PATH)
     public static class MockResource {
@@ -615,14 +591,24 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
 
         @POST
         @Path("/ingests")
-        @Consumes({MediaType.APPLICATION_OCTET_STREAM, CommonMediaType.ZIP, CommonMediaType.XGZIP, CommonMediaType.GZIP,
-            CommonMediaType.TAR, CommonMediaType.BZIP2})
-        public Response uploadSipAsStream(@HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
+        @Consumes(
+            {
+                MediaType.APPLICATION_OCTET_STREAM,
+                CommonMediaType.ZIP,
+                CommonMediaType.XGZIP,
+                CommonMediaType.GZIP,
+                CommonMediaType.TAR,
+                CommonMediaType.BZIP2,
+            }
+        )
+        public Response uploadSipAsStream(
+            @HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
             @HeaderParam(GlobalDataRest.X_CONTEXT_ID) String contextId,
             @HeaderParam(GlobalDataRest.X_ACTION) String actionId,
             @HeaderParam(GlobalDataRest.X_ACTION_INIT) String xActionInit,
             @HeaderParam(GlobalDataRest.X_TYPE_PROCESS) LogbookTypeProcess logbookTypeProcess,
-            InputStream uploadedInputStream) {
+            InputStream uploadedInputStream
+        ) {
             return expectedResponse.post();
         }
 
@@ -691,5 +677,4 @@ public class IngestInternalClientRestTest extends ResteasyTestApplication {
             return expectedResponse.get();
         }
     }
-
 }

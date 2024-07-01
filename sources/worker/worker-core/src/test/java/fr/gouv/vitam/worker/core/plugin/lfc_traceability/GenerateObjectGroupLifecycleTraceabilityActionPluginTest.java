@@ -97,8 +97,10 @@ public class GenerateObjectGroupLifecycleTraceabilityActionPluginTest {
     private GUID guid = GUIDFactory.newGUID();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -135,14 +137,18 @@ public class GenerateObjectGroupLifecycleTraceabilityActionPluginTest {
 
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
     @Mock
     private LogbookOperationsClient logbookOperationsClient;
 
-    private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083").setProcessId(guid.getId())
-            .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY);
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+        .setUrlWorkspace("http://localhost:8083")
+        .setUrlMetadata("http://localhost:8083")
+        .setProcessId(guid.getId())
+        .setObjectName("objectName.json")
+        .setCurrentStep("currentStep")
+        .setContainerName(guid.getId())
+        .setLogbookTypeProcess(LogbookTypeProcess.TRACEABILITY);
 
     private List<IOParameter> in;
 
@@ -152,7 +158,6 @@ public class GenerateObjectGroupLifecycleTraceabilityActionPluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
@@ -161,27 +166,29 @@ public class GenerateObjectGroupLifecycleTraceabilityActionPluginTest {
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
         String objectId = "objectId";
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-            "GenerateLifecycleTraceabilityActionHandlerTest", "workerId",
-            Lists.newArrayList(objectId));
+        handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "GenerateLifecycleTraceabilityActionHandlerTest",
+            "workerId",
+            Lists.newArrayList(objectId)
+        );
         handlerIO.setCurrentObjectId(objectId);
 
         in = new ArrayList<>();
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "lastOperation.json")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "traceabilityInformation.json")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.json")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "lastOperation.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "traceabilityInformation.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "traceabilityData.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "traceabilityStats.json")));
 
         doAnswer(invocation -> {
             Path file = folder.getRoot().toPath().resolve((String) invocation.getArgument(1));
             InputStream inputStream = invocation.getArgument(2);
             java.nio.file.Files.copy(inputStream, file);
             return null;
-        }).when(workspaceClient).putObject(anyString(), anyString(), ArgumentMatchers.any(InputStream.class));
+        })
+            .when(workspaceClient)
+            .putObject(anyString(), anyString(), ArgumentMatchers.any(InputStream.class));
     }
 
     @After
@@ -198,14 +205,17 @@ public class GenerateObjectGroupLifecycleTraceabilityActionPluginTest {
         handlerIO.addOutputResult(2, PropertiesUtils.getResourceFile(TRACEABILITY_DATA), false);
         handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATS), false);
         handlerIO.addInIOParameters(in);
-        when(logbookOperationsClient.selectOperation(any()))
-            .thenThrow(new LogbookClientException("LogbookClientException"));
+        when(logbookOperationsClient.selectOperation(any())).thenThrow(
+            new LogbookClientException("LogbookClientException")
+        );
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         GenerateObjectGroupLifecycleTraceabilityActionPlugin plugin =
             new GenerateObjectGroupLifecycleTraceabilityActionPlugin(
-                logbookOperationsClientFactory, workspaceClientFactory);
+                logbookOperationsClientFactory,
+                workspaceClientFactory
+            );
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.FATAL, response.getGlobalStatus());
     }
@@ -227,7 +237,9 @@ public class GenerateObjectGroupLifecycleTraceabilityActionPluginTest {
 
         GenerateObjectGroupLifecycleTraceabilityActionPlugin plugin =
             new GenerateObjectGroupLifecycleTraceabilityActionPlugin(
-                logbookOperationsClientFactory, workspaceClientFactory);
+                logbookOperationsClientFactory,
+                workspaceClientFactory
+            );
         final ItemStatus response = plugin.execute(params, handlerIO);
         assertEquals(StatusCode.OK, response.getGlobalStatus());
         verify(workspaceClient, never()).putObject(anyString(), anyString(), ArgumentMatchers.any(InputStream.class));
@@ -250,7 +262,9 @@ public class GenerateObjectGroupLifecycleTraceabilityActionPluginTest {
 
         GenerateObjectGroupLifecycleTraceabilityActionPlugin plugin =
             new GenerateObjectGroupLifecycleTraceabilityActionPlugin(
-                logbookOperationsClientFactory, workspaceClientFactory);
+                logbookOperationsClientFactory,
+                workspaceClientFactory
+            );
         final ItemStatus response = plugin.execute(params, handlerIO);
 
         assertEquals(StatusCode.OK, response.getGlobalStatus());
@@ -263,23 +277,23 @@ public class GenerateObjectGroupLifecycleTraceabilityActionPluginTest {
         assertNotNull(stream);
 
         JsonNode evDetData = JsonHandler.getFromInputStream(getSavedWorkspaceObject(TRACEABILITY_EVENT_FILE_NAME));
-        JsonAssert.assertJsonEquals(evDetData.get("Statistics"),
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS)));
+        JsonAssert.assertJsonEquals(
+            evDetData.get("Statistics"),
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile(TRACEABILITY_STATS))
+        );
     }
 
-    private static JsonNode getLogbookOperation()
-        throws IOException, InvalidParseOperationException {
+    private static JsonNode getLogbookOperation() throws IOException, InvalidParseOperationException {
         final RequestResponseOK response = new RequestResponseOK().setHits(new DatabaseCursor(1, 0, 1));
-        final LogbookOperation lop =
-            new LogbookOperation(StreamUtils.toString(PropertiesUtils.getResourceAsStream(LAST_OPERATION)));
+        final LogbookOperation lop = new LogbookOperation(
+            StreamUtils.toString(PropertiesUtils.getResourceAsStream(LAST_OPERATION))
+        );
         response.addResult(BsonHelper.fromDocumentToJsonNode(lop));
         return JsonHandler.toJsonNode(response);
     }
 
-    private InputStream getSavedWorkspaceObject(String filename)
-        throws IOException {
+    private InputStream getSavedWorkspaceObject(String filename) throws IOException {
         Path file = folder.getRoot().toPath().resolve(filename);
         return Files.newInputStream(file);
     }
-
 }

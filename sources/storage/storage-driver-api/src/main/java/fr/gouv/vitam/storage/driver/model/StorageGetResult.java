@@ -55,5 +55,4 @@ public class StorageGetResult extends StorageObjectResult {
     public Response getObject() {
         return object;
     }
-
 }

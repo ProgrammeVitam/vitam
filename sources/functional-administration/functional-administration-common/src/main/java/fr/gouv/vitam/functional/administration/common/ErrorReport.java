@@ -51,7 +51,6 @@ public class ErrorReport {
      */
     private String missingInformations;
 
-
     public ErrorReport() {
         super();
     }
@@ -62,8 +61,6 @@ public class ErrorReport {
         this.line = line;
         this.fileRulesCSV = fileRulesCSV;
     }
-
-
 
     public ErrorReport(FileRulesErrorCode code, int line, String missingInformations) {
         super();

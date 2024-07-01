@@ -78,12 +78,13 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
     private static final String FAKE_X_REQUEST_ID = GUIDFactory.newRequestIdGUID(0).getId();
     private static final String CONTEXT_ID = "defaultContext";
     private static final String EXECUTION_MODE = "defaultContext";
-    private final static ExpectedResults mock = mock(ExpectedResults.class);
+    private static final ExpectedResults mock = mock(ExpectedResults.class);
     protected static IngestExternalClientRest client;
     static IngestExternalClientFactory factory = IngestExternalClientFactory.getInstance();
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
-        new VitamServerTestRunner(IngestExternalClientRestTest.class, factory);
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        IngestExternalClientRestTest.class,
+        factory
+    );
     final int TENANT_ID = 0;
 
     @BeforeClass
@@ -110,12 +111,17 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
         ObjectNode objectNode = JsonHandler.createObjectNode();
         objectNode.put(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
 
-        when(mock.post())
-            .thenReturn(Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build());
+        when(mock.post()).thenReturn(
+            Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build()
+        );
 
         try (final InputStream streamToUpload = IOUtils.toInputStream(MOCK_INPUTSTREAM_CONTENT, CharsetUtils.UTF_8)) {
-            RequestResponse<Void> resp =
-                client.ingest(new VitamContext(TENANT_ID), streamToUpload, CONTEXT_ID, EXECUTION_MODE);
+            RequestResponse<Void> resp = client.ingest(
+                new VitamContext(TENANT_ID),
+                streamToUpload,
+                CONTEXT_ID,
+                EXECUTION_MODE
+            );
             assertEquals(resp.getHttpCode(), Status.ACCEPTED.getStatusCode());
         }
     }
@@ -124,13 +130,18 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
     public void givenNotFoundWhenDownloadObjectThenReturn404()
         throws VitamClientException, InvalidParseOperationException, IOException {
         VitamError error = VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_NOT_FOUND, "NOT FOUND");
-        AbstractMockClient.FakeInboundResponse fakeResponse =
-            new AbstractMockClient.FakeInboundResponse(Status.NOT_FOUND, JsonHandler.writeToInpustream(error),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, new MultivaluedHashMap<String, Object>());
+        AbstractMockClient.FakeInboundResponse fakeResponse = new AbstractMockClient.FakeInboundResponse(
+            Status.NOT_FOUND,
+            JsonHandler.writeToInpustream(error),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            new MultivaluedHashMap<String, Object>()
+        );
         when(mock.get()).thenReturn(fakeResponse);
-        try (InputStream input =
-            client.downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS)
-                .readEntity(InputStream.class)) {
+        try (
+            InputStream input = client
+                .downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS)
+                .readEntity(InputStream.class)
+        ) {
             VitamError response = JsonHandler.getFromInputStream(input, VitamError.class);
             assertEquals(Status.NOT_FOUND.getStatusCode(), response.getHttpCode());
         }
@@ -144,35 +155,41 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
         ObjectNode objectNode = JsonHandler.createObjectNode();
         objectNode.put(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID);
 
-        when(mock.post())
-            .thenReturn(Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build());
+        when(mock.post()).thenReturn(
+            Response.accepted().header(GlobalDataRest.X_REQUEST_ID, FAKE_X_REQUEST_ID).build()
+        );
 
-        RequestResponse<Void> resp =
-            client.ingestLocal(new VitamContext(TENANT_ID), new LocalFile("path"), CONTEXT_ID, EXECUTION_MODE);
+        RequestResponse<Void> resp = client.ingestLocal(
+            new VitamContext(TENANT_ID),
+            new LocalFile("path"),
+            CONTEXT_ID,
+            EXECUTION_MODE
+        );
         assertEquals(resp.getHttpCode(), Status.ACCEPTED.getStatusCode());
     }
 
     @Test
-    public void givenInputstreamWhenDownloadObjectThenReturnOK()
-        throws VitamClientException {
-
+    public void givenInputstreamWhenDownloadObjectThenReturnOK() throws VitamClientException {
         when(mock.get()).thenReturn(ClientMockResultHelper.getObjectStream());
 
-        try (final InputStream fakeUploadResponseInputStream =
-            client.downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS)
-                .readEntity(InputStream.class)) {
+        try (
+            final InputStream fakeUploadResponseInputStream = client
+                .downloadObjectAsync(new VitamContext(TENANT_ID), "1", IngestCollection.MANIFESTS)
+                .readEntity(InputStream.class)
+        ) {
             assertNotNull(fakeUploadResponseInputStream);
-            assertTrue(IOUtils.contentEquals(fakeUploadResponseInputStream,
-                IOUtils.toInputStream("test", CharsetUtils.UTF_8)));
+            assertTrue(
+                IOUtils.contentEquals(fakeUploadResponseInputStream, IOUtils.toInputStream("test", CharsetUtils.UTF_8))
+            );
         } catch (final IOException e) {
             e.printStackTrace();
             fail();
         }
     }
 
-
     @Path("/ingest-external/v1")
     public static class MockResource {
+
         private final ExpectedResults expectedResponse;
 
         public MockResource(ExpectedResults expectedResponse) {
@@ -201,9 +218,5 @@ public class IngestExternalClientRestTest extends ResteasyTestApplication {
         public Response downloadObject(@PathParam("objectId") String objectId, @PathParam("type") String type) {
             return expectedResponse.get();
         }
-
     }
-
-
-
 }

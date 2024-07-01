@@ -52,15 +52,29 @@ import static org.junit.Assert.fail;
 
 @SuppressWarnings("javadoc")
 public class QueryToMongodbTest {
-    private static final String exampleMd = "{ $roots : [ 'id0' ], $query : [ " + "{ $path : [ 'id1', 'id2'] }," +
-        "{ $and : [ " + "{$exists : 'mavar1'}, " + "{$missing : 'mavar2'}, " + "{$isNull : 'mavar3'}, " + "{ $or : [ " +
-        "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " + "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
-        "{ $not : [ " + "{ $size : { 'mavar5' : 5 } }, " + "{ $gt : { 'mavar6' : 7 } }, " +
-        "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," + "{ $not : [ " + "{ $eq : { 'mavar8' : 5 } }, " +
-        "{ $ne : { 'mavar9' : 'ab' } }, " + "{ $wildcard : { 'mavar9' : 'ab' } }, " +
+
+    private static final String exampleMd =
+        "{ $roots : [ 'id0' ], $query : [ " +
+        "{ $path : [ 'id1', 'id2'] }," +
+        "{ $and : [ " +
+        "{$exists : 'mavar1'}, " +
+        "{$missing : 'mavar2'}, " +
+        "{$isNull : 'mavar3'}, " +
+        "{ $or : [ " +
+        "{$in : { 'mavar4' : [1, 2, 'maval1'] }}, " +
+        "{ $nin : { 'mavar5' : ['maval2', true] } } ] } ] }," +
+        "{ $not : [ " +
+        "{ $size : { 'mavar5' : 5 } }, " +
+        "{ $gt : { 'mavar6' : 7 } }, " +
+        "{ $lte : { 'mavar7' : 8 } } ] , $exactdepth : 4}," +
+        "{ $not : [ " +
+        "{ $eq : { 'mavar8' : 5 } }, " +
+        "{ $ne : { 'mavar9' : 'ab' } }, " +
+        "{ $wildcard : { 'mavar9' : 'ab' } }, " +
         "{ $range : { 'mavar10' : { $gte : 12, $lte : 20} } } ], $depth : 1}, " +
         "{ $and : [ { $term : { 'mavar14' : 'motMajuscule', 'mavar15' : 'simplemot' } } ] }, " +
-        "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " + "], " +
+        "{ $regex : { 'mavar14' : '^start?aa.*' }, $depth : -1 } " +
+        "], " +
         "$filter : {$offset : 100, $limit : 1000, $hint : ['cache'], " +
         "$orderby : { maclef1 : 1 , maclef2 : -1,  maclef3 : 1 } }," +
         "$projection : {$fields : {#dua : 1, #all : 1}, $usage : 'abcdef1234' } }";
@@ -83,8 +97,7 @@ public class QueryToMongodbTest {
     }
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-    }
+    public static void tearDownAfterClass() throws Exception {}
 
     private SelectMultiQuery createSelect() {
         try {
@@ -125,7 +138,6 @@ public class QueryToMongodbTest {
             final fr.gouv.vitam.common.database.builder.request.single.Select select = request.getRequest();
             final Bson command = QueryToMongodb.getCommand(select.getQuery());
             assertEquals("{}", command.toString());
-
         } catch (final InvalidParseOperationException e) {
             fail("No exception should be thrown here");
         }
@@ -161,8 +173,10 @@ public class QueryToMongodbTest {
         final SelectMultiQuery select = request.getRequest();
         final List<Query> list = select.getQueries();
         final Bson bsonQuery = QueryToMongodb.getCommand(list.get(0));
-        assertEquals("{\"mavar14\": {\"$regex\": \"motMajuscule\", \"$options\": \"\"}}",
-            MongoDbHelper.bsonToString(bsonQuery, false));
+        assertEquals(
+            "{\"mavar14\": {\"$regex\": \"motMajuscule\", \"$options\": \"\"}}",
+            MongoDbHelper.bsonToString(bsonQuery, false)
+        );
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -176,5 +190,4 @@ public class QueryToMongodbTest {
         throws InvalidCreateOperationException, InvalidParseOperationException {
         QueryToMongodb.getCommand(search("var1", "var2"));
     }
-
 }

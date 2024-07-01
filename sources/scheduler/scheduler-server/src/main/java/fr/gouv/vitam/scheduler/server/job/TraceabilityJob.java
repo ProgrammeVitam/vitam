@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -47,9 +46,7 @@ public class TraceabilityJob implements Job {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TraceabilityJob.class);
 
-
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
-
 
     public TraceabilityJob() {
         this(LogbookOperationsClientFactory.getInstance());
@@ -58,7 +55,6 @@ public class TraceabilityJob implements Job {
     public TraceabilityJob(LogbookOperationsClientFactory logbookOperationsClientFactory) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
-
 
     public void execute(JobExecutionContext context) throws JobExecutionException {
         LOGGER.info("Traceability operation in progress...");
@@ -77,6 +73,5 @@ public class TraceabilityJob implements Job {
             throw new JobExecutionException(" Error when securing logbook operations  :  " + adminTenant, e);
         }
         LOGGER.info("Traceability operation is finished");
-
     }
 }

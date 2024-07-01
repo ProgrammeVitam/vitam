@@ -34,13 +34,12 @@ import java.util.Map;
 
 public class VitamJobDetail {
 
-    public final static String KEY = "Key";
-    public final static String DESCRIPTION = "Description";
-    public final static String JOB_CLASS = "JobClass";
-    public final static String JOB_DATA_MAP = "JobDataMap";
-    public final static String DURABILITY = "Durability";
-    public final static String SHOULD_RECOVER = "ShouldRecover";
-
+    public static final String KEY = "Key";
+    public static final String DESCRIPTION = "Description";
+    public static final String JOB_CLASS = "JobClass";
+    public static final String JOB_DATA_MAP = "JobDataMap";
+    public static final String DURABILITY = "Durability";
+    public static final String SHOULD_RECOVER = "ShouldRecover";
 
     @JsonProperty(KEY)
     private String key;
@@ -60,8 +59,14 @@ public class VitamJobDetail {
     @JsonProperty(SHOULD_RECOVER)
     private boolean shouldRecover;
 
-    public VitamJobDetail(String key, String description, String jobClass,
-        Map<String, Object> jobDataMap, boolean durability, boolean shouldRecover) {
+    public VitamJobDetail(
+        String key,
+        String description,
+        String jobClass,
+        Map<String, Object> jobDataMap,
+        boolean durability,
+        boolean shouldRecover
+    ) {
         this.key = key;
         this.description = description;
         this.jobClass = jobClass;
@@ -71,8 +76,14 @@ public class VitamJobDetail {
     }
 
     public VitamJobDetail(JobDetail jobDetail) {
-        this(jobDetail.getKey().toString(), jobDetail.getDescription(), jobDetail.getJobClass().toString(),
-            jobDetail.getJobDataMap().getWrappedMap(), jobDetail.isDurable(), jobDetail.requestsRecovery());
+        this(
+            jobDetail.getKey().toString(),
+            jobDetail.getDescription(),
+            jobDetail.getJobClass().toString(),
+            jobDetail.getJobDataMap().getWrappedMap(),
+            jobDetail.isDurable(),
+            jobDetail.requestsRecovery()
+        );
     }
 
     public String getDescription() {

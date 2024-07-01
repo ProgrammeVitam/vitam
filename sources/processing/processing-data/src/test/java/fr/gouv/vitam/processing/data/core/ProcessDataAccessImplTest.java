@@ -41,8 +41,7 @@ public class ProcessDataAccessImplTest {
         ProcessDataAccessImpl processDataAccess = ProcessDataAccessImpl.getInstance();
 
         // Test when no tenant nor process workflow
-        List<ProcessWorkflow> result =
-            processDataAccess.findAllProcessWorkflow(1);
+        List<ProcessWorkflow> result = processDataAccess.findAllProcessWorkflow(1);
         Assertions.assertThat(result).isEmpty();
 
         // Test addToWorkflowList
@@ -51,9 +50,7 @@ public class ProcessDataAccessImplTest {
         processWorkflow.setOperationId(GUIDFactory.newGUID().getId());
         processDataAccess.addToWorkflowList(processWorkflow);
 
-        result =
-            processDataAccess.findAllProcessWorkflow(1);
+        result = processDataAccess.findAllProcessWorkflow(1);
         Assertions.assertThat(result).hasSize(1);
     }
-
 }

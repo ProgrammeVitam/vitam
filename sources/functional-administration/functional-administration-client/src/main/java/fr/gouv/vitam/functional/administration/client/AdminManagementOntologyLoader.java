@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class AdminManagementOntologyLoader implements OntologyLoader {
+
     private final AdminManagementClientFactory factory;
     private final ObjectNode select;
 
@@ -53,9 +54,7 @@ public class AdminManagementOntologyLoader implements OntologyLoader {
         try {
             Select selectOntologies = new Select();
             if (collectionName.isPresent()) {
-                selectOntologies.setQuery(
-                    QueryHelper.in(OntologyModel.TAG_COLLECTIONS, collectionName.get())
-                );
+                selectOntologies.setQuery(QueryHelper.in(OntologyModel.TAG_COLLECTIONS, collectionName.get()));
             }
             selectOntologies.addUsedProjection(OntologyModel.TAG_IDENTIFIER);
             selectOntologies.addUsedProjection(OntologyModel.TAG_TYPE);

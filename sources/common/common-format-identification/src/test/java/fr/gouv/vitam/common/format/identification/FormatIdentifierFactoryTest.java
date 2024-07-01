@@ -47,8 +47,8 @@ public class FormatIdentifierFactoryTest {
     public void testLoad() {
         FormatIdentifierFactory.getInstance().changeConfigurationFile("format-identifiers-factory-test.conf");
         try {
-            final FormatIdentifier test1 =
-                FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test-siegfried");
+            final FormatIdentifier test1 = FormatIdentifierFactory.getInstance()
+                .getFormatIdentifierFor("test-siegfried");
             assertNotNull(test1);
             assertTrue(test1 instanceof FormatIdentifierSiegfried);
         } catch (final VitamException e3) {
@@ -65,8 +65,8 @@ public class FormatIdentifierFactoryTest {
         }
 
         try {
-            final FormatIdentifier testSiegfriedMock =
-                FormatIdentifierFactory.getInstance().getFormatIdentifierFor("test-siegfried-mock");
+            final FormatIdentifier testSiegfriedMock = FormatIdentifierFactory.getInstance()
+                .getFormatIdentifierFor("test-siegfried-mock");
             assertNotNull(testSiegfriedMock);
             assertTrue(testSiegfriedMock instanceof FormatIdentifierSiegfried);
         } catch (final VitamException e3) {
@@ -173,6 +173,4 @@ public class FormatIdentifierFactoryTest {
             // Nothing
         }
     }
-
-
 }

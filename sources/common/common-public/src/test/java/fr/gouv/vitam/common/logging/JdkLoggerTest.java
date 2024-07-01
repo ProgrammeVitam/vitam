@@ -41,6 +41,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class JdkLoggerTest {
+
     private static final Exception e = new Exception();
     private static final PrintStream out = System.out; // NOSONAR since Logger test
     private static final StringBuilder buf = new StringBuilder();
@@ -48,16 +49,22 @@ public class JdkLoggerTest {
     @BeforeClass
     public static void setUpBeforeClass() {
         try {
-            System.setOut(new PrintStream(new OutputStream() {
-                @Override
-                public void write(final int b) {
-                    buf.append((char) b);
-                }
-            }, true, "UTF-8"));
+            System.setOut(
+                new PrintStream(
+                    new OutputStream() {
+                        @Override
+                        public void write(final int b) {
+                            buf.append((char) b);
+                        }
+                    },
+                    true,
+                    "UTF-8"
+                )
+            );
         } catch (final UnsupportedEncodingException e) {
             throw new RuntimeErrorException(new Error(e));
         }
-        e.setStackTrace(new StackTraceElement[] {new StackTraceElement("n1", "n2", "n3", 4)});
+        e.setStackTrace(new StackTraceElement[] { new StackTraceElement("n1", "n2", "n3", 4) });
     }
 
     @AfterClass
@@ -84,7 +91,7 @@ public class JdkLoggerTest {
         logger0 = Logger.getLogger("sun.reflect.NativeMethodAccessorImpl");
         jdkLogger0 = new JdkLogger(logger0);
         Exception exception0 = new Exception("sun.reflect.NativeMethodAccessorImpl");
-        exception0.setStackTrace(new StackTraceElement[] {new StackTraceElement("n1", "n2", "n3", 4)});
+        exception0.setStackTrace(new StackTraceElement[] { new StackTraceElement("n1", "n2", "n3", 4) });
         jdkLogger0.error("sun.reflect.NativeMethodAccessorImpl", exception0);
         assertEquals("sun.reflect.NativeMethodAccessorImpl", jdkLogger0.name());
         logger0 = Logger.getGlobal();
@@ -94,8 +101,7 @@ public class JdkLoggerTest {
         assertEquals("global", jdkLogger0.name());
         logger0 = Logger.getGlobal();
         jdkLogger0 = new JdkLogger(logger0);
-        jdkLogger0.error("k'n(W*WnB(ip7/: ", "sun.reflect.GeneratedMethodAccessor11",
-            "k'n(W*WnB(ip7/: ");
+        jdkLogger0.error("k'n(W*WnB(ip7/: ", "sun.reflect.GeneratedMethodAccessor11", "k'n(W*WnB(ip7/: ");
         assertEquals("global", jdkLogger0.name());
         logger0 = Logger.getGlobal();
         jdkLogger0 = new JdkLogger(logger0);
@@ -109,7 +115,7 @@ public class JdkLoggerTest {
         Logger logger1 = logger0.getParent();
         jdkLogger0 = new JdkLogger(logger1);
         exception0 = new Exception("g.6+Eh`xw;&+MV(z");
-        exception0.setStackTrace(new StackTraceElement[] {new StackTraceElement("n1", "n2", "n3", 4)});
+        exception0.setStackTrace(new StackTraceElement[] { new StackTraceElement("n1", "n2", "n3", 4) });
         jdkLogger0.warn("g.6+Eh`xw;&+MV(z", exception0);
         assertEquals("g.6+Eh`xw;&+MV(z", exception0.getMessage());
         logger0 = Logger.getGlobal();
@@ -128,7 +134,7 @@ public class JdkLoggerTest {
         logger0 = Logger.getGlobal();
         jdkLogger0 = new JdkLogger(logger0);
         exception0 = new Exception("y&]>", (Throwable) null);
-        exception0.setStackTrace(new StackTraceElement[] {new StackTraceElement("n1", "n2", "n3", 4)});
+        exception0.setStackTrace(new StackTraceElement[] { new StackTraceElement("n1", "n2", "n3", 4) });
         jdkLogger0.info(exception0);
         assertEquals("global", jdkLogger0.name());
         logger0 = Logger.getGlobal();
@@ -154,7 +160,7 @@ public class JdkLoggerTest {
         logger0 = Logger.getGlobal();
         jdkLogger0 = new JdkLogger(logger0);
         exception0 = new Exception();
-        exception0.setStackTrace(new StackTraceElement[] {new StackTraceElement("n1", "n2", "n3", 4)});
+        exception0.setStackTrace(new StackTraceElement[] { new StackTraceElement("n1", "n2", "n3", 4) });
         jdkLogger0.debug("", exception0);
         assertEquals("java.lang.Exception", exception0.toString());
         logger0 = Logger.getAnonymousLogger();
@@ -175,7 +181,7 @@ public class JdkLoggerTest {
         logger1 = logger0.getParent();
         jdkLogger0 = new JdkLogger(logger1);
         exception0 = new Exception((Throwable) null);
-        exception0.setStackTrace(new StackTraceElement[] {new StackTraceElement("n1", "n2", "n3", 4)});
+        exception0.setStackTrace(new StackTraceElement[] { new StackTraceElement("n1", "n2", "n3", 4) });
         jdkLogger0.trace("null", exception0);
         assertEquals("", jdkLogger0.name());
         logger0 = Logger.getLogger("detectLoggingBaseLevel");
@@ -194,7 +200,7 @@ public class JdkLoggerTest {
         logger1 = logger0.getParent();
         jdkLogger0 = new JdkLogger(logger1);
         exception0 = new Exception("g.6+Eh`xw;&+MV(z");
-        exception0.setStackTrace(new StackTraceElement[] {new StackTraceElement("n1", "n2", "n3", 4)});
+        exception0.setStackTrace(new StackTraceElement[] { new StackTraceElement("n1", "n2", "n3", 4) });
         jdkLogger0.trace("g.6+Eh`xw;&+MV(z", jdkLogger0, exception0);
         assertEquals("java.lang.Exception: g.6+Eh`xw;&+MV(z", exception0.toString());
         logger0 = Logger.getLogger("");
@@ -223,7 +229,7 @@ public class JdkLoggerTest {
         logger0 = Logger.getLogger("");
         jdkLogger0 = new JdkLogger(logger0);
         exception0 = new Exception();
-        exception0.setStackTrace(new StackTraceElement[] {new StackTraceElement("n1", "n2", "n3", 4)});
+        exception0.setStackTrace(new StackTraceElement[] { new StackTraceElement("n1", "n2", "n3", 4) });
         jdkLogger0.info("v>S.;58(1\"", exception0);
         assertEquals("java.lang.Exception", exception0.toString());
     }
@@ -323,5 +329,4 @@ public class JdkLoggerTest {
         logger.timeInfo("", new Object(), new Object(), new Object());
         buf.setLength(0);
     }
-
 }

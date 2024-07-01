@@ -62,8 +62,8 @@ import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMo
 import static fr.gouv.vitam.logbook.common.server.database.collections.LogbookMongoDbName.eventIdentifier;
 
 public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTraceabilityHelper {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(LogbookLifeCycleTraceabilityHelper.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookLifeCycleTraceabilityHelper.class);
 
     private static final String EVENT_ID = eventIdentifier.getDbname();
     private static final String EVENT_DETAIL_DATA = eventDetailData.getDbname();
@@ -108,9 +108,14 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
      * @param traceabilityEventFileName
      * @param traceabilityZipFileName
      */
-    public LogbookLifeCycleTraceabilityHelper(HandlerIO handlerIO, LogbookOperationsClient logbookOperationsClient,
-        ItemStatus itemStatus, String operationID,
-        String traceabilityEventFileName, String traceabilityZipFileName) {
+    public LogbookLifeCycleTraceabilityHelper(
+        HandlerIO handlerIO,
+        LogbookOperationsClient logbookOperationsClient,
+        ItemStatus itemStatus,
+        String operationID,
+        String traceabilityEventFileName,
+        String traceabilityZipFileName
+    ) {
         this.handlerIO = handlerIO;
         this.logbookOperationsClient = logbookOperationsClient;
         this.itemStatus = itemStatus;
@@ -120,9 +125,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public void startTraceability()
-        throws TraceabilityException {
-
+    public void startTraceability() throws TraceabilityException {
         try {
             File operationFile = (File) handlerIO.getInput(LAST_OPERATION_LIFECYCLES_RANK);
             JsonNode operationJson = null;
@@ -142,7 +145,6 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
             if (operationFile != null) {
                 traceabilityStatistics = JsonHandler.getFromFile(statsFile, TraceabilityStatistics.class);
             }
-
         } catch (InvalidParseOperationException e) {
             throw new TraceabilityException("Cannot parse logbook operation", e);
         }
@@ -152,19 +154,22 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
             expectedLogbookId.add(lastTraceabilityOperation.getString(EVENT_ID));
         }
 
-        this.traceabilityStartDate =
-            LocalDateUtil.parseMongoFormattedDate(traceabilityInformation.get("startDate").asText());
-        this.traceabilityEndDate =
-            LocalDateUtil.parseMongoFormattedDate(traceabilityInformation.get("endDate").asText());
-        this.maxEntriesReached
-            = traceabilityInformation.get("maxEntriesReached").asBoolean();
+        this.traceabilityStartDate = LocalDateUtil.parseMongoFormattedDate(
+            traceabilityInformation.get("startDate").asText()
+        );
+        this.traceabilityEndDate = LocalDateUtil.parseMongoFormattedDate(
+            traceabilityInformation.get("endDate").asText()
+        );
+        this.maxEntriesReached = traceabilityInformation.get("maxEntriesReached").asBoolean();
     }
 
     @Override
-    public void createLogbookOperationEvent(Integer tenantId,
-        String eventType, StatusCode status, TraceabilityEvent event)
-        throws TraceabilityException {
-
+    public void createLogbookOperationEvent(
+        Integer tenantId,
+        String eventType,
+        StatusCode status,
+        TraceabilityEvent event
+    ) throws TraceabilityException {
         if (!getStepName().equals(eventType)) {
             final ItemStatus subItemStatusTimestamp = new ItemStatus(eventType);
             itemStatus.setItemsStatus(eventType, subItemStatusTimestamp.increment(status));
@@ -187,20 +192,29 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public void storeAndDeleteZip(Integer tenant, String strategyId, File zipFile,
-        String fileName, TraceabilityEvent event)
-        throws TraceabilityException {
-
-        final ItemStatus subItemStatusSecurisationStorage =
-            new ItemStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE_ON_WORKSPACE);
+    public void storeAndDeleteZip(
+        Integer tenant,
+        String strategyId,
+        File zipFile,
+        String fileName,
+        TraceabilityEvent event
+    ) throws TraceabilityException {
+        final ItemStatus subItemStatusSecurisationStorage = new ItemStatus(
+            HANDLER_SUB_ACTION_SECURISATION_STORAGE_ON_WORKSPACE
+        );
         try {
             handlerIO.transferFileToWorkspace(traceabilityZipFileName, zipFile, true, false);
-            handlerIO.transferInputStreamToWorkspace(traceabilityEventFileName,
-                JsonHandler.writeToInpustream(event), null, false);
-
+            handlerIO.transferInputStreamToWorkspace(
+                traceabilityEventFileName,
+                JsonHandler.writeToInpustream(event),
+                null,
+                false
+            );
         } catch (InvalidParseOperationException | ProcessingException e) {
-            itemStatus.setItemsStatus(HANDLER_SUB_ACTION_SECURISATION_STORAGE_ON_WORKSPACE,
-                subItemStatusSecurisationStorage.increment(StatusCode.FATAL));
+            itemStatus.setItemsStatus(
+                HANDLER_SUB_ACTION_SECURISATION_STORAGE_ON_WORKSPACE,
+                subItemStatusSecurisationStorage.increment(StatusCode.FATAL)
+            );
             throw new TraceabilityException("unable to create container", e);
         } finally {
             FileUtils.deleteQuietly(zipFile);
@@ -233,8 +247,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public byte[] getPreviousTimestampToken()
-        throws InvalidParseOperationException {
+    public byte[] getPreviousTimestampToken() throws InvalidParseOperationException {
         if (!isLastEventInit) {
             extractPreviousEvent();
         }
@@ -242,8 +255,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public byte[] getPreviousMonthTimestampToken()
-        throws InvalidParseOperationException, TraceabilityException {
+    public byte[] getPreviousMonthTimestampToken() throws InvalidParseOperationException, TraceabilityException {
         if (!isLastMonthEventInit) {
             extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), true);
         }
@@ -251,8 +263,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public byte[] getPreviousYearTimestampToken()
-        throws InvalidParseOperationException, TraceabilityException {
+    public byte[] getPreviousYearTimestampToken() throws InvalidParseOperationException, TraceabilityException {
         if (!isLastYearEventInit) {
             extractPreviousEvent(this.traceabilityEndDate.minusYears(1), false);
         }
@@ -268,8 +279,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public String getPreviousMonthStartDate()
-        throws InvalidParseOperationException, TraceabilityException {
+    public String getPreviousMonthStartDate() throws InvalidParseOperationException, TraceabilityException {
         if (!isLastMonthEventInit) {
             extractPreviousEvent(this.traceabilityEndDate.minusMonths(1), true);
         }
@@ -277,8 +287,7 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     @Override
-    public String getPreviousYearStartDate()
-        throws InvalidParseOperationException, TraceabilityException {
+    public String getPreviousYearStartDate() throws InvalidParseOperationException, TraceabilityException {
         if (!isLastYearEventInit) {
             extractPreviousEvent(this.traceabilityEndDate.minusYears(1), false);
         }
@@ -293,12 +302,12 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
      * @param algo
      * @throws TraceabilityException
      */
-    protected void extractAppendToFinalFile(CloseableIterator<JsonNode> jsonLineIterator,
+    protected void extractAppendToFinalFile(
+        CloseableIterator<JsonNode> jsonLineIterator,
         TraceabilityFile traceabilityFile,
-        MerkleTreeAlgo algo)
-        throws TraceabilityException {
+        MerkleTreeAlgo algo
+    ) throws TraceabilityException {
         try {
-
             while (jsonLineIterator.hasNext()) {
                 JsonNode entry = jsonLineIterator.next();
 
@@ -307,7 +316,6 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
                 traceabilityFile.storeLog(bytes);
                 algo.addLeaf(bytes);
             }
-
         } catch (IOException e) {
             LOGGER.error("Error while storing files in ZIP");
             throw new TraceabilityException("Error while storing files in ZIP", e);
@@ -328,13 +336,14 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     private void extractPreviousEvent(LocalDateTime specificDate, Boolean isMonth)
         throws InvalidParseOperationException, TraceabilityException {
         try {
-            previousMonthTimestampToken =
-                findHashByTraceabilityEventExpect(specificDate);
-            final LogbookOperation oneMounthBeforeTraceabilityOperation =
-                findFirstTraceabilityOperationOKAfterDate(specificDate);
+            previousMonthTimestampToken = findHashByTraceabilityEventExpect(specificDate);
+            final LogbookOperation oneMounthBeforeTraceabilityOperation = findFirstTraceabilityOperationOKAfterDate(
+                specificDate
+            );
             if (oneMounthBeforeTraceabilityOperation != null) {
-                TraceabilityEvent oneMonthBeforeTraceabilityEvent =
-                    extractEventDetData(oneMounthBeforeTraceabilityOperation);
+                TraceabilityEvent oneMonthBeforeTraceabilityEvent = extractEventDetData(
+                    oneMounthBeforeTraceabilityOperation
+                );
                 if (oneMonthBeforeTraceabilityEvent != null) {
                     previousMonthStartDate = oneMonthBeforeTraceabilityEvent.getStartDate();
                 }
@@ -368,9 +377,9 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
 
     private byte[] findHashByTraceabilityEventExpect(LocalDateTime date)
         throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
-        RequestResponseOK<JsonNode> requestResponseOK =
-            RequestResponseOK.getFromJsonNode(
-                logbookOperationsClient.selectOperation(generateSelectLogbookOperation(date).getFinalSelect()));
+        RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(
+            logbookOperationsClient.selectOperation(generateSelectLogbookOperation(date).getFinalSelect())
+        );
         List<JsonNode> foundOperation = requestResponseOK.getResults();
         if (foundOperation != null && !foundOperation.isEmpty()) {
             LogbookOperation lastOperationTraceabilityLifecycle = new LogbookOperation(foundOperation.get(0));
@@ -386,9 +395,9 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
 
     private LogbookOperation findFirstTraceabilityOperationOKAfterDate(LocalDateTime date)
         throws InvalidCreateOperationException, InvalidParseOperationException, LogbookClientException {
-        RequestResponseOK<JsonNode> requestResponseOK =
-            RequestResponseOK.getFromJsonNode(
-                logbookOperationsClient.selectOperation(generateSelectLogbookOperation(date).getFinalSelect()));
+        RequestResponseOK<JsonNode> requestResponseOK = RequestResponseOK.getFromJsonNode(
+            logbookOperationsClient.selectOperation(generateSelectLogbookOperation(date).getFinalSelect())
+        );
         List<JsonNode> foundOperation = requestResponseOK.getResults();
         if (foundOperation != null && foundOperation.size() == 1) {
             return new LogbookOperation(foundOperation.get(0));
@@ -398,5 +407,4 @@ public abstract class LogbookLifeCycleTraceabilityHelper implements LogbookTrace
     }
 
     protected abstract Select generateSelectLogbookOperation(LocalDateTime date) throws InvalidCreateOperationException;
-
 }

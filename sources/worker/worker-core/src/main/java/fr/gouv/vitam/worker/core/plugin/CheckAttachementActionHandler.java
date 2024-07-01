@@ -96,18 +96,22 @@ public class CheckAttachementActionHandler extends ActionHandler {
 
     @SuppressWarnings("unused")
     CheckAttachementActionHandler() {
-        this(MetaDataClientFactory.getInstance(), ProcessingManagementClientFactory.getInstance(),
-            LogbookOperationsClientFactory.getInstance());
+        this(
+            MetaDataClientFactory.getInstance(),
+            ProcessingManagementClientFactory.getInstance(),
+            LogbookOperationsClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
-    CheckAttachementActionHandler(MetaDataClientFactory metaDataClientFactory,
+    CheckAttachementActionHandler(
+        MetaDataClientFactory metaDataClientFactory,
         ProcessingManagementClientFactory processingManagementClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        LogbookOperationsClientFactory logbookOperationsClientFactory
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.processingManagementClientFactory = processingManagementClientFactory;
-
     }
 
     @Override
@@ -116,36 +120,40 @@ public class CheckAttachementActionHandler extends ActionHandler {
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             // Check existing Gots
-            JsonNode existingGotsJsonNode =
-                handlerIO.getJsonFromWorkspace(MAPS_EXISTING_GOTS_GUID_FOR_ATTACHMENT_FILE);
+            JsonNode existingGotsJsonNode = handlerIO.getJsonFromWorkspace(MAPS_EXISTING_GOTS_GUID_FOR_ATTACHMENT_FILE);
             Set<String> existingGotsMap = JsonHandler.getFromJsonNode(existingGotsJsonNode, Set.class);
             if (!existingGotsMap.isEmpty()) {
-                Iterator<List<String>> bulksExistingGotsIds = Iterators
-                    .partition(existingGotsMap.iterator(), VitamConfiguration.getBatchSize());
+                Iterator<List<String>> bulksExistingGotsIds = Iterators.partition(
+                    existingGotsMap.iterator(),
+                    VitamConfiguration.getBatchSize()
+                );
                 while (bulksExistingGotsIds.hasNext()) {
                     final JsonNode queryDsl = getInitialOperationQuery(bulksExistingGotsIds.next());
                     final JsonNode gotsOpi = metaDataClient.selectObjectGroups(queryDsl);
 
-                    if (isFailedOrIncompletedOperation(gotsOpi))
-                        return new ItemStatus(HANDLER_ID)
-                            .setItemsStatus(HANDLER_ID, new ItemStatus(HANDLER_ID).increment(StatusCode.KO));
+                    if (isFailedOrIncompletedOperation(gotsOpi)) return new ItemStatus(HANDLER_ID).setItemsStatus(
+                        HANDLER_ID,
+                        new ItemStatus(HANDLER_ID).increment(StatusCode.KO)
+                    );
                 }
             }
 
             // Check existing Units
-            JsonNode UnitsOpiJsonNode =
-                handlerIO.getJsonFromWorkspace(MAPS_EXISITING_UNITS_FOR_ATTACHMENT_FILE);
+            JsonNode UnitsOpiJsonNode = handlerIO.getJsonFromWorkspace(MAPS_EXISITING_UNITS_FOR_ATTACHMENT_FILE);
             Set<String> unitsIds = JsonHandler.getFromJsonNode(UnitsOpiJsonNode, Set.class);
             if (!unitsIds.isEmpty()) {
-                Iterator<List<String>> bulksExistingUnitsIds = Iterators
-                    .partition(unitsIds.iterator(), VitamConfiguration.getBatchSize());
+                Iterator<List<String>> bulksExistingUnitsIds = Iterators.partition(
+                    unitsIds.iterator(),
+                    VitamConfiguration.getBatchSize()
+                );
                 while (bulksExistingUnitsIds.hasNext()) {
                     final JsonNode queryDsl = getInitialOperationQuery(bulksExistingUnitsIds.next());
                     final JsonNode unitsOpi = metaDataClient.selectUnits(queryDsl);
 
-                    if (isFailedOrIncompletedOperation(unitsOpi))
-                        return new ItemStatus(HANDLER_ID)
-                            .setItemsStatus(HANDLER_ID, new ItemStatus(HANDLER_ID).increment(StatusCode.KO));
+                    if (isFailedOrIncompletedOperation(unitsOpi)) return new ItemStatus(HANDLER_ID).setItemsStatus(
+                        HANDLER_ID,
+                        new ItemStatus(HANDLER_ID).increment(StatusCode.KO)
+                    );
                 }
             }
         } catch (InvalidParseOperationException e) {
@@ -162,11 +170,16 @@ public class CheckAttachementActionHandler extends ActionHandler {
         final Select select = new Select();
         try {
             select.setQuery(
-                QueryHelper.in(BuilderToken.PROJECTIONARGS.ID.exactToken(), metadataIdsArray).setDepthLimit(0));
+                QueryHelper.in(BuilderToken.PROJECTIONARGS.ID.exactToken(), metadataIdsArray).setDepthLimit(0)
+            );
             select.setProjection(
-                JsonHandler.createObjectNode().set(BuilderToken.PROJECTION.FIELDS.exactToken(),
-                    JsonHandler.createObjectNode()
-                        .put(BuilderToken.PROJECTIONARGS.INITIAL_OPERATION.exactToken(), 1)));
+                JsonHandler.createObjectNode()
+                    .set(
+                        BuilderToken.PROJECTION.FIELDS.exactToken(),
+                        JsonHandler.createObjectNode()
+                            .put(BuilderToken.PROJECTIONARGS.INITIAL_OPERATION.exactToken(), 1)
+                    )
+            );
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error("Cannot create opi query", e);
             throw new ProcessingException("Cannot create opi query", e);
@@ -194,13 +207,19 @@ public class CheckAttachementActionHandler extends ActionHandler {
 
     private boolean isFailedOrIncompletedOperation(JsonNode metadataJsonNode) throws ProcessingException {
         try {
-            Set<Map<String, String>> metadataResponse =
-                JsonHandler.getFromJsonNode(metadataJsonNode.get(TAG_RESULTS), Set.class, Map.class);
-            Set<String> operationsIds = metadataResponse.stream().map(metadata -> metadata.get(OPI))
+            Set<Map<String, String>> metadataResponse = JsonHandler.getFromJsonNode(
+                metadataJsonNode.get(TAG_RESULTS),
+                Set.class,
+                Map.class
+            );
+            Set<String> operationsIds = metadataResponse
+                .stream()
+                .map(metadata -> metadata.get(OPI))
                 .collect(Collectors.toSet());
 
-            Map<String, Boolean> operationsStatus =
-                operationsIds.stream().collect(Collectors.toMap(Function.identity(), e -> true));
+            Map<String, Boolean> operationsStatus = operationsIds
+                .stream()
+                .collect(Collectors.toMap(Function.identity(), e -> true));
 
             Set<String> operationsIdToCheckWithLogbook = new HashSet<>();
 
@@ -211,19 +230,27 @@ public class CheckAttachementActionHandler extends ActionHandler {
                 } else {
                     // FIXME : concurrent update?
                     // FIXME : fail fast?
-                    operationsStatus.put(t, itemStatus.get().getGlobalStatus().isGreaterOrEqualToKo() ||
-                        !itemStatus.get().getGlobalState().equals(ProcessState.COMPLETED));
+                    operationsStatus.put(
+                        t,
+                        itemStatus.get().getGlobalStatus().isGreaterOrEqualToKo() ||
+                        !itemStatus.get().getGlobalState().equals(ProcessState.COMPLETED)
+                    );
                 }
             }
 
             if (!operationsIdToCheckWithLogbook.isEmpty()) {
                 List<LogbookOperation> logbookOperations = checkLogbook(operationsIdToCheckWithLogbook);
-                logbookOperations.stream().map(LogbookOperation::getEvents).map(Iterables::getLast).forEach(
-                    lastEvent -> operationsStatus.put(lastEvent.getEvIdProc(),
-                        // FIXME : fail fast?
-                        isWorkflowUncompleted(lastEvent) ||
-                            StatusCode.valueOf(lastEvent.getOutcome()).isGreaterOrEqualToKo())
-                );
+                logbookOperations
+                    .stream()
+                    .map(LogbookOperation::getEvents)
+                    .map(Iterables::getLast)
+                    .forEach(lastEvent ->
+                        operationsStatus.put(
+                            lastEvent.getEvIdProc(),
+                            // FIXME : fail fast?
+                            isWorkflowUncompleted(lastEvent) ||
+                            StatusCode.valueOf(lastEvent.getOutcome()).isGreaterOrEqualToKo()
+                        ));
             }
 
             return operationsStatus.values().stream().anyMatch(e -> e.equals(true));
@@ -234,19 +261,24 @@ public class CheckAttachementActionHandler extends ActionHandler {
     }
 
     private boolean isWorkflowUncompleted(LogbookEventOperation lastEvent) {
-        return !lastEvent.getEvType().equals(Contexts.DEFAULT_WORKFLOW.getEventType()) &&
+        return (
+            !lastEvent.getEvType().equals(Contexts.DEFAULT_WORKFLOW.getEventType()) &&
             !lastEvent.getEvType().equals(Contexts.FILING_SCHEME.getEventType()) &&
-            !lastEvent.getEvType().equals(Contexts.HOLDING_SCHEME.getEventType());
+            !lastEvent.getEvType().equals(Contexts.HOLDING_SCHEME.getEventType())
+        );
     }
 
     private List<LogbookOperation> checkLogbook(Set<String> operationsId) throws ProcessingException {
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
             JsonNode logbookOperationsQuery = getLastEventsQuery(operationsId);
-            JsonNode logbookOperationsResult =
-                logbookOperationsClient.selectOperation(logbookOperationsQuery).get(TAG_RESULTS);
-            if (logbookOperationsResult.size() == operationsId.size())
-                return JsonHandler
-                    .getFromJsonNode(logbookOperationsResult, List.class, LogbookOperation.class);
+            JsonNode logbookOperationsResult = logbookOperationsClient
+                .selectOperation(logbookOperationsQuery)
+                .get(TAG_RESULTS);
+            if (logbookOperationsResult.size() == operationsId.size()) return JsonHandler.getFromJsonNode(
+                logbookOperationsResult,
+                List.class,
+                LogbookOperation.class
+            );
             throw new LogbookNotFoundException("Cannot find logbooks");
         } catch (LogbookClientException | InvalidParseOperationException | LogbookNotFoundException e) {
             throw new ProcessingException("Cannot retrive operation status from logbook", e);

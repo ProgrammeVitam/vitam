@@ -44,7 +44,6 @@ public class AccessInternalClientExceptionTest {
         assertNotNull(new AccessInternalClientException("test", new Exception()).getCause());
     }
 
-
     @Test
     public final void testAccessClientServerException() {
         assertEquals("", new AccessInternalClientServerException("").getMessage());
@@ -60,6 +59,4 @@ public class AccessInternalClientExceptionTest {
         assertNotNull(new AccessInternalClientNotFoundException(new Exception()).getCause());
         assertNotNull(new AccessInternalClientNotFoundException("test", new Exception()).getCause());
     }
-
-
 }

@@ -34,7 +34,6 @@ public class ElasticsearchExternalMetadataMapping {
     private String collection;
     private String mappingFile;
 
-
     /**
      * ElasticsearchExternalMetadataMapping empty constructor for YAMLFactory
      */

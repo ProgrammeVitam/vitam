@@ -51,7 +51,7 @@ import static org.assertj.core.api.Java6Assertions.fail;
  */
 public class AuditStep extends CommonStep {
 
-    private final static String AUDIT_QUERY = "{auditActions:\"%s\",auditType:\"originatingagency\",objectId:\"%s\"}";
+    private static final String AUDIT_QUERY = "{auditActions:\"%s\",auditType:\"originatingagency\",objectId:\"%s\"}";
 
     private Status auditStatus;
 
@@ -59,10 +59,8 @@ public class AuditStep extends CommonStep {
         super(world);
     }
 
-
     @When("^je lance un audit de cohérence$")
     public void evidenceAudit() throws VitamException {
-
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         vitamContext.setAccessContract(world.getContractId());
@@ -78,8 +76,14 @@ public class AuditStep extends CommonStep {
         world.setOperationId(operationId);
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        boolean processTimeout = vitamPoolingClient.wait(
+            world.getTenantId(),
+            operationId,
+            ProcessState.COMPLETED,
+            100,
+            1_000L,
+            TimeUnit.MILLISECONDS
+        );
 
         if (!processTimeout) {
             fail("audit processing not finished. Timeout exceeded.");
@@ -88,14 +92,11 @@ public class AuditStep extends CommonStep {
         assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
 
-
     @When("^je lance un audit rectificatif sur l'operation (.*)")
     public void rectificationAudit(String id) throws VitamException {
-
         VitamContext vitamContext = new VitamContext(world.getTenantId());
         vitamContext.setApplicationSessionId(world.getApplicationSessionId());
         vitamContext.setAccessContract(world.getContractId());
-
 
         RequestResponse<JsonNode> response = world.getAdminClient().rectificationAudit(vitamContext, id);
 
@@ -105,8 +106,14 @@ public class AuditStep extends CommonStep {
         world.setOperationId(operationId);
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        boolean processTimeout = vitamPoolingClient.wait(
+            world.getTenantId(),
+            operationId,
+            ProcessState.COMPLETED,
+            100,
+            1_000L,
+            TimeUnit.MILLISECONDS
+        );
 
         if (!processTimeout) {
             fail("dip processing not finished. Timeout exceeded.");
@@ -115,8 +122,6 @@ public class AuditStep extends CommonStep {
         assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
     }
 
-
-
     @When("^je veux faire un audit sur (.*) des objets par service producteur \"([^\"]*)\"$")
     public void je_lance_l_audit_en_service_producteur(String action, String originatingAgnecy) throws Throwable {
         auditStatus = null;
@@ -124,14 +129,14 @@ public class AuditStep extends CommonStep {
         String QUERY = String.format(AUDIT_QUERY, auditActions, originatingAgnecy);
 
         JsonNode auditOption = JsonHandler.getFromString(QUERY);
-        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+        VitamContext vitamContext = new VitamContext(world.getTenantId())
+            .setAccessContract(world.getContractId())
             .setApplicationSessionId(world.getApplicationSessionId());
 
         RequestResponse<JsonNode> response = world.getAdminClient().launchAudit(vitamContext, auditOption);
         assertThat(response.isOk()).isTrue();
         auditStatus = Status.ACCEPTED;
     }
-
 
     @When("^je veux faire un audit sur (.*) des objets par tenant (\\d+)$")
     public void je_veux_faire_l_audit_des_objets_de_tenant(String action, int tenant) throws Throwable {
@@ -140,7 +145,8 @@ public class AuditStep extends CommonStep {
         String QUERY = String.format(AUDIT_QUERY, auditActions, tenant);
 
         JsonNode auditOption = JsonHandler.getFromString(QUERY);
-        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+        VitamContext vitamContext = new VitamContext(world.getTenantId())
+            .setAccessContract(world.getContractId())
             .setApplicationSessionId(world.getApplicationSessionId());
 
         RequestResponse<JsonNode> response = world.getAdminClient().launchAudit(vitamContext, auditOption);
@@ -159,7 +165,8 @@ public class AuditStep extends CommonStep {
         auditOption.put("auditType", "dsl");
         auditOption.set("query", query);
 
-        VitamContext vitamContext = new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+        VitamContext vitamContext = new VitamContext(world.getTenantId())
+            .setAccessContract(world.getContractId())
             .setApplicationSessionId(world.getApplicationSessionId());
 
         RequestResponse<JsonNode> response = world.getAdminClient().launchAudit(vitamContext, auditOption);

@@ -46,8 +46,7 @@ public class TapeLibraryTopologyConfiguration {
         return fileBuckets;
     }
 
-    public TapeLibraryTopologyConfiguration setFileBuckets(
-        Map<String, FileBucketConfiguration> fileBuckets) {
+    public TapeLibraryTopologyConfiguration setFileBuckets(Map<String, FileBucketConfiguration> fileBuckets) {
         this.fileBuckets = fileBuckets;
         return this;
     }
@@ -56,8 +55,7 @@ public class TapeLibraryTopologyConfiguration {
         return buckets;
     }
 
-    public TapeLibraryTopologyConfiguration setBuckets(
-        Map<String, TapeLibraryBucketConfiguration> buckets) {
+    public TapeLibraryTopologyConfiguration setBuckets(Map<String, TapeLibraryBucketConfiguration> buckets) {
         this.buckets = buckets;
         return this;
     }

@@ -47,9 +47,8 @@ public class ValidationErrorMessage {
         ELEMENT_TOO_LONG,
         INVALID_JSON_FIELD,
         NO_VIABLE_ALTERNATIVE,
-        INVALID_VALUE
+        INVALID_VALUE,
     }
-
 
     private JsonNode node;
     private Format property;
@@ -69,7 +68,6 @@ public class ValidationErrorMessage {
     public String toString() {
         String name;
 
-
         if (!StringUtils.isAllUpperCase(property.getName()) || context.isEmpty()) {
             // standard case
             name = property.getName();
@@ -79,9 +77,20 @@ public class ValidationErrorMessage {
             name = context.get(context.size() - 1).toString();
         }
 
-        return "Validating " + name + ": " + property.getReportingType().debugInfo() + " ~ " + code +
-            combineSeparator(": ", message) + combineSeparator(" ~ hint: ", property.getHint()) + " ~ found json: " +
-            node + " ~ path: " + context;
+        return (
+            "Validating " +
+            name +
+            ": " +
+            property.getReportingType().debugInfo() +
+            " ~ " +
+            code +
+            combineSeparator(": ", message) +
+            combineSeparator(" ~ hint: ", property.getHint()) +
+            " ~ found json: " +
+            node +
+            " ~ path: " +
+            context
+        );
     }
 
     private static String combineSeparator(String sep, String string) {

@@ -65,8 +65,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReclassificationPreparationCheckHoldRulesHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ReclassificationPreparationCheckHoldRulesHandler.class
+    );
 
     private static final String RECLASSIFICATION_PREPARATION_CHECK_HOLD_RULES =
         "RECLASSIFICATION_PREPARATION_CHECK_HOLD_RULES";
@@ -87,7 +88,8 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
         this(
             MetaDataClientFactory.getInstance(),
             new UnitGraphInfoLoader(),
-            VitamConfiguration.getReclassificationMaxGuildListSizeInLogbookOperation());
+            VitamConfiguration.getReclassificationMaxGuildListSizeInLogbookOperation()
+        );
     }
 
     /***
@@ -95,8 +97,10 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
      */
     @VisibleForTesting
     ReclassificationPreparationCheckHoldRulesHandler(
-        MetaDataClientFactory metaDataClientFactory, UnitGraphInfoLoader unitGraphInfoLoader,
-        int maxGuidListSizeInLogbookOperation) {
+        MetaDataClientFactory metaDataClientFactory,
+        UnitGraphInfoLoader unitGraphInfoLoader,
+        int maxGuidListSizeInLogbookOperation
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.unitGraphInfoLoader = unitGraphInfoLoader;
         this.maxGuidListSizeInLogbookOperation = maxGuidListSizeInLogbookOperation;
@@ -115,21 +119,20 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             // Load / parse & validate request
             ReclassificationOrders reclassificationOrders = loadReclassificationOrders(handler);
 
             // Check hold rules
             checkHoldRules(reclassificationOrders);
-
         } catch (ProcessingStatusException e) {
             LOGGER.error("Reclassification hold rule check failed with status [" + e.getStatusCode() + "]", e);
-            return buildItemStatus(RECLASSIFICATION_PREPARATION_CHECK_HOLD_RULES, e.getStatusCode(),
-                e.getEventDetails());
+            return buildItemStatus(
+                RECLASSIFICATION_PREPARATION_CHECK_HOLD_RULES,
+                e.getStatusCode(),
+                e.getEventDetails()
+            );
         }
 
         LOGGER.info("Reclassification hold rule check succeeded");
@@ -142,14 +145,12 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
     }
 
     private void checkHoldRules(ReclassificationOrders reclassificationOrders) throws ProcessingStatusException {
-
         Set<String> unitsIdToRearrange = SetUtils.union(
             reclassificationOrders.getChildToParentAttachments().keySet(),
             reclassificationOrders.getChildToParentDetachments().keySet()
         );
 
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-
             Map<String, InheritedRuleCategoryResponseModel> unitInheritedHoldRules =
                 unitGraphInfoLoader.loadInheritedHoldRules(metaDataClient, unitsIdToRearrange);
 
@@ -158,24 +159,25 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
 
             // Check active hold rules with Prevent Ih
             checkActiveHoldRuleRearrangement(unitInheritedHoldRules);
-
-        } catch (InvalidCreateOperationException | InvalidParseOperationException | MetaDataExecutionException
-            | MetaDataDocumentSizeException | MetaDataClientServerException e) {
+        } catch (
+            InvalidCreateOperationException
+            | InvalidParseOperationException
+            | MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException e
+        ) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load unit graph information", e);
         }
     }
 
-    private void checkNotFoundUnits(Set<String> unitIds, Set<String> foundUnitIds)
-        throws ProcessingStatusException {
-
+    private void checkNotFoundUnits(Set<String> unitIds, Set<String> foundUnitIds) throws ProcessingStatusException {
         Set<String> notFoundUnits = SetUtils.difference(unitIds, foundUnitIds);
 
         if (!notFoundUnits.isEmpty()) {
-
-            Set<String> firstNotFoundUnits =
-                notFoundUnits.stream()
-                    .limit(maxGuidListSizeInLogbookOperation)
-                    .collect(Collectors.toSet());
+            Set<String> firstNotFoundUnits = notFoundUnits
+                .stream()
+                .limit(maxGuidListSizeInLogbookOperation)
+                .collect(Collectors.toSet());
 
             ReclassificationEventDetails eventDetails = new ReclassificationEventDetails()
                 .setError(COULD_NOT_FIND_UNITS_INHERITED_RULES)
@@ -185,10 +187,11 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
     }
 
     private void checkActiveHoldRuleRearrangement(
-        Map<String, InheritedRuleCategoryResponseModel> unitInheritedHoldRules)
-        throws ProcessingStatusException {
-
-        Set<String> unitIdsBlockedByHoldRules = unitInheritedHoldRules.entrySet().stream()
+        Map<String, InheritedRuleCategoryResponseModel> unitInheritedHoldRules
+    ) throws ProcessingStatusException {
+        Set<String> unitIdsBlockedByHoldRules = unitInheritedHoldRules
+            .entrySet()
+            .stream()
             .filter(entry -> hasActiveHoldRulesWithPreventRearrangement(entry.getKey(), entry.getValue()))
             .map(Map.Entry::getKey)
             .collect(Collectors.toSet());
@@ -205,19 +208,24 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
         throw new ProcessingStatusException(StatusCode.KO, eventDetails, RECLASSIFICATION_BLOCKED_BY_HOLD_RULES);
     }
 
-    private boolean hasActiveHoldRulesWithPreventRearrangement(String unitId,
-        InheritedRuleCategoryResponseModel inheritedHoldRules) {
-
+    private boolean hasActiveHoldRulesWithPreventRearrangement(
+        String unitId,
+        InheritedRuleCategoryResponseModel inheritedHoldRules
+    ) {
         final LocalDate today = LocalDate.now();
-        Set<InheritedRuleResponseModel> activeHoldRules =
-            HoldRuleUtils.listActiveHoldRules(unitId, inheritedHoldRules.getRules(), today);
+        Set<InheritedRuleResponseModel> activeHoldRules = HoldRuleUtils.listActiveHoldRules(
+            unitId,
+            inheritedHoldRules.getRules(),
+            today
+        );
 
         if (activeHoldRules.isEmpty()) {
             LOGGER.debug("No active hold rules found for unit " + unitId);
             return false;
         }
 
-        Set<String> activeHoldRulesWithPreventRearrangement = activeHoldRules.stream()
+        Set<String> activeHoldRulesWithPreventRearrangement = activeHoldRules
+            .stream()
             .filter(ReclassificationPreparationCheckHoldRulesHandler::isPreventRearrangementEnabled)
             .map(InheritedRuleResponseModel::getRuleId)
             .collect(Collectors.toSet());
@@ -227,8 +235,12 @@ public class ReclassificationPreparationCheckHoldRulesHandler extends ActionHand
             return false;
         }
 
-        LOGGER.warn("Active hold rules with PreventRearrangement found for unit " + unitId + ": " +
-            activeHoldRulesWithPreventRearrangement);
+        LOGGER.warn(
+            "Active hold rules with PreventRearrangement found for unit " +
+            unitId +
+            ": " +
+            activeHoldRulesWithPreventRearrangement
+        );
         return true;
     }
 

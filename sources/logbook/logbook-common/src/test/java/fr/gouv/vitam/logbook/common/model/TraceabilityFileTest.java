@@ -55,7 +55,6 @@ public class TraceabilityFileTest {
 
     @Test
     public void should_generate_zip_file() throws Exception {
-
         // Given
         File destination = folder.newFile();
 
@@ -91,5 +90,4 @@ public class TraceabilityFileTest {
             assertThat(prop.getProperty(SECURISATION_VERSION_LABEL)).isEqualTo("V1");
         }
     }
-
 }

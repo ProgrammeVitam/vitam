@@ -35,6 +35,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 public class IngestInternalApplicationTest {
+
     private static int serverPort;
     private static final JunitHelper junitHelper = JunitHelper.getInstance();
     private static IngestInternalMain application;
@@ -81,6 +82,4 @@ public class IngestInternalApplicationTest {
         application.stop();
         Assert.assertFalse(application.getVitamStarter().isStarted());
     }
-
-
 }

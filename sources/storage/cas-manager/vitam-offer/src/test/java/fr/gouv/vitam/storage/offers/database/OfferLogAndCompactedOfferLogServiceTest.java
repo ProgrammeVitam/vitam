@@ -57,6 +57,7 @@ import static fr.gouv.vitam.storage.engine.common.model.OfferLogAction.WRITE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OfferLogAndCompactedOfferLogServiceTest {
+
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     private OfferLogAndCompactedOfferLogService service;
@@ -113,7 +114,9 @@ public class OfferLogAndCompactedOfferLogServiceTest {
     }
 
     private static void cleanDatabase() {
-        mongoRule.getMongoDatabase().getCollection(OfferCollections.COMPACTED_OFFER_LOG.getName())
+        mongoRule
+            .getMongoDatabase()
+            .getCollection(OfferCollections.COMPACTED_OFFER_LOG.getName())
             .deleteMany(new Document());
         mongoRule.getMongoDatabase().getCollection(OfferCollections.OFFER_LOG.getName()).deleteMany(new Document());
         OfferCollections collectionPrefixed = OfferCollections.COMPACTED_OFFER_LOG;
@@ -125,13 +128,16 @@ public class OfferLogAndCompactedOfferLogServiceTest {
     }
 
     private void save(OfferLog offerLog) throws InvalidParseOperationException {
-        mongoRule.getMongoDatabase()
+        mongoRule
+            .getMongoDatabase()
             .getCollection(OFFER_LOG.getName())
             .insertOne(Document.parse(JsonHandler.writeAsString(offerLog)));
     }
 
     public MongoIterable<CompactedOfferLog> getCompactedOfferLogs() {
-        return mongoRule.getMongoDatabase().getCollection(COMPACTED_OFFER_LOG.getName())
+        return mongoRule
+            .getMongoDatabase()
+            .getCollection(COMPACTED_OFFER_LOG.getName())
             .find()
             .map(this::getCompactedOfferLogs);
     }
@@ -145,7 +151,9 @@ public class OfferLogAndCompactedOfferLogServiceTest {
     }
 
     public MongoIterable<OfferLog> getOfferLogs() {
-        return mongoRule.getMongoDatabase().getCollection(OFFER_LOG.getName())
+        return mongoRule
+            .getMongoDatabase()
+            .getCollection(OFFER_LOG.getName())
             .find()
             .sort(Sorts.ascending(OfferLog.SEQUENCE))
             .map(this::getOfferLog);

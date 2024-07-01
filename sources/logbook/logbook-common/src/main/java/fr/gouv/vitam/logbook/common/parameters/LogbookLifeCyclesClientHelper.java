@@ -45,6 +45,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 @Deprecated
 public class LogbookLifeCyclesClientHelper {
+
     private static final ServerIdentity SERVER_IDENTITY = ServerIdentity.getInstance();
     private final Map<String, Queue<LogbookLifeCycleParameters>> delegatedCreations = new ConcurrentHashMap<>();
     private final Map<String, Queue<LogbookLifeCycleParameters>> delegatedUpdates = new ConcurrentHashMap<>();
@@ -63,12 +64,12 @@ public class LogbookLifeCyclesClientHelper {
      * @return the primary key
      */
     public static String checkLogbookParameters(LogbookLifeCycleParameters parameters) {
-        parameters.putParameterValue(LogbookParameterName.agentIdentifier,
-            SERVER_IDENTITY.getJsonIdentity());
-        parameters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        ParametersChecker
-            .checkNullOrEmptyParameters(parameters.getMapParameters(), parameters.getMandatoriesParameters());
+        parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
+        parameters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        ParametersChecker.checkNullOrEmptyParameters(
+            parameters.getMapParameters(),
+            parameters.getMandatoriesParameters()
+        );
         return parameters.getParameterValue(LogbookParameterName.objectIdentifier);
     }
 
@@ -184,8 +185,10 @@ public class LogbookLifeCyclesClientHelper {
 
     public void updateDelegateWithKey(String key, LogbookLifeCycleParameters parameters) {
         parameters.putParameterValue(LogbookParameterName.agentIdentifier, SERVER_IDENTITY.getJsonIdentity());
-        ParametersChecker.checkNullOrEmptyParameters(parameters.getMapParameters(),
-            parameters.getMandatoriesParameters());
+        ParametersChecker.checkNullOrEmptyParameters(
+            parameters.getMapParameters(),
+            parameters.getMandatoriesParameters()
+        );
 
         Queue<LogbookLifeCycleParameters> queue = delegatedCreations.get(key);
         if (queue == null) {

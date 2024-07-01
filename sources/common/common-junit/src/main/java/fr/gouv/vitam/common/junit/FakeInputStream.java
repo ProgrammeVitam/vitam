@@ -34,6 +34,7 @@ import java.util.Arrays;
  * Fake InputStream: test class only
  */
 public class FakeInputStream extends InputStream {
+
     private static final int BYTE_VALUE_LIMIT = 126;
     private long limit;
     private long read = 0;

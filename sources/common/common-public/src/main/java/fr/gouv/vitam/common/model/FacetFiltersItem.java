@@ -46,8 +46,7 @@ public class FacetFiltersItem {
     @JsonProperty("$query")
     private JsonNode query;
 
-    public FacetFiltersItem() {
-    }
+    public FacetFiltersItem() {}
 
     public FacetFiltersItem(String name, JsonNode query) {
         this.name = name;

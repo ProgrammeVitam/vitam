@@ -57,6 +57,4 @@ public enum IngestExternalOutcomeMessage {
     public String value() {
         return value;
     }
-
-
 }

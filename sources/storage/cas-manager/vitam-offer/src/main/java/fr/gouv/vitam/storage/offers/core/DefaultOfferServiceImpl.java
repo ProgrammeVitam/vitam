@@ -89,6 +89,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.collections4.iterators.PeekingIterator.peekingIterator;
 
 public class DefaultOfferServiceImpl implements DefaultOfferService {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultOfferServiceImpl.class);
 
     private final AlertService alertService = new AlertServiceImpl();
@@ -112,8 +113,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         StorageConfiguration configuration,
         OfferLogCompactionConfiguration offerLogCompactionConfig,
         OfferLogAndCompactedOfferLogService offerLogAndCompactedOfferLogService,
-        int maxBatchThreadPoolSize, int batchMetadataComputationTimeout) {
-
+        int maxBatchThreadPoolSize,
+        int batchMetadataComputationTimeout
+    ) {
         this.defaultStorage = defaultStorage;
         this.offerLogCompactionDatabaseService = offerLogCompactionDatabaseService;
         this.offerDatabaseService = offerDatabaseService;
@@ -138,8 +140,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public ObjectContent getObject(String containerName, String objectId)
-        throws ContentAddressableStorageException {
+    public ObjectContent getObject(String containerName, String objectId) throws ContentAddressableStorageException {
         Stopwatch times = Stopwatch.createStarted();
         try {
             return defaultStorage.getObject(containerName, objectId);
@@ -151,7 +152,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public String createAccessRequest(String containerName, List<String> objectNames)
         throws ContentAddressableStorageException {
-
         if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
             throw new ContentAddressableStorageException("Access request is enabled only on tape library offer");
         }
@@ -165,9 +165,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestIds,
-        boolean adminCrossTenantAccessRequestAllowed)
-        throws ContentAddressableStorageException {
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(
+        List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) throws ContentAddressableStorageException {
         if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
             throw new ContentAddressableStorageException("Access request is enabled only on tape library offer");
         }
@@ -183,7 +184,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public void removeAccessRequest(String accessRequestId, boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException {
-
         if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
             throw new ContentAddressableStorageException("Access request is enabled only on tape library offer");
         }
@@ -199,10 +199,10 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public boolean checkObjectAvailability(String containerName, List<String> objectNames)
         throws ContentAddressableStorageException {
-
         if (!StorageProvider.TAPE_LIBRARY.getValue().equalsIgnoreCase(configuration.getProvider())) {
             throw new ContentAddressableStorageException(
-                "Object availability check is enabled only on tape library offer");
+                "Object availability check is enabled only on tape library offer"
+            );
         }
 
         Stopwatch stopwatch = Stopwatch.createStarted();
@@ -214,9 +214,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public String createObject(String containerName, String objectId, InputStream objectPart,
-        DataCategory type, long size, DigestType digestType) throws ContentAddressableStorageException {
-
+    public String createObject(
+        String containerName,
+        String objectId,
+        InputStream objectPart,
+        DataCategory type,
+        long size,
+        DigestType digestType
+    ) throws ContentAddressableStorageException {
         ensureContainerExists(containerName);
 
         String digest;
@@ -246,12 +251,14 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
     }
 
-    private String checkNonRewritableObjects(String containerName, String objectId, InputStream objectPart,
-        DigestType digestType) throws ContentAddressableStorageException {
-
+    private String checkNonRewritableObjects(
+        String containerName,
+        String objectId,
+        InputStream objectPart,
+        DigestType digestType
+    ) throws ContentAddressableStorageException {
         Stopwatch stopwatch = Stopwatch.createStarted();
         try {
-
             // Compute file digest
             Digest digest = new Digest(digestType);
             digest.update(objectPart);
@@ -259,7 +266,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
             // Check actual object digest (without cache for full checkup)
             return checkObjectDigest(containerName, digestType, objectId, streamDigest);
-
         } catch (IOException e) {
             throw new ContentAddressableStorageException("Could not read input stream", e);
         } finally {
@@ -271,14 +277,21 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         // Log in offer log
         Stopwatch times = Stopwatch.createStarted();
-        long sequence =
-            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
+        long sequence = offerSequenceDatabaseService.getNextSequence(
+            OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID
+        );
         offerDatabaseService.save(containerName, objectId, OfferLogAction.WRITE, sequence);
         log(times, containerName, "LOG_CREATE_IN_DB");
     }
 
-    private String writeObject(String containerName, String objectId, InputStream objectPart, long size,
-        DigestType digestType, DataCategory type) throws ContentAddressableStorageException {
+    private String writeObject(
+        String containerName,
+        String objectId,
+        InputStream objectPart,
+        long size,
+        DigestType digestType,
+        DataCategory type
+    ) throws ContentAddressableStorageException {
         // Write object
         Stopwatch stopwatch = Stopwatch.createStarted();
         try {
@@ -287,7 +300,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             defaultStorage.writeObject(containerName, objectId, inputStream, digestType, size);
 
             return digest.digestHex();
-
         } catch (ContentAddressableStorageNotFoundException e) {
             throw e;
         } catch (Exception ex) {
@@ -300,24 +312,30 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     @Override
-    public StorageBulkPutResult bulkPutObjects(String containerName, List<String> objectIds,
-        MultiplexedStreamReader multiplexedStreamReader, DataCategory type, DigestType digestType)
-        throws ContentAddressableStorageException, IOException {
-
+    public StorageBulkPutResult bulkPutObjects(
+        String containerName,
+        List<String> objectIds,
+        MultiplexedStreamReader multiplexedStreamReader,
+        DataCategory type,
+        DigestType digestType
+    ) throws ContentAddressableStorageException, IOException {
         Stopwatch stopwatch = Stopwatch.createStarted();
         try {
             ensureContainerExists(containerName);
 
-            BackgroundObjectDigestValidator backgroundObjectDigestValidator =
-                new BackgroundObjectDigestValidator(defaultStorage,
-                    containerName, digestType);
+            BackgroundObjectDigestValidator backgroundObjectDigestValidator = new BackgroundObjectDigestValidator(
+                defaultStorage,
+                containerName,
+                digestType
+            );
 
             try {
                 for (String objectId : objectIds) {
-
                     // Ensure no exception thrown by background object validator meanwhile
-                    if (backgroundObjectDigestValidator.hasTechnicalExceptionsReported() ||
-                        backgroundObjectDigestValidator.hasConflictsReported()) {
+                    if (
+                        backgroundObjectDigestValidator.hasTechnicalExceptionsReported() ||
+                        backgroundObjectDigestValidator.hasConflictsReported()
+                    ) {
                         break;
                     }
 
@@ -333,42 +351,39 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
                     String objectDigest;
                     if (!type.canUpdate() && defaultStorage.isExistingObject(containerName, objectId)) {
-
                         // Do not override non-rewritable objets, just check digest for idempotency
                         objectDigest = computeObjectDigest(digestType, inputStream);
 
                         backgroundObjectDigestValidator.addExistingWormObjectToCheck(objectId, objectDigest, size);
-
                     } else {
-
                         objectDigest = writeObject(containerName, objectId, inputStream, size, digestType, type);
 
                         backgroundObjectDigestValidator.addWrittenObjectToCheck(objectId, objectDigest, size);
                     }
                 }
-
             } finally {
-
                 backgroundObjectDigestValidator.awaitTermination();
 
                 List<StorageBulkPutResultEntry> entries = backgroundObjectDigestValidator.getWrittenObjects();
                 if (!entries.isEmpty()) {
                     // Write offer logs even if non-updatable object already existed in CAS to ensure offer log is
                     // written if not yet logged (idempotency)
-                    List<String> storedObjectIds =
-                        entries.stream().map(StorageBulkPutResultEntry::getObjectId).collect(Collectors.toList());
+                    List<String> storedObjectIds = entries
+                        .stream()
+                        .map(StorageBulkPutResultEntry::getObjectId)
+                        .collect(Collectors.toList());
                     bulkLogObjectWriteInOfferLog(containerName, storedObjectIds);
                 }
             }
 
             if (backgroundObjectDigestValidator.hasConflictsReported()) {
                 throw new NonUpdatableContentAddressableStorageException(
-                    "Bulk object write failed. At least one non-rewritable object override rejected");
+                    "Bulk object write failed. At least one non-rewritable object override rejected"
+                );
             }
 
             if (backgroundObjectDigestValidator.hasTechnicalExceptionsReported()) {
-                throw new ContentAddressableStorageException(
-                    "Bulk object write failed. At least one object failed");
+                throw new ContentAddressableStorageException("Bulk object write failed. At least one object failed");
             }
 
             if (multiplexedStreamReader.readNextEntry().isPresent()) {
@@ -376,7 +391,6 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             }
 
             return new StorageBulkPutResult(backgroundObjectDigestValidator.getWrittenObjects());
-
         } finally {
             log(stopwatch, containerName, "BULK_PUT_OBJECTS");
         }
@@ -389,26 +403,37 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         return entryDigest.digestHex();
     }
 
-    private String checkObjectDigest(String containerName, DigestType digestType, String objectId,
-        String entryDigestValue)
-        throws ContentAddressableStorageException {
+    private String checkObjectDigest(
+        String containerName,
+        DigestType digestType,
+        String objectId,
+        String entryDigestValue
+    ) throws ContentAddressableStorageException {
         // Check actual object digest (without cache for full checkup)
-        String actualObjectDigest =
-            defaultStorage.getObjectDigest(containerName, objectId, digestType, true);
+        String actualObjectDigest = defaultStorage.getObjectDigest(containerName, objectId, digestType, true);
 
         if (entryDigestValue.equals(actualObjectDigest)) {
             LOGGER.warn(
                 "Non rewritable object updated with same content. Ignoring duplicate. Object Id '" +
-                    objectId +
-                    "' in " + containerName);
+                objectId +
+                "' in " +
+                containerName
+            );
             return actualObjectDigest;
         } else {
-            alertService.createAlert(VitamLogLevel.ERROR, String.format(
-                "Object with id %s (%s) already exists and cannot be updated. Existing file digest=%s, input digest=%s",
-                objectId, containerName, actualObjectDigest, entryDigestValue));
+            alertService.createAlert(
+                VitamLogLevel.ERROR,
+                String.format(
+                    "Object with id %s (%s) already exists and cannot be updated. Existing file digest=%s, input digest=%s",
+                    objectId,
+                    containerName,
+                    actualObjectDigest,
+                    entryDigestValue
+                )
+            );
             throw new NonUpdatableContentAddressableStorageException(
-                "Object with id " + objectId + " already exists " +
-                    "and cannot be updated");
+                "Object with id " + objectId + " already exists " + "and cannot be updated"
+            );
         }
     }
 
@@ -416,21 +441,21 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         throws ContentAddressableStorageServerException, ContentAddressableStorageDatabaseException {
         // Log in offer log
         Stopwatch times = Stopwatch.createStarted();
-        long sequence = offerSequenceDatabaseService
-            .getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, objectIds.size());
+        long sequence = offerSequenceDatabaseService.getNextSequence(
+            OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID,
+            objectIds.size()
+        );
         offerDatabaseService.bulkSave(containerName, objectIds, OfferLogAction.WRITE, sequence);
         log(times, containerName, "BULK_LOG_CREATE_IN_DB");
     }
 
     @Override
-    public boolean isObjectExist(String containerName, String objectId)
-        throws ContentAddressableStorageException {
+    public boolean isObjectExist(String containerName, String objectId) throws ContentAddressableStorageException {
         return defaultStorage.isExistingObject(containerName, objectId);
     }
 
     @Override
-    public ContainerInformation getCapacity(String containerName)
-        throws ContentAddressableStorageException {
+    public ContainerInformation getCapacity(String containerName) throws ContentAddressableStorageException {
         Stopwatch times = Stopwatch.createStarted();
         ContainerInformation containerInformation;
         try {
@@ -444,25 +469,36 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     private void trySilentlyDeleteWormObject(String containerName, String objectId, DataCategory type) {
-
         if (type.canUpdate()) {
-            LOGGER.error("Write file failed for " + containerName + "/" + objectId +
-                ". No need to cleanup (object is rewritable)");
+            LOGGER.error(
+                "Write file failed for " +
+                containerName +
+                "/" +
+                objectId +
+                ". No need to cleanup (object is rewritable)"
+            );
             return;
         }
 
         try {
-            LOGGER
-                .warn("Cleanup partially written object: " + containerName + "/" + objectId + ". Try deleting it...");
+            LOGGER.warn("Cleanup partially written object: " + containerName + "/" + objectId + ". Try deleting it...");
             defaultStorage.deleteObject(containerName, objectId);
         } catch (ContentAddressableStorageNotFoundException e) {
             // JUST LOG. DO NOT RETHROW EXCEPTION AS IT MAY HIDE ROOT CAUSE EXCEPTION FROM PARENT METHOD
-            LOGGER.warn("Delete object after upload failure " + containerName + "/" + objectId + ". Object not found",
-                e);
+            LOGGER.warn(
+                "Delete object after upload failure " + containerName + "/" + objectId + ". Object not found",
+                e
+            );
         } catch (Exception e) {
             // JUST LOG. DO NOT RETHROW EXCEPTION AS IT MAY HIDE ROOT CAUSE EXCEPTION FROM PARENT METHOD
-            LOGGER.error("Cannot delete object " + containerName + "/" + objectId +
-                ". Potentially partially written object on WORM container", e);
+            LOGGER.error(
+                "Cannot delete object " +
+                containerName +
+                "/" +
+                objectId +
+                ". Potentially partially written object on WORM container",
+                e
+            );
         }
     }
 
@@ -474,8 +510,9 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             throw new ContentAddressableStorageException("Object with id " + objectId + "can not be deleted");
         }
 
-        long sequence =
-            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID);
+        long sequence = offerSequenceDatabaseService.getNextSequence(
+            OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID
+        );
         // Log in offer
         offerDatabaseService.save(containerName, objectId, OfferLogAction.DELETE, sequence);
         log(times, containerName, "LOG_DELETE_IN_DB");
@@ -499,39 +536,53 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public StorageBulkMetadataResult getBulkMetadata(String containerName, List<String> objectIds, Boolean noCache)
         throws ContentAddressableStorageException {
-
         Stopwatch times = Stopwatch.createStarted();
         try {
             List<CompletableFuture<StorageBulkMetadataResultEntry>> completableFutures = new ArrayList<>();
             for (String objectId : objectIds) {
-
                 CompletableFuture<StorageBulkMetadataResultEntry> objectInformationCompletableFuture =
-                    CompletableFuture.supplyAsync(() ->
-                        {
+                    CompletableFuture.supplyAsync(
+                        () -> {
                             try {
-                                MetadatasObject objectMetadata =
-                                    defaultStorage.getObjectMetadata(containerName, objectId, noCache);
-                                return new StorageBulkMetadataResultEntry(objectMetadata.getObjectName(),
-                                    objectMetadata.getDigest(), objectMetadata.getFileSize());
-
+                                MetadatasObject objectMetadata = defaultStorage.getObjectMetadata(
+                                    containerName,
+                                    objectId,
+                                    noCache
+                                );
+                                return new StorageBulkMetadataResultEntry(
+                                    objectMetadata.getObjectName(),
+                                    objectMetadata.getDigest(),
+                                    objectMetadata.getFileSize()
+                                );
                             } catch (ContentAddressableStorageNotFoundException e) {
                                 LOGGER.info("Object " + objectId + " not found in container " + containerName, e);
                                 return new StorageBulkMetadataResultEntry(objectId, null, null);
                             } catch (ContentAddressableStorageException e) {
-                                throw new RuntimeException("Could not get object metadata for "
-                                    + containerName + "/" + objectId + " (noCache=" + noCache + ")", e);
+                                throw new RuntimeException(
+                                    "Could not get object metadata for " +
+                                    containerName +
+                                    "/" +
+                                    objectId +
+                                    " (noCache=" +
+                                    noCache +
+                                    ")",
+                                    e
+                                );
                             }
                         },
-                        batchExecutorService);
+                        batchExecutorService
+                    );
                 completableFutures.add(objectInformationCompletableFuture);
             }
 
-            CompletableFuture<List<StorageBulkMetadataResultEntry>> batchObjectInformationFuture
-                = sequence(completableFutures);
+            CompletableFuture<List<StorageBulkMetadataResultEntry>> batchObjectInformationFuture = sequence(
+                completableFutures
+            );
 
             try {
-                return new StorageBulkMetadataResult(batchObjectInformationFuture.get(
-                    batchMetadataComputationTimeoutIsSeconds, SECONDS));
+                return new StorageBulkMetadataResult(
+                    batchObjectInformationFuture.get(batchMetadataComputationTimeoutIsSeconds, SECONDS)
+                );
             } catch (InterruptedException | ExecutionException | TimeoutException e) {
                 // Abort pending tasks
                 for (CompletableFuture<StorageBulkMetadataResultEntry> completableFuture : completableFutures) {
@@ -544,13 +595,13 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         }
     }
 
-    private <T> CompletableFuture<List<T>> sequence(
-        List<CompletableFuture<T>> completableFutures) {
+    private <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> completableFutures) {
         CompletableFuture<Void> allDoneFuture = CompletableFuture.allOf(
-            completableFutures.toArray(new CompletableFuture[0]));
-        return allDoneFuture
-            .thenApply(v -> completableFutures.stream().map(CompletableFuture::join)
-                .collect(Collectors.toList()));
+            completableFutures.toArray(new CompletableFuture[0])
+        );
+        return allDoneFuture.thenApply(
+            v -> completableFutures.stream().map(CompletableFuture::join).collect(Collectors.toList())
+        );
     }
 
     @Override
@@ -575,17 +626,17 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             }
         } catch (Exception e) {
             throw new ContentAddressableStorageDatabaseException(
-                String.format("Database Error while getting OfferLog for container %s", containerName), e);
+                String.format("Database Error while getting OfferLog for container %s", containerName),
+                e
+            );
         } finally {
             log(times, containerName, "GET_OFFER_LOGS");
         }
     }
 
     private List<OfferLog> searchDescending(String containerName, Long offset, int limit) {
-
         // First seek results from newest records (OfferLog)
-        List<OfferLog> offerLogs = offerDatabaseService.getDescendingOfferLogsBy(
-            containerName, offset, limit);
+        List<OfferLog> offerLogs = offerDatabaseService.getDescendingOfferLogsBy(containerName, offset, limit);
 
         // If not enough entries, then fetch next entries from older records (CompactedOfferLog)
         int remainingLimit = getRemainingLimit(offerLogs, limit);
@@ -595,17 +646,22 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
             return offerLogs;
         }
 
-        List<OfferLog> compactedOfferLogs = offerLogCompactionDatabaseService
-            .getDescendingOfferLogCompactionBy(containerName, nextOffset, remainingLimit);
+        List<OfferLog> compactedOfferLogs = offerLogCompactionDatabaseService.getDescendingOfferLogCompactionBy(
+            containerName,
+            nextOffset,
+            remainingLimit
+        );
 
         return ListUtils.union(offerLogs, compactedOfferLogs);
     }
 
     private List<OfferLog> searchAscending(String containerName, Long offset, int limit) {
-
         // First seek results from oldest records (CompactedOfferLog)
         List<OfferLog> compactedOfferLogs = offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy(
-            containerName, offset, limit);
+            containerName,
+            offset,
+            limit
+        );
 
         int remainingLimit = getRemainingLimit(compactedOfferLogs, limit);
         Long nextOffset = getNextOffsetAscending(compactedOfferLogs, offset);
@@ -620,19 +676,27 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
         //  - If we fetch from both OfferLog & CompactedOfferLog, we might get duplicates (non-transactional update)
         // So we fetch both collections & merge results
         List<OfferLog> nextOfferLogs = offerDatabaseService.getAscendingOfferLogsBy(
-            containerName, nextOffset, remainingLimit);
+            containerName,
+            nextOffset,
+            remainingLimit
+        );
 
         List<OfferLog> nextCompactedOfferLogs = offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy(
-            containerName, nextOffset, remainingLimit);
+            containerName,
+            nextOffset,
+            remainingLimit
+        );
 
-        List<OfferLog> nextMergedOfferLogs =
-            mergeAndResolveDuplicates(nextOfferLogs, nextCompactedOfferLogs, remainingLimit);
+        List<OfferLog> nextMergedOfferLogs = mergeAndResolveDuplicates(
+            nextOfferLogs,
+            nextCompactedOfferLogs,
+            remainingLimit
+        );
 
         return ListUtils.union(compactedOfferLogs, nextMergedOfferLogs);
     }
 
     private List<OfferLog> mergeAndResolveDuplicates(List<OfferLog> list1, List<OfferLog> list2, int limit) {
-
         if (list1.isEmpty()) {
             return list2;
         }
@@ -646,11 +710,12 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
 
         List<OfferLog> results = new ArrayList<>();
         while (results.size() < limit) {
-
-            boolean shouldTakeFromList1 = iterator1.hasNext() &&
+            boolean shouldTakeFromList1 =
+                iterator1.hasNext() &&
                 (!iterator2.hasNext() || iterator1.peek().getSequence() <= iterator2.peek().getSequence());
 
-            boolean shouldTakeFromList2 = iterator2.hasNext() &&
+            boolean shouldTakeFromList2 =
+                iterator2.hasNext() &&
                 (!iterator1.hasNext() || iterator1.peek().getSequence() >= iterator2.peek().getSequence());
 
             if (shouldTakeFromList1 && shouldTakeFromList2) {
@@ -688,14 +753,17 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     @Override
     public void compactOfferLogs() throws Exception {
         Stopwatch timer = Stopwatch.createStarted();
-        try (CloseableIterable<OfferLog> expiredOfferLogsByContainer = offerDatabaseService
-            .getExpiredOfferLogByContainer(
-                offerLogCompactionConfig.getExpirationValue(), offerLogCompactionConfig.getExpirationUnit())) {
+        try (
+            CloseableIterable<OfferLog> expiredOfferLogsByContainer =
+                offerDatabaseService.getExpiredOfferLogByContainer(
+                    offerLogCompactionConfig.getExpirationValue(),
+                    offerLogCompactionConfig.getExpirationUnit()
+                )
+        ) {
             List<OfferLog> bulkToSend = new ArrayList<>();
 
             for (OfferLog offerLog : expiredOfferLogsByContainer) {
-                if (isBulkFull(bulkToSend)
-                    || !isInSameContainer(offerLog, bulkToSend)) {
+                if (isBulkFull(bulkToSend) || !isInSameContainer(offerLog, bulkToSend)) {
                     saveOfferLogCompaction(bulkToSend);
                     bulkToSend = new ArrayList<>();
                 }
@@ -736,11 +804,7 @@ public class DefaultOfferServiceImpl implements DefaultOfferService {
     }
 
     public void log(Stopwatch timer, String action, String task) {
-        PerformanceLogger.getInstance().log(
-            String.format("STP_Offer_%s", configuration.getProvider()),
-            action,
-            task,
-            timer.elapsed(MILLISECONDS)
-        );
+        PerformanceLogger.getInstance()
+            .log(String.format("STP_Offer_%s", configuration.getProvider()), action, task, timer.elapsed(MILLISECONDS));
     }
 }

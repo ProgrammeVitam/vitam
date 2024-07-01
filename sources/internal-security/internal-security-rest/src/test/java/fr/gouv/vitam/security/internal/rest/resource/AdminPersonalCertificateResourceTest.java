@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.security.internal.rest.resource;
 
-
 import fr.gouv.vitam.security.internal.rest.service.PersonalCertificateService;
 import org.junit.Rule;
 import org.junit.Test;
@@ -54,7 +53,6 @@ public class AdminPersonalCertificateResourceTest {
 
     @Test
     public void should_create_certificate() throws Exception {
-
         InputStream stream = getClass().getResourceAsStream("/certificate.pem");
         byte[] certificate = toByteArray(stream);
 

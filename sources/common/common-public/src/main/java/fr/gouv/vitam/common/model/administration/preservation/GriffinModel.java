@@ -87,15 +87,16 @@ public class GriffinModel {
     @JsonProperty(TAG_EXECUTABLE_VERSION)
     private String executableVersion;
 
-
     public GriffinModel() {
         // empty constructor
     }
 
-    public GriffinModel(@NotNull @NotEmpty String name,
+    public GriffinModel(
+        @NotNull @NotEmpty String name,
         @NotNull @NotEmpty String identifier,
         @NotNull @NotEmpty String executableName,
-        @NotNull @NotEmpty String executableVersion) {
+        @NotNull @NotEmpty String executableVersion
+    ) {
         this.name = name;
         this.identifier = identifier;
         this.executableName = executableName;
@@ -182,5 +183,4 @@ public class GriffinModel {
     public void setExecutableVersion(String executableVersion) {
         this.executableVersion = executableVersion;
     }
-
 }

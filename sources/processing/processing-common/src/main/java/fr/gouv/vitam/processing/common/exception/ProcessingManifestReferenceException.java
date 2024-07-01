@@ -36,8 +36,12 @@ public class ProcessingManifestReferenceException extends ProcessingException {
     private final String unitParentId;
     private ExceptionType type = ExceptionType.UNIT;
 
-    public ProcessingManifestReferenceException(String message, String manifestId, String unitGuid,
-        String unitParentId) {
+    public ProcessingManifestReferenceException(
+        String message,
+        String manifestId,
+        String unitGuid,
+        String unitParentId
+    ) {
         super(message);
         this.manifestId = manifestId;
         this.unitGuid = unitGuid;
@@ -50,9 +54,7 @@ public class ProcessingManifestReferenceException extends ProcessingException {
         this.unitGuid = null;
         this.unitParentId = null;
         this.type = type;
-
     }
-
 
     public String getManifestId() {
         return manifestId;

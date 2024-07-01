@@ -78,8 +78,10 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doNothing;
 
 public class PreservationUpdateObjectGroupPluginTest {
+
     private final String GOT_ID = "GOT_ID";
-    private final TestWorkerParameter parameter = workerParameterBuilder().withContainerName("CONTAINER_NAME_TEST")
+    private final TestWorkerParameter parameter = workerParameterBuilder()
+        .withContainerName("CONTAINER_NAME_TEST")
         .withRequestId("REQUEST_ID_TEST")
         .build();
     private final TestHandlerIO handlerIO = new TestHandlerIO();
@@ -88,8 +90,9 @@ public class PreservationUpdateObjectGroupPluginTest {
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
@@ -133,9 +136,11 @@ public class PreservationUpdateObjectGroupPluginTest {
         ArgumentCaptor<JsonNode> finalQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         ArgumentCaptor<String> gotIdCaptor = ArgumentCaptor.forClass(String.class);
 
-        WorkflowBatchResults batchResults =
-            getWorkflowBatchResults(getOutputPreservation(GENERATE), getOutputPreservation(GENERATE),
-                getOutputPreservation(GENERATE));
+        WorkflowBatchResults batchResults = getWorkflowBatchResults(
+            getOutputPreservation(GENERATE),
+            getOutputPreservation(GENERATE),
+            getOutputPreservation(GENERATE)
+        );
         TestHandlerIO testHandlerIO = new TestHandlerIO();
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
@@ -146,29 +151,26 @@ public class PreservationUpdateObjectGroupPluginTest {
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
             .setHttpCode(Response.Status.OK.getStatusCode());
         given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
-        doNothing().when(metaDataClient)
-            .updateObjectGroupById(finalQueryCaptor.capture(), gotIdCaptor.capture());
+        doNothing().when(metaDataClient).updateObjectGroupById(finalQueryCaptor.capture(), gotIdCaptor.capture());
 
         // When
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(OK);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
 
         assertThat(
-            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/DataObjectVersion").asText())
-            .isEqualTo("BinaryMaster_1");
+            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/DataObjectVersion").asText()
+        ).isEqualTo("BinaryMaster_1");
         assertThat(
-            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/1/DataObjectVersion").asText())
-            .isEqualTo("BinaryMaster_2");
+            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/1/DataObjectVersion").asText()
+        ).isEqualTo("BinaryMaster_2");
         assertThat(
-            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/2/DataObjectVersion").asText())
-            .isEqualTo("BinaryMaster_3");
+            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/2/DataObjectVersion").asText()
+        ).isEqualTo("BinaryMaster_3");
         assertThat(
-            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/3/DataObjectVersion").asText())
-            .isEqualTo("BinaryMaster_4");
+            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/3/DataObjectVersion").asText()
+        ).isEqualTo("BinaryMaster_4");
     }
 
     @Test
@@ -182,8 +184,7 @@ public class PreservationUpdateObjectGroupPluginTest {
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
             .setHttpCode(Response.Status.OK.getStatusCode());
         given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
-        doNothing().when(metaDataClient)
-            .updateObjectGroupById(finalQueryCaptor.capture(), gotIdCaptor.capture());
+        doNothing().when(metaDataClient).updateObjectGroupById(finalQueryCaptor.capture(), gotIdCaptor.capture());
 
         // When
         plugin.executeList(parameter, handlerIO);
@@ -210,23 +211,25 @@ public class PreservationUpdateObjectGroupPluginTest {
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
             .setHttpCode(Response.Status.OK.getStatusCode());
         given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
-        doNothing().when(metaDataClient)
-            .updateObjectGroupById(finalQueryCaptor.capture(), gotIdCaptor.capture());
+        doNothing().when(metaDataClient).updateObjectGroupById(finalQueryCaptor.capture(), gotIdCaptor.capture());
 
         // When
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(OK);
-        assertThat(finalQueryCaptor.getValue()
-            .at("/$action/2/$set/#qualifiers/0/versions/0/FormatIdentification/FormatLitteral").textValue())
-            .isEqualTo("Batman");
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
         assertThat(
-            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/FormatIdentification/MimeType")
-                .textValue())
-            .isEqualTo("text/winner");
+            finalQueryCaptor
+                .getValue()
+                .at("/$action/2/$set/#qualifiers/0/versions/0/FormatIdentification/FormatLitteral")
+                .textValue()
+        ).isEqualTo("Batman");
+        assertThat(
+            finalQueryCaptor
+                .getValue()
+                .at("/$action/2/$set/#qualifiers/0/versions/0/FormatIdentification/MimeType")
+                .textValue()
+        ).isEqualTo("text/winner");
     }
 
     @Test
@@ -245,20 +248,17 @@ public class PreservationUpdateObjectGroupPluginTest {
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
             .setHttpCode(Response.Status.OK.getStatusCode());
         given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
-        doNothing().when(metaDataClient)
-            .updateObjectGroupById(finalQueryCaptor.capture(), ArgumentMatchers.any());
+        doNothing().when(metaDataClient).updateObjectGroupById(finalQueryCaptor.capture(), ArgumentMatchers.any());
 
         // When
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(OK);
-        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/1/qualifier").textValue())
-            .isEqualTo("Dissemination");
-        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/1/_nbc").intValue())
-            .isEqualTo(1);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/1/qualifier").textValue()).isEqualTo(
+            "Dissemination"
+        );
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/1/_nbc").intValue()).isEqualTo(1);
     }
 
     @Test
@@ -274,9 +274,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::isLifecycleEnable)
-            .containsOnly(false);
+        assertThat(itemStatuses).extracting(ItemStatus::isLifecycleEnable).containsOnly(false);
     }
 
     @Test
@@ -285,9 +283,11 @@ public class PreservationUpdateObjectGroupPluginTest {
         ArgumentCaptor<JsonNode> finalQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         ArgumentCaptor<String> gotIdCaptor = ArgumentCaptor.forClass(String.class);
 
-        WorkflowBatchResults batchResults =
-            getWorkflowBatchResults(getOutputPreservation(EXTRACT), getOutputPreservation(GENERATE),
-                getOutputPreservation(IDENTIFY));
+        WorkflowBatchResults batchResults = getWorkflowBatchResults(
+            getOutputPreservation(EXTRACT),
+            getOutputPreservation(GENERATE),
+            getOutputPreservation(IDENTIFY)
+        );
         TestHandlerIO testHandlerIO = new TestHandlerIO();
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
@@ -298,30 +298,30 @@ public class PreservationUpdateObjectGroupPluginTest {
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
             .setHttpCode(Response.Status.OK.getStatusCode());
         given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
-        doNothing().when(metaDataClient)
-            .updateObjectGroupById(finalQueryCaptor.capture(), gotIdCaptor.capture());
+        doNothing().when(metaDataClient).updateObjectGroupById(finalQueryCaptor.capture(), gotIdCaptor.capture());
 
         // When
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(OK);
-        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/_nbc").intValue())
-            .isEqualTo(2);
-        assertThat(finalQueryCaptor.getValue().at("/$action/1/$set/#nbobjects").intValue())
-            .isEqualTo(2);
-        assertThat(finalQueryCaptor.getValue()
-            .at("/$action/2/$set/#qualifiers/0/versions/0/FormatIdentification/FormatLitteral").textValue())
-            .isEqualTo("Batman");
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/_nbc").intValue()).isEqualTo(2);
+        assertThat(finalQueryCaptor.getValue().at("/$action/1/$set/#nbobjects").intValue()).isEqualTo(2);
         assertThat(
-            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/FormatIdentification/MimeType")
-                .textValue())
-            .isEqualTo("text/winner");
+            finalQueryCaptor
+                .getValue()
+                .at("/$action/2/$set/#qualifiers/0/versions/0/FormatIdentification/FormatLitteral")
+                .textValue()
+        ).isEqualTo("Batman");
         assertThat(
-            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/GPS/0").textValue())
-            .isEqualTo("40.714, -74.006");
+            finalQueryCaptor
+                .getValue()
+                .at("/$action/2/$set/#qualifiers/0/versions/0/FormatIdentification/MimeType")
+                .textValue()
+        ).isEqualTo("text/winner");
+        assertThat(
+            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/GPS/0").textValue()
+        ).isEqualTo("40.714, -74.006");
     }
 
     @Test
@@ -330,8 +330,10 @@ public class PreservationUpdateObjectGroupPluginTest {
         ArgumentCaptor<JsonNode> finalQueryCaptor = ArgumentCaptor.forClass(JsonNode.class);
         ArgumentCaptor<String> gotIdCaptor = ArgumentCaptor.forClass(String.class);
 
-        WorkflowBatchResults batchResults =
-            getWorkflowBatchResults(getOutputPreservation(GENERATE), getOutputPreservation(GENERATE));
+        WorkflowBatchResults batchResults = getWorkflowBatchResults(
+            getOutputPreservation(GENERATE),
+            getOutputPreservation(GENERATE)
+        );
         TestHandlerIO testHandlerIO = new TestHandlerIO();
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
@@ -342,20 +344,15 @@ public class PreservationUpdateObjectGroupPluginTest {
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
             .setHttpCode(Response.Status.OK.getStatusCode());
         given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
-        doNothing().when(metaDataClient)
-            .updateObjectGroupById(finalQueryCaptor.capture(), gotIdCaptor.capture());
+        doNothing().when(metaDataClient).updateObjectGroupById(finalQueryCaptor.capture(), gotIdCaptor.capture());
 
         // When
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(OK);
-        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/_nbc").intValue())
-            .isEqualTo(3);
-        assertThat(finalQueryCaptor.getValue().at("/$action/1/$set/#nbobjects").intValue())
-            .isEqualTo(3);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
+        assertThat(finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/_nbc").intValue()).isEqualTo(3);
+        assertThat(finalQueryCaptor.getValue().at("/$action/1/$set/#nbobjects").intValue()).isEqualTo(3);
     }
 
     @Test
@@ -380,12 +377,10 @@ public class PreservationUpdateObjectGroupPluginTest {
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(OK);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
         assertThat(
-            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/GPS/0").textValue())
-            .isEqualTo("40.714, -74.006");
+            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/GPS/0").textValue()
+        ).isEqualTo("40.714, -74.006");
     }
 
     @Test
@@ -410,12 +405,13 @@ public class PreservationUpdateObjectGroupPluginTest {
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(OK);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
         assertThat(
-            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/RawMetadata/0")
-                .textValue()).isNotEmpty();
+            finalQueryCaptor
+                .getValue()
+                .at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/RawMetadata/0")
+                .textValue()
+        ).isNotEmpty();
     }
 
     @Test
@@ -440,16 +436,17 @@ public class PreservationUpdateObjectGroupPluginTest {
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(OK);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(OK);
         assertThat(
-            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/RawMetadata")
-                .size()).isEqualTo(2);
+            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/RawMetadata").size()
+        ).isEqualTo(2);
         assertThat(
-            finalQueryCaptor.getValue().at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/RawMetadata/0")
-                .textValue().length()).isEqualTo(VitamConfiguration.getTextMaxLength());
-
+            finalQueryCaptor
+                .getValue()
+                .at("/$action/2/$set/#qualifiers/0/versions/0/OtherMetadata/RawMetadata/0")
+                .textValue()
+                .length()
+        ).isEqualTo(VitamConfiguration.getTextMaxLength());
     }
 
     @Test
@@ -474,9 +471,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(FATAL);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(FATAL);
     }
 
     @Test
@@ -487,9 +482,8 @@ public class PreservationUpdateObjectGroupPluginTest {
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
 
-        InputStream objectGroupStream =
-            getClass().getResourceAsStream(
-                "/preservation/objectGroupDslResponseWithoutBinaryMaster.json"); // <-- here no BinaryMaster
+        InputStream objectGroupStream = getClass()
+            .getResourceAsStream("/preservation/objectGroupDslResponseWithoutBinaryMaster.json"); // <-- here no BinaryMaster
 
         RequestResponse<JsonNode> responseOK = new RequestResponseOK<JsonNode>()
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
@@ -500,16 +494,15 @@ public class PreservationUpdateObjectGroupPluginTest {
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(FATAL);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(FATAL);
     }
 
     @Test
     public void should_return_fatal_item_status_when_no_formatResult_in_batch_result() throws Exception {
         // Given
-        WorkflowBatchResults batchResults =
-            getWorkflowBatchResults(emptyFormatOutputExtra(getOutputPreservation(GENERATE))); // <-- here no format
+        WorkflowBatchResults batchResults = getWorkflowBatchResults(
+            emptyFormatOutputExtra(getOutputPreservation(GENERATE))
+        ); // <-- here no format
         TestHandlerIO testHandlerIO = new TestHandlerIO();
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
@@ -525,16 +518,15 @@ public class PreservationUpdateObjectGroupPluginTest {
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(FATAL);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(FATAL);
     }
 
     @Test
     public void should_return_fatal_item_status_when_no_size_in_batch_result() throws Exception {
         // Given
-        WorkflowBatchResults batchResults =
-            getWorkflowBatchResults(emptySizeOutputExtra(getOutputPreservation(GENERATE))); // <-- here no Size
+        WorkflowBatchResults batchResults = getWorkflowBatchResults(
+            emptySizeOutputExtra(getOutputPreservation(GENERATE))
+        ); // <-- here no Size
         TestHandlerIO testHandlerIO = new TestHandlerIO();
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
@@ -550,16 +542,15 @@ public class PreservationUpdateObjectGroupPluginTest {
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(FATAL);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(FATAL);
     }
 
     @Test
     public void should_return_fatal_item_status_when_no_hash_in_batch_result() throws Exception {
         // Given
-        WorkflowBatchResults batchResults =
-            getWorkflowBatchResults(emptyHashOutputExtra(getOutputPreservation(GENERATE))); // <-- here no HASH
+        WorkflowBatchResults batchResults = getWorkflowBatchResults(
+            emptyHashOutputExtra(getOutputPreservation(GENERATE))
+        ); // <-- here no HASH
         TestHandlerIO testHandlerIO = new TestHandlerIO();
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
@@ -575,16 +566,15 @@ public class PreservationUpdateObjectGroupPluginTest {
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(FATAL);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(FATAL);
     }
 
     @Test
     public void should_return_fatal_item_status_when_no_storedInfo_in_batch_result() throws Exception {
         // Given
         WorkflowBatchResults batchResults = getWorkflowBatchResults(
-            emptyStoredInfoOutputExtra(getOutputPreservation(GENERATE))); // <-- here no StoredInfo
+            emptyStoredInfoOutputExtra(getOutputPreservation(GENERATE))
+        ); // <-- here no StoredInfo
         TestHandlerIO testHandlerIO = new TestHandlerIO();
         testHandlerIO.addOutputResult(0, batchResults);
         testHandlerIO.setInputs(batchResults);
@@ -600,9 +590,7 @@ public class PreservationUpdateObjectGroupPluginTest {
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
 
         // Then
-        assertThat(itemStatuses)
-            .extracting(ItemStatus::getGlobalStatus)
-            .containsOnly(FATAL);
+        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).containsOnly(FATAL);
     }
 
     @Test
@@ -647,8 +635,7 @@ public class PreservationUpdateObjectGroupPluginTest {
             .addResult(JsonHandler.getFromInputStream(objectGroupStream))
             .setHttpCode(Response.Status.OK.getStatusCode());
         given(metaDataClient.getObjectGroupByIdRaw(ArgumentMatchers.any())).willReturn(responseOK);
-        doNothing().when(metaDataClient)
-            .updateObjectGroupById(finalQueryCaptor.capture(), ArgumentMatchers.any());
+        doNothing().when(metaDataClient).updateObjectGroupById(finalQueryCaptor.capture(), ArgumentMatchers.any());
 
         // When
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, testHandlerIO);
@@ -661,88 +648,123 @@ public class PreservationUpdateObjectGroupPluginTest {
 
     private List<OutputExtra> emptyFormatOutputExtra(OutputPreservation... outputPreservation) {
         StoredInfoResult value = new StoredInfoResult();
-        return Stream.of(outputPreservation).map(o ->
-            new OutputExtra(
-                o,
-                "binaryGUID",
-                Optional.of(12L),
-                Optional.of("hash"),
-                Optional.empty(),
-                Optional.of(value),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty()
+        return Stream.of(outputPreservation)
+            .map(
+                o ->
+                    new OutputExtra(
+                        o,
+                        "binaryGUID",
+                        Optional.of(12L),
+                        Optional.of("hash"),
+                        Optional.empty(),
+                        Optional.of(value),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty()
+                    )
             )
-        ).collect(Collectors.toList());
+            .collect(Collectors.toList());
     }
 
     private List<OutputExtra> emptyHashOutputExtra(OutputPreservation... outputPreservation) {
         StoredInfoResult value = new StoredInfoResult();
-        FormatIdentifierResponse format =
-            new FormatIdentifierResponse("Plain Text File", "text/plain", "x-fmt/111", "");
-        return Stream.of(outputPreservation).map(o ->
-            new OutputExtra(
-                o,
-                "binaryGUID",
-                Optional.of(12L),
-                Optional.empty(),
-                Optional.of(format),
-                Optional.of(value),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty()
+        FormatIdentifierResponse format = new FormatIdentifierResponse(
+            "Plain Text File",
+            "text/plain",
+            "x-fmt/111",
+            ""
+        );
+        return Stream.of(outputPreservation)
+            .map(
+                o ->
+                    new OutputExtra(
+                        o,
+                        "binaryGUID",
+                        Optional.of(12L),
+                        Optional.empty(),
+                        Optional.of(format),
+                        Optional.of(value),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty()
+                    )
             )
-        ).collect(Collectors.toList());
+            .collect(Collectors.toList());
     }
 
     private List<OutputExtra> emptySizeOutputExtra(OutputPreservation... outputPreservation) {
         StoredInfoResult value = new StoredInfoResult();
-        FormatIdentifierResponse format =
-            new FormatIdentifierResponse("Plain Text File", "text/plain", "x-fmt/111", "");
-        return Stream.of(outputPreservation).map(o ->
-            new OutputExtra(
-                o,
-                "binaryGUID",
-                Optional.empty(),
-                Optional.of("hash"),
-                Optional.of(format),
-                Optional.of(value),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty()
+        FormatIdentifierResponse format = new FormatIdentifierResponse(
+            "Plain Text File",
+            "text/plain",
+            "x-fmt/111",
+            ""
+        );
+        return Stream.of(outputPreservation)
+            .map(
+                o ->
+                    new OutputExtra(
+                        o,
+                        "binaryGUID",
+                        Optional.empty(),
+                        Optional.of("hash"),
+                        Optional.of(format),
+                        Optional.of(value),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty()
+                    )
             )
-        ).collect(Collectors.toList());
+            .collect(Collectors.toList());
     }
 
     private List<OutputExtra> emptyStoredInfoOutputExtra(OutputPreservation... outputPreservation) {
-        FormatIdentifierResponse format =
-            new FormatIdentifierResponse("Plain Text File", "text/plain", "x-fmt/111", "");
-        return Stream.of(outputPreservation).map(o ->
-            new OutputExtra(
-                o,
-                "binaryGUID",
-                Optional.of(12L),
-                Optional.of("hash"),
-                Optional.of(format),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty()
+        FormatIdentifierResponse format = new FormatIdentifierResponse(
+            "Plain Text File",
+            "text/plain",
+            "x-fmt/111",
+            ""
+        );
+        return Stream.of(outputPreservation)
+            .map(
+                o ->
+                    new OutputExtra(
+                        o,
+                        "binaryGUID",
+                        Optional.of(12L),
+                        Optional.of("hash"),
+                        Optional.of(format),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty(),
+                        Optional.empty()
+                    )
             )
-        ).collect(Collectors.toList());
+            .collect(Collectors.toList());
     }
 
     private WorkflowBatchResults getWorkflowBatchResults(List<OutputExtra> outputExtras) {
-        WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of(GOT_ID, "unitId", "BinaryMaster", "requestId", outputExtras, "BinaryMaster",
-                "other_binary_strategy", Collections.emptyList());
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(
+            GOT_ID,
+            "unitId",
+            "BinaryMaster",
+            "requestId",
+            outputExtras,
+            "BinaryMaster",
+            "other_binary_strategy",
+            Collections.emptyList()
+        );
         return new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
     }
 
     private WorkflowBatchResults getWorkflowBatchResults(String targetUse, OutputPreservation... outputPreservation)
         throws InvalidParseOperationException {
-        FormatIdentifierResponse format =
-            new FormatIdentifierResponse("Plain Text File", "text/plain", "x-fmt/111", "");
+        FormatIdentifierResponse format = new FormatIdentifierResponse(
+            "Plain Text File",
+            "text/plain",
+            "x-fmt/111",
+            ""
+        );
         ExtractedMetadata extractedMetadata = new ExtractedMetadata();
         OtherMetadata otherMetadata = new OtherMetadata();
         otherMetadata.put("GPS", Collections.singletonList("40.714, -74.006"));
@@ -751,23 +773,33 @@ public class PreservationUpdateObjectGroupPluginTest {
         extractedMetadata.setRawMetadata(rawMetadata.get("rawMetadata_big_content").asText());
         extractedMetadata.setOtherMetadata(otherMetadata);
         StoredInfoResult value = new StoredInfoResult();
-        List<OutputExtra> outputExtras = Stream.of(outputPreservation).map(o ->
-            new OutputExtra(
-                o,
-                "binaryGUID",
-                Optional.of(12L),
-                Optional.of("hash"),
-                Optional.of(format),
-                Optional.of(value),
-                Optional.of(extractedMetadata),
-                Optional.empty(),
-                Optional.empty()
+        List<OutputExtra> outputExtras = Stream.of(outputPreservation)
+            .map(
+                o ->
+                    new OutputExtra(
+                        o,
+                        "binaryGUID",
+                        Optional.of(12L),
+                        Optional.of("hash"),
+                        Optional.of(format),
+                        Optional.of(value),
+                        Optional.of(extractedMetadata),
+                        Optional.empty(),
+                        Optional.empty()
+                    )
             )
-        ).collect(Collectors.toList());
+            .collect(Collectors.toList());
 
-        WorkflowBatchResult batchResult =
-            WorkflowBatchResult.of(GOT_ID, "unitId", targetUse, "requestId", outputExtras, "BinaryMaster",
-                "other_binary_strategy", Collections.emptyList());
+        WorkflowBatchResult batchResult = WorkflowBatchResult.of(
+            GOT_ID,
+            "unitId",
+            targetUse,
+            "requestId",
+            outputExtras,
+            "BinaryMaster",
+            "other_binary_strategy",
+            Collections.emptyList()
+        );
         return new WorkflowBatchResults(Paths.get("tmp"), Collections.singletonList(batchResult));
     }
 

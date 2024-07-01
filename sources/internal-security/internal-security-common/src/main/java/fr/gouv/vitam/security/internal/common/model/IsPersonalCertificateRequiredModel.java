@@ -52,6 +52,6 @@ public class IsPersonalCertificateRequiredModel {
     public enum Response {
         REQUIRED_PERSONAL_CERTIFICATE,
         IGNORED_PERSONAL_CERTIFICATE,
-        ERROR_UNKNOWN_PERMISSION
+        ERROR_UNKNOWN_PERMISSION,
     }
 }

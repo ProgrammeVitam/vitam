@@ -44,8 +44,9 @@ public class MetaDataClientFactory extends VitamClientFactory<MetaDataClient> {
     private static final String CONFIGURATION_FILENAME = "metadata-client.conf";
 
     private static final MetaDataClientFactory META_DATA_CLIENT_FACTORY = new MetaDataClientFactory("/metadata/v1");
-    private static final MetaDataClientFactory META_DATA_COLLECT_CLIENT_FACTORY =
-        new MetaDataClientFactory("/metadata-collect/v1");
+    private static final MetaDataClientFactory META_DATA_COLLECT_CLIENT_FACTORY = new MetaDataClientFactory(
+        "/metadata-collect/v1"
+    );
 
     private MetaDataClientFactory(String resourcePath) {
         // All requests from client are SMALL, but responses from server could be Huge
@@ -62,16 +63,15 @@ public class MetaDataClientFactory extends VitamClientFactory<MetaDataClient> {
     static ClientConfiguration changeConfigurationFile(String configurationPath) {
         ClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                ClientConfigurationImpl.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                ClientConfigurationImpl.class
+            );
         } catch (final IOException fnf) {
-            LOGGER.debug("Error when retrieving configuration file {}, using mock",
-                configurationPath,
-                fnf);
+            LOGGER.debug("Error when retrieving configuration file {}, using mock", configurationPath, fnf);
         }
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file {}, using mock",
-                configurationPath);
+            LOGGER.error("Error when retrieving configuration file {}, using mock", configurationPath);
         }
         return configuration;
     }

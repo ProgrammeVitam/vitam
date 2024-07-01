@@ -28,5 +28,5 @@ package fr.gouv.vitam.worker.core.plugin.ingestcleanup.report;
 
 public enum MetadataType {
     Unit,
-    ObjectGroup
+    ObjectGroup,
 }

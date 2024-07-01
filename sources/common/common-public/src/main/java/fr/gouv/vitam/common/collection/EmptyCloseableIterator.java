@@ -32,6 +32,7 @@ package fr.gouv.vitam.common.collection;
  * @param <E> the object class of the objects contained in the iterator
  */
 public class EmptyCloseableIterator<E> implements CloseableIterator<E> {
+
     /**
      * Empty constructor
      */
@@ -53,5 +54,4 @@ public class EmptyCloseableIterator<E> implements CloseableIterator<E> {
     public void close() {
         // Empty
     }
-
 }

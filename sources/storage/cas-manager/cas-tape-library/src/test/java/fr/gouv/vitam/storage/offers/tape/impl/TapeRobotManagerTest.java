@@ -37,11 +37,12 @@ public class TapeRobotManagerTest {
 
     @Test
     public void testConstructorOneOK() {
-        TapeRobotManager tapeRobotManager =
-            new TapeRobotManager(mock(TapeRobotConf.class), mock(TapeLoadUnloadService.class));
+        TapeRobotManager tapeRobotManager = new TapeRobotManager(
+            mock(TapeRobotConf.class),
+            mock(TapeLoadUnloadService.class)
+        );
         Assertions.assertThat(tapeRobotManager.getLoadUnloadService()).isNotNull();
     }
-
 
     @Test
     public void testConstructorTwoOK() {
@@ -49,13 +50,10 @@ public class TapeRobotManagerTest {
         Assertions.assertThat(tapeRobotManager.getLoadUnloadService()).isNotNull();
     }
 
-
-
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorNullLoadUnloadServiceKO() {
         new TapeRobotManager(mock(TapeRobotConf.class), null);
     }
-
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorNullTapeRobotConfAndNotNullTapeLoadUnloadServiceKO() {

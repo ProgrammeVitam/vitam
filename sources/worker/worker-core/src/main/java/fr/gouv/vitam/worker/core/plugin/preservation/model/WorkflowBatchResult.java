@@ -47,6 +47,7 @@ import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.G
 import static fr.gouv.vitam.common.model.administration.ActionTypePreservation.IDENTIFY;
 
 public class WorkflowBatchResult {
+
     private final String gotId;
     private final String unitId;
     private final String targetUse;
@@ -57,9 +58,17 @@ public class WorkflowBatchResult {
     private final List<String> unitsForExtractionAU;
     private final StatusCode globalStatus;
 
-    private WorkflowBatchResult(String gotId, String unitId, String targetUse, String requestId,
+    private WorkflowBatchResult(
+        String gotId,
+        String unitId,
+        String targetUse,
+        String requestId,
         List<OutputExtra> outputExtras,
-        StatusCode globalStatus, String sourceUse, String sourceStrategy, List<String> unitsForExtractionAU) {
+        StatusCode globalStatus,
+        String sourceUse,
+        String sourceStrategy,
+        List<String> unitsForExtractionAU
+    ) {
         this.gotId = gotId;
         this.unitId = unitId;
         this.targetUse = targetUse;
@@ -71,12 +80,27 @@ public class WorkflowBatchResult {
         this.unitsForExtractionAU = unitsForExtractionAU;
     }
 
-    public static WorkflowBatchResult of(String gotId, String unitId, String targetUse, String requestId,
+    public static WorkflowBatchResult of(
+        String gotId,
+        String unitId,
+        String targetUse,
+        String requestId,
         List<OutputExtra> outputExtras,
-        String sourceUse, String sourceStrategy, List<String> unitsForExtractionAU) {
-        return new WorkflowBatchResult(gotId, unitId, targetUse, requestId, Collections.unmodifiableList(outputExtras),
+        String sourceUse,
+        String sourceStrategy,
+        List<String> unitsForExtractionAU
+    ) {
+        return new WorkflowBatchResult(
+            gotId,
+            unitId,
+            targetUse,
+            requestId,
+            Collections.unmodifiableList(outputExtras),
             WorkflowBatchResult.globalStatusFromOutputExtras(outputExtras),
-            sourceUse, sourceStrategy, unitsForExtractionAU);
+            sourceUse,
+            sourceStrategy,
+            unitsForExtractionAU
+        );
     }
 
     public static WorkflowBatchResult of(WorkflowBatchResult workflowBatchResult, List<OutputExtra> outputExtras) {
@@ -89,11 +113,13 @@ public class WorkflowBatchResult {
             WorkflowBatchResult.globalStatusFromOutputExtras(outputExtras),
             workflowBatchResult.getSourceUse(),
             workflowBatchResult.getSourceStrategy(),
-            workflowBatchResult.getUnitsForExtractionAU());
+            workflowBatchResult.getUnitsForExtractionAU()
+        );
     }
 
     private static StatusCode globalStatusFromOutputExtras(List<OutputExtra> outputExtras) {
-        List<PreservationStatus> statuses = outputExtras.stream()
+        List<PreservationStatus> statuses = outputExtras
+            .stream()
             .map(o -> o.getOutput().getStatus())
             .map(s -> s.equals(PreservationStatus.OK) ? PreservationStatus.OK : PreservationStatus.KO)
             .distinct()
@@ -146,8 +172,8 @@ public class WorkflowBatchResult {
         return unitsForExtractionAU;
     }
 
-
     public static class OutputExtra {
+
         private final OutputPreservation output;
         private final String binaryGUID;
         private final Optional<Long> size;
@@ -159,10 +185,17 @@ public class WorkflowBatchResult {
         private final Optional<String> error;
 
         @VisibleForTesting
-        public OutputExtra(OutputPreservation output, String binaryGUID, Optional<Long> size,
-            Optional<String> binaryHash, Optional<FormatIdentifierResponse> binaryFormat,
-            Optional<StoredInfoResult> storedInfo, Optional<ExtractedMetadata> extractedMetadataGOT,
-            Optional<ExtractedMetadataForAu> extractedMetadataAU, Optional<String> error) {
+        public OutputExtra(
+            OutputPreservation output,
+            String binaryGUID,
+            Optional<Long> size,
+            Optional<String> binaryHash,
+            Optional<FormatIdentifierResponse> binaryFormat,
+            Optional<StoredInfoResult> storedInfo,
+            Optional<ExtractedMetadata> extractedMetadataGOT,
+            Optional<ExtractedMetadataForAu> extractedMetadataAU,
+            Optional<String> error
+        ) {
             this.output = output;
             this.binaryGUID = binaryGUID;
             this.size = size;
@@ -175,8 +208,17 @@ public class WorkflowBatchResult {
         }
 
         public static OutputExtra of(OutputPreservation output) {
-            return new OutputExtra(output, GUIDFactory.newGUID().getId(), Optional.empty(), Optional.empty(),
-                Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
+            return new OutputExtra(
+                output,
+                GUIDFactory.newGUID().getId(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty()
+            );
         }
 
         public static OutputExtra withBinaryHashAndSize(OutputExtra outputExtra, String binaryHash, long size) {
@@ -221,8 +263,10 @@ public class WorkflowBatchResult {
             );
         }
 
-        public static OutputExtra withExtractedMetadataForGot(OutputExtra outputExtra,
-            ExtractedMetadata extractedMetadataGOT) {
+        public static OutputExtra withExtractedMetadataForGot(
+            OutputExtra outputExtra,
+            ExtractedMetadata extractedMetadataGOT
+        ) {
             return new OutputExtra(
                 outputExtra.getOutput(),
                 outputExtra.getBinaryGUID(),
@@ -236,8 +280,10 @@ public class WorkflowBatchResult {
             );
         }
 
-        public static OutputExtra withExtractedMetadataForAu(OutputExtra outputExtra,
-            ExtractedMetadataForAu extractedMetadataAU) {
+        public static OutputExtra withExtractedMetadataForAu(
+            OutputExtra outputExtra,
+            ExtractedMetadataForAu extractedMetadataAU
+        ) {
             return new OutputExtra(
                 outputExtra.getOutput(),
                 outputExtra.getBinaryGUID(),
@@ -302,8 +348,10 @@ public class WorkflowBatchResult {
         }
 
         public boolean isOkAndGenerated() {
-            return this.getOutput().getAction().equals(GENERATE) &&
-                this.getOutput().getStatus().equals(PreservationStatus.OK);
+            return (
+                this.getOutput().getAction().equals(GENERATE) &&
+                this.getOutput().getStatus().equals(PreservationStatus.OK)
+            );
         }
 
         public boolean isInError() {
@@ -311,18 +359,24 @@ public class WorkflowBatchResult {
         }
 
         public boolean isOkAndIdentify() {
-            return this.getOutput().getAction().equals(IDENTIFY) &&
-                this.getOutput().getStatus().equals(PreservationStatus.OK);
+            return (
+                this.getOutput().getAction().equals(IDENTIFY) &&
+                this.getOutput().getStatus().equals(PreservationStatus.OK)
+            );
         }
 
         public boolean isOkAndExtractedGot() {
-            return this.getOutput().getAction().equals(EXTRACT) &&
-                this.getOutput().getStatus().equals(PreservationStatus.OK);
+            return (
+                this.getOutput().getAction().equals(EXTRACT) &&
+                this.getOutput().getStatus().equals(PreservationStatus.OK)
+            );
         }
 
         public boolean isOkAndExtractedAu() {
-            return this.getOutput().getAction().equals(EXTRACT_AU) &&
-                this.getOutput().getStatus().equals(PreservationStatus.OK);
+            return (
+                this.getOutput().getAction().equals(EXTRACT_AU) &&
+                this.getOutput().getStatus().equals(PreservationStatus.OK)
+            );
         }
     }
 }

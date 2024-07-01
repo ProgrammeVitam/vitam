@@ -65,12 +65,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class ModelValidatorUtils {
 
-    private static final TypeReference<List<OntologyModel>> LIST_TYPE_REFERENCE =
-        new TypeReference<List<OntologyModel>>() {
-        };
+    private static final TypeReference<List<OntologyModel>> LIST_TYPE_REFERENCE = new TypeReference<
+        List<OntologyModel>
+    >() {};
 
-    private ModelValidatorUtils() {
-    }
+    private ModelValidatorUtils() {}
 
     public static void validateDataModel(VitamCollection vitamCollection) throws Exception {
         ParametersChecker.checkParameter("missing params", vitamCollection);
@@ -83,44 +82,61 @@ public class ModelValidatorUtils {
         internalValidateDataModel(null, mappingFileInputStream, vitamCollection, null);
     }
 
-    public static void validateDataModel(Class<?> clazz,
-        InputStream mappingFileInputStream, VitamCollection vitamCollection, InputStream jsonSchemaInputStream)
-        throws Exception {
-        ParametersChecker.checkParameter("missing params", clazz, mappingFileInputStream, vitamCollection,
-            jsonSchemaInputStream);
+    public static void validateDataModel(
+        Class<?> clazz,
+        InputStream mappingFileInputStream,
+        VitamCollection vitamCollection,
+        InputStream jsonSchemaInputStream
+    ) throws Exception {
+        ParametersChecker.checkParameter(
+            "missing params",
+            clazz,
+            mappingFileInputStream,
+            vitamCollection,
+            jsonSchemaInputStream
+        );
         internalValidateDataModel(clazz, mappingFileInputStream, vitamCollection, jsonSchemaInputStream);
     }
 
-    private static void internalValidateDataModel(Class<?> clazz,
-        InputStream mappingFileInputStream, VitamCollection vitamCollection, InputStream jsonSchemaInputStream)
-        throws Exception {
-
+    private static void internalValidateDataModel(
+        Class<?> clazz,
+        InputStream mappingFileInputStream,
+        VitamCollection vitamCollection,
+        InputStream jsonSchemaInputStream
+    ) throws Exception {
         SoftAssertions softly = new SoftAssertions();
         try {
-
             String collectionName = vitamCollection.getClasz().getSimpleName();
             List<OntologyModel> ontologyModels = loadOntology(collectionName);
 
-            Map<String, VitamDescriptionType> descriptionTypeByName =
-                Maps.filterKeys(vitamCollection.getVitamDescriptionResolver().getDescriptionTypeByStaticName(),
-                    key -> !Objects.equals(key, "Title.keyword"));
+            Map<String, VitamDescriptionType> descriptionTypeByName = Maps.filterKeys(
+                vitamCollection.getVitamDescriptionResolver().getDescriptionTypeByStaticName(),
+                key -> !Objects.equals(key, "Title.keyword")
+            );
 
             // Validate vitam-description file VS ontology file
             validateVitamDescriptionAgainstOntology(descriptionTypeByName, ontologyModels, softly);
 
             // Validate vitam-description file VS pojo model
             if (clazz != null) {
-
-                Map<String, String> externalToInternalMap = ontologyModels.stream()
+                Map<String, String> externalToInternalMap = ontologyModels
+                    .stream()
                     .filter(ontologyModel -> StringUtils.isNoneEmpty(ontologyModel.getApiField()))
                     .collect(toMap(OntologyModel::getApiField, OntologyModel::getIdentifier));
 
                 PojoModelExtractor pojoModelExtractor = new PojoModelExtractor();
-                Map<String, PojoModel> models = pojoModelExtractor.extractPojoModels(clazz).stream().collect(toMap(
-                    model -> externalToInternalMap.containsKey(model.getFullPath()) ?
-                        externalToInternalMap.get(model.getFullPath()) :
-                        model.getFullPath()
-                    , model -> model));
+                Map<String, PojoModel> models = pojoModelExtractor
+                    .extractPojoModels(clazz)
+                    .stream()
+                    .collect(
+                        toMap(
+                            model ->
+                                externalToInternalMap.containsKey(model.getFullPath())
+                                    ? externalToInternalMap.get(model.getFullPath())
+                                    : model.getFullPath(),
+                            model -> model
+                        )
+                    );
 
                 validateVitamDescriptionAgainstPojoModels(models, descriptionTypeByName, softly);
             }
@@ -129,18 +145,19 @@ public class ModelValidatorUtils {
             if (mappingFileInputStream != null) {
                 ElasticsearchMappingParser elasticsearchMappingParser = new ElasticsearchMappingParser();
                 Map<String, ElasticsearchMappingType> mappingTypes = elasticsearchMappingParser.parseMapping(
-                    JsonHandler.getFromInputStream(mappingFileInputStream));
+                    JsonHandler.getFromInputStream(mappingFileInputStream)
+                );
 
                 validateVitamDescriptionAgainstElasticsearchMapping(descriptionTypeByName, mappingTypes, softly);
             }
 
             if (jsonSchemaInputStream != null) {
-                Map<String, JsonSchemaField> schemaFieldMap =
-                    JsonSchemaFieldParser.parseJsonSchemaFields(jsonSchemaInputStream);
+                Map<String, JsonSchemaField> schemaFieldMap = JsonSchemaFieldParser.parseJsonSchemaFields(
+                    jsonSchemaInputStream
+                );
 
                 validateVitamDescriptionAgainstJsonSchema(softly, descriptionTypeByName, schemaFieldMap);
             }
-
         } finally {
             softly.assertAll();
         }
@@ -151,28 +168,39 @@ public class ModelValidatorUtils {
         // Read vitam ontology (added as test resource from ansible deployment directory)
         InputStream resourceAsStream = OntologyTestHelper.loadOntologies();
 
-        List<OntologyModel> ontologyModels =
-            JsonHandler.getFromInputStreamAsTypeReference(resourceAsStream, LIST_TYPE_REFERENCE);
+        List<OntologyModel> ontologyModels = JsonHandler.getFromInputStreamAsTypeReference(
+            resourceAsStream,
+            LIST_TYPE_REFERENCE
+        );
 
-        return ontologyModels.stream()
+        return ontologyModels
+            .stream()
             .filter(ontologyModel -> ontologyModel.getCollections().contains(collectionName))
             .collect(Collectors.toList());
     }
 
-    private static void validateVitamDescriptionAgainstPojoModels(Map<String, PojoModel> models,
+    private static void validateVitamDescriptionAgainstPojoModels(
+        Map<String, PojoModel> models,
         Map<String, VitamDescriptionType> descriptionTypeByName,
-        SoftAssertions softly) {
-
+        SoftAssertions softly
+    ) {
         SetUtils.SetView<String> missingKeys = SetUtils.difference(models.keySet(), descriptionTypeByName.keySet());
-        softly.assertThat(missingKeys)
-            .withFailMessage("Missing keys " + missingKeys + " from vitam description file," +
-                " but are found in pojo models")
+        softly
+            .assertThat(missingKeys)
+            .withFailMessage(
+                "Missing keys " + missingKeys + " from vitam description file," + " but are found in pojo models"
+            )
             .isEmpty();
 
         SetUtils.SetView<String> unexpectedKeys = SetUtils.difference(descriptionTypeByName.keySet(), models.keySet());
-        softly.assertThat(unexpectedKeys)
-            .withFailMessage("Unexpected keys " + unexpectedKeys + " in vitam description file" +
-                " that are not found in pojo models")
+        softly
+            .assertThat(unexpectedKeys)
+            .withFailMessage(
+                "Unexpected keys " +
+                unexpectedKeys +
+                " in vitam description file" +
+                " that are not found in pojo models"
+            )
             .isEmpty();
 
         SetUtils.SetView<String> commonKeys = SetUtils.intersection(descriptionTypeByName.keySet(), models.keySet());
@@ -181,24 +209,32 @@ public class ModelValidatorUtils {
             VitamDescriptionType vitamDescriptionType = descriptionTypeByName.get(entryName);
             PojoModel model = models.get(entryName);
 
-            VitamDescriptionType.VitamCardinality expectedCardinality = model.isArray() ?
-                VitamDescriptionType.VitamCardinality.many : VitamDescriptionType.VitamCardinality.one;
-            softly.assertThat(vitamDescriptionType.getCardinality())
+            VitamDescriptionType.VitamCardinality expectedCardinality = model.isArray()
+                ? VitamDescriptionType.VitamCardinality.many
+                : VitamDescriptionType.VitamCardinality.one;
+            softly
+                .assertThat(vitamDescriptionType.getCardinality())
                 .withFailMessage(
-                    "Cardinality mismatch for field " + entryName + ". From pojo model: " + expectedCardinality +
-                        " != declared cardinality in vitam description file: " + vitamDescriptionType.getCardinality())
+                    "Cardinality mismatch for field " +
+                    entryName +
+                    ". From pojo model: " +
+                    expectedCardinality +
+                    " != declared cardinality in vitam description file: " +
+                    vitamDescriptionType.getCardinality()
+                )
                 .isEqualTo(expectedCardinality);
-
 
             List<VitamDescriptionType.VitamType> validVitamTypes;
             switch (model.getModelType()) {
-
                 case ENUM:
                     validVitamTypes = Collections.singletonList(VitamDescriptionType.VitamType.keyword);
                     break;
                 case STRING:
-                    validVitamTypes = Arrays.asList(VitamDescriptionType.VitamType.keyword,
-                        VitamDescriptionType.VitamType.text, VitamDescriptionType.VitamType.datetime);
+                    validVitamTypes = Arrays.asList(
+                        VitamDescriptionType.VitamType.keyword,
+                        VitamDescriptionType.VitamType.text,
+                        VitamDescriptionType.VitamType.datetime
+                    );
                     break;
                 case LONG:
                     validVitamTypes = Collections.singletonList(VitamDescriptionType.VitamType.signed_long);
@@ -210,28 +246,42 @@ public class ModelValidatorUtils {
                     validVitamTypes = Collections.singletonList(VitamDescriptionType.VitamType.bool);
                     break;
                 case OBJECT:
-                    validVitamTypes = Arrays.asList(VitamDescriptionType.VitamType.object,
-                        VitamDescriptionType.VitamType.nested_object);
+                    validVitamTypes = Arrays.asList(
+                        VitamDescriptionType.VitamType.object,
+                        VitamDescriptionType.VitamType.nested_object
+                    );
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + model.getModelType());
             }
 
             assertThat(vitamDescriptionType.getType())
-                .withFailMessage("Type mismatch for field " + entryName + ". From pojo model: " + model.getModelType() +
-                    ", from vitam description file: " + vitamDescriptionType.getType())
+                .withFailMessage(
+                    "Type mismatch for field " +
+                    entryName +
+                    ". From pojo model: " +
+                    model.getModelType() +
+                    ", from vitam description file: " +
+                    vitamDescriptionType.getType()
+                )
                 .isIn(validVitamTypes);
         }
     }
 
-    private static void validateVitamDescriptionAgainstOntology(Map<String, VitamDescriptionType> descriptionTypeByName,
-        List<OntologyModel> ontologyModels, SoftAssertions softly) {
-
+    private static void validateVitamDescriptionAgainstOntology(
+        Map<String, VitamDescriptionType> descriptionTypeByName,
+        List<OntologyModel> ontologyModels,
+        SoftAssertions softly
+    ) {
         // Only consider leaves (objects are skipped)
-        List<VitamDescriptionType> leafDescriptionTypes = descriptionTypeByName.values()
+        List<VitamDescriptionType> leafDescriptionTypes = descriptionTypeByName
+            .values()
             .stream()
-            .filter(descriptionType -> descriptionType.getType() != VitamDescriptionType.VitamType.object &&
-                descriptionType.getType() != VitamDescriptionType.VitamType.nested_object)
+            .filter(
+                descriptionType ->
+                    descriptionType.getType() != VitamDescriptionType.VitamType.object &&
+                    descriptionType.getType() != VitamDescriptionType.VitamType.nested_object
+            )
             .collect(Collectors.toList());
 
         // Map description types by simple field name (not full path)
@@ -246,34 +296,49 @@ public class ModelValidatorUtils {
         }
 
         // Map ontologies by fieldName
-        Map<String, OntologyModel> ontologyByFieldName = ontologyModels.stream()
+        Map<String, OntologyModel> ontologyByFieldName = ontologyModels
+            .stream()
             .collect(toMap(OntologyModel::getIdentifier, ontologyModel -> ontologyModel));
 
         List<String> errors = new ArrayList<>();
 
-        SetUtils.SetView<String> missingFieldNames =
-            SetUtils.difference(descriptionByFieldName.keySet(), ontologyByFieldName.keySet());
-        softly.assertThat(missingFieldNames)
-            .withFailMessage("Missing field names " + missingFieldNames + " from ontology " +
-                " but are found in vitam description file")
+        SetUtils.SetView<String> missingFieldNames = SetUtils.difference(
+            descriptionByFieldName.keySet(),
+            ontologyByFieldName.keySet()
+        );
+        softly
+            .assertThat(missingFieldNames)
+            .withFailMessage(
+                "Missing field names " +
+                missingFieldNames +
+                " from ontology " +
+                " but are found in vitam description file"
+            )
             .isEmpty();
 
-        SetUtils.SetView<String> unexpectedFieldNames =
-            SetUtils.difference(ontologyByFieldName.keySet(), descriptionByFieldName.keySet());
-        softly.assertThat(unexpectedFieldNames)
-            .withFailMessage("Unexpected field names " + unexpectedFieldNames + " in ontology " +
-                " that are missing from vitam description file")
+        SetUtils.SetView<String> unexpectedFieldNames = SetUtils.difference(
+            ontologyByFieldName.keySet(),
+            descriptionByFieldName.keySet()
+        );
+        softly
+            .assertThat(unexpectedFieldNames)
+            .withFailMessage(
+                "Unexpected field names " +
+                unexpectedFieldNames +
+                " in ontology " +
+                " that are missing from vitam description file"
+            )
             .isEmpty();
 
-        SetUtils.SetView<String> commonFieldNames =
-            SetUtils.intersection(ontologyByFieldName.keySet(), descriptionByFieldName.keySet());
+        SetUtils.SetView<String> commonFieldNames = SetUtils.intersection(
+            ontologyByFieldName.keySet(),
+            descriptionByFieldName.keySet()
+        );
 
         for (String commonFieldName : commonFieldNames) {
-
             OntologyModel ontologyModel = ontologyByFieldName.get(commonFieldName);
 
             for (VitamDescriptionType descriptionType : descriptionByFieldName.get(commonFieldName)) {
-
                 OntologyType expectedOntologyType;
                 switch (descriptionType.getType()) {
                     case datetime:
@@ -294,17 +359,23 @@ public class ModelValidatorUtils {
                     case bool:
                         expectedOntologyType = OntologyType.BOOLEAN;
                         break;
-
                     case object:
                     case nested_object:
-                        // Already filtered
+                    // Already filtered
                     default:
                         throw new IllegalStateException("Unexpected value: " + descriptionType.getType());
                 }
 
-                softly.assertThat(ontologyModel.getType())
-                    .withFailMessage("Type mismatch for field: " + commonFieldName + ". Vitam description type: " +
-                        descriptionType.getType() + ", Ontology type: " + ontologyModel.getType())
+                softly
+                    .assertThat(ontologyModel.getType())
+                    .withFailMessage(
+                        "Type mismatch for field: " +
+                        commonFieldName +
+                        ". Vitam description type: " +
+                        descriptionType.getType() +
+                        ", Ontology type: " +
+                        ontologyModel.getType()
+                    )
                     .isEqualTo(expectedOntologyType);
             }
         }
@@ -314,10 +385,13 @@ public class ModelValidatorUtils {
 
     private static void validateVitamDescriptionAgainstElasticsearchMapping(
         Map<String, VitamDescriptionType> descriptionTypeByName,
-        Map<String, ElasticsearchMappingType> mappingTypes, SoftAssertions softly) {
-
-        SetUtils.SetView<String> missingKeys =
-            SetUtils.difference(descriptionTypeByName.keySet(), mappingTypes.keySet());
+        Map<String, ElasticsearchMappingType> mappingTypes,
+        SoftAssertions softly
+    ) {
+        SetUtils.SetView<String> missingKeys = SetUtils.difference(
+            descriptionTypeByName.keySet(),
+            mappingTypes.keySet()
+        );
         for (String missingKey : missingKeys) {
             if (missingKey.equals("_id")) {
                 // _id is forbidden in ES mapping
@@ -326,24 +400,27 @@ public class ModelValidatorUtils {
             softly.fail("Missing key '" + missingKey + "' from ES mapping");
         }
 
-        SetUtils.SetView<String> unexpectedKeys =
-            SetUtils.difference(mappingTypes.keySet(), descriptionTypeByName.keySet());
+        SetUtils.SetView<String> unexpectedKeys = SetUtils.difference(
+            mappingTypes.keySet(),
+            descriptionTypeByName.keySet()
+        );
         for (String unexpectedKey : unexpectedKeys) {
             softly.fail("Unexpected key '" + unexpectedKey + "' in ES mapping");
         }
 
-        DynamicParserTokens parserTokens =
-            new DynamicParserTokens(new VitamDescriptionResolver(new ArrayList<>(descriptionTypeByName.values())),
-                Collections.emptyList());
+        DynamicParserTokens parserTokens = new DynamicParserTokens(
+            new VitamDescriptionResolver(new ArrayList<>(descriptionTypeByName.values())),
+            Collections.emptyList()
+        );
         for (Map.Entry<String, ElasticsearchMappingType> entry : mappingTypes.entrySet()) {
-
             String fieldName = entry.getKey();
             ElasticsearchMappingType fieldType = entry.getValue();
 
             boolean isNotAnalyzed = parserTokens.isNotAnalyzed(fieldName);
             switch (fieldType) {
                 case TEXT:
-                    softly.assertThat(isNotAnalyzed)
+                    softly
+                        .assertThat(isNotAnalyzed)
                         .withFailMessage("Expected isNotAnalyzed=false for key=" + fieldName + " / type=" + fieldType)
                         .isFalse();
                     break;
@@ -353,7 +430,8 @@ public class ModelValidatorUtils {
                 case DOUBLE:
                 case KEYWORD:
                 case NOT_INDEXED:
-                    softly.assertThat(isNotAnalyzed)
+                    softly
+                        .assertThat(isNotAnalyzed)
                         .withFailMessage("Expected isNotAnalyzed=true for key=" + fieldName + " / type=" + fieldType)
                         .isTrue();
                     break;
@@ -367,43 +445,62 @@ public class ModelValidatorUtils {
         }
     }
 
-    private static void validateVitamDescriptionAgainstJsonSchema(SoftAssertions softly,
-        Map<String, VitamDescriptionType> descriptionTypeByName, Map<String, JsonSchemaField> schemaFieldMap) {
-        SetUtils.SetView<String> missingKeys =
-            SetUtils.difference(schemaFieldMap.keySet(), descriptionTypeByName.keySet());
-        softly.assertThat(missingKeys)
-            .withFailMessage("Missing keys " + missingKeys + " from vitam description file," +
-                " but are found in json schema file")
+    private static void validateVitamDescriptionAgainstJsonSchema(
+        SoftAssertions softly,
+        Map<String, VitamDescriptionType> descriptionTypeByName,
+        Map<String, JsonSchemaField> schemaFieldMap
+    ) {
+        SetUtils.SetView<String> missingKeys = SetUtils.difference(
+            schemaFieldMap.keySet(),
+            descriptionTypeByName.keySet()
+        );
+        softly
+            .assertThat(missingKeys)
+            .withFailMessage(
+                "Missing keys " + missingKeys + " from vitam description file," + " but are found in json schema file"
+            )
             .isEmpty();
 
-        SetUtils.SetView<String> unexpectedKeys =
-            SetUtils.difference(descriptionTypeByName.keySet(), schemaFieldMap.keySet());
-        softly.assertThat(unexpectedKeys)
-            .withFailMessage("Unexpected keys " + unexpectedKeys + " in vitam description file" +
-                " that are not found in json schema file")
+        SetUtils.SetView<String> unexpectedKeys = SetUtils.difference(
+            descriptionTypeByName.keySet(),
+            schemaFieldMap.keySet()
+        );
+        softly
+            .assertThat(unexpectedKeys)
+            .withFailMessage(
+                "Unexpected keys " +
+                unexpectedKeys +
+                " in vitam description file" +
+                " that are not found in json schema file"
+            )
             .isEmpty();
 
-        SetUtils.SetView<String> commonKeys =
-            SetUtils.intersection(descriptionTypeByName.keySet(), schemaFieldMap.keySet());
+        SetUtils.SetView<String> commonKeys = SetUtils.intersection(
+            descriptionTypeByName.keySet(),
+            schemaFieldMap.keySet()
+        );
 
         for (String entryName : commonKeys) {
             VitamDescriptionType vitamDescriptionType = descriptionTypeByName.get(entryName);
             JsonSchemaField jsonSchemaField = schemaFieldMap.get(entryName);
 
-            VitamDescriptionType.VitamCardinality expectedCardinality = jsonSchemaField.isArray() ?
-                VitamDescriptionType.VitamCardinality.many : VitamDescriptionType.VitamCardinality.one;
-            softly.assertThat(vitamDescriptionType.getCardinality())
+            VitamDescriptionType.VitamCardinality expectedCardinality = jsonSchemaField.isArray()
+                ? VitamDescriptionType.VitamCardinality.many
+                : VitamDescriptionType.VitamCardinality.one;
+            softly
+                .assertThat(vitamDescriptionType.getCardinality())
                 .withFailMessage(
-                    "Cardinality mismatch for field " + entryName + ". From json schema file: " +
-                        expectedCardinality +
-                        " != declared cardinality in vitam description file: " +
-                        vitamDescriptionType.getCardinality())
+                    "Cardinality mismatch for field " +
+                    entryName +
+                    ". From json schema file: " +
+                    expectedCardinality +
+                    " != declared cardinality in vitam description file: " +
+                    vitamDescriptionType.getCardinality()
+                )
                 .isEqualTo(expectedCardinality);
-
 
             List<VitamDescriptionType.VitamType> validVitamTypes;
             switch (jsonSchemaField.getFieldType()) {
-
                 case ENUM:
                     validVitamTypes = Collections.singletonList(VitamDescriptionType.VitamType.keyword);
                     break;
@@ -411,31 +508,42 @@ public class ModelValidatorUtils {
                     validVitamTypes = Collections.singletonList(VitamDescriptionType.VitamType.datetime);
                     break;
                 case STRING:
-                    validVitamTypes = Arrays.asList(VitamDescriptionType.VitamType.keyword,
-                        VitamDescriptionType.VitamType.text);
+                    validVitamTypes = Arrays.asList(
+                        VitamDescriptionType.VitamType.keyword,
+                        VitamDescriptionType.VitamType.text
+                    );
                     break;
                 case INTEGER:
                     validVitamTypes = Collections.singletonList(VitamDescriptionType.VitamType.signed_long);
                     break;
                 case NUMERIC:
-                    validVitamTypes = Arrays.asList(VitamDescriptionType.VitamType.signed_double,
-                        VitamDescriptionType.VitamType.signed_long);
+                    validVitamTypes = Arrays.asList(
+                        VitamDescriptionType.VitamType.signed_double,
+                        VitamDescriptionType.VitamType.signed_long
+                    );
                     break;
                 case BOOLEAN:
                     validVitamTypes = Collections.singletonList(VitamDescriptionType.VitamType.bool);
                     break;
                 case OBJECT:
-                    validVitamTypes = Arrays.asList(VitamDescriptionType.VitamType.object,
-                        VitamDescriptionType.VitamType.nested_object);
+                    validVitamTypes = Arrays.asList(
+                        VitamDescriptionType.VitamType.object,
+                        VitamDescriptionType.VitamType.nested_object
+                    );
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + jsonSchemaField.getFieldType());
             }
 
             assertThat(vitamDescriptionType.getType())
-                .withFailMessage("Type mismatch for field " + entryName + ". From json schema file: " +
+                .withFailMessage(
+                    "Type mismatch for field " +
+                    entryName +
+                    ". From json schema file: " +
                     jsonSchemaField.getFieldType() +
-                    ", from vitam description file: " + vitamDescriptionType.getType())
+                    ", from vitam description file: " +
+                    vitamDescriptionType.getType()
+                )
                 .isIn(validVitamTypes);
         }
     }

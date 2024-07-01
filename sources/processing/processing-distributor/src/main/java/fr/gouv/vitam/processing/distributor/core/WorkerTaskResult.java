@@ -51,13 +51,20 @@ public class WorkerTaskResult {
         return new WorkerTaskResult(workerTask, true, itemStatus, false, null);
     }
 
-    public static WorkerTaskResult ofTaskRequiringAsyncResourceAvailability(WorkerTask workerTask,
-        Map<String, AccessRequestContext> asyncResources) {
+    public static WorkerTaskResult ofTaskRequiringAsyncResourceAvailability(
+        WorkerTask workerTask,
+        Map<String, AccessRequestContext> asyncResources
+    ) {
         return new WorkerTaskResult(workerTask, false, null, false, asyncResources);
     }
 
-    private WorkerTaskResult(WorkerTask workerTask, boolean isProcessed, ItemStatus itemStatus,
-        boolean isPausedOrCanceled, Map<String, AccessRequestContext> asyncResources) {
+    private WorkerTaskResult(
+        WorkerTask workerTask,
+        boolean isProcessed,
+        ItemStatus itemStatus,
+        boolean isPausedOrCanceled,
+        Map<String, AccessRequestContext> asyncResources
+    ) {
         this.itemStatus = itemStatus;
         this.isProcessed = isProcessed;
         this.workerTask = workerTask;

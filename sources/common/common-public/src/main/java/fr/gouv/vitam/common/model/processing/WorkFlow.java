@@ -65,8 +65,7 @@ public class WorkFlow {
     protected List<Step> steps;
 
     // Use only in mock and test
-    public WorkFlow() {
-    }
+    public WorkFlow() {}
 
     @JsonCreator
     public WorkFlow(
@@ -76,7 +75,8 @@ public class WorkFlow {
         @JsonProperty("typeProc") String typeProc,
         @JsonProperty("comment") String comment,
         @JsonProperty("lifecycleLog") LifecycleState lifecycleLog,
-        @JsonProperty("steps") List<Step> steps) {
+        @JsonProperty("steps") List<Step> steps
+    ) {
         this.id = id;
         this.name = name;
         this.identifier = identifier;
@@ -238,8 +238,15 @@ public class WorkFlow {
      */
     @Override
     public String toString() {
-        return String.format("ID=%s\nname=%s\nidentifier=%s\ntypeProc=%s\ncomments=%s\nlifecycleLog=%s\n",
-            getId(), getName(), getIdentifier(), getTypeProc(), getComment(), getLifecycleLog());
+        return String.format(
+            "ID=%s\nname=%s\nidentifier=%s\ntypeProc=%s\ncomments=%s\nlifecycleLog=%s\n",
+            getId(),
+            getName(),
+            getIdentifier(),
+            getTypeProc(),
+            getComment(),
+            getLifecycleLog()
+        );
     }
 
     public LifecycleState getLifecycleLog() {

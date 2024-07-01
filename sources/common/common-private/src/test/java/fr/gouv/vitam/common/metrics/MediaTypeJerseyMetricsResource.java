@@ -41,26 +41,28 @@ import java.util.Set;
 @Path("/home4")
 public class MediaTypeJerseyMetricsResource {
 
-    static final public Set<String> expectedNames = new HashSet<>(Arrays.asList(
-        "/home4/:POST:multipart/form-data:*:meter",
-        "/home4//users:GET:*:application/json:timer",
-        "/home4/:GET:*:application/json:meter",
-        "/home4/:POST:application/svg+xml,application/atom+xml:*:meter",
-        "/home4/:DELETE:multipart/form-data:application/json,text/plain:meter",
-        "/home4//users:GET:*:application/json:meter",
-        "/home4/:POST:application/xhtml+xml:*:timer",
-        "/home4//users:POST:multipart/form-data:*:meter",
-        "/home4/:GET:*:application/xml:meter",
-        "/home4/:GET:*:application/json:timer",
-        "/home4/:GET:*:application/octet-stream,text/plain:meter",
-        "/home4/:POST:application/xhtml+xml:*:meter",
-        "/home4/:POST:application/svg+xml,application/atom+xml:*:timer",
-        "/home4/:POST:multipart/form-data:*:timer",
-        "/home4/:DELETE:multipart/form-data:application/json,text/plain:timer",
-        "/home4//users:POST:multipart/form-data:*:timer",
-        "/home4/:GET:*:application/octet-stream,text/plain:timer",
-        "/home4/:GET:*:application/xml:timer"
-    ));
+    public static final Set<String> expectedNames = new HashSet<>(
+        Arrays.asList(
+            "/home4/:POST:multipart/form-data:*:meter",
+            "/home4//users:GET:*:application/json:timer",
+            "/home4/:GET:*:application/json:meter",
+            "/home4/:POST:application/svg+xml,application/atom+xml:*:meter",
+            "/home4/:DELETE:multipart/form-data:application/json,text/plain:meter",
+            "/home4//users:GET:*:application/json:meter",
+            "/home4/:POST:application/xhtml+xml:*:timer",
+            "/home4//users:POST:multipart/form-data:*:meter",
+            "/home4/:GET:*:application/xml:meter",
+            "/home4/:GET:*:application/json:timer",
+            "/home4/:GET:*:application/octet-stream,text/plain:meter",
+            "/home4/:POST:application/xhtml+xml:*:meter",
+            "/home4/:POST:application/svg+xml,application/atom+xml:*:timer",
+            "/home4/:POST:multipart/form-data:*:timer",
+            "/home4/:DELETE:multipart/form-data:application/json,text/plain:timer",
+            "/home4//users:POST:multipart/form-data:*:timer",
+            "/home4/:GET:*:application/octet-stream,text/plain:timer",
+            "/home4/:GET:*:application/xml:timer"
+        )
+    );
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
@@ -82,7 +84,7 @@ public class MediaTypeJerseyMetricsResource {
     }
 
     @GET
-    @Produces({MediaType.APPLICATION_OCTET_STREAM, MediaType.TEXT_PLAIN})
+    @Produces({ MediaType.APPLICATION_OCTET_STREAM, MediaType.TEXT_PLAIN })
     public Response getTextOrOctetStream() {
         throw new UnsupportedOperationException("Not implemented");
     }
@@ -107,16 +109,15 @@ public class MediaTypeJerseyMetricsResource {
     }
 
     @POST
-    @Consumes({MediaType.APPLICATION_SVG_XML, MediaType.APPLICATION_ATOM_XML})
+    @Consumes({ MediaType.APPLICATION_SVG_XML, MediaType.APPLICATION_ATOM_XML })
     public Response postSvgXmlOrAtomXml() {
         throw new UnsupportedOperationException("Not implemented");
     }
 
     @DELETE
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces({MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN})
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN })
     public Response delete() {
         throw new UnsupportedOperationException("Not implemented");
     }
-
 }

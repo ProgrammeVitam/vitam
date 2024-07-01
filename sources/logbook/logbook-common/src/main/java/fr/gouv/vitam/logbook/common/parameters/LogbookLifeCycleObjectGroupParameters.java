@@ -39,7 +39,6 @@ import java.util.Set;
 @JsonSerialize(using = LogbookParametersSerializer.class)
 public class LogbookLifeCycleObjectGroupParameters extends LogbookLifeCycleParameters {
 
-
     /**
      * Constructor use by the factory to initialize the set of mandatories
      *
@@ -61,5 +60,4 @@ public class LogbookLifeCycleObjectGroupParameters extends LogbookLifeCycleParam
         super(LogbookParameterHelper.getDefaultLifeCycleMandatory());
         setMap(map);
     }
-
 }

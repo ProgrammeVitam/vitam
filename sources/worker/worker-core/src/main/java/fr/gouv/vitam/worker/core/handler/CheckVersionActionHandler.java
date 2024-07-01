@@ -47,6 +47,7 @@ import java.util.Map;
  * CheckVersionActionHandler handler class used to check the versions of DataObject in manifest
  */
 public class CheckVersionActionHandler extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckVersionActionHandler.class);
     private static final String HANDLER_ID = "CHECK_MANIFEST_DATAOBJECT_VERSION";
 
@@ -63,7 +64,6 @@ public class CheckVersionActionHandler extends ActionHandler {
     private static final String INCORRECT_URI = "IncorrectUri";
     private static final String INCORRECT_PHYSICAL_ID = "IncorrectPhysicalId";
     private final SedaUtilsFactory sedaUtilsFactory;
-
 
     public CheckVersionActionHandler() {
         this(SedaUtilsFactory.getInstance());
@@ -95,34 +95,46 @@ public class CheckVersionActionHandler extends ActionHandler {
             final Map<String, String> invalidVersionMap = versionMap.get(SedaUtils.INVALID_DATAOBJECT_VERSION);
             final Map<String, String> validVersionMap = versionMap.get(SedaUtils.VALID_DATAOBJECT_VERSION);
             if (!invalidVersionMap.isEmpty()) {
-
                 itemStatus.increment(StatusCode.KO, invalidVersionMap.size());
                 itemStatus.increment(StatusCode.OK, validVersionMap.size());
 
                 invalidVersionMap.forEach((key, value) -> {
                     if (key.endsWith(BDO_CONTAINS_OTHER_TYPE)) {
-                        updateDetailItemStatus(itemStatus,
+                        updateDetailItemStatus(
+                            itemStatus,
                             getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
-                            SUBTASK_BDO_DATAOBJECTIONVERSION_PHYSICALMASTER);
+                            SUBTASK_BDO_DATAOBJECTIONVERSION_PHYSICALMASTER
+                        );
                     } else if (key.endsWith(PDO_CONTAINS_OTHER_TYPE)) {
-                        updateDetailItemStatus(itemStatus,
+                        updateDetailItemStatus(
+                            itemStatus,
                             getMessageItemStatusUsageError(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, key, value),
-                            SUBTASK_PDO_DATAOBJECTIONVERSION_BINARYMASTER);
+                            SUBTASK_PDO_DATAOBJECTIONVERSION_BINARYMASTER
+                        );
                     } else if (key.endsWith(INCORRECT_VERSION_FORMAT)) {
-                        updateDetailItemStatus(itemStatus,
+                        updateDetailItemStatus(
+                            itemStatus,
                             getMessageItemStatusUsageError(
                                 key.contains(SedaConstants.TAG_BINARY_DATA_OBJECT)
-                                    ? SedaConstants.TAG_BINARY_DATA_OBJECT : SedaConstants.TAG_PHYSICAL_DATA_OBJECT,
-                                key, value),
-                            SUBTASK_INVALID_DATAOBJECTVERSION);
+                                    ? SedaConstants.TAG_BINARY_DATA_OBJECT
+                                    : SedaConstants.TAG_PHYSICAL_DATA_OBJECT,
+                                key,
+                                value
+                            ),
+                            SUBTASK_INVALID_DATAOBJECTVERSION
+                        );
                     } else if (key.endsWith(INCORRECT_URI)) {
-                        updateDetailItemStatus(itemStatus,
+                        updateDetailItemStatus(
+                            itemStatus,
                             getMessageItemStatusUsageError(SedaConstants.TAG_BINARY_DATA_OBJECT, key, value),
-                            SUBTASK_EMPTY_REQUIRED_FIELD);
+                            SUBTASK_EMPTY_REQUIRED_FIELD
+                        );
                     } else if (key.endsWith(INCORRECT_PHYSICAL_ID)) {
-                        updateDetailItemStatus(itemStatus,
+                        updateDetailItemStatus(
+                            itemStatus,
                             getMessageItemStatusUsageError(SedaConstants.TAG_PHYSICAL_DATA_OBJECT, key, value),
-                            SUBTASK_EMPTY_REQUIRED_FIELD);
+                            SUBTASK_EMPTY_REQUIRED_FIELD
+                        );
                     }
                 });
 
@@ -134,9 +146,7 @@ public class CheckVersionActionHandler extends ActionHandler {
             ObjectNode errorDetail = JsonHandler.createObjectNode();
             errorDetail.put("Error", e.getMessage());
 
-            updateDetailItemStatus(itemStatus,
-                JsonHandler.unprettyPrint(errorDetail),
-                SUBTASK_INVALIDE_ALGO);
+            updateDetailItemStatus(itemStatus, JsonHandler.unprettyPrint(errorDetail), SUBTASK_INVALIDE_ALGO);
 
             itemStatus.increment(StatusCode.KO);
         } catch (final ProcessingException e) {
@@ -146,11 +156,13 @@ public class CheckVersionActionHandler extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-    private String getMessageItemStatusUsageError(final String typeDataObject, final String key,
-        final String errorVersion) {
+    private String getMessageItemStatusUsageError(
+        final String typeDataObject,
+        final String key,
+        final String errorVersion
+    ) {
         ObjectNode errorDetail = JsonHandler.createObjectNode();
-        errorDetail.put(typeDataObject, errorVersion +
-            (key.contains("_") ? (" - " + key.split("_")[0]) : ""));
+        errorDetail.put(typeDataObject, errorVersion + (key.contains("_") ? (" - " + key.split("_")[0]) : ""));
         return JsonHandler.unprettyPrint(errorDetail);
     }
 
@@ -158,5 +170,4 @@ public class CheckVersionActionHandler extends ActionHandler {
     public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
         // TODO P0 Add Workspace:SIP/manifest.xml and check it
     }
-
 }

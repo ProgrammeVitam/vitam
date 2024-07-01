@@ -55,6 +55,5 @@ public class LogbackLoggerFactoryTest {
         assertEquals(VitamLogLevel.INFO, new LogbackLoggerFactory(VitamLogLevel.INFO).getLevelSpecific());
         assertEquals(VitamLogLevel.TRACE, new LogbackLoggerFactory(VitamLogLevel.TRACE).getLevelSpecific());
         assertEquals(VitamLogLevel.WARN, new LogbackLoggerFactory(VitamLogLevel.WARN).getLevelSpecific());
-
     }
 }

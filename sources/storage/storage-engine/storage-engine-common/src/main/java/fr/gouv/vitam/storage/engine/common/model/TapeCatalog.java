@@ -39,6 +39,7 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 
 @JsonInclude(NON_NULL)
 public class TapeCatalog extends QueueMessageEntity {
+
     public static final String CODE = "code";
     public static final String ALTERNATIVE_CODE = "alternative_code";
     public static final String BUCKET = "bucket";
@@ -103,7 +104,6 @@ public class TapeCatalog extends QueueMessageEntity {
     @JsonIgnore
     private Integer currentPosition = 0;
 
-
     public TapeCatalog() {
         super(GUIDFactory.newGUID().getId(), QueueMessageType.TapeCatalog);
     }
@@ -134,7 +134,6 @@ public class TapeCatalog extends QueueMessageEntity {
         this.library = library;
         return this;
     }
-
 
     public String getType() {
         return type;

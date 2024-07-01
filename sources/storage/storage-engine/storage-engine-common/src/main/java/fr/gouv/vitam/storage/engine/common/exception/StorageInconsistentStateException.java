@@ -28,7 +28,6 @@ package fr.gouv.vitam.storage.engine.common.exception;
 
 public class StorageInconsistentStateException extends StorageException {
 
-
     public StorageInconsistentStateException(String message) {
         super(message);
     }

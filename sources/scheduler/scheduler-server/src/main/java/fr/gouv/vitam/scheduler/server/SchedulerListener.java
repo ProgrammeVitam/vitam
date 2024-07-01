@@ -47,8 +47,9 @@ public class SchedulerListener implements ServletContextListener {
 
     private SchedulerListener() throws SchedulerException {
         try {
-            SchedulerFactory schedulerFactory =
-                new StdSchedulerFactory(PropertiesUtils.getConfigFile("quartz.properties").getPath());
+            SchedulerFactory schedulerFactory = new StdSchedulerFactory(
+                PropertiesUtils.getConfigFile("quartz.properties").getPath()
+            );
             scheduler = schedulerFactory.getScheduler();
         } catch (FileNotFoundException e) {
             throw new SchedulerException(e);
@@ -85,5 +86,4 @@ public class SchedulerListener implements ServletContextListener {
             LOGGER.error("Cannot shutdown scheduler", e);
         }
     }
-
 }

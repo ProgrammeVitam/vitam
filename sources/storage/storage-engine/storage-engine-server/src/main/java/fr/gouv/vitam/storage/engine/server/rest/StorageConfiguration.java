@@ -146,7 +146,6 @@ public final class StorageConfiguration extends DefaultVitamApplicationConfigura
         this.p12LogbookFile = p12LogbookFile;
     }
 
-
     /**
      * Gets the overlap delay (in seconds) for logbook operation traceability events. Used to catch up possibly missed events
      * due to clock difference.

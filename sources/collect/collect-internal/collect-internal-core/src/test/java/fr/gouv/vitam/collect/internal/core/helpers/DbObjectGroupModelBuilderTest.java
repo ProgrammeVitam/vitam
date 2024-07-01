@@ -58,7 +58,8 @@ public class DbObjectGroupModelBuilderTest {
         assertThat(dbObjectGroupModel).isNotNull();
         assertThat(dbObjectGroupModel.getNbc()).isEqualTo(1);
         assertThat(dbObjectGroupModel.getQualifiers().get(0).getVersions().get(0).getDataObjectVersion()).isEqualTo(
-            usage.getName() + "_" + version);
+            usage.getName() + "_" + version
+        );
     }
 
     @Test
@@ -72,12 +73,14 @@ public class DbObjectGroupModelBuilderTest {
         int version = 1;
 
         // WHEN // THEN
-        assertThatThrownBy(() -> new DbObjectGroupModelBuilder()
-            .withOpi(opi)
-            .withId(id)
-            .withQualifiers(versionId, fileName, usage, version)
-            .build())
-            .hasMessage("FileInfoModel can't be null");
+        assertThatThrownBy(
+            () ->
+                new DbObjectGroupModelBuilder()
+                    .withOpi(opi)
+                    .withId(id)
+                    .withQualifiers(versionId, fileName, usage, version)
+                    .build()
+        ).hasMessage("FileInfoModel can't be null");
     }
 
     @Test
@@ -90,12 +93,14 @@ public class DbObjectGroupModelBuilderTest {
         int version = 1;
 
         // WHEN // THEN
-        assertThatThrownBy(() -> new DbObjectGroupModelBuilder()
-            .withFileInfoModel(fileName)
-            .withId(id)
-            .withQualifiers(versionId, fileName, usage, version)
-            .build())
-            .hasMessage("Opi can't be null");
+        assertThatThrownBy(
+            () ->
+                new DbObjectGroupModelBuilder()
+                    .withFileInfoModel(fileName)
+                    .withId(id)
+                    .withQualifiers(versionId, fileName, usage, version)
+                    .build()
+        ).hasMessage("Opi can't be null");
     }
 
     @Test
@@ -108,12 +113,14 @@ public class DbObjectGroupModelBuilderTest {
         int version = 1;
 
         // WHEN // THEN
-        assertThatThrownBy(() -> new DbObjectGroupModelBuilder()
-            .withFileInfoModel(fileName)
-            .withOpi(opi)
-            .withQualifiers(versionId, fileName, usage, version)
-            .build())
-            .hasMessage("Id can't be null");
+        assertThatThrownBy(
+            () ->
+                new DbObjectGroupModelBuilder()
+                    .withFileInfoModel(fileName)
+                    .withOpi(opi)
+                    .withQualifiers(versionId, fileName, usage, version)
+                    .build()
+        ).hasMessage("Id can't be null");
     }
 
     @Test
@@ -124,12 +131,8 @@ public class DbObjectGroupModelBuilderTest {
         String id = "aeedaaaaacaltpovaewckal62ukh4myaa67q";
 
         // WHEN // THEN
-        assertThatThrownBy(() -> new DbObjectGroupModelBuilder()
-            .withFileInfoModel(fileName)
-            .withOpi(opi)
-            .withId(id)
-            .build())
-            .hasMessage("QualifiersModel can't be null");
+        assertThatThrownBy(
+            () -> new DbObjectGroupModelBuilder().withFileInfoModel(fileName).withOpi(opi).withId(id).build()
+        ).hasMessage("QualifiersModel can't be null");
     }
-
 }

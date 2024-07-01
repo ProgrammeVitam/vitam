@@ -30,7 +30,9 @@ package fr.gouv.vitam.common.dsl.schema.meta;
  * Enum for check if is a primitive value or is not a primitive value.
  */
 public enum PrimitiveAnalysis {
-    NOT_PRIMITIVE, PRIMITIVE_OK, PRIMITIVE_KO;
+    NOT_PRIMITIVE,
+    PRIMITIVE_OK,
+    PRIMITIVE_KO;
 
     public static PrimitiveAnalysis fromBoolean(boolean ok) {
         if (ok) {

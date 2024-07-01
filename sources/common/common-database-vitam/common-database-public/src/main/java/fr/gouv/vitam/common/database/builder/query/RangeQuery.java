@@ -40,6 +40,7 @@ import java.util.Date;
  * Range Query
  */
 public class RangeQuery extends Query {
+
     private static final String IS_NOT_A_VALID_COMPARE_QUERY = " is not a valid Compare Query";
     private static final String CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME =
         " cannot be updated with empty variable name";
@@ -59,13 +60,18 @@ public class RangeQuery extends Query {
      * @param valueTo end value
      * @throws InvalidCreateOperationException when can not create query
      */
-    public RangeQuery(final String variableName, final QUERY from, final long valueFrom,
-        final QUERY to, final long valueTo)
-        throws InvalidCreateOperationException {
+    public RangeQuery(
+        final String variableName,
+        final QUERY from,
+        final long valueFrom,
+        final QUERY to,
+        final long valueTo
+    ) throws InvalidCreateOperationException {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -77,19 +83,17 @@ public class RangeQuery extends Query {
             case GTE:
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + from + IS_NOT_A_VALID_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + from + IS_NOT_A_VALID_COMPARE_QUERY);
         }
         switch (to) {
             case LT:
             case LTE:
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + to + IS_NOT_A_VALID_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + to + IS_NOT_A_VALID_COMPARE_QUERY);
         }
-        final ObjectNode sub = ((ObjectNode) currentObject)
-            .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
+        final ObjectNode sub =
+            ((ObjectNode) currentObject).putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
         sub.put(from.exactToken(), valueFrom);
         sub.put(to.exactToken(), valueTo);
         currentTokenQUERY = QUERY.RANGE;
@@ -106,13 +110,18 @@ public class RangeQuery extends Query {
      * @param valueTo end value
      * @throws InvalidCreateOperationException when can not create query
      */
-    public RangeQuery(final String variableName, final QUERY from, final double valueFrom,
+    public RangeQuery(
+        final String variableName,
+        final QUERY from,
+        final double valueFrom,
         final QUERY to,
-        final double valueTo) throws InvalidCreateOperationException {
+        final double valueTo
+    ) throws InvalidCreateOperationException {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -124,19 +133,17 @@ public class RangeQuery extends Query {
             case GTE:
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + from + IS_NOT_A_VALID_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + from + IS_NOT_A_VALID_COMPARE_QUERY);
         }
         switch (to) {
             case LT:
             case LTE:
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + to + IS_NOT_A_VALID_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + to + IS_NOT_A_VALID_COMPARE_QUERY);
         }
-        final ObjectNode sub = ((ObjectNode) currentObject)
-            .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
+        final ObjectNode sub =
+            ((ObjectNode) currentObject).putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
         sub.put(from.exactToken(), valueFrom);
         sub.put(to.exactToken(), valueTo);
         currentTokenQUERY = QUERY.RANGE;
@@ -153,13 +160,18 @@ public class RangeQuery extends Query {
      * @param valueTo end value
      * @throws InvalidCreateOperationException when can not create query
      */
-    public RangeQuery(final String variableName, final QUERY from, final String valueFrom,
+    public RangeQuery(
+        final String variableName,
+        final QUERY from,
+        final String valueFrom,
         final QUERY to,
-        final String valueTo) throws InvalidCreateOperationException {
+        final String valueTo
+    ) throws InvalidCreateOperationException {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -173,19 +185,17 @@ public class RangeQuery extends Query {
             case GTE:
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + from + IS_NOT_A_VALID_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + from + IS_NOT_A_VALID_COMPARE_QUERY);
         }
         switch (to) {
             case LT:
             case LTE:
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + to + IS_NOT_A_VALID_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + to + IS_NOT_A_VALID_COMPARE_QUERY);
         }
-        final ObjectNode sub = ((ObjectNode) currentObject)
-            .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
+        final ObjectNode sub =
+            ((ObjectNode) currentObject).putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
         sub.put(from.exactToken(), valueFrom);
         sub.put(to.exactToken(), valueTo);
         currentTokenQUERY = QUERY.RANGE;
@@ -202,13 +212,18 @@ public class RangeQuery extends Query {
      * @param valueTo end value
      * @throws InvalidCreateOperationException when can not create query
      */
-    public RangeQuery(final String variableName, final QUERY from, final Date valueFrom,
-        final QUERY to, final Date valueTo)
-        throws InvalidCreateOperationException {
+    public RangeQuery(
+        final String variableName,
+        final QUERY from,
+        final Date valueFrom,
+        final QUERY to,
+        final Date valueTo
+    ) throws InvalidCreateOperationException {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                QUERY2 + currentTokenQUERY + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -220,19 +235,17 @@ public class RangeQuery extends Query {
             case GTE:
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + from + IS_NOT_A_VALID_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + from + IS_NOT_A_VALID_COMPARE_QUERY);
         }
         switch (to) {
             case LT:
             case LTE:
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + to + IS_NOT_A_VALID_COMPARE_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + to + IS_NOT_A_VALID_COMPARE_QUERY);
         }
-        final ObjectNode sub = ((ObjectNode) currentObject)
-            .putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
+        final ObjectNode sub =
+            ((ObjectNode) currentObject).putObject(QUERY.RANGE.exactToken()).putObject(variableName.trim());
         sub.set(from.exactToken(), new TextNode(LocalDateUtil.fromDate(valueFrom).toString()));
         sub.set(to.exactToken(), new TextNode(LocalDateUtil.fromDate(valueTo).toString()));
         currentTokenQUERY = QUERY.RANGE;

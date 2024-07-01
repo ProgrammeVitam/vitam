@@ -48,8 +48,10 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
     private final ArchiveReferentialRepository archiveReferentialRepository;
     private final QueueRepository readWriteQueue;
 
-    public WriteOrderCreator(ArchiveReferentialRepository archiveReferentialRepository,
-        QueueRepository readWriteQueue) {
+    public WriteOrderCreator(
+        ArchiveReferentialRepository archiveReferentialRepository,
+        QueueRepository readWriteQueue
+    ) {
         super("WriteOrderCreator");
         this.archiveReferentialRepository = archiveReferentialRepository;
         this.readWriteQueue = readWriteQueue;
@@ -60,29 +62,31 @@ public class WriteOrderCreator extends QueueProcessor<WriteOrder> {
         try {
             sendMessageToQueue(message);
         } catch (Exception ex) {
-            throw new QueueProcessingException(QueueProcessingException.RetryPolicy.RETRY,
-                "Could not process message " + JsonHandler.unprettyPrint(message), ex);
+            throw new QueueProcessingException(
+                QueueProcessingException.RetryPolicy.RETRY,
+                "Could not process message " + JsonHandler.unprettyPrint(message),
+                ex
+            );
         }
     }
 
-    public void sendMessageToQueue(WriteOrder message)
-        throws ArchiveReferentialException, QueueException {
-
+    public void sendMessageToQueue(WriteOrder message) throws ArchiveReferentialException, QueueException {
         LOGGER.info("Write order generated for tar Id {} [bucket={}]", message.getArchiveId(), message.getBucket());
 
         // Mark tar archive as "ready"
         this.archiveReferentialRepository.updateLocationToReadyOnDisk(
-            message.getArchiveId(),
-            message.getSize(),
-            message.getDigest()
-        );
+                message.getArchiveId(),
+                message.getSize(),
+                message.getDigest()
+            );
 
         // Schedule tar archive for copy on tape
         readWriteQueue.addIfAbsent(
             Arrays.asList(
                 new QueryCriteria(WriteOrder.FILE_PATH, message.getFilePath(), QueryCriteriaOperator.EQ),
-                new QueryCriteria(WriteOrder.MESSAGE_TYPE, QueueMessageType.WriteOrder.name(),
-                    QueryCriteriaOperator.EQ)),
-            message);
+                new QueryCriteria(WriteOrder.MESSAGE_TYPE, QueueMessageType.WriteOrder.name(), QueryCriteriaOperator.EQ)
+            ),
+            message
+        );
     }
 }

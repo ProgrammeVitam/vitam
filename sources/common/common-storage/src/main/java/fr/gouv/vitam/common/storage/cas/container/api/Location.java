@@ -33,7 +33,6 @@ import java.util.Set;
  * Description of where a resource is running. Note this can be physical or virtual.
  */
 public interface Location {
-
     /**
      * Scope of the location, ex. region, zone, host
      */

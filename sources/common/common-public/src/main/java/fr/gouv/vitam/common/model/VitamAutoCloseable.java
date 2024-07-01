@@ -30,7 +30,6 @@ package fr.gouv.vitam.common.model;
  * Generic Vitam Autocloseable Interface
  */
 public interface VitamAutoCloseable extends AutoCloseable {
-
     @Override
     void close();
 }

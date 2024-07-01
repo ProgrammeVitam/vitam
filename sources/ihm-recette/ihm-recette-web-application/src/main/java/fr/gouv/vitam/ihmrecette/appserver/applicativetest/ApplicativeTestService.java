@@ -59,6 +59,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
  * service to manage cucumber test
  */
 public class ApplicativeTestService {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(ApplicativeTestResource.class);
 
     /**
@@ -81,7 +82,6 @@ public class ApplicativeTestService {
      * executor to launch test in a separate thread
      */
     private Executor executor;
-
 
     /**
      * flag to indicate if  TnrMasterActived  .
@@ -132,17 +132,17 @@ public class ApplicativeTestService {
         return fileName;
     }
 
-
     String launchPiecesCucumberTest(String pieces) throws IOException {
-
-
         File reportFile = File.createTempFile("tmp", ".json", new File(VitamConfiguration.getVitamTmpFolder()));
         File featureFile = File.createTempFile("tmp", ".feature", new File(VitamConfiguration.getVitamTmpFolder()));
 
         try {
             Files.write(featureFile.toPath(), pieces.getBytes());
-            List<String> arguments = cucumberLauncher
-                .buildCucumberArgument(GLUE_CODE_PACKAGE, featureFile.toPath(), reportFile.getAbsolutePath());
+            List<String> arguments = cucumberLauncher.buildCucumberArgument(
+                GLUE_CODE_PACKAGE,
+                featureFile.toPath(),
+                reportFile.getAbsolutePath()
+            );
             cucumberLauncher.launchCucumberTest(arguments);
             return String.join(System.lineSeparator(), Files.readAllLines(reportFile.toPath()));
         } finally {
@@ -188,8 +188,6 @@ public class ApplicativeTestService {
         return p.exitValue();
     }
 
-
-
     /**
      * @param featurePath
      * @param branch
@@ -212,8 +210,13 @@ public class ApplicativeTestService {
     List<String> getBranches(Path featurePath) throws IOException, InterruptedException {
         LOGGER.debug("git get branches");
 
-        ProcessBuilder pb = new ProcessBuilder("git", "for-each-ref", "--sort=-committerdate", "refs/remotes/",
-            "--format='%(refname:short)'");
+        ProcessBuilder pb = new ProcessBuilder(
+            "git",
+            "for-each-ref",
+            "--sort=-committerdate",
+            "refs/remotes/",
+            "--format='%(refname:short)'"
+        );
         pb.directory(featurePath.toFile());
         Process p = pb.start();
         p.waitFor();
@@ -237,13 +240,14 @@ public class ApplicativeTestService {
             }
         } catch (IOException e) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-            return Stream.concat(firstLines.stream(), lastLines.stream())
-                .collect(Collectors.joining(" | ")) + "|" + e.getMessage();
+            return (
+                Stream.concat(firstLines.stream(), lastLines.stream()).collect(Collectors.joining(" | ")) +
+                "|" +
+                e.getMessage()
+            );
         }
-        return Stream.concat(firstLines.stream(), lastLines.stream())
-            .collect(Collectors.joining(" | "));
+        return Stream.concat(firstLines.stream(), lastLines.stream()).collect(Collectors.joining(" | "));
     }
-
 
     int reset(Path featurePath, String branch) throws InterruptedException, IOException {
         LOGGER.debug("git reset origin/" + branch);

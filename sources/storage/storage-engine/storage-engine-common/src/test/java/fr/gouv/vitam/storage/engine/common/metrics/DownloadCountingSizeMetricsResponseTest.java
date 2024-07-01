@@ -44,57 +44,68 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class DownloadCountingSizeMetricsResponseTest {
 
-
     private static final String STRATEGY = "strategy_2";
     private static final String OFFER = "offer_2";
     private static final String ORIGIN = "origin";
 
     @Test
     public void test_vitam_storage_download_size_bytes() {
-
         // Given
-        FakeInboundResponse response =
-            new FakeInboundResponse(Response.Status.OK,
-                new NullInputStream(3), MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        FakeInboundResponse response = new FakeInboundResponse(
+            Response.Status.OK,
+            new NullInputStream(3),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
 
         // And given
         DownloadCountingSizeMetricsResponse downloadCountingSizeMetricsResponse =
-            new DownloadCountingSizeMetricsResponse(2, STRATEGY, OFFER, ORIGIN,
-                DataCategory.UNIT, response);
+            new DownloadCountingSizeMetricsResponse(2, STRATEGY, OFFER, ORIGIN, DataCategory.UNIT, response);
 
         // When
         DefaultClient.staticConsumeAnyEntityAndClose(downloadCountingSizeMetricsResponse);
 
         // Then
-        Iterator<Collector.MetricFamilySamples> it =
-            CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator();
+        Iterator<Collector.MetricFamilySamples> it = CollectorRegistry.defaultRegistry
+            .metricFamilySamples()
+            .asIterator();
 
         boolean foundRequestMetric = false;
         while (it.hasNext()) {
             Collector.MetricFamilySamples next = it.next();
             if (next.name.equals(VitamMetricsNames.VITAM_STORAGE_DOWNLOAD_SIZE_BYTES)) {
                 foundRequestMetric = true;
-                assertThat(next.samples.stream().anyMatch(
-                    o -> (o.name.equals(VitamMetricsNames.VITAM_STORAGE_DOWNLOAD_SIZE_BYTES + "_count") &&
-                        o.labelValues.get(0).equals("2") &&
-                        o.labelValues.get(1).equals("strategy_2") &&
-                        o.labelValues.get(2).equals("offer_2") &&
-                        o.labelValues.get(3).equals("origin") &&
-                        o.labelValues.get(4).equals("UNIT") &&
-                        o.value == 1
-                    ))).isTrue();
+                assertThat(
+                    next.samples
+                        .stream()
+                        .anyMatch(
+                            o ->
+                                (o.name.equals(VitamMetricsNames.VITAM_STORAGE_DOWNLOAD_SIZE_BYTES + "_count") &&
+                                    o.labelValues.get(0).equals("2") &&
+                                    o.labelValues.get(1).equals("strategy_2") &&
+                                    o.labelValues.get(2).equals("offer_2") &&
+                                    o.labelValues.get(3).equals("origin") &&
+                                    o.labelValues.get(4).equals("UNIT") &&
+                                    o.value == 1)
+                        )
+                ).isTrue();
 
-                assertThat(next.samples.stream().anyMatch(
-                    o -> (o.name.equals(VitamMetricsNames.VITAM_STORAGE_DOWNLOAD_SIZE_BYTES + "_sum") &&
-                        o.labelValues.get(0).equals("2") &&
-                        o.labelValues.get(1).equals("strategy_2") &&
-                        o.labelValues.get(2).equals("offer_2") &&
-                        o.labelValues.get(3).equals("origin") &&
-                        o.labelValues.get(4).equals("UNIT") &&
-                        o.value == 3))).isTrue();
+                assertThat(
+                    next.samples
+                        .stream()
+                        .anyMatch(
+                            o ->
+                                (o.name.equals(VitamMetricsNames.VITAM_STORAGE_DOWNLOAD_SIZE_BYTES + "_sum") &&
+                                    o.labelValues.get(0).equals("2") &&
+                                    o.labelValues.get(1).equals("strategy_2") &&
+                                    o.labelValues.get(2).equals("offer_2") &&
+                                    o.labelValues.get(3).equals("origin") &&
+                                    o.labelValues.get(4).equals("UNIT") &&
+                                    o.value == 3)
+                        )
+                ).isTrue();
             }
         }
         assertThat(foundRequestMetric).isTrue();
     }
-
 }

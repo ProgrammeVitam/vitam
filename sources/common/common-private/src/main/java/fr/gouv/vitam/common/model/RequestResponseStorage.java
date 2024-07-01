@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 // TODO P1 : @gledroit : unused in server resource. It probably should be ? Or
 // maybe the code should change.
 public class RequestResponseStorage {
+
     private JsonNode query;
     private JsonNode results;
 

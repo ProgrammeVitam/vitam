@@ -39,7 +39,6 @@ public class CachedSchemaValidatorLoader {
     private final Cache<String, JsonSchemaValidator> schemaValidatorCache;
 
     public CachedSchemaValidatorLoader(int maxEntriesInCache, int cacheTimeoutInSeconds) {
-
         CacheBuilder<Object, Object> objectObjectCacheBuilder = CacheBuilder.newBuilder();
         // Max entries in cache
         objectObjectCacheBuilder.maximumSize(maxEntriesInCache);
@@ -51,7 +50,6 @@ public class CachedSchemaValidatorLoader {
     }
 
     public JsonSchemaValidator loadSchemaValidator(String jsonSchema) throws InvalidJsonSchemaException {
-
         try {
             return schemaValidatorCache.get(jsonSchema, () -> JsonSchemaValidator.forUserSchema(jsonSchema));
         } catch (ExecutionException e) {

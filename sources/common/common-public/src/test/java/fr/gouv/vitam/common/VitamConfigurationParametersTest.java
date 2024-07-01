@@ -36,7 +36,6 @@ public class VitamConfigurationParametersTest {
 
     @Test
     public void testPojo() {
-
         final VitamConfigurationParameters vitamConfiguration = new VitamConfigurationParameters();
         assertEquals(true, vitamConfiguration.isFilterActivation());
 
@@ -45,7 +44,5 @@ public class VitamConfigurationParametersTest {
 
         vitamConfiguration.setSecret(SECRET);
         assertEquals(SECRET, vitamConfiguration.getSecret());
-
     }
-
 }

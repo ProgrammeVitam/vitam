@@ -56,8 +56,10 @@ import java.io.File;
  * CheckStorageAvailability Handler.<br>
  */
 public class CheckStorageAvailabilityActionHandler extends ActionHandler {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(CheckStorageAvailabilityActionHandler.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        CheckStorageAvailabilityActionHandler.class
+    );
 
     private static final String HANDLER_ID = "STORAGE_AVAILABILITY_CHECK";
     private static final int REFERENTIAL_INGEST_CONTRACT_IN_RANK = 0;
@@ -74,7 +76,9 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
     @VisibleForTesting
     public CheckStorageAvailabilityActionHandler(
-        StorageClientFactory storageClientFactory, SedaUtilsFactory sedaUtilsFactory) {
+        StorageClientFactory storageClientFactory,
+        SedaUtilsFactory sedaUtilsFactory
+    ) {
         this.storageClientFactory = storageClientFactory;
         this.sedaUtilsFactory = sedaUtilsFactory;
     }
@@ -85,7 +89,6 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
     public static final String getId() {
         return HANDLER_ID;
     }
-
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handlerIO) {
@@ -100,8 +103,11 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
             final long objectsSizeInSip = sedaUtils.computeTotalSizeOfObjectsInManifest(params);
 
             String strategyId = VitamConfiguration.getDefaultStrategy();
-            if (managementContract != null && managementContract.getStorage() != null
-                && StringUtils.isNotBlank(managementContract.getStorage().getObjectStrategy())) {
+            if (
+                managementContract != null &&
+                managementContract.getStorage() != null &&
+                StringUtils.isNotBlank(managementContract.getStorage().getObjectStrategy())
+            ) {
                 strategyId = managementContract.getStorage().getObjectStrategy();
             }
 
@@ -116,8 +122,10 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
                 itemStatus.increment(StatusCode.OK);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
-            final StorageInformation[] informations = JsonHandler.getFromJsonNode(storageCapacityNode.get("capacities"),
-                StorageInformation[].class);
+            final StorageInformation[] informations = JsonHandler.getFromJsonNode(
+                storageCapacityNode.get("capacities"),
+                StorageInformation[].class
+            );
             if (informations.length > 0) {
                 for (StorageInformation information : informations) {
                     ItemStatus is = new ItemStatus(HANDLER_ID);
@@ -129,7 +137,10 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
                     } else {
                         LOGGER.error(
                             "storage capacity invalid on offer {} of object strategy : usableSpace={}, totalSizeToBeStored={}",
-                            information.getOfferId(), information.getUsableSpace(), objectsSizeInSip);
+                            information.getOfferId(),
+                            information.getUsableSpace(),
+                            objectsSizeInSip
+                        );
                         info.put(information.getOfferId(), StatusCode.KO.name());
                         info.put(information.getOfferId() + "_usableSpace", information.getUsableSpace());
                         info.put(information.getOfferId() + "_totalSizeToBeStored", objectsSizeInSip);
@@ -143,9 +154,12 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
                 itemStatus.increment(StatusCode.OK);
                 return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
             }
-
-        } catch (ProcessingException | StorageNotFoundClientException | StorageServerClientException |
-            InvalidParseOperationException e) {
+        } catch (
+            ProcessingException
+            | StorageNotFoundClientException
+            | StorageServerClientException
+            | InvalidParseOperationException e
+        ) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
         }
@@ -154,9 +168,10 @@ public class CheckStorageAvailabilityActionHandler extends ActionHandler {
 
     private ManagementContractModel loadManagementContractFromWorkspace(HandlerIO handlerIO)
         throws InvalidParseOperationException {
-        ContractsDetailsModel contractsDetailsModel =
-            JsonHandler.getFromFile((File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_IN_RANK),
-                ContractsDetailsModel.class);
+        ContractsDetailsModel contractsDetailsModel = JsonHandler.getFromFile(
+            (File) handlerIO.getInput(REFERENTIAL_INGEST_CONTRACT_IN_RANK),
+            ContractsDetailsModel.class
+        );
         return contractsDetailsModel.getManagementContractModel();
     }
 

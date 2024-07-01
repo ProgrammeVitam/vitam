@@ -37,7 +37,6 @@ import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
 import javax.ws.rs.container.PreMatching;
 
-
 @PreMatching
 @Priority(Priorities.HEADER_DECORATOR)
 public class ContentLengthCountingMetricsFilter implements ContainerRequestFilter, ContainerResponseFilter {
@@ -53,8 +52,10 @@ public class ContentLengthCountingMetricsFilter implements ContainerRequestFilte
     @Override
     public void filter(ContainerRequestContext requestContext) {
         if (countInputBytes && requestContext.getEntityStream() != null) {
-            RequestLengthCountingInputStreamMetrics inputStream =
-                new RequestLengthCountingInputStreamMetrics(requestContext, requestContext.getEntityStream());
+            RequestLengthCountingInputStreamMetrics inputStream = new RequestLengthCountingInputStreamMetrics(
+                requestContext,
+                requestContext.getEntityStream()
+            );
             requestContext.setEntityStream(inputStream);
         }
     }
@@ -62,8 +63,10 @@ public class ContentLengthCountingMetricsFilter implements ContainerRequestFilte
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
         if (countOutputBytes && responseContext.getEntityStream() != null) {
-            ResponseLengthCountingOutputStreamMetrics inputStream =
-                new ResponseLengthCountingOutputStreamMetrics(requestContext, responseContext.getEntityStream());
+            ResponseLengthCountingOutputStreamMetrics inputStream = new ResponseLengthCountingOutputStreamMetrics(
+                requestContext,
+                responseContext.getEntityStream()
+            );
             responseContext.setEntityStream(inputStream);
         }
     }

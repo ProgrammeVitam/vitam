@@ -29,6 +29,7 @@ package fr.gouv.vitam.worker.core.plugin.probativevalue.pojo;
 import java.io.File;
 
 public class OperationTraceabilityFiles {
+
     public static final String TRACEABILITY_DATA = "data.txt";
     public static final String TRACEABILITY_MERKLE_TREE = "merkleTree.json";
     public static final String TRACEABILITY_TOKEN = "token.tsp";
@@ -45,8 +46,13 @@ public class OperationTraceabilityFiles {
     private final File computingInformation;
     private final File additionalInformation;
 
-    public OperationTraceabilityFiles(File data, File merkleTree, File token, File computingInformation,
-        File additionalInformation) {
+    public OperationTraceabilityFiles(
+        File data,
+        File merkleTree,
+        File token,
+        File computingInformation,
+        File additionalInformation
+    ) {
         this.data = data;
         this.merkleTree = merkleTree;
         this.token = token;
@@ -74,16 +80,15 @@ public class OperationTraceabilityFiles {
         return additionalInformation;
     }
 
-
     public static final class OperationTraceabilityFilesBuilder {
+
         private File data;
         private File merkleTree;
         private File token;
         private File computingInformation;
         private File additionalInformation;
 
-        private OperationTraceabilityFilesBuilder() {
-        }
+        private OperationTraceabilityFilesBuilder() {}
 
         public static OperationTraceabilityFilesBuilder anOperationTraceabilityFiles() {
             return new OperationTraceabilityFilesBuilder();

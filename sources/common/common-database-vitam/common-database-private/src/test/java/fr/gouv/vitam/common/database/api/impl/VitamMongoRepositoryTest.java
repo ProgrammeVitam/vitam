@@ -71,6 +71,7 @@ import static org.elasticsearch.xcontent.XContentFactory.jsonBuilder;
  *
  */
 public class VitamMongoRepositoryTest {
+
     private static final String TEST_COLLECTION = "VitamMongoRepository" + GUIDFactory.newGUID().getId();
     private static final String TITLE = "Title";
     private static final String TEST_SAVE = "Test save ";
@@ -80,9 +81,10 @@ public class VitamMongoRepositoryTest {
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Rule
-    public MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(CollectionSample.class),
-            TEST_COLLECTION);
+    public MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(CollectionSample.class),
+        TEST_COLLECTION
+    );
 
     @Before
     public void setUpBeforeClass() throws Exception {
@@ -211,11 +213,10 @@ public class VitamMongoRepositoryTest {
         assertThat(count).isEqualTo(100);
         count = collection.countDocuments(Filters.eq("Title", "Test save updated"));
         assertThat(count).isEqualTo(50);
-        assertThat(collection.find(Filters.eq(VitamDocument.ID, 1000 + 1)).first().get("Title"))
-            .isEqualTo("Test save updated");
+        assertThat(collection.find(Filters.eq(VitamDocument.ID, 1000 + 1)).first().get("Title")).isEqualTo(
+            "Test save updated"
+        );
     }
-
-
 
     @Test
     public void testBulkUpdateMultipleDocumentsOK() throws IOException, DatabaseException {
@@ -225,7 +226,6 @@ public class VitamMongoRepositoryTest {
         // inserts
         List<Document> documents = new ArrayList<>();
         for (int i = 0; i < 2; i++) {
-
             if (i == 1) {
                 date = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
             }
@@ -249,15 +249,22 @@ public class VitamMongoRepositoryTest {
 
         List<WriteModel<Document>> updates = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
-            String doc = Strings.toString(jsonBuilder()
-                .startObject()
-                .field(VitamDocument.ID, 1000 + i)
-                .field(VitamDocument.TENANT_ID, 0)
-                .field("Title", "Test save update")
-                .endObject());
+            String doc = Strings.toString(
+                jsonBuilder()
+                    .startObject()
+                    .field(VitamDocument.ID, 1000 + i)
+                    .field(VitamDocument.TENANT_ID, 0)
+                    .field("Title", "Test save update")
+                    .endObject()
+            );
             Document data = new Document("$set", Document.parse(doc));
-            updates.add(new UpdateOneModel<>(and(eq(ID, 1000 + i)), data,
-                new UpdateOptions().upsert(true).bypassDocumentValidation(true)));
+            updates.add(
+                new UpdateOneModel<>(
+                    and(eq(ID, 1000 + i)),
+                    data,
+                    new UpdateOptions().upsert(true).bypassDocumentValidation(true)
+                )
+            );
         }
 
         repository.update(updates);
@@ -273,15 +280,18 @@ public class VitamMongoRepositoryTest {
 
         updates = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
-            String doc = Strings.toString(jsonBuilder()
-                .startObject()
-                .field(VitamDocument.ID, 1000 + i)
-                .field(VitamDocument.TENANT_ID, 0)
-                .field("Title", "Test save update")
-                .endObject());
+            String doc = Strings.toString(
+                jsonBuilder()
+                    .startObject()
+                    .field(VitamDocument.ID, 1000 + i)
+                    .field(VitamDocument.TENANT_ID, 0)
+                    .field("Title", "Test save update")
+                    .endObject()
+            );
             Document data = new Document("$set", Document.parse(doc));
-            updates.add(new UpdateOneModel<>(and(eq(ID, 1000 + i), eq("_glpd", date)), data,
-                new UpdateOptions().upsert(true)));
+            updates.add(
+                new UpdateOneModel<>(and(eq(ID, 1000 + i), eq("_glpd", date)), data, new UpdateOptions().upsert(true))
+            );
         }
 
         try {
@@ -293,8 +303,6 @@ public class VitamMongoRepositoryTest {
             assertThat(err.getMessage()).contains("duplicate key");
         }
     }
-
-
 
     @Test
     public void testSaveMultipleDocumentsAndPurgeDocumentsOK() throws IOException, DatabaseException {
@@ -346,7 +354,6 @@ public class VitamMongoRepositoryTest {
         response = repository.getByID(id, tenant);
         assertThat(response).isEmpty();
     }
-
 
     @Test(expected = DatabaseException.class)
     public void testRemoveNotExists() throws DatabaseException {

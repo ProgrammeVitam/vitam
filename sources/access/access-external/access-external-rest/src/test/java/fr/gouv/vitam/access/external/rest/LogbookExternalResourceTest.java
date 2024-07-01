@@ -68,7 +68,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-
 public class LogbookExternalResourceTest extends ResteasyTestApplication {
 
     private static final String TRACEABILITY_OPERATION_ID = "op_id";
@@ -105,19 +104,19 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
     private static String good_id = "goodId";
     private static String bad_id = "badId";
 
-    private final static BusinessApplicationTest businessApplicationTest = new BusinessApplicationTest();
+    private static final BusinessApplicationTest businessApplicationTest = new BusinessApplicationTest();
 
-    private final static AccessInternalClientFactory accessInternalClientFactory =
+    private static final AccessInternalClientFactory accessInternalClientFactory =
         businessApplicationTest.getAccessInternalClientFactory();
-    private final static AccessInternalClient accessInternalClient = mock(AccessInternalClient.class);
+    private static final AccessInternalClient accessInternalClient = mock(AccessInternalClient.class);
 
-    private final static AdminManagementClientFactory adminManagementClientFactory =
+    private static final AdminManagementClientFactory adminManagementClientFactory =
         businessApplicationTest.getAdminManagementClientFactory();
-    private final static AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
+    private static final AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
 
-    private final static IngestInternalClientFactory ingestInternalClientFactory =
+    private static final IngestInternalClientFactory ingestInternalClientFactory =
         businessApplicationTest.getIngestInternalClientFactory();
-    private final static IngestInternalClient ingestInternalClient = mock(IngestInternalClient.class);
+    private static final IngestInternalClient ingestInternalClient = mock(IngestInternalClient.class);
 
     @Override
     public Set<Object> getResources() {
@@ -142,10 +141,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             LOGGER.debug("Beginning tests");
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Access Application Server", e);
+            throw new IllegalStateException("Cannot start the Access Application Server", e);
         }
-
     }
 
     @Before
@@ -157,28 +154,32 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
         reset(ingestInternalClient);
         reset(ingestInternalClientFactory);
 
-
         when(accessInternalClientFactory.getClient()).thenReturn(accessInternalClient);
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
-        when(accessInternalClient.selectOperation(any(), anyBoolean(), anyBoolean()))
-            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults()));
+        when(accessInternalClient.selectOperation(any(), anyBoolean(), anyBoolean())).thenReturn(
+            new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookResults())
+        );
 
-        when(accessInternalClient.selectOperationById(any()))
-            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
-        when(accessInternalClient.selectOperationById(any(), any(), anyBoolean(), anyBoolean()))
-            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
+        when(accessInternalClient.selectOperationById(any())).thenReturn(
+            new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation())
+        );
+        when(accessInternalClient.selectOperationById(any(), any(), anyBoolean(), anyBoolean())).thenReturn(
+            new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation())
+        );
 
-        when(accessInternalClient.selectUnitLifeCycleById(any(), any()))
-            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
+        when(accessInternalClient.selectUnitLifeCycleById(any(), any())).thenReturn(
+            new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation())
+        );
 
-        when(accessInternalClient.selectObjectGroupLifeCycleById(any(), any()))
-            .thenReturn(new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation()));
+        when(accessInternalClient.selectObjectGroupLifeCycleById(any(), any())).thenReturn(
+            new RequestResponseOK().addResult(ClientMockResultHelper.getLogbookOperation())
+        );
 
         // Mock AccessInternal response for download TRACEABILITY operation request
-        when(accessInternalClient.downloadTraceabilityFile(TRACEABILITY_OPERATION_ID))
-            .thenReturn(ClientMockResultHelper.getObjectStream());
-
+        when(accessInternalClient.downloadTraceabilityFile(TRACEABILITY_OPERATION_ID)).thenReturn(
+            ClientMockResultHelper.getObjectStream()
+        );
     }
 
     @AfterClass
@@ -195,13 +196,13 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
         fr.gouv.vitam.common.external.client.VitamClientFactory.resetConnections();
     }
 
-
     @Test
     public void testSelectOperations_PreconditionFailed() throws Exception {
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "ABC")
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .and()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(BODY_TEST))
             .when()
             .post(OPERATIONS_URI)
@@ -211,7 +212,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "ABC")
-            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .and()
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .body(JsonHandler.getFromString(BODY_TEST))
             .when()
             .post(OPERATIONS_URI)
@@ -234,7 +236,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(request))
             .header(X_HTTP_METHOD_OVERRIDE, "ABC")
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .and()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .pathParam("id_op", 1)
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
@@ -245,7 +248,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .contentType(ContentType.JSON)
             .body(JsonHandler.getFromString(request))
             .header(X_HTTP_METHOD_OVERRIDE, "ABC")
-            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .and()
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .pathParam("id_op", 1)
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
@@ -265,16 +269,19 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testSelect_NotFound() throws Exception {
-        when(accessInternalClient.selectUnitLifeCycleById(any(), any()))
-            .thenThrow(new LogbookClientNotFoundException(""));
-        when(accessInternalClient.selectObjectGroupLifeCycleById(any(), any()))
-            .thenThrow(new LogbookClientNotFoundException(""));
-        when(accessInternalClient.selectOperationById(any()))
-            .thenThrow(new LogbookClientNotFoundException(""));
-        when(accessInternalClient.selectOperationById(any(), any(), anyBoolean(), anyBoolean()))
-            .thenThrow(new LogbookClientNotFoundException(""));
-        when(accessInternalClient.selectOperation(any(), anyBoolean(), anyBoolean()))
-            .thenReturn(new RequestResponseOK<>());
+        when(accessInternalClient.selectUnitLifeCycleById(any(), any())).thenThrow(
+            new LogbookClientNotFoundException("")
+        );
+        when(accessInternalClient.selectObjectGroupLifeCycleById(any(), any())).thenThrow(
+            new LogbookClientNotFoundException("")
+        );
+        when(accessInternalClient.selectOperationById(any())).thenThrow(new LogbookClientNotFoundException(""));
+        when(accessInternalClient.selectOperationById(any(), any(), anyBoolean(), anyBoolean())).thenThrow(
+            new LogbookClientNotFoundException("")
+        );
+        when(accessInternalClient.selectOperation(any(), anyBoolean(), anyBoolean())).thenReturn(
+            new RequestResponseOK<>()
+        );
 
         given()
             .contentType(ContentType.JSON)
@@ -283,7 +290,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
             .when()
             .get("/logbookoperations/" + bad_id)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -293,7 +301,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
             .when()
             .get("/logbookunitlifecycles/" + bad_id)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -303,13 +312,15 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .body(JsonHandler.getFromString(BODY_TEST_WITH_ID))
             .when()
             .get("/logbookobjectgroups/" + bad_id)
-            .then().statusCode(Status.NOT_FOUND.getStatusCode());
+            .then()
+            .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void testSelectLifecycleUnitById_PreconditionFailed() throws Exception {
-        when(accessInternalClient.selectUnitLifeCycleById(bad_id, JsonHandler.getFromString(BODY_TEST)))
-            .thenThrow(new LogbookClientException(""));
+        when(accessInternalClient.selectUnitLifeCycleById(bad_id, JsonHandler.getFromString(BODY_TEST))).thenThrow(
+            new LogbookClientException("")
+        );
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -317,7 +328,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get("/logbookunitlifecycles/" + bad_id)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -326,7 +338,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
             .get("/logbookunitlifecycles/" + bad_id)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -334,14 +347,15 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .param("id_lc", bad_id)
             .when()
             .get("/logbookunitlifecycles/" + bad_id)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void testSelectLifecycleOGById_PreconditionFailed() throws Exception {
-        when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(
-            request)))
-            .thenThrow(new LogbookClientException(""));
+        when(accessInternalClient.selectObjectGroupLifeCycleById(bad_id, JsonHandler.getFromString(request))).thenThrow(
+            new LogbookClientException("")
+        );
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -349,7 +363,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get("/logbookobjectslifecycles/" + bad_id)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -358,7 +373,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
             .get("/logbookobjectslifecycles/" + bad_id)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -366,14 +382,15 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .param("id_lc", bad_id)
             .when()
             .get("/logbookobjectslifecycles/" + bad_id)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void testSelectOperations_InternalServerError() throws Exception {
-        when(accessInternalClient.selectOperation(eq(JsonHandler.getFromString(bad_request)), anyBoolean(),
-            anyBoolean()))
-            .thenThrow(new LogbookClientException(""));
+        when(
+            accessInternalClient.selectOperation(eq(JsonHandler.getFromString(bad_request)), anyBoolean(), anyBoolean())
+        ).thenThrow(new LogbookClientException(""));
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
@@ -403,9 +420,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
 
     @Test
     public void testSelectOperationById_InternalServerError() throws Exception {
-        when(
-            accessInternalClient.selectOperationById(bad_id))
-            .thenThrow(new LogbookClientException(""));
+        when(accessInternalClient.selectOperationById(bad_id)).thenThrow(new LogbookClientException(""));
 
         given()
             .contentType(ContentType.JSON)
@@ -443,7 +458,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(OPERATIONS_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -452,7 +468,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(OPERATIONS_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -461,7 +478,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
             .get(OPERATIONS_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -469,26 +487,31 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .body(JsonHandler.getFromString(request))
             .when()
             .get(OPERATIONS_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
-
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(request)).when()
-            .get(OPERATIONS_URI).then().statusCode(Status.OK.getStatusCode());
+            .and()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(request))
+            .when()
+            .get(OPERATIONS_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         // Test DSL query Validation code
         final Response response = given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(JsonHandler.getFromString(wrong_request_format)).when()
+            .and()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .body(JsonHandler.getFromString(wrong_request_format))
+            .when()
             .get(OPERATIONS_URI);
-
 
         final JsonNode responseNode = JsonHandler.getFromString(response.getBody().prettyPrint());
         assertEquals(601, responseNode.get("code").asInt());
@@ -499,21 +522,25 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .and()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(JsonHandler.getFromString(request))
             .when()
             .get(OPERATIONS_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .and()
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .body(JsonHandler.getFromString(request))
             .when()
             .get(OPERATIONS_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -522,12 +549,12 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .body(JsonHandler.getFromString(request))
             .when()
             .get(OPERATIONS_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void testSelectOperations() throws Exception {
-
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
@@ -535,7 +562,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .body(JsonHandler.getFromString(good_request))
             .when()
             .get(OPERATIONS_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -544,7 +572,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .body(JsonHandler.getFromString(request))
             .when()
             .get(OPERATIONS_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -553,7 +582,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .body(JsonHandler.getFromString(request))
             .when()
             .get(OPERATIONS_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -561,17 +591,20 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .body(JsonHandler.getFromString(request))
             .when()
             .get(OPERATIONS_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .and()
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .body(JsonHandler.getFromString(request))
             .when()
             .post(OPERATIONS_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -580,9 +613,9 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .body(JsonHandler.getFromString(request))
             .when()
             .post(OPERATIONS_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
-
 
     @Test
     public void should_return_validation_error_when_selectOperationById_with_bad_request() throws Exception {
@@ -593,7 +626,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test
@@ -611,7 +645,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -620,7 +655,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -628,7 +664,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .pathParam("id_op", good_id)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -638,7 +675,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -648,7 +686,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -657,7 +696,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .pathParam("id_op", good_id)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -675,7 +715,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -684,7 +725,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -692,27 +734,32 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .pathParam("id_op", good_id)
             .when()
             .get(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .and().header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
+            .and()
+            .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .header(X_HTTP_METHOD_OVERRIDE, "GET")
-            .and().header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
+            .and()
+            .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .body(select.getFinalSelectById())
             .pathParam("id_op", good_id)
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -721,7 +768,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .pathParam("id_op", good_id)
             .when()
             .post(OPERATIONS_URI + OPERATION_ID_URI)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
@@ -740,8 +788,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get("/logbookunitlifecycles/" + good_id)
-            .then().statusCode(Status.OK.getStatusCode());
-
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -751,7 +799,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
             .get("/logbookunitlifecycles/" + good_id)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -760,7 +809,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .param("id_lc", good_id)
             .when()
             .get("/logbookunitlifecycles/" + good_id)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -770,7 +820,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .when()
             .get("/logbookobjectslifecycles/" + good_id)
-            .then().statusCode(Status.OK.getStatusCode());
+            .then()
+            .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -780,7 +831,8 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .header(GlobalDataRest.X_TENANT_ID, UNEXISTING_TENANT_ID)
             .when()
             .get("/logbookobjectslifecycles/" + good_id)
-            .then().statusCode(Status.UNAUTHORIZED.getStatusCode());
+            .then()
+            .statusCode(Status.UNAUTHORIZED.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
@@ -789,8 +841,7 @@ public class LogbookExternalResourceTest extends ResteasyTestApplication {
             .param("id_lc", good_id)
             .when()
             .get("/logbookobjectslifecycles/" + good_id)
-            .then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
-
-
 }

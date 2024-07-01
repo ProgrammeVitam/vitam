@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * Push Action
  */
 public class PushAction extends fr.gouv.vitam.common.database.builder.query.action.PushAction {
+
     /**
      * For Parsing
      *

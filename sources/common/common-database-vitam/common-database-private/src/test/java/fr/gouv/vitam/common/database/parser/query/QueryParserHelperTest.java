@@ -94,24 +94,23 @@ public class QueryParserHelperTest {
     VarNameAdapter noAdapter = new VarNameAdapter();
 
     @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-    }
+    public static void setUpBeforeClass() throws Exception {}
 
     @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-    }
+    public static void tearDownAfterClass() throws Exception {}
 
     @Before
-    public void setUp() throws Exception {
-    }
+    public void setUp() throws Exception {}
 
     @After
-    public void tearDown() throws Exception {
-    }
+    public void tearDown() throws Exception {}
 
     private void compare(Query query, Query request2) {
-        assertEquals("String shall be equal", query.getCurrentQuery().toString(),
-            request2.getCurrentQuery().toString());
+        assertEquals(
+            "String shall be equal",
+            query.getCurrentQuery().toString(),
+            request2.getCurrentQuery().toString()
+        );
     }
 
     @Test
@@ -253,8 +252,7 @@ public class QueryParserHelperTest {
     public void testWildcardJsonNode() {
         try {
             final Query wildcard = wildcard("var", "value");
-            final Query wildcard2 =
-                wildcard(wildcard.getNode(QUERY.WILDCARD.exactToken()), noAdapter);
+            final Query wildcard2 = wildcard(wildcard.getNode(QUERY.WILDCARD.exactToken()), noAdapter);
             compare(wildcard, wildcard2);
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
@@ -302,26 +300,22 @@ public class QueryParserHelperTest {
     public void testBooleanJsonNode() {
         try {
             Query bool = and().add(wildcard("var", "value"));
-            Query bool2 = and().add(wildcard(
-                bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
+            Query bool2 = and()
+                .add(wildcard(bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
             compare(bool, bool2);
             bool = or().add(wildcard("var", "value"));
-            bool2 = or().add(wildcard(
-                bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
+            bool2 = or().add(wildcard(bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
             compare(bool, bool2);
             bool = not().add(wildcard("var", "value"));
-            bool2 = not().add(wildcard(
-                bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
+            bool2 = not().add(wildcard(bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
             compare(bool, bool2);
             bool = not().add(wildcard("var", "value"));
-            bool2 = not().add(wildcard(
-                bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
+            bool2 = not().add(wildcard(bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter));
             compare(bool, bool2);
             bool = not().add(wildcard("var", "value"), wildcard("var2", "value2"));
-            bool2 = not().add(wildcard(
-                    bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter))
-                .add(wildcard(bool.getCurrentObject().get(1)
-                    .get(QUERY.WILDCARD.exactToken()), noAdapter));
+            bool2 = not()
+                .add(wildcard(bool.getCurrentObject().get(0).get(QUERY.WILDCARD.exactToken()), noAdapter))
+                .add(wildcard(bool.getCurrentObject().get(1).get(QUERY.WILDCARD.exactToken()), noAdapter));
             compare(bool, bool2);
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();
@@ -333,16 +327,13 @@ public class QueryParserHelperTest {
     public void testExistJsonNode() {
         try {
             Query exists = exists("var1");
-            Query exists2 = exists(
-                exists.getNode(QUERY.EXISTS.exactToken()), noAdapter);
+            Query exists2 = exists(exists.getNode(QUERY.EXISTS.exactToken()), noAdapter);
             compare(exists, exists2);
             exists = missing("var1");
-            exists2 = missing(
-                exists.getNode(QUERY.MISSING.exactToken()), noAdapter);
+            exists2 = missing(exists.getNode(QUERY.MISSING.exactToken()), noAdapter);
             compare(exists, exists2);
             exists = isNull("var1");
-            exists2 = isNull(
-                exists.getNode(QUERY.ISNULL.exactToken()), noAdapter);
+            exists2 = isNull(exists.getNode(QUERY.ISNULL.exactToken()), noAdapter);
             compare(exists, exists2);
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             e.printStackTrace();

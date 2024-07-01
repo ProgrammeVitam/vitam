@@ -41,9 +41,11 @@ public class TransferReplyReportService extends CommonReportService<TransferRepl
     }
 
     @VisibleForTesting
-    public TransferReplyReportService(BatchReportClientFactory reportFactory,
+    public TransferReplyReportService(
+        BatchReportClientFactory reportFactory,
         WorkspaceClientFactory workspaceClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         super(ReportType.TRANSFER_REPLY_UNIT, reportFactory, workspaceClientFactory, storageClientFactory);
     }
 }

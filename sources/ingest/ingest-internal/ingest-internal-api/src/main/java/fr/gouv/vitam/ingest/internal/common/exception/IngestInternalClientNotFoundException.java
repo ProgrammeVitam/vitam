@@ -30,6 +30,7 @@ package fr.gouv.vitam.ingest.internal.common.exception;
  * Exception indicating a resource requested by a client was not found on the server.
  */
 public class IngestInternalClientNotFoundException extends IngestInternalClientException {
+
     private static final long serialVersionUID = -544990974532693321L;
 
     /**
@@ -68,8 +69,12 @@ public class IngestInternalClientNotFoundException extends IngestInternalClientE
      * @param enableSuppression allow suppression or not
      * @param writableStackTrace allow writable stack trace or not
      */
-    public IngestInternalClientNotFoundException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
+    public IngestInternalClientNotFoundException(
+        String message,
+        Throwable cause,
+        boolean enableSuppression,
+        boolean writableStackTrace
+    ) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 }

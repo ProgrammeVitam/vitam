@@ -58,7 +58,6 @@ public class StorageOfferProviderFactoryTest {
         try {
             provider.getStorageOffer("inactiveOffer", false);
             fail("Expecting storage exception");
-        } catch (StorageNotFoundException ex) {
-        }
+        } catch (StorageNotFoundException ex) {}
     }
 }

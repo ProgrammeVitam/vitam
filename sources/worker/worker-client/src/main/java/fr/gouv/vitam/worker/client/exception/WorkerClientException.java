@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.VitamClientException;
  * Main Worker Client Exception
  */
 public class WorkerClientException extends VitamClientException {
+
     private static final long serialVersionUID = -5393209953874444764L;
 
     /**

@@ -113,12 +113,13 @@ public class TransactionRepository {
 
     public UpdateOneModel<Document> getUpdateOneModel(TransactionModel transactionModel) {
         // FIXME : update date?
-        Document documentToUpdate =
-            new Document().append(SET, new BasicDBObject(STATUS, transactionModel.getStatus().name()));
-        return new UpdateOneModel<>(eq(ID, transactionModel.getId()), documentToUpdate,
+        Document documentToUpdate = new Document()
+            .append(SET, new BasicDBObject(STATUS, transactionModel.getStatus().name()));
+        return new UpdateOneModel<>(
+            eq(ID, transactionModel.getId()),
+            documentToUpdate,
             new UpdateOptions().upsert(true)
         );
-
     }
 
     /**
@@ -129,7 +130,6 @@ public class TransactionRepository {
      * @deprecated : FIXME : Update only if "version = version - 1";
      */
     public void replaceTransactions(List<TransactionModel> transactionsModel) throws CollectInternalException {
-
         BulkWriteOptions options = new BulkWriteOptions().ordered(false);
 
         List<UpdateOneModel<Document>> listUpdate = new ArrayList<>();
@@ -137,10 +137,7 @@ public class TransactionRepository {
             listUpdate.add(getUpdateOneModel((item)));
         }
         transactionCollection.bulkWrite(listUpdate, options);
-
-
     }
-
 
     /**
      * return transaction according to id
@@ -164,8 +161,6 @@ public class TransactionRepository {
         }
     }
 
-
-
     /**
      * return transaction according to query
      *
@@ -174,10 +169,8 @@ public class TransactionRepository {
      * @throws CollectInternalException exception thrown in case of error
      */
     public Optional<TransactionModel> findTransactionByQuery(Bson query) throws CollectInternalException {
-
         try {
-            Document first =
-                getIterableTransactionsByQuery(query).sort(new BasicDBObject(CREATION_DATE, -1)).first();
+            Document first = getIterableTransactionsByQuery(query).sort(new BasicDBObject(CREATION_DATE, -1)).first();
             if (first == null) {
                 return Optional.empty();
             }
@@ -187,13 +180,11 @@ public class TransactionRepository {
         }
     }
 
-
     private FindIterable<Document> getIterableTransactionsByQuery(Bson query) {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         Bson finalQuery = and(query, eq(TENANT_ID, tenantId));
         return transactionCollection.find(finalQuery);
     }
-
 
     public List<TransactionModel> findTransactionsByQuery(Bson query) throws CollectInternalException {
         List<TransactionModel> listTransactions = new ArrayList<>();
@@ -203,13 +194,11 @@ public class TransactionRepository {
                 listTransactions.add(BsonHelper.fromDocumentToObject(doc, TransactionModel.class));
             }
             return listTransactions;
-
         } catch (InvalidParseOperationException e) {
             LOGGER.error("Error when fetching transactions: ", e);
             throw new CollectInternalException("Error when fetching transactions : " + e);
         }
     }
-
 
     /**
      * delete a transaction model
@@ -234,8 +223,7 @@ public class TransactionRepository {
         try {
             Bson query = and(eq(TENANT_ID, tenantId), in("Status", "ACK_OK", "ACK_WARNING", "ABORTED"));
             List<TransactionModel> listTransactionToDelete = new ArrayList<>();
-            MongoCursor<Document> transactionCursor =
-                transactionCollection.find(query).cursor();
+            MongoCursor<Document> transactionCursor = transactionCollection.find(query).cursor();
             while (transactionCursor.hasNext()) {
                 Document doc = transactionCursor.next();
                 listTransactionToDelete.add(BsonHelper.fromDocumentToObject(doc, TransactionModel.class));
@@ -247,4 +235,3 @@ public class TransactionRepository {
         }
     }
 }
-

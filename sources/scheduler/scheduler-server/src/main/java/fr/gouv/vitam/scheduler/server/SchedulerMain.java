@@ -51,33 +51,42 @@ public class SchedulerMain {
     private final VitamStarter vitamStarter;
 
     public SchedulerMain(String configurationFile) throws SchedulerException {
-        ParametersChecker.checkParameter(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
-            configurationFile);
+        ParametersChecker.checkParameter(
+            String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
         final SchedulerListener schedulerListener = SchedulerListener.getInstance();
-        vitamStarter = new VitamStarter(SchedulerConfiguration.class, configurationFile, BusinessApplication.class,
-            SchedulerAdminApplication.class, List.of(schedulerListener), false);
+        vitamStarter = new VitamStarter(
+            SchedulerConfiguration.class,
+            configurationFile,
+            BusinessApplication.class,
+            SchedulerAdminApplication.class,
+            List.of(schedulerListener),
+            false
+        );
     }
 
-
     public static void main(String[] args) {
-
         if (args == null || args.length == 0) {
             LOGGER.error(String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
             throw new IllegalArgumentException(
-                String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
+                String.format(VitamServer.CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME)
+            );
         }
 
         try {
             SchedulerMain schedulerMain = new SchedulerMain(args[0]);
-
 
             VitamServiceRegistry serviceRegistry = new VitamServiceRegistry();
             serviceRegistry.checkDependencies(VitamConfiguration.getRetryNumber(), VitamConfiguration.getRetryDelay());
 
             schedulerMain.startAndJoin();
         } catch (Exception e) {
-            LOGGER.error(String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
-                e.getMessage(), e);
+            LOGGER.error(
+                String.format(fr.gouv.vitam.common.server.VitamServer.SERVER_CAN_NOT_START, MODULE_NAME) +
+                e.getMessage(),
+                e
+            );
             System.exit(1);
         }
     }

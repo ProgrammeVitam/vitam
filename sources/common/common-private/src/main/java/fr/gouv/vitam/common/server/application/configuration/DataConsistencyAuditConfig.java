@@ -33,12 +33,14 @@ public class DataConsistencyAuditConfig {
     private Boolean dbAuthentication = false;
     private MongoDbShardConf mongodShardsConf;
 
-    public DataConsistencyAuditConfig() {
-    }
+    public DataConsistencyAuditConfig() {}
 
-    public DataConsistencyAuditConfig(Boolean isDataConsistencyAuditRunnable,
-        Integer dataConsistencyAuditOplogMaxSize, MongoDbShardConf mongodShardsConf,
-        Boolean dbAuthentication) {
+    public DataConsistencyAuditConfig(
+        Boolean isDataConsistencyAuditRunnable,
+        Integer dataConsistencyAuditOplogMaxSize,
+        MongoDbShardConf mongodShardsConf,
+        Boolean dbAuthentication
+    ) {
         this.isDataConsistencyAuditRunnable = isDataConsistencyAuditRunnable;
         this.dataConsistencyAuditOplogMaxSize = dataConsistencyAuditOplogMaxSize;
         this.mongodShardsConf = mongodShardsConf;

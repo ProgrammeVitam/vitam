@@ -26,72 +26,79 @@
  */
 package fr.gouv.vitam.worker.core.plugin.purge;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
-import java.util.List;
 import org.junit.Test;
+
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class PurgeUnitPluginTest {
 
-  @Test
-  public void testExtractPersistentIdentifiersFromUnit() {
-    JsonNodeFactory factory = JsonNodeFactory.instance;
-    ArrayNode identifierArray = factory.arrayNode();
+    @Test
+    public void testExtractPersistentIdentifiersFromUnit() {
+        JsonNodeFactory factory = JsonNodeFactory.instance;
+        ArrayNode identifierArray = factory.arrayNode();
 
-    JsonNode identifier1 = factory.objectNode()
-        .put("PersistentIdentifierType", "ark")
-        .put("PersistentIdentifierOrigin", "OriginatingAgency")
-        .put("PersistentIdentifierReference", "Agency-00021")
-        .put("PersistentIdentifierContent", "ark:/23567/001a9d7db5eadabac_binary_master");
+        JsonNode identifier1 = factory
+            .objectNode()
+            .put("PersistentIdentifierType", "ark")
+            .put("PersistentIdentifierOrigin", "OriginatingAgency")
+            .put("PersistentIdentifierReference", "Agency-00021")
+            .put("PersistentIdentifierContent", "ark:/23567/001a9d7db5eadabac_binary_master");
 
-    JsonNode identifier2 = factory.objectNode()
-        .put("PersistentIdentifierType", "doi")
-        .put("PersistentIdentifierOrigin", "OriginatingAgency")
-        .put("PersistentIdentifierReference", "Agency-00221")
-        .put("PersistentIdentifierContent", "doi:10.1234/example");
+        JsonNode identifier2 = factory
+            .objectNode()
+            .put("PersistentIdentifierType", "doi")
+            .put("PersistentIdentifierOrigin", "OriginatingAgency")
+            .put("PersistentIdentifierReference", "Agency-00221")
+            .put("PersistentIdentifierContent", "doi:10.1234/example");
 
-    identifierArray.add(identifier1);
-    identifierArray.add(identifier2);
+        identifierArray.add(identifier1);
+        identifierArray.add(identifier2);
 
-    JsonNode unitJson = factory.objectNode().set("PersistentIdentifier", identifierArray);
+        JsonNode unitJson = factory.objectNode().set("PersistentIdentifier", identifierArray);
 
-    List<PersistentIdentifierModel> identifiers = PurgeUnitPlugin.extractPersistentIdentifiersFromUnit(unitJson);
+        List<PersistentIdentifierModel> identifiers = PurgeUnitPlugin.extractPersistentIdentifiersFromUnit(unitJson);
 
-    assertThat(2).isEqualTo(identifiers.size());
+        assertThat(2).isEqualTo(identifiers.size());
 
-    PersistentIdentifierModel identifierModel1 = identifiers.get(0);
-    assertThat("ark").isEqualTo(identifierModel1.getPersistentIdentifierType());
-    assertThat("OriginatingAgency").isEqualTo(identifierModel1.getPersistentIdentifierOrigin());
-    assertThat("Agency-00021").isEqualTo(identifierModel1.getPersistentIdentifierReference());
-    assertThat("ark:/23567/001a9d7db5eadabac_binary_master").isEqualTo(identifierModel1.getPersistentIdentifierContent());
+        PersistentIdentifierModel identifierModel1 = identifiers.get(0);
+        assertThat("ark").isEqualTo(identifierModel1.getPersistentIdentifierType());
+        assertThat("OriginatingAgency").isEqualTo(identifierModel1.getPersistentIdentifierOrigin());
+        assertThat("Agency-00021").isEqualTo(identifierModel1.getPersistentIdentifierReference());
+        assertThat("ark:/23567/001a9d7db5eadabac_binary_master").isEqualTo(
+            identifierModel1.getPersistentIdentifierContent()
+        );
 
-    PersistentIdentifierModel identifierModel2 = identifiers.get(1);
-    assertThat("doi").isEqualTo(identifierModel2.getPersistentIdentifierType());
-    assertThat("OriginatingAgency").isEqualTo(identifierModel2.getPersistentIdentifierOrigin());
-    assertThat("Agency-00221").isEqualTo(identifierModel2.getPersistentIdentifierReference());
-    assertThat("doi:10.1234/example").isEqualTo(identifierModel2.getPersistentIdentifierContent());
-  }
+        PersistentIdentifierModel identifierModel2 = identifiers.get(1);
+        assertThat("doi").isEqualTo(identifierModel2.getPersistentIdentifierType());
+        assertThat("OriginatingAgency").isEqualTo(identifierModel2.getPersistentIdentifierOrigin());
+        assertThat("Agency-00221").isEqualTo(identifierModel2.getPersistentIdentifierReference());
+        assertThat("doi:10.1234/example").isEqualTo(identifierModel2.getPersistentIdentifierContent());
+    }
 
-  @Test
-  public void testMapJsonToPersistentIdentifierModel() {
-    JsonNodeFactory factory = JsonNodeFactory.instance;
+    @Test
+    public void testMapJsonToPersistentIdentifierModel() {
+        JsonNodeFactory factory = JsonNodeFactory.instance;
 
-    JsonNode identifierNode = factory.objectNode()
-        .put("PersistentIdentifierType", "ark")
-        .put("PersistentIdentifierOrigin", "OriginatingAgency")
-        .put("PersistentIdentifierReference", "Agency-00021")
-        .put("PersistentIdentifierContent", "ark:/23567/001a9d7db5eadabac_binary_master");
+        JsonNode identifierNode = factory
+            .objectNode()
+            .put("PersistentIdentifierType", "ark")
+            .put("PersistentIdentifierOrigin", "OriginatingAgency")
+            .put("PersistentIdentifierReference", "Agency-00021")
+            .put("PersistentIdentifierContent", "ark:/23567/001a9d7db5eadabac_binary_master");
 
-    PersistentIdentifierModel identifierModel = PurgeUnitPlugin.mapJsonToPersistentIdentifierModel(identifierNode);
+        PersistentIdentifierModel identifierModel = PurgeUnitPlugin.mapJsonToPersistentIdentifierModel(identifierNode);
 
-    assertThat("ark").isEqualTo(identifierModel.getPersistentIdentifierType());
-    assertThat("OriginatingAgency").isEqualTo(identifierModel.getPersistentIdentifierOrigin());
-    assertThat("Agency-00021").isEqualTo(identifierModel.getPersistentIdentifierReference());
-    assertThat("ark:/23567/001a9d7db5eadabac_binary_master").isEqualTo(identifierModel.getPersistentIdentifierContent());
-  }
-
+        assertThat("ark").isEqualTo(identifierModel.getPersistentIdentifierType());
+        assertThat("OriginatingAgency").isEqualTo(identifierModel.getPersistentIdentifierOrigin());
+        assertThat("Agency-00021").isEqualTo(identifierModel.getPersistentIdentifierReference());
+        assertThat("ark:/23567/001a9d7db5eadabac_binary_master").isEqualTo(
+            identifierModel.getPersistentIdentifierContent()
+        );
+    }
 }

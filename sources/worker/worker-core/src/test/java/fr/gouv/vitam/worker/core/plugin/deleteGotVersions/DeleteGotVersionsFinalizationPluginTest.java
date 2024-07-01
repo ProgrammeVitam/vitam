@@ -76,8 +76,9 @@ public class DeleteGotVersionsFinalizationPluginTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @InjectMocks
     private DeleteGotVersionsFinalizationPlugin deleteGotVersionsFinalizationPlugin;
@@ -112,8 +113,10 @@ public class DeleteGotVersionsFinalizationPluginTest {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         when(batchReportClientFactory.getClient()).thenReturn(batchReportClient);
-        deleteGotVersionsFinalizationPlugin =
-            new DeleteGotVersionsFinalizationPlugin(deleteGotVersionsReportService, logbookOperationsClient);
+        deleteGotVersionsFinalizationPlugin = new DeleteGotVersionsFinalizationPlugin(
+            deleteGotVersionsReportService,
+            logbookOperationsClient
+        );
     }
 
     @Test
@@ -121,17 +124,22 @@ public class DeleteGotVersionsFinalizationPluginTest {
     public void givenReportsThenDeleteGotVersionsFinalizationOk() throws Exception {
         File deleteGotVersionsFile = PropertiesUtils.getResourceFile(DELETE_GOT_VERSIONS_REPORTS_OK_FILE);
         when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(
-            getFromFile(deleteGotVersionsFile));
-        JsonNode logbookOperation =
-            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
-                new TypeReference<>() {
-                });
+            getFromFile(deleteGotVersionsFile)
+        );
+        JsonNode logbookOperation = JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
+            new TypeReference<>() {}
+        );
         when(logbookOperationsClient.selectOperationById(any())).thenReturn(logbookOperation);
 
-        DeleteGotVersionsRequest deleteGotVersionsRequest =
-            new DeleteGotVersionsRequest(new Select().getFinalSelect(), BINARY_MASTER.getName(), List.of(2));
-        when(handlerIO.getInputStreamFromWorkspace("deleteGotVersionsRequest"))
-            .thenReturn(IOUtils.toInputStream(toJsonNode(deleteGotVersionsRequest).toString(), "UTF-8"));
+        DeleteGotVersionsRequest deleteGotVersionsRequest = new DeleteGotVersionsRequest(
+            new Select().getFinalSelect(),
+            BINARY_MASTER.getName(),
+            List.of(2)
+        );
+        when(handlerIO.getInputStreamFromWorkspace("deleteGotVersionsRequest")).thenReturn(
+            IOUtils.toInputStream(toJsonNode(deleteGotVersionsRequest).toString(), "UTF-8")
+        );
 
         ItemStatus itemStatus = deleteGotVersionsFinalizationPlugin.execute(params, handlerIO);
 
@@ -143,15 +151,19 @@ public class DeleteGotVersionsFinalizationPluginTest {
     @RunWithCustomExecutor
     public void givenInexistantReportThenDeleteGotVersionsFinalizationOk() throws Exception {
         when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(createArrayNode());
-        JsonNode logbookOperation =
-            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
-                new TypeReference<>() {
-                });
+        JsonNode logbookOperation = JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
+            new TypeReference<>() {}
+        );
         when(logbookOperationsClient.selectOperationById(any())).thenReturn(logbookOperation);
-        DeleteGotVersionsRequest deleteGotVersionsRequest =
-            new DeleteGotVersionsRequest(new Select().getFinalSelect(), "UsageNameTest", List.of(1, 2));
-        when(handlerIO.getInputStreamFromWorkspace("deleteGotVersionsRequest"))
-            .thenReturn(IOUtils.toInputStream(toJsonNode(deleteGotVersionsRequest).toString(), "UTF-8"));
+        DeleteGotVersionsRequest deleteGotVersionsRequest = new DeleteGotVersionsRequest(
+            new Select().getFinalSelect(),
+            "UsageNameTest",
+            List.of(1, 2)
+        );
+        when(handlerIO.getInputStreamFromWorkspace("deleteGotVersionsRequest")).thenReturn(
+            IOUtils.toInputStream(toJsonNode(deleteGotVersionsRequest).toString(), "UTF-8")
+        );
 
         ItemStatus itemStatus = deleteGotVersionsFinalizationPlugin.execute(params, handlerIO);
 
@@ -163,10 +175,10 @@ public class DeleteGotVersionsFinalizationPluginTest {
     @RunWithCustomExecutor
     public void givenUnavailableReportThenDeleteGotVersionsFinalizationFATAL() throws Exception {
         when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(null);
-        JsonNode logbookOperation =
-            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
-                new TypeReference<>() {
-                });
+        JsonNode logbookOperation = JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
+            new TypeReference<>() {}
+        );
         when(logbookOperationsClient.selectOperationById(any())).thenReturn(logbookOperation);
 
         ItemStatus itemStatus = deleteGotVersionsFinalizationPlugin.execute(params, handlerIO);
@@ -180,10 +192,10 @@ public class DeleteGotVersionsFinalizationPluginTest {
     public void givenExistReportThenIdempotencyOk() throws Exception {
         when(deleteGotVersionsReportService.isReportWrittenInWorkspace(any())).thenReturn(true);
         when(batchReportClient.readComputedDetailsFromReport(any(), any())).thenReturn(null);
-        JsonNode logbookOperation =
-            JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
-                new TypeReference<>() {
-                });
+        JsonNode logbookOperation = JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile(LOGBOOK_OPERATION_MODEL),
+            new TypeReference<>() {}
+        );
         when(logbookOperationsClient.selectOperationById(any())).thenReturn(logbookOperation);
 
         ItemStatus itemStatus = deleteGotVersionsFinalizationPlugin.execute(params, handlerIO);

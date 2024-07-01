@@ -60,7 +60,6 @@ public enum AdminCollections {
      */
     AGENCIES(AccessExtAPI.AGENCIES, AccessExtAPI.AGENCIESCHECK),
 
-
     /**
      * Profile collection
      */
@@ -136,5 +135,4 @@ public enum AdminCollections {
     public String getCheckURI() {
         return checkURI;
     }
-
 }

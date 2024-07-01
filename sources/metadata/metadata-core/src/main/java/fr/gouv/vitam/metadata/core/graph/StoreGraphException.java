@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.VitamException;
  * Exception used for StoreGraphService
  */
 public class StoreGraphException extends VitamException {
+
     public StoreGraphException(Throwable cause) {
         super(cause);
     }

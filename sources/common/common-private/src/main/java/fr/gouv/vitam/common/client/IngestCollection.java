@@ -81,5 +81,4 @@ public enum IngestCollection {
     public String getCollectionName() {
         return collectionName;
     }
-
 }

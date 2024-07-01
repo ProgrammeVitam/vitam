@@ -56,11 +56,13 @@ public class PerformanceModel {
     private Integer delay;
 
     @JsonCreator
-    public PerformanceModel(@JsonProperty("fileName") String fileName,
+    public PerformanceModel(
+        @JsonProperty("fileName") String fileName,
         @JsonProperty("parallelIngest") Integer parallelIngest,
         @JsonProperty("delay") Integer delay,
         @JsonProperty("numberOfIngest") int numberOfIngest,
-        @JsonProperty("numberOfRetry") Integer numberOfRetry) {
+        @JsonProperty("numberOfRetry") Integer numberOfRetry
+    ) {
         this.fileName = fileName;
         this.parallelIngest = parallelIngest;
         this.numberOfIngest = numberOfIngest;
@@ -68,17 +70,21 @@ public class PerformanceModel {
         this.delay = delay;
     }
 
-    public static PerformanceModel createPerformanceTestInParallel(String fileName,
+    public static PerformanceModel createPerformanceTestInParallel(
+        String fileName,
         int parallelIngest,
         int numberOfIngest,
-        Integer numberOfRetry) {
+        Integer numberOfRetry
+    ) {
         return new PerformanceModel(fileName, parallelIngest, null, numberOfIngest, numberOfRetry);
     }
 
-    public static PerformanceModel createPerformanceTestInSequence(String fileName,
+    public static PerformanceModel createPerformanceTestInSequence(
+        String fileName,
         int delay,
         int numberOfIngest,
-        Integer numberOfRetry) {
+        Integer numberOfRetry
+    ) {
         return new PerformanceModel(fileName, null, delay, numberOfIngest, numberOfRetry);
     }
 

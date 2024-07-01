@@ -35,6 +35,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
  * Match Query
  */
 public class MatchQuery extends Query {
+
     private static final String QUERY2 = "Query ";
     private static final String IS_NOT_A_MATCH_QUERY = " is not a Match Query";
 
@@ -50,8 +51,7 @@ public class MatchQuery extends Query {
      * @param value of variable
      * @throws InvalidCreateOperationException when not valid
      */
-    public MatchQuery(final QUERY matchQuery, final String variableName,
-        final String value)
+    public MatchQuery(final QUERY matchQuery, final String variableName, final String value)
         throws InvalidCreateOperationException {
         super();
         switch (matchQuery) {
@@ -64,8 +64,7 @@ public class MatchQuery extends Query {
                 setReady(true);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + matchQuery + IS_NOT_A_MATCH_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + matchQuery + IS_NOT_A_MATCH_QUERY);
         }
     }
 
@@ -74,19 +73,16 @@ public class MatchQuery extends Query {
      * @return this MatchQuery
      * @throws InvalidCreateOperationException when not valid
      */
-    public final MatchQuery setMatchMaxExpansions(final int max)
-        throws InvalidCreateOperationException {
+    public final MatchQuery setMatchMaxExpansions(final int max) throws InvalidCreateOperationException {
         switch (currentTokenQUERY) {
             case MATCH:
             case MATCH_ALL:
             case MATCH_PHRASE:
             case MATCH_PHRASE_PREFIX:
-                ((ObjectNode) currentObject).put(QUERYARGS.MAX_EXPANSIONS.exactToken(),
-                    max);
+                ((ObjectNode) currentObject).put(QUERYARGS.MAX_EXPANSIONS.exactToken(), max);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + currentTokenQUERY + IS_NOT_A_MATCH_QUERY);
+                throw new InvalidCreateOperationException(QUERY2 + currentTokenQUERY + IS_NOT_A_MATCH_QUERY);
         }
         return this;
     }

@@ -41,6 +41,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.model.elimination.EliminationRequestBody;
+import fr.gouv.vitam.common.utils.BufferedConsumer;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
@@ -56,7 +57,6 @@ import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisRes
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationEventDetails;
 import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationGlobalStatus;
 import fr.gouv.vitam.worker.core.plugin.elimination.report.EliminationActionReportService;
-import fr.gouv.vitam.common.utils.BufferedConsumer;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -73,8 +73,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class EliminationActionUnitPreparationHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(EliminationActionUnitPreparationHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        EliminationActionUnitPreparationHandler.class
+    );
 
     private static final String ELIMINATION_ACTION_UNIT_PREPARATION = "ELIMINATION_ACTION_UNIT_PREPARATION";
     static final String DATE_REQUEST_IN_FUTURE = "The elimination date cannot be after current date";
@@ -93,17 +94,22 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
      * Default constructor
      */
     public EliminationActionUnitPreparationHandler() {
-        this(MetaDataClientFactory.getInstance(), new EliminationAnalysisService(),
-            new EliminationActionReportService());
+        this(
+            MetaDataClientFactory.getInstance(),
+            new EliminationAnalysisService(),
+            new EliminationActionReportService()
+        );
     }
 
     /***
      * Test only constructor
      */
     @VisibleForTesting
-    EliminationActionUnitPreparationHandler(MetaDataClientFactory metaDataClientFactory,
+    EliminationActionUnitPreparationHandler(
+        MetaDataClientFactory metaDataClientFactory,
         EliminationAnalysisService eliminationAnalysisService,
-        EliminationActionReportService eliminationActionReportService) {
+        EliminationActionReportService eliminationActionReportService
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.eliminationAnalysisService = eliminationAnalysisService;
         this.eliminationActionReportService = eliminationActionReportService;
@@ -111,9 +117,7 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
-
         try {
-
             EliminationRequestBody eliminationRequestBody = loadRequestJsonFromWorkspace(handler);
 
             ItemStatus itemStatus = process(eliminationRequestBody, param, handler);
@@ -121,24 +125,27 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
             LOGGER.info("Elimination action unit preparation succeeded");
 
             return itemStatus;
-
         } catch (ProcessingStatusException e) {
             LOGGER.error("Elimination action unit preparation failed with status [" + e.getStatusCode() + "]", e);
             return buildItemStatus(ELIMINATION_ACTION_UNIT_PREPARATION, e.getStatusCode(), e.getEventDetails());
         }
     }
 
-    private ItemStatus process(EliminationRequestBody eliminationRequestBody, WorkerParameters param, HandlerIO handler)
-        throws ProcessingStatusException {
-
+    private ItemStatus process(
+        EliminationRequestBody eliminationRequestBody,
+        WorkerParameters param,
+        HandlerIO handler
+    ) throws ProcessingStatusException {
         LocalDate expirationDate = getAndValidateExpirationDate(eliminationRequestBody);
 
         SelectMultiQuery request = getRequest(eliminationRequestBody.getDslRequest());
 
-        try (MetaDataClient client = metaDataClientFactory.getClient();
+        try (
+            MetaDataClient client = metaDataClientFactory.getClient();
             BufferedConsumer<EliminationActionUnitReportEntry> reportAppender = createReportAppender(
-                param.getContainerName())) {
-
+                param.getContainerName()
+            )
+        ) {
             ScrollSpliterator<JsonNode> unitScrollSpliterator =
                 ScrollSpliteratorHelper.getUnitWithInheritedRulesScrollSpliterator(request, client);
 
@@ -149,29 +156,31 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
 
             File unitsToDelete = handler.getNewLocalFile(UNITS_TO_DELETE_FILE);
 
-            try (FileOutputStream fileOutputStream = new FileOutputStream(unitsToDelete);
-                JsonLineWriter unitsToDeleteWriter = new JsonLineWriter(fileOutputStream)) {
-
+            try (
+                FileOutputStream fileOutputStream = new FileOutputStream(unitsToDelete);
+                JsonLineWriter unitsToDeleteWriter = new JsonLineWriter(fileOutputStream)
+            ) {
                 while (unitIterator.hasNext()) {
-
                     JsonNode unit = unitIterator.next();
                     String unitId = unit.get(VitamFieldsHelper.id()).asText();
 
                     EliminationAnalysisResult eliminationAnalysisResult =
-                        EliminationUtils.computeEliminationAnalysisForUnitWithInheritedRules(unit,
-                            eliminationAnalysisService, param, expirationDate);
+                        EliminationUtils.computeEliminationAnalysisForUnitWithInheritedRules(
+                            unit,
+                            eliminationAnalysisService,
+                            param,
+                            expirationDate
+                        );
 
                     switch (eliminationAnalysisResult.getGlobalStatus()) {
-
                         case DESTROY:
                             unitsToDeleteWriter.addEntry(
-                                new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), unit));
+                                new JsonLineModel(unitId, unit.get(VitamFieldsHelper.max()).asInt(), unit)
+                            );
                             nbDestroyableUnits++;
                             break;
-
                         case KEEP:
                         case CONFLICT:
-
                             EliminationActionUnitStatus status;
                             if (eliminationAnalysisResult.getGlobalStatus() == EliminationGlobalStatus.KEEP) {
                                 status = EliminationActionUnitStatus.GLOBAL_STATUS_KEEP;
@@ -179,34 +188,39 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
                                 status = EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT;
                             }
 
-                            reportAppender.accept(new EliminationActionUnitReportEntry(unitId,
-                                getField(unit, VitamFieldsHelper.originatingAgency()),
-                                getField(unit, VitamFieldsHelper.initialOperation()),
-                                getField(unit, VitamFieldsHelper.object()),
-                                status.name()));
+                            reportAppender.accept(
+                                new EliminationActionUnitReportEntry(
+                                    unitId,
+                                    getField(unit, VitamFieldsHelper.originatingAgency()),
+                                    getField(unit, VitamFieldsHelper.initialOperation()),
+                                    getField(unit, VitamFieldsHelper.object()),
+                                    status.name()
+                                )
+                            );
 
                             nbNonDestroyableUnits++;
 
                             break;
                         default:
                             throw new IllegalStateException(
-                                "Unknown elimination global status " + eliminationAnalysisResult.getGlobalStatus());
+                                "Unknown elimination global status " + eliminationAnalysisResult.getGlobalStatus()
+                            );
                     }
                 }
             }
 
             handler.transferFileToWorkspace(UNITS_TO_DELETE_FILE, unitsToDelete, true, false);
 
-            EliminationEventDetails eventDetails =
-                new EliminationEventDetails().setExpirationDate(eliminationRequestBody.getDate())
-                    .setNbDestroyableUnits(nbDestroyableUnits).setNbNonDestroyableUnits(nbNonDestroyableUnits);
+            EliminationEventDetails eventDetails = new EliminationEventDetails()
+                .setExpirationDate(eliminationRequestBody.getDate())
+                .setNbDestroyableUnits(nbDestroyableUnits)
+                .setNbNonDestroyableUnits(nbNonDestroyableUnits);
 
             if (nbDestroyableUnits == 0 || nbNonDestroyableUnits > 0) {
                 return buildItemStatus(ELIMINATION_ACTION_UNIT_PREPARATION, StatusCode.WARNING, eventDetails);
             } else {
                 return buildItemStatus(ELIMINATION_ACTION_UNIT_PREPARATION, StatusCode.OK, eventDetails);
             }
-
         } catch (IOException | ProcessingException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not generate unit distribution file", e);
         }
@@ -232,27 +246,28 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
         try {
             expirationDate = LocalDate.parse(eliminationRequestBody.getDate());
         } catch (DateTimeParseException e) {
-            EliminationEventDetails eventDetails =
-                new EliminationEventDetails().setError(COULD_NOT_PARSE_DATE_FROM_REQUEST);
+            EliminationEventDetails eventDetails = new EliminationEventDetails()
+                .setError(COULD_NOT_PARSE_DATE_FROM_REQUEST);
             throw new ProcessingStatusException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DATE_FROM_REQUEST, e);
         }
 
         LocalDate today = LocalDate.now();
         if (expirationDate.isAfter(today)) {
-            EliminationEventDetails eventDetails =
-                new EliminationEventDetails().setExpirationDate(eliminationRequestBody.getDate())
-                    .setError(DATE_REQUEST_IN_FUTURE);
-            throw new ProcessingStatusException(StatusCode.KO, eventDetails,
-                DATE_REQUEST_IN_FUTURE + " " + expirationDate);
+            EliminationEventDetails eventDetails = new EliminationEventDetails()
+                .setExpirationDate(eliminationRequestBody.getDate())
+                .setError(DATE_REQUEST_IN_FUTURE);
+            throw new ProcessingStatusException(
+                StatusCode.KO,
+                eventDetails,
+                DATE_REQUEST_IN_FUTURE + " " + expirationDate
+            );
         }
 
         return expirationDate;
     }
 
     private SelectMultiQuery getRequest(JsonNode dslRequest) throws ProcessingStatusException {
-
         try {
-
             SelectParserMultiple selectParser = new SelectParserMultiple();
             selectParser.parse(dslRequest);
             SelectMultiQuery request = selectParser.getRequest();
@@ -276,7 +291,6 @@ public class EliminationActionUnitPreparationHandler extends ActionHandler {
             request.addUsedProjection(EliminationUtils.getReportExtraFields().toArray(String[]::new));
 
             return request;
-
         } catch (InvalidParseOperationException e) {
             EliminationEventDetails eventDetails = new EliminationEventDetails().setError(COULD_NOT_PARSE_DSL_REQUEST);
             throw new ProcessingStatusException(StatusCode.KO, eventDetails, COULD_NOT_PARSE_DSL_REQUEST, e);

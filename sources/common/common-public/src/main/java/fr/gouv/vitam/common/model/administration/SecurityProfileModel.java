@@ -92,8 +92,13 @@ public class SecurityProfileModel {
      * @param fullAccess defines whether security profile has full access to all permissions.
      * @param permissions set of permissions of the security profile (should not be defined when fullAccess is true)
      */
-    public SecurityProfileModel(String id, String identifier, String name, boolean fullAccess,
-        Set<String> permissions) {
+    public SecurityProfileModel(
+        String id,
+        String identifier,
+        String name,
+        boolean fullAccess,
+        Set<String> permissions
+    ) {
         this.id = id;
         this.identifier = identifier;
         this.name = name;
@@ -114,7 +119,6 @@ public class SecurityProfileModel {
     public void setId(String id) {
         this.id = id;
     }
-
 
     /**
      * @return version
@@ -165,7 +169,6 @@ public class SecurityProfileModel {
     public void setName(String name) {
         this.name = name;
     }
-
 
     /**
      * @return true if security profile has full access to all permissions. false otherwise.

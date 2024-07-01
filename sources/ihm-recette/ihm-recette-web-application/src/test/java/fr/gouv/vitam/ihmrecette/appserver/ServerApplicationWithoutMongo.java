@@ -51,8 +51,9 @@ import static org.mockito.Mockito.mock;
 public class ServerApplicationWithoutMongo extends Application {
 
     private final CommonBusinessApplication commonBusinessApplication;
-    private static UserInterfaceTransactionManager userInterfaceTransactionManager =
-        mock(UserInterfaceTransactionManager.class);
+    private static UserInterfaceTransactionManager userInterfaceTransactionManager = mock(
+        UserInterfaceTransactionManager.class
+    );
     private Set<Object> singletons;
 
     /**
@@ -64,21 +65,23 @@ public class ServerApplicationWithoutMongo extends Application {
         String configurationFile = servletConfig.getInitParameter(CONFIGURATION_FILE_APPLICATION);
 
         try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(configurationFile)) {
-            final WebApplicationConfig configuration =
-                PropertiesUtils.readYaml(yamlIS, WebApplicationConfig.class);
+            final WebApplicationConfig configuration = PropertiesUtils.readYaml(yamlIS, WebApplicationConfig.class);
 
             commonBusinessApplication = new CommonBusinessApplication();
             singletons = new HashSet<>();
             singletons.addAll(commonBusinessApplication.getResources());
 
-            final WebApplicationResource resource =
-                new WebApplicationResource(configuration, userInterfaceTransactionManager,
-                    PaginationHelper.getInstance(), DslQueryHelper.getInstance(), null);
+            final WebApplicationResource resource = new WebApplicationResource(
+                configuration,
+                userInterfaceTransactionManager,
+                PaginationHelper.getInstance(),
+                DslQueryHelper.getInstance(),
+                null
+            );
             singletons.add(resource);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Override

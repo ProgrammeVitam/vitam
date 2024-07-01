@@ -26,14 +26,13 @@
  */
 package fr.gouv.vitam.common.exception;
 
-
 public class NotAcceptableClientException extends VitamException {
+
     private static final long serialVersionUID = -544990974532693321L;
 
     public NotAcceptableClientException(String message) {
         super(message);
     }
-
 
     public NotAcceptableClientException(Throwable cause) {
         super(cause);
@@ -42,6 +41,4 @@ public class NotAcceptableClientException extends VitamException {
     public NotAcceptableClientException(String messsage, Throwable cause) {
         super(messsage, cause);
     }
-
-
 }

@@ -132,9 +132,9 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     // Create a "GET" query inspired by DSL, exemple from tech design story 76
     private static final String QUERY_TEST =
         "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
-            " \"$filter\": { \"$orderby\": \"#id\" }, " +
-            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
-            " }";
+        " \"$filter\": { \"$orderby\": \"#id\" }, " +
+        " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
+        " }";
     private static final String QUERY_SIMPLE_TEST = "{ \"$eq\" : { \"title\" : \"test\" } }";
     private static final String EMPTY_QUERY = "{ \"$query\" : \"\", \"$roots\" : []  }";
     private static final String DATA =
@@ -149,34 +149,45 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     private static final String ID_UNIT = "identifier5";
     private static final String OBJECT_ID = "objectId";
     private static final String OBJECTS_URI = "/objects/";
-    private final static ProcessingManagementClientFactory processingManagementClientFactory =
-        mock(ProcessingManagementClientFactory.class);
-    private final static ProcessingManagementClient processingManagementClient = mock(ProcessingManagementClient.class);
-    private final static LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
-        mock(LogbookLifeCyclesClientFactory.class);
-    private final static LogbookLifeCyclesClient logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
-    private final static LogbookOperationsClientFactory logbookOperationsClientFactory =
-        mock(LogbookOperationsClientFactory.class);
-    private final static LogbookOperationsClient logbookOperationsClient = mock(LogbookOperationsClient.class);
-    private final static WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
-    private final static WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
-    private final static AdminManagementClientFactory adminManagementClientFactory =
-        mock(AdminManagementClientFactory.class);
-    private final static AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
-    private final static StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-    private final static StorageClient storageClient = mock(StorageClient.class);
-    private final static MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
-    private final static MetaDataClient metaDataClient = mock(MetaDataClient.class);
-    private final static BusinessApplication businessApplication =
-        new BusinessApplication(logbookLifeCyclesClientFactory, logbookOperationsClientFactory, storageClientFactory,
-            workspaceClientFactory, adminManagementClientFactory, metaDataClientFactory,
-            processingManagementClientFactory);
+    private static final ProcessingManagementClientFactory processingManagementClientFactory = mock(
+        ProcessingManagementClientFactory.class
+    );
+    private static final ProcessingManagementClient processingManagementClient = mock(ProcessingManagementClient.class);
+    private static final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory = mock(
+        LogbookLifeCyclesClientFactory.class
+    );
+    private static final LogbookLifeCyclesClient logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+    private static final LogbookOperationsClientFactory logbookOperationsClientFactory = mock(
+        LogbookOperationsClientFactory.class
+    );
+    private static final LogbookOperationsClient logbookOperationsClient = mock(LogbookOperationsClient.class);
+    private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+    private static final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+    private static final AdminManagementClientFactory adminManagementClientFactory = mock(
+        AdminManagementClientFactory.class
+    );
+    private static final AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
+    private static final StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
+    private static final StorageClient storageClient = mock(StorageClient.class);
+    private static final MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
+    private static final MetaDataClient metaDataClient = mock(MetaDataClient.class);
+    private static final BusinessApplication businessApplication = new BusinessApplication(
+        logbookLifeCyclesClientFactory,
+        logbookOperationsClientFactory,
+        storageClientFactory,
+        workspaceClientFactory,
+        adminManagementClientFactory,
+        metaDataClientFactory,
+        processingManagementClientFactory
+    );
     private static AccessInternalMain application;
     private static JunitHelper junitHelper;
     private static int port;
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() {
@@ -190,8 +201,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             LOGGER.debug("Beginning tests");
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Access Application Server", e);
+            throw new IllegalStateException("Cannot start the Access Application Server", e);
         }
     }
 
@@ -213,8 +223,9 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
      * @throws InvalidParseOperationException
      */
     private static final JsonNode buildDSLWithOptions(String query, String data) throws InvalidParseOperationException {
-        return JsonHandler
-            .getFromString("{ \"$roots\" : [], \"$query\" : [ " + query + " ], \"$data\" : " + data + " }");
+        return JsonHandler.getFromString(
+            "{ \"$roots\" : [], \"$query\" : [ " + query + " ], \"$data\" : " + data + " }"
+        );
     }
 
     /**
@@ -223,8 +234,9 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
      * @throws InvalidParseOperationException
      */
     private static final JsonNode buildDSLWithRoots(String data) throws InvalidParseOperationException {
-        return JsonHandler
-            .getFromString("{ \"$roots\" : [ " + data + " ], \"$query\" : [ \"\" ], \"$data\" : " + data + " }");
+        return JsonHandler.getFromString(
+            "{ \"$roots\" : [ " + data + " ], \"$query\" : [ \"\" ], \"$data\" : " + data + " }"
+        );
     }
 
     private static String createLongString(int size) throws Exception {
@@ -266,7 +278,6 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         reset(adminManagementClient);
         reset(logbookLifeCyclesClient);
 
-
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(processingManagementClientFactory.getClient()).thenReturn(processingManagementClient);
@@ -283,13 +294,16 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
      */
     @Test
     public void givenStartedServer_WhenUpdateUnitError_ThenReturnError() throws Exception {
-        when(metaDataClient.updateUnitById(any(), any()))
-            .thenThrow(new MetaDataExecutionException("Wanted exception"));
+        when(metaDataClient.updateUnitById(any(), any())).thenThrow(new MetaDataExecutionException("Wanted exception"));
 
-        given().contentType(ContentType.JSON).body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
+        given()
+            .contentType(ContentType.JSON)
+            .body(buildDSLWithOptions(QUERY_SIMPLE_TEST, DATA))
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .when().put("/units/" + ID).then().statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
-
+            .when()
+            .put("/units/" + ID)
+            .then()
+            .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     /**
@@ -303,7 +317,10 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .contentType(ContentType.XML)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "AccessContract")
-            .when().get(ACCESS_UNITS_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+            .when()
+            .get(ACCESS_UNITS_URI)
+            .then()
+            .statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     /**
@@ -315,8 +332,10 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void givenStartedServer_WhenBadRequest_ThenReturnError_BadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithOptions(QUERY_TEST, "test")).when()
-            .get(ACCESS_UNITS_URI).then()
+            .body(buildDSLWithOptions(QUERY_TEST, "test"))
+            .when()
+            .get(ACCESS_UNITS_URI)
+            .then()
             .statusCode(Status.OK.getStatusCode());
     }
 
@@ -324,9 +343,11 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void givenStartedServer_WhenJsonContainsHtml_ThenReturnError_BadRequest() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithRoots(DATA_HTML)).when()
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .get(ACCESS_UNITS_URI).then()
+            .get(ACCESS_UNITS_URI)
+            .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -334,9 +355,11 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void givenStartedServer_WhenEmptyQuery_ThenReturnError_Forbidden() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(EMPTY_QUERY)).when()
+            .body(JsonHandler.getFromString(EMPTY_QUERY))
+            .when()
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .get(ACCESS_UNITS_URI).then()
+            .get(ACCESS_UNITS_URI)
+            .then()
             .statusCode(Status.FORBIDDEN.getStatusCode());
     }
 
@@ -344,8 +367,10 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void testMissingAccessContract() throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(EMPTY_QUERY)).when()
-            .get(ACCESS_UNITS_URI).then()
+            .body(JsonHandler.getFromString(EMPTY_QUERY))
+            .when()
+            .get(ACCESS_UNITS_URI)
+            .then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
     }
 
@@ -361,7 +386,10 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .contentType(ContentType.XML)
             .body(buildDSLWithRoots("\"" + ID + "\"").asText())
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "AccessContract")
-            .when().get(ACCESS_UNITS_ID_URI).then().statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
+            .when()
+            .get(ACCESS_UNITS_ID_URI)
+            .then()
+            .statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
     /**
@@ -374,7 +402,10 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.JSON)
             .body(buildDSLWithRoots(ID))
-            .when().get(ACCESS_UNITS_ID_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .get(ACCESS_UNITS_ID_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -385,11 +416,13 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             given()
                 .contentType(ContentType.JSON)
                 .body(buildDSLWithOptions(createLongString(1001), DATA2))
-                .when().get(ACCESS_UNITS_ID_URI).then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+                .when()
+                .get(ACCESS_UNITS_ID_URI)
+                .then()
+                .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
         } finally {
             GlobalDatasParser.limitRequest = oldValue;
         }
-
     }
 
     @Test(expected = InvalidParseOperationException.class)
@@ -398,8 +431,12 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         try {
             GlobalDatasParser.limitRequest = 1000;
             given()
-                .contentType(ContentType.JSON).body(buildDSLWithOptions(createLongString(1001), DATA2))
-                .when().put(ACCESS_UPDATE_UNITS_ID_URI).then().statusCode(Status.BAD_REQUEST.getStatusCode());
+                .contentType(ContentType.JSON)
+                .body(buildDSLWithOptions(createLongString(1001), DATA2))
+                .when()
+                .put(ACCESS_UPDATE_UNITS_ID_URI)
+                .then()
+                .statusCode(Status.BAD_REQUEST.getStatusCode());
         } finally {
             GlobalDatasParser.limitRequest = oldValue;
         }
@@ -416,18 +453,21 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         with()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .body(BODY_TEST).when()
-            .get("/units").then()
+            .body(BODY_TEST)
+            .when()
+            .get("/units")
+            .then()
             .statusCode(Status.OK.getStatusCode());
 
         given()
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .body(BODY_TEST).when()
-            .get("/units/" + ID_UNIT).then()
+            .body(BODY_TEST)
+            .when()
+            .get("/units/" + ID_UNIT)
+            .then()
             .statusCode(Status.OK.getStatusCode());
-
     }
 
     @Test
@@ -448,7 +488,8 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_REQUEST_ID, "aeaqaaaaaaag3r7kjkkkkkmfjfikiaaaaq").body("")
+            .header(GlobalDataRest.X_REQUEST_ID, "aeaqaaaaaaag3r7kjkkkkkmfjfikiaaaaq")
+            .body("")
             .when()
             .put("/units/" + ID_UNIT)
             .then()
@@ -457,8 +498,7 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
 
     @Test
     public void given_queryThatThrowException_when_updateByID()
-        throws InvalidParseOperationException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException,
-        LogbookClientServerException {
+        throws InvalidParseOperationException, LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
         doThrow(new LogbookClientServerException("Error")).when(logbookOperationsClient).create(any());
         given()
             .contentType(ContentType.JSON)
@@ -492,8 +532,10 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .contentType(ContentType.JSON)
             .accept(ContentType.JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .body(buildDSLWithOptions("", createJsonStringWithDepth(101))).when()
-            .get("/units/" + ID_UNIT).then()
+            .body(buildDSLWithOptions("", createJsonStringWithDepth(101)))
+            .when()
+            .get("/units/" + ID_UNIT)
+            .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
         GlobalDatasParser.limitRequest = limitRequest;
     }
@@ -503,11 +545,15 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void getAccessLogFilesBadRequest() {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body(JsonHandler.createObjectNode().put("StartDate", "M108-20-12"))
-            .when().get(ACCESS_ACCESS_LOG_FILE).then()
+            .when()
+            .get(ACCESS_ACCESS_LOG_FILE)
+            .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -516,13 +562,19 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void getAccessLogFilesInternalError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        doThrow(new StorageServerClientException("Internal Error")).when(storageClient)
+        doThrow(new StorageServerClientException("Internal Error"))
+            .when(storageClient)
             .listContainer(any(), any(), any());
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .header(GlobalDataRest.X_TENANT_ID, "0").body("{}")
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body("{}")
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .when().get(ACCESS_ACCESS_LOG_FILE).then()
+            .when()
+            .get(ACCESS_ACCESS_LOG_FILE)
+            .then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
@@ -531,7 +583,8 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void getAccessLogFilesNotFound() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        doThrow(new StorageNotFoundException("Storage Not Found")).when(storageClient)
+        doThrow(new StorageNotFoundException("Storage Not Found"))
+            .when(storageClient)
             .getContainerAsync(any(), anyString(), any(), any());
         CloseableIterator<ObjectEntry> iterator = mock(CloseableIterator.class);
         when(iterator.hasNext()).thenReturn(true);
@@ -539,42 +592,54 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
 
         when(storageClient.listContainer(anyString(), any(), any())).thenReturn(iterator);
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body(JsonHandler.createObjectNode())
-            .when().get(ACCESS_ACCESS_LOG_FILE).then()
+            .when()
+            .get(ACCESS_ACCESS_LOG_FILE)
+            .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void getAccessLogFilesPreconditionFailed() {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .get(ACCESS_ACCESS_LOG_FILE).then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .get(ACCESS_ACCESS_LOG_FILE)
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void getObjectGroupOk() throws Exception {
-        when(metaDataClient.selectObjectGrouptbyId(any(), eq(OBJECT_ID))).thenReturn(JsonHandler
-            .getFromString(DATA));
+        when(metaDataClient.selectObjectGrouptbyId(any(), eq(OBJECT_ID))).thenReturn(JsonHandler.getFromString(DATA));
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, 0)
-            .body(BODY_TEST).when()
-            .get(OBJECTS_URI +
-                OBJECT_ID)
+            .body(BODY_TEST)
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID)
             .then()
-            .statusCode(Status.OK.getStatusCode()).contentType(MediaType.APPLICATION_JSON);
+            .statusCode(Status.OK.getStatusCode())
+            .contentType(MediaType.APPLICATION_JSON);
     }
 
     @Test
     public void getObjectGroupPreconditionFailed() {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .when().get(OBJECTS_URI +
-                OBJECT_ID)
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID)
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -582,67 +647,105 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     public void getObjectGroupBadRequest() {
         // since resteasy rejects the query because it's not a proper json format, 412 is thrown now
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .body("").when()
-            .get(OBJECTS_URI + OBJECT_ID).then()
+            .body("")
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID)
+            .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void getObjectGroupNotFound() throws Exception {
-        when(metaDataClient.selectObjectGrouptbyId(any(), eq(OBJECT_ID)))
-            .thenThrow(new NotFoundException());
+        when(metaDataClient.selectObjectGrouptbyId(any(), eq(OBJECT_ID))).thenThrow(new NotFoundException());
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .body(BODY_TEST).when()
-            .get(OBJECTS_URI + OBJECT_ID).then()
+            .body(BODY_TEST)
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID)
+            .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
     public void getObjectGroupInternalServerError() throws Exception {
-        when(metaDataClient.selectObjectGrouptbyId(any(), eq(OBJECT_ID)))
-            .thenThrow(new MetaDataClientServerException("Wanted exception"));
+        when(metaDataClient.selectObjectGrouptbyId(any(), eq(OBJECT_ID))).thenThrow(
+            new MetaDataClientServerException("Wanted exception")
+        );
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .body(BODY_TEST).when()
-            .get(OBJECTS_URI + OBJECT_ID).then()
+            .body(BODY_TEST)
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID)
+            .then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
     @Test
     public void getObjectStreamPreconditionFailed() {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_VERSION, 1).when()
-            .get(OBJECTS_URI + OBJECT_ID + "/unitID").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .header(GlobalDataRest.X_QUALIFIER, "qualif")
+            .header(GlobalDataRest.X_VERSION, 1)
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID + "/unitID")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_QUALIFIER, "qualif").header(GlobalDataRest.X_TENANT_ID, "0").when()
-            .get(OBJECTS_URI + OBJECT_ID + "/unitID").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .header(GlobalDataRest.X_QUALIFIER, "qualif")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID + "/unitID")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .header(GlobalDataRest.X_TENANT_ID, "0").header(GlobalDataRest.X_VERSION, 1).when()
-            .get(OBJECTS_URI + OBJECT_ID + "/unitID").then().statusCode(Status.PRECONDITION_FAILED.getStatusCode());
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .header(GlobalDataRest.X_VERSION, 1)
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID + "/unitID")
+            .then()
+            .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID + "/unitID")
+            .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     public void getObjectStreamPostMethodNotAllowed() {
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
-            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "TEST").when()
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
+            .header(GlobalDataRest.X_HTTP_METHOD_OVERRIDE, "TEST")
+            .when()
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "AccessContract")
             .post(OBJECTS_URI + OBJECT_ID)
-            .then().statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
+            .then()
+            .statusCode(Status.METHOD_NOT_ALLOWED.getStatusCode());
     }
 
     @Test
@@ -650,17 +753,23 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void getObjectStreamNotFoundInStorage() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        when(metaDataClient.selectObjectGrouptbyId(any(), anyString()))
-            .thenReturn(new MetaDataClientMock().selectObjectGrouptbyId(JsonHandler.createObjectNode(), "id"));
-        when(storageClient.getContainerAsync(isNull(), isNull(), any(), any()))
-            .thenThrow(new StorageNotFoundException("test"));
+        when(metaDataClient.selectObjectGrouptbyId(any(), anyString())).thenReturn(
+            new MetaDataClientMock().selectObjectGrouptbyId(JsonHandler.createObjectNode(), "id")
+        );
+        when(storageClient.getContainerAsync(isNull(), isNull(), any(), any())).thenThrow(
+            new StorageNotFoundException("test")
+        );
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
-            .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
+            .headers(getStreamHeaders())
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID + "/unitID")
+            .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
-
     }
 
     @Test
@@ -668,15 +777,22 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void getObjectStreamUnavailableFromSyncOfferThenKO() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        when(metaDataClient.selectObjectGrouptbyId(any(), anyString()))
-            .thenReturn(new MetaDataClientMock().selectObjectGrouptbyId(JsonHandler.createObjectNode(), "id"));
-        when(storageClient.getContainerAsync(isNull(), isNull(), any(), any()))
-            .thenThrow(new StorageUnavailableDataFromAsyncOfferClientException("test"));
+        when(metaDataClient.selectObjectGrouptbyId(any(), anyString())).thenReturn(
+            new MetaDataClientMock().selectObjectGrouptbyId(JsonHandler.createObjectNode(), "id")
+        );
+        when(storageClient.getContainerAsync(isNull(), isNull(), any(), any())).thenThrow(
+            new StorageUnavailableDataFromAsyncOfferClientException("test")
+        );
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
-            .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
+            .headers(getStreamHeaders())
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID + "/unitID")
+            .then()
             .statusCode(CustomVitamHttpStatusCode.UNAVAILABLE_DATA_FROM_ASYNC_OFFER.getStatusCode());
     }
 
@@ -685,29 +801,37 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void getObjectStreamNotFoundMetadata() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        doThrow(new MetaDataNotFoundException("test")).when(metaDataClient)
-            .selectObjectGrouptbyId(any(), anyString());
+        doThrow(new MetaDataNotFoundException("test")).when(metaDataClient).selectObjectGrouptbyId(any(), anyString());
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
-            .headers(getStreamHeaders()).when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
+            .headers(getStreamHeaders())
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID + "/unitID")
+            .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void getObjectStreamInternalServerError() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        doThrow(new MetaDataExecutionException("Wanted exception")).when(metaDataClient)
+        doThrow(new MetaDataExecutionException("Wanted exception"))
+            .when(metaDataClient)
             .selectObjectGrouptbyId(any(), anyString());
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster_1")
             .headers(getStreamHeaders())
-            .when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID + "/unitID")
+            .then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
 
@@ -722,16 +846,20 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void testGetObjectStreamUnauthorized() throws Exception {
-
         doAnswer(invocation -> {
             return null;
-        }).when(metaDataClient)
+        })
+            .when(metaDataClient)
             .selectObjectGrouptbyId(any(), anyString());
 
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_OCTET_STREAM)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_OCTET_STREAM)
             .headers(getStreamHeaders())
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .when().get(OBJECTS_URI + OBJECT_ID + "/unitID").then()
+            .when()
+            .get(OBJECTS_URI + OBJECT_ID + "/unitID")
+            .then()
             .statusCode(Status.UNAUTHORIZED.getStatusCode());
     }
 
@@ -747,7 +875,9 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
             .contentType(ContentType.XML)
             .body(buildDSLWithOptions(QUERY_TEST, DATA2).asText())
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "AccessContract")
-            .when().get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
+            .when()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
             .statusCode(Status.UNSUPPORTED_MEDIA_TYPE.getStatusCode());
     }
 
@@ -756,9 +886,11 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(buildDSLWithRoots(DATA_HTML)).when()
+            .body(buildDSLWithRoots(DATA_HTML))
+            .when()
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
             .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
 
@@ -767,39 +899,51 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         throws Exception {
         given()
             .contentType(ContentType.JSON)
-            .body(JsonHandler.getFromString(EMPTY_QUERY)).when()
+            .body(JsonHandler.getFromString(EMPTY_QUERY))
+            .when()
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI).then()
+            .get(ACCESS_UNITS_WITH_INHERITED_RULES_URI)
+            .then()
             .statusCode(Status.FORBIDDEN.getStatusCode());
     }
 
     @Test
     @RunWithCustomExecutor
     public void createObjectAccessRequestInAsyncOfferThenOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(metaDataClient.selectObjectGrouptbyId(any(), eq("objectGroupId")))
-            .thenReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("test_objectGroup.json")));
-        when(storageClient.createAccessRequestIfRequired("default", null, DataCategory.OBJECT,
-            List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq")))
-            .thenReturn(Optional.of("accessRequestId"));
+        when(metaDataClient.selectObjectGrouptbyId(any(), eq("objectGroupId"))).thenReturn(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("test_objectGroup.json"))
+        );
+        when(
+            storageClient.createAccessRequestIfRequired(
+                "default",
+                null,
+                DataCategory.OBJECT,
+                List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq")
+            )
+        ).thenReturn(Optional.of("accessRequestId"));
 
         // When
-        Response response =
-            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-                .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-                .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
-                .header(GlobalDataRest.X_TENANT_ID, "0")
-                .header(GlobalDataRest.X_VERSION, 1)
-                .when().post("/objects/objectGroupId/accessRequest")
-                .then().extract().response();
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .header(GlobalDataRest.X_VERSION, 1)
+            .when()
+            .post("/objects/objectGroupId/accessRequest")
+            .then()
+            .extract()
+            .response();
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
         RequestResponseOK<AccessRequestReference> requestResponseOK = JsonHandler.getFromInputStreamAsTypeReference(
-            response.asInputStream(), new TypeReference<>() {
-            });
+            response.asInputStream(),
+            new TypeReference<>() {}
+        );
         assertThat(requestResponseOK.getResults()).hasSize(1);
         assertThat(requestResponseOK.getResults().get(0).getAccessRequestId()).isEqualTo("accessRequestId");
         assertThat(requestResponseOK.getResults().get(0).getStorageStrategyId()).isEqualTo("default");
@@ -808,52 +952,70 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void createObjectAccessRequestInSyncOfferThenOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(metaDataClient.selectObjectGrouptbyId(any(), eq("objectGroupId")))
-            .thenReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("test_objectGroup.json")));
-        when(storageClient.createAccessRequestIfRequired("default", null, DataCategory.OBJECT,
-            List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq")))
-            .thenReturn(Optional.empty());
+        when(metaDataClient.selectObjectGrouptbyId(any(), eq("objectGroupId"))).thenReturn(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("test_objectGroup.json"))
+        );
+        when(
+            storageClient.createAccessRequestIfRequired(
+                "default",
+                null,
+                DataCategory.OBJECT,
+                List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq")
+            )
+        ).thenReturn(Optional.empty());
 
         // When
-        Response response =
-            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-                .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-                .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
-                .header(GlobalDataRest.X_TENANT_ID, "0")
-                .header(GlobalDataRest.X_VERSION, 1)
-                .when().post("/objects/objectGroupId/accessRequest")
-                .then().extract().response();
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .header(GlobalDataRest.X_VERSION, 1)
+            .when()
+            .post("/objects/objectGroupId/accessRequest")
+            .then()
+            .extract()
+            .response();
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
         RequestResponseOK<AccessRequestReference> requestResponseOK = JsonHandler.getFromInputStreamAsTypeReference(
-            response.asInputStream(), new TypeReference<>() {
-            });
+            response.asInputStream(),
+            new TypeReference<>() {}
+        );
         assertThat(requestResponseOK.getResults()).isEmpty();
     }
 
     @Test
     @RunWithCustomExecutor
     public void createObjectAccessRequestWithStoreEngineErrorThenKO() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        when(metaDataClient.selectObjectGrouptbyId(any(), eq("objectGroupId")))
-            .thenReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("test_objectGroup.json")));
-        when(storageClient.createAccessRequestIfRequired("default", null, DataCategory.OBJECT,
-            List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq")))
-            .thenThrow(new StorageServerClientException("error"));
+        when(metaDataClient.selectObjectGrouptbyId(any(), eq("objectGroupId"))).thenReturn(
+            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("test_objectGroup.json"))
+        );
+        when(
+            storageClient.createAccessRequestIfRequired(
+                "default",
+                null,
+                DataCategory.OBJECT,
+                List.of("aeaaaaaaaahofq3oab6a4al5zlugftaaaaaq")
+            )
+        ).thenThrow(new StorageServerClientException("error"));
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .header(GlobalDataRest.X_VERSION, 1)
-            .when().post("/objects/objectGroupId/accessRequest")
+            .when()
+            .post("/objects/objectGroupId/accessRequest")
             .then()
             .statusCode(Status.INTERNAL_SERVER_ERROR.getStatusCode());
     }
@@ -861,13 +1023,15 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void createObjectAccessRequestWithMissingTenantThenKO() {
-
         // Given / When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
             .header(GlobalDataRest.X_VERSION, 1)
-            .when().post("/objects/objectGroupId/accessRequest")
+            .when()
+            .post("/objects/objectGroupId/accessRequest")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -875,13 +1039,15 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void createObjectAccessRequestWithMissingQualifierThenKO() {
-
         // Given / When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_VERSION, 1)
             .header(GlobalDataRest.X_TENANT_ID, "0")
-            .when().post("/objects/objectGroupId/accessRequest")
+            .when()
+            .post("/objects/objectGroupId/accessRequest")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -889,13 +1055,15 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void createObjectAccessRequestWithEmptyQualifierThenKO() {
-
         // Given / When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "")
             .header(GlobalDataRest.X_VERSION, 1)
-            .when().post("/objects/objectGroupId/accessRequest")
+            .when()
+            .post("/objects/objectGroupId/accessRequest")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -903,13 +1071,15 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void createObjectAccessRequestWithMissingVersionThenKO() {
-
         // Given / When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
             .header(GlobalDataRest.X_TENANT_ID, "0")
-            .when().post("/objects/objectGroupId/accessRequest")
+            .when()
+            .post("/objects/objectGroupId/accessRequest")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -917,14 +1087,16 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void createObjectAccessRequestWithInvalidVersionThenKO() {
-
         // Given / When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_QUALIFIER, "BinaryMaster")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .header(GlobalDataRest.X_VERSION, "INVALID")
-            .when().post("/objects/objectGroupId/accessRequest")
+            .when()
+            .post("/objects/objectGroupId/accessRequest")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -932,20 +1104,21 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void checkAccessRequestStatusesInAsyncOfferThenOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        doReturn(Map.of(
-            "accessRequestId1", AccessRequestStatus.READY,
-            "accessRequestId2", AccessRequestStatus.READY
-        )).when(storageClient).checkAccessRequestStatuses("async_strategy1", null,
-            List.of("accessRequestId1", "accessRequestId2"), false);
+        doReturn(Map.of("accessRequestId1", AccessRequestStatus.READY, "accessRequestId2", AccessRequestStatus.READY))
+            .when(storageClient)
+            .checkAccessRequestStatuses(
+                "async_strategy1",
+                null,
+                List.of("accessRequestId1", "accessRequestId2"),
+                false
+            );
 
-        doReturn(Map.of(
-            "accessRequestId3", AccessRequestStatus.NOT_READY
-        )).when(storageClient).checkAccessRequestStatuses("async_strategy2", null,
-            List.of("accessRequestId3"), false);
+        doReturn(Map.of("accessRequestId3", AccessRequestStatus.NOT_READY))
+            .when(storageClient)
+            .checkAccessRequestStatuses("async_strategy2", null, List.of("accessRequestId3"), false);
 
         List<AccessRequestReference> accessRequests = List.of(
             new AccessRequestReference("accessRequestId1", "async_strategy1"),
@@ -954,51 +1127,63 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         );
 
         // When
-        Response response =
-            given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
-                .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
-                .header(GlobalDataRest.X_TENANT_ID, "0")
-                .body(accessRequests)
-                .when().get("/accessRequests")
-                .then().extract().response();
+        Response response = given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
+            .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
+            .header(GlobalDataRest.X_TENANT_ID, "0")
+            .body(accessRequests)
+            .when()
+            .get("/accessRequests")
+            .then()
+            .extract()
+            .response();
 
         // Then
         assertThat(response.getStatusCode()).isEqualTo(Status.OK.getStatusCode());
         RequestResponseOK<StatusByAccessRequest> requestResponse = JsonHandler.getFromInputStreamAsTypeReference(
-            response.asInputStream(), new TypeReference<>() {
-            });
+            response.asInputStream(),
+            new TypeReference<>() {}
+        );
 
         assertThat(requestResponse.getResults()).hasSize(3);
-        assertThat(requestResponse.getResults()).extracting(
-            statusByObjectAccessRequest -> statusByObjectAccessRequest.getObjectAccessRequest().getAccessRequestId(),
-            statusByObjectAccessRequest -> statusByObjectAccessRequest.getObjectAccessRequest().getStorageStrategyId(),
-            StatusByAccessRequest::getAccessRequestStatus
-        ).containsExactlyInAnyOrder(
-            tuple("accessRequestId1", "async_strategy1", AccessRequestStatus.READY),
-            tuple("accessRequestId2", "async_strategy1", AccessRequestStatus.READY),
-            tuple("accessRequestId3", "async_strategy2", AccessRequestStatus.NOT_READY)
-        );
+        assertThat(requestResponse.getResults())
+            .extracting(
+                statusByObjectAccessRequest ->
+                    statusByObjectAccessRequest.getObjectAccessRequest().getAccessRequestId(),
+                statusByObjectAccessRequest ->
+                    statusByObjectAccessRequest.getObjectAccessRequest().getStorageStrategyId(),
+                StatusByAccessRequest::getAccessRequestStatus
+            )
+            .containsExactlyInAnyOrder(
+                tuple("accessRequestId1", "async_strategy1", AccessRequestStatus.READY),
+                tuple("accessRequestId2", "async_strategy1", AccessRequestStatus.READY),
+                tuple("accessRequestId3", "async_strategy2", AccessRequestStatus.NOT_READY)
+            );
     }
 
     @Test
     @RunWithCustomExecutor
     public void checkAccessRequestStatusesInSyncOfferThenOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         doThrow(new StorageIllegalOperationClientException("sync offer"))
-            .when(storageClient).checkAccessRequestStatuses("sync_strategy", null,
-                List.of("accessRequestId"), false);
+            .when(storageClient)
+            .checkAccessRequestStatuses("sync_strategy", null, List.of("accessRequestId"), false);
         List<AccessRequestReference> accessRequests = List.of(
-            new AccessRequestReference("accessRequestId", "sync_strategy"));
+            new AccessRequestReference("accessRequestId", "sync_strategy")
+        );
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequests)
-            .when().get("/accessRequests")
+            .when()
+            .get("/accessRequests")
             .then()
             .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
     }
@@ -1009,13 +1194,17 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         List<AccessRequestReference> accessRequests = List.of(
-            new AccessRequestReference("accessRequestId", "async_strategy"));
+            new AccessRequestReference("accessRequestId", "async_strategy")
+        );
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body(accessRequests)
-            .when().get("/accessRequests")
+            .when()
+            .get("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1028,11 +1217,14 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         List<AccessRequestReference> accessRequests = Collections.emptyList();
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequests)
-            .when().get("/accessRequests")
+            .when()
+            .get("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1044,14 +1236,18 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         List<AccessRequestReference> accessRequests = Arrays.asList(
             new AccessRequestReference("accessRequestId", "async_strategy"),
-            null);
+            null
+        );
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequests)
-            .when().get("/accessRequests")
+            .when()
+            .get("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1061,15 +1257,17 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void checkAccessRequestStatusesWithNullAccessRequestIdThenKO() {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        List<AccessRequestReference> accessRequests = List.of(
-            new AccessRequestReference(null, "async_strategy"));
+        List<AccessRequestReference> accessRequests = List.of(new AccessRequestReference(null, "async_strategy"));
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequests)
-            .when().get("/accessRequests")
+            .when()
+            .get("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1079,15 +1277,17 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void checkAccessRequestStatusesWithEmptyAccessRequestIdThenKO() {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        List<AccessRequestReference> accessRequests = List.of(
-            new AccessRequestReference("", "async_strategy"));
+        List<AccessRequestReference> accessRequests = List.of(new AccessRequestReference("", "async_strategy"));
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequests)
-            .when().get("/accessRequests")
+            .when()
+            .get("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1097,15 +1297,17 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void checkAccessRequestStatusesWithNullStrategyIdThenKO() {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        List<AccessRequestReference> accessRequests = List.of(
-            new AccessRequestReference("accessRequestId", null));
+        List<AccessRequestReference> accessRequests = List.of(new AccessRequestReference("accessRequestId", null));
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequests)
-            .when().get("/accessRequests")
+            .when()
+            .get("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1115,15 +1317,17 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     public void checkAccessRequestStatusesWithEmptyStrategyIdThenKO() {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
-        List<AccessRequestReference> accessRequests = List.of(
-            new AccessRequestReference("accessRequestId", ""));
+        List<AccessRequestReference> accessRequests = List.of(new AccessRequestReference("accessRequestId", ""));
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequests)
-            .when().get("/accessRequests")
+            .when()
+            .get("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1135,14 +1339,18 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
         VitamThreadUtils.getVitamSession().setTenantId(0);
         List<AccessRequestReference> accessRequests = List.of(
             new AccessRequestReference("accessRequestId", "async_strategy"),
-            new AccessRequestReference("accessRequestId", "async_strategy"));
+            new AccessRequestReference("accessRequestId", "async_strategy")
+        );
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequests)
-            .when().get("/accessRequests")
+            .when()
+            .get("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1150,21 +1358,22 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void removeAccessRequestFromAsyncOfferThenOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
-        doNothing()
-            .when(storageClient).removeAccessRequest("sync_strategy", null, "accessRequestId", false);
+        doNothing().when(storageClient).removeAccessRequest("sync_strategy", null, "accessRequestId", false);
 
         AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId", "async_strategy");
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequest)
-            .when().delete("/accessRequests")
+            .when()
+            .delete("/accessRequests")
             .then()
             .statusCode(Status.OK.getStatusCode());
     }
@@ -1172,21 +1381,24 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void removeAccessRequestFromSyncOfferThenOK() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         doThrow(new StorageIllegalOperationClientException("sync offer"))
-            .when(storageClient).removeAccessRequest("sync_strategy", null, "accessRequestId", false);
+            .when(storageClient)
+            .removeAccessRequest("sync_strategy", null, "accessRequestId", false);
 
         AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId", "sync_strategy");
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequest)
-            .when().delete("/accessRequests")
+            .when()
+            .delete("/accessRequests")
             .then()
             .statusCode(Status.NOT_ACCEPTABLE.getStatusCode());
     }
@@ -1194,16 +1406,18 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void removeAccessRequestWithMissingTenantThenKO() {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId", "async_strategy");
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .body(accessRequest)
-            .when().delete("/accessRequests")
+            .when()
+            .delete("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1211,15 +1425,17 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void removeAccessRequestWithEmptyQueryThenKO() {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
-            .when().delete("/accessRequests")
+            .when()
+            .delete("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1227,17 +1443,19 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void removeAccessRequestWithNullAccessRequestIdThenKO() {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         AccessRequestReference accessRequest = new AccessRequestReference(null, "async_strategy");
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequest)
-            .when().delete("/accessRequests")
+            .when()
+            .delete("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1245,17 +1463,19 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void removeAccessRequestWithEmptyAccessRequestIdThenKO() {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         AccessRequestReference accessRequest = new AccessRequestReference("", "async_strategy");
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequest)
-            .when().delete("/accessRequests")
+            .when()
+            .delete("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1263,17 +1483,19 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void removeAccessRequestWithNullStrategyIdThenKO() {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId", null);
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequest)
-            .when().delete("/accessRequests")
+            .when()
+            .delete("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
@@ -1281,37 +1503,43 @@ public class AccessInternalResourceImplTest extends ResteasyTestApplication {
     @Test
     @RunWithCustomExecutor
     public void removeAccessRequestWithEmptyStrategyIdThenKO() {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         AccessRequestReference accessRequest = new AccessRequestReference("accessRequestId", "");
 
         // When / Then
-        given().contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON)
+        given()
+            .contentType(MediaType.APPLICATION_JSON)
+            .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(accessRequest)
-            .when().delete("/accessRequests")
+            .when()
+            .delete("/accessRequests")
             .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
     @Test
     @RunWithCustomExecutor
-    public void streamObjects_test()
-        throws Exception {
-        when(metaDataClient.streamObjects(any()))
-            .thenReturn(javax.ws.rs.core.Response.ok(new ByteArrayInputStream("okokok".getBytes())).build());
+    public void streamObjects_test() throws Exception {
+        when(metaDataClient.streamObjects(any())).thenReturn(
+            javax.ws.rs.core.Response.ok(new ByteArrayInputStream("okokok".getBytes())).build()
+        );
         given()
             .contentType(MediaType.APPLICATION_JSON)
             .accept(MediaType.APPLICATION_JSON)
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .header(GlobalDataRest.X_TENANT_ID, "0")
             .body(buildDSLWithRoots(DATA))
-            .when().log().all()
+            .when()
+            .log()
+            .all()
             .header(GlobalDataRest.X_ACCESS_CONTRAT_ID, "all")
             .get("/objects/stream")
-            .then().log().all()
+            .then()
+            .log()
+            .all()
             .statusCode(Status.OK.getStatusCode());
     }
 }

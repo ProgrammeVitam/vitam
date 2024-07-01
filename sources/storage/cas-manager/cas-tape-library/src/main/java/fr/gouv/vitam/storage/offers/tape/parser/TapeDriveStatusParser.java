@@ -32,6 +32,7 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeDriveStatus;
 import org.apache.commons.lang3.StringUtils;
 
 public class TapeDriveStatusParser {
+
     private static final String TAPE_DRIVE = "tape drive:";
     private static final String FILE_NUMBER = "File number=";
     private static final String BLOCK_NUMBER = ", block number=";
@@ -49,24 +50,16 @@ public class TapeDriveStatusParser {
 
         final TapeDriveState tapeDriveState = new TapeDriveState();
         for (String s : output.split("\n")) {
-
             if (s.contains(TAPE_DRIVE)) {
                 tapeDriveState.setDescription(s.trim());
-
             } else if (s.contains(FILE_NUMBER)) {
                 extractFileAndBlockNumberAndPartition(tapeDriveState, s);
-
-
             } else if (s.contains(TAPE_BLOCK_SIZE)) {
                 extractBlockSizeAndDensity(tapeDriveState, s);
-
-
             } else if (s.contains(SOFT_ERROR)) {
                 extractSoftErrorCount(tapeDriveState, s);
-
             } else if (s.contains(GENERAL_STATUS)) {
                 extractGeneralStatus(tapeDriveState, s);
-
             } else {
                 extractDriveStatus(tapeDriveState, s);
             }
@@ -89,7 +82,6 @@ public class TapeDriveStatusParser {
     private void extractFileAndBlockNumberAndPartition(TapeDriveState tapeDriveState, String s) {
         String fileNumber = StringUtils.substringBetween(s, FILE_NUMBER, BLOCK_NUMBER);
         tapeDriveState.setFileNumber(Integer.valueOf(fileNumber.trim()));
-
 
         String blockNumber = StringUtils.substringBetween(s, BLOCK_NUMBER, PARTITION);
         tapeDriveState.setBlockNumber(Integer.valueOf(blockNumber.trim()));

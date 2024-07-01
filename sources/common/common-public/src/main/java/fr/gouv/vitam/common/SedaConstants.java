@@ -84,7 +84,6 @@ public class SedaConstants {
      */
     public static final String STRATEGY_ID = "strategyId";
 
-
     /**
      * Tag of DataObjectVersion
      */
@@ -134,7 +133,6 @@ public class SedaConstants {
      * Tag of DataObjectGroupExistingReferenceId
      */
     public static final String TAG_DATA_OBJECT_GROUP_EXISTING_REFERENCEID = "DataObjectGroupExistingReferenceId";
-
 
     /**
      * Tag of RelatedObjectReference
@@ -189,7 +187,6 @@ public class SedaConstants {
      * Prefix of work element in the OG
      */
     public static final String PREFIX_WORK = "_work";
-
 
     /**
      * Prefix to be added in _work, it can be boolean or object. Used for linked AU to AU and/or GOT
@@ -675,7 +672,4 @@ public class SedaConstants {
         }
         return RULES_TYPE;
     }
-
-
-
 }

@@ -27,7 +27,6 @@
 package fr.gouv.vitam.metadata.core.validation;
 
 public enum MetadataValidationErrorCode {
-
     /**
      * Internal / built-in validation failed
      */

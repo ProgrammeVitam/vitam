@@ -36,11 +36,17 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 
 public class DownloadCountingSizeMetricsResponse extends VitamAutoClosableResponse {
+
     private final InputStream inputStream;
 
-    public DownloadCountingSizeMetricsResponse(Integer tenant, String strategy, String offer, String origin,
+    public DownloadCountingSizeMetricsResponse(
+        Integer tenant,
+        String strategy,
+        String offer,
+        String origin,
         DataCategory dataCategory,
-        Response response) {
+        Response response
+    ) {
         super(response);
         InputStream is = response.readEntity(InputStream.class);
         this.inputStream = new DownloadCountingInputStreamMetrics(tenant, strategy, offer, origin, dataCategory, is);

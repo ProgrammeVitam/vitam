@@ -90,10 +90,10 @@ import static javax.ws.rs.core.Response.Status.INTERNAL_SERVER_ERROR;
 import static javax.ws.rs.core.Response.Status.OK;
 import static javax.ws.rs.core.Response.Status.PRECONDITION_FAILED;
 
-
 @Path("/collect-external/v1/transactions")
 @Tag(name = "Collect-External")
 public class TransactionExternalResource extends ApplicationStatusResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TransactionExternalResource.class);
     private static final String PREDICATES_FAILED_EXCEPTION = "Predicates Failed Exception ";
     private static final String YOU_MUST_SUPPLY_TRANSACTION_DATA = "You must supply transaction data!";
@@ -113,8 +113,11 @@ public class TransactionExternalResource extends ApplicationStatusResource {
     }
 
     @VisibleForTesting
-    TransactionExternalResource(CollectInternalClientFactory collectInternalClientFactory,
-        IngestExternalClientFactory ingestExternalClientFactory, CollectExternalConfiguration configuration) {
+    TransactionExternalResource(
+        CollectInternalClientFactory collectInternalClientFactory,
+        IngestExternalClientFactory ingestExternalClientFactory,
+        CollectExternalConfiguration configuration
+    ) {
         this.collectInternalClientFactory = collectInternalClientFactory;
         this.ingestExternalClientFactory = ingestExternalClientFactory;
         this.configuration = configuration;
@@ -154,7 +157,6 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         }
     }
 
-
     @Path("/{transactionId}")
     @DELETE
     @Produces(APPLICATION_JSON)
@@ -173,12 +175,14 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         }
     }
 
-
     @Path("/{transactionId}/units")
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_UNIT_CREATE, description = "Crée une unité archivistique et la rattache à la transaction courante")
+    @Secured(
+        permission = TRANSACTION_UNIT_CREATE,
+        description = "Crée une unité archivistique et la rattache à la transaction courante"
+    )
     public Response uploadArchiveUnit(@PathParam("transactionId") String transactionId, JsonNode unitJsonNode) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
@@ -204,13 +208,17 @@ public class TransactionExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_UNIT_READ, description = "Récupère toutes les unités archivistique")
-    public Response selectUnits(@PathParam("transactionId") String transactionId,
-        @Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode jsonQuery) {
+    public Response selectUnits(
+        @PathParam("transactionId") String transactionId,
+        @Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode jsonQuery
+    ) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
             SanityChecker.checkJsonAll(jsonQuery);
-            SelectMultipleSchemaValidator.checkAuthorizeTrackTotalHits(jsonQuery,
-                configuration.isAuthorizeTrackTotalHits());
+            SelectMultipleSchemaValidator.checkAuthorizeTrackTotalHits(
+                jsonQuery,
+                configuration.isAuthorizeTrackTotalHits()
+            );
             RequestResponse<JsonNode> response = client.getUnitsByTransaction(transactionId, jsonQuery);
             return Response.ok(response).build();
         } catch (final VitamClientException e) {
@@ -222,8 +230,12 @@ public class TransactionExternalResource extends ApplicationStatusResource {
         } catch (ValidationException e) {
             LOGGER.error(UNAUTHORIZED_DSL_PARAMETER, e);
             return Response.status(Response.Status.UNAUTHORIZED)
-                .entity(VitamCodeHelper.toVitamError(VitamCode.COLLECT_EXTERNAL_SELECT_UNITS_ERROR,
-                    e.getLocalizedMessage()).setHttpCode(Response.Status.UNAUTHORIZED.getStatusCode()))
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.COLLECT_EXTERNAL_SELECT_UNITS_ERROR,
+                        e.getLocalizedMessage()
+                    ).setHttpCode(Response.Status.UNAUTHORIZED.getStatusCode())
+                )
                 .build();
         }
     }
@@ -290,13 +302,19 @@ public class TransactionExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_SEND, description = "Envoi vers VITAM la transaction")
     public Response generateAndSendSip(@PathParam("transactionId") String transactionId) {
-        try (CollectInternalClient collectClient = collectInternalClientFactory.getClient();
-            IngestExternalClient clientIngest = ingestExternalClientFactory.getClient()) {
+        try (
+            CollectInternalClient collectClient = collectInternalClientFactory.getClient();
+            IngestExternalClient clientIngest = ingestExternalClientFactory.getClient()
+        ) {
             SanityChecker.checkParameter(transactionId);
             LOGGER.info("Preparing SIP transaction to workspace");
             InputStream responseStream = collectClient.generateSip(transactionId);
-            RequestResponse<Void> response = clientIngest.ingest(new VitamContext(ParameterHelper.getTenantParameter()),
-                responseStream, DEFAULT_WORKFLOW.name(), RESUME.name());
+            RequestResponse<Void> response = clientIngest.ingest(
+                new VitamContext(ParameterHelper.getTenantParameter()),
+                responseStream,
+                DEFAULT_WORKFLOW.name(),
+                RESUME.name()
+            );
             collectClient.attachVitamOperationId(transactionId, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
             collectClient.changeTransactionStatus(transactionId, TransactionStatus.SENT);
             LOGGER.info("SIP sent with success ");
@@ -315,17 +333,22 @@ public class TransactionExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_ID_UNITS_UPDATE, description = "Mettre à jour les unités archivistiques")
-    public Response updateUnitsWithMetadataCsv(@PathParam("transactionId") String transactionId,
-        InputStream metadataCsvInputStream) {
+    public Response updateUnitsWithMetadataCsv(
+        @PathParam("transactionId") String transactionId,
+        InputStream metadataCsvInputStream
+    ) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
 
             ParametersChecker.checkParameter("You must supply a file!", metadataCsvInputStream);
-            final RequestResponse<JsonNode> response =
-                client.updateUnitsWithCsvMetadata(transactionId, metadataCsvInputStream);
+            final RequestResponse<JsonNode> response = client.updateUnitsWithCsvMetadata(
+                transactionId,
+                metadataCsvInputStream
+            );
             return Response.status(OK).entity(response).build();
-        } catch (InvalidParseOperationException | IllegalArgumentException |
-                 CollectInternalClientInvalidRequestException e) {
+        } catch (
+            InvalidParseOperationException | IllegalArgumentException | CollectInternalClientInvalidRequestException e
+        ) {
             LOGGER.error("Bad request: " + e.getLocalizedMessage(), e);
             return CollectRequestResponse.toVitamError(BAD_REQUEST, e.getLocalizedMessage());
         } catch (final VitamClientException e) {
@@ -336,11 +359,13 @@ public class TransactionExternalResource extends ApplicationStatusResource {
 
     @Path("/{transactionId}/upload")
     @POST
-    @Consumes({CommonMediaType.ZIP})
+    @Consumes({ CommonMediaType.ZIP })
     @Produces(APPLICATION_JSON)
     @Secured(permission = TRANSACTION_ZIP_CREATE, description = "Charge les binaires d'une transaction")
-    public Response uploadTransactionZip(@PathParam("transactionId") String transactionId,
-        InputStream inputStreamObject) {
+    public Response uploadTransactionZip(
+        @PathParam("transactionId") String transactionId,
+        InputStream inputStreamObject
+    ) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
             ParametersChecker.checkParameter("You must supply a file!", inputStreamObject);
@@ -361,10 +386,14 @@ public class TransactionExternalResource extends ApplicationStatusResource {
     @Path("/{transactionId}/unitsWithInheritedRules")
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = TRANSACTION_UNIT_WITH_INHERITED_RULES_READ, description = "Récupérer la liste des unités archivistiques avec leurs règles de gestion héritées")
-    public Response selectUnitsWithInheritedRules(@PathParam("transactionId") String transactionId,
-        @Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson) {
-
+    @Secured(
+        permission = TRANSACTION_UNIT_WITH_INHERITED_RULES_READ,
+        description = "Récupérer la liste des unités archivistiques avec leurs règles de gestion héritées"
+    )
+    public Response selectUnitsWithInheritedRules(
+        @PathParam("transactionId") String transactionId,
+        @Dsl(value = DslSchema.SELECT_MULTIPLE) JsonNode queryJson
+    ) {
         try (CollectInternalClient client = collectInternalClientFactory.getClient()) {
             SanityChecker.checkParameter(transactionId);
             RequestResponse<JsonNode> result = client.selectUnitsWithInheritedRules(transactionId, queryJson);

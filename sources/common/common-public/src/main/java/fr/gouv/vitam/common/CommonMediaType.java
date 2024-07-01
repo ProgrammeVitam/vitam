@@ -38,7 +38,7 @@ public class CommonMediaType extends MediaType {
     /**
      * A {@code String} constant representing {@value #ZIP} media type.
      */
-    public final static String ZIP = "application/zip";
+    public static final String ZIP = "application/zip";
 
     /**
      * A {@link MediaType} constant representing {@value #ZIP} media type.
@@ -47,7 +47,7 @@ public class CommonMediaType extends MediaType {
     /**
      * A {@code String} constant representing {@value #TAR} media type.
      */
-    public final static String TAR = "application/x-tar";
+    public static final String TAR = "application/x-tar";
     /**
      * A {@link MediaType} constant representing {@value #TAR} media type.
      */
@@ -56,7 +56,7 @@ public class CommonMediaType extends MediaType {
     /**
      * A {@code String} constant representing {@value #XGZIP} media type.
      */
-    public final static String XGZIP = "application/x-gzip";
+    public static final String XGZIP = "application/x-gzip";
     /**
      * A {@link MediaType} constant representing {@value #XGZIP} media type.
      */
@@ -65,7 +65,7 @@ public class CommonMediaType extends MediaType {
     /**
      * A {@code String} constant representing {@value #XGZIP} media type.
      */
-    public final static String GZIP = "application/gzip";
+    public static final String GZIP = "application/gzip";
     /**
      * A {@link MediaType} constant representing {@value #GZIP} media type.
      */
@@ -113,7 +113,6 @@ public class CommonMediaType extends MediaType {
                 return TAR_TYPE;
             case BZIP2:
                 return BZIP2_TYPE;
-
             default:
                 throw new IllegalArgumentException("Unsupported media type:" + archivetype);
         }
@@ -130,9 +129,7 @@ public class CommonMediaType extends MediaType {
             throw new IllegalArgumentException("mediaType must not be null.");
         }
         return mediaType.getType() + "/" + mediaType.getSubtype();
-
     }
-
 
     /**
      * Checks archive type if is supported by Vitam.
@@ -142,7 +139,6 @@ public class CommonMediaType extends MediaType {
      * @since 0.10.0
      */
     public static boolean isSupportedFormat(String mimeType) {
-
         switch (mimeType) {
             case CommonMediaType.ZIP:
             case CommonMediaType.XGZIP:
@@ -153,8 +149,5 @@ public class CommonMediaType extends MediaType {
             default:
                 return false;
         }
-
     }
-
-
 }

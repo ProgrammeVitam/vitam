@@ -61,8 +61,7 @@ import java.util.Optional;
  */
 public class CleanupReportManager {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(CleanupReportManager.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CleanupReportManager.class);
 
     public static final String CLEANUP_REPORT_BACKUP_FILE_NAME = "cleanupReportBackup.json";
     private static final String JSONL_EXTENSION = ".jsonl";
@@ -74,45 +73,48 @@ public class CleanupReportManager {
     }
 
     public void reportUnitError(String id, String message) {
-        IngestCleanupUnitReportEntry unitReportEntry =
-            cleanupReport.getUnits().computeIfAbsent(id, (_id) -> new IngestCleanupUnitReportEntry().setId(_id));
+        IngestCleanupUnitReportEntry unitReportEntry = cleanupReport
+            .getUnits()
+            .computeIfAbsent(id, _id -> new IngestCleanupUnitReportEntry().setId(_id));
         unitReportEntry.addError(message);
         unitReportEntry.updateStatus(StatusCode.KO);
     }
 
     public void reportUnitWarning(String id, String message) {
-        IngestCleanupUnitReportEntry unitReportEntry =
-            cleanupReport.getUnits().computeIfAbsent(id, (_id) -> new IngestCleanupUnitReportEntry().setId(_id));
+        IngestCleanupUnitReportEntry unitReportEntry = cleanupReport
+            .getUnits()
+            .computeIfAbsent(id, _id -> new IngestCleanupUnitReportEntry().setId(_id));
         unitReportEntry.addWarning(message);
         unitReportEntry.updateStatus(StatusCode.WARNING);
     }
 
     public void reportObjectGroupError(String id, String message) {
-        IngestCleanupObjectGroupReportEntry objectGroupReportEntry =
-            cleanupReport.getObjectGroups()
-                .computeIfAbsent(id, (_id) -> new IngestCleanupObjectGroupReportEntry().setId(_id));
+        IngestCleanupObjectGroupReportEntry objectGroupReportEntry = cleanupReport
+            .getObjectGroups()
+            .computeIfAbsent(id, _id -> new IngestCleanupObjectGroupReportEntry().setId(_id));
         objectGroupReportEntry.addError(message);
         objectGroupReportEntry.updateStatus(StatusCode.KO);
     }
 
     public void reportObjectGroupWarning(String id, String message) {
-        IngestCleanupObjectGroupReportEntry objectGroupReportEntry =
-            cleanupReport.getObjectGroups()
-                .computeIfAbsent(id, (_id) -> new IngestCleanupObjectGroupReportEntry().setId(_id));
+        IngestCleanupObjectGroupReportEntry objectGroupReportEntry = cleanupReport
+            .getObjectGroups()
+            .computeIfAbsent(id, _id -> new IngestCleanupObjectGroupReportEntry().setId(_id));
         objectGroupReportEntry.addWarning(message);
         objectGroupReportEntry.updateStatus(StatusCode.WARNING);
     }
 
     public void reportDeletedUnit(String id) {
-        IngestCleanupUnitReportEntry unitReportEntry =
-            cleanupReport.getUnits().computeIfAbsent(id, (_id) -> new IngestCleanupUnitReportEntry().setId(_id));
+        IngestCleanupUnitReportEntry unitReportEntry = cleanupReport
+            .getUnits()
+            .computeIfAbsent(id, _id -> new IngestCleanupUnitReportEntry().setId(_id));
         unitReportEntry.updateStatus(StatusCode.OK);
     }
 
     public void reportDeletedObjectGroup(String id, List<String> objects) {
-        IngestCleanupObjectGroupReportEntry objectGroupReportEntry =
-            cleanupReport.getObjectGroups()
-                .computeIfAbsent(id, (_id) -> new IngestCleanupObjectGroupReportEntry().setId(_id));
+        IngestCleanupObjectGroupReportEntry objectGroupReportEntry = cleanupReport
+            .getObjectGroups()
+            .computeIfAbsent(id, _id -> new IngestCleanupObjectGroupReportEntry().setId(_id));
         objectGroupReportEntry.updateStatus(StatusCode.OK);
         objectGroupReportEntry.setObjects(objects);
     }
@@ -144,18 +146,19 @@ public class CleanupReportManager {
     }
 
     public void exportReport(HandlerIO handlerIO, StorageClient storageClient) throws ProcessingStatusException {
-
         File tmpFile = generateReport(handlerIO);
         saveReportToOffers(handlerIO, storageClient, tmpFile);
     }
 
     private File generateReport(HandlerIO handlerIO) throws ProcessingStatusException {
         File tmpFile = handlerIO.getNewLocalFile(GUIDFactory.newGUID().getId());
-        try (FileOutputStream fileOutputStream = new FileOutputStream(tmpFile);
-            JsonLineWriter writer = new JsonLineWriter(fileOutputStream)) {
-
+        try (
+            FileOutputStream fileOutputStream = new FileOutputStream(tmpFile);
+            JsonLineWriter writer = new JsonLineWriter(fileOutputStream)
+        ) {
             writer.addEntry(
-                JsonHandler.createObjectNode().put("ingestOperationId", this.cleanupReport.getIngestOperationId()));
+                JsonHandler.createObjectNode().put("ingestOperationId", this.cleanupReport.getIngestOperationId())
+            );
             for (IngestCleanupUnitReportEntry unit : this.cleanupReport.getUnits().values()) {
                 writer.addEntry(new JsonLineModel(unit.getId(), null, JsonHandler.toJsonNode(unit)));
             }
@@ -171,17 +174,24 @@ public class CleanupReportManager {
     private void saveReportToOffers(HandlerIO handlerIO, StorageClient storageClient, File tmpFile)
         throws ProcessingStatusException {
         try {
-
             String reportFileName = handlerIO.getContainerName() + JSONL_EXTENSION;
             handlerIO.transferFileToWorkspace(reportFileName, tmpFile, true, false);
             ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(handlerIO.getContainerName());
             description.setWorkspaceObjectURI(reportFileName);
 
-            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.REPORT,
-                reportFileName, description);
-
-        } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException | StorageServerClientException | ProcessingException e) {
+            storageClient.storeFileFromWorkspace(
+                VitamConfiguration.getDefaultStrategy(),
+                DataCategory.REPORT,
+                reportFileName,
+                description
+            );
+        } catch (
+            StorageAlreadyExistsClientException
+            | StorageNotFoundClientException
+            | StorageServerClientException
+            | ProcessingException e
+        ) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not export report", e);
         }
     }

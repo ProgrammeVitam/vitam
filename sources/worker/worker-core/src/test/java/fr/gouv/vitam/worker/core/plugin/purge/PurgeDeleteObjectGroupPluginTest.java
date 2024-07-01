@@ -66,8 +66,9 @@ import static org.mockito.Mockito.verify;
 public class PurgeDeleteObjectGroupPluginTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -90,55 +91,72 @@ public class PurgeDeleteObjectGroupPluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
         doReturn(metaDataClient).when(metaDataClientFactory).getClient();
 
         ArrayNode got1ObjectsDetails = JsonHandler.createArrayNode();
-        got1ObjectsDetails
-            .add(JsonHandler.createObjectNode().put("id", "id_got1_object_1").put("strategyId", "default-binary-fake"));
-        got1ObjectsDetails
-            .add(JsonHandler.createObjectNode().put("id", "id_got1_object_2").put("strategyId", "default-binary-fake"));
+        got1ObjectsDetails.add(
+            JsonHandler.createObjectNode().put("id", "id_got1_object_1").put("strategyId", "default-binary-fake")
+        );
+        got1ObjectsDetails.add(
+            JsonHandler.createObjectNode().put("id", "id_got1_object_2").put("strategyId", "default-binary-fake")
+        );
 
         ArrayNode got2ObjectsDetails = JsonHandler.createArrayNode();
-        got1ObjectsDetails
-            .add(JsonHandler.createObjectNode().put("id", "id_got2_object_1").put("strategyId", "default-binary-fake"));
+        got1ObjectsDetails.add(
+            JsonHandler.createObjectNode().put("id", "id_got2_object_1").put("strategyId", "default-binary-fake")
+        );
 
-        params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+        params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectNameList(Arrays.asList("id_got_1", "id_got_2"))
-            .setObjectMetadataList(Arrays.asList(
-                JsonHandler.createObjectNode().put("id", "id_got_1").put("strategyId", "default-fake")
-                    .set("objects", got1ObjectsDetails),
-                JsonHandler.createObjectNode().put("id", "id_got_2").put("strategyId", "default-fake")
-                    .set("objects", got2ObjectsDetails)))
+            .setObjectMetadataList(
+                Arrays.asList(
+                    JsonHandler.createObjectNode()
+                        .put("id", "id_got_1")
+                        .put("strategyId", "default-fake")
+                        .set("objects", got1ObjectsDetails),
+                    JsonHandler.createObjectNode()
+                        .put("id", "id_got_2")
+                        .put("strategyId", "default-fake")
+                        .set("objects", got2ObjectsDetails)
+                )
+            )
             .setCurrentStep("StepName");
 
         instance = new PurgeDeleteObjectGroupPlugin("PLUGIN_ACTIOB", purgeDeleteService);
     }
 
     @After
-    public void tearDown() throws Exception {
-    }
+    public void tearDown() throws Exception {}
 
     @Test
     @RunWithCustomExecutor
     public void testDeleteObjectGroup_OK() throws Exception {
-
         List<ItemStatus> itemStatuses = instance.executeList(params, handler);
 
         assertThat(itemStatuses).hasSize(2);
         assertThat(itemStatuses.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(itemStatuses.get(1).getGlobalStatus()).isEqualTo(StatusCode.OK);
 
-        Map<String, String> gotIdsWithStrategies =
-            ImmutableMap.of("id_got_1", "default-fake", "id_got_2", "default-fake");
-        Map<String, String> objectsIdsWithStrategies = ImmutableMap
-            .of("id_got1_object_1", "default-binary-fake", "id_got1_object_2", "default-binary-fake",
-                "id_got2_object_1", "default-binary-fake");
+        Map<String, String> gotIdsWithStrategies = ImmutableMap.of(
+            "id_got_1",
+            "default-fake",
+            "id_got_2",
+            "default-fake"
+        );
+        Map<String, String> objectsIdsWithStrategies = ImmutableMap.of(
+            "id_got1_object_1",
+            "default-binary-fake",
+            "id_got1_object_2",
+            "default-binary-fake",
+            "id_got2_object_1",
+            "default-binary-fake"
+        );
         verify(purgeDeleteService).deleteObjectGroups(argThat(new MapMatcher(gotIdsWithStrategies)));
         verify(purgeDeleteService).deleteObjects(argThat(new MapMatcher(objectsIdsWithStrategies)));
     }
@@ -146,7 +164,6 @@ public class PurgeDeleteObjectGroupPluginTest {
     @Test
     @RunWithCustomExecutor
     public void testDeleteObjectGroup_ObjectGroupException() throws Exception {
-
         doThrow(MetaDataClientServerException.class).when(purgeDeleteService).deleteObjectGroups(any());
 
         List<ItemStatus> itemStatuses = instance.executeList(params, handler);
@@ -158,7 +175,6 @@ public class PurgeDeleteObjectGroupPluginTest {
     @Test
     @RunWithCustomExecutor
     public void testDeleteObjectGroup_ObjectException() throws Exception {
-
         doThrow(StorageServerClientException.class).when(purgeDeleteService).deleteObjects(any());
 
         List<ItemStatus> itemStatuses = instance.executeList(params, handler);
@@ -166,5 +182,4 @@ public class PurgeDeleteObjectGroupPluginTest {
         assertThat(itemStatuses).hasSize(1);
         assertThat(itemStatuses.get(0).getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
-
 }

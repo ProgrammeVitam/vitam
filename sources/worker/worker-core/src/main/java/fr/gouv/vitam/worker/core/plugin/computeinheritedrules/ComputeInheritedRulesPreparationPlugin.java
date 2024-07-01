@@ -67,15 +67,15 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ComputeInheritedRulesPreparationPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ComputeInheritedRulesPreparationPlugin.class
+    );
 
     private static final String PLUGIN_NAME = "COMPUTE_INHERITED_RULES_PREPARATION";
 
     private final MetaDataClientFactory metaDataClientFactory;
 
     static final String UNITS_JSONL_FILE = "units.jsonl";
-
 
     public ComputeInheritedRulesPreparationPlugin() {
         this(MetaDataClientFactory.getInstance());
@@ -84,18 +84,18 @@ public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
     @VisibleForTesting
     ComputeInheritedRulesPreparationPlugin(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
-
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         JsonNode dslQuery = handler.getJsonFromWorkspace("query.json");
         try {
             process(handler, dslQuery);
         } catch (ComputedInheritedRulesException e) {
-            LOGGER.error(String.format("ComputeInheritedRules preparation failed with status [%s]", e.getStatusCode()),
-                e);
+            LOGGER.error(
+                String.format("ComputeInheritedRules preparation failed with status [%s]", e.getStatusCode()),
+                e
+            );
             ObjectNode error = createObjectNode().put("error", e.getMessage());
             return buildItemStatus(PLUGIN_NAME, e.getStatusCode(), error);
         }
@@ -106,8 +106,10 @@ public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
         File unitDistributionFile = null;
         try (MetaDataClient metadataClient = metaDataClientFactory.getClient()) {
             SelectMultiQuery selectMultiQuery = createSelectMultiple(dslQuery);
-            ScrollSpliterator<JsonNode> scrollRequest =
-                ScrollSpliteratorHelper.createUnitScrollSplitIterator(metadataClient, selectMultiQuery);
+            ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createUnitScrollSplitIterator(
+                metadataClient,
+                selectMultiQuery
+            );
             Iterator<JsonNode> unitIterator = new SpliteratorIterator<>(scrollRequest);
             unitDistributionFile = handler.getNewLocalFile(UNITS_JSONL_FILE);
             try (JsonLineWriter unitWriter = new JsonLineWriter(new FileOutputStream(unitDistributionFile))) {
@@ -119,24 +121,24 @@ public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
                 }
             }
             handler.transferFileToWorkspace(UNITS_JSONL_FILE, unitDistributionFile, true, false);
-
         } catch (IOException | InvalidParseOperationException | ProcessingException e) {
-            throw new ComputedInheritedRulesException(StatusCode.FATAL,
-                "Could not generate unit and/or object group distributions", e);
+            throw new ComputedInheritedRulesException(
+                StatusCode.FATAL,
+                "Could not generate unit and/or object group distributions",
+                e
+            );
         } finally {
             FileUtils.deleteQuietly(unitDistributionFile);
         }
     }
 
     private SelectMultiQuery createSelectMultiple(JsonNode initialQuery) throws InvalidParseOperationException {
-
         SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(initialQuery);
         SelectMultiQuery selectMultiQuery = parser.getRequest();
         ObjectNode projectionNode = getQueryProjectionToApply();
         selectMultiQuery.setProjection(projectionNode);
         return selectMultiQuery;
-
     }
 
     private ObjectNode getQueryProjectionToApply() {
@@ -146,5 +148,4 @@ public class ComputeInheritedRulesPreparationPlugin extends ActionHandler {
         projectionNode.set(FIELDS.exactToken(), fields);
         return projectionNode;
     }
-
 }

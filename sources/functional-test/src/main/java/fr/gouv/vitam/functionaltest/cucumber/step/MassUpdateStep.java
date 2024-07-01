@@ -43,7 +43,6 @@ import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Java6Assertions.fail;
 
-
 /**
  * MassUpdateStep class
  */
@@ -61,8 +60,9 @@ public class MassUpdateStep extends CommonStep {
 
         String query = world.getQuery();
         JsonNode queryString = JsonHandler.getFromString(query);
-        final RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().massUpdateUnits(vitamContext, queryString);
+        final RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .massUpdateUnits(vitamContext, queryString);
 
         assertThat(requestResponse.isOk()).isTrue();
 
@@ -70,8 +70,14 @@ public class MassUpdateStep extends CommonStep {
         world.setOperationId(operationId);
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        boolean processTimeout = vitamPoolingClient.wait(
+            world.getTenantId(),
+            operationId,
+            ProcessState.COMPLETED,
+            100,
+            1_000L,
+            TimeUnit.MILLISECONDS
+        );
 
         if (!processTimeout) {
             fail("units update  processing not finished. Timeout exceeded.");
@@ -88,8 +94,9 @@ public class MassUpdateStep extends CommonStep {
 
         String query = world.getQuery();
         JsonNode queryString = JsonHandler.getFromString(query);
-        final RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().massUpdateUnitsRules(vitamContext, queryString);
+        final RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .massUpdateUnitsRules(vitamContext, queryString);
 
         assertThat(requestResponse.isOk()).isTrue();
 
@@ -97,8 +104,14 @@ public class MassUpdateStep extends CommonStep {
         world.setOperationId(operationId);
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        boolean processTimeout = vitamPoolingClient.wait(
+            world.getTenantId(),
+            operationId,
+            ProcessState.COMPLETED,
+            100,
+            1_000L,
+            TimeUnit.MILLISECONDS
+        );
 
         if (!processTimeout) {
             fail("unit rules update processing not finished. Timeout exceeded.");
@@ -115,12 +128,13 @@ public class MassUpdateStep extends CommonStep {
 
         String query = world.getQuery();
         JsonNode queryString = JsonHandler.getFromString(query);
-        RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().massUpdateUnitsRules(vitamContext, queryString);
+        RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .massUpdateUnitsRules(vitamContext, queryString);
 
-        JsonNode codes =
-            JsonHandler.toJsonNode(Collections.singletonMap("Code", String.valueOf(requestResponse.getHttpCode())));
+        JsonNode codes = JsonHandler.toJsonNode(
+            Collections.singletonMap("Code", String.valueOf(requestResponse.getHttpCode()))
+        );
         world.setResults(Collections.singletonList(codes));
     }
-
 }

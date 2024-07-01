@@ -95,8 +95,7 @@ public class AgenciesResourceTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
@@ -122,8 +121,9 @@ public class AgenciesResourceTest {
     private static int workspacePort = junitHelper.findAvailablePort();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -133,16 +133,21 @@ public class AgenciesResourceTest {
 
     @Rule
     public WireMockClassRule instanceRule = wireMockRule;
+
     private String AGENCIES_URI = "/agencies/import";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
             new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager),
-            Arrays.asList(FunctionalAdminCollections.RULES, FunctionalAdminCollections.AGENCIES));
+            Arrays.asList(FunctionalAdminCollections.RULES, FunctionalAdminCollections.AGENCIES)
+        );
 
         File tmpFolder = tempFolder.newFolder();
         System.setProperty("vitam.tmp.folder", tmpFolder.getAbsolutePath());
@@ -150,10 +155,11 @@ public class AgenciesResourceTest {
 
         LogbookOperationsClientFactory.changeMode(null);
 
-
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+        final AdminManagementConfiguration realAdminConfig = PropertiesUtils.readYaml(
+            adminConfig,
+            AdminManagementConfiguration.class
+        );
         realAdminConfig.getMongoDbNodes().get(0).setDbPort(mongoRule.getDataBasePort());
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
@@ -165,10 +171,11 @@ public class AgenciesResourceTest {
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, mongoRule.getDataBasePort()));
-        mongoDbAccess =
-            MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
-                    indexManager);
+        mongoDbAccess = MongoDbAccessAdminFactory.create(
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+            Collections::emptyList,
+            indexManager
+        );
 
         serverPort = junitHelper.findAvailablePort();
 
@@ -181,8 +188,7 @@ public class AgenciesResourceTest {
             JunitHelper.unsetJettyPortSystemProperty();
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the AdminManagement Application Server", e);
+            throw new IllegalStateException("Cannot start the AdminManagement Application Server", e);
         }
     }
 
@@ -203,18 +209,23 @@ public class AgenciesResourceTest {
     @Before
     public void setUp() {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
-        instanceRule.stubFor(WireMock.post(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(
-                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
-        instanceRule.stubFor(WireMock.delete(urlMatching("/workspace/v1/containers/(.*)"))
-            .willReturn(
-                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))));
+        instanceRule.stubFor(
+            WireMock.post(urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                aResponse().withStatus(201).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
+        instanceRule.stubFor(
+            WireMock.delete(urlMatching("/workspace/v1/containers/(.*)")).willReturn(
+                aResponse().withStatus(204).withHeader(GlobalDataRest.X_TENANT_ID, Integer.toString(TENANT_ID))
+            )
+        );
     }
 
     @After
     public void tearDown() throws Exception {
-        FunctionalAdminCollectionsTestUtils
-            .afterTest(Arrays.asList(FunctionalAdminCollections.RULES, FunctionalAdminCollections.AGENCIES));
+        FunctionalAdminCollectionsTestUtils.afterTest(
+            Arrays.asList(FunctionalAdminCollections.RULES, FunctionalAdminCollections.AGENCIES)
+        );
     }
 
     @Test
@@ -231,12 +242,15 @@ public class AgenciesResourceTest {
         File fileAgencies = PropertiesUtils.getResourceFile("agencies.csv");
         MetaDataClientFactory.changeMode(null);
 
-        given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
+        given()
+            .contentType(ContentType.BINARY)
+            .body(new FileInputStream(fileAgencies))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
-            .when().post(AGENCIES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
+            .when()
+            .post(AGENCIES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
     }
 
     @Test
@@ -247,15 +261,16 @@ public class AgenciesResourceTest {
 
         MetaDataClientFactory.changeMode(null);
 
-        given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
+        given()
+            .contentType(ContentType.BINARY)
+            .body(new FileInputStream(fileAgencies))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
-            .when().post(AGENCIES_URI)
-            .then().statusCode(Status.BAD_REQUEST.getStatusCode());
+            .when()
+            .post(AGENCIES_URI)
+            .then()
+            .statusCode(Status.BAD_REQUEST.getStatusCode());
     }
-
-
 
     @Test
     @RunWithCustomExecutor
@@ -263,25 +278,32 @@ public class AgenciesResourceTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         File fileAgencies = PropertiesUtils.getResourceFile("agencies.csv");
         // first succefull create
-        given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
+        given()
+            .contentType(ContentType.BINARY)
+            .body(new FileInputStream(fileAgencies))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-
-            .when().post(AGENCIES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
-
+            .when()
+            .post(AGENCIES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
         String name = "AG-000003";
         Select select = new Select();
         select.setQuery(QueryHelper.eq(Agencies.IDENTIFIER, name));
 
-        JsonPath body = given().contentType(ContentType.JSON)
+        JsonPath body = given()
+            .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .body(select.getFinalSelect())
             .when()
             .get(AgenciesResource.AGENCIES)
-            .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .jsonPath();
         List<String> names = body.get("$results.Identifier");
 
         assertThat(names).hasSize(1);
@@ -289,34 +311,45 @@ public class AgenciesResourceTest {
         name = "agency";
         select = new Select();
         select.setQuery(QueryHelper.eq("Name", name));
-        body = given().contentType(ContentType.JSON)
+        body = given()
+            .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .body(select.getFinalSelect())
             .when()
             .get(AgenciesResource.AGENCIES)
-            .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .jsonPath();
         names = body.get("$results.Identifier");
         assertThat(names.size()).isEqualTo(5);
 
         fileAgencies = PropertiesUtils.getResourceFile("agencies_remove.csv");
-        given().contentType(ContentType.BINARY).body(new FileInputStream(fileAgencies))
+        given()
+            .contentType(ContentType.BINARY)
+            .body(new FileInputStream(fileAgencies))
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
+            .when()
+            .post(AGENCIES_URI)
+            .then()
+            .statusCode(Status.CREATED.getStatusCode());
 
-            .when().post(AGENCIES_URI)
-            .then().statusCode(Status.CREATED.getStatusCode());
-
-        JsonPath agenciesAfterDelete = given().contentType(ContentType.JSON)
+        JsonPath agenciesAfterDelete = given()
+            .contentType(ContentType.JSON)
             .header(GlobalDataRest.X_TENANT_ID, 0)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
             .body(new Select().getFinalSelect())
             .when()
             .get(AgenciesResource.AGENCIES)
-            .then().statusCode(Status.OK.getStatusCode()).extract().body().jsonPath();
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .extract()
+            .body()
+            .jsonPath();
         names = agenciesAfterDelete.get("$results.Identifier");
         assertThat(names.size()).isEqualTo(4);
-
     }
-
 }

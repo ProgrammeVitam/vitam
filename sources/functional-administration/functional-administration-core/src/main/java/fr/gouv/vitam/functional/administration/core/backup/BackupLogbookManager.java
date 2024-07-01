@@ -76,15 +76,24 @@ public class BackupLogbookManager {
      * @param eventType the event type to be logged
      * @throws VitamException thrown if the logbook could not be updated
      */
-    public void logEventSuccess(GUID logbookOperationMasterId, String eventType, String digestStr, String fileName,
-        String objectIdentifier)
-        throws VitamException {
+    public void logEventSuccess(
+        GUID logbookOperationMasterId,
+        String eventType,
+        String digestStr,
+        String fileName,
+        String objectIdentifier
+    ) throws VitamException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
 
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, eventType, logbookOperationMasterId, LogbookTypeProcess.MASTERDATA,
-                StatusCode.OK,
-                getCodeOp(eventType, StatusCode.OK), logbookOperationMasterId);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            eventType,
+            logbookOperationMasterId,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.OK,
+            getCodeOp(eventType, StatusCode.OK),
+            logbookOperationMasterId
+        );
 
         if (objectIdentifier != null && !objectIdentifier.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, objectIdentifier);
@@ -95,8 +104,7 @@ public class BackupLogbookManager {
         evDetData.put(DIGEST, digestStr);
         evDetData.put(DIGESTTYPE, VitamConfiguration.getDefaultDigestType().getName());
 
-        logbookParameters.putParameterValue(
-            LogbookParameterName.eventDetailData, JsonHandler.unprettyPrint(evDetData));
+        logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, JsonHandler.unprettyPrint(evDetData));
 
         LogbookOperationsClient logbookClient = logbookClientFactory.getClient();
         logbookClient.update(logbookParameters);
@@ -114,10 +122,15 @@ public class BackupLogbookManager {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
 
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, eventType, logbookOperationMasterId,
-                LogbookTypeProcess.MASTERDATA, StatusCode.KO, getCodeOp(eventType, StatusCode.KO),
-                logbookOperationMasterId);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            eventType,
+            logbookOperationMasterId,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.KO,
+            getCodeOp(eventType, StatusCode.KO),
+            logbookOperationMasterId
+        );
         logbookMessageError(errorsDetails, logbookParameters);
 
         LogbookOperationsClient logbookClient = logbookClientFactory.getClient();
@@ -133,7 +146,6 @@ public class BackupLogbookManager {
         try {
             wellFormedJson = SanityChecker.sanitizeJson(object);
             logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, wellFormedJson);
-
         } catch (InvalidParseOperationException e) {
             throw new IllegalStateException("Could not sanitize json message: " + errorsDetails, e);
         }

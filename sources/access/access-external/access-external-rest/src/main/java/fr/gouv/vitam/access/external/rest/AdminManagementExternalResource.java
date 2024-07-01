@@ -244,9 +244,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     private static final String ATTACHEMENT_FILENAME = "attachment; filename=rapport.json";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminManagementExternalResource.class);
     private static final String ACCESS_EXTERNAL_MODULE = "ADMIN_EXTERNAL";
+
     // Should be replaced in code by a real code from VitamCode
     @Deprecated
     private static final String CODE_VITAM = "code_vitam";
+
     private static final String HTML_CONTENT_MSG_ERROR = "document has toxic HTML content";
 
     private static final String DOCUMENT_IS_MANDATORY = "document is a mandatory parameter";
@@ -281,7 +283,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         SecureEndpointRegistry secureEndpointRegistry,
         AdminManagementClientFactory adminManagementClientFactory,
         IngestInternalClientFactory ingestInternalClientFactory,
-        AccessInternalClientFactory accessInternalClientFactory) {
+        AccessInternalClientFactory accessInternalClientFactory
+    ) {
         super(statusService);
         this.secureEndpointRegistry = secureEndpointRegistry;
         this.adminManagementClientFactory = adminManagementClientFactory;
@@ -295,9 +298,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path("/")
     @OPTIONS
     @Produces(APPLICATION_JSON)
-    @Unsecured()
+    @Unsecured
     public Response listResourceEndpoints() {
-
         String resourcePath = AdminManagementExternalResource.class.getAnnotation(Path.class).value();
 
         List<EndpointInfo> securedEndpointList = this.secureEndpointRegistry.getEndPointsByResourcePath(resourcePath);
@@ -315,10 +317,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = FORMATSFILE_CHECK, isAdminOnly = true,
-        description = "Vérifier si le référentiel des formats que l'on souhaite importer est valide")
+    @Secured(
+        permission = FORMATSFILE_CHECK,
+        isAdminOnly = true,
+        description = "Vérifier si le référentiel des formats que l'on souhaite importer est valide"
+    )
     public Response checkDocument(InputStream document) {
-
         checkParameter("xmlPronom is a mandatory parameter", document);
         return asyncCheckFormat(document);
     }
@@ -333,8 +337,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = RULESFILE_CHECK,
-        description = "Vérifier si le référentiel de règles de gestions que l'on souhaite importer est valide")
+    @Secured(
+        permission = RULESFILE_CHECK,
+        description = "Vérifier si le référentiel de règles de gestions que l'on souhaite importer est valide"
+    )
     public Response checkRules(InputStream document) {
         try {
             return asyncDownloadErrorReportRules(document);
@@ -342,7 +348,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(INTERNAL_SERVER_ERROR).build();
         }
     }
-
 
     /**
      * check agencies
@@ -354,8 +359,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = AGENCIESFILE_CHECK,
-        description = "Vérifier si le référentiel de services producteurs que l'on souhaite importer est valide")
+    @Secured(
+        permission = AGENCIESFILE_CHECK,
+        description = "Vérifier si le référentiel de services producteurs que l'on souhaite importer est valide"
+    )
     public Response checkAgencies(InputStream document) {
         return asyncDownloadErrorReportAgencies(document);
     }
@@ -372,11 +379,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         } catch (ReferentialException e) {
             LOGGER.error(e);
             StreamUtils.closeSilently(document);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
-
 
     /**
      * Return the Error Report or close the asyncResonse
@@ -388,8 +393,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             final Response response = client.checkRulesFile(document);
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
-            return new VitamAsyncInputStreamResponse(response,
-                (Status) response.getStatusInfo(), headers);
+            return new VitamAsyncInputStreamResponse(response, (Status) response.getStatusInfo(), headers);
         } catch (AdminManagementClientBadRequestException e) {
             VitamError error = new VitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getItem())
                 .setMessage(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getMessage())
@@ -397,8 +401,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setCode(VitamCodeHelper.getCode(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST))
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getMessage());
-            return Response.status(BAD_REQUEST)
-                .entity(JsonHandler.writeToInpustream(error)).build();
+            return Response.status(BAD_REQUEST).entity(JsonHandler.writeToInpustream(error)).build();
         } catch (Exception e) {
             return asyncResponseResume(e, document);
         }
@@ -414,8 +417,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             final Response response = client.checkAgenciesFile(document);
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
             headers.put(HttpHeaders.CONTENT_DISPOSITION, ATTACHEMENT_FILENAME);
-            return new VitamAsyncInputStreamResponse(response,
-                (Status) response.getStatusInfo(), headers);
+            return new VitamAsyncInputStreamResponse(response, (Status) response.getStatusInfo(), headers);
         } catch (AdminManagementClientBadRequestException e) {
             VitamError error = new VitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getItem())
                 .setMessage(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getMessage())
@@ -423,8 +425,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setCode(VitamCodeHelper.getCode(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST))
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST.getMessage());
-            return Response.status(BAD_REQUEST)
-                .entity(getErrorStream(error)).build();
+            return Response.status(BAD_REQUEST).entity(getErrorStream(error)).build();
         } catch (Exception e) {
             return asyncResponseResume(e, document);
         }
@@ -439,8 +440,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     private Response asyncResponseResume(Exception e, InputStream document) {
         LOGGER.error(e);
         StreamUtils.closeSilently(document);
-        return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-            .toStreamResponse();
+        return VitamCodeHelper.toVitamError(
+            VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+            e.getMessage()
+        ).toStreamResponse();
     }
 
     /**
@@ -465,21 +468,17 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(status).build();
         } catch (final DatabaseConflictException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_CONFLICT, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_CONFLICT, e.getMessage()).toResponse();
         } catch (final ReferentialImportInProgressException e) {
             LOGGER.warn(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_FORBIDDEN, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_FORBIDDEN, e.getMessage()).toResponse();
         } catch (IllegalArgumentException | ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } finally {
             StreamUtils.closeSilently(document);
         }
     }
-
 
     /**
      * Import a rules document
@@ -508,13 +507,14 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return importRuleFile(filename, file);
         } catch (IllegalArgumentException | IOException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (InvalidParseOperationException e) {
             alertService.createAlert("Rules contain an HTML injection");
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, HTML_CONTENT_MSG_ERROR)
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_BAD_REQUEST,
+                HTML_CONTENT_MSG_ERROR
+            ).toResponse();
         } finally {
             try {
                 Files.delete(file.toPath());
@@ -526,23 +526,22 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     private Response importRuleFile(String filename, File file) throws IOException {
-        try (AdminManagementClient client = adminManagementClientFactory.getClient();
-            InputStream fileInputStream = new FileInputStream(file)) {
+        try (
+            AdminManagementClient client = adminManagementClientFactory.getClient();
+            InputStream fileInputStream = new FileInputStream(file)
+        ) {
             Status status = client.importRulesFile(fileInputStream, filename);
 
             return Response.status(status).build();
         } catch (DatabaseConflictException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_CONFLICT, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_CONFLICT, e.getMessage()).toResponse();
         } catch (ReferentialImportInProgressException e) {
             LOGGER.warn(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_FORBIDDEN, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_FORBIDDEN, e.getMessage()).toResponse();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -553,23 +552,27 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
         } catch (InvalidParseOperationException | IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toStreamResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toStreamResponse();
         } catch (AccessInternalClientServerException e) {
             LOGGER.error(e.getMessage(), e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toStreamResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toStreamResponse();
         } catch (AccessInternalClientNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toStreamResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toStreamResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UNAUTHORIZED, e.getMessage())
-                .toStreamResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_UNAUTHORIZED,
+                e.getMessage()
+            ).toStreamResponse();
         }
     }
-
 
     /**
      * Import a set of ingest contracts.
@@ -581,26 +584,27 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = INGESTCONTRACTS_CREATE_JSON,
-        description = "Importer des contrats d'entrées dans le référentiel")
+    @Secured(
+        permission = INGESTCONTRACTS_CREATE_JSON,
+        description = "Importer des contrats d'entrées dans le référentiel"
+    )
     public Response importIngestContracts(JsonNode select) {
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            Status status = client.importIngestContracts(getFromStringAsTypeReference(select.toString(),
-                new TypeReference<List<IngestContractModel>>() {
-                }));
+            Status status = client.importIngestContracts(
+                getFromStringAsTypeReference(select.toString(), new TypeReference<List<IngestContractModel>>() {})
+            );
 
             if (BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
-                return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, BAD_REQUEST.getReasonPhrase())
-                    .toResponse();
+                return VitamCodeHelper.toVitamError(
+                    VitamCode.ADMIN_EXTERNAL_BAD_REQUEST,
+                    BAD_REQUEST.getReasonPhrase()
+                ).toResponse();
             }
-            return Response.status(status)
-                .entity(SUCCESSFULLY_IMPORTED)
-                .build();
+            return Response.status(status).entity(SUCCESSFULLY_IMPORTED).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
             VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
@@ -609,8 +613,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
-            return Response.status(BAD_REQUEST)
-                .entity(error).build();
+            return Response.status(BAD_REQUEST).entity(error).build();
         }
     }
 
@@ -624,27 +627,28 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = ACCESSCONTRACTS_CREATE_JSON,
-        description = "Importer des contrats d'accès dans le référentiel")
+    @Secured(
+        permission = ACCESSCONTRACTS_CREATE_JSON,
+        description = "Importer des contrats d'accès dans le référentiel"
+    )
     public Response importAccessContracts(JsonNode contract) {
-
         checkParameter(JSON_SELECT_IS_MANDATORY, contract);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            Status status = client.importAccessContracts(getFromStringAsTypeReference(contract.toString(),
-                new TypeReference<List<AccessContractModel>>() {
-                }));
+            Status status = client.importAccessContracts(
+                getFromStringAsTypeReference(contract.toString(), new TypeReference<List<AccessContractModel>>() {})
+            );
 
             if (BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
-                return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, BAD_REQUEST.getReasonPhrase())
-                    .toResponse();
+                return VitamCodeHelper.toVitamError(
+                    VitamCode.ADMIN_EXTERNAL_BAD_REQUEST,
+                    BAD_REQUEST.getReasonPhrase()
+                ).toResponse();
             }
 
-            return Response.status(status)
-                .entity(SUCCESSFULLY_IMPORTED).build();
+            return Response.status(status).entity(SUCCESSFULLY_IMPORTED).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
             VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
@@ -653,8 +657,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
-            return Response.status(BAD_REQUEST)
-                .entity(error).build();
+            return Response.status(BAD_REQUEST).entity(error).build();
         }
     }
 
@@ -668,27 +671,28 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = MANAGEMENTCONTRACTS_CREATE_JSON,
-        description = "Importer des contrats de gestion dans le référentiel")
+    @Secured(
+        permission = MANAGEMENTCONTRACTS_CREATE_JSON,
+        description = "Importer des contrats de gestion dans le référentiel"
+    )
     public Response importManagementContracts(JsonNode contract) {
-
         checkParameter(JSON_SELECT_IS_MANDATORY, contract);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            Status status = client.importManagementContracts(getFromStringAsTypeReference(contract.toString(),
-                new TypeReference<List<ManagementContractModel>>() {
-                }));
+            Status status = client.importManagementContracts(
+                getFromStringAsTypeReference(contract.toString(), new TypeReference<List<ManagementContractModel>>() {})
+            );
 
             if (BAD_REQUEST.getStatusCode() == status.getStatusCode()) {
-                return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, BAD_REQUEST.getReasonPhrase())
-                    .toResponse();
+                return VitamCodeHelper.toVitamError(
+                    VitamCode.ADMIN_EXTERNAL_BAD_REQUEST,
+                    BAD_REQUEST.getReasonPhrase()
+                ).toResponse();
             }
 
-            return Response.status(status)
-                .entity(SUCCESSFULLY_IMPORTED).build();
+            return Response.status(status).entity(SUCCESSFULLY_IMPORTED).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
             VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
@@ -697,8 +701,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
-            return Response.status(BAD_REQUEST)
-                .entity(error).build();
+            return Response.status(BAD_REQUEST).entity(error).build();
         }
     }
 
@@ -712,24 +715,24 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = CONTEXTS_CREATE_JSON,
-        description = "Importer des contextes dans le référentiel", isAdminOnly = true)
+    @Secured(
+        permission = CONTEXTS_CREATE_JSON,
+        description = "Importer des contextes dans le référentiel",
+        isAdminOnly = true
+    )
     public Response importContexts(JsonNode select) {
-
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            Status status = client.importContexts(getFromStringAsTypeReference(select.toString(),
-                new TypeReference<>() {
-                }));
+            Status status = client.importContexts(
+                getFromStringAsTypeReference(select.toString(), new TypeReference<>() {})
+            );
 
             return Response.status(status).entity(SUCCESSFULLY_IMPORTED).build();
         } catch (ReferentialException | InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
-
 
     /**
      * Import a profiles document
@@ -743,23 +746,18 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = PROFILES_CREATE_BINARY, description = "Importer des profils dans le référentiel")
     public Response createProfiles(InputStream document) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             checkParameter(DOCUMENT_IS_MANDATORY, document);
 
             JsonNode json = JsonHandler.getFromInputStream(document);
             SanityChecker.checkJsonAll(json);
-            RequestResponse requestResponse =
-                client.createProfiles(getFromStringAsTypeReference(json.toString(),
-                    new TypeReference<List<ProfileModel>>() {
-                    }));
-            return Response.status(requestResponse.getStatus())
-                .entity(requestResponse).build();
-
+            RequestResponse requestResponse = client.createProfiles(
+                getFromStringAsTypeReference(json.toString(), new TypeReference<List<ProfileModel>>() {})
+            );
+            return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
         } catch (IllegalArgumentException | ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             VitamError error = new VitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED.getItem())
@@ -768,8 +766,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setCode(VitamCodeHelper.getCode(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED))
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED.getMessage());
-            return Response.status(Status.PRECONDITION_FAILED)
-                .entity(error).build();
+            return Response.status(Status.PRECONDITION_FAILED).entity(error).build();
         } catch (InvalidFormatException e) {
             LOGGER.error(e);
             VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
@@ -778,9 +775,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
-            return Response.status(BAD_REQUEST)
-                .entity(error).build();
-
+            return Response.status(BAD_REQUEST).entity(error).build();
         } finally {
             StreamUtils.closeSilently(document);
         }
@@ -798,24 +793,18 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = PROFILES_CREATE_JSON, description = "Ecrire un profil dans le référentiel")
     public Response createProfiles(JsonNode select) {
-
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
-            RequestResponse requestResponse =
-                client.createProfiles(getFromStringAsTypeReference(select.toString(),
-                    new TypeReference<List<ProfileModel>>() {
-                    }));
-            return Response.status(requestResponse.getStatus())
-                .entity(requestResponse).build();
-
+            RequestResponse requestResponse = client.createProfiles(
+                getFromStringAsTypeReference(select.toString(), new TypeReference<List<ProfileModel>>() {})
+            );
+            return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
         } catch (ReferentialException | InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
-
 
     /**
      * Import archive unit profiles
@@ -827,26 +816,23 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = ARCHIVEUNITPROFILES_CREATE_BINARY,
-        description = "Importer un ou plusieurs document types dans le référentiel")
+    @Secured(
+        permission = ARCHIVEUNITPROFILES_CREATE_BINARY,
+        description = "Importer un ou plusieurs document types dans le référentiel"
+    )
     public Response createArchiveUnitProfiles(InputStream document) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             checkParameter(DOCUMENT_IS_MANDATORY, document);
 
             JsonNode json = JsonHandler.getFromInputStream(document);
             SanityChecker.checkJsonAll(json);
-            RequestResponse requestResponse =
-                client.createArchiveUnitProfiles(getFromStringAsTypeReference(json.toString(),
-                    new TypeReference<List<ArchiveUnitProfileModel>>() {
-                    }));
-            return Response.status(requestResponse.getStatus())
-                .entity(requestResponse).build();
-
+            RequestResponse requestResponse = client.createArchiveUnitProfiles(
+                getFromStringAsTypeReference(json.toString(), new TypeReference<List<ArchiveUnitProfileModel>>() {})
+            );
+            return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
         } catch (IllegalArgumentException | ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
@@ -863,7 +849,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
-
     /**
      * Import a set of archive unit profiles
      *
@@ -874,24 +859,21 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = ARCHIVEUNITPROFILES_CREATE_JSON,
-        description = "Ecrire un ou plusieurs document type dans le référentiel")
+    @Secured(
+        permission = ARCHIVEUNITPROFILES_CREATE_JSON,
+        description = "Ecrire un ou plusieurs document type dans le référentiel"
+    )
     public Response createArchiveUnitProfiles(JsonNode select) {
-
         checkParameter(JSON_SELECT_IS_MANDATORY, select);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
-            RequestResponse requestResponse =
-                client.createArchiveUnitProfiles(getFromStringAsTypeReference(select.toString(),
-                    new TypeReference<List<ArchiveUnitProfileModel>>() {
-                    }));
-            return Response.status(requestResponse.getStatus())
-                .entity(requestResponse).build();
-
+            RequestResponse requestResponse = client.createArchiveUnitProfiles(
+                getFromStringAsTypeReference(select.toString(), new TypeReference<List<ArchiveUnitProfileModel>>() {})
+            );
+            return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
         } catch (ReferentialException | InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -908,28 +890,29 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
     @Secured(permission = PROFILES_ID_UPDATE_BINAIRE, description = "Importer un fichier xsd ou rng dans un profil")
-    public Response importProfileFile(@Context UriInfo uriInfo, @PathParam("id") String profileMetadataId,
-        InputStream profileFile) {
+    public Response importProfileFile(
+        @Context UriInfo uriInfo,
+        @PathParam("id") String profileMetadataId,
+        InputStream profileFile
+    ) {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             checkParameter("profileFile stream is a mandatory parameter", profileFile);
             checkParameter(profileMetadataId, "The profile id is mandatory");
 
             RequestResponse requestResponse = client.importProfileFile(profileMetadataId, profileFile);
-            return Response.status(requestResponse.getStatus())
-                .entity(requestResponse)
-                .build();
+            return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
         } catch (final DatabaseConflictException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_CONFLICT, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_CONFLICT, e.getMessage()).toResponse();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         } finally {
             StreamUtils.closeSilently(profileFile);
         }
@@ -945,11 +928,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/profiles/{id:.+}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = PROFILES_ID_READ_BINARY,
-        description = "Télecharger le fichier xsd ou rng attaché à un profil")
-    public Response downloadProfileFile(
-        @PathParam("id") String fileId) {
-
+    @Secured(
+        permission = PROFILES_ID_READ_BINARY,
+        description = "Télecharger le fichier xsd ou rng attaché à un profil"
+    )
+    public Response downloadProfileFile(@PathParam("id") String fileId) {
         checkParameter("Profile id should be filled", fileId);
         return asyncDownloadProfileFile(fileId);
     }
@@ -964,18 +947,20 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/traceability/{id}/datafiles")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = TRACEABILITY_ID_READ,
-        description = "Télécharger le logbook sécurisé attaché à une opération de sécurisation")
-    public Response downloadTraceabilityFile(
-        @PathParam("id") String fileId) {
-
+    @Secured(
+        permission = TRACEABILITY_ID_READ,
+        description = "Télécharger le logbook sécurisé attaché à une opération de sécurisation"
+    )
+    public Response downloadTraceabilityFile(@PathParam("id") String fileId) {
         try {
             checkParameter("Traceability operation should be filled", fileId);
             return downloadTraceabilityOperationFile(fileId);
         } catch (IllegalArgumentException | VitamThreadAccessException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toStreamResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toStreamResponse();
         }
     }
 
@@ -983,16 +968,16 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             final Response response = client.downloadProfileFile(profileMetadataId);
             Map<String, String> headers = VitamAsyncInputStreamResponse.getDefaultMapFromResponse(response);
-            return new VitamAsyncInputStreamResponse(response,
-                Status.OK, headers);
+            return new VitamAsyncInputStreamResponse(response, Status.OK, headers);
         } catch (ProfileNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toStreamResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toStreamResponse();
         } catch (AdminManagementClientServerException e) {
             LOGGER.error(e.getMessage(), e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toStreamResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toStreamResponse();
         }
     }
 
@@ -1008,7 +993,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = FORMATS_READ, description = "Lister le contenu du référentiel des formats")
     public Response getFormats(@Dsl(value = SELECT_SINGLE) JsonNode select) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             final RequestResponse<FileFormatModel> result = client.getFormats(select);
@@ -1016,20 +1000,22 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (ReferentialNotFoundException | FileRulesNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (ReferentialException | IOException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -1045,27 +1031,28 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = RULES_READ, description = "Lister le contenu du référentiel des règles de gestion")
     public Response getRules(@Dsl(value = SELECT_SINGLE) JsonNode select) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             final JsonNode result = client.getRules(select);
             return Response.status(Status.OK).entity(result).build();
         } catch (FileRulesNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (ReferentialException | IOException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -1079,10 +1066,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = INGESTCONTRACTS_READ,
-        description = "Lister le contenu du référentiel des contrats d'entrée")
+    @Secured(permission = INGESTCONTRACTS_READ, description = "Lister le contenu du référentiel des contrats d'entrée")
     public Response findIngestContracts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse<IngestContractModel> result = client.findIngestContracts(select);
@@ -1090,16 +1075,19 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -1115,7 +1103,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = ACCESSCONTRACTS_READ, description = "Lister le contenu du référentiel des contrats d'accès")
     public Response findAccessContracts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse result = client.findAccessContracts(select);
@@ -1123,17 +1110,19 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
-
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -1147,9 +1136,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = MANAGEMENTCONTRACTS_READ, description = "Lister le contenu du référentiel des contrats de gestion")
+    @Secured(
+        permission = MANAGEMENTCONTRACTS_READ,
+        description = "Lister le contenu du référentiel des contrats de gestion"
+    )
     public Response findManagementContracts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse result = client.findManagementContracts(select);
@@ -1157,17 +1148,19 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
-
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -1183,7 +1176,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = PROFILES_READ, description = "Lister le contenu du référentiel des profils")
     public Response findProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse result = client.findProfiles(select);
@@ -1191,17 +1183,19 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
-
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -1215,10 +1209,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = ARCHIVEUNITPROFILES_READ,
-        description = "Lister le contenu du référentiel des document types")
+    @Secured(permission = ARCHIVEUNITPROFILES_READ, description = "Lister le contenu du référentiel des document types")
     public Response findArchiveUnitProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse result = client.findArchiveUnitProfiles(select);
@@ -1226,16 +1218,19 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -1251,7 +1246,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = CONTEXTS_READ, description = "Lister le contenu du référentiel des contextes")
     public Response findContexts(@Dsl(value = SELECT_SINGLE) JsonNode select) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse result = client.findContexts(select);
@@ -1259,16 +1253,19 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -1285,8 +1282,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
     @Produces(APPLICATION_JSON)
     @Secured(permission = AGENCIES_CREATE, description = "Importer un référentiel des services producteurs")
-    public Response importAgenciesFile(@Context HttpHeaders headers,
-        InputStream document) {
+    public Response importAgenciesFile(@Context HttpHeaders headers, InputStream document) {
         String filename = headers.getHeaderString(GlobalDataRest.X_FILENAME);
         File file = PropertiesUtils.fileFromTmpFolder("tmpRuleFile");
         try {
@@ -1301,13 +1297,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return importAgenciesFile(filename, file);
         } catch (final IllegalArgumentException | IOException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (InvalidParseOperationException e) {
             alertService.createAlert("Agencies contain an HTML injection");
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } finally {
             try {
                 Files.delete(file.toPath());
@@ -1319,15 +1313,16 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     private Response importAgenciesFile(String filename, File file) throws IOException {
-        try (AdminManagementClient client = adminManagementClientFactory.getClient();
-            InputStream fileInputStream = new FileInputStream(file)) {
+        try (
+            AdminManagementClient client = adminManagementClientFactory.getClient();
+            InputStream fileInputStream = new FileInputStream(file)
+        ) {
             Status status = client.importAgenciesFile(fileInputStream, filename);
 
             return Response.status(status).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -1342,7 +1337,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = AGENCIES_ID_READ, description = "Trouver un service producteur avec son identifier")
     public Response findAgencyByID(@PathParam("id_document") String documentId) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             checkParameter("documentId is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
@@ -1351,24 +1345,24 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(requestResponse).build();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
-
     }
-
 
     /**
      * findContexts using get method
@@ -1382,23 +1376,25 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = AGENCIES_READ, description = "Lister le contenu du référentiel des services producteurs")
     public Response findAgencies(@Dsl(value = SELECT_SINGLE) JsonNode select) throws IOException {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             JsonNode result = client.getAgencies(select);
             return Response.status(Status.OK).entity(result).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -1412,8 +1408,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = ACCESSIONREGISTERS_READ,
-        description = "Lister le contenu du référentiel des registres des fonds")
+    @Secured(
+        permission = ACCESSIONREGISTERS_READ,
+        description = "Lister le contenu du référentiel des registres des fonds"
+    )
     public Response getAccessionRegister(@Dsl(value = SELECT_SINGLE) JsonNode select) {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
@@ -1422,24 +1420,25 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (ReferentialNotFoundException | FileRulesNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Access contract does not allow ", e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UNAUTHORIZED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UNAUTHORIZED, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -1453,8 +1452,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = ACCESSIONREGISTER_DETAILS_READ,
-        description = "Lister le contenu du référentiel détails des registres des fonds")
+    @Secured(
+        permission = ACCESSIONREGISTER_DETAILS_READ,
+        description = "Lister le contenu du référentiel détails des registres des fonds"
+    )
     public Response getAccessionRegisterDetails(@Dsl(value = SELECT_SINGLE) JsonNode select) {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
@@ -1463,20 +1464,22 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (ReferentialNotFoundException | FileRulesNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -1495,8 +1498,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
-            RequestResponse<AccessionRegisterSymbolicModel> result =
-                client.getAccessionRegisterSymbolic(tenant, select);
+            RequestResponse<AccessionRegisterSymbolicModel> result = client.getAccessionRegisterSymbolic(
+                tenant,
+                select
+            );
             return Response.status(result.getHttpCode()).entity(result).build();
         } catch (Exception e) {
             return VitamCodeHelper.toVitamError(ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_SYMBOLIC_ERROR, e.getMessage())
@@ -1516,15 +1521,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = FORMATS_ID_READ, description = "Lire un format donné")
     public Response findFormatByID(@PathParam("id_document") String documentId) {
-
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
-
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -1532,16 +1537,16 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(Status.OK).entity(result).build();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -1556,30 +1561,31 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = RULES_ID_READ, description = "Lire une règle de gestion donnée")
     public Response findRuleByID(@PathParam("id_document") String documentId) {
-
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
         } catch (IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             final JsonNode result = client.getRuleByID(documentId);
             return Response.status(Status.OK).entity(result).build();
         } catch (FileRulesNotFoundException e) {
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -1594,14 +1600,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = INGESTCONTRACTS_ID_READ, description = "Lire un contrat d'entrée donné")
     public Response findIngestContractsByID(@PathParam("id_document") String documentId) {
-
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -1610,16 +1617,16 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(requestResponse).build();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -1634,14 +1641,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = ACCESSCONTRACTS_ID_READ, description = "Lire un contrat d'accès donné")
     public Response findAccessContractsByID(@PathParam("id_document") String documentId) {
-
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -1650,16 +1658,16 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(requestResponse).build();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -1674,33 +1682,33 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = MANAGEMENTCONTRACTS_ID_READ, description = "Lire un contrat de gestion donné")
     public Response findManagementContractsByID(@PathParam("id_document") String documentId) {
-
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            RequestResponse<ManagementContractModel> requestResponse =
-                client.findManagementContractsByID(documentId);
+            RequestResponse<ManagementContractModel> requestResponse = client.findManagementContractsByID(documentId);
             int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
             return Response.status(st).entity(requestResponse).build();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -1715,14 +1723,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = PROFILES_ID_READ_JSON, description = "Lire un profil donné")
     public Response findProfilesByID(@PathParam("id_document") String documentId) {
-
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -1731,16 +1740,16 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(requestResponse).build();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -1755,33 +1764,33 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = ARCHIVEUNITPROFILES_ID_READ_JSON, description = "Lire un document type donné")
     public Response findArchiveUnitProfilesByID(@PathParam("id_document") String documentId) {
-
         try {
             checkParameter("Archive unit profile ID is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            RequestResponse<ArchiveUnitProfileModel> requestResponse =
-                client.findArchiveUnitProfilesByID(documentId);
+            RequestResponse<ArchiveUnitProfileModel> requestResponse = client.findArchiveUnitProfilesByID(documentId);
             int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
             return Response.status(st).entity(requestResponse).build();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -1796,14 +1805,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = CONTEXTS_ID_READ, description = "Lire un contexte donné")
     public Response findContextById(@PathParam("id_document") String documentId) {
-
         try {
             checkParameter(FORMAT_ID_MANDATORY, documentId);
             SanityChecker.checkParameter(documentId);
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -1812,16 +1822,16 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(requestResponse).build();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -1838,12 +1848,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = CONTEXTS_ID_UPDATE,
-        description = "Effectuer une mise à jour sur un contexte", isAdminOnly = true)
-    public Response updateContext(@PathParam("identifier") String identifier,
-        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
-        throws AdminManagementClientServerException, InvalidParseOperationException {
-
+    @Secured(
+        permission = CONTEXTS_ID_UPDATE,
+        description = "Effectuer une mise à jour sur un contexte",
+        isAdminOnly = true
+    )
+    public Response updateContext(
+        @PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl
+    ) throws AdminManagementClientServerException, InvalidParseOperationException {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
@@ -1856,14 +1869,19 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CONTEXT_NOT_FOUND, e.getMessage())
                 .setHttpCode(NOT_FOUND.getStatusCode())
                 .toResponse();
-        } catch (InvalidCreateOperationException | InvalidParseOperationException | AdminManagementClientServerException e) {
+        } catch (
+            InvalidCreateOperationException | InvalidParseOperationException | AdminManagementClientServerException e
+        ) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_CONTEXT_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_UPDATE_CONTEXT_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_CONTEXT_ERROR, e.getMessage())
-                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                .toResponse();
         }
     }
 
@@ -1881,10 +1899,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @Secured(permission = PROFILES_ID_UPDATE_JSON, description = "Effectuer une mise à jour sur un profil")
-    public Response updateProfile(@PathParam("identifier") String identifier,
-        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
-        throws AdminManagementClientServerException, InvalidParseOperationException {
-
+    public Response updateProfile(
+        @PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl
+    ) throws AdminManagementClientServerException, InvalidParseOperationException {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
@@ -1892,10 +1910,16 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
             RequestResponse<ProfileModel> response = client.updateProfile(identifier, update.getFinalUpdate());
             return getResponse(response);
-        } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (
+            AdminManagementClientBadRequestException
+            | InvalidCreateOperationException
+            | InvalidParseOperationException e
+        ) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_PROFILE_NOT_FOUND, e.getMessage())
@@ -1904,7 +1928,8 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR, e.getMessage())
-                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                .toResponse();
         }
     }
 
@@ -1921,19 +1946,23 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = ARCHIVEUNITPROFILES_ID_UPDATE_JSON,
-        description = "Effectuer une mise à jour sur un document type")
-    public Response updateArchiveUnitProfile(@PathParam("identifier") String identifier,
-        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
-        throws AdminManagementClientServerException {
-
+    @Secured(
+        permission = ARCHIVEUNITPROFILES_ID_UPDATE_JSON,
+        description = "Effectuer une mise à jour sur un document type"
+    )
+    public Response updateArchiveUnitProfile(
+        @PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl
+    ) throws AdminManagementClientServerException {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse<ArchiveUnitProfileModel> response =
-                client.updateArchiveUnitProfile(identifier, update.getFinalUpdate());
+            RequestResponse<ArchiveUnitProfileModel> response = client.updateArchiveUnitProfile(
+                identifier,
+                update.getFinalUpdate()
+            );
             return getResponse(response);
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
@@ -1942,12 +1971,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .toResponse();
         } catch (InvalidCreateOperationException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_PROFILE_ERROR, e.getMessage())
-                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode()).toResponse();
+                .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
+                .toResponse();
         }
     }
 
@@ -1964,22 +1996,30 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @Secured(permission = ACCESSCONTRACTS_ID_UPDATE, description = "Effectuer une mise à jour sur un contrat d'accès")
-    public Response updateAccessContract(@PathParam("identifier") String identifier,
-        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
-        throws AdminManagementClientServerException {
-
+    public Response updateAccessContract(
+        @PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl
+    ) throws AdminManagementClientServerException {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse<AccessContractModel> response =
-                client.updateAccessContract(identifier, update.getFinalUpdate());
+            RequestResponse<AccessContractModel> response = client.updateAccessContract(
+                identifier,
+                update.getFinalUpdate()
+            );
             return getResponse(response);
-        } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (
+            AdminManagementClientBadRequestException
+            | InvalidCreateOperationException
+            | InvalidParseOperationException e
+        ) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_ACCESS_CONTRACT_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_UPDATE_ACCESS_CONTRACT_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.CONTRACT_NOT_FOUND_ERROR, e.getMessage())
@@ -2005,24 +2045,31 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = INGESTCONTRACTS_ID_UPDATE,
-        description = "Effectuer une mise à jour sur un contrat d'entrée")
-    public Response updateIngestContract(@PathParam("identifier") String identifier,
-        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
-        throws AdminManagementClientServerException {
-
+    @Secured(permission = INGESTCONTRACTS_ID_UPDATE, description = "Effectuer une mise à jour sur un contrat d'entrée")
+    public Response updateIngestContract(
+        @PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl
+    ) throws AdminManagementClientServerException {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse<IngestContractModel> response =
-                client.updateIngestContract(identifier, update.getFinalUpdate());
+            RequestResponse<IngestContractModel> response = client.updateIngestContract(
+                identifier,
+                update.getFinalUpdate()
+            );
             return getResponse(response);
-        } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (
+            AdminManagementClientBadRequestException
+            | InvalidCreateOperationException
+            | InvalidParseOperationException e
+        ) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_UPDATE_INGEST_CONTRACT_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.CONTRACT_NOT_FOUND_ERROR, e.getMessage())
@@ -2047,32 +2094,43 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = MANAGEMENTCONTRACTS_ID_UPDATE, description = "Effectuer une mise à jour sur un contrat de gestion")
-    public Response updateManagementContract(@PathParam("identifier") String identifier,
-        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl) {
-
+    @Secured(
+        permission = MANAGEMENTCONTRACTS_ID_UPDATE,
+        description = "Effectuer une mise à jour sur un contrat de gestion"
+    )
+    public Response updateManagementContract(
+        @PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl
+    ) {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse<ManagementContractModel> response =
-                client.updateManagementContract(identifier, update.getFinalUpdate());
+            RequestResponse<ManagementContractModel> response = client.updateManagementContract(
+                identifier,
+                update.getFinalUpdate()
+            );
             return getResponse(response);
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.CONTRACT_NOT_FOUND_ERROR, e.getMessage())
                 .setHttpCode(NOT_FOUND.getStatusCode())
                 .toResponse();
-        } catch (InvalidCreateOperationException | InvalidParseOperationException | AdminManagementClientServerException e) {
+        } catch (
+            InvalidCreateOperationException | InvalidParseOperationException | AdminManagementClientServerException e
+        ) {
             LOGGER.error(e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR, e.getMessage())
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_UPDATE_MANAGEMENT_CONTRACT_ERROR,
+                e.getMessage()
+            )
                 .setHttpCode(Status.PRECONDITION_FAILED.getStatusCode())
                 .toResponse();
         }
@@ -2089,33 +2147,41 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Path(AccessExtAPI.ACCESSION_REGISTERS_API + "/{id_document}/" + AccessExtAPI.ACCESSION_REGISTERS_DETAIL)
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = ACCESSIONREGISTERS_ID_ACCESSIONREGISTERDETAILS_READ,
-        description = "Lister les détails d'un registre de fonds")
-    public Response findAccessionRegisterDetail(@PathParam("id_document") String originatingAgency,
-        @Dsl(value = SELECT_SINGLE) JsonNode select) {
-
+    @Secured(
+        permission = ACCESSIONREGISTERS_ID_ACCESSIONREGISTERDETAILS_READ,
+        description = "Lister les détails d'un registre de fonds"
+    )
+    public Response findAccessionRegisterDetail(
+        @PathParam("id_document") String originatingAgency,
+        @Dsl(value = SELECT_SINGLE) JsonNode select
+    ) {
         checkParameter("accession register id is a mandatory parameter", originatingAgency);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
-            RequestResponse<AccessionRegisterDetailModel> result =
-                client.getAccessionRegisterDetail(originatingAgency, select);
+            RequestResponse<AccessionRegisterDetailModel> result = client.getAccessionRegisterDetail(
+                originatingAgency,
+                select
+            );
             int st = result.isOk() ? Status.OK.getStatusCode() : result.getHttpCode();
 
             return Response.status(st).entity(result).build();
         } catch (final ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR, e.getMessage())
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ACCESS_EXTERNAL_GET_ACCESSION_REGISTER_DETAIL_ERROR,
+                e.getMessage()
+            )
                 .setHttpCode(Status.NOT_FOUND.getStatusCode())
                 .toResponse();
         } catch (InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (Exception e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -2147,7 +2213,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = TRACEABILITYLINKEDCHECKS_CREATE, description = "Tester l'intégrité d'un journal sécurisé")
     public Response linkedCheckOperationTraceability(@Dsl(value = SELECT_SINGLE) JsonNode query) {
-
         try (AccessInternalClient client = accessInternalClientFactory.getClient()) {
             checkParameter("checks operation Logbook traceability parameters", query);
             SanityChecker.checkJsonAll(query);
@@ -2156,16 +2221,16 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(statusCode).entity(result).build();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (LogbookClientException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (AccessUnauthorizedException e) {
             LOGGER.error("Contract access does not allow ", e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UNAUTHORIZED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UNAUTHORIZED, e.getMessage()).toResponse();
         }
     }
 
@@ -2188,8 +2253,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -2217,12 +2281,13 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException | InvalidParseOperationException | ValidationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IOException e) {
             LOGGER.error("Technical exception", e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -2236,22 +2301,23 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = SECURITYPROFILES_CREATE_JSON, isAdminOnly = true,
-        description = "Importer des profiles de sécurité dans le référentiel")
+    @Secured(
+        permission = SECURITYPROFILES_CREATE_JSON,
+        isAdminOnly = true,
+        description = "Importer des profiles de sécurité dans le référentiel"
+    )
     public Response importSecurityProfiles(JsonNode document) {
-
         checkParameter("Json document is a mandatory parameter", document);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(document);
-            Status status = client.importSecurityProfiles(getFromStringAsTypeReference(document.toString(),
-                new TypeReference<>() {
-                }));
+            Status status = client.importSecurityProfiles(
+                getFromStringAsTypeReference(document.toString(), new TypeReference<>() {})
+            );
 
             return Response.status(status).build();
         } catch (InvalidParseOperationException | InvalidFormatException | ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -2275,8 +2341,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (AdminManagementClientServerException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -2290,10 +2355,11 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = SECURITYPROFILES_READ,
-        description = "Lister le contenu du référentiel des profiles de sécurité")
+    @Secured(
+        permission = SECURITYPROFILES_READ,
+        description = "Lister le contenu du référentiel des profiles de sécurité"
+    )
     public Response findSecurityProfiles(@Dsl(value = SELECT_SINGLE) JsonNode select) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse<SecurityProfileModel> result = client.findSecurityProfiles(select);
@@ -2301,16 +2367,19 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -2325,11 +2394,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = SECURITYPROFILES_ID_READ, description = "Lire un profile de sécurité donné")
     public Response findSecurityProfileByIdentifier(@PathParam("identifier") String identifier) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             checkParameter("identifier is a mandatory parameter", identifier);
-            RequestResponse<SecurityProfileModel> requestResponse =
-                client.findSecurityProfileByIdentifier(identifier);
+            RequestResponse<SecurityProfileModel> requestResponse = client.findSecurityProfileByIdentifier(identifier);
             int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
             return Response.status(st).entity(requestResponse).build();
         } catch (ReferentialNotFoundException e) {
@@ -2337,15 +2404,19 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (final IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -2361,24 +2432,35 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @PUT
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = SECURITYPROFILES_ID_UPDATE, isAdminOnly = true,
-        description = "Effectuer une mise à jour sur un profil de sécurité")
-    public Response updateSecurityProfile(@PathParam("identifier") String identifier,
-        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl)
-        throws AdminManagementClientServerException {
-
+    @Secured(
+        permission = SECURITYPROFILES_ID_UPDATE,
+        isAdminOnly = true,
+        description = "Effectuer une mise à jour sur un profil de sécurité"
+    )
+    public Response updateSecurityProfile(
+        @PathParam("identifier") String identifier,
+        @Dsl(DslSchema.UPDATE_BY_ID) JsonNode queryDsl
+    ) throws AdminManagementClientServerException {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             UpdateParserSingle updateParserSingle = new UpdateParserSingle();
             updateParserSingle.parse(queryDsl);
             Update update = updateParserSingle.getRequest();
             update.setQuery(QueryHelper.eq(IDENTIFIER, identifier));
-            RequestResponse<SecurityProfileModel> response =
-                client.updateSecurityProfile(identifier, update.getFinalUpdateById());
+            RequestResponse<SecurityProfileModel> response = client.updateSecurityProfile(
+                identifier,
+                update.getFinalUpdateById()
+            );
             return getResponse(response);
-        } catch (AdminManagementClientBadRequestException | InvalidCreateOperationException | InvalidParseOperationException e) {
+        } catch (
+            AdminManagementClientBadRequestException
+            | InvalidCreateOperationException
+            | InvalidParseOperationException e
+        ) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_UPDATE_SECURITY_PROFILE_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_UPDATE_SECURITY_PROFILE_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
             return VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_SECURITY_PROFILE_NOT_FOUND, e.getMessage())
@@ -2408,9 +2490,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         } catch (VitamClientException e) {
             LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             return Response.serverError()
-                .entity(
-                    VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR,
-                        e.getLocalizedMessage()))
+                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_CLIENT_ERROR, e.getLocalizedMessage()))
                 .build();
         }
     }
@@ -2440,7 +2520,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .header(GlobalDataRest.X_GLOBAL_EXECUTION_STATUS, itemStatus.getGlobalStatus())
                 .header(GlobalDataRest.X_CONTEXT_ID, itemStatus.getLogbookTypeProcess())
                 .build();
-
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.PRECONDITION_FAILED).build();
@@ -2474,17 +2553,23 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             LOGGER.error("Illegal argument: ", e);
             status = Status.PRECONDITION_FAILED;
             return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR,
+                        e.getLocalizedMessage()
+                    ).setHttpCode(status.getStatusCode())
+                )
                 .build();
         } catch (VitamClientException e) {
             LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             status = INTERNAL_SERVER_ERROR;
             return Response.status(status)
-                .entity(VitamCodeHelper
-                    .toVitamError(VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR, e.getLocalizedMessage())
-                    .setHttpCode(status.getStatusCode()))
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.INGEST_EXTERNAL_GET_OPERATION_PROCESS_DETAIL_ERROR,
+                        e.getLocalizedMessage()
+                    ).setHttpCode(status.getStatusCode())
+                )
                 .build();
         }
     }
@@ -2502,29 +2587,32 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = OPERATIONS_ID_UPDATE, description = "Changer le statut d'une opération donnée")
     public Response updateWorkFlowStatus(@Context HttpHeaders headers, @PathParam("id") String id) {
-        checkParameter("ACTION Request must not be null",
-            headers.getRequestHeader(GlobalDataRest.X_ACTION));
+        checkParameter("ACTION Request must not be null", headers.getRequestHeader(GlobalDataRest.X_ACTION));
 
         final String xAction = headers.getRequestHeader(GlobalDataRest.X_ACTION).get(0);
         return updateOperationActionProcessAsync(id, xAction);
     }
 
     private Response updateOperationActionProcessAsync(String operationId, String action) {
-
         try (IngestInternalClient ingestInternalClient = ingestInternalClientFactory.getClient()) {
             VitamThreadUtils.getVitamSession().setRequestId(operationId);
-            RequestResponse<ItemStatus> itemStatusRequestResponse =
-                ingestInternalClient.updateOperationActionProcess(action, operationId);
+            RequestResponse<ItemStatus> itemStatusRequestResponse = ingestInternalClient.updateOperationActionProcess(
+                action,
+                operationId
+            );
             return itemStatusRequestResponse.toResponse();
         } catch (final ProcessingException e) {
             LOGGER.error("Unauthorized action for update ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.INGEST_EXTERNAL_UNAUTHORIZED, e.getLocalizedMessage()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.INGEST_EXTERNAL_UNAUTHORIZED,
+                e.getLocalizedMessage()
+            ).toResponse();
         } catch (VitamClientException e) {
             LOGGER.error("Client exception while trying to update operation process ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR, e.getLocalizedMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR,
+                e.getLocalizedMessage()
+            ).toResponse();
         }
     }
 
@@ -2539,7 +2627,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = OPERATIONS_ID_DELETE, description = "Annuler une opération donnée")
     public Response interruptWorkFlowExecution(@PathParam("id") String id) {
-
         checkParameter("operationId must not be null", id);
         VitamError vitamError;
         try (IngestInternalClient ingestInternalClient = ingestInternalClientFactory.getClient()) {
@@ -2550,12 +2637,16 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return requestResponse.toResponse();
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error("Illegal argument: ", e);
-            vitamError =
-                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_ILLEGAL_ARGUMENT, e.getLocalizedMessage());
+            vitamError = VitamCodeHelper.toVitamError(
+                VitamCode.INGEST_EXTERNAL_ILLEGAL_ARGUMENT,
+                e.getLocalizedMessage()
+            );
         } catch (VitamClientException e) {
             LOGGER.error("Client exception while trying to cancel operation: ", e);
-            vitamError =
-                VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR, e.getLocalizedMessage());
+            vitamError = VitamCodeHelper.toVitamError(
+                VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR,
+                e.getLocalizedMessage()
+            );
         }
 
         return Response.status(vitamError.getHttpCode()).entity(vitamError).build();
@@ -2575,8 +2666,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         } catch (VitamClientException e) {
             LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             return Response.serverError()
-                .entity(VitamCodeHelper.toVitamError(VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR,
-                    e.getLocalizedMessage()))
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.INGEST_EXTERNAL_INTERNAL_CLIENT_ERROR,
+                        e.getLocalizedMessage()
+                    )
+                )
                 .build();
         }
     }
@@ -2594,8 +2689,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/rulesreport/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = RULESREPORT_ID_READ,
-        description = "Récupérer le rapport pour une opération d'import de règles de gestion")
+    @Secured(
+        permission = RULESREPORT_ID_READ,
+        description = "Récupérer le rapport pour une opération d'import de règles de gestion"
+    )
     public Response downloadRulesReportAsStream(@PathParam("opId") String opId) {
         return downloadObjectAsync(opId, IngestCollection.RULES);
     }
@@ -2603,8 +2700,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/batchreport/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = BATCHREPORT_ID_READ,
-        description = "Récupérer le rapport pour un traitement de masse (Elimination, Preservation, Audit, Mise à jour)")
+    @Secured(
+        permission = BATCHREPORT_ID_READ,
+        description = "Récupérer le rapport pour un traitement de masse (Elimination, Preservation, Audit, Mise à jour)"
+    )
     public Response downloadBatchReportAsStream(@PathParam("opId") String opId) {
         return downloadObjectAsync(opId, IngestCollection.BATCH_REPORT);
     }
@@ -2612,8 +2711,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/distributionreport/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = DISTRIBUTIONREPORT_ID_READ,
-        description = "Récupérer le rapport pour une opération de mise à jour de masse distribuée")
+    @Secured(
+        permission = DISTRIBUTIONREPORT_ID_READ,
+        description = "Récupérer le rapport pour une opération de mise à jour de masse distribuée"
+    )
     public Response downloadDistributionReportAsStream(@PathParam("opId") String opId) {
         return downloadObjectAsync(opId, IngestCollection.DISTRIBUTIONREPORTS);
     }
@@ -2621,8 +2722,10 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/rulesreferential/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = RULESREFERENTIAL_ID_READ,
-        description = "Récupérer le référentiel pour une opération d'import de règles de gestion")
+    @Secured(
+        permission = RULESREFERENTIAL_ID_READ,
+        description = "Récupérer le référentiel pour une opération d'import de règles de gestion"
+    )
     public Response downloadAgenciesCsvAsStream(@PathParam("opId") String opId) {
         return downloadObjectAsync(opId, IngestCollection.REFERENTIAL_RULES_CSV);
     }
@@ -2630,42 +2733,59 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @GET
     @Path("/agenciesreferential/{opId}")
     @Produces(MediaType.APPLICATION_OCTET_STREAM)
-    @Secured(permission = AGENCIESREFERENTIAL_ID_READ,
-        description = "Récupérer le référentiel pour une opération d'import des service agents")
+    @Secured(
+        permission = AGENCIESREFERENTIAL_ID_READ,
+        description = "Récupérer le référentiel pour une opération d'import des service agents"
+    )
     public Response downloadRulesCsvAsStream(@PathParam("opId") String opId) {
         return downloadObjectAsync(opId, IngestCollection.REFERENTIAL_AGENCIES_CSV);
     }
 
     private Response downloadObjectAsync(String objectId, IngestCollection collection) {
-
         try (IngestInternalClient ingestInternalClient = ingestInternalClientFactory.getClient()) {
             final Response response = ingestInternalClient.downloadObjectAsync(objectId, collection);
             return new VitamAsyncInputStreamResponse(response);
         } catch (IllegalArgumentException e) {
             LOGGER.error("IllegalArgumentException was thrown : ", e);
             return Response.status(BAD_REQUEST)
-                .entity(getErrorStream(
-                    VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())))
+                .entity(
+                    getErrorStream(
+                        VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())
+                    )
+                )
                 .build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error("Predicates Failed Exception", e);
             return Response.status(Status.PRECONDITION_FAILED)
-                .entity(getErrorStream(
-                    VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
-                        e.getLocalizedMessage())))
+                .entity(
+                    getErrorStream(
+                        VitamCodeHelper.toVitamError(
+                            VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                            e.getLocalizedMessage()
+                        )
+                    )
+                )
                 .build();
         } catch (final IngestInternalClientServerException e) {
             LOGGER.error("Internal Server Exception ", e);
             return Response.status(INTERNAL_SERVER_ERROR)
-                .entity(getErrorStream(
-                    VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
-                        e.getLocalizedMessage())))
+                .entity(
+                    getErrorStream(
+                        VitamCodeHelper.toVitamError(
+                            VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                            e.getLocalizedMessage()
+                        )
+                    )
+                )
                 .build();
         } catch (final IngestInternalClientNotFoundException e) {
             LOGGER.error("Request resources does not exits", e);
             return Response.status(NOT_FOUND)
-                .entity(getErrorStream(
-                    VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getLocalizedMessage())))
+                .entity(
+                    getErrorStream(
+                        VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getLocalizedMessage())
+                    )
+                )
                 .build();
         }
     }
@@ -2698,8 +2818,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         } catch (AdminManagementClientServerException e) {
             LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             return Response.serverError()
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UNIT_TRACREABILITY_AUDIT,
-                    e.getLocalizedMessage()))
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.ACCESS_EXTERNAL_UNIT_TRACREABILITY_AUDIT,
+                        e.getLocalizedMessage()
+                    )
+                )
                 .build();
         }
     }
@@ -2724,8 +2848,12 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         } catch (AdminManagementClientServerException e) {
             LOGGER.error(UNEXPECTED_ERROR + e.getMessage(), e);
             return Response.serverError()
-                .entity(VitamCodeHelper.toVitamError(VitamCode.ACCESS_EXTERNAL_UNIT_TRACREABILITY_AUDIT,
-                    e.getLocalizedMessage()))
+                .entity(
+                    VitamCodeHelper.toVitamError(
+                        VitamCode.ACCESS_EXTERNAL_UNIT_TRACREABILITY_AUDIT,
+                        e.getLocalizedMessage()
+                    )
+                )
                 .build();
         }
     }
@@ -2741,23 +2869,21 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
     @Secured(permission = ONTOLOGIES_CREATE_JSON, description = "Importer les ontologies dans le référentiel")
-    public Response importOntologies(@HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate,
-        JsonNode ontologies) {
-
+    public Response importOntologies(
+        @HeaderParam(GlobalDataRest.FORCE_UPDATE) boolean forceUpdate,
+        JsonNode ontologies
+    ) {
         checkParameter("Json ontologies is a mandatory parameter", ontologies);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(ontologies);
-            RequestResponse requestResponse =
-                client.importOntologies(forceUpdate, getFromStringAsTypeReference(ontologies.toString(),
-                    new TypeReference<List<OntologyModel>>() {
-                    }));
-            return Response.status(requestResponse.getStatus())
-                .entity(requestResponse).build();
-
+            RequestResponse requestResponse = client.importOntologies(
+                forceUpdate,
+                getFromStringAsTypeReference(ontologies.toString(), new TypeReference<List<OntologyModel>>() {})
+            );
+            return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             LOGGER.error(e);
             VitamError error = new VitamError(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getItem())
@@ -2766,11 +2892,9 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
                 .setCode(VitamCodeHelper.getCode(VitamCode.ACCESS_EXTERNAL_INVALID_JSON))
                 .setContext(ACCESS_EXTERNAL_MODULE)
                 .setDescription(VitamCode.ACCESS_EXTERNAL_INVALID_JSON.getMessage());
-            return Response.status(BAD_REQUEST)
-                .entity(error).build();
+            return Response.status(BAD_REQUEST).entity(error).build();
         }
     }
-
 
     /**
      * find ontologies using get method
@@ -2784,7 +2908,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = ONTOLOGIES_READ, description = "Lister le contenu du référentiel des ontologies")
     public Response findOntologies(@Dsl(value = SELECT_SINGLE) JsonNode select) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse result = client.findOntologies(select);
@@ -2792,12 +2915,13 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -2812,15 +2936,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = ONTOLOGIES_ID_READ_JSON, description = "Lire une ontologie")
     public Response findOntologiesByID(@PathParam("id_document") String documentId) {
-
         try {
             checkParameter("Ontology ID is a mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
-
         } catch (final IllegalArgumentException | InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
 
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
@@ -2829,20 +2953,18 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(requestResponse).build();
         } catch (ReferentialNotFoundException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_NOT_FOUND, e.getMessage()).toResponse();
         } catch (final ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
-
-
 
     /**
      * Pause the processes specified by ProcessPause info
@@ -2854,21 +2976,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = FORCEPAUSE_CHECK,
-        description = "Force la pause sur un type d'operation et/ou sur un tenant")
+    @Secured(permission = FORCEPAUSE_CHECK, description = "Force la pause sur un type d'operation et/ou sur un tenant")
     public Response forcePause(ProcessPause info) {
-
         checkParameter("Json ProcessPause is a mandatory parameter", info);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-
             RequestResponse requestResponse = client.forcePause(info);
-            return Response.status(requestResponse.getStatus())
-                .entity(requestResponse).build();
-
+            return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
         } catch (final AdminManagementClientServerException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -2882,21 +2998,18 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @POST
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = REMOVEFORCEPAUSE_CHECK,
-        description = "Retire la pause sur un type d'operation et/ou sur un tenant")
+    @Secured(
+        permission = REMOVEFORCEPAUSE_CHECK,
+        description = "Retire la pause sur un type d'operation et/ou sur un tenant"
+    )
     public Response removeForcePause(ProcessPause info) {
-
         checkParameter("Json ProcessPause is a mandatory parameter", info);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-
             RequestResponse requestResponse = client.removeForcePause(info);
-            return Response.status(requestResponse.getStatus())
-                .entity(requestResponse).build();
-
+            return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
         } catch (final AdminManagementClientServerException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         }
     }
 
@@ -2906,20 +3019,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = GRIFFINS_CREATE, isAdminOnly = true, description = "Import du griffon")
     public Response importGriffin(JsonNode griffins) throws AdminManagementClientServerException {
-
         checkParameter("Json griffin is a mandatory parameter", griffins);
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-
             SanityChecker.checkJsonAll(griffins);
 
-            RequestResponse requestResponse =
-                client.importGriffins(getFromStringAsTypeReference(griffins.toString(),
-                    new TypeReference<List<GriffinModel>>() {
-                    }));
+            RequestResponse requestResponse = client.importGriffins(
+                getFromStringAsTypeReference(griffins.toString(), new TypeReference<List<GriffinModel>>() {})
+            );
 
-            return Response.status(requestResponse.getStatus())
-                .entity(requestResponse).build();
-
+            return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
         } catch (AdminManagementClientBadRequestException | InvalidParseOperationException | InvalidFormatException e) {
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         } catch (ReferentialException e) {
@@ -2934,7 +3042,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Secured(permission = GRIFFINS_READ, description = "Lister le contenu du référentiel des griffons")
     public Response findGriffin(@Dsl(value = SELECT_SINGLE) JsonNode select)
         throws AdminManagementClientServerException {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse result = client.findGriffin(select);
@@ -2949,15 +3056,15 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
         }
     }
 
-
     @Path("/preservationScenario")
     @GET
     @Consumes(APPLICATION_JSON)
     @Produces(APPLICATION_JSON)
-    @Secured(permission = PRESERVATIONSCENARIOS_READ,
-        description = "Lister le contenu du référentiel des préservation scénarios")
+    @Secured(
+        permission = PRESERVATIONSCENARIOS_READ,
+        description = "Lister le contenu du référentiel des préservation scénarios"
+    )
     public Response findPreservationScenarios(@Dsl(value = SELECT_SINGLE) JsonNode select) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             SanityChecker.checkJsonAll(select);
             RequestResponse result = client.findPreservation(select);
@@ -2965,16 +3072,19 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
             return Response.status(st).entity(result).build();
         } catch (ReferentialException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getMessage()
+            ).toResponse();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_BAD_REQUEST, e.getMessage()).toResponse();
         } catch (IllegalArgumentException e) {
             LOGGER.error(e);
-            return VitamCodeHelper.toVitamError(VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED, e.getMessage())
-                .toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.ADMIN_EXTERNAL_PRECONDITION_FAILED,
+                e.getMessage()
+            ).toResponse();
         }
     }
 
@@ -2984,20 +3094,18 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Secured(permission = PRESERVATIONSCENARIOS_CREATE, description = "Import des perservation scénarios")
     public Response importPreservationScenario(JsonNode preservationScenarios) {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-
             checkParameter("Json preservationScenarios is a mandatory parameter", preservationScenarios);
             SanityChecker.checkJsonAll(preservationScenarios);
 
-            RequestResponse requestResponse =
-                client.importPreservationScenarios(getFromStringAsTypeReference(preservationScenarios.toString(),
-                    new TypeReference<List<PreservationScenarioModel>>() {
-                    }));
+            RequestResponse requestResponse = client.importPreservationScenarios(
+                getFromStringAsTypeReference(
+                    preservationScenarios.toString(),
+                    new TypeReference<List<PreservationScenarioModel>>() {}
+                )
+            );
 
-            return Response.status(requestResponse.getStatus())
-                .entity(requestResponse).build();
-
+            return Response.status(requestResponse.getStatus()).entity(requestResponse).build();
         } catch (AdminManagementClientBadRequestException | InvalidParseOperationException | InvalidFormatException e) {
             return buildErrorResponse(VitamCode.PRESERVATION_VALIDATION_ERROR, e.getMessage());
         } catch (ReferentialException e) {
@@ -3010,7 +3118,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = GRIFFIN_READ, description = "lecture d'un griffin par identifier")
     public Response findGriffinByID(@PathParam("id_document") String documentId) {
-
         try {
             checkParameter("Griffin ID is a  mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
@@ -3031,7 +3138,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     private Response findGriffin(@PathParam("id_document") String documentId)
         throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             RequestResponse<GriffinModel> requestResponse = client.findGriffinByID(documentId);
             int st = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
@@ -3044,7 +3150,6 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     @Produces(APPLICATION_JSON)
     @Secured(permission = PRESERVATIONSCENARIO_READ, description = "lecture d'un scenario par identifier")
     public Response findPreservationByID(@PathParam("id_document") String documentId) {
-
         try {
             checkParameter("Preservation ID is a  mandatory parameter", documentId);
             SanityChecker.checkParameter(documentId);
@@ -3064,9 +3169,7 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
 
     private Response findPreservation(@PathParam("id_document") String documentId)
         throws InvalidParseOperationException, ReferentialNotFoundException, AdminManagementClientServerException {
-
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-
             RequestResponse<PreservationScenarioModel> requestResponse = client.findPreservationByID(documentId);
             int status = requestResponse.isOk() ? Status.OK.getStatusCode() : requestResponse.getHttpCode();
             return Response.status(status).entity(requestResponse).build();
@@ -3074,14 +3177,21 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     }
 
     private Response buildErrorResponse(VitamCode vitamCode, String message) {
-
         return Response.status(vitamCode.getStatus())
-            .entity(new RequestResponseError().setError(new VitamError(getCode(vitamCode))
-                .setContext(vitamCode.getService().getName()).setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage()).setDescription(vitamCode.getMessage())).toString() + message)
+            .entity(
+                new RequestResponseError()
+                    .setError(
+                        new VitamError(getCode(vitamCode))
+                            .setContext(vitamCode.getService().getName())
+                            .setState(vitamCode.getDomain().getName())
+                            .setMessage(vitamCode.getMessage())
+                            .setDescription(vitamCode.getMessage())
+                    )
+                    .toString() +
+                message
+            )
             .build();
     }
-
 
     /**
      * Posts a new logbook entry to Vitam
@@ -3097,49 +3207,52 @@ public class AdminManagementExternalResource extends ApplicationStatusResource {
     public Response createExternalOperation(LogbookOperationParameters operation) {
         Status status;
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
-            if (JsonHandler.writeValueAsBytes(JsonHandler.toJsonNode(operation)).length >= VitamConfiguration
-                .getOperationMaxSizeForExternal()) {
-                throw new IllegalArgumentException(
-                    "The size of this operation is too big");
+            if (
+                JsonHandler.writeValueAsBytes(JsonHandler.toJsonNode(operation)).length >=
+                VitamConfiguration.getOperationMaxSizeForExternal()
+            ) {
+                throw new IllegalArgumentException("The size of this operation is too big");
             }
             status = client.createExternalOperation(operation);
 
             return Response.status(status).build();
         } catch (AdminManagementClientServerException e) {
             LOGGER.error("Admin Management Client exception while trying to create logbookoperations: ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.LOGBOOK_EXTERNAL_INTERNAL_SERVER_ERROR,
-                    e.getLocalizedMessage())
-                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.LOGBOOK_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .toResponse();
         } catch (LogbookClientAlreadyExistsException e) {
             LOGGER.error("Logbook Client exception while trying to create logbookoperations: ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.LOGBOOK_EXTERNAL_CONFLICT,
-                    e.getLocalizedMessage())
-                .setHttpCode(Status.CONFLICT.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.LOGBOOK_EXTERNAL_CONFLICT, e.getLocalizedMessage())
+                .setHttpCode(Status.CONFLICT.getStatusCode())
+                .toResponse();
         } catch (BadRequestException | InvalidParseOperationException | IllegalArgumentException e) {
             LOGGER.error("Bad request while trying to create logbookoperations: ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.LOGBOOK_EXTERNAL_BAD_REQUEST,
-                    e.getLocalizedMessage())
-                .setHttpCode(BAD_REQUEST.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(VitamCode.LOGBOOK_EXTERNAL_BAD_REQUEST, e.getLocalizedMessage())
+                .setHttpCode(BAD_REQUEST.getStatusCode())
+                .toResponse();
         }
     }
 
     @GET
     @Path("jobs")
     @Produces(MediaType.APPLICATION_JSON)
-    @Secured(permission = JOB_READ, description = "récuperer la liste des jobs") 
+    @Secured(permission = JOB_READ, description = "récuperer la liste des jobs")
     public Response findJobs() {
         try (AdminManagementClient client = adminManagementClientFactory.getClient()) {
             final RequestResponse<JsonNode> jobs = client.findJobs();
             return Response.ok(jobs).build();
         } catch (AdminManagementClientServerException e) {
             LOGGER.error("Cannot retrieve all jobs ", e);
-            return VitamCodeHelper
-                .toVitamError(VitamCode.LOGBOOK_EXTERNAL_INTERNAL_SERVER_ERROR,
-                    e.getLocalizedMessage())
-                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode()).toResponse();
+            return VitamCodeHelper.toVitamError(
+                VitamCode.LOGBOOK_EXTERNAL_INTERNAL_SERVER_ERROR,
+                e.getLocalizedMessage()
+            )
+                .setHttpCode(Status.INTERNAL_SERVER_ERROR.getStatusCode())
+                .toResponse();
         }
     }
 

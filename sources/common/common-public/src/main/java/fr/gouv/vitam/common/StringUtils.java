@@ -38,11 +38,11 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-
 /**
  * String utils
  */
 public final class StringUtils {
+
     /**
      * Random Generator
      */
@@ -59,15 +59,14 @@ public final class StringUtils {
     // default parameters for Json check
     private static final String TAG_START =
         "\\<\\w+((\\s+\\w+(\\s*\\=\\s*(?:\".*?\"|'.*?'|[^'\"\\>\\s]+))?)+\\s*|\\s*)\\>";
-    private static final String TAG_END =
-        "\\</\\w+\\>";
+    private static final String TAG_END = "\\</\\w+\\>";
     private static final String TAG_SELF_CLOSING =
         "\\<\\w+((\\s+\\w+(\\s*\\=\\s*(?:\".*?\"|'.*?'|[^'\"\\>\\s]+))?)+\\s*|\\s*)/\\>";
-    private static final String HTML_ENTITY =
-        "&[a-zA-Z][a-zA-Z0-9]+;";
+    private static final String HTML_ENTITY = "&[a-zA-Z][a-zA-Z0-9]+;";
     public static final Pattern HTML_PATTERN = Pattern.compile(
         "(" + TAG_START + ".*" + TAG_END + ")|(" + TAG_SELF_CLOSING + ")|(" + HTML_ENTITY + ")",
-        Pattern.DOTALL);
+        Pattern.DOTALL
+    );
     // Default ASCII for Param check
     public static final Pattern UNPRINTABLE_PATTERN = Pattern.compile("[\\p{Cntrl}&&[^\r\n\t]]");
     public static final List<String> RULES = new ArrayList<>();
@@ -92,7 +91,7 @@ public final class StringUtils {
      * @throws InvalidParseOperationException
      */
     public static String checkSanityString(String value) throws InvalidParseOperationException {
-        checkSanityString(new String[] {value});
+        checkSanityString(new String[] { value });
         return value;
     }
 
@@ -208,4 +207,3 @@ public final class StringUtils {
         return content;
     }
 }
-

@@ -43,6 +43,7 @@ import java.io.IOException;
  * mock access client will be returned
  */
 public class AccessInternalClientFactory extends VitamClientFactory<AccessInternalClient> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessInternalClientFactory.class);
     private static final String CONFIGURATION_FILENAME = "access-internal-client.conf";
     private static final AccessInternalClientFactory ACCESS_CLIENT_FACTORY = new AccessInternalClientFactory();
@@ -92,11 +93,12 @@ public class AccessInternalClientFactory extends VitamClientFactory<AccessIntern
         ClientConfiguration configuration = null;
         if (configurationPath != null) {
             try {
-                configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                    ClientConfigurationImpl.class);
+                configuration = PropertiesUtils.readYaml(
+                    PropertiesUtils.findFile(configurationPath),
+                    ClientConfigurationImpl.class
+                );
             } catch (final IOException fnf) {
-                LOGGER.debug("Error when retrieving configuration file {}, using mock",
-                    CONFIGURATION_FILENAME, fnf);
+                LOGGER.debug("Error when retrieving configuration file {}, using mock", CONFIGURATION_FILENAME, fnf);
             }
         }
         if (configuration == null) {

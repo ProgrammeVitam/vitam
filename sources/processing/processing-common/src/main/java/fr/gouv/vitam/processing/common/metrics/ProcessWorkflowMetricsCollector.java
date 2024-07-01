@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.processing.common.metrics;
 
-
 import fr.gouv.vitam.common.metrics.VitamMetricsNames;
 import fr.gouv.vitam.processing.common.model.ProcessWorkflow;
 import io.prometheus.client.Collector;
@@ -35,7 +34,6 @@ import io.prometheus.client.Gauge;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 
 /**
  * Collect metrics from processing operations.
@@ -62,23 +60,24 @@ public class ProcessWorkflowMetricsCollector extends Collector {
 
     @Override
     public List<MetricFamilySamples> collect() {
-        Gauge processWorkflowMetricPerTypeStateAndStatus =
-            Gauge.build(VitamMetricsNames.VITAM_PROCESSING_WORKFLOW_OPERATION_TOTAL,
-                "Vitam operation count per state and status").labelNames("workflow", "state", "status").create();
+        Gauge processWorkflowMetricPerTypeStateAndStatus = Gauge.build(
+            VitamMetricsNames.VITAM_PROCESSING_WORKFLOW_OPERATION_TOTAL,
+            "Vitam operation count per state and status"
+        )
+            .labelNames("workflow", "state", "status")
+            .create();
 
         for (Map<String, ProcessWorkflow> all : workflowMap.values()) {
             for (ProcessWorkflow wf : all.values()) {
-                processWorkflowMetricPerTypeStateAndStatus.labels(wf.getLogbookTypeProcess().name(),
-                    wf.getState().name(),
-                    wf.getStatus().name()).inc();
+                processWorkflowMetricPerTypeStateAndStatus
+                    .labels(wf.getLogbookTypeProcess().name(), wf.getState().name(), wf.getStatus().name())
+                    .inc();
             }
         }
         return processWorkflowMetricPerTypeStateAndStatus.collect();
     }
 
-
-    public void initialize(
-        Map<Integer, Map<String, ProcessWorkflow>> workflowMap) {
+    public void initialize(Map<Integer, Map<String, ProcessWorkflow>> workflowMap) {
         if (!(workflowMap instanceof ConcurrentHashMap)) {
             throw new IllegalArgumentException("Only ConcurrentHashMap is accepted");
         }

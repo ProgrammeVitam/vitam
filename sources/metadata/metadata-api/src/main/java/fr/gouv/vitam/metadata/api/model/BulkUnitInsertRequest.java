@@ -54,8 +54,6 @@ public class BulkUnitInsertRequest {
 
     @Override
     public String toString() {
-        return "BulkUnitInsertRequest{" +
-            "units=" + units +
-            '}';
+        return "BulkUnitInsertRequest{" + "units=" + units + '}';
     }
 }

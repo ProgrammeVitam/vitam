@@ -40,7 +40,8 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public class LogBookEventIterator implements Iterator<LogbookEvent>, Iterable<LogbookEvent> {
-    private final static int CHARACTERISTICS = Spliterator.ORDERED | Spliterator.DISTINCT;
+
+    private static final int CHARACTERISTICS = Spliterator.ORDERED | Spliterator.DISTINCT;
 
     private final XMLEventReader reader;
 
@@ -108,12 +109,22 @@ public class LogBookEventIterator implements Iterator<LogbookEvent>, Iterable<Lo
         try {
             XMLEvent element = reader.nextEvent();
             if (element.isStartElement() && !element.asStartElement().getName().getLocalPart().equals(expectedName)) {
-                throw new VitamRuntimeException(String.format("Cannot skip element with name '%s' it should be '%s'.",
-                    element.asStartElement().getName().getLocalPart(), expectedName));
+                throw new VitamRuntimeException(
+                    String.format(
+                        "Cannot skip element with name '%s' it should be '%s'.",
+                        element.asStartElement().getName().getLocalPart(),
+                        expectedName
+                    )
+                );
             }
             if (element.isEndElement() && !element.asEndElement().getName().getLocalPart().equals(expectedName)) {
-                throw new VitamRuntimeException(String.format("Cannot skip element with name '%s' it should be '%s'.",
-                    element.asEndElement().getName().getLocalPart(), expectedName));
+                throw new VitamRuntimeException(
+                    String.format(
+                        "Cannot skip element with name '%s' it should be '%s'.",
+                        element.asEndElement().getName().getLocalPart(),
+                        expectedName
+                    )
+                );
             }
         } catch (XMLStreamException e) {
             throw new VitamRuntimeException(e);
@@ -136,8 +147,12 @@ public class LogBookEventIterator implements Iterator<LogbookEvent>, Iterable<Lo
             XMLEvent start = reader.nextEvent();
             if (!start.isStartElement() || !start.asStartElement().getName().getLocalPart().equals(expectedName)) {
                 throw new VitamRuntimeException(
-                    String.format("Cannot take starting element with '%s' it should be '%s'.", start.toString(),
-                        expectedName));
+                    String.format(
+                        "Cannot take starting element with '%s' it should be '%s'.",
+                        start.toString(),
+                        expectedName
+                    )
+                );
             }
             return reader.getElementText();
         } catch (XMLStreamException e) {

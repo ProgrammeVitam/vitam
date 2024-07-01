@@ -27,6 +27,7 @@
 package fr.gouv.vitam.workspace.api.exception;
 
 public class ContentAddressableStorageBadRequestException extends ContentAddressableStorageException {
+
     public ContentAddressableStorageBadRequestException(String message) {
         super(message);
     }

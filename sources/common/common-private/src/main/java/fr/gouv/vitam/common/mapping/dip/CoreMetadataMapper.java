@@ -38,8 +38,6 @@ import org.w3c.dom.Element;
 import java.util.List;
 import java.util.Map;
 
-import static java.util.Collections.singletonList;
-
 /**
  * Map the object MetadataModel generated from ObjectGroup data base model
  * To a jaxb object CoreMetadataType
@@ -90,5 +88,4 @@ public class CoreMetadataMapper {
     private List<Element> mapToOpenType(Map<String, Object> object) {
         return TransformJsonTreeToListOfXmlElement.mapJsonToElement(object);
     }
-
 }

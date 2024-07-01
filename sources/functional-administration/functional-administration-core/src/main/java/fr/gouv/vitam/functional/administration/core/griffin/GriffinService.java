@@ -110,6 +110,7 @@ import static java.util.stream.Collectors.toSet;
 import static javax.ws.rs.core.Response.Status.CREATED;
 
 public class GriffinService {
+
     private static final String GRIFFIN_BACKUP_EVENT = "STP_BACKUP_GRIFFIN";
     private static final String GRIFFIN_IMPORT_EVENT = "STP_IMPORT_GRIFFIN";
     private static final String GRIFFIN_REPORT = "GRIFFIN_REPORT";
@@ -121,9 +122,12 @@ public class GriffinService {
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     @VisibleForTesting
-    GriffinService(MongoDbAccessReferential mongoDbAccess, FunctionalBackupService functionalBackupService,
+    GriffinService(
+        MongoDbAccessReferential mongoDbAccess,
+        FunctionalBackupService functionalBackupService,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
-        VitamCollection<PreservationScenario> preservationScenarioCollection) {
+        VitamCollection<PreservationScenario> preservationScenarioCollection
+    ) {
         this.mongoDbAccess = mongoDbAccess;
         this.functionalBackupService = functionalBackupService;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
@@ -152,21 +156,30 @@ public class GriffinService {
             DbRequestResult result = mongoDbAccess.findDocuments(finalSelect, GRIFFIN);
             final List<GriffinModel> allGriffins = result.getDocuments(Griffin.class, GriffinModel.class);
 
-            classifyDataInInsertUpdateOrDeleteLists(griffinsFromRequest, griffinsToInsert, griffinsToUpdate,
-                griffinIdsToDelete, allGriffins);
+            classifyDataInInsertUpdateOrDeleteLists(
+                griffinsFromRequest,
+                griffinsToInsert,
+                griffinsToUpdate,
+                griffinIdsToDelete,
+                allGriffins
+            );
 
             checkDeletion(griffinIdsToDelete);
 
-            List<String> griffinIdsToUpdate =
-                griffinsToUpdate.stream().map(GriffinModel::getIdentifier).collect(Collectors.toList());
+            List<String> griffinIdsToUpdate = griffinsToUpdate
+                .stream()
+                .map(GriffinModel::getIdentifier)
+                .collect(Collectors.toList());
             Set<String> griffinsToUpdateUsedByScenario = getGriffinIdentifierUsedByScenario(griffinIdsToUpdate);
 
             insertGriffins(griffinsToInsert);
             updateGriffins(griffinsToUpdate);
             deleteGriffins(griffinIdsToDelete);
 
-            Set<String> griffinsIdsToInsert =
-                griffinsToInsert.stream().map(GriffinModel::getIdentifier).collect(toSet());
+            Set<String> griffinsIdsToInsert = griffinsToInsert
+                .stream()
+                .map(GriffinModel::getIdentifier)
+                .collect(toSet());
 
             GriffinReport griffinReport = generateReport(
                 allGriffins,
@@ -182,8 +195,12 @@ public class GriffinService {
             saveReport(guid, griffinReport);
 
             if (!griffinReport.getWarnings().isEmpty()) {
-                createLogbookEventWarning(logbookOperationsClientFactory, guid, GRIFFIN_IMPORT_EVENT,
-                    GriffinReport.onlyWarning(griffinReport));
+                createLogbookEventWarning(
+                    logbookOperationsClientFactory,
+                    guid,
+                    GRIFFIN_IMPORT_EVENT,
+                    GriffinReport.onlyWarning(griffinReport)
+                );
             } else {
                 createLogbookEventSuccess(logbookOperationsClientFactory, guid, GRIFFIN_IMPORT_EVENT);
             }
@@ -191,7 +208,6 @@ public class GriffinService {
             return new RequestResponseOK<GriffinModel>()
                 .addAllResults(griffinsFromRequest)
                 .setHttpCode(CREATED.getStatusCode());
-
         } catch (InvalidCreateOperationException | VitamException e) {
             createLogbookEventKo(logbookOperationsClientFactory, guid, GRIFFIN_IMPORT_EVENT, e.getMessage());
             throw e;
@@ -199,14 +215,10 @@ public class GriffinService {
     }
 
     private void saveReport(GUID guid, GriffinReport griffinReport) throws StorageException {
-
         try (InputStream reportInputStream = JsonHandler.writeToInpustream(griffinReport)) {
-
             final String fileName = guid.getId() + ".json";
 
-            functionalBackupService
-                .saveFile(reportInputStream, guid, GRIFFIN_REPORT, DataCategory.REPORT, fileName);
-
+            functionalBackupService.saveFile(reportInputStream, guid, GRIFFIN_REPORT, DataCategory.REPORT, fileName);
         } catch (IOException | VitamException e) {
             throw new StorageException(e.getMessage(), e);
         }
@@ -214,8 +226,9 @@ public class GriffinService {
 
     private FunctionalOperationModel retrieveOperationModel() {
         try {
-            JsonNode result = logbookOperationsClientFactory.getClient().selectOperationById(
-                VitamThreadUtils.getVitamSession().getRequestId());
+            JsonNode result = logbookOperationsClientFactory
+                .getClient()
+                .selectOperationById(VitamThreadUtils.getVitamSession().getRequestId());
 
             return JsonHandler.getFromJsonNode(result.get(TAG_RESULTS).get(0), FunctionalOperationModel.class);
         } catch (LogbookClientException | InvalidParseOperationException e) {
@@ -223,11 +236,14 @@ public class GriffinService {
         }
     }
 
-    private GriffinReport generateReport(List<GriffinModel> currentGriffinsModels,
+    private GriffinReport generateReport(
+        List<GriffinModel> currentGriffinsModels,
         List<GriffinModel> newGriffinsModels,
-        List<String> updatedIdentifiers, Set<String> removedIdentifiers, Set<String> addedIdentifiers,
-        Set<String> griffinIdentifiersUsedInPSC) {
-
+        List<String> updatedIdentifiers,
+        Set<String> removedIdentifiers,
+        Set<String> addedIdentifiers,
+        Set<String> griffinIdentifiersUsedInPSC
+    ) {
         GriffinReport report = new GriffinReport();
 
         FunctionalOperationModel operationModel = retrieveOperationModel();
@@ -246,8 +262,7 @@ public class GriffinService {
 
         Map<String, GriffinModel> currentGriffinsModelsByIdentifiers = newGriffinsModels
             .stream()
-            .collect(Collectors
-                .toMap(GriffinModel::getIdentifier, model -> model));
+            .collect(Collectors.toMap(GriffinModel::getIdentifier, model -> model));
 
         Map<String, GriffinModel> newGriffinsModelByIdentifiers = newGriffinsModels
             .stream()
@@ -257,16 +272,22 @@ public class GriffinService {
 
         report.setAddedIdentifiers(addedIdentifiers);
 
-
-        reportUpdatedIdentifiers(updatedIdentifiers, report, currentGriffinsModelsByIdentifiers,
-            newGriffinsModelByIdentifiers);
+        reportUpdatedIdentifiers(
+            updatedIdentifiers,
+            report,
+            currentGriffinsModelsByIdentifiers,
+            newGriffinsModelByIdentifiers
+        );
 
         reportVersioning(report);
 
         if (!griffinIdentifiersUsedInPSC.isEmpty()) {
             report.addWarning(
-                String.format(" identifier(s) %s updated but they're already used in preservation scenarios.",
-                    griffinIdentifiersUsedInPSC.toString()));
+                String.format(
+                    " identifier(s) %s updated but they're already used in preservation scenarios.",
+                    griffinIdentifiersUsedInPSC.toString()
+                )
+            );
         }
 
         if (report.getWarnings().isEmpty()) {
@@ -277,9 +298,7 @@ public class GriffinService {
     }
 
     private void reportVersioning(GriffinReport report) {
-
         if (report.getPreviousGriffinsCreationDate() != null && report.getNewGriffinsCreationDate() != null) {
-
             String previousDate = LocalDateUtil.getFormattedDateForMongo(report.getPreviousGriffinsCreationDate());
             String newDate = LocalDateUtil.getFormattedDateForMongo(report.getNewGriffinsCreationDate());
 
@@ -288,17 +307,23 @@ public class GriffinService {
             }
 
             if (previousDate.compareTo(newDate) > 0) {
-                report.addWarning("New imported referential date " + report.getNewGriffinsCreationDate() +
-                    " is older than previous report date " + report.getNewGriffinsCreationDate());
+                report.addWarning(
+                    "New imported referential date " +
+                    report.getNewGriffinsCreationDate() +
+                    " is older than previous report date " +
+                    report.getNewGriffinsCreationDate()
+                );
             }
         }
     }
 
-    private void reportUpdatedIdentifiers(List<String> updatedIdentifiers, GriffinReport report,
+    private void reportUpdatedIdentifiers(
+        List<String> updatedIdentifiers,
+        GriffinReport report,
         Map<String, GriffinModel> currentGriffinsModelsByIdentifiers,
-        Map<String, GriffinModel> newGriffinsModelByIdentifiers) {
+        Map<String, GriffinModel> newGriffinsModelByIdentifiers
+    ) {
         for (String identifier : updatedIdentifiers) {
-
             GriffinModel currentGriffinModel = currentGriffinsModelsByIdentifiers.get(identifier);
             GriffinModel newGriffinModel = newGriffinsModelByIdentifiers.get(identifier);
 
@@ -319,8 +344,12 @@ public class GriffinService {
             Set<ConstraintViolation<GriffinModel>> constraint = validator.validate(model);
             if (!constraint.isEmpty()) {
                 throw new ReferentialException(
-                    String.format("Invalid griffin for : '%s' : '%s'.", model.getIdentifier(),
-                        getConstraintsStrings(constraint)));
+                    String.format(
+                        "Invalid griffin for : '%s' : '%s'.",
+                        model.getIdentifier(),
+                        getConstraintsStrings(constraint)
+                    )
+                );
             }
 
             identifiers.add(model.getIdentifier());
@@ -335,8 +364,9 @@ public class GriffinService {
         Set<String> griffinsToDeleteUsedByScenario = getGriffinIdentifierUsedByScenario(griffinsToDelete);
 
         if (!griffinsToDeleteUsedByScenario.isEmpty()) {
-            throw new ReferentialException(String.format("Can not remove used griffin(s), %s.",
-                String.join(", ", griffinsToDeleteUsedByScenario)));
+            throw new ReferentialException(
+                String.format("Can not remove used griffin(s), %s.", String.join(", ", griffinsToDeleteUsedByScenario))
+            );
         }
     }
 
@@ -344,15 +374,20 @@ public class GriffinService {
         if (griffinIds.isEmpty()) {
             return Collections.emptySet();
         }
-        Spliterator<PreservationScenarioModel> preservationModels = preservationScenarioCollection.getCollection()
+        Spliterator<PreservationScenarioModel> preservationModels = preservationScenarioCollection
+            .getCollection()
             .find()
             .map(PreservationScenario::toModel)
             .spliterator();
 
         return StreamSupport.stream(preservationModels, false)
             .flatMap(
-                model -> Stream.concat(model.getGriffinByFormat().stream().map(GriffinByFormat::getGriffinIdentifier),
-                    Stream.of(model.getDefaultGriffin()).map(DefaultGriffin::getGriffinIdentifier)))
+                model ->
+                    Stream.concat(
+                        model.getGriffinByFormat().stream().map(GriffinByFormat::getGriffinIdentifier),
+                        Stream.of(model.getDefaultGriffin()).map(DefaultGriffin::getGriffinIdentifier)
+                    )
+            )
             .filter(griffinIds::contains)
             .collect(Collectors.toSet());
     }
@@ -366,7 +401,6 @@ public class GriffinService {
     }
 
     private List<String> diff(GriffinModel griffinModel, GriffinModel newModel) {
-
         String after = toComparableString(newModel);
         String before = toComparableString(griffinModel);
 
@@ -374,7 +408,6 @@ public class GriffinService {
         concernedDiffLines.sort(Comparator.naturalOrder());
         return concernedDiffLines;
     }
-
 
     private String toComparableString(GriffinModel griffinModel) {
         try {
@@ -390,14 +423,14 @@ public class GriffinService {
         }
     }
 
-    void classifyDataInInsertUpdateOrDeleteLists(@NotNull List<GriffinModel> listToImport,
+    void classifyDataInInsertUpdateOrDeleteLists(
+        @NotNull List<GriffinModel> listToImport,
         @NotNull List<GriffinModel> listToInsert,
         @NotNull List<GriffinModel> listToUpdate,
-        @NotNull Set<String> listToDelete, List<GriffinModel> allGriffinInDatabase) {
-
-
-        Set<String> dataBaseIds = allGriffinInDatabase.stream().map(
-            GriffinModel::getIdentifier).collect(toSet());
+        @NotNull Set<String> listToDelete,
+        List<GriffinModel> allGriffinInDatabase
+    ) {
+        Set<String> dataBaseIds = allGriffinInDatabase.stream().map(GriffinModel::getIdentifier).collect(toSet());
         final HashSet<String> updateIds = new HashSet<>(dataBaseIds);
 
         final Set<String> importIds = listToImport.stream().map(GriffinModel::getIdentifier).collect(toSet());
@@ -409,18 +442,17 @@ public class GriffinService {
         listToDelete.addAll(removeIds);
 
         for (GriffinModel griffinModel : listToImport) {
-
             classifyModelToImportIntoInsertOrUpdateList(griffinModel, dataBaseIds, listToInsert, listToUpdate);
         }
     }
 
-    private void classifyModelToImportIntoInsertOrUpdateList(@NotNull GriffinModel griffinModel,
+    private void classifyModelToImportIntoInsertOrUpdateList(
+        @NotNull GriffinModel griffinModel,
         @NotNull Set<String> dataBaseIds,
         @NotNull List<GriffinModel> listToInsert,
-        @NotNull List<GriffinModel> listToUpdate) {
-
+        @NotNull List<GriffinModel> listToUpdate
+    ) {
         if (dataBaseIds.contains(griffinModel.getIdentifier())) {
-
             listToUpdate.add(griffinModel);
             return;
         }
@@ -428,9 +460,7 @@ public class GriffinService {
     }
 
     private void insertGriffins(@NotNull List<GriffinModel> listToInsert)
-        throws InvalidParseOperationException, ReferentialException, SchemaValidationException,
-        DocumentAlreadyExistsException {
-
+        throws InvalidParseOperationException, ReferentialException, SchemaValidationException, DocumentAlreadyExistsException {
         if (listToInsert.isEmpty()) {
             return;
         }
@@ -447,7 +477,6 @@ public class GriffinService {
     }
 
     private JsonNode toJson(@NotNull GriffinModel model) throws InvalidParseOperationException {
-
         ObjectNode modelNode = (ObjectNode) toJsonNode(model);
 
         JsonNode hashTenant = modelNode.remove(tenant());
@@ -463,9 +492,7 @@ public class GriffinService {
     }
 
     private void deleteGriffins(@NotNull Set<String> listIdsToDelete)
-        throws ReferentialException, BadRequestException, SchemaValidationException,
-        InvalidCreateOperationException {
-
+        throws ReferentialException, BadRequestException, SchemaValidationException, InvalidCreateOperationException {
         for (String identifier : listIdsToDelete) {
             final Select select = new Select();
             select.setQuery(eq(IDENTIFIER, identifier));
@@ -475,22 +502,22 @@ public class GriffinService {
 
     private void updateGriffins(@NotNull List<GriffinModel> listToUpdate)
         throws InvalidParseOperationException, DatabaseException, ReferentialException {
-
         for (GriffinModel griffinModel : listToUpdate) {
-
             formatDateForMongo(griffinModel);
 
             ObjectNode griffin = (ObjectNode) toJsonNode(griffinModel);
 
             griffin.put(UND_TENANT, getVitamSession().getTenantId());
-            mongoDbAccess
-                .replaceDocument(griffin, griffinModel.getIdentifier(), IDENTIFIER,
-                    FunctionalAdminCollections.GRIFFIN);
+            mongoDbAccess.replaceDocument(
+                griffin,
+                griffinModel.getIdentifier(),
+                IDENTIFIER,
+                FunctionalAdminCollections.GRIFFIN
+            );
         }
     }
 
     private void formatDateForMongo(GriffinModel griffinModel) throws ReferentialException {
-
         try {
             String lastUpdate = getFormattedDateForMongo(now());
             griffinModel.setLastUpdate(lastUpdate);
@@ -502,17 +529,20 @@ public class GriffinService {
             }
             creationDate = getFormattedDateForMongo(creationDate);
             griffinModel.setCreationDate(creationDate);
-        } catch (
-            DateTimeParseException e) {
+        } catch (DateTimeParseException e) {
             throw new ReferentialException(
-                griffinModel.getIdentifier() + " Invalid " + GriffinModel.TAG_CREATION_DATE + " : " +
-                    griffinModel.getCreationDate(), e);
+                griffinModel.getIdentifier() +
+                " Invalid " +
+                GriffinModel.TAG_CREATION_DATE +
+                " : " +
+                griffinModel.getCreationDate(),
+                e
+            );
         }
     }
 
     public RequestResponse<GriffinModel> findGriffin(JsonNode queryDsl)
         throws ReferentialException, InvalidParseOperationException {
-
         DbRequestResult documents = mongoDbAccess.findDocuments(queryDsl, GRIFFIN);
 
         return documents.getRequestResponseOK(queryDsl, Griffin.class, GriffinModel.class);

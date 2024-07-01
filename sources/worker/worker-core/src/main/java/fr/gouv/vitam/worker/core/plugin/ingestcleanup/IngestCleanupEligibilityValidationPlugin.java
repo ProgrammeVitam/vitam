@@ -46,16 +46,19 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class IngestCleanupEligibilityValidationPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(IngestCleanupEligibilityValidationPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        IngestCleanupEligibilityValidationPlugin.class
+    );
     private static final String INGEST_CLEANUP_ELIGIBILITY_VALIDATION = "INGEST_CLEANUP_ELIGIBILITY_VALIDATION";
 
     private final IngestCleanupEligibilityService ingestCleanupEligibilityService;
 
     public IngestCleanupEligibilityValidationPlugin() {
-        this(new IngestCleanupEligibilityService(
-            MetaDataClientFactory.getInstance(),
-            LogbookOperationsClientFactory.getInstance())
+        this(
+            new IngestCleanupEligibilityService(
+                MetaDataClientFactory.getInstance(),
+                LogbookOperationsClientFactory.getInstance()
+            )
         );
     }
 
@@ -65,11 +68,8 @@ public class IngestCleanupEligibilityValidationPlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             String ingestOperationId = param.getParameterValue(WorkerParameterName.ingestOperationIdToCleanup);
 
             CleanupReportManager cleanupReportManager = CleanupReportManager.newReport(ingestOperationId);
@@ -88,9 +88,7 @@ public class IngestCleanupEligibilityValidationPlugin extends ActionHandler {
                 LOGGER.info("Ingest cleanup eligibility validation succeeded");
             }
             return buildItemStatus(INGEST_CLEANUP_ELIGIBILITY_VALIDATION, globalStatusCode);
-
         } catch (ProcessingStatusException e) {
-
             LOGGER.error(String.format("Cleanup eligibility validation failed with status [%s]", e.getStatusCode()), e);
             return buildItemStatus(INGEST_CLEANUP_ELIGIBILITY_VALIDATION, e.getStatusCode(), e.getEventDetails());
         }
@@ -98,18 +96,19 @@ public class IngestCleanupEligibilityValidationPlugin extends ActionHandler {
 
     private void checkUnits(String ingestOperationId, CleanupReportManager cleanupReportManager)
         throws ProcessingStatusException {
-
         ingestCleanupEligibilityService.checkChildUnitsFromOtherIngests(ingestOperationId, cleanupReportManager);
         ingestCleanupEligibilityService.checkUnitUpdatesFromOtherOperations(ingestOperationId, cleanupReportManager);
     }
 
     private void checkObjectGroups(String ingestOperationId, CleanupReportManager cleanupReportManager)
         throws ProcessingStatusException {
-
-        ingestCleanupEligibilityService.checkObjectGroupUpdatesFromOtherOperations(ingestOperationId,
-            cleanupReportManager);
-        ingestCleanupEligibilityService.checkObjectAttachmentsToExistingObjectGroups(ingestOperationId,
-            cleanupReportManager);
+        ingestCleanupEligibilityService.checkObjectGroupUpdatesFromOtherOperations(
+            ingestOperationId,
+            cleanupReportManager
+        );
+        ingestCleanupEligibilityService.checkObjectAttachmentsToExistingObjectGroups(
+            ingestOperationId,
+            cleanupReportManager
+        );
     }
 }
-

@@ -39,15 +39,14 @@ import static org.junit.Assert.fail;
 
 public class CompositeItemStatusTest {
 
-    private final static String MESSAGE = "message";
-    private final static String ITEM_ID_1 = "item_id1";
-    private final static String STEP_ID_1 = "step_id1";
-    private final static String ITEM_ID_2 = "item_id2";
-    private final static String STEP_ID_2 = "step_id2";
+    private static final String MESSAGE = "message";
+    private static final String ITEM_ID_1 = "item_id1";
+    private static final String STEP_ID_1 = "step_id1";
+    private static final String ITEM_ID_2 = "item_id2";
+    private static final String STEP_ID_2 = "step_id2";
 
     @Test
     public void testCompositeItemStatus() throws Exception {
-
         final ItemStatus parentItem1 = new ItemStatus(STEP_ID_1);
         assertEquals(StatusCode.UNKNOWN, parentItem1.getGlobalStatus());
 
@@ -90,14 +89,18 @@ public class CompositeItemStatusTest {
                     fail();
                 }
             }
-
         }
 
         final List<Integer> statusMeter = Arrays.asList(0, 0, 1, 0, 0, 0);
-        final ItemStatus parentItem4 = new ItemStatus(STEP_ID_2, "message", StatusCode.OK, statusMeter,
-            new HashMap<>(), new LinkedHashMap<>(), ProcessState.COMPLETED);
+        final ItemStatus parentItem4 = new ItemStatus(
+            STEP_ID_2,
+            "message",
+            StatusCode.OK,
+            statusMeter,
+            new HashMap<>(),
+            new LinkedHashMap<>(),
+            ProcessState.COMPLETED
+        );
         assertEquals(StatusCode.OK, parentItem4.getGlobalStatus());
-
     }
-
 }

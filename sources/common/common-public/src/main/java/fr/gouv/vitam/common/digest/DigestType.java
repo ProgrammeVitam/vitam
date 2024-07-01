@@ -50,6 +50,7 @@ public enum DigestType {
      * SHA 512
      */
     SHA512("SHA-512");
+
     /**
      * Name
      */

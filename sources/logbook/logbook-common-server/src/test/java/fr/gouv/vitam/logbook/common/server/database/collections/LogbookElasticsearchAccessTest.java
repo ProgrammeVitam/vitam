@@ -78,15 +78,15 @@ public class LogbookElasticsearchAccessTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder());
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -99,11 +99,15 @@ public class LogbookElasticsearchAccessTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        LogbookCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        LogbookCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
         esClient = new LogbookElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager);
         VitamConfiguration.setAdminTenant(tenantId);
     }
@@ -121,9 +125,7 @@ public class LogbookElasticsearchAccessTest {
 
     @Test
     @RunWithCustomExecutor
-    public void testElasticsearchAccessOperation()
-        throws Exception {
-
+    public void testElasticsearchAccessOperation() throws Exception {
         // data
         GUID eventIdentifier = GUIDFactory.newEventGUID(tenantId);
         String eventType = "IMPORT_FORMAT";
@@ -134,20 +136,23 @@ public class LogbookElasticsearchAccessTest {
         GUID eventIdentifierRequest = GUIDFactory.newEventGUID(tenantId);
 
         // add indexEntry
-        final LogbookOperationParameters parametersForCreation =
-            LogbookParameterHelper.newLogbookOperationParameters(eventIdentifier,
-                eventType, eventIdentifierProcess, eventTypeProcess,
-                outcome, outcomeDetailMessage, eventIdentifierRequest);
+        final LogbookOperationParameters parametersForCreation = LogbookParameterHelper.newLogbookOperationParameters(
+            eventIdentifier,
+            eventType,
+            eventIdentifierProcess,
+            eventTypeProcess,
+            outcome,
+            outcomeDetailMessage,
+            eventIdentifierRequest
+        );
         for (final LogbookParameterName name : LogbookParameterName.values()) {
             if (LogbookParameterName.eventDateTime.equals(name)) {
                 parametersForCreation.putParameterValue(name, LocalDateUtil.now().toString());
             } else if (LogbookParameterName.parentEventIdentifier.equals(name)) {
                 parametersForCreation.putParameterValue(name, null);
             } else {
-                parametersForCreation.putParameterValue(name,
-                    GUIDFactory.newEventGUID(tenantId).getId());
+                parametersForCreation.putParameterValue(name, GUIDFactory.newEventGUID(tenantId).getId());
             }
-
         }
 
         LogbookOperation operationForCreation = new LogbookOperation(parametersForCreation);
@@ -161,8 +166,15 @@ public class LogbookElasticsearchAccessTest {
         esClient.refreshIndex(LogbookCollections.OPERATION, tenantId);
         // check entry
         QueryBuilder query = QueryBuilders.matchAllQuery();
-        SearchResponse elasticSearchResponse =
-            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 10);
+        SearchResponse elasticSearchResponse = esClient.search(
+            LogbookCollections.OPERATION,
+            tenantId,
+            query,
+            null,
+            null,
+            0,
+            10
+        );
 
         assertEquals(1, elasticSearchResponse.getHits().getTotalHits().value);
         assertNotNull(elasticSearchResponse.getHits().getAt(0));
@@ -172,10 +184,15 @@ public class LogbookElasticsearchAccessTest {
         for (int i = 0; i < 3; i++) {
             outcome = StatusCode.OK;
             outcomeDetailMessage = "IMPORT_FORMAT." + StatusCode.OK.name();
-            final LogbookOperationParameters parametersForUpdate =
-                LogbookParameterHelper.newLogbookOperationParameters(eventIdentifier,
-                    eventType, eventIdentifierProcess, eventTypeProcess,
-                    outcome, outcomeDetailMessage, eventIdentifierRequest);
+            final LogbookOperationParameters parametersForUpdate = LogbookParameterHelper.newLogbookOperationParameters(
+                eventIdentifier,
+                eventType,
+                eventIdentifierProcess,
+                eventTypeProcess,
+                outcome,
+                outcomeDetailMessage,
+                eventIdentifierRequest
+            );
             // add update as event
             ArrayList<Document> events = (ArrayList<Document>) created.get(LogbookDocument.EVENTS);
             if (events == null) {
@@ -189,19 +206,32 @@ public class LogbookElasticsearchAccessTest {
             LogbookOperation document = JsonHandler.getFromString(esJsonUpdate, LogbookOperation.class);
 
             esClient.updateFullDocument(LogbookCollections.OPERATION, tenantId, idUpdate, document);
-
         }
         // check entry
-        SearchResponse elasticSearchResponse2 =
-            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 10);
+        SearchResponse elasticSearchResponse2 = esClient.search(
+            LogbookCollections.OPERATION,
+            tenantId,
+            query,
+            null,
+            null,
+            0,
+            10
+        );
         assertEquals(1, elasticSearchResponse2.getHits().getTotalHits().value);
         assertNotNull(elasticSearchResponse2.getHits().getAt(0));
         SearchHit hit = elasticSearchResponse2.getHits().iterator().next();
         assertNotNull(hit);
 
         // check search
-        SearchResponse elasticSearchResponse3 =
-            esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 01);
+        SearchResponse elasticSearchResponse3 = esClient.search(
+            LogbookCollections.OPERATION,
+            tenantId,
+            query,
+            null,
+            null,
+            0,
+            01
+        );
         assertEquals(1, elasticSearchResponse3.getHits().getTotalHits().value);
 
         // refresh index
@@ -214,7 +244,6 @@ public class LogbookElasticsearchAccessTest {
         try {
             esClient.search(LogbookCollections.OPERATION, tenantId, query, null, null, 0, 10);
             fail("Should have failed : IndexNotFoundException");
-        } catch (LogbookException e) {
-        }
+        } catch (LogbookException e) {}
     }
 }

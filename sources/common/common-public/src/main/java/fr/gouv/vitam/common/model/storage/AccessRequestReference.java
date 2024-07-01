@@ -35,12 +35,14 @@ public final class AccessRequestReference {
 
     @JsonProperty("accessRequestId")
     private final String accessRequestId;
+
     @JsonProperty("storageStrategyId")
     private final String storageStrategyId;
 
     public AccessRequestReference(
         @Nonnull @JsonProperty("accessRequestId") String accessRequestId,
-        @Nonnull @JsonProperty("storageStrategyId") String storageStrategyId) {
+        @Nonnull @JsonProperty("storageStrategyId") String storageStrategyId
+    ) {
         this.accessRequestId = accessRequestId;
         this.storageStrategyId = storageStrategyId;
     }
@@ -55,13 +57,13 @@ public final class AccessRequestReference {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
         AccessRequestReference that = (AccessRequestReference) o;
-        return Objects.equal(accessRequestId, that.accessRequestId) &&
-            Objects.equal(storageStrategyId, that.storageStrategyId);
+        return (
+            Objects.equal(accessRequestId, that.accessRequestId) &&
+            Objects.equal(storageStrategyId, that.storageStrategyId)
+        );
     }
 
     @Override

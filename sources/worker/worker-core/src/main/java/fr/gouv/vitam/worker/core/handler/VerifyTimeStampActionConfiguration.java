@@ -32,9 +32,8 @@ import fr.gouv.vitam.common.ParametersChecker;
  * TnrClientConfiguration
  */
 public class VerifyTimeStampActionConfiguration {
+
     private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
-
-
 
     /**
      * VerifyTimeStampActionConfiguration constructor
@@ -87,7 +86,4 @@ public class VerifyTimeStampActionConfiguration {
     public void setP12LogbookFile(String p12LogbookFile) {
         this.p12LogbookFile = p12LogbookFile;
     }
-
-
-
 }

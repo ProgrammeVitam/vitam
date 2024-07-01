@@ -52,6 +52,4 @@ public class EntryTraceabilityStatistics {
     public int getNbWarnings() {
         return nbWarnings;
     }
-
-
 }

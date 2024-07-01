@@ -34,6 +34,7 @@ import org.bson.Document;
  * Defines a Context collection. </BR>
  */
 public class Context extends VitamDocument<Context> {
+
     /**
      *
      */
@@ -67,9 +68,7 @@ public class Context extends VitamDocument<Context> {
     /**
      * Empty Constructor
      */
-    public Context() {
-    }
-
+    public Context() {}
 
     /**
      * Constructor
@@ -98,5 +97,4 @@ public class Context extends VitamDocument<Context> {
     public VitamDocument<Context> newInstance(JsonNode content) {
         return new Context(content);
     }
-
 }

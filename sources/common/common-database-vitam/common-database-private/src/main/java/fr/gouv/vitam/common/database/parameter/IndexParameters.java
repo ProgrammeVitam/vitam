@@ -40,6 +40,7 @@ public class IndexParameters {
      */
     @JsonProperty("collection")
     private String collectionName;
+
     /**
      * The list of Vitam tenants.
      */
@@ -73,7 +74,4 @@ public class IndexParameters {
     public void setCollectionName(String collectionName) {
         this.collectionName = collectionName;
     }
-
-
-
 }

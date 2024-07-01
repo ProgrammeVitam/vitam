@@ -51,8 +51,8 @@ import static org.junit.Assert.assertTrue;
  */
 @SuppressWarnings("javadoc")
 public class LocalDateUtilTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(LocalDateUtilTest.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LocalDateUtilTest.class);
 
     @Test
     public void check1970() throws ParseException {
@@ -118,7 +118,6 @@ public class LocalDateUtilTest {
         assertTrue(LocalDateUtil.getFormattedDate(date).contains("T"));
         assertTrue(LocalDateUtil.getFormattedDate(date).contains("+"));
         assertTrue(LocalDateUtil.getFormattedDate(LocalDateUtil.now()).length() == 19);
-
     }
 
     @Test
@@ -185,15 +184,16 @@ public class LocalDateUtilTest {
         assertEquals(dateWithMillisFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillis));
         assertEquals(dateWithMillisZoneFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillisZone));
         assertEquals(dateWithMillisZonePSTFormatted, LocalDateUtil.getFormattedDateForMongo(dateWithMillisZonePST));
-        assertEquals(dateWithMillisZonePSTNoMillisFormatted,
-            LocalDateUtil.getFormattedDateForMongo(dateWithMillisZonePSTNoMillis));
+        assertEquals(
+            dateWithMillisZonePSTNoMillisFormatted,
+            LocalDateUtil.getFormattedDateForMongo(dateWithMillisZonePSTNoMillis)
+        );
 
         assertEquals(slashedDateFormatted, LocalDateUtil.getFormattedDateForMongo(slashedDate));
     }
 
     @Test
     public void testMax() {
-
         LocalDateTime date1 = LocalDateUtil.fromMillis(1234567890L);
         LocalDateTime date2 = LocalDateUtil.fromMillis(1234567891L);
 

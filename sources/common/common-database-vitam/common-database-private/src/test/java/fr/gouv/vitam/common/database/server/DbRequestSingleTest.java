@@ -97,40 +97,58 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 
 public class DbRequestSingleTest {
+
     public static final String PREFIX = GUIDFactory.newGUID().getId();
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DbRequestSingle.class);
     private static final Integer TENANT_ID = 0;
     private static final Integer ADMIN_TENANT_ID = 1;
+
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(CollectionSample.class),
-            PREFIX + CollectionSample.class.getSimpleName());
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(CollectionSample.class),
+        PREFIX + CollectionSample.class.getSimpleName()
+    );
+
     @ClassRule
-    public static ElasticsearchRule elasticsearchRule =
-        new ElasticsearchRule(
-            ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()).getName());
+    public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule(
+        ElasticsearchIndexAlias.ofCrossTenantCollection(PREFIX + CollectionSample.class.getSimpleName()).getName()
+    );
+
     private static VitamCollection vitamCollection;
     private static VitamCollection vitamCollectionCrossTenant;
     private static ElasticsearchAccess esClient;
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @BeforeClass
     public static void setUp() throws Exception {
         final List<ElasticsearchNode> nodes = new ArrayList<>();
         nodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
         List<VitamDescriptionType> descriptions = Collections.singletonList(
-            new VitamDescriptionType("Title", null, text, one, true));
+            new VitamDescriptionType("Title", null, text, one, true)
+        );
         VitamDescriptionResolver vitamDescriptionResolver = new VitamDescriptionResolver(descriptions);
-        vitamCollection =
-            VitamCollectionHelper.getCollection(CollectionSample.class, true, false, PREFIX, vitamDescriptionResolver);
+        vitamCollection = VitamCollectionHelper.getCollection(
+            CollectionSample.class,
+            true,
+            false,
+            PREFIX,
+            vitamDescriptionResolver
+        );
         esClient = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
         vitamCollection.initialize(esClient);
         vitamCollection.initialize(mongoRule.getMongoDatabase(), true);
 
-        vitamCollectionCrossTenant =
-            VitamCollectionHelper.getCollection(CollectionSample.class, false, false, PREFIX, vitamDescriptionResolver);
+        vitamCollectionCrossTenant = VitamCollectionHelper.getCollection(
+            CollectionSample.class,
+            false,
+            false,
+            PREFIX,
+            vitamDescriptionResolver
+        );
         esClient = new ElasticsearchAccess(ElasticsearchRule.VITAM_CLUSTER, nodes);
         vitamCollectionCrossTenant.initialize(esClient);
         vitamCollectionCrossTenant.initialize(mongoRule.getMongoDatabase(), true);
@@ -152,12 +170,13 @@ public class DbRequestSingleTest {
     @Test
     @RunWithCustomExecutor
     public void testVitamCollectionRequests()
-        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
-        VitamDBException, SchemaValidationException {
-
+        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException, VitamDBException, SchemaValidationException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList,
-            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName()));
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(
+            vitamCollection,
+            Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())
+        );
         assertEquals(0, vitamCollection.getCollection().countDocuments());
 
         // init by dbRequest
@@ -166,8 +185,7 @@ public class DbRequestSingleTest {
         data.add(getNewDocument(GUIDFactory.newGUID().toString(), "title two", 2));
         final Insert insert = new Insert();
         insert.setData(data);
-        final DbRequestResult insertResult = dbRequestSingle.execute(insert, 0,
-            mock(DocumentValidator.class));
+        final DbRequestResult insertResult = dbRequestSingle.execute(insert, 0, mock(DocumentValidator.class));
         assertEquals(2, insertResult.getCount());
         assertEquals(2, vitamCollection.getCollection().countDocuments());
         insertResult.close();
@@ -243,31 +261,57 @@ public class DbRequestSingleTest {
     @Test
     @RunWithCustomExecutor
     public void testReplaceMultiTenantCollectionDocuments() throws Exception {
-
         // Given: (multi-tenant data set)
-        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList,
-            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName()));
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(
+            vitamCollection,
+            Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())
+        );
         assertEquals(0, vitamCollection.getCollection().countDocuments());
         DocumentValidator documentValidator = mock(DocumentValidator.class);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        dbRequestSingle.execute(new Insert().setData(JsonHandler.getFromInputStream(
-            PropertiesUtils.getConfigAsStream(
-                "replaceDocumentMultiTenantCollection/inputDataSetTenant0.json"))), 0, documentValidator);
+        dbRequestSingle.execute(
+            new Insert()
+                .setData(
+                    JsonHandler.getFromInputStream(
+                        PropertiesUtils.getConfigAsStream(
+                            "replaceDocumentMultiTenantCollection/inputDataSetTenant0.json"
+                        )
+                    )
+                ),
+            0,
+            documentValidator
+        );
 
         VitamThreadUtils.getVitamSession().setTenantId(ADMIN_TENANT_ID);
-        dbRequestSingle.execute(new Insert().setData(JsonHandler.getFromInputStream(
-            PropertiesUtils.getConfigAsStream(
-                "replaceDocumentMultiTenantCollection/inputDataSetTenant1.json"))), 0, documentValidator);
+        dbRequestSingle.execute(
+            new Insert()
+                .setData(
+                    JsonHandler.getFromInputStream(
+                        PropertiesUtils.getConfigAsStream(
+                            "replaceDocumentMultiTenantCollection/inputDataSetTenant1.json"
+                        )
+                    )
+                ),
+            0,
+            documentValidator
+        );
 
         // When: Replace docs from tenant 0
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         dbRequestSingle.replaceDocuments(
             Map.of(
-                "Identifier2", JsonHandler.createObjectNode()
-                    .put("_tenant", 0).put("Identifier", "Identifier2").put("Description", "NewDescription2"),
-                "Identifier4", JsonHandler.createObjectNode()
-                    .put("_tenant", 0).put("Identifier", "Identifier4").put("NewField", "NewFieldValue")
+                "Identifier2",
+                JsonHandler.createObjectNode()
+                    .put("_tenant", 0)
+                    .put("Identifier", "Identifier2")
+                    .put("Description", "NewDescription2"),
+                "Identifier4",
+                JsonHandler.createObjectNode()
+                    .put("_tenant", 0)
+                    .put("Identifier", "Identifier4")
+                    .put("NewField", "NewFieldValue")
             ),
             "Identifier",
             vitamCollection
@@ -279,8 +323,8 @@ public class DbRequestSingleTest {
         List<JsonNode> tenant0Documents = getAllDocuments(dbRequestSingle);
 
         final JsonNode expectedTenant0Results = JsonHandler.getFromInputStream(
-            PropertiesUtils.getConfigAsStream(
-                "replaceDocumentMultiTenantCollection/expectedTenant0Results.json"));
+            PropertiesUtils.getConfigAsStream("replaceDocumentMultiTenantCollection/expectedTenant0Results.json")
+        );
 
         JsonAssert.assertJsonEquals(expectedTenant0Results, JsonHandler.toJsonNode(tenant0Documents));
 
@@ -289,8 +333,8 @@ public class DbRequestSingleTest {
         List<JsonNode> tenant1Documents = getAllDocuments(dbRequestSingle);
 
         final JsonNode expectedTenant1Results = JsonHandler.getFromInputStream(
-            PropertiesUtils.getConfigAsStream(
-                "replaceDocumentMultiTenantCollection/expectedTenant1Results.json"));
+            PropertiesUtils.getConfigAsStream("replaceDocumentMultiTenantCollection/expectedTenant1Results.json")
+        );
 
         JsonAssert.assertJsonEquals(expectedTenant1Results, JsonHandler.toJsonNode(tenant1Documents));
     }
@@ -298,25 +342,34 @@ public class DbRequestSingleTest {
     @Test
     @RunWithCustomExecutor
     public void testReplaceCrossTenantCollectionDocuments() throws Exception {
-
         // Given: (multi-tenant data set)
-        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollectionCrossTenant, Collections::emptyList,
-            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollectionCrossTenant.getName()));
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(
+            vitamCollectionCrossTenant,
+            Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollectionCrossTenant.getName())
+        );
         assertEquals(0, vitamCollectionCrossTenant.getCollection().countDocuments());
         DocumentValidator documentValidator = mock(DocumentValidator.class);
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        dbRequestSingle.execute(new Insert().setData(JsonHandler.getFromInputStream(
-            PropertiesUtils.getConfigAsStream(
-                "replaceDocumentCrossTenantCollection/inputDataSet.json"))), 0, documentValidator);
+        dbRequestSingle.execute(
+            new Insert()
+                .setData(
+                    JsonHandler.getFromInputStream(
+                        PropertiesUtils.getConfigAsStream("replaceDocumentCrossTenantCollection/inputDataSet.json")
+                    )
+                ),
+            0,
+            documentValidator
+        );
 
         // When
         dbRequestSingle.replaceDocuments(
             Map.of(
-                "Identifier2", JsonHandler.createObjectNode()
-                    .put("Identifier", "Identifier2").put("Description", "NewDescription2"),
-                "Identifier4", JsonHandler.createObjectNode()
-                    .put("Identifier", "Identifier4").put("NewField", "NewFieldValue")
+                "Identifier2",
+                JsonHandler.createObjectNode().put("Identifier", "Identifier2").put("Description", "NewDescription2"),
+                "Identifier4",
+                JsonHandler.createObjectNode().put("Identifier", "Identifier4").put("NewField", "NewFieldValue")
             ),
             "Identifier",
             vitamCollectionCrossTenant
@@ -326,8 +379,8 @@ public class DbRequestSingleTest {
         List<JsonNode> updatedDocuments = getAllDocuments(dbRequestSingle);
 
         final JsonNode expectedTenant0Results = JsonHandler.getFromInputStream(
-            PropertiesUtils.getConfigAsStream(
-                "replaceDocumentCrossTenantCollection/expectedResults.json"));
+            PropertiesUtils.getConfigAsStream("replaceDocumentCrossTenantCollection/expectedResults.json")
+        );
 
         JsonAssert.assertJsonEquals(expectedTenant0Results, JsonHandler.toJsonNode(updatedDocuments));
     }
@@ -335,26 +388,32 @@ public class DbRequestSingleTest {
     @Test
     @RunWithCustomExecutor
     public void testReplaceNotFoundDocumentThenThrowDatabaseException() {
-
         // Given
-        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollectionCrossTenant, Collections::emptyList,
-            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollectionCrossTenant.getName()));
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(
+            vitamCollectionCrossTenant,
+            Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollectionCrossTenant.getName())
+        );
         assertEquals(0, vitamCollectionCrossTenant.getCollection().countDocuments());
 
         // When / Then
-        assertThatThrownBy(() -> dbRequestSingle.replaceDocuments(
-            Map.of("No such doc", JsonHandler.createObjectNode()),
-            "Title",
-            vitamCollectionCrossTenant
-        )).isInstanceOf(DatabaseException.class);
+        assertThatThrownBy(
+            () ->
+                dbRequestSingle.replaceDocuments(
+                    Map.of("No such doc", JsonHandler.createObjectNode()),
+                    "Title",
+                    vitamCollectionCrossTenant
+                )
+        ).isInstanceOf(DatabaseException.class);
     }
 
     private List<JsonNode> getAllDocuments(DbRequestSingle dbRequestSingle)
-        throws InvalidCreateOperationException, InvalidParseOperationException, DatabaseException, BadRequestException,
-        VitamDBException, SchemaValidationException {
+        throws InvalidCreateOperationException, InvalidParseOperationException, DatabaseException, BadRequestException, VitamDBException, SchemaValidationException {
         final Select sortedSelectES = new Select();
         DbRequestResult sortedSelectESResult = dbRequestSingle.execute(sortedSelectES);
-        return sortedSelectESResult.getDocuments(VitamDocument.class).stream()
+        return sortedSelectESResult
+            .getDocuments(VitamDocument.class)
+            .stream()
             .map(doc -> {
                 try {
                     return BsonHelper.fromDocumentToJsonNode(doc);
@@ -369,10 +428,12 @@ public class DbRequestSingleTest {
     @Test
     @RunWithCustomExecutor
     public void testInsertRequestWithValidationOK() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList,
-            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName()));
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(
+            vitamCollection,
+            Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())
+        );
         assertEquals(0, vitamCollection.getCollection().countDocuments());
 
         // init by dbRequest
@@ -381,7 +442,6 @@ public class DbRequestSingleTest {
         data.add(getNewDocument(GUIDFactory.newGUID().toString(), "title two", 2));
         final Insert insert = new Insert();
         insert.setData(data);
-
 
         DocumentValidator documentValidator = mock(DocumentValidator.class);
         doNothing().when(documentValidator).validateDocument(any());
@@ -406,10 +466,12 @@ public class DbRequestSingleTest {
     @Test
     @RunWithCustomExecutor
     public void testInsertRequestWithValidationFailure() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList,
-            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName()));
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(
+            vitamCollection,
+            Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())
+        );
         assertEquals(0, vitamCollection.getCollection().countDocuments());
 
         // init by dbRequest
@@ -418,12 +480,12 @@ public class DbRequestSingleTest {
         final Insert insert = new Insert();
         insert.setData(data);
 
-
         DocumentValidator documentValidator = mock(DocumentValidator.class);
         doThrow(new SchemaValidationException("Prb...")).when(documentValidator).validateDocument(any());
 
-        assertThatThrownBy(() -> dbRequestSingle.execute(insert, 0, documentValidator))
-            .isInstanceOf(SchemaValidationException.class);
+        assertThatThrownBy(() -> dbRequestSingle.execute(insert, 0, documentValidator)).isInstanceOf(
+            SchemaValidationException.class
+        );
 
         assertEquals(0, vitamCollection.getCollection().countDocuments());
     }
@@ -431,10 +493,12 @@ public class DbRequestSingleTest {
     @Test
     @RunWithCustomExecutor
     public void testUpdateRequestWithValidationFailure() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        DbRequestSingle dbRequestSingle = new DbRequestSingle(vitamCollection, Collections::emptyList,
-            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName()));
+        DbRequestSingle dbRequestSingle = new DbRequestSingle(
+            vitamCollection,
+            Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())
+        );
         assertEquals(0, vitamCollection.getCollection().countDocuments());
 
         // init by dbRequest
@@ -456,8 +520,9 @@ public class DbRequestSingleTest {
         DocumentValidator documentValidator = mock(DocumentValidator.class);
         doThrow(new SchemaValidationException("Prb...")).when(documentValidator).validateDocument(any());
 
-        assertThatThrownBy(() -> dbRequestSingle.execute(update, documentValidator))
-            .isInstanceOf(SchemaValidationException.class);
+        assertThatThrownBy(() -> dbRequestSingle.execute(update, documentValidator)).isInstanceOf(
+            SchemaValidationException.class
+        );
 
         // Ensure not updated
         final Select select = new Select();
@@ -474,9 +539,7 @@ public class DbRequestSingleTest {
     @Test
     @RunWithCustomExecutor
     public void testOptimisticLockOK()
-        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException,
-        VitamDBException, SchemaValidationException {
-
+        throws InvalidParseOperationException, BadRequestException, DatabaseException, InvalidCreateOperationException, VitamDBException, SchemaValidationException {
         VitamConfiguration.setOptimisticLockSleepTime(10);
         VitamConfiguration.setOptimisticLockRetryNumber(5);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -488,9 +551,11 @@ public class DbRequestSingleTest {
         datas.add(getNewDocument(GUIDFactory.newGUID().toString(), "Optimistic lock test", 3));
         final Insert insert = new Insert();
         insert.setData(datas);
-        final DbRequestResult insertResult = new DbRequestSingle(vitamCollection, Collections::emptyList,
-            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())).execute(insert, 0,
-            mock(DocumentValidator.class));
+        final DbRequestResult insertResult = new DbRequestSingle(
+            vitamCollection,
+            Collections::emptyList,
+            ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())
+        ).execute(insert, 0, mock(DocumentValidator.class));
         assertEquals(1, insertResult.getCount());
         assertEquals(1, vitamCollection.getCollection().countDocuments());
         insertResult.close();
@@ -514,7 +579,6 @@ public class DbRequestSingleTest {
         assertThat(document.getInteger("_v")).isEqualTo(5);
     }
 
-
     private void update(CountDownLatch countDownLatch, int nbr) {
         try {
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
@@ -522,9 +586,11 @@ public class DbRequestSingleTest {
             update.setQuery(eq("Numero", 3));
             update.addActions(UpdateActionHelper.set("Title", "thread_" + nbr));
 
-            final DbRequestResult updateResult = new DbRequestSingle(vitamCollection, Collections::emptyList,
-                ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())).execute(update,
-                mock(DocumentValidator.class));
+            final DbRequestResult updateResult = new DbRequestSingle(
+                vitamCollection,
+                Collections::emptyList,
+                ElasticsearchIndexAlias.ofCrossTenantCollection(vitamCollection.getName())
+            ).execute(update, mock(DocumentValidator.class));
             System.err.println("Thread_" + nbr + " >> " + updateResult.getDiffs());
             assertEquals(1, updateResult.getCount());
             updateResult.close();

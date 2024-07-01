@@ -35,7 +35,6 @@ import static org.junit.Assert.assertEquals;
  */
 public class WorkerConfigurationTest {
 
-
     @Test
     public final void givenWorkerConfigurationWithDefaultConstructor() {
         final WorkerConfiguration workerConfiguration = new WorkerConfiguration();

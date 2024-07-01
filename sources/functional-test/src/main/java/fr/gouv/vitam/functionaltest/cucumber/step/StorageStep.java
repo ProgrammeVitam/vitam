@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
@@ -77,6 +76,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Storage step
  */
 public class StorageStep extends CommonStep {
+
     private String fileName;
     private static final String TEST_URI = "testStorage";
     private final String guid;
@@ -87,7 +87,6 @@ public class StorageStep extends CommonStep {
         super(world);
         guid = GUIDFactory.newStorageOperationGUID(world.getTenantId(), true).getId();
     }
-
 
     /**
      * define a sip
@@ -106,20 +105,21 @@ public class StorageStep extends CommonStep {
         assertThat(info.getId()).isEqualTo(guid);
     }
 
-
     @When("^je lance une sauvegarde des journaux des écritures")
     public void storage_backup() throws IOException {
         runInVitamThread(() -> {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
                 VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
-                RequestResponseOK<StorageLogBackupResult> response =
-                    world.getStorageClient().storageLogBackup(Collections.singletonList(world.getTenantId()));
+                RequestResponseOK<StorageLogBackupResult> response = world
+                    .getStorageClient()
+                    .storageLogBackup(Collections.singletonList(world.getTenantId()));
 
                 StorageLogBackupResult storageLogTraceabilityResult = response.getResults().get(0);
 
                 assertThat(storageLogTraceabilityResult.getOperationId())
-                    .as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
+                    .as(format("%s not found for request", X_REQUEST_ID))
+                    .isNotNull();
                 world.setOperationId(storageLogTraceabilityResult.getOperationId());
             } catch (Exception e) {
                 throw new CompletionException(e);
@@ -133,13 +133,15 @@ public class StorageStep extends CommonStep {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
                 VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
-                RequestResponseOK<StorageLogBackupResult> response =
-                    world.getStorageClient().storageAccessLogBackup(Collections.singletonList(world.getTenantId()));
+                RequestResponseOK<StorageLogBackupResult> response = world
+                    .getStorageClient()
+                    .storageAccessLogBackup(Collections.singletonList(world.getTenantId()));
 
                 StorageLogBackupResult storageLogTraceabilityResult = response.getResults().get(0);
 
-                assertThat(storageLogTraceabilityResult.getOperationId()).as(
-                    format("%s not found for request", X_REQUEST_ID)).isNotNull();
+                assertThat(storageLogTraceabilityResult.getOperationId())
+                    .as(format("%s not found for request", X_REQUEST_ID))
+                    .isNotNull();
                 world.setOperationId(storageLogTraceabilityResult.getOperationId());
             } catch (Exception e) {
                 throw new CompletionException(e);
@@ -153,13 +155,15 @@ public class StorageStep extends CommonStep {
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
                 VitamThreadUtils.getVitamSession().setContractId(world.getContractId());
-                RequestResponseOK<StorageLogTraceabilityResult> response =
-                    world.getStorageClient().storageLogTraceability(Collections.singletonList(world.getTenantId()));
+                RequestResponseOK<StorageLogTraceabilityResult> response = world
+                    .getStorageClient()
+                    .storageLogTraceability(Collections.singletonList(world.getTenantId()));
 
                 StorageLogTraceabilityResult storageLogTraceabilityResult = response.getResults().get(0);
 
-                assertThat(storageLogTraceabilityResult.getOperationId()).as(
-                    format("%s not found for request", X_REQUEST_ID)).isNotNull();
+                assertThat(storageLogTraceabilityResult.getOperationId())
+                    .as(format("%s not found for request", X_REQUEST_ID))
+                    .isNotNull();
                 world.setOperationId(storageLogTraceabilityResult.getOperationId());
             } catch (Exception e) {
                 throw new CompletionException(e);
@@ -228,17 +232,14 @@ public class StorageStep extends CommonStep {
     private void the_sip_is_stored_in_offer(String strategy) {
         //ugly
         runInVitamThread(() -> {
-
             Response response = null;
             try {
                 VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
-                response =
-                    world.getStorageClient()
-                        .getContainerAsync(strategy, guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
+                response = world
+                    .getStorageClient()
+                    .getContainerAsync(strategy, guid, DataCategory.OBJECT, AccessLogUtils.getNoLogAccessLog());
                 responseStatus = response.getStatusInfo();
-
             } catch (Exception | AssertionError e) {
-
                 throw new RuntimeException(e);
             } finally {
                 world.getStorageClient().consumeAnyEntityAndClose(response);
@@ -262,9 +263,7 @@ public class StorageStep extends CommonStep {
      * @throws IOException
      */
     public boolean store(Path sip, String uri, String strategy, String guid)
-        throws StorageServerClientException, StorageNotFoundClientException, StorageAlreadyExistsClientException,
-        ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException,
-        ContentAddressableStorageNotFoundException, IOException {
+        throws StorageServerClientException, StorageNotFoundClientException, StorageAlreadyExistsClientException, ContentAddressableStorageServerException, ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotFoundException, IOException {
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
             WorkspaceClient workspaceClient = WorkspaceClientFactory.getInstance().getClient();
             workspaceClient.createContainer(guid);

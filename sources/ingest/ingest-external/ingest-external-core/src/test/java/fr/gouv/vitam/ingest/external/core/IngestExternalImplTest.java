@@ -64,8 +64,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
-
 public class IngestExternalImplTest {
+
     private static final String PATH = "/tmp";
     private static final String SCRIPT_SCAN_CLAMAV = "scan-clamav.sh";
     private static final String SCRIPT_SCAN_CLAMAV_OK = "scan-clamav-ok.sh";
@@ -81,11 +81,10 @@ public class IngestExternalImplTest {
     private IngestInternalClientFactory ingestInternalClientFactory;
     private IngestInternalClient ingestInternalClient;
 
-
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private static final long timeoutScanDelay = 60000;
 
@@ -99,8 +98,9 @@ public class IngestExternalImplTest {
         ingestInternalClient = mock(IngestInternalClient.class);
         when(ingestInternalClientFactory.getClient()).thenReturn(ingestInternalClient);
 
-        when(ingestInternalClient.getWorkflowDetails(anyString()))
-            .thenReturn(new IngestInternalClientMock().getWorkflowDetails("DEFAULT_WORKFLOW"));
+        when(ingestInternalClient.getWorkflowDetails(anyString())).thenReturn(
+            new IngestInternalClientMock().getWorkflowDetails("DEFAULT_WORKFLOW")
+        );
         when(ingestInternalClient.cancelOperationProcessExecution(anyString())).thenReturn(new RequestResponseOK<>());
 
         final IngestExternalConfiguration config = new IngestExternalConfiguration();
@@ -108,16 +108,21 @@ public class IngestExternalImplTest {
         config.setAntiVirusScriptName(SCRIPT_SCAN_CLAMAV);
         config.setTimeoutScanDelay(timeoutScanDelay);
         ManifestDigestValidator manifestDigestValidator = new ManifestDigestValidator();
-        ingestExternalImpl = new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactory,
-            manifestDigestValidator);
+        ingestExternalImpl = new IngestExternalImpl(
+            config,
+            formatIdentifierFactory,
+            ingestInternalClientFactory,
+            manifestDigestValidator
+        );
     }
 
     @RunWithCustomExecutor
     @Test
     public void getFormatIdentifierFactoryThenThrowFormatIdentifierNotFoundException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(formatIdentifierFactory.getFormatIdentifierFor(any()))
-            .thenThrow(new FormatIdentifierNotFoundException(""));
+        when(formatIdentifierFactory.getFormatIdentifierFor(any())).thenThrow(
+            new FormatIdentifierNotFoundException("")
+        );
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
@@ -137,15 +142,15 @@ public class IngestExternalImplTest {
         PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
         StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, null);
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
-
     }
 
     @RunWithCustomExecutor
     @Test
     public void getFormatIdentifierFactoryThenThrowFormatIdentifierTechnicalException() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        when(formatIdentifierFactory.getFormatIdentifierFor(any()))
-            .thenThrow(new FormatIdentifierTechnicalException(""));
+        when(formatIdentifierFactory.getFormatIdentifierFor(any())).thenThrow(
+            new FormatIdentifierTechnicalException("")
+        );
         stream = PropertiesUtils.getResourceAsStream("no-virus.txt");
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         final AsyncResponseJunitTest responseAsync = new AsyncResponseJunitTest();
@@ -186,7 +191,6 @@ public class IngestExternalImplTest {
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
-
     @RunWithCustomExecutor
     @Test
     public void formatNotSupportedInInternalReferential() throws Exception {
@@ -204,8 +208,7 @@ public class IngestExternalImplTest {
 
     @RunWithCustomExecutor
     @Test
-    public void givenFixedVirusFile()
-        throws Exception {
+    public void givenFixedVirusFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(formatIdentifier.analysePath(any())).thenReturn(getFormatIdentifierTarResponse());
         stream = PropertiesUtils.getResourceAsStream("fixed-virus.txt");
@@ -220,8 +223,7 @@ public class IngestExternalImplTest {
 
     @RunWithCustomExecutor
     @Test
-    public void givenUnFixedVirusFileAndSupportedMediaType()
-        throws Exception {
+    public void givenUnFixedVirusFileAndSupportedMediaType() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         when(formatIdentifier.analysePath(any())).thenReturn(getFormatIdentifierTarResponse());
         stream = PropertiesUtils.getResourceAsStream("unfixed-virus.txt");
@@ -235,8 +237,7 @@ public class IngestExternalImplTest {
 
     private List<FormatIdentifierResponse> getFormatIdentifierZipResponse() {
         final List<FormatIdentifierResponse> list = new ArrayList<>();
-        list.add(new FormatIdentifierResponse("ZIP Format", "application/zip",
-            "x-fmt/263", "pronom"));
+        list.add(new FormatIdentifierResponse("ZIP Format", "application/zip", "x-fmt/263", "pronom"));
         return list;
     }
 
@@ -331,16 +332,13 @@ public class IngestExternalImplTest {
 
     private List<FormatIdentifierResponse> getFormatIdentifierTarResponse() {
         final List<FormatIdentifierResponse> list = new ArrayList<>();
-        list.add(new FormatIdentifierResponse("TAR Format", "application/x-tar",
-            "x-fmt/263", "pronom"));
+        list.add(new FormatIdentifierResponse("TAR Format", "application/x-tar", "x-fmt/263", "pronom"));
         return list;
     }
 
-
     private List<FormatIdentifierResponse> getNotSupprtedFormatIdentifierResponseList() {
         final List<FormatIdentifierResponse> list = new ArrayList<>();
-        list.add(new FormatIdentifierResponse("xsd Format", "application/xsd",
-            "x-fmt/263", "pronom"));
+        list.add(new FormatIdentifierResponse("xsd Format", "application/xsd", "x-fmt/263", "pronom"));
         return list;
     }
 
@@ -350,8 +348,12 @@ public class IngestExternalImplTest {
         config.setAntiVirusScriptName(script);
         config.setTimeoutScanDelay(timeoutScanDelay);
         ManifestDigestValidator manifestDigestValidator = new ManifestDigestValidator();
-        ingestExternalImpl = new IngestExternalImpl(config, formatIdentifierFactory, ingestInternalClientFactory,
-            manifestDigestValidator);
+        ingestExternalImpl = new IngestExternalImpl(
+            config,
+            formatIdentifierFactory,
+            ingestInternalClientFactory,
+            manifestDigestValidator
+        );
     }
 
     @RunWithCustomExecutor
@@ -365,9 +367,13 @@ public class IngestExternalImplTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
+        StatusCode statusCode = ingestExternalImpl.upload(
+            model,
+            EXECUTION_MODE,
+            guid,
             "fcfa0fdd2f27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa",
-            "SHA-512");
+            "SHA-512"
+        );
         Assert.assertTrue(statusCode.equals(StatusCode.OK));
     }
 
@@ -382,9 +388,13 @@ public class IngestExternalImplTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
+        StatusCode statusCode = ingestExternalImpl.upload(
+            model,
+            EXECUTION_MODE,
+            guid,
             "fcfa0fdd2f27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa",
-            null);
+            null
+        );
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -399,8 +409,7 @@ public class IngestExternalImplTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
-            null, "SHA-512");
+        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid, null, "SHA-512");
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -415,9 +424,13 @@ public class IngestExternalImplTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
+        StatusCode statusCode = ingestExternalImpl.upload(
+            model,
+            EXECUTION_MODE,
+            guid,
             "baddigestf27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa",
-            "SHA-512");
+            "SHA-512"
+        );
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 
@@ -432,9 +445,13 @@ public class IngestExternalImplTest {
         final GUID guid = GUIDFactory.newEventGUID(ParameterHelper.getTenantParameter());
         PreUploadResume model = ingestExternalImpl.preUploadAndResume(stream, CONTEXT_ID, guid, null, responseAsync);
 
-        StatusCode statusCode = ingestExternalImpl.upload(model, EXECUTION_MODE, guid,
+        StatusCode statusCode = ingestExternalImpl.upload(
+            model,
+            EXECUTION_MODE,
+            guid,
             "fcfa0fdd2f27e45c4c80936f99d4144159590e010eb2e9ec7bd1af2165d65e265501d902e9c4c5a858ffd4cd8dba0ca937d0bc327c2518c08c86d355c5a34efa",
-            "Unknown");
+            "Unknown"
+        );
         Assert.assertTrue(statusCode.equals(StatusCode.KO));
     }
 }

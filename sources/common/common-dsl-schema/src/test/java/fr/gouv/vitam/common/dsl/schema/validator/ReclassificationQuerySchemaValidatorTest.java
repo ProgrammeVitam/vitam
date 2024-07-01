@@ -40,8 +40,9 @@ public class ReclassificationQuerySchemaValidatorTest {
     @Test
     public void testUpdateByIdValidator() throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new ReclassificationQuerySchemaValidator();
-        JsonNode updateByIdQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("reclassification_query_complete.json"));
+        JsonNode updateByIdQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("reclassification_query_complete.json")
+        );
         dslValidator.validate(updateByIdQuery);
     }
 }

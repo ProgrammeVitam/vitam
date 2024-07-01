@@ -28,5 +28,5 @@ package fr.gouv.vitam.storage.offers.tape.simulator;
 
 public enum VirtualChangerState {
     READY,
-    BUSY
+    BUSY,
 }

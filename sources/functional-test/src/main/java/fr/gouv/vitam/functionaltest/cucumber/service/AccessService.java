@@ -74,18 +74,23 @@ public class AccessService {
      * @throws InvalidCreateOperationException exception
      * @throws VitamClientException exception
      */
-    public String findUnitGUIDByTitleAndOperationId(AccessExternalClient accessClient, int tenantId, String contractId,
-        String applicationSessionId, String operationId, String auTitle)
-        throws InvalidCreateOperationException, VitamClientException {
+    public String findUnitGUIDByTitleAndOperationId(
+        AccessExternalClient accessClient,
+        int tenantId,
+        String contractId,
+        String applicationSessionId,
+        String operationId,
+        String auTitle
+    ) throws InvalidCreateOperationException, VitamClientException {
         String auId = "";
         SelectMultiQuery searchQuery = new SelectMultiQuery();
         searchQuery.addQueries(
-            and().add(match(TITLE, "\"" + auTitle + "\"")).add(in(VitamFieldsHelper.operations(), operationId)));
-        RequestResponse requestResponse =
-            accessClient.selectUnits(
-                new VitamContext(tenantId).setAccessContract(contractId)
-                    .setApplicationSessionId(applicationSessionId),
-                searchQuery.getFinalSelect());
+            and().add(match(TITLE, "\"" + auTitle + "\"")).add(in(VitamFieldsHelper.operations(), operationId))
+        );
+        RequestResponse requestResponse = accessClient.selectUnits(
+            new VitamContext(tenantId).setAccessContract(contractId).setApplicationSessionId(applicationSessionId),
+            searchQuery.getFinalSelect()
+        );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             if (requestResponseOK.getHits().getTotal() == 0) {
@@ -125,7 +130,6 @@ public class AccessService {
             boolean isArray = false;
             boolean isOfArray = false;
 
-
             if (null != key && key.endsWith(".array[][]")) {
                 key = key.replace(".array[][]", "");
                 isOfArray = true;
@@ -150,30 +154,32 @@ public class AccessService {
                 assertThat(resultValue).contains(resultExpected);
             } else {
                 if (isArray) {
-                    Set<String> resultArray =
-                        JsonHandler.getFromStringAsTypeReference(resultValue, new TypeReference<Set<String>>() {
-                        });
+                    Set<String> resultArray = JsonHandler.getFromStringAsTypeReference(
+                        resultValue,
+                        new TypeReference<Set<String>>() {}
+                    );
 
-                    Set<String> expectedrray =
-                        JsonHandler.getFromStringAsTypeReference(resultExpected, new TypeReference<Set<String>>() {
-                        });
+                    Set<String> expectedrray = JsonHandler.getFromStringAsTypeReference(
+                        resultExpected,
+                        new TypeReference<Set<String>>() {}
+                    );
                     assertThat(resultArray).isEqualTo(expectedrray);
                 } else {
-                    Set<Set<String>> resultArray =
-                        JsonHandler.getFromStringAsTypeReference(resultValue, new TypeReference<Set<Set<String>>>() {
-                        });
+                    Set<Set<String>> resultArray = JsonHandler.getFromStringAsTypeReference(
+                        resultValue,
+                        new TypeReference<Set<Set<String>>>() {}
+                    );
 
-                    Set<Set<String>> expectedrray =
-                        JsonHandler
-                            .getFromStringAsTypeReference(resultExpected, new TypeReference<Set<Set<String>>>() {
-                            });
+                    Set<Set<String>> expectedrray = JsonHandler.getFromStringAsTypeReference(
+                        resultExpected,
+                        new TypeReference<Set<Set<String>>>() {}
+                    );
 
                     assertThat(expectedrray).isEqualTo(resultArray);
                 }
             }
         }
     }
-
 
     /**
      * Retrieve result value

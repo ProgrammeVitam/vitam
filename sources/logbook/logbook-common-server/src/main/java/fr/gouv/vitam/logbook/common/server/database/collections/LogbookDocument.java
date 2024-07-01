@@ -36,6 +36,7 @@ import org.bson.Document;
  * @param <E> Class used to implement the Document
  */
 public abstract class LogbookDocument<E> extends Document {
+
     private static final long serialVersionUID = 4051636259888359930L;
     /**
      * ID of each line: different for each sub type
@@ -61,11 +62,10 @@ public abstract class LogbookDocument<E> extends Document {
      * Contains the specific data as a json string
      */
     public static final String EVENT_DETAILS = "evDetData";
+
     /**
      *
      */
-
-
 
     /**
      * Empty constructor

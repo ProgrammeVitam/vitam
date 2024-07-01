@@ -27,13 +27,13 @@
 package fr.gouv.vitam.common.serverv2;
 
 public class SslConfig {
+
     private String keyStorePath;
     private String keyStorePassword;
     private String trustStorePath;
     private String trustStorePassword;
 
-    public SslConfig(String keyStorePath, String keyStorePassword, String trustStorePath,
-        String trustStorePassword) {
+    public SslConfig(String keyStorePath, String keyStorePassword, String trustStorePath, String trustStorePassword) {
         this.keyStorePath = keyStorePath;
         this.keyStorePassword = keyStorePassword;
         this.trustStorePath = trustStorePath;

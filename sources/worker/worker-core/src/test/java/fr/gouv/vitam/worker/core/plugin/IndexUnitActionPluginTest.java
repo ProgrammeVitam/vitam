@@ -64,15 +64,15 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 public class IndexUnitActionPluginTest {
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
@@ -93,7 +93,6 @@ public class IndexUnitActionPluginTest {
     private static final String ARCHIVE_UNIT_WITh_MGT_RULES = "indexUnitActionHandler/ARCHIVE_UNIT_WITH_MGT_RULES.json";
     private static final String ATR_GLOBAL_SEDA_PARAMETERS = "globalSEDAParameters.json";
 
-
     private InputStream archiveUnit;
     private InputStream archiveUnitWithRules;
     private InputStream archiveUnitChild;
@@ -101,19 +100,19 @@ public class IndexUnitActionPluginTest {
     private InputStream archiveUnitWithMgtRules;
     private GUID guid = GUIDFactory.newGUID();
 
-
     private HandlerIO handlerIO = mock(HandlerIO.class);
     private File globalSEDAParameter;
 
-    private final WorkerParameters params =
-        WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-            .setUrlMetadata("http://localhost:8083")
-            .setObjectNameList(Lists.newArrayList("objectName.json"))
-            .setObjectName("objectName.json").setCurrentStep("currentStep")
-            .setContainerName(guid.getId()).setLogbookTypeProcess(LogbookTypeProcess.INGEST);
+    private final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+        .setUrlWorkspace("http://localhost:8083")
+        .setUrlMetadata("http://localhost:8083")
+        .setObjectNameList(Lists.newArrayList("objectName.json"))
+        .setObjectName("objectName.json")
+        .setCurrentStep("currentStep")
+        .setContainerName(guid.getId())
+        .setLogbookTypeProcess(LogbookTypeProcess.INGEST);
 
-    public IndexUnitActionPluginTest() {
-    }
+    public IndexUnitActionPluginTest() {}
 
     @Before
     public void setUp() throws Exception {
@@ -126,7 +125,6 @@ public class IndexUnitActionPluginTest {
         plugin = new IndexUnitActionPlugin(metaDataClientFactory);
         globalSEDAParameter = PropertiesUtils.getResourceFile(ATR_GLOBAL_SEDA_PARAMETERS);
         when(handlerIO.getInput(0)).thenReturn(globalSEDAParameter);
-
     }
 
     @After
@@ -170,14 +168,14 @@ public class IndexUnitActionPluginTest {
     public void testWorkspaceException() throws Exception {
         // Given
         when(metadataClient.insertUnitBulk(any())).thenReturn(JsonHandler.createObjectNode());
-        when(workspaceClient.getObject(any(), eq("Units/objectName.json")))
-            .thenThrow(new ContentAddressableStorageNotFoundException(""));
+        when(workspaceClient.getObject(any(), eq("Units/objectName.json"))).thenThrow(
+            new ContentAddressableStorageNotFoundException("")
+        );
         // When
         final List<ItemStatus> response = plugin.executeList(params, handlerIO);
         // Then
         assertThat(response.get(0).getGlobalStatus()).isEqualTo(StatusCode.FATAL);
     }
-
 
     @Test
     public void testIndexUnitWithRulesOk() throws Exception {
@@ -222,5 +220,4 @@ public class IndexUnitActionPluginTest {
         // Then
         assertThat(response.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
-
 }

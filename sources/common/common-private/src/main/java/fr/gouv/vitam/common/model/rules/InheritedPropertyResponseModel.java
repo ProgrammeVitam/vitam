@@ -45,8 +45,13 @@ public class InheritedPropertyResponseModel extends BaseInheritedResponseModel {
         // Empty constructor for deserialization
     }
 
-    public InheritedPropertyResponseModel(String unitId, String originatingAgency,
-        List<List<String>> paths, String propertyName, Object propertyValue) {
+    public InheritedPropertyResponseModel(
+        String unitId,
+        String originatingAgency,
+        List<List<String>> paths,
+        String propertyName,
+        Object propertyValue
+    ) {
         super(unitId, originatingAgency, paths);
         this.propertyName = propertyName;
         this.propertyValue = propertyValue;

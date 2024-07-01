@@ -94,11 +94,19 @@ public class ReconstructionService {
      * @param offsetRepository
      * @param indexManager
      */
-    public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
+    public ReconstructionService(
+        VitamRepositoryProvider vitamRepositoryProvider,
         OffsetRepository offsetRepository,
-        ElasticsearchLogbookIndexManager indexManager, LogbookReconstructionMetricsCache reconstructionMetricsCache) {
-        this(vitamRepositoryProvider, new RestoreBackupService(), offsetRepository, indexManager,
-            reconstructionMetricsCache);
+        ElasticsearchLogbookIndexManager indexManager,
+        LogbookReconstructionMetricsCache reconstructionMetricsCache
+    ) {
+        this(
+            vitamRepositoryProvider,
+            new RestoreBackupService(),
+            offsetRepository,
+            indexManager,
+            reconstructionMetricsCache
+        );
     }
 
     /**
@@ -110,11 +118,13 @@ public class ReconstructionService {
      * @param indexManager
      */
     @VisibleForTesting
-    public ReconstructionService(VitamRepositoryProvider vitamRepositoryProvider,
+    public ReconstructionService(
+        VitamRepositoryProvider vitamRepositoryProvider,
         RestoreBackupService recoverBackupService,
         OffsetRepository offsetRepository,
         ElasticsearchLogbookIndexManager indexManager,
-        LogbookReconstructionMetricsCache reconstructionMetricsCache) {
+        LogbookReconstructionMetricsCache reconstructionMetricsCache
+    ) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.restoreBackupService = recoverBackupService;
         this.offsetRepository = offsetRepository;
@@ -135,12 +145,14 @@ public class ReconstructionService {
         if (reconstructionItem.getLimit() < 0) {
             throw new IllegalArgumentException(RECONSTRUCTION_LIMIT_POSITIVE_MSG);
         }
-        LOGGER
-            .info(String.format(
+        LOGGER.info(
+            String.format(
                 "[Reconstruction]: Reconstruction of {%s} Collection on {%s} Vitam tenant",
-                DataCategory.BACKUP_OPERATION.name(), reconstructionItem.getTenant()));
-        return reconstructCollection(reconstructionItem.getTenant(),
-            reconstructionItem.getLimit());
+                DataCategory.BACKUP_OPERATION.name(),
+                reconstructionItem.getTenant()
+            )
+        );
+        return reconstructCollection(reconstructionItem.getTenant(), reconstructionItem.getLimit());
     }
 
     /**
@@ -153,22 +165,32 @@ public class ReconstructionService {
      * @throws VitamRuntimeException storage error
      */
     private ReconstructionResponseItem reconstructCollection(int tenant, int limit) {
-
-        final long lastReconstructedOffset = offsetRepository.findOffsetBy(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK);
+        final long lastReconstructedOffset = offsetRepository.findOffsetBy(
+            tenant,
+            VitamConfiguration.getDefaultStrategy(),
+            LOGBOOK
+        );
         long startOffset = lastReconstructedOffset + 1L;
 
-        LOGGER.info(String
-            .format(
+        LOGGER.info(
+            String.format(
                 "[Reconstruction]: Start reconstruction of the {%s} collection on the Vitam tenant {%s} for %s elements starting from {%s}.",
-                DataCategory.BACKUP_OPERATION.name(), tenant, limit, startOffset));
+                DataCategory.BACKUP_OPERATION.name(),
+                tenant,
+                limit,
+                startOffset
+            )
+        );
         ReconstructionResponseItem response = new ReconstructionResponseItem().setTenant(tenant);
         Integer originalTenant = VitamThreadUtils.getVitamSession().getTenantId();
 
-        final VitamMongoRepository mongoRepository =
-            vitamRepositoryProvider.getVitamMongoRepository(LogbookCollections.OPERATION.getVitamCollection());
-        final VitamElasticsearchRepository esRepository =
-            vitamRepositoryProvider.getVitamESRepository(LogbookCollections.OPERATION.getVitamCollection(),
-                indexManager.getElasticsearchIndexAliasResolver(LogbookCollections.OPERATION));
+        final VitamMongoRepository mongoRepository = vitamRepositoryProvider.getVitamMongoRepository(
+            LogbookCollections.OPERATION.getVitamCollection()
+        );
+        final VitamElasticsearchRepository esRepository = vitamRepositoryProvider.getVitamESRepository(
+            LogbookCollections.OPERATION.getVitamCollection(),
+            indexManager.getElasticsearchIndexAliasResolver(LogbookCollections.OPERATION)
+        );
 
         try {
             // This is a hack, we must set manually the tenant is the VitamSession (used and transmitted in the
@@ -179,36 +201,51 @@ public class ReconstructionService {
             LocalDateTime lastReconstructedDocumentDate = null;
             int nbEntriesReconstructed = 0;
 
-            Iterator<List<OfferLog>> listing =
-                restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), startOffset, limit);
+            Iterator<List<OfferLog>> listing = restoreBackupService.getListing(
+                VitamConfiguration.getDefaultStrategy(),
+                startOffset,
+                limit
+            );
 
             while (listing.hasNext()) {
-
                 List<OfferLog> listingBulk = listing.next();
 
                 List<LogbookBackupModel> bulkData = new ArrayList<>();
                 for (OfferLog offerLog : listingBulk) {
-
                     try {
-
-                        LogbookBackupModel model =
-                            restoreBackupService.loadData(VitamConfiguration.getDefaultStrategy(),
-                                offerLog.getFileName(), offerLog.getSequence());
+                        LogbookBackupModel model = restoreBackupService.loadData(
+                            VitamConfiguration.getDefaultStrategy(),
+                            offerLog.getFileName(),
+                            offerLog.getSequence()
+                        );
 
                         if (model.getLogbookOperation() == null || model.getLogbookId() == null) {
-                            throw new StorageException(String.format(
-                                "[Reconstruction]: Invalid LogbookOperation in file {%s} on the tenant {%s}",
-                                offerLog.getFileName(), tenant));
+                            throw new StorageException(
+                                String.format(
+                                    "[Reconstruction]: Invalid LogbookOperation in file {%s} on the tenant {%s}",
+                                    offerLog.getFileName(),
+                                    tenant
+                                )
+                            );
                         }
                         bulkData.add(model);
-
                     } catch (StorageNotFoundException ex) {
-                        alertService.createAlert(VitamLogLevel.ERROR, String.format(
-                            "[Reconstruction]: LogbookOperation is not present in file {%s} on the tenant {%s}",
-                            offerLog.getFileName(), tenant));
-                        throw new StorageException(String.format(
-                            "[Reconstruction]: LogbookOperation is not present in file {%s} on the tenant {%s}",
-                            offerLog.getFileName(), tenant), ex);
+                        alertService.createAlert(
+                            VitamLogLevel.ERROR,
+                            String.format(
+                                "[Reconstruction]: LogbookOperation is not present in file {%s} on the tenant {%s}",
+                                offerLog.getFileName(),
+                                tenant
+                            )
+                        );
+                        throw new StorageException(
+                            String.format(
+                                "[Reconstruction]: LogbookOperation is not present in file {%s} on the tenant {%s}",
+                                offerLog.getFileName(),
+                                tenant
+                            ),
+                            ex
+                        );
                     }
                 }
 
@@ -217,32 +254,52 @@ public class ReconstructionService {
 
                 // Update offset
                 long lastOffset = Iterables.getLast(bulkData).getOffset();
-                offsetRepository.createOrUpdateOffset(tenant, VitamConfiguration.getDefaultStrategy(), LOGBOOK,
-                    lastOffset);
+                offsetRepository.createOrUpdateOffset(
+                    tenant,
+                    VitamConfiguration.getDefaultStrategy(),
+                    LOGBOOK,
+                    lastOffset
+                );
 
                 nbEntriesReconstructed += listingBulk.size();
                 lastReconstructedDocumentDate = listingBulk.get(listingBulk.size() - 1).getTime();
 
                 // log the reconstruction of Vitam collection.
-                LOGGER.info(String.format(
-                    "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} to {offset:%s} at %s",
-                    DataCategory.BACKUP_OPERATION.name(), tenant, lastOffset, LocalDateUtil.now()));
+                LOGGER.info(
+                    String.format(
+                        "[Reconstruction]: the collection {%s} has been reconstructed on the tenant {%s} to {offset:%s} at %s",
+                        DataCategory.BACKUP_OPERATION.name(),
+                        tenant,
+                        lastOffset,
+                        LocalDateUtil.now()
+                    )
+                );
             }
 
             // Report reconstruction stats
             if (nbEntriesReconstructed != limit) {
                 // Limit has not been reached ==> there was no more data to reconstruct at the time we started reconstruction
-                lastReconstructedDocumentDate =
-                    LocalDateUtil.max(reconstructionStartDateTime, lastReconstructedDocumentDate);
+                lastReconstructedDocumentDate = LocalDateUtil.max(
+                    reconstructionStartDateTime,
+                    lastReconstructedDocumentDate
+                );
             }
-            this.reconstructionMetricsCache.registerLastReconstructedDocumentDate(tenant,
-                lastReconstructedDocumentDate);
+            this.reconstructionMetricsCache.registerLastReconstructedDocumentDate(
+                    tenant,
+                    lastReconstructedDocumentDate
+                );
 
             response.setStatus(StatusCode.OK);
         } catch (DatabaseException em) {
-            LOGGER.error(String.format(
-                "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} on the tenant {%s} from {offset:%s}",
-                DataCategory.BACKUP_OPERATION.name(), tenant, startOffset), em);
+            LOGGER.error(
+                String.format(
+                    "[Reconstruction]: Exception has been thrown when reconstructing Vitam collection {%s} on the tenant {%s} from {offset:%s}",
+                    DataCategory.BACKUP_OPERATION.name(),
+                    tenant,
+                    startOffset
+                ),
+                em
+            );
             response.setStatus(StatusCode.KO);
         } catch (StorageException | StorageServerClientException | StorageNotFoundClientException se) {
             LOGGER.error(se.getMessage());
@@ -261,12 +318,16 @@ public class ReconstructionService {
      * @param bulk list of items to back up
      * @throws DatabaseException
      */
-    private void reconstructCollectionLogbookOperation(final VitamMongoRepository mongoRepository,
-        final VitamElasticsearchRepository esRepository, List<LogbookBackupModel> bulk)
-        throws DatabaseException {
+    private void reconstructCollectionLogbookOperation(
+        final VitamMongoRepository mongoRepository,
+        final VitamElasticsearchRepository esRepository,
+        List<LogbookBackupModel> bulk
+    ) throws DatabaseException {
         LOGGER.info("[Reconstruction]: Back up of logbookOperation bulk");
-        List<Document> logbooks =
-            bulk.stream().map(LogbookBackupModel::getLogbookOperation).collect(Collectors.toList());
+        List<Document> logbooks = bulk
+            .stream()
+            .map(LogbookBackupModel::getLogbookOperation)
+            .collect(Collectors.toList());
         mongoRepository.saveOrUpdate(logbooks);
         logbooks.forEach(LogbookTransformData::transformDataForElastic);
         esRepository.save(logbooks);

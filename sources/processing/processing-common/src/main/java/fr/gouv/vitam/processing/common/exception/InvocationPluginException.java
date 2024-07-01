@@ -47,5 +47,4 @@ public class InvocationPluginException extends PluginException {
     public InvocationPluginException(String message) {
         super(message);
     }
-
 }

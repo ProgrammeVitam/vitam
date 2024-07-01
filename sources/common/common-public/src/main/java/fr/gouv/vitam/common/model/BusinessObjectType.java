@@ -32,7 +32,6 @@ package fr.gouv.vitam.common.model;
  * different constants business object types
  */
 public enum BusinessObjectType {
-
     /**
      * UNIT
      */

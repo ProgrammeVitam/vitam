@@ -41,7 +41,6 @@ import java.util.List;
  * BatchReportClient
  */
 public interface BatchReportClient extends BasicClient {
-
     /**
      * Generate purge district object groups for units by status and process Id.
      * Report is stored in JSONL format in workspace.
@@ -50,8 +49,8 @@ public interface BatchReportClient extends BasicClient {
      * @param reportExportRequest report export request
      * @throws VitamClientInternalException
      */
-    void generatePurgeDistinctObjectGroupInUnitReport(String processId,
-        ReportExportRequest reportExportRequest) throws VitamClientInternalException;
+    void generatePurgeDistinctObjectGroupInUnitReport(String processId, ReportExportRequest reportExportRequest)
+        throws VitamClientInternalException;
 
     /**
      * Append report entries
@@ -77,8 +76,8 @@ public interface BatchReportClient extends BasicClient {
      * @param reportExportRequest report export request
      * @throws VitamClientInternalException
      */
-    void generatePurgeAccessionRegisterReport(String processId,
-        ReportExportRequest reportExportRequest) throws VitamClientInternalException;
+    void generatePurgeAccessionRegisterReport(String processId, ReportExportRequest reportExportRequest)
+        throws VitamClientInternalException;
 
     /**
      * Clean all entries with the given process Id tenant and reportType
@@ -86,8 +85,7 @@ public interface BatchReportClient extends BasicClient {
      * @param processId the given process Id
      * @param reportType report type
      */
-    void cleanupReport(String processId, ReportType reportType)
-        throws VitamClientInternalException;
+    void cleanupReport(String processId, ReportType reportType) throws VitamClientInternalException;
 
     void storeExtractedMetadataForAu(List<ExtractedMetadata> extractedMetadata) throws VitamClientInternalException;
 

@@ -77,7 +77,6 @@ public class RuleCategoryModel {
     @JsonProperty(NEED_REASSESSING_AUTHORIZATION)
     private Boolean needReassessingAuthorization;
 
-
     @JsonProperty("Inheritance")
     private InheritanceModel inheritance;
 
@@ -124,8 +123,11 @@ public class RuleCategoryModel {
 
     @JsonIgnore
     public boolean isPreventInheritance() {
-        return inheritance != null && inheritance.isPreventInheritance() != null &&
-            Boolean.TRUE.equals(inheritance.isPreventInheritance());
+        return (
+            inheritance != null &&
+            inheritance.isPreventInheritance() != null &&
+            Boolean.TRUE.equals(inheritance.isPreventInheritance())
+        );
     }
 
     @JsonIgnore

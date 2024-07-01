@@ -78,8 +78,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class StoreMetaDataUnitActionPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(StoreMetaDataUnitActionPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreMetaDataUnitActionPlugin.class);
 
     private static final String JSON = ".json";
     private static final String UNIT_METADATA_STORAGE = "UNIT_METADATA_STORAGE";
@@ -89,15 +88,19 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
     private final StorageClientFactory storageClientFactory;
 
     public StoreMetaDataUnitActionPlugin() {
-        this(MetaDataClientFactory.getInstance(),
+        this(
+            MetaDataClientFactory.getInstance(),
             LogbookLifeCyclesClientFactory.getInstance(),
-            StorageClientFactory.getInstance());
+            StorageClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
-    StoreMetaDataUnitActionPlugin(MetaDataClientFactory metaDataClientFactory,
+    StoreMetaDataUnitActionPlugin(
+        MetaDataClientFactory metaDataClientFactory,
         LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.logbookLifeCyclesClientFactory = logbookLifeCyclesClientFactory;
         this.storageClientFactory = storageClientFactory;
@@ -105,17 +108,16 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters params, HandlerIO handlerIO) {
-
-        List<String> unitIds = params.getObjectNameList().stream()
+        List<String> unitIds = params
+            .getObjectNameList()
+            .stream()
             .map(metadataFilename -> StringUtils.substringBeforeLast(metadataFilename, "."))
             .collect(Collectors.toList());
 
         try {
-
             storeDocumentsWithLfc(params, handlerIO, unitIds);
 
             return this.getItemStatuses(unitIds, StatusCode.OK);
-
         } catch (VitamException e) {
             LOGGER.error("An error occurred during unit storage", e);
             return this.getItemStatuses(unitIds, StatusCode.FATAL);
@@ -140,7 +142,6 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
 
     private MultiValuedMap<String, String> saveDocumentWithLfcInWorkspace(HandlerIO handlerIO, List<String> unitIds)
         throws VitamException {
-
         // Get metadata
         Stopwatch loadAU = Stopwatch.createStarted();
         MultiValuedMap<String, String> unitIdsByStrategie = new HashSetValuedHashMap<>();
@@ -160,7 +161,6 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
             .log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "loadLFC", loadLFC.elapsed(TimeUnit.MILLISECONDS));
 
         for (String guid : unitIds) {
-
             //// create file for storage (in workspace or temp or memory)
             JsonNode docWithLfc = MetadataStorageHelper.getUnitWithLFC(units.get(guid), lfc.get(guid));
             // transfer json to workspace
@@ -170,11 +170,20 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
                 InputStream is = CanonicalJsonFormatter.serialize(docWithLfc);
                 Stopwatch storeWorkspace = Stopwatch.createStarted();
 
-                handlerIO.transferInputStreamToWorkspace(IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName,
-                    is, null, false);
+                handlerIO.transferInputStreamToWorkspace(
+                    IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + fileName,
+                    is,
+                    null,
+                    false
+                );
 
-                PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "storeWorkspace",
-                    storeWorkspace.elapsed(TimeUnit.MILLISECONDS));
+                PerformanceLogger.getInstance()
+                    .log(
+                        "STP_UNIT_STORING",
+                        "UNIT_METADATA_STORAGE",
+                        "storeWorkspace",
+                        storeWorkspace.elapsed(TimeUnit.MILLISECONDS)
+                    );
             } catch (ProcessingException e) {
                 throw new WorkspaceClientServerException("Could not backup file for " + guid, e);
             }
@@ -182,10 +191,7 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
         return unitIdsByStrategie;
     }
 
-    private Map<String, JsonNode> getUnitsByIdsRaw(List<String> documentIds)
-        throws VitamException {
-
-
+    private Map<String, JsonNode> getUnitsByIdsRaw(List<String> documentIds) throws VitamException {
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             RequestResponse<JsonNode> requestResponse = metaDataClient.getUnitsByIdsRaw(documentIds);
             if (!requestResponse.isOk()) {
@@ -200,11 +206,8 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
         }
     }
 
-    private Map<String, JsonNode> getRawLogbookLifeCycleByIds(Collection<String> documentIds)
-        throws VitamException {
-
+    private Map<String, JsonNode> getRawLogbookLifeCycleByIds(Collection<String> documentIds) throws VitamException {
         try (LogbookLifeCyclesClient logbookClient = logbookLifeCyclesClientFactory.getClient()) {
-
             List<JsonNode> results = logbookClient.getRawUnitLifeCycleByIds(Lists.newArrayList(documentIds));
             return mapById(results);
         }
@@ -212,18 +215,15 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
 
     private void saveDocumentWithLfcInStorage(String containerName, MultiValuedMap<String, String> unitIdsByStrategies)
         throws VitamException {
-
         Stopwatch storeStorage = Stopwatch.createStarted();
 
         for (String strategy : unitIdsByStrategies.keySet()) {
-
             List<String> workspaceURIs = new ArrayList<>();
             List<String> objectNames = new ArrayList<>();
 
             Collection<String> unitIds = unitIdsByStrategies.get(strategy);
 
             for (String unitId : unitIds) {
-
                 String filename = unitId + JSON;
                 String workspaceURI = IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + File.separator + filename;
 
@@ -231,19 +231,27 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
                 objectNames.add(filename);
             }
 
-            BulkObjectStoreRequest request = new BulkObjectStoreRequest(containerName, workspaceURIs, DataCategory.UNIT,
-                objectNames);
+            BulkObjectStoreRequest request = new BulkObjectStoreRequest(
+                containerName,
+                workspaceURIs,
+                DataCategory.UNIT,
+                objectNames
+            );
 
             try (StorageClient storageClient = storageClientFactory.getClient()) {
                 storageClient.bulkStoreFilesFromWorkspace(strategy, request);
             } catch (StorageAlreadyExistsClientException | StorageNotFoundClientException e) {
                 throw new ProcessingException("Bulk storage failed", e);
             }
-
         }
 
-        PerformanceLogger.getInstance().log("STP_UNIT_STORING", "UNIT_METADATA_STORAGE", "storeStorage",
-            storeStorage.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance()
+            .log(
+                "STP_UNIT_STORING",
+                "UNIT_METADATA_STORAGE",
+                "storeStorage",
+                storeStorage.elapsed(TimeUnit.MILLISECONDS)
+            );
     }
 
     private List<ItemStatus> getItemStatuses(List<String> unitIds, StatusCode statusCode) {
@@ -255,10 +263,8 @@ public class StoreMetaDataUnitActionPlugin extends ActionHandler {
     }
 
     private Map<String, JsonNode> mapById(List<JsonNode> results) {
-        return results.stream()
-            .collect(Collectors.toMap(
-                entry -> entry.get(MetadataDocument.ID).textValue(),
-                entry -> entry
-            ));
+        return results
+            .stream()
+            .collect(Collectors.toMap(entry -> entry.get(MetadataDocument.ID).textValue(), entry -> entry));
     }
 }

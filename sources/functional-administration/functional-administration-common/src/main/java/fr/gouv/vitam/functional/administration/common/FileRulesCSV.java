@@ -70,7 +70,6 @@ public class FileRulesCSV {
     public static final String TAG_RULE_DURATION = "RuleDuration";
     public static final String TAG_RULE_MEASUREMENT = "RuleMeasurement";
 
-
     @JsonProperty(TAG_RULE_ID)
     private String ruleId;
 
@@ -89,12 +88,16 @@ public class FileRulesCSV {
     @JsonProperty(TAG_RULE_MEASUREMENT)
     private String ruleMeasurement;
 
+    public FileRulesCSV() {}
 
-    public FileRulesCSV() {
-    }
-
-    public FileRulesCSV(String ruleId, String ruleType, String ruleValue, String ruleDescription,
-        String ruleDuration, String ruleMeasurement) {
+    public FileRulesCSV(
+        String ruleId,
+        String ruleType,
+        String ruleValue,
+        String ruleDescription,
+        String ruleDuration,
+        String ruleMeasurement
+    ) {
         this.ruleId = ruleId;
         this.ruleType = ruleType;
         this.ruleValue = ruleValue;
@@ -178,7 +181,6 @@ public class FileRulesCSV {
             .append(this.ruleValue, objectToCompare.getRuleValue())
             .append(this.ruleType, objectToCompare.getRuleType())
             .isEquals();
-
     }
 
     public boolean hasSameRuleId(FileRulesCSV rule) {
@@ -187,8 +189,19 @@ public class FileRulesCSV {
 
     @Override
     public String toString() {
-        return "ruleId=" + ruleId + ", ruleType=" + ruleType +
-            ", ruleValue=" + ruleValue + ", ruleDescription=" + ruleDescription + ", ruleDuration=" + ruleDuration +
-            ", ruleMeasurement=" + ruleMeasurement;
+        return (
+            "ruleId=" +
+            ruleId +
+            ", ruleType=" +
+            ruleType +
+            ", ruleValue=" +
+            ruleValue +
+            ", ruleDescription=" +
+            ruleDescription +
+            ", ruleDuration=" +
+            ruleDuration +
+            ", ruleMeasurement=" +
+            ruleMeasurement
+        );
     }
 }

@@ -41,9 +41,9 @@ import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.metadata.api.exception.MetaDataException;
+import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
 import fr.gouv.vitam.metadata.client.MetaDataClient;
 import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
-import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.worker.common.HandlerIO;
@@ -65,12 +65,12 @@ import static fr.gouv.vitam.metadata.api.model.UpdateUnit.STATUS;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMessage;
 
 public class PreservationInsertionAuMetadata extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PreservationInsertionAuMetadata.class);
 
     private static final String ITEM_ID = "PRESERVATION_INSERTION_AU_METADATA";
     private static final TypeReference<RequestResponseOK<JsonNode>> REQUEST_RESPONSE_TYPE_REFERENCE =
-        new TypeReference<>() {
-        };
+        new TypeReference<>() {};
 
     private final MetaDataClientFactory metaDataClientFactory;
 
@@ -101,9 +101,10 @@ public class PreservationInsertionAuMetadata extends ActionHandler {
                 );
 
                 String unitId = units.get(i);
-                RequestResponseOK<JsonNode> requestResponse =
-                    JsonHandler.getFromJsonNode(mdClient.updateUnitById(update.getFinalUpdate(), unitId),
-                        REQUEST_RESPONSE_TYPE_REFERENCE);
+                RequestResponseOK<JsonNode> requestResponse = JsonHandler.getFromJsonNode(
+                    mdClient.updateUnitById(update.getFinalUpdate(), unitId),
+                    REQUEST_RESPONSE_TYPE_REFERENCE
+                );
                 JsonNode unitAsNode = requestResponse.getFirstResult();
 
                 UpdateUnitKey key = UpdateUnitKey.valueOf(unitAsNode.get(KEY).asText());
@@ -113,13 +114,23 @@ public class PreservationInsertionAuMetadata extends ActionHandler {
 
                 if (!KO.equals(status) && !FATAL.equals(status) && !OK.equals(status)) {
                     throw new VitamRuntimeException(
-                        String.format("Status must be of type KO, FATAL or OK here '%s'.", status));
+                        String.format("Status must be of type KO, FATAL or OK here '%s'.", status)
+                    );
                 }
 
                 if (KO.equals(status) || FATAL.equals(status)) {
-                    itemStatuses.add(buildItemStatusWithMessage(ITEM_ID, status, String.format(
-                        "Failed to add extracted metadata for unit: '%s', in database with message '%s' and key '%s'.",
-                        unitId, message, key)));
+                    itemStatuses.add(
+                        buildItemStatusWithMessage(
+                            ITEM_ID,
+                            status,
+                            String.format(
+                                "Failed to add extracted metadata for unit: '%s', in database with message '%s' and key '%s'.",
+                                unitId,
+                                message,
+                                key
+                            )
+                        )
+                    );
                 } else {
                     itemStatuses.add(buildItemStatusWithMessage(ITEM_ID, OK, diff));
                 }

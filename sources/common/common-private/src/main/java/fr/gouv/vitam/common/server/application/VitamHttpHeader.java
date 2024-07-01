@@ -33,7 +33,6 @@ import fr.gouv.vitam.common.GlobalDataRest;
  * from HTTP headers are right
  */
 public enum VitamHttpHeader {
-
     /**
      * The X_STRATEGY_ID header, used in HEAD requests to ask for a particular strategy </br>
      */
@@ -100,7 +99,6 @@ public enum VitamHttpHeader {
     // TODO P1 : change regex to be more precise (something like ^\s*\w+$ or \s*\w+\s*$)
     CONTEXT_ID(GlobalDataRest.X_CONTEXT_ID, ".+"),
 
-
     /**
      * The X_Content source (offerId )
      */
@@ -128,9 +126,10 @@ public enum VitamHttpHeader {
     /**
      * Allow cross tenant access request check from Admin Tenant
      */
-    X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED(GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED,
-        "true|false");
-
+    X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED(
+        GlobalDataRest.X_ADMIN_CROSS_TENANT_ACCESS_REQUEST_ALLOWED,
+        "true|false"
+    );
 
     private String name;
     private String regExp;
@@ -178,5 +177,4 @@ public enum VitamHttpHeader {
         }
         return null;
     }
-
 }

@@ -34,6 +34,7 @@ import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class IllegalArgumentExceptionMapperTest {
+
     private final IllegalArgumentExceptionMapper illegalArgumentExceptionMapper = new IllegalArgumentExceptionMapper();
 
     @Test
@@ -49,5 +50,4 @@ public class IllegalArgumentExceptionMapperTest {
         assertThat(response.getStatusInfo()).isEqualTo(BAD_REQUEST);
         assertThat(response.getEntity()).isEqualTo(message);
     }
-
 }

@@ -30,6 +30,7 @@ package fr.gouv.vitam.workspace.api.exception;
  * Thrown when there is an error on a zip file resource (format, etc).
  */
 public class WorkspaceClientServerException extends ContentAddressableStorageException {
+
     private static final long serialVersionUID = -7976465493734475323L;
 
     private String workflowIdentifier;

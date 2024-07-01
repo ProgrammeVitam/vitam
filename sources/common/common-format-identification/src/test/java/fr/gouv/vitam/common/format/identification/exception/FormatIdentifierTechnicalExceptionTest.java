@@ -42,5 +42,4 @@ public class FormatIdentifierTechnicalExceptionTest {
         assertNotNull(new FormatIdentifierTechnicalException(exception));
         assertNotNull(new FormatIdentifierTechnicalException(MESSAGE, exception));
     }
-
 }

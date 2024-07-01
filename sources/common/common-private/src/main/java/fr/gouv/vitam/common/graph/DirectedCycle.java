@@ -34,6 +34,7 @@ import java.util.Stack;
  * DirectedCycle Class
  */
 public class DirectedCycle {
+
     // has vertex v been marked
     private final boolean[] marked;
     // previous vertex on path to v
@@ -44,8 +45,6 @@ public class DirectedCycle {
     private Stack<Integer> cycle;
 
     private boolean isCyclic;
-
-
 
     /**
      * DirectedCycle a constructor :fired when a cycle is found.
@@ -67,7 +66,6 @@ public class DirectedCycle {
         }
     }
 
-
     /**
      * depthFirstSearch is a method for traversing or searching graph data structures. One starts at the root and
      * explores as far as possible along each branch.
@@ -81,7 +79,6 @@ public class DirectedCycle {
         onStack[root] = true;
         marked[root] = true;
         for (final int w : graph.adj(root)) {
-
             // short circuit if directed cycle found
             if (cycle != null) {
                 return;
@@ -132,7 +129,6 @@ public class DirectedCycle {
      * @return boolean
      */
     private boolean check() {
-
         if (hasCycle()) {
             // verify cycle
             int first = -1;

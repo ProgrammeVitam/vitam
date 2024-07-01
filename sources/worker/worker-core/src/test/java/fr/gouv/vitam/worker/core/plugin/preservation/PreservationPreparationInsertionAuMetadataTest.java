@@ -63,8 +63,9 @@ public class PreservationPreparationInsertionAuMetadataTest {
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private BatchReportClientFactory batchReportFactory;
@@ -127,8 +128,9 @@ public class PreservationPreparationInsertionAuMetadataTest {
     @RunWithCustomExecutor
     public void should_throw_exception_when_create_Distribution_File_For_Au_batch_report() throws Exception {
         // Given
-        doThrow(new VitamClientInternalException("Exception when creating diStribution file for AU")).
-            when(batchReportClient).createExtractedMetadataDistributionFileForAu(any());
+        doThrow(new VitamClientInternalException("Exception when creating diStribution file for AU"))
+            .when(batchReportClient)
+            .createExtractedMetadataDistributionFileForAu(any());
 
         // When
         ThrowableAssert.ThrowingCallable shouldThrow = () -> plugin.execute(parameter, handler);

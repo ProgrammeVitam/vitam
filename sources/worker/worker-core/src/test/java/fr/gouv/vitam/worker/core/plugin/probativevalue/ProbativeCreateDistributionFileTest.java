@@ -59,6 +59,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ProbativeCreateDistributionFileTest {
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -87,10 +88,14 @@ public class ProbativeCreateDistributionFileTest {
         File newLocalFile = tempFolder.newFile();
         when(handlerIO.getNewLocalFile(eq("OBJECT_GROUP_TO_CHECK.jsonl"))).thenReturn(newLocalFile);
 
-        ProbativeValueRequest probativeValueRequest =
-            new ProbativeValueRequest(JsonHandler.createObjectNode(), "BinaryMaster", "1");
-        when(handlerIO.getInputStreamFromWorkspace(eq("request")))
-            .thenReturn(new ByteArrayInputStream(JsonHandler.fromPojoToBytes(probativeValueRequest)));
+        ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(
+            JsonHandler.createObjectNode(),
+            "BinaryMaster",
+            "1"
+        );
+        when(handlerIO.getInputStreamFromWorkspace(eq("request"))).thenReturn(
+            new ByteArrayInputStream(JsonHandler.fromPojoToBytes(probativeValueRequest))
+        );
 
         ObjectNode selectedUnitGOT = JsonHandler.createObjectNode();
         selectedUnitGOT.put("#id", "BATMAN_ID");
@@ -104,12 +109,16 @@ public class ProbativeCreateDistributionFileTest {
         probativeCreateDistribution.execute(null, handlerIO);
 
         // Then
-        List<JsonLineModel> listJsonModel =
-            JsonHandler.getFromFileAsTypeReference(newLocalFile, new TypeReference<>() {
-            });
+        List<JsonLineModel> listJsonModel = JsonHandler.getFromFileAsTypeReference(
+            newLocalFile,
+            new TypeReference<>() {}
+        );
         assertThat(listJsonModel).hasSize(1);
         assertThat(listJsonModel).first().extracting(JsonLineModel::getId).isEqualTo("ROBIN_ID");
-        assertThat(listJsonModel).first().extracting(JsonLineModel::getParams).extracting(Object::toString)
+        assertThat(listJsonModel)
+            .first()
+            .extracting(JsonLineModel::getParams)
+            .extracting(Object::toString)
             .isEqualTo("{\"unitIds\":[\"BATMAN_ID\"],\"usageVersion\":\"BinaryMaster_1\"}");
     }
 
@@ -119,10 +128,14 @@ public class ProbativeCreateDistributionFileTest {
         File newLocalFile = tempFolder.newFile();
         when(handlerIO.getNewLocalFile(eq("OBJECT_GROUP_TO_CHECK.jsonl"))).thenReturn(newLocalFile);
 
-        ProbativeValueRequest probativeValueRequest =
-            new ProbativeValueRequest(JsonHandler.createObjectNode(), "BinaryMaster", "1");
-        when(handlerIO.getInputStreamFromWorkspace(eq("request")))
-            .thenReturn(new ByteArrayInputStream(JsonHandler.fromPojoToBytes(probativeValueRequest)));
+        ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(
+            JsonHandler.createObjectNode(),
+            "BinaryMaster",
+            "1"
+        );
+        when(handlerIO.getInputStreamFromWorkspace(eq("request"))).thenReturn(
+            new ByteArrayInputStream(JsonHandler.fromPojoToBytes(probativeValueRequest))
+        );
 
         ObjectNode selectedUnitGOT = JsonHandler.createObjectNode();
         selectedUnitGOT.put("#id", "BATMAN_ID");
@@ -141,12 +154,16 @@ public class ProbativeCreateDistributionFileTest {
         probativeCreateDistribution.execute(null, handlerIO);
 
         // Then
-        List<JsonLineModel> listJsonModel =
-            JsonHandler.getFromFileAsTypeReference(newLocalFile, new TypeReference<>() {
-            });
+        List<JsonLineModel> listJsonModel = JsonHandler.getFromFileAsTypeReference(
+            newLocalFile,
+            new TypeReference<>() {}
+        );
         assertThat(listJsonModel).hasSize(1);
         assertThat(listJsonModel).first().extracting(JsonLineModel::getId).isEqualTo("ROBIN_ID");
-        assertThat(listJsonModel).first().extracting(JsonLineModel::getParams).extracting(Object::toString)
+        assertThat(listJsonModel)
+            .first()
+            .extracting(JsonLineModel::getParams)
+            .extracting(Object::toString)
             .isEqualTo("{\"unitIds\":[\"JOKER_ID\",\"BATMAN_ID\"],\"usageVersion\":\"BinaryMaster_1\"}");
     }
 
@@ -156,10 +173,14 @@ public class ProbativeCreateDistributionFileTest {
         File newLocalFile = tempFolder.newFile();
         when(handlerIO.getNewLocalFile(eq("OBJECT_GROUP_TO_CHECK.jsonl"))).thenReturn(newLocalFile);
 
-        ProbativeValueRequest probativeValueRequest =
-            new ProbativeValueRequest(JsonHandler.createObjectNode(), "BinaryMaster", "1");
-        when(handlerIO.getInputStreamFromWorkspace(eq("request")))
-            .thenReturn(new ByteArrayInputStream(JsonHandler.fromPojoToBytes(probativeValueRequest)));
+        ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(
+            JsonHandler.createObjectNode(),
+            "BinaryMaster",
+            "1"
+        );
+        when(handlerIO.getInputStreamFromWorkspace(eq("request"))).thenReturn(
+            new ByteArrayInputStream(JsonHandler.fromPojoToBytes(probativeValueRequest))
+        );
 
         ObjectNode selectedUnitGOT = JsonHandler.createObjectNode();
         selectedUnitGOT.put("#id", "BATMAN_ID");
@@ -174,12 +195,16 @@ public class ProbativeCreateDistributionFileTest {
 
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        List<JsonLineModel> listJsonModel =
-            JsonHandler.getFromFileAsTypeReference(newLocalFile, new TypeReference<>() {
-            });
+        List<JsonLineModel> listJsonModel = JsonHandler.getFromFileAsTypeReference(
+            newLocalFile,
+            new TypeReference<>() {}
+        );
         assertThat(listJsonModel).hasSize(1);
         assertThat(listJsonModel).first().extracting(JsonLineModel::getId).isEqualTo("ROBIN_ID");
-        assertThat(listJsonModel).first().extracting(JsonLineModel::getParams).extracting(Object::toString)
+        assertThat(listJsonModel)
+            .first()
+            .extracting(JsonLineModel::getParams)
+            .extracting(Object::toString)
             .isEqualTo("{\"unitIds\":[\"BATMAN_ID\"],\"usageVersion\":\"BinaryMaster_1\"}");
     }
 
@@ -189,11 +214,14 @@ public class ProbativeCreateDistributionFileTest {
         File newLocalFile = tempFolder.newFile();
         when(handlerIO.getNewLocalFile(eq("OBJECT_GROUP_TO_CHECK.jsonl"))).thenReturn(newLocalFile);
 
-
-        ProbativeValueRequest probativeValueRequest =
-            new ProbativeValueRequest(JsonHandler.createObjectNode(), "BinaryMaster", "1");
-        when(handlerIO.getInputStreamFromWorkspace(eq("request")))
-            .thenReturn(new ByteArrayInputStream(JsonHandler.fromPojoToBytes(probativeValueRequest)));
+        ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(
+            JsonHandler.createObjectNode(),
+            "BinaryMaster",
+            "1"
+        );
+        when(handlerIO.getInputStreamFromWorkspace(eq("request"))).thenReturn(
+            new ByteArrayInputStream(JsonHandler.fromPojoToBytes(probativeValueRequest))
+        );
 
         ObjectNode selectedUnitGOT = JsonHandler.createObjectNode();
         selectedUnitGOT.put("#id", "BATMAN_ID");
@@ -216,10 +244,14 @@ public class ProbativeCreateDistributionFileTest {
         File newLocalFile = tempFolder.newFile();
         when(handlerIO.getNewLocalFile(eq("OBJECT_GROUP_TO_CHECK.jsonl"))).thenReturn(newLocalFile);
 
-        ProbativeValueRequest probativeValueRequest =
-            new ProbativeValueRequest(JsonHandler.createObjectNode(), "BinaryMaster", "1");
-        when(handlerIO.getInputStreamFromWorkspace(eq("request")))
-            .thenReturn(new ByteArrayInputStream(JsonHandler.fromPojoToBytes(probativeValueRequest)));
+        ProbativeValueRequest probativeValueRequest = new ProbativeValueRequest(
+            JsonHandler.createObjectNode(),
+            "BinaryMaster",
+            "1"
+        );
+        when(handlerIO.getInputStreamFromWorkspace(eq("request"))).thenReturn(
+            new ByteArrayInputStream(JsonHandler.fromPojoToBytes(probativeValueRequest))
+        );
 
         given(metaDataClient.selectUnits(any())).willThrow(new IllegalStateException("Hell yeah"));
 

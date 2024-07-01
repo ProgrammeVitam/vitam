@@ -41,7 +41,6 @@ public class LRUQueueTest {
 
     @Test
     public void emptyQueue() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
 
@@ -58,7 +57,6 @@ public class LRUQueueTest {
 
     @Test
     public void addSingleElementToQueue() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
 
@@ -73,7 +71,6 @@ public class LRUQueueTest {
 
     @Test
     public void addMultipleElementsToQueue() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
 
@@ -91,15 +88,13 @@ public class LRUQueueTest {
 
     @Test
     public void tryAddExistingEntry() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
         instance.add("Entry1", 2L);
         instance.add("Entry2", 1L);
 
         // When / Then
-        assertThatThrownBy(() -> instance.add("Entry1", 2L))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.add("Entry1", 2L)).isInstanceOf(IllegalArgumentException.class);
 
         assertThat(instance.isEmpty()).isFalse();
         assertThat(instance.size()).isEqualTo(2);
@@ -108,7 +103,6 @@ public class LRUQueueTest {
 
     @Test
     public void updateExistingEntryTimestamp() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
         instance.add("Entry2", 1L);
@@ -129,7 +123,6 @@ public class LRUQueueTest {
 
     @Test
     public void updateNonExistingEntryTimestamp() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
         instance.add("Entry2", 1L);
@@ -150,7 +143,6 @@ public class LRUQueueTest {
 
     @Test
     public void removeExistingUniqueEntry() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
         instance.add("Entry1", 2L);
@@ -167,7 +159,6 @@ public class LRUQueueTest {
 
     @Test
     public void removeExistingEntry() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
         instance.add("Entry2", 1L);
@@ -185,7 +176,6 @@ public class LRUQueueTest {
 
     @Test
     public void removeNonExistingEntry() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
         instance.add("Entry2", 1L);
@@ -203,7 +193,6 @@ public class LRUQueueTest {
 
     @Test
     public void iterateOverEmptyQueue() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
 
@@ -216,7 +205,6 @@ public class LRUQueueTest {
 
     @Test
     public void iterateOverSingleEntryQueue() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
         instance.add("Entry1", 0L);
@@ -230,7 +218,6 @@ public class LRUQueueTest {
 
     @Test
     public void iterateOverSortedQueue() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
         instance.add("Entry1", -20_000_000_000_000L);
@@ -249,7 +236,6 @@ public class LRUQueueTest {
 
     @Test
     public void iterateOverUnsortedQueue() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
         instance.add("Entry1", 10L);
@@ -268,7 +254,6 @@ public class LRUQueueTest {
 
     @Test
     public void iterateOverUpdatedEntryTimestamps() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
         instance.add("Entry1", 10L);
@@ -285,7 +270,6 @@ public class LRUQueueTest {
 
     @Test
     public void removeEntriesWhileIteratingOverQueueThenAddEntries() {
-
         // Given
         LRUQueue<String> instance = new LRUQueue<>();
         instance.add("Entry1", 10L);
@@ -325,7 +309,6 @@ public class LRUQueueTest {
 
     @Test
     public void testComplexLargeDataSet() {
-
         // Given
         SecureRandom random = new SecureRandom();
         LRUQueue<String> instance = new LRUQueue<>();
@@ -336,7 +319,7 @@ public class LRUQueueTest {
         // Insert random data
         IntStream.range(0, dataSetSize)
             // Shuffle (using N x PrimaryNumber % max)
-            .map(i -> i * 7 % dataSetSize)
+            .map(i -> (i * 7) % dataSetSize)
             .forEach(i -> {
                 long randomTimestamp = random.nextLong();
                 instance.add("Entry" + i, randomTimestamp);

@@ -55,7 +55,8 @@ public class DbQualifiersModelBuilderTest {
         // THEN
         assertThat(qualifiersModel).isNotNull();
         assertThat(qualifiersModel.getVersions().get(0).getDataObjectVersion()).isEqualTo(
-            usage.getName() + "_" + version);
+            usage.getName() + "_" + version
+        );
     }
 
     @Test
@@ -68,11 +69,9 @@ public class DbQualifiersModelBuilderTest {
         int nbc = 1;
 
         // WHEN // THEN
-        assertThatThrownBy(() -> new DbQualifiersModelBuilder()
-            .withVersion(versionId, fileName, usage, version)
-            .withNbc(nbc)
-            .build())
-            .hasMessage("Usage can't be null");
+        assertThatThrownBy(
+            () -> new DbQualifiersModelBuilder().withVersion(versionId, fileName, usage, version).withNbc(nbc).build()
+        ).hasMessage("Usage can't be null");
     }
 
     @Test
@@ -82,11 +81,8 @@ public class DbQualifiersModelBuilderTest {
         int nbc = 1;
 
         // WHEN // THEN
-        assertThatThrownBy(() -> new DbQualifiersModelBuilder()
-            .withUsage(usage)
-            .withNbc(nbc)
-            .build())
-            .hasMessage("Versions can't be null");
+        assertThatThrownBy(() -> new DbQualifiersModelBuilder().withUsage(usage).withNbc(nbc).build()).hasMessage(
+            "Versions can't be null"
+        );
     }
-
 }

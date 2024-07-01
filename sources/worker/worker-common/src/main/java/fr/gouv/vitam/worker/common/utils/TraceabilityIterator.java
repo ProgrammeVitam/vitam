@@ -101,5 +101,4 @@ public class TraceabilityIterator implements Iterator<LogbookOperation> {
     public long getNumberOfLine() {
         return numberOfLine;
     }
-
 }

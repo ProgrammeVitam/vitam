@@ -63,6 +63,7 @@ import java.util.List;
 @Path("/worker/v1")
 @Tag(name = "Worker")
 public class WorkerResource extends ApplicationStatusResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerResource.class);
     private static final String WORKER_MODULE = "WORKER";
     private static final String CODE_VITAM = "code_vitam";
@@ -80,7 +81,6 @@ public class WorkerResource extends ApplicationStatusResource {
         workerMocked = null;
         workerFactory = WorkerFactory.getInstance(pluginLoader);
     }
-
 
     /**
      * Constructor for tests
@@ -105,8 +105,10 @@ public class WorkerResource extends ApplicationStatusResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Operation(summary = "submit a step to be launched",
-        description = "Permet de soumettre une tâche (steps + contexte + item)")
+    @Operation(
+        summary = "submit a step to be launched",
+        description = "Permet de soumettre une tâche (steps + contexte + item)"
+    )
     public Response submitStep(@Context HttpHeaders headers, JsonNode descriptionStepJson) {
         HttpHeaderHelper.checkVitamHeaders(headers);
         try {
@@ -116,25 +118,32 @@ public class WorkerResource extends ApplicationStatusResource {
             DescriptionStep descriptionStep = JsonHandler.getFromJsonNode(descriptionStepJson, DescriptionStep.class);
             if (workerMocked == null) {
                 try (Worker worker = workerFactory.create()) {
-                    responses =
-                        worker.run(descriptionStep.getWorkParams(),
-                            descriptionStep.getStep());
+                    responses = worker.run(descriptionStep.getWorkParams(), descriptionStep.getStep());
                     return Response.status(Status.OK).entity(responses).build();
                 }
             } else {
-                responses = workerMocked.run(descriptionStep.getWorkParams(),
-                    descriptionStep.getStep());
+                responses = workerMocked.run(descriptionStep.getWorkParams(), descriptionStep.getStep());
                 return Response.status(Status.OK).entity(responses).build();
             }
         } catch (final InvalidParseOperationException exc) {
             LOGGER.error(exc);
-            return Response.status(Status.PRECONDITION_FAILED).entity(getErrorEntity(Status.PRECONDITION_FAILED))
+            return Response.status(Status.PRECONDITION_FAILED)
+                .entity(getErrorEntity(Status.PRECONDITION_FAILED))
                 .build();
         } catch (final ProcessingRetryAsyncException retryExc) {
             LOGGER.warn(retryExc);
             List<WorkerAccessRequest> entity = new ArrayList<>();
-            retryExc.getAccessRequestIdByContext().forEach((key, value) -> value.forEach(accessRequestId -> entity.add(
-                new WorkerAccessRequest(accessRequestId, key.getStrategyId(), key.getOfferId()))));
+            retryExc
+                .getAccessRequestIdByContext()
+                .forEach(
+                    (key, value) ->
+                        value.forEach(
+                            accessRequestId ->
+                                entity.add(
+                                    new WorkerAccessRequest(accessRequestId, key.getStrategyId(), key.getOfferId())
+                                )
+                        )
+                );
             return Response.status(CustomVitamHttpStatusCode.UNAVAILABLE_ASYNC_DATA_RETRY_LATER.getStatusCode())
                 .entity(entity)
                 .build();
@@ -145,8 +154,11 @@ public class WorkerResource extends ApplicationStatusResource {
     }
 
     private VitamError getErrorEntity(Status status) {
-        return new VitamError(status.name()).setHttpCode(status.getStatusCode()).setContext(WORKER_MODULE)
-            .setState(CODE_VITAM).setMessage(status.getReasonPhrase()).setDescription(status.getReasonPhrase());
+        return new VitamError(status.name())
+            .setHttpCode(status.getStatusCode())
+            .setContext(WORKER_MODULE)
+            .setState(CODE_VITAM)
+            .setMessage(status.getReasonPhrase())
+            .setDescription(status.getReasonPhrase());
     }
-
 }

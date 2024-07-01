@@ -30,7 +30,6 @@ package fr.gouv.vitam.logbook.common.model.coherence;
  * Enumeration of the LogbookEvent names. <br/>
  */
 public enum LogbookEventName {
-
     ID("_id"),
 
     EVID_PROC("evIdProc"),
@@ -69,5 +68,4 @@ public enum LogbookEventName {
     public String getValue() {
         return value;
     }
-
 }

@@ -35,6 +35,6 @@ import java.lang.annotation.Target;
  * Annotation for REST endpoints that are excluded for security profile based filtering.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Target({ ElementType.METHOD })
 public @interface Unsecured {
 }

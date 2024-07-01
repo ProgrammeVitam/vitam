@@ -110,7 +110,8 @@ public class AccessStep extends CommonStep {
     private static final String INHERITED_RULES = "InheritedRules";
 
     private static final String UNIT_GUID = "UNIT_GUID";
-    private static final String CONTRACT_WITH_LINK = "[{" +
+    private static final String CONTRACT_WITH_LINK =
+        "[{" +
         "\"Identifier\":\"contrat_de_rattachement_TNR\"," +
         "\"Name\":\"contrat_de_rattachement_TNR\"," +
         "\"Description\":\"Rattachant les SIP à une AU\"," +
@@ -119,7 +120,9 @@ public class AccessStep extends CommonStep {
         "\"CreationDate\":\"10/12/2016\"," +
         "\"ActivationDate\":\"10/12/2016\"," +
         "\"DeactivationDate\":\"10/12/2016\"," +
-        "\"LinkParentId\": \"" + UNIT_GUID + "\"}]";
+        "\"LinkParentId\": \"" +
+        UNIT_GUID +
+        "\"}]";
 
     private static final String OPERATION_ID = "Operation-Id";
     private static final String NAMED_OPERATION_ID_PREFIX = "Named-Operation-Id<";
@@ -127,7 +130,6 @@ public class AccessStep extends CommonStep {
     private static final String ELIMINATION_OPERATION_ID = "Elimination-Operation-Id";
 
     private static final String UNIT_PREFIX = "unit:";
-
 
     private static final String REGEX = "(\\{\\{(.*?)\\}\\})";
 
@@ -152,12 +154,19 @@ public class AccessStep extends CommonStep {
      */
     @Then("^le résultat pour la facet (.*) contient (\\d+) valeurs (.*)$")
     public void facetmetadata_contains_values_count(String facetName, int count, String value) throws Throwable {
-        Optional<FacetResult> facetResult =
-            facetResults.stream().filter(item -> item.getName().equals(facetName)).findFirst();
+        Optional<FacetResult> facetResult = facetResults
+            .stream()
+            .filter(item -> item.getName().equals(facetName))
+            .findFirst();
         assertThat(facetResult).as("facetResult with name " + facetName + " was not found").isPresent();
-        Optional<FacetBucket> facetBucket =
-            facetResult.get().getBuckets().stream().filter(item -> item.getValue().equals(value)).findFirst();
-        assertThat(facetBucket).as("facetResult with name " + facetName + " does not contains value " + value)
+        Optional<FacetBucket> facetBucket = facetResult
+            .get()
+            .getBuckets()
+            .stream()
+            .filter(item -> item.getValue().equals(value))
+            .findFirst();
+        assertThat(facetBucket)
+            .as("facetResult with name " + facetName + " does not contains value " + value)
             .isPresent();
         assertThat(facetBucket.get().getCount()).isEqualTo(count);
     }
@@ -171,11 +180,17 @@ public class AccessStep extends CommonStep {
      */
     @Then("^le résultat pour la facet (.*) ne contient pas la valeur (.*)$")
     public void facetmetadata_does_not_contains_value(String facetName, String value) throws Throwable {
-        Optional<FacetResult> facetResult =
-            facetResults.stream().filter(item -> item.getName().equals(facetName)).findFirst();
+        Optional<FacetResult> facetResult = facetResults
+            .stream()
+            .filter(item -> item.getName().equals(facetName))
+            .findFirst();
         assertThat(facetResult).as("facetResult with name " + facetName + " was not found").isPresent();
-        Optional<FacetBucket> facetBucket =
-            facetResult.get().getBuckets().stream().filter(item -> item.getValue().equals(value)).findFirst();
+        Optional<FacetBucket> facetBucket = facetResult
+            .get()
+            .getBuckets()
+            .stream()
+            .filter(item -> item.getValue().equals(value))
+            .findFirst();
         assertThat(facetBucket).as("facetResult with name " + facetName + " contains value " + value).isNotPresent();
     }
 
@@ -188,7 +203,6 @@ public class AccessStep extends CommonStep {
     @Then("^les metadonnées sont$")
     public void metadata_are(DataTable dataTable) throws Throwable {
         metadata_are_for_particular_result(0, dataTable);
-
     }
 
     /**
@@ -235,16 +249,25 @@ public class AccessStep extends CommonStep {
      */
     @When("^j'importe le contrat d'entrée avec le noeud de rattachement dont le titre est (.*)")
     public void upload_contract_ingest_with_noeud(String title) throws Throwable {
-
         boolean exists = false;
         try {
-            String unitGuid =
-                world.getAccessService().findUnitGUIDByTitleAndOperationId(world.getAccessClient(), world.getTenantId(),
-                    world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), title);
+            String unitGuid = world
+                .getAccessService()
+                .findUnitGUIDByTitleAndOperationId(
+                    world.getAccessClient(),
+                    world.getTenantId(),
+                    world.getContractId(),
+                    world.getApplicationSessionId(),
+                    world.getOperationId(),
+                    title
+                );
             String newContract = CONTRACT_WITH_LINK.replace(UNIT_GUID, unitGuid);
-            world.getAdminClient().createIngestContracts(
-                new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
-                new ByteArrayInputStream(newContract.getBytes()));
+            world
+                .getAdminClient()
+                .createIngestContracts(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    new ByteArrayInputStream(newContract.getBytes())
+                );
         } catch (AccessExternalClientException | IllegalStateException | InvalidParseOperationException e) {
             // Do Nothing
             LOGGER.warn("Contrat d'entrée est déjà importé");
@@ -255,16 +278,18 @@ public class AccessStep extends CommonStep {
         if (!exists) {
             // update context
 
-            RequestResponse<ContextModel> res = world.getAdminClient()
-                .findContextById(new VitamContext(world.getTenantId())
-                    .setApplicationSessionId(world.getApplicationSessionId()), CONTEXT_IDENTIFIER);
+            RequestResponse<ContextModel> res = world
+                .getAdminClient()
+                .findContextById(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    CONTEXT_IDENTIFIER
+                );
             assertThat(res.isOk()).isTrue();
             ContextModel contextModel = ((RequestResponseOK<ContextModel>) res).getFirstResult();
             assertThat(contextModel).isNotNull();
             List<PermissionModel> permissions = contextModel.getPermissions();
 
             assertThat(permissions).isNotEmpty();
-
 
             boolean changed = false;
             for (PermissionModel p : permissions) {
@@ -279,17 +304,19 @@ public class AccessStep extends CommonStep {
             }
 
             if (changed) {
-                ContractsStep.updateContext(world.getAdminClient(), world.getApplicationSessionId(), CONTEXT_IDENTIFIER,
-                    permissions, true);
+                ContractsStep.updateContext(
+                    world.getAdminClient(),
+                    world.getApplicationSessionId(),
+                    CONTEXT_IDENTIFIER,
+                    permissions,
+                    true
+                );
             }
-
         }
     }
 
     private String transformUnitTitleToGuid(String result) throws Throwable {
-
-        Matcher matcher = Pattern.compile(REGEX)
-            .matcher(result);
+        Matcher matcher = Pattern.compile(REGEX).matcher(result);
         String resultCopy = result;
         Map<String, String> unitToGuid = new HashMap<>();
         while (matcher.find()) {
@@ -308,9 +335,7 @@ public class AccessStep extends CommonStep {
     }
 
     private String transformLoadedUnitTitleToGuid(String result) throws Throwable {
-
-        Matcher matcher = Pattern.compile(REGEX)
-            .matcher(result);
+        Matcher matcher = Pattern.compile(REGEX).matcher(result);
         String resultCopy = result;
         Map<String, String> unitToGuid = new HashMap<>();
         while (matcher.find()) {
@@ -330,9 +355,16 @@ public class AccessStep extends CommonStep {
 
     private String getUnitGuidByTitle(String unitTitle) throws InvalidCreateOperationException, VitamClientException {
         String unitGuid;
-        unitGuid = world.getAccessService().findUnitGUIDByTitleAndOperationId(world.getAccessClient(),
-            world.getTenantId(), world.getContractId(), world.getApplicationSessionId(), world.getOperationId(),
-            unitTitle);
+        unitGuid = world
+            .getAccessService()
+            .findUnitGUIDByTitleAndOperationId(
+                world.getAccessClient(),
+                world.getTenantId(),
+                world.getContractId(),
+                world.getApplicationSessionId(),
+                world.getOperationId(),
+                unitTitle
+            );
         return unitGuid;
     }
 
@@ -356,7 +388,6 @@ public class AccessStep extends CommonStep {
      * @return value if found or null
      */
     private String getValueFromResult(String field, int numResult) {
-
         List<JsonNode> results = world.getResults();
         if (results.size() < numResult) {
             Fail.fail("numResult " + numResult + " > result size " + results.size());
@@ -378,9 +409,11 @@ public class AccessStep extends CommonStep {
 
     @Then("^tous les résultats contiennent la propriété \"([^\"]*)\" dont la valeur est \"([^\"]*)\"$")
     public void results_contains_key_value(String fieldKey, String fieldValue) {
-        world.getResults().forEach(result-> {
-            assertThat(result.get(fieldKey).textValue()).isEqualTo(fieldValue);
-        });
+        world
+            .getResults()
+            .forEach(result -> {
+                assertThat(result.get(fieldKey).textValue()).isEqualTo(fieldValue);
+            });
     }
 
     /**
@@ -393,14 +426,17 @@ public class AccessStep extends CommonStep {
     public void the_status_of_the_select_result(String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
 
-        requestResponse = world.getAccessClient().selectUnits(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            queryJSON);
+        requestResponse = world
+            .getAccessClient()
+            .selectUnits(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                queryJSON
+            );
 
         the_status_of_the_request(status);
     }
-
 
     /**
      * check if the description message  of the select result is correct
@@ -415,8 +451,6 @@ public class AccessStep extends CommonStep {
         assertThat(expectedMessage).isNotNull();
         assertThat(expectedMessage).isEqualTo("Projection field $rules is no longer supported.");
     }
-
-
 
     /**
      * check if the status of the select result is unauthorized
@@ -444,10 +478,15 @@ public class AccessStep extends CommonStep {
         String s = null;
         // get id of last result
         String unitId = getValueFromResult("#id", 0);
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().updateUnitbyId(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            queryJSON, unitId);
+        RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .updateUnitbyId(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                queryJSON,
+                unitId
+            );
         assertThat(requestResponse.isOk()).isFalse();
         final VitamError vitamError = (VitamError) requestResponse;
         assertThat(Response.Status.valueOf(status.toUpperCase()).getStatusCode()).isEqualTo(vitamError.getHttpCode());
@@ -492,7 +531,6 @@ public class AccessStep extends CommonStep {
         world.setQuery(query);
     }
 
-
     /**
      * replace in the loaded query the string {{guid}} by the guid of the first unit found for given title
      *
@@ -501,8 +539,16 @@ public class AccessStep extends CommonStep {
      */
     @When("^j'utilise dans la requête le GUID de l'unité archivistique pour le titre (.*)$")
     public void i_use_the_following_unit_guid_for_title(String title) throws Throwable {
-        String unitGuid = world.getAccessService().findUnitGUIDByTitleAndOperationId(world.getAccessClient(),
-            world.getTenantId(), world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), title);
+        String unitGuid = world
+            .getAccessService()
+            .findUnitGUIDByTitleAndOperationId(
+                world.getAccessClient(),
+                world.getTenantId(),
+                world.getContractId(),
+                world.getApplicationSessionId(),
+                world.getOperationId(),
+                title
+            );
         String query = world.getQuery().replace("{{guid}}", unitGuid);
         world.setQuery(query);
     }
@@ -534,8 +580,10 @@ public class AccessStep extends CommonStep {
             int startIndex = query.indexOf(NAMED_OPERATION_ID_PREFIX);
             int endIndex = query.indexOf(NAMED_OPERATION_ID_SUFFIX, startIndex);
             String name = query.substring(startIndex + +NAMED_OPERATION_ID_PREFIX.length(), endIndex);
-            query = query.replace(NAMED_OPERATION_ID_PREFIX + name + NAMED_OPERATION_ID_SUFFIX,
-                world.getNamedOperationId(name));
+            query = query.replace(
+                NAMED_OPERATION_ID_PREFIX + name + NAMED_OPERATION_ID_SUFFIX,
+                world.getNamedOperationId(name)
+            );
         }
         if (world.getOperationId() != null) {
             query = query.replace(OPERATION_ID, world.getOperationId());
@@ -551,10 +599,14 @@ public class AccessStep extends CommonStep {
     @When("^je recherche les unités archivistiques$")
     public void search_archive_unit() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            queryJSON);
+        RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .selectUnits(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                queryJSON
+            );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             world.setResults(requestResponseOK.getResults());
@@ -567,17 +619,19 @@ public class AccessStep extends CommonStep {
 
     @When("^je recherche les unités archivistiques pour trouver l'unite (.*)$")
     public void search_archive_unit(String originatingSystemId) throws Throwable {
-
-
         String queryTmp = world.getQuery().replace("Originating_System_Id", originatingSystemId);
         world.setQuery(queryTmp);
 
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
 
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            queryJSON);
+        RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .selectUnits(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                queryJSON
+            );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             world.setResults(requestResponseOK.getResults());
@@ -588,8 +642,6 @@ public class AccessStep extends CommonStep {
         }
     }
 
-
-
     /**
      * search an archive unit according to the query define before
      *
@@ -598,10 +650,14 @@ public class AccessStep extends CommonStep {
     @When("^je recherche une unité archivistique et je recupère son id$")
     public void search_one_archive_unit() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            queryJSON);
+        RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .selectUnits(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                queryJSON
+            );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
@@ -621,10 +677,14 @@ public class AccessStep extends CommonStep {
     @When("^je recherche les unités archivistiques avec leurs règles de gestion héritées$")
     public void search_archive_units_with_inherited_rules() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnitsWithInheritedRules(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            queryJSON);
+        RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .selectUnitsWithInheritedRules(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                queryJSON
+            );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             world.setResults(requestResponseOK.getResults());
@@ -640,9 +700,7 @@ public class AccessStep extends CommonStep {
      * Select unit rule category
      */
     @When("^je sélectionne la catégorie (.*) pour l'unité (.*)$")
-    public void metadata_are_for_particular_result(String category, String unitTitle)
-        throws Throwable {
-
+    public void metadata_are_for_particular_result(String category, String unitTitle) throws Throwable {
         JsonNode unitJson = selectUnitInheritedRulesByTitle(unitTitle);
 
         JsonNode categoryJson = unitJson.get(category);
@@ -655,7 +713,6 @@ public class AccessStep extends CommonStep {
 
     @Then("^la catégorie contient (\\d+) règles et (\\d+) propriétés héritées$")
     public void rule_category_rules_and_properties_count_check(int nbRules, int nbProperties) throws Throwable {
-
         assertThat(selectedInheritedCategoryResult.get("Rules")).hasSize(nbRules);
         assertThat(selectedInheritedCategoryResult.get("Properties")).hasSize(nbProperties);
     }
@@ -668,10 +725,14 @@ public class AccessStep extends CommonStep {
     @When("^je recherche les groupes d'objets$")
     public void search_object_groups() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectObjects(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            queryJSON);
+        RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .selectObjects(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                queryJSON
+            );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             world.setResults(requestResponseOK.getResults());
@@ -684,7 +745,6 @@ public class AccessStep extends CommonStep {
 
     @Then("^la catégorie contient une règle (.*) héritée depuis l'unité (.*) avec pour métadonnées$")
     public void check_rule_metadata(String ruleId, String unitTitle, DataTable dataTable) throws Throwable {
-
         String unitGuid = getUnitGuidByTitle(unitTitle);
 
         JsonNode rule = null;
@@ -705,13 +765,14 @@ public class AccessStep extends CommonStep {
 
     @Then("^la catégorie contient une propriété (.*) héritée depuis l'unité (.*) avec pour métadonnées$")
     public void check_property_metadata(String propertyName, String unitTitle, DataTable dataTable) throws Throwable {
-
         String unitGuid = getUnitGuidByTitle(unitTitle);
 
         JsonNode property = null;
         for (JsonNode foundProperty : selectedInheritedCategoryResult.get("Properties")) {
-            if (foundProperty.get("UnitId").asText().equals(unitGuid) &&
-                foundProperty.get("PropertyName").asText().equals(propertyName)) {
+            if (
+                foundProperty.get("UnitId").asText().equals(unitGuid) &&
+                foundProperty.get("PropertyName").asText().equals(propertyName)
+            ) {
                 property = foundProperty;
                 break;
             }
@@ -727,7 +788,6 @@ public class AccessStep extends CommonStep {
 
     @Then("^les métadonnées de gestion correspondent au fichier json (.+)$")
     public void json_metadata_are_for_particular_result(String filename) throws Throwable {
-
         assertThat(world.getResults()).withFailMessage("Expecting single result").hasSize(1);
         JsonNode foundNode = world.getResults().get(0).get(VitamFieldsHelper.management());
         assertThat(foundNode).withFailMessage("No such field found " + filename).isNotNull();
@@ -744,13 +804,11 @@ public class AccessStep extends CommonStep {
 
     @Then("^les règles hérités de l'unité (.*) correspondent au fichier json (.*)$")
     public void check_unit_inherited_rules_json(String unitTitle, String filename) throws Throwable {
-
         JsonNode actualJson = selectUnitInheritedRulesByTitle(unitTitle);
 
         Path file = Paths.get(world.getBaseDirectory(), filename);
         JsonNode expectedJson;
         try (InputStream inputStream = Files.newInputStream(file, StandardOpenOption.READ)) {
-
             String refJsonWithUnitTitles = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
 
             String refJsonWithUnitGuids = transformLoadedUnitTitleToGuid(refJsonWithUnitTitles);
@@ -771,8 +829,7 @@ public class AccessStep extends CommonStep {
         String expected = JsonHandler.unprettyPrint(expectedJson);
 
         try {
-            JsonAssert.assertJsonEquals(expected, actual,
-                JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+            JsonAssert.assertJsonEquals(expected, actual, JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
         } catch (AssertionError e) {
             System.out.println("Actual  : " + actual);
             System.out.println("Expected: " + expected);
@@ -810,10 +867,14 @@ public class AccessStep extends CommonStep {
     @When("^je recherche une unité archivistique ayant un groupe d'objets et je recupère son id et son objet$")
     public void search_one_object_group() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().selectUnits(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            queryJSON);
+        RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .selectUnits(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                queryJSON
+            );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             assertThat(requestResponseOK.getResults()).isNotEmpty();
@@ -838,11 +899,15 @@ public class AccessStep extends CommonStep {
         // get id of last result
         String unitId = getValueFromResult("#id", 0);
         savedUnit = unitId;
-        RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().updateUnitbyId(
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+        RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .updateUnitbyId(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                queryJSON, unitId);
+                queryJSON,
+                unitId
+            );
         if (requestResponse.isOk()) {
             RequestResponseOK<JsonNode> requestResponseOK = (RequestResponseOK<JsonNode>) requestResponse;
             world.setResults(requestResponseOK.getResults());
@@ -861,11 +926,13 @@ public class AccessStep extends CommonStep {
     public void update_archive_unit_with_query(String query) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(query);
         // get id of last result
-        requestResponse =
-            world.getAccessClient()
-                .updateUnitbyId(new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
-                    queryJSON, savedUnit);
-
+        requestResponse = world
+            .getAccessClient()
+            .updateUnitbyId(
+                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId()),
+                queryJSON,
+                savedUnit
+            );
     }
 
     /**
@@ -889,22 +956,29 @@ public class AccessStep extends CommonStep {
         }
 
         // Search units
-        RequestResponse<JsonNode> requestResponseUnit = world.getAccessClient().selectUnits(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            queryJSON);
+        RequestResponse<JsonNode> requestResponseUnit = world
+            .getAccessClient()
+            .selectUnits(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                queryJSON
+            );
         if (requestResponseUnit.isOk()) {
             RequestResponseOK<JsonNode> responseOK = (RequestResponseOK<JsonNode>) requestResponseUnit;
             List<JsonNode> unitResults = responseOK.getResults();
             RequestResponseOK<JsonNode> objectGroupsResponseOK = new RequestResponseOK<>();
             for (JsonNode unitResult : unitResults) {
                 // search object group on unit
-                RequestResponse<JsonNode> responseObjectGroup =
-                    world.getAccessClient().selectObjectMetadatasByUnitId(
-                        new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+                RequestResponse<JsonNode> responseObjectGroup = world
+                    .getAccessClient()
+                    .selectObjectMetadatasByUnitId(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(world.getContractId())
                             .setApplicationSessionId(world.getApplicationSessionId()),
                         new SelectMultiQuery().getFinalSelectById(),
-                        unitResult.get("#id").asText());
+                        unitResult.get("#id").asText()
+                    );
                 if (responseObjectGroup.isOk()) {
                     List<JsonNode> objectGroupResults =
                         ((RequestResponseOK<JsonNode>) responseObjectGroup).getResults();
@@ -917,7 +991,6 @@ public class AccessStep extends CommonStep {
                 }
             }
             world.setResults(objectGroupsResponseOK.getResults());
-
         } else {
             VitamError vitamError = (VitamError) requestResponseUnit;
             Fail.fail("request selectUnit for GOT return an error: " + vitamError.getCode());
@@ -932,17 +1005,28 @@ public class AccessStep extends CommonStep {
      */
     @When("^je recherche les groupes d'objets de l'unité archivistique dont le titre est (.*)$")
     public void search_archive_unit_object_group(String title) throws Throwable {
-        String unitId = world.getAccessService().findUnitGUIDByTitleAndOperationId(world.getAccessClient(),
-            world.getTenantId(), world.getContractId(), world.getApplicationSessionId(), world.getOperationId(), title);
-        RequestResponse<JsonNode> responseObjectGroup =
-            world.getAccessClient().selectObjectMetadatasByUnitId(
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+        String unitId = world
+            .getAccessService()
+            .findUnitGUIDByTitleAndOperationId(
+                world.getAccessClient(),
+                world.getTenantId(),
+                world.getContractId(),
+                world.getApplicationSessionId(),
+                world.getOperationId(),
+                title
+            );
+        RequestResponse<JsonNode> responseObjectGroup = world
+            .getAccessClient()
+            .selectObjectMetadatasByUnitId(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                new SelectMultiQuery().getFinalSelectById(), unitId);
+                new SelectMultiQuery().getFinalSelectById(),
+                unitId
+            );
         if (responseObjectGroup.isOk()) {
             List<JsonNode> results = ((RequestResponseOK<JsonNode>) responseObjectGroup).getResults();
             world.setResults(results);
-
         } else {
             VitamError<JsonNode> vitamError = (VitamError<JsonNode>) responseObjectGroup;
             Fail.fail("request selectObject return an error: " + vitamError.getCode());
@@ -957,14 +1041,18 @@ public class AccessStep extends CommonStep {
     @When("^je recherche les journaux d'opération$")
     public void search_logbook_operation() throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
-        RequestResponse<LogbookOperation> requestResponse =
-            world.getAccessClient().selectOperations(
-                new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
+        RequestResponse<LogbookOperation> requestResponse = world
+            .getAccessClient()
+            .selectOperations(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                queryJSON);
+                queryJSON
+            );
         if (requestResponse.isOk()) {
-            RequestResponseOK<LogbookOperation> requestResponseOK =
-                (RequestResponseOK<LogbookOperation>) requestResponse;
+            RequestResponseOK<LogbookOperation> requestResponseOK = (RequestResponseOK<
+                    LogbookOperation
+                >) requestResponse;
             List<JsonNode> results = requestResponseOK.getResultsAsJsonNodes();
             world.setResults(results);
         } else {
@@ -1003,11 +1091,11 @@ public class AccessStep extends CommonStep {
         }
     }
 
-    private int actionVerify(InputStream inputStream, AdminCollections adminCollection)
-        throws VitamClientException {
+    private int actionVerify(InputStream inputStream, AdminCollections adminCollection) throws VitamClientException {
         int status = 0;
-        VitamContext context =
-            new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId());
+        VitamContext context = new VitamContext(world.getTenantId()).setApplicationSessionId(
+            world.getApplicationSessionId()
+        );
         if (FORMATS.equals(adminCollection)) {
             status = world.getAdminClient().checkFormats(context, inputStream).getStatus();
         } else if (RULES.equals(adminCollection)) {
@@ -1023,25 +1111,31 @@ public class AccessStep extends CommonStep {
         int status = 0;
         RequestResponse response = null;
         if (FORMATS.equals(adminCollection)) {
-
-            response = world.getAdminClient().createFormats(
-                new VitamContext(world.getTenantId())
-                    .setApplicationSessionId(world.getApplicationSessionId()),
-                inputStream, filename);
+            response = world
+                .getAdminClient()
+                .createFormats(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream,
+                    filename
+                );
             status = response.getHttpCode();
         } else if (RULES.equals(adminCollection)) {
-            response =
-                world.getAdminClient().createRules(
-                    new VitamContext(world.getTenantId())
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    inputStream, filename);
+            response = world
+                .getAdminClient()
+                .createRules(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream,
+                    filename
+                );
             status = response.getHttpCode();
         } else if (AGENCIES.equals(adminCollection)) {
-            response =
-                world.getAdminClient().createAgencies(
-                    new VitamContext(world.getTenantId())
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    inputStream, filename);
+            response = world
+                .getAdminClient()
+                .createAgencies(
+                    new VitamContext(world.getTenantId()).setApplicationSessionId(world.getApplicationSessionId()),
+                    inputStream,
+                    filename
+                );
             status = response.getHttpCode();
         }
         if (response != null) {
@@ -1064,64 +1158,104 @@ public class AccessStep extends CommonStep {
         RequestResponse<?> requestResponse;
         switch (adminCollection) {
             case FORMATS:
-                requestResponse = world.getAdminClient().findFormats(
-                    new VitamContext(world.getTenantId()).setAccessContract(null)
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    queryJSON);
+                requestResponse = world
+                    .getAdminClient()
+                    .findFormats(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        queryJSON
+                    );
                 break;
             case RULES:
-                requestResponse = world.getAdminClient().findRules(
-                    new VitamContext(world.getTenantId()).setAccessContract(null)
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    queryJSON);
+                requestResponse = world
+                    .getAdminClient()
+                    .findRules(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        queryJSON
+                    );
                 break;
             case ACCESS_CONTRACTS:
-                requestResponse = world.getAdminClient().findAccessContracts(
-                    new VitamContext(world.getTenantId()).setAccessContract(null)
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    queryJSON);
+                requestResponse = world
+                    .getAdminClient()
+                    .findAccessContracts(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        queryJSON
+                    );
                 break;
             case INGEST_CONTRACTS:
-                requestResponse = world.getAdminClient().findIngestContracts(
-                    new VitamContext(world.getTenantId()).setAccessContract(null)
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    queryJSON);
+                requestResponse = world
+                    .getAdminClient()
+                    .findIngestContracts(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        queryJSON
+                    );
                 break;
             case MANAGEMENT_CONTRACTS:
-                requestResponse = world.getAdminClient().findManagementContracts(
-                    new VitamContext(world.getTenantId()).setAccessContract(null)
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    queryJSON);
+                requestResponse = world
+                    .getAdminClient()
+                    .findManagementContracts(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        queryJSON
+                    );
                 break;
             case CONTEXTS:
-                requestResponse = world.getAdminClient().findContexts(
-                    new VitamContext(world.getTenantId()).setAccessContract(null)
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    queryJSON);
+                requestResponse = world
+                    .getAdminClient()
+                    .findContexts(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        queryJSON
+                    );
                 break;
             case PROFILE:
-                requestResponse = world.getAdminClient().findProfiles(
-                    new VitamContext(world.getTenantId()).setAccessContract(null)
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    queryJSON);
+                requestResponse = world
+                    .getAdminClient()
+                    .findProfiles(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        queryJSON
+                    );
                 break;
             case ARCHIVE_UNIT_PROFILE:
-                requestResponse = world.getAdminClient().findArchiveUnitProfiles(
-                    new VitamContext(world.getTenantId()).setAccessContract(null)
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    queryJSON);
+                requestResponse = world
+                    .getAdminClient()
+                    .findArchiveUnitProfiles(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        queryJSON
+                    );
                 break;
             case SECURITY_PROFILES:
-                requestResponse = world.getAdminClient().findSecurityProfiles(
-                    new VitamContext(world.getTenantId()).setAccessContract(null)
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    queryJSON);
+                requestResponse = world
+                    .getAdminClient()
+                    .findSecurityProfiles(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        queryJSON
+                    );
                 break;
             case AGENCIES:
-                requestResponse = world.getAdminClient().findAgencies(
-                    new VitamContext(world.getTenantId()).setAccessContract(null)
-                        .setApplicationSessionId(world.getApplicationSessionId()),
-                    queryJSON);
+                requestResponse = world
+                    .getAdminClient()
+                    .findAgencies(
+                        new VitamContext(world.getTenantId())
+                            .setAccessContract(null)
+                            .setApplicationSessionId(world.getApplicationSessionId()),
+                        queryJSON
+                    );
                 break;
             default:
                 throw new RuntimeException("Unknown collection " + adminCollection);
@@ -1139,16 +1273,18 @@ public class AccessStep extends CommonStep {
     }
 
     private String get_contract_id_by_name(String name) throws InvalidParseOperationException, VitamClientException {
-
-        String QUERY = "{\"$query\":{\"$and\":[{\"$eq\":{\"Name\":\"" + name +
-            "\"}}]},\"$filter\":{},\"$projection\":{}}";
+        String QUERY =
+            "{\"$query\":{\"$and\":[{\"$eq\":{\"Name\":\"" + name + "\"}}]},\"$filter\":{},\"$projection\":{}}";
         JsonNode queryDsl = JsonHandler.getFromString(QUERY);
 
-        RequestResponse<AccessContractModel> requestResponse =
-            world.getAdminClient().findAccessContracts(
-                new VitamContext(world.getTenantId()).setAccessContract(null)
+        RequestResponse<AccessContractModel> requestResponse = world
+            .getAdminClient()
+            .findAccessContracts(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(null)
                     .setApplicationSessionId(world.getApplicationSessionId()),
-                queryDsl);
+                queryDsl
+            );
         if (requestResponse.isOk()) {
             return ((RequestResponseOK<AccessContractModel>) requestResponse).getFirstResult().getId();
         }
@@ -1163,10 +1299,14 @@ public class AccessStep extends CommonStep {
     @When("^je lance une analyse d'élimination avec pour date le (.*) qui se termine avec le statut (.*)$")
     public void start_elimination_analysis(String analysisDate, String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().startEliminationAnalysis(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            new EliminationRequestBody(analysisDate, queryJSON));
+        RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .startEliminationAnalysis(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                new EliminationRequestBody(analysisDate, queryJSON)
+            );
 
         if (!requestResponse.isOk()) {
             VitamError vitamError = (VitamError) requestResponse;
@@ -1177,7 +1317,6 @@ public class AccessStep extends CommonStep {
         world.setEliminationOperationId(eliminationOperationId);
 
         checkOperationStatus(eliminationOperationId, StatusCode.valueOf(status));
-
     }
 
     /**
@@ -1188,10 +1327,14 @@ public class AccessStep extends CommonStep {
     @When("^je lance une élimination définitive avec pour date le (.*) qui se termine avec le statut (.*)$")
     public void start_elimination_action(String deleteDate, String status) throws Throwable {
         JsonNode queryJSON = JsonHandler.getFromString(world.getQuery());
-        RequestResponse<JsonNode> requestResponse = world.getAccessClient().startEliminationAction(
-            new VitamContext(world.getTenantId()).setAccessContract(world.getContractId())
-                .setApplicationSessionId(world.getApplicationSessionId()),
-            new EliminationRequestBody(deleteDate, queryJSON));
+        RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .startEliminationAction(
+                new VitamContext(world.getTenantId())
+                    .setAccessContract(world.getContractId())
+                    .setApplicationSessionId(world.getApplicationSessionId()),
+                new EliminationRequestBody(deleteDate, queryJSON)
+            );
 
         if (!requestResponse.isOk()) {
             VitamError vitamError = (VitamError) requestResponse;
@@ -1215,15 +1358,20 @@ public class AccessStep extends CommonStep {
 
         RequestResponse<JsonNode> response = world.getAdminClient().checkTraceabilityOperations(vitamContext, jsonNode);
 
-
         assertThat(response.isOk()).isTrue();
 
         final String operationId = response.getHeaderString(X_REQUEST_ID);
         world.setOperationId(operationId);
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        boolean processTimeout = vitamPoolingClient.wait(
+            world.getTenantId(),
+            operationId,
+            ProcessState.COMPLETED,
+            100,
+            1_000L,
+            TimeUnit.MILLISECONDS
+        );
 
         if (!processTimeout) {
             fail("dip processing not finished. Timeout exceeded.");
@@ -1237,17 +1385,24 @@ public class AccessStep extends CommonStep {
         runInVitamThread(() -> {
             VitamThreadUtils.getVitamSession().setTenantId(world.getTenantId());
 
-            RequestResponse<LogbookOperation> requestResponse =
-                world.getLogbookService().getLogbookOperation(world.getAccessClient(), world.getTenantId(),
-                    world.getContractId(), world.getApplicationSessionId(), world.getOperationId());
+            RequestResponse<LogbookOperation> requestResponse = world
+                .getLogbookService()
+                .getLogbookOperation(
+                    world.getAccessClient(),
+                    world.getTenantId(),
+                    world.getContractId(),
+                    world.getApplicationSessionId(),
+                    world.getOperationId()
+                );
 
             if (!(requestResponse instanceof RequestResponseOK)) {
                 fail("could not retrieve logbook operation for " + world.getOperationId());
                 return;
             }
 
-            RequestResponseOK<LogbookOperation> logbookResponseOK =
-                (RequestResponseOK<LogbookOperation>) requestResponse;
+            RequestResponseOK<LogbookOperation> logbookResponseOK = (RequestResponseOK<
+                    LogbookOperation
+                >) requestResponse;
             LogbookOperation master = logbookResponseOK.getFirstResult();
 
             if (master == null) {
@@ -1258,7 +1413,8 @@ public class AccessStep extends CommonStep {
             LogbookEventOperation lastEvent = Iterables.getLast(master.getEvents());
             int elapsed = (int) Duration.between(
                 LocalDateUtil.parseMongoFormattedDate(lastEvent.getEvDateTime()),
-                LocalDateUtil.now()).getSeconds();
+                LocalDateUtil.now()
+            ).getSeconds();
 
             int remainingDurationToSleep = duration - elapsed + 1;
             if (remainingDurationToSleep > 0) {
@@ -1277,8 +1433,9 @@ public class AccessStep extends CommonStep {
 
         String query = world.getQuery();
         JsonNode queryString = JsonHandler.getFromString(query);
-        final RequestResponse<JsonNode> requestResponse =
-            world.getAccessClient().reclassification(vitamContext, queryString);
+        final RequestResponse<JsonNode> requestResponse = world
+            .getAccessClient()
+            .reclassification(vitamContext, queryString);
 
         assertThat(requestResponse.isOk()).isTrue();
 
@@ -1287,8 +1444,14 @@ public class AccessStep extends CommonStep {
         assertThat(operationId).as(format("%s not found for request", X_REQUEST_ID)).isNotNull();
 
         final VitamPoolingClient vitamPoolingClient = new VitamPoolingClient(world.getAdminClient());
-        boolean processTimeout = vitamPoolingClient
-            .wait(world.getTenantId(), operationId, ProcessState.COMPLETED, 100, 1_000L, TimeUnit.MILLISECONDS);
+        boolean processTimeout = vitamPoolingClient.wait(
+            world.getTenantId(),
+            operationId,
+            ProcessState.COMPLETED,
+            100,
+            1_000L,
+            TimeUnit.MILLISECONDS
+        );
 
         if (!processTimeout) {
             fail("reclassification processing not finished. Timeout exceeded.");

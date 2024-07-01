@@ -60,8 +60,7 @@ public class ElasticsearchLogbookIndexManager {
     private final ListValuedMap<String, Integer> tenantGroupToTenantMap = new ArrayListValuedHashMap<>();
     private final Map<Integer, ElasticsearchIndexSettings> logbookOperationIndexSettingsMap = new HashMap<>();
 
-    public ElasticsearchLogbookIndexManager(
-        LogbookConfiguration configuration, List<Integer> tenantIds) {
+    public ElasticsearchLogbookIndexManager(LogbookConfiguration configuration, List<Integer> tenantIds) {
         this.tenantIds = tenantIds;
 
         Map<Integer, CollectionConfiguration> customTenantLogbookOperationConfiguration = new HashMap<>();
@@ -74,13 +73,16 @@ public class ElasticsearchLogbookIndexManager {
 
         if (configuration.getLogbookTenantIndexation().getDedicatedTenantConfiguration() != null) {
             for (DedicatedTenantConfiguration dedicatedTenantConfiguration : configuration
-                .getLogbookTenantIndexation().getDedicatedTenantConfiguration()) {
-
-                List<TenantRange> tenantRanges =
-                    TenantRangeParser.parseTenantRanges(dedicatedTenantConfiguration.getTenants());
+                .getLogbookTenantIndexation()
+                .getDedicatedTenantConfiguration()) {
+                List<TenantRange> tenantRanges = TenantRangeParser.parseTenantRanges(
+                    dedicatedTenantConfiguration.getTenants()
+                );
 
                 CollectionConfiguration finalTenantCollectionConfiguration = CollectionConfigurationUtils.merge(
-                    dedicatedTenantConfiguration.getLogbookoperation(), defaultLogbookOperation);
+                    dedicatedTenantConfiguration.getLogbookoperation(),
+                    defaultLogbookOperation
+                );
 
                 for (TenantRange tenantRange : tenantRanges) {
                     for (int tenantId : tenantIds) {
@@ -94,16 +96,21 @@ public class ElasticsearchLogbookIndexManager {
 
         if (configuration.getLogbookTenantIndexation().getGroupedTenantConfiguration() != null) {
             for (GroupedTenantConfiguration groupedTenantConfiguration : configuration
-                .getLogbookTenantIndexation().getGroupedTenantConfiguration()) {
-
-                List<TenantRange> tenantRanges =
-                    TenantRangeParser.parseTenantRanges(groupedTenantConfiguration.getTenants());
+                .getLogbookTenantIndexation()
+                .getGroupedTenantConfiguration()) {
+                List<TenantRange> tenantRanges = TenantRangeParser.parseTenantRanges(
+                    groupedTenantConfiguration.getTenants()
+                );
 
                 CollectionConfiguration finalTenantCollectionConfiguration = CollectionConfigurationUtils.merge(
-                    groupedTenantConfiguration.getLogbookoperation(), defaultLogbookOperation);
+                    groupedTenantConfiguration.getLogbookoperation(),
+                    defaultLogbookOperation
+                );
 
-                groupedTenantLogbookOperationConfiguration.put(groupedTenantConfiguration.getName(),
-                    finalTenantCollectionConfiguration);
+                groupedTenantLogbookOperationConfiguration.put(
+                    groupedTenantConfiguration.getName(),
+                    finalTenantCollectionConfiguration
+                );
 
                 for (TenantRange tenantRange : tenantRanges) {
                     for (int tenantId : tenantIds) {
@@ -118,53 +125,55 @@ public class ElasticsearchLogbookIndexManager {
 
         Supplier<String> esMappingLoader = () -> {
             try {
-                return ElasticsearchUtil
-                    .transferJsonToMapping(LogbookOperation.class.getResourceAsStream(MAPPING_LOGBOOK_OPERATION_FILE));
+                return ElasticsearchUtil.transferJsonToMapping(
+                    LogbookOperation.class.getResourceAsStream(MAPPING_LOGBOOK_OPERATION_FILE)
+                );
             } catch (IOException e) {
                 throw new VitamFatalRuntimeException("Could not load es mapping file", e);
             }
         };
 
-        tenantIds.stream()
+        tenantIds
+            .stream()
             .filter(not(tenantToTenantGroupMap::containsKey))
             .forEach(tenantId -> {
-                    CollectionConfiguration collectionConfiguration =
-                        customTenantLogbookOperationConfiguration
-                            .getOrDefault(tenantId, defaultLogbookOperation);
-                    ElasticsearchIndexSettings elasticsearchIndexSettings =
-                        new ElasticsearchIndexSettings(
-                            collectionConfiguration.getNumberOfShards(),
-                            collectionConfiguration.getNumberOfReplicas(),
-                            esMappingLoader);
+                CollectionConfiguration collectionConfiguration =
+                    customTenantLogbookOperationConfiguration.getOrDefault(tenantId, defaultLogbookOperation);
+                ElasticsearchIndexSettings elasticsearchIndexSettings = new ElasticsearchIndexSettings(
+                    collectionConfiguration.getNumberOfShards(),
+                    collectionConfiguration.getNumberOfReplicas(),
+                    esMappingLoader
+                );
+                this.logbookOperationIndexSettingsMap.put(tenantId, elasticsearchIndexSettings);
+            });
+
+        tenantGroupToTenantMap
+            .keySet()
+            .forEach(tenantGroupName -> {
+                CollectionConfiguration collectionConfiguration = groupedTenantLogbookOperationConfiguration.get(
+                    tenantGroupName
+                );
+                ElasticsearchIndexSettings elasticsearchIndexSettings = new ElasticsearchIndexSettings(
+                    collectionConfiguration.getNumberOfShards(),
+                    collectionConfiguration.getNumberOfReplicas(),
+                    esMappingLoader
+                );
+                for (Integer tenantId : tenantGroupToTenantMap.get(tenantGroupName)) {
                     this.logbookOperationIndexSettingsMap.put(tenantId, elasticsearchIndexSettings);
                 }
-            );
-
-        tenantGroupToTenantMap.keySet()
-            .forEach(tenantGroupName -> {
-                    CollectionConfiguration collectionConfiguration =
-                        groupedTenantLogbookOperationConfiguration.get(tenantGroupName);
-                    ElasticsearchIndexSettings elasticsearchIndexSettings =
-                        new ElasticsearchIndexSettings(
-                            collectionConfiguration.getNumberOfShards(),
-                            collectionConfiguration.getNumberOfReplicas(),
-                            esMappingLoader);
-                    for (Integer tenantId : tenantGroupToTenantMap.get(tenantGroupName)) {
-                        this.logbookOperationIndexSettingsMap.put(tenantId, elasticsearchIndexSettings);
-                    }
-                }
-            );
+            });
     }
 
     public ElasticsearchIndexAliasResolver getElasticsearchIndexAliasResolver(LogbookCollections collection) {
         validateCollection(collection);
-        return (tenantId) -> {
+        return tenantId -> {
             if (this.tenantToTenantGroupMap.containsKey(tenantId)) {
                 return ElasticsearchIndexAlias.ofMultiTenantCollection(
-                    collection.getName(), this.tenantToTenantGroupMap.get(tenantId));
+                    collection.getName(),
+                    this.tenantToTenantGroupMap.get(tenantId)
+                );
             } else {
-                return ElasticsearchIndexAlias.ofMultiTenantCollection(
-                    collection.getName(), tenantId);
+                return ElasticsearchIndexAlias.ofMultiTenantCollection(collection.getName(), tenantId);
             }
         };
     }
@@ -175,9 +184,7 @@ public class ElasticsearchLogbookIndexManager {
     }
 
     public List<Integer> getDedicatedTenants() {
-        return tenantIds.stream()
-            .filter(not(tenantToTenantGroupMap::containsKey))
-            .collect(Collectors.toList());
+        return tenantIds.stream().filter(not(tenantToTenantGroupMap::containsKey)).collect(Collectors.toList());
     }
 
     public Collection<String> getTenantGroups() {

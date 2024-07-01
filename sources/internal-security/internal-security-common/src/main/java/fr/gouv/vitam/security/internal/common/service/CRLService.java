@@ -35,7 +35,6 @@ import java.security.cert.CertificateException;
  * CRL service contract for revocation check of VITAM's identity and personal certificates.
  */
 public interface CRLService {
-
     /**
      * Check all identity and personal certificates against given CRL
      *
@@ -46,6 +45,5 @@ public interface CRLService {
      * @throws InvalidParseOperationException
      * @throws CRLException
      */
-    void checkIdentityWithCRL(byte[] crlCert)
-        throws CertificateException, InvalidParseOperationException, CRLException;
+    void checkIdentityWithCRL(byte[] crlCert) throws CertificateException, InvalidParseOperationException, CRLException;
 }

@@ -54,5 +54,4 @@ public class InvalidGuidOperationException extends VitamException {
     public InvalidGuidOperationException(final String arg0, final Throwable arg1) {
         super(arg0, arg1);
     }
-
 }

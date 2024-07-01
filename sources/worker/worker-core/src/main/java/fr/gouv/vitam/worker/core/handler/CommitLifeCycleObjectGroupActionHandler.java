@@ -50,9 +50,7 @@ public class CommitLifeCycleObjectGroupActionHandler extends CommitLifeCycleActi
 
     @Override
     public void commitLifeCycle(HandlerIO handlerIO, String objectID, String operationId)
-        throws LogbookClientBadRequestException, LogbookClientNotFoundException,
-        LogbookClientServerException {
-
+        throws LogbookClientBadRequestException, LogbookClientNotFoundException, LogbookClientServerException {
         if (handlerIO.getInput() != null && handlerIO.getInput().size() > 0) {
             boolean shouldWriteLFC = (boolean) handlerIO.getInput(SHOULD_WRITE_RANK);
             if (shouldWriteLFC) {

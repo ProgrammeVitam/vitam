@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import static fr.gouv.vitam.common.json.JsonHandler.JSON_SET_FOR_ACTION_DSL_REGEX;
 
 public class InternalActionKeysRetriever {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InternalActionKeysRetriever.class);
 
     private static final String INTERPUNCT = ".";
@@ -62,8 +63,11 @@ public class InternalActionKeysRetriever {
     }
 
     @VisibleForTesting
-    public InternalActionKeysRetriever(String internalPrefix, String internalPrefixFromAccess,
-        String internalPrefixForMongo) {
+    public InternalActionKeysRetriever(
+        String internalPrefix,
+        String internalPrefixFromAccess,
+        String internalPrefixForMongo
+    ) {
         this.internalPrefix = internalPrefix;
         this.internalPrefixFromAccess = internalPrefixFromAccess;
         this.internalPrefixForMongo = internalPrefixForMongo;
@@ -97,7 +101,6 @@ public class InternalActionKeysRetriever {
             while (fields.hasNext()) {
                 internalKeyFields.addAll(getInternalActionKeyElementFields(fields));
             }
-
         }
         return internalKeyFields;
     }
@@ -175,15 +178,14 @@ public class InternalActionKeysRetriever {
             return Collections.emptyList();
         }
 
-        return interpuctKeyFields.stream()
-            .filter(this::isInternal)
-            .collect(Collectors.toList());
-
+        return interpuctKeyFields.stream().filter(this::isInternal).collect(Collectors.toList());
     }
 
     private boolean isInternal(String key) {
-        return key.startsWith(internalPrefix)
-            || key.startsWith(internalPrefixFromAccess)
-            || key.startsWith(internalPrefixForMongo);
+        return (
+            key.startsWith(internalPrefix) ||
+            key.startsWith(internalPrefixFromAccess) ||
+            key.startsWith(internalPrefixForMongo)
+        );
     }
 }

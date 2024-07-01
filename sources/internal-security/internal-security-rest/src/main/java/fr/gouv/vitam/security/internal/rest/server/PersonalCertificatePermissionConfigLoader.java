@@ -47,20 +47,21 @@ public class PersonalCertificatePermissionConfigLoader {
      */
     public static PersonalCertificatePermissionConfig loadPersonalCertificatePermissionConfig(String configFile)
         throws IOException {
-
         final PersonalCertificatePermissionConfig config;
-        try (final InputStream personalCertificatePermissionIS = PropertiesUtils.getConfigAsStream(
-            configFile)) {
-
+        try (final InputStream personalCertificatePermissionIS = PropertiesUtils.getConfigAsStream(configFile)) {
             config = PropertiesUtils.readYaml(
-                personalCertificatePermissionIS, PersonalCertificatePermissionConfig.class);
+                personalCertificatePermissionIS,
+                PersonalCertificatePermissionConfig.class
+            );
         }
 
-        if (config.getPermissionsRequiringPersonalCertificate() == null)
-            config.setPermissionsRequiringPersonalCertificate(Collections.emptySet());
+        if (
+            config.getPermissionsRequiringPersonalCertificate() == null
+        ) config.setPermissionsRequiringPersonalCertificate(Collections.emptySet());
 
-        if (config.getPermissionsWithoutPersonalCertificate() == null)
-            config.setPermissionsWithoutPersonalCertificate(Collections.emptySet());
+        if (config.getPermissionsWithoutPersonalCertificate() == null) config.setPermissionsWithoutPersonalCertificate(
+            Collections.emptySet()
+        );
 
         validateConfiguration(config);
 
@@ -68,15 +69,16 @@ public class PersonalCertificatePermissionConfigLoader {
     }
 
     private static void validateConfiguration(PersonalCertificatePermissionConfig config) throws IOException {
-
-        SetUtils.SetView<String> intersection = SetUtils
-            .intersection(config.getPermissionsRequiringPersonalCertificate(),
-                config.getPermissionsWithoutPersonalCertificate());
+        SetUtils.SetView<String> intersection = SetUtils.intersection(
+            config.getPermissionsRequiringPersonalCertificate(),
+            config.getPermissionsWithoutPersonalCertificate()
+        );
 
         if (!intersection.isEmpty()) {
             throw new IllegalStateException(
                 "Invalid configuration file. A permission cannot be both requiring and non requiring personal certificate. " +
-                    intersection.toString());
+                intersection.toString()
+            );
         }
     }
 }

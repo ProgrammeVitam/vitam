@@ -64,8 +64,10 @@ public class AccessRequestReferentialRepositoryTest {
     private static final int BULK_SIZE = 10;
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), ACCESS_REQUEST_REFERENTIAL_COLLECTION);
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(),
+        ACCESS_REQUEST_REFERENTIAL_COLLECTION
+    );
 
     @Rule
     public LogicalClockRule logicalClock = new LogicalClockRule();
@@ -76,8 +78,10 @@ public class AccessRequestReferentialRepositoryTest {
     @Before
     public void before() {
         mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
-        accessRequestReferentialRepository = new AccessRequestReferentialRepository(mongoDbAccess.getMongoDatabase()
-            .getCollection(ACCESS_REQUEST_REFERENTIAL_COLLECTION), BULK_SIZE);
+        accessRequestReferentialRepository = new AccessRequestReferentialRepository(
+            mongoDbAccess.getMongoDatabase().getCollection(ACCESS_REQUEST_REFERENTIAL_COLLECTION),
+            BULK_SIZE
+        );
     }
 
     @After
@@ -92,7 +96,6 @@ public class AccessRequestReferentialRepositoryTest {
 
     @Test
     public void whenInsertNewAccessRequestThenOK() throws AccessRequestReferentialException {
-
         // Given
         String requestId = GUIDFactory.newGUID().getId();
         String creationDate = nextDate();
@@ -100,8 +103,17 @@ public class AccessRequestReferentialRepositoryTest {
         String expirationDate = nextDate();
         String purgeDate = nextDate();
         TapeAccessRequestReferentialEntity accessRequestReferentialEntity = new TapeAccessRequestReferentialEntity(
-            requestId, "myContainer", List.of("obj1", "obj2"), creationDate, readyDate, expirationDate, purgeDate,
-            List.of("tarId1", "tarId3"), 2, 9);
+            requestId,
+            "myContainer",
+            List.of("obj1", "obj2"),
+            creationDate,
+            readyDate,
+            expirationDate,
+            purgeDate,
+            List.of("tarId1", "tarId3"),
+            2,
+            9
+        );
 
         // When
         accessRequestReferentialRepository.insert(accessRequestReferentialEntity);
@@ -125,12 +137,9 @@ public class AccessRequestReferentialRepositoryTest {
 
     @Test
     public void givenExistingAccessRequestWhenFindByRequestIdThenOK() throws AccessRequestReferentialException {
-
         // Given
-        TapeAccessRequestReferentialEntity accessRequest1 =
-            createAccessRequest("myContainer1", "obj1", "tarId1");
-        TapeAccessRequestReferentialEntity accessRequest2 =
-            createAccessRequest("myContainer2", "obj2", "tarId2");
+        TapeAccessRequestReferentialEntity accessRequest1 = createAccessRequest("myContainer1", "obj1", "tarId1");
+        TapeAccessRequestReferentialEntity accessRequest2 = createAccessRequest("myContainer2", "obj2", "tarId2");
 
         accessRequestReferentialRepository.insert(accessRequest1);
         accessRequestReferentialRepository.insert(accessRequest2);
@@ -147,10 +156,8 @@ public class AccessRequestReferentialRepositoryTest {
     @Test
     public void givenNonExistingAccessRequestWhenFindByRequestIdThenNotFound()
         throws AccessRequestReferentialException {
-
         // Given
-        TapeAccessRequestReferentialEntity accessRequest1 =
-            createAccessRequest("myContainer1", "obj1", "tarId1");
+        TapeAccessRequestReferentialEntity accessRequest1 = createAccessRequest("myContainer1", "obj1", "tarId1");
         accessRequestReferentialRepository.insert(accessRequest1);
 
         // When
@@ -163,7 +170,6 @@ public class AccessRequestReferentialRepositoryTest {
 
     @Test
     public void givenExistingAccessRequestsWhenFindByRequestIdsThenOK() throws AccessRequestReferentialException {
-
         // Given
         List<TapeAccessRequestReferentialEntity> accessRequests = IntStream.range(0, 6)
             .mapToObj(i -> createAccessRequest("myContainer1", "obj1", "tarId1"))
@@ -174,18 +180,19 @@ public class AccessRequestReferentialRepositoryTest {
 
         // When
         List<TapeAccessRequestReferentialEntity> foundAccessRequests =
-            accessRequestReferentialRepository.findByRequestIds(Set.of(
-                accessRequests.get(2).getRequestId(), accessRequests.get(5).getRequestId(), "unknown"));
+            accessRequestReferentialRepository.findByRequestIds(
+                Set.of(accessRequests.get(2).getRequestId(), accessRequests.get(5).getRequestId(), "unknown")
+            );
 
         // Then
         assertThat(foundAccessRequests).hasSize(2);
-        assertThat(foundAccessRequests).extracting(TapeAccessRequestReferentialEntity::getRequestId)
+        assertThat(foundAccessRequests)
+            .extracting(TapeAccessRequestReferentialEntity::getRequestId)
             .containsExactlyInAnyOrder(accessRequests.get(2).getRequestId(), accessRequests.get(5).getRequestId());
     }
 
     @Test
     public void whenFindByEmptyRequestIdSetThenOK() throws AccessRequestReferentialException {
-
         // Given
 
         // When
@@ -198,7 +205,6 @@ public class AccessRequestReferentialRepositoryTest {
 
     @Test
     public void givenLargeAccessRequestDataSetWhenFindByRequestIdsThenOK() throws AccessRequestReferentialException {
-
         // Given
         List<TapeAccessRequestReferentialEntity> accessRequests = IntStream.range(0, 21)
             .mapToObj(i -> createAccessRequest("myContainer1", "obj1", "tarId1"))
@@ -208,31 +214,51 @@ public class AccessRequestReferentialRepositoryTest {
         }
 
         // When
-        Set<String> requestIds = accessRequests.stream()
-            .map(TapeAccessRequestReferentialEntity::getRequestId).collect(Collectors.toSet());
+        Set<String> requestIds = accessRequests
+            .stream()
+            .map(TapeAccessRequestReferentialEntity::getRequestId)
+            .collect(Collectors.toSet());
         List<TapeAccessRequestReferentialEntity> foundAccessRequests =
             accessRequestReferentialRepository.findByRequestIds(requestIds);
 
         // Then
         assertThat(requestIds.size()).isGreaterThan(BULK_SIZE);
         assertThat(foundAccessRequests).hasSize(requestIds.size());
-        assertThat(foundAccessRequests).extracting(TapeAccessRequestReferentialEntity::getRequestId)
+        assertThat(foundAccessRequests)
+            .extracting(TapeAccessRequestReferentialEntity::getRequestId)
             .containsExactlyInAnyOrderElementsOf(requestIds);
     }
 
     @Test
     public void givenReadyAndNonReadyAccessRequestsWhenFindNonReadyAccessRequestsThenOK()
         throws AccessRequestReferentialException {
-
         // Given
         TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1", "obj2"),
-            nextDate(), null, null, null, List.of("tarId1", "tarId2"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj1", "obj2"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId2"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest1);
 
         TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj3", "obj4"),
-            nextDate(), nextDate(), nextDate(), nextDate(), List.of(), 0, 1);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj3", "obj4"),
+            nextDate(),
+            nextDate(),
+            nextDate(),
+            nextDate(),
+            List.of(),
+            0,
+            1
+        );
         accessRequestReferentialRepository.insert(accessRequest2);
 
         // When
@@ -241,33 +267,69 @@ public class AccessRequestReferentialRepositoryTest {
 
         // Then
         assertThat(nonReadyAccessRequests).hasSize(1);
-        assertThat(nonReadyAccessRequests).extracting(TapeAccessRequestReferentialEntity::getRequestId)
+        assertThat(nonReadyAccessRequests)
+            .extracting(TapeAccessRequestReferentialEntity::getRequestId)
             .containsExactlyInAnyOrder(accessRequest1.getRequestId());
     }
 
     @Test
     public void givenAccessRequestWhenFindByUnavailableArchiveIdThenMatchingArchiveIdsReturned()
         throws AccessRequestReferentialException {
-
         // Given
         TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1", "obj2"),
-            nextDate(), null, null, null, List.of("tarId1", "tarId2"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj1", "obj2"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId2"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest1);
 
         TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer2", List.of("obj1", "obj4"),
-            nextDate(), null, null, null, List.of("tarId1", "tarId4"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer2",
+            List.of("obj1", "obj4"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId4"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest2);
 
         TapeAccessRequestReferentialEntity accessRequest3 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj3"),
-            nextDate(), null, null, null, List.of("tarId2"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj3"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId2"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest3);
 
         TapeAccessRequestReferentialEntity accessRequest4 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj5"),
-            nextDate(), null, null, null, List.of("tarId3"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj5"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId3"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest4);
 
         // When
@@ -276,25 +338,24 @@ public class AccessRequestReferentialRepositoryTest {
 
         // Then
         assertThat(nonReadyAccessRequests).hasSize(2);
-        assertThat(nonReadyAccessRequests).extracting(TapeAccessRequestReferentialEntity::getRequestId)
+        assertThat(nonReadyAccessRequests)
+            .extracting(TapeAccessRequestReferentialEntity::getRequestId)
             .containsExactlyInAnyOrder(accessRequest1.getRequestId(), accessRequest3.getRequestId());
     }
 
     @Test
     public void givenExistingAccessRequestWhenDeleteExistingThenOK() throws AccessRequestReferentialException {
-
         // Given
-        TapeAccessRequestReferentialEntity accessRequest1 =
-            createAccessRequest("myContainer1", "obj1", "tarId1");
-        TapeAccessRequestReferentialEntity accessRequest2 =
-            createAccessRequest("myContainer2", "obj2", "tarId2");
+        TapeAccessRequestReferentialEntity accessRequest1 = createAccessRequest("myContainer1", "obj1", "tarId1");
+        TapeAccessRequestReferentialEntity accessRequest2 = createAccessRequest("myContainer2", "obj2", "tarId2");
 
         accessRequestReferentialRepository.insert(accessRequest1);
         accessRequestReferentialRepository.insert(accessRequest2);
 
         // When
-        boolean deletedAccessRequest =
-            accessRequestReferentialRepository.deleteAccessRequestById(accessRequest1.getRequestId());
+        boolean deletedAccessRequest = accessRequestReferentialRepository.deleteAccessRequestById(
+            accessRequest1.getRequestId()
+        );
 
         // Then
         assertThat(deletedAccessRequest).isTrue();
@@ -303,17 +364,13 @@ public class AccessRequestReferentialRepositoryTest {
     }
 
     @Test
-    public void givenNonExistingAccessRequestWhenDeleteExistingThenIgnored()
-        throws AccessRequestReferentialException {
-
+    public void givenNonExistingAccessRequestWhenDeleteExistingThenIgnored() throws AccessRequestReferentialException {
         // Given
-        TapeAccessRequestReferentialEntity accessRequest1 =
-            createAccessRequest("myContainer1", "obj1", "tarId1");
+        TapeAccessRequestReferentialEntity accessRequest1 = createAccessRequest("myContainer1", "obj1", "tarId1");
         accessRequestReferentialRepository.insert(accessRequest1);
 
         // When
-        boolean deletedAccessRequest =
-            accessRequestReferentialRepository.deleteAccessRequestById("unknown");
+        boolean deletedAccessRequest = accessRequestReferentialRepository.deleteAccessRequestById("unknown");
 
         // Then
         assertThat(deletedAccessRequest).isFalse();
@@ -323,7 +380,6 @@ public class AccessRequestReferentialRepositoryTest {
     @Test
     public void givenExpiredAndNonExpiredAccessRequestsWhenDeleteExpiredThenOnlyNonExpiredRemains()
         throws AccessRequestReferentialException {
-
         // Given :
         // - AccessRequest1 : Not ready (does not expire)
         // - AccessRequest2 : Ready, not expired, not deletable
@@ -331,28 +387,60 @@ public class AccessRequestReferentialRepositoryTest {
         // - AccessRequest4 : Deletable
 
         TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1", "obj2"),
-            getNowMinusMinutes(10), null, null, null, List.of("tarId1", "tarId2"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj1", "obj2"),
+            getNowMinusMinutes(10),
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId2"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest1);
 
         TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj3", "obj4"),
-            getNowMinusMinutes(30), getNowMinusMinutes(10), getNowPlusMinutes(10), getNowPlusMinutes(20), List.of(),
-            0, 1);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj3", "obj4"),
+            getNowMinusMinutes(30),
+            getNowMinusMinutes(10),
+            getNowPlusMinutes(10),
+            getNowPlusMinutes(20),
+            List.of(),
+            0,
+            1
+        );
         accessRequestReferentialRepository.insert(accessRequest2);
 
         TapeAccessRequestReferentialEntity accessRequest3 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj3", "obj4"),
-            getNowMinusMinutes(30), getNowMinusMinutes(20), getNowMinusMinutes(10), getNowPlusMinutes(10),
-            List.of(), 0, 2);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj3", "obj4"),
+            getNowMinusMinutes(30),
+            getNowMinusMinutes(20),
+            getNowMinusMinutes(10),
+            getNowPlusMinutes(10),
+            List.of(),
+            0,
+            2
+        );
         accessRequestReferentialRepository.insert(accessRequest3);
 
         TapeAccessRequestReferentialEntity accessRequest4 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj3", "obj4"),
-            getNowMinusMinutes(40), getNowMinusMinutes(30), getNowMinusMinutes(20), getNowMinusMinutes(10),
-            List.of(), 0, 2);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj3", "obj4"),
+            getNowMinusMinutes(40),
+            getNowMinusMinutes(30),
+            getNowMinusMinutes(20),
+            getNowMinusMinutes(10),
+            List.of(),
+            0,
+            2
+        );
         accessRequestReferentialRepository.insert(accessRequest4);
-
 
         // When
         List<TapeAccessRequestReferentialEntity> deletedAccessRequests =
@@ -360,31 +448,60 @@ public class AccessRequestReferentialRepositoryTest {
 
         // Then
         assertThat(deletedAccessRequests).hasSize(1);
-        assertThat(deletedAccessRequests).extracting(TapeAccessRequestReferentialEntity::getRequestId)
-            .containsExactlyInAnyOrder(accessRequest4.getRequestId());
-        assertThat(accessRequestReferentialRepository.findByRequestIds(Set.of(accessRequest1.getRequestId(),
-            accessRequest2.getRequestId(), accessRequest3.getRequestId(), accessRequest4.getRequestId())
-        ))
+        assertThat(deletedAccessRequests)
             .extracting(TapeAccessRequestReferentialEntity::getRequestId)
-            .containsExactlyInAnyOrder(accessRequest1.getRequestId(), accessRequest2.getRequestId(),
-                accessRequest3.getRequestId());
+            .containsExactlyInAnyOrder(accessRequest4.getRequestId());
+        assertThat(
+            accessRequestReferentialRepository.findByRequestIds(
+                Set.of(
+                    accessRequest1.getRequestId(),
+                    accessRequest2.getRequestId(),
+                    accessRequest3.getRequestId(),
+                    accessRequest4.getRequestId()
+                )
+            )
+        )
+            .extracting(TapeAccessRequestReferentialEntity::getRequestId)
+            .containsExactlyInAnyOrder(
+                accessRequest1.getRequestId(),
+                accessRequest2.getRequestId(),
+                accessRequest3.getRequestId()
+            );
     }
 
     @Test
     public void givenExistingAccessRequestWhenUpdateThenOK() throws AccessRequestReferentialException {
-
         // Given
         String requestId1 = GUIDFactory.newGUID().getId();
         String req1CreationDate = nextDate();
-        TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(requestId1,
-            "myContainer1", List.of("obj1"), req1CreationDate, null, null, null,
-            List.of("tarId1", "tarId3", "tarId4"), 0, 6);
+        TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
+            requestId1,
+            "myContainer1",
+            List.of("obj1"),
+            req1CreationDate,
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId3", "tarId4"),
+            0,
+            6
+        );
         accessRequestReferentialRepository.insert(accessRequest1);
 
         String requestId2 = GUIDFactory.newGUID().getId();
         String req2CreationDate = nextDate();
-        TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(requestId2,
-            "myContainer2", List.of("obj2"), req2CreationDate, null, null, null, List.of("tarId2"), 0, 10);
+        TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(
+            requestId2,
+            "myContainer2",
+            List.of("obj2"),
+            req2CreationDate,
+            null,
+            null,
+            null,
+            List.of("tarId2"),
+            0,
+            10
+        );
         accessRequestReferentialRepository.insert(accessRequest2);
 
         // When
@@ -392,9 +509,18 @@ public class AccessRequestReferentialRepositoryTest {
         String req1ReadyDate = nextDate();
         String req1ExpirationDate = nextDate();
         String req1PurgeDate = nextDate();
-        TapeAccessRequestReferentialEntity newAccessRequest1 = new TapeAccessRequestReferentialEntity(requestId1,
-            "myContainer1", List.of("obj1"), req1CreationDate, req1ReadyDate, req1ExpirationDate, req1PurgeDate,
-            List.of(), 0, 7);
+        TapeAccessRequestReferentialEntity newAccessRequest1 = new TapeAccessRequestReferentialEntity(
+            requestId1,
+            "myContainer1",
+            List.of("obj1"),
+            req1CreationDate,
+            req1ReadyDate,
+            req1ExpirationDate,
+            req1PurgeDate,
+            List.of(),
+            0,
+            7
+        );
 
         boolean updated = accessRequestReferentialRepository.updateAccessRequest(newAccessRequest1, 6);
 
@@ -425,13 +551,22 @@ public class AccessRequestReferentialRepositoryTest {
 
     @Test
     public void givenNonExistingAccessRequestWhenUpdateThenNoUpdate() throws AccessRequestReferentialException {
-
         // Given
 
         // When
         String requestId1 = GUIDFactory.newGUID().getId();
-        TapeAccessRequestReferentialEntity newAccessRequest1 = new TapeAccessRequestReferentialEntity(requestId1,
-            "myContainer1", List.of("obj1"), nextDate(), nextDate(), nextDate(), nextDate(), List.of(), 0, 7);
+        TapeAccessRequestReferentialEntity newAccessRequest1 = new TapeAccessRequestReferentialEntity(
+            requestId1,
+            "myContainer1",
+            List.of("obj1"),
+            nextDate(),
+            nextDate(),
+            nextDate(),
+            nextDate(),
+            List.of(),
+            0,
+            7
+        );
 
         boolean updated = accessRequestReferentialRepository.updateAccessRequest(newAccessRequest1, 6);
 
@@ -445,23 +580,45 @@ public class AccessRequestReferentialRepositoryTest {
     @Test
     public void givenExistingAccessRequestConcurrentlyUpdatedWhenUpdateThenNoUpdate()
         throws AccessRequestReferentialException {
-
         // Given
         String requestId1 = GUIDFactory.newGUID().getId();
         String req1Date = nextDate();
-        TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(requestId1,
-            "myContainer1", List.of("obj1"), req1Date, null, null, null,
-            List.of("tarId1", "tarId3", "tarId4"), 0, 6);
+        TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
+            requestId1,
+            "myContainer1",
+            List.of("obj1"),
+            req1Date,
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId3", "tarId4"),
+            0,
+            6
+        );
         accessRequestReferentialRepository.insert(accessRequest1);
 
         // When
         // Simulate another concurrent update by incrementing version
-        mongoDbAccess.getMongoDatabase().getCollection(ACCESS_REQUEST_REFERENTIAL_COLLECTION).updateOne(
-            Filters.eq(TapeAccessRequestReferentialEntity.ID, requestId1),
-            Updates.set(TapeAccessRequestReferentialEntity.VERSION, 7));
+        mongoDbAccess
+            .getMongoDatabase()
+            .getCollection(ACCESS_REQUEST_REFERENTIAL_COLLECTION)
+            .updateOne(
+                Filters.eq(TapeAccessRequestReferentialEntity.ID, requestId1),
+                Updates.set(TapeAccessRequestReferentialEntity.VERSION, 7)
+            );
 
-        TapeAccessRequestReferentialEntity newAccessRequest1 = new TapeAccessRequestReferentialEntity(requestId1,
-            "myContainer1", List.of("obj1"), req1Date, null, null, null, List.of("tarId1", "tarId4"), 0, 7);
+        TapeAccessRequestReferentialEntity newAccessRequest1 = new TapeAccessRequestReferentialEntity(
+            requestId1,
+            "myContainer1",
+            List.of("obj1"),
+            req1Date,
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId4"),
+            0,
+            7
+        );
 
         boolean updated = accessRequestReferentialRepository.updateAccessRequest(newAccessRequest1, 6);
 
@@ -470,19 +627,30 @@ public class AccessRequestReferentialRepositoryTest {
         Optional<TapeAccessRequestReferentialEntity> nonUpdatedAccessRequest1 =
             accessRequestReferentialRepository.findByRequestId(requestId1);
         assertThat(nonUpdatedAccessRequest1).isPresent();
-        assertThat(nonUpdatedAccessRequest1.get().getUnavailableArchiveIds()).containsExactlyInAnyOrder("tarId1",
-            "tarId3", "tarId4");
+        assertThat(nonUpdatedAccessRequest1.get().getUnavailableArchiveIds()).containsExactlyInAnyOrder(
+            "tarId1",
+            "tarId3",
+            "tarId4"
+        );
         assertThat(nonUpdatedAccessRequest1.get().getVersion()).isEqualTo(7);
     }
 
     @Test
     public void givenEmptyArchiveIdWhenExcludeArchiveIdsStillRequiredByAccessRequestsThenOK()
         throws AccessRequestReferentialException {
-
         // Given
         TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1"), nextDate(), null,
-            null, null, List.of("tarId1", "tarId4"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj1"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId4"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest1);
 
         // When
@@ -496,27 +664,54 @@ public class AccessRequestReferentialRepositoryTest {
     @Test
     public void givenReferencedAndNonReferencedArchiveIdsWhenExcludeArchiveIdsStillRequiredByAccessRequestsThenOK()
         throws AccessRequestReferentialException {
-
         // Given
         TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1"), nextDate(), null,
-            null, null, List.of("tarId1", "tarId4"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj1"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId4"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest1);
 
         TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj2", "obj3"), nextDate(), null,
-            null, null, List.of("tarId1", "tarId2"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj2", "obj3"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId2"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest2);
 
         TapeAccessRequestReferentialEntity accessRequest3 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer3", List.of("obj4"), nextDate(), null,
-            null, null, List.of("tarId6"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer3",
+            List.of("obj4"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId6"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest3);
 
         // When
         Set<String> unusedArchiveIds =
             accessRequestReferentialRepository.excludeArchiveIdsStillRequiredByAccessRequests(
-                Set.of("tarId1", "tarId2", "tarId3", "tarId4", "tarId5", "tarId6"));
+                Set.of("tarId1", "tarId2", "tarId3", "tarId4", "tarId5", "tarId6")
+            );
 
         // Then
         assertThat(unusedArchiveIds).containsExactlyInAnyOrder("tarId3", "tarId5");
@@ -525,30 +720,66 @@ public class AccessRequestReferentialRepositoryTest {
     @Test
     public void givenActiveAndExpiredAccessRequestsWhenListObjectIdsForActiveAccessRequestsThenOK()
         throws AccessRequestReferentialException {
-
         // Given
         TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1", "obj2"), getNowMinusMinutes(10), null,
-            null, null, List.of("tarId1", "tarId4"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj1", "obj2"),
+            getNowMinusMinutes(10),
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId4"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest1);
 
         TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1", "obj3"), getNowMinusMinutes(20),
-            getNowMinusMinutes(10), getNowPlusMinutes(20), getNowPlusMinutes(50), List.of(), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj1", "obj3"),
+            getNowMinusMinutes(20),
+            getNowMinusMinutes(10),
+            getNowPlusMinutes(20),
+            getNowPlusMinutes(50),
+            List.of(),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest2);
         TapeAccessRequestReferentialEntity accessRequest3 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer2", List.of("obj1", "obj4"), getNowMinusMinutes(20),
-            getNowMinusMinutes(10), getNowPlusMinutes(20), getNowPlusMinutes(50), List.of("tarId2", "tarId3"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer2",
+            List.of("obj1", "obj4"),
+            getNowMinusMinutes(20),
+            getNowMinusMinutes(10),
+            getNowPlusMinutes(20),
+            getNowPlusMinutes(50),
+            List.of("tarId2", "tarId3"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest3);
         TapeAccessRequestReferentialEntity accessRequest4 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer3", List.of("obj5"), getNowMinusMinutes(50),
-            getNowMinusMinutes(40), getNowMinusMinutes(10), getNowPlusMinutes(20), List.of(), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer3",
+            List.of("obj5"),
+            getNowMinusMinutes(50),
+            getNowMinusMinutes(40),
+            getNowMinusMinutes(10),
+            getNowPlusMinutes(20),
+            List.of(),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest4);
 
         // When
-        try (CloseableIterator<TapeLibraryObjectReferentialId> usedArchiveIds
-            = accessRequestReferentialRepository.listObjectIdsForActiveAccessRequests()) {
-
+        try (
+            CloseableIterator<TapeLibraryObjectReferentialId> usedArchiveIds =
+                accessRequestReferentialRepository.listObjectIdsForActiveAccessRequests()
+        ) {
             // Then
             assertThat(usedArchiveIds).containsExactlyInAnyOrder(
                 new TapeLibraryObjectReferentialId("myContainer1", "obj1"),
@@ -561,28 +792,62 @@ public class AccessRequestReferentialRepositoryTest {
     }
 
     @Test
-    public void givenAccessRequestsWhenCountNonReadyAccessRequestsThenOK()
-        throws AccessRequestReferentialException {
-
+    public void givenAccessRequestsWhenCountNonReadyAccessRequestsThenOK() throws AccessRequestReferentialException {
         // Given
         TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1"), nextDate(), null,
-            null, null, List.of("tarId1", "tarId4"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj1"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId4"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest1);
 
         TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj2", "obj3"), nextDate(), null,
-            null, null, List.of("tarId1", "tarId2"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj2", "obj3"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId2"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest2);
 
         TapeAccessRequestReferentialEntity accessRequest3 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer3", List.of("obj4"), nextDate(), getNowPlusMinutes(10),
-            getNowPlusMinutes(40), getNowPlusMinutes(60), emptyList(), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer3",
+            List.of("obj4"),
+            nextDate(),
+            getNowPlusMinutes(10),
+            getNowPlusMinutes(40),
+            getNowPlusMinutes(60),
+            emptyList(),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest3);
 
         TapeAccessRequestReferentialEntity accessRequest4 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer4", List.of("obj5"), getNowMinusMinutes(30),
-            getNowMinusMinutes(10), getNowPlusMinutes(10), getNowPlusMinutes(40), emptyList(), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer4",
+            List.of("obj5"),
+            getNowMinusMinutes(30),
+            getNowMinusMinutes(10),
+            getNowPlusMinutes(10),
+            getNowPlusMinutes(40),
+            emptyList(),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest4);
 
         // When
@@ -593,28 +858,62 @@ public class AccessRequestReferentialRepositoryTest {
     }
 
     @Test
-    public void givenAccessRequestsWhenCountReadyAccessRequestsThenOK()
-        throws AccessRequestReferentialException {
-
+    public void givenAccessRequestsWhenCountReadyAccessRequestsThenOK() throws AccessRequestReferentialException {
         // Given
         TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1"), nextDate(), null,
-            null, null, List.of("tarId1", "tarId4"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj1"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId4"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest1);
 
         TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj2", "obj3"), nextDate(), getNowPlusMinutes(10),
-            getNowPlusMinutes(40), getNowPlusMinutes(60), emptyList(), 1, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj2", "obj3"),
+            nextDate(),
+            getNowPlusMinutes(10),
+            getNowPlusMinutes(40),
+            getNowPlusMinutes(60),
+            emptyList(),
+            1,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest2);
 
         TapeAccessRequestReferentialEntity accessRequest3 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer3", List.of("obj4"), nextDate(), getNowPlusMinutes(10),
-            getNowPlusMinutes(40), getNowPlusMinutes(60), emptyList(), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer3",
+            List.of("obj4"),
+            nextDate(),
+            getNowPlusMinutes(10),
+            getNowPlusMinutes(40),
+            getNowPlusMinutes(60),
+            emptyList(),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest3);
 
         TapeAccessRequestReferentialEntity accessRequest4 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer4", List.of("obj5"), getNowMinusMinutes(40),
-            getNowMinusMinutes(20), getNowMinusMinutes(10), getNowPlusMinutes(40), emptyList(), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer4",
+            List.of("obj5"),
+            getNowMinusMinutes(40),
+            getNowMinusMinutes(20),
+            getNowMinusMinutes(10),
+            getNowPlusMinutes(40),
+            emptyList(),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest4);
 
         // When
@@ -625,28 +924,62 @@ public class AccessRequestReferentialRepositoryTest {
     }
 
     @Test
-    public void givenAccessRequestsWhenExpiredAccessRequestsThenOK()
-        throws AccessRequestReferentialException {
-
+    public void givenAccessRequestsWhenExpiredAccessRequestsThenOK() throws AccessRequestReferentialException {
         // Given
         TapeAccessRequestReferentialEntity accessRequest1 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj1"), nextDate(), null,
-            null, null, List.of("tarId1", "tarId4"), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj1"),
+            nextDate(),
+            null,
+            null,
+            null,
+            List.of("tarId1", "tarId4"),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest1);
 
         TapeAccessRequestReferentialEntity accessRequest2 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer1", List.of("obj2", "obj3"), nextDate(), getNowPlusMinutes(10),
-            getNowPlusMinutes(40), getNowPlusMinutes(60), emptyList(), 1, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer1",
+            List.of("obj2", "obj3"),
+            nextDate(),
+            getNowPlusMinutes(10),
+            getNowPlusMinutes(40),
+            getNowPlusMinutes(60),
+            emptyList(),
+            1,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest2);
 
         TapeAccessRequestReferentialEntity accessRequest3 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer3", List.of("obj4"), nextDate(), getNowPlusMinutes(10),
-            getNowPlusMinutes(40), getNowPlusMinutes(60), emptyList(), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer3",
+            List.of("obj4"),
+            nextDate(),
+            getNowPlusMinutes(10),
+            getNowPlusMinutes(40),
+            getNowPlusMinutes(60),
+            emptyList(),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest3);
 
         TapeAccessRequestReferentialEntity accessRequest4 = new TapeAccessRequestReferentialEntity(
-            GUIDFactory.newGUID().getId(), "myContainer4", List.of("obj5"), getNowMinusMinutes(40),
-            getNowMinusMinutes(20), getNowMinusMinutes(10), getNowPlusMinutes(40), emptyList(), 0, 0);
+            GUIDFactory.newGUID().getId(),
+            "myContainer4",
+            List.of("obj5"),
+            getNowMinusMinutes(40),
+            getNowMinusMinutes(20),
+            getNowMinusMinutes(10),
+            getNowPlusMinutes(40),
+            emptyList(),
+            0,
+            0
+        );
         accessRequestReferentialRepository.insert(accessRequest4);
 
         // When
@@ -656,12 +989,21 @@ public class AccessRequestReferentialRepositoryTest {
         assertThat(nbExpired).isEqualTo(1L);
     }
 
-    private TapeAccessRequestReferentialEntity createAccessRequest(String container,
-        String objName, String tarId) {
+    private TapeAccessRequestReferentialEntity createAccessRequest(String container, String objName, String tarId) {
         String requestId = GUIDFactory.newGUID().getId();
         String req4Date = nextDate();
-        return new TapeAccessRequestReferentialEntity(requestId, container, List.of(objName), req4Date, null,
-            null, null, List.of(tarId), 0, 0);
+        return new TapeAccessRequestReferentialEntity(
+            requestId,
+            container,
+            List.of(objName),
+            req4Date,
+            null,
+            null,
+            null,
+            List.of(tarId),
+            0,
+            0
+        );
     }
 
     private String nextDate() {

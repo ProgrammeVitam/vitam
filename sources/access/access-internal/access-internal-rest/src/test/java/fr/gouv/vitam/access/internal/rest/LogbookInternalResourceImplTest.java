@@ -74,38 +74,48 @@ import static org.mockito.Mockito.when;
 public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
-    private final static ProcessingManagementClientFactory processingManagementClientFactory =
-        mock(ProcessingManagementClientFactory.class);
-    private final static ProcessingManagementClient processingManagementClient = mock(ProcessingManagementClient.class);
+    private static final ProcessingManagementClientFactory processingManagementClientFactory = mock(
+        ProcessingManagementClientFactory.class
+    );
+    private static final ProcessingManagementClient processingManagementClient = mock(ProcessingManagementClient.class);
 
-    private final static LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory =
-        mock(LogbookLifeCyclesClientFactory.class);
-    private final static LogbookLifeCyclesClient logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
+    private static final LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory = mock(
+        LogbookLifeCyclesClientFactory.class
+    );
+    private static final LogbookLifeCyclesClient logbookLifeCyclesClient = mock(LogbookLifeCyclesClient.class);
 
-    private final static LogbookOperationsClientFactory logbookOperationsClientFactory =
-        mock(LogbookOperationsClientFactory.class);
-    private final static LogbookOperationsClient logbookOperationsClient = mock(LogbookOperationsClient.class);
+    private static final LogbookOperationsClientFactory logbookOperationsClientFactory = mock(
+        LogbookOperationsClientFactory.class
+    );
+    private static final LogbookOperationsClient logbookOperationsClient = mock(LogbookOperationsClient.class);
 
-    private final static WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
-    private final static WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
+    private static final WorkspaceClientFactory workspaceClientFactory = mock(WorkspaceClientFactory.class);
+    private static final WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
 
-    private final static AdminManagementClientFactory adminManagementClientFactory =
-        mock(AdminManagementClientFactory.class);
-    private final static AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
+    private static final AdminManagementClientFactory adminManagementClientFactory = mock(
+        AdminManagementClientFactory.class
+    );
+    private static final AdminManagementClient adminManagementClient = mock(AdminManagementClient.class);
 
-    private final static StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
-    private final static StorageClient storageClient = mock(StorageClient.class);
+    private static final StorageClientFactory storageClientFactory = mock(StorageClientFactory.class);
+    private static final StorageClient storageClient = mock(StorageClient.class);
 
-    private final static MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
-    private final static MetaDataClient metaDataClient = mock(MetaDataClient.class);
+    private static final MetaDataClientFactory metaDataClientFactory = mock(MetaDataClientFactory.class);
+    private static final MetaDataClient metaDataClient = mock(MetaDataClient.class);
 
-    private final static BusinessApplication businessApplication =
-        new BusinessApplication(logbookLifeCyclesClientFactory, logbookOperationsClientFactory, storageClientFactory,
-            workspaceClientFactory, adminManagementClientFactory, metaDataClientFactory,
-            processingManagementClientFactory);
+    private static final BusinessApplication businessApplication = new BusinessApplication(
+        logbookLifeCyclesClientFactory,
+        logbookOperationsClientFactory,
+        storageClientFactory,
+        workspaceClientFactory,
+        adminManagementClientFactory,
+        metaDataClientFactory,
+        processingManagementClientFactory
+    );
 
     @Override
     public Set<Object> getResources() {
@@ -127,15 +137,14 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
     private static AccessInternalMain application;
     private static final Integer TENANT_ID = 0;
 
-
     private static JunitHelper junitHelper;
     private static int port;
 
     final String queryDsql =
         "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
-            " \"$filter\": { \"$orderby\": \"#id\" }, " +
-            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
-            " }";
+        " \"$filter\": { \"$orderby\": \"#id\" }, " +
+        " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
+        " }";
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -149,8 +158,7 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
             LOGGER.debug("Beginning tests");
         } catch (final VitamApplicationServerException e) {
             LOGGER.error(e);
-            throw new IllegalStateException(
-                "Cannot start the Access Application Server", e);
+            throw new IllegalStateException("Cannot start the Access Application Server", e);
         }
     }
 
@@ -201,15 +209,16 @@ public class LogbookInternalResourceImplTest extends ResteasyTestApplication {
         reset(logbookOperationsClient);
         reset(processingManagementClient);
         reset(workspaceClient);
-        when(logbookOperationsClient.selectOperation(any()))
-            .thenReturn(JsonHandler.getFromString(queryDsql));
+        when(logbookOperationsClient.selectOperation(any())).thenReturn(JsonHandler.getFromString(queryDsql));
 
-        given().contentType(ContentType.JSON).body(new Select().getFinalSelect())
+        given()
+            .contentType(ContentType.JSON)
+            .body(new Select().getFinalSelect())
             .header(GlobalDataRest.X_TENANT_ID, TENANT_ID)
             .header(GlobalDataRest.X_REQUEST_ID, VitamThreadUtils.getVitamSession().getRequestId())
-            .when().get("/operations").then().statusCode(Status.OK.getStatusCode());
-
+            .when()
+            .get("/operations")
+            .then()
+            .statusCode(Status.OK.getStatusCode());
     }
 }
-
-

@@ -41,7 +41,6 @@ public class MetadataSnapshot extends VitamDocument<MetadataSnapshot> {
      */
     public static final String VALUE = "Value";
 
-
     /**
      * Parameters
      */
@@ -121,5 +120,4 @@ public class MetadataSnapshot extends VitamDocument<MetadataSnapshot> {
         append(VALUE, value);
         return this;
     }
-
 }

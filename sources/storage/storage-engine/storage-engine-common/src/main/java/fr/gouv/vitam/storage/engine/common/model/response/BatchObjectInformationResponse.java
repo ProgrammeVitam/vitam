@@ -46,8 +46,7 @@ public class BatchObjectInformationResponse {
         // Empty constructor for deserialization
     }
 
-    public BatchObjectInformationResponse(DataCategory type, String objectId,
-        Map<String, String> offerDigests) {
+    public BatchObjectInformationResponse(DataCategory type, String objectId, Map<String, String> offerDigests) {
         this.type = type;
         this.objectId = objectId;
         this.offerDigests = offerDigests;

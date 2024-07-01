@@ -26,11 +26,11 @@
  */
 package fr.gouv.vitam.common.logging;
 
-
 /**
  * Utility class to be used only in classes where VitamLogger is not allowed
  */
 public class SysErrLogger {
+
     /**
      * FAKE LOGGER used where no LOG could be done
      */

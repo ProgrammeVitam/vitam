@@ -39,14 +39,21 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class BatchProcessingQuerySchemaValidator implements DslValidator {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(BatchProcessingQuerySchemaValidator.class);
     private final Schema schema;
 
     public BatchProcessingQuerySchemaValidator() throws IOException {
-        LOGGER.debug("Loading schema {} from {}", DslSchema.BATCH_PROCESSING.name(),
-            DslSchema.BATCH_PROCESSING.getFilename());
-        try (final InputStream schemaSource = PropertiesUtils.getResourceAsStream(
-            DslSchema.BATCH_PROCESSING.getFilename())) {
+        LOGGER.debug(
+            "Loading schema {} from {}",
+            DslSchema.BATCH_PROCESSING.name(),
+            DslSchema.BATCH_PROCESSING.getFilename()
+        );
+        try (
+            final InputStream schemaSource = PropertiesUtils.getResourceAsStream(
+                DslSchema.BATCH_PROCESSING.getFilename()
+            )
+        ) {
             schema = Schema.getSchema().loadTypes(schemaSource).build();
         }
     }

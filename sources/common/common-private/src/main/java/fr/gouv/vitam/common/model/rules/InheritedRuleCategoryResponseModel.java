@@ -48,7 +48,8 @@ public class InheritedRuleCategoryResponseModel {
 
     public InheritedRuleCategoryResponseModel(
         List<InheritedRuleResponseModel> rules,
-        List<InheritedPropertyResponseModel> properties) {
+        List<InheritedPropertyResponseModel> properties
+    ) {
         this.rules = rules;
         this.properties = properties;
     }

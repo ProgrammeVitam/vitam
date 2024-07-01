@@ -30,6 +30,7 @@ package fr.gouv.vitam.worker.client.exception;
  * Exception indicating the Worker server has an internal error.
  */
 public class WorkerServerClientException extends WorkerClientException {
+
     private static final long serialVersionUID = 6030151281252811690L;
 
     /**

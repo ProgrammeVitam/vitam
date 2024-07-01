@@ -70,24 +70,28 @@ import static org.junit.Assert.assertTrue;
  * StatusResourceImplTest Class Test Admin Status and Internal STatus Implementation
  */
 public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminAutotestStatusResourceImplTest.class);
 
     // URI
     private static final String ADMIN_STATUS_URI = "/admin/v1";
     private static final String COLLECTION_NAME =
         CollectionSample.class.getSimpleName() + GUIDFactory.newGUID().getId();
+
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(CollectionSample.class),
-            COLLECTION_NAME);
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(CollectionSample.class),
+        COLLECTION_NAME
+    );
 
     private static final TestVitamAdminClientFactory factory = new TestVitamAdminClientFactory(1, ADMIN_STATUS_URI);
 
-    public static VitamServerTestRunner
-        vitamServerTestRunner =
-        new VitamServerTestRunner(AdminAutotestStatusResourceImplTest.class, factory);
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        AdminAutotestStatusResourceImplTest.class,
+        factory
+    );
 
-    private final static String HOST_NAME = "127.0.0.1";
+    private static final String HOST_NAME = "127.0.0.1";
     private static final JunitHelper junitHelper = JunitHelper.getInstance();
 
     private static int fakePort;
@@ -139,8 +143,6 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         }
     }
 
-
-
     private static class TestVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
 
         public TestVitamAdminClientFactory(int serverPort, String resourcePath) {
@@ -151,9 +153,7 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         public DefaultAdminClient getClient() {
             return new DefaultAdminClient(this);
         }
-
     }
-
 
     private static class TestWrongVitamAdminClientFactory extends TestVitamClientFactory<DefaultAdminClient> {
 
@@ -165,7 +165,6 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
         public DefaultAdminClient getClient() {
             return new DefaultAdminClient(this);
         }
-
     }
 
     /**
@@ -266,14 +265,16 @@ public class AdminAutotestStatusResourceImplTest extends ResteasyTestApplication
 
         // MongoDB
         LOGGER.warn("TEST MONGO KO");
-        MongoClientSettings badMongoClientSettings =
-            MongoDbAccess.getMongoClientSettingsBuilder()
-                .applyToClusterSettings(builder -> builder
-                    .hosts(List.of(new ServerAddress(HOST_NAME, fakePort)))
-                    .serverSelectionTimeout(3, TimeUnit.SECONDS).build()
-                ).applyToSocketSettings(builder -> builder
-                    .connectTimeout(3, TimeUnit.SECONDS)
-                ).build();
+        MongoClientSettings badMongoClientSettings = MongoDbAccess.getMongoClientSettingsBuilder()
+            .applyToClusterSettings(
+                builder ->
+                    builder
+                        .hosts(List.of(new ServerAddress(HOST_NAME, fakePort)))
+                        .serverSelectionTimeout(3, TimeUnit.SECONDS)
+                        .build()
+            )
+            .applyToSocketSettings(builder -> builder.connectTimeout(3, TimeUnit.SECONDS))
+            .build();
 
         databaseMd.setMongoClient(MongoClients.create(badMongoClientSettings));
         realKO++;

@@ -49,12 +49,12 @@ import java.security.NoSuchAlgorithmException;
  * Digest implementation
  */
 public class Digest {
+
     private static final String IGNORE = "Ignore";
 
     private static final String ARGUMENT_MUST_NOT_BE_NULL = "Argument must not be null";
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(Digest.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(Digest.class);
 
     private static final int BUFFER_SIZE = 8192;
     MessageDigest messageDigest;
@@ -120,8 +120,9 @@ public class Digest {
         ParametersChecker.checkValue("offset", offset, 0);
         ParametersChecker.checkValue("length", length, 0);
         if (offset + length > bytes.length) {
-            throw new IllegalArgumentException("Range is incorrect: " + offset + ":" + length +
-                " while length is " + bytes.length);
+            throw new IllegalArgumentException(
+                "Range is incorrect: " + offset + ":" + length + " while length is " + bytes.length
+            );
         }
         if (length == 0) {
             return this;
@@ -228,8 +229,7 @@ public class Digest {
      * @throws IOException if any IO error occurs
      * @throws IllegalArgumentException inputstream null, chunksize &lt; 1
      */
-    public final Digest update(InputStream inputStream, int chunkSize, long limit)
-        throws IOException {
+    public final Digest update(InputStream inputStream, int chunkSize, long limit) throws IOException {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, inputStream);
         ParametersChecker.checkValue("chunkSize", chunkSize, 1);
 
@@ -260,8 +260,7 @@ public class Digest {
      * @throws IOException if any IO error occurs
      * @throws IllegalArgumentException fileChannelIinputStream null
      */
-    public final Digest update(FileChannel fileChannelInputStream)
-        throws IOException {
+    public final Digest update(FileChannel fileChannelInputStream) throws IOException {
         return update(fileChannelInputStream, 0, BUFFER_SIZE, -1);
     }
 
@@ -314,7 +313,6 @@ public class Digest {
     public InputStream getDigestInputStream(InputStream inputStream) {
         return new DigestInputStream(inputStream, messageDigest);
     }
-
 
     /**
      * Will update the Digest while the returned OutputStream will be read
@@ -446,8 +444,7 @@ public class Digest {
      * @throws IOException if any IO error occurs
      * @throws IllegalArgumentException in or algo null
      */
-    public static Digest digest(InputStream in, DigestType algo)
-        throws IOException {
+    public static Digest digest(InputStream in, DigestType algo) throws IOException {
         return new Digest(algo).update(in);
     }
 
@@ -458,8 +455,7 @@ public class Digest {
      * @throws IOException if any IO error occurs
      * @throws IllegalArgumentException in or algo null
      */
-    public static Digest digest(File in, DigestType algo)
-        throws IOException {
+    public static Digest digest(File in, DigestType algo) throws IOException {
         return new Digest(algo).update(in);
     }
 }

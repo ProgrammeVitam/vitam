@@ -35,8 +35,7 @@ import java.util.function.Consumer;
 public class EnumFormat extends Format {
 
     @Override
-    protected void resolve(Schema schema) {
-    }
+    protected void resolve(Schema schema) {}
 
     private List<JsonNode> values;
 
@@ -47,7 +46,6 @@ public class EnumFormat extends Format {
         this.values = values;
     }
 
-
     @Override
     public void setMax(int max) {
         throw new UnsupportedOperationException();
@@ -57,7 +55,6 @@ public class EnumFormat extends Format {
     public void setMin(Integer min) {
         throw new UnsupportedOperationException();
     }
-
 
     @Override
     public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
@@ -76,12 +73,10 @@ public class EnumFormat extends Format {
         StringBuilder builder = new StringBuilder();
         boolean notFirst = false;
         for (JsonNode item : values) {
-            if (notFirst)
-                builder.append(" | ");
+            if (notFirst) builder.append(" | ");
             builder.append(item);
             notFirst = true;
         }
         return builder.toString();
     }
 }
-

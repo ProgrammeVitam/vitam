@@ -29,7 +29,6 @@ package fr.gouv.vitam.common.model.unit;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum SigningRoleType {
-
     @JsonProperty("SignedDocument")
     SIGNED_DOCUMENT,
 
@@ -40,5 +39,5 @@ public enum SigningRoleType {
     SIGNATURE,
 
     @JsonProperty("AdditionalProof")
-    ADDITIONAL_PROOF
+    ADDITIONAL_PROOF,
 }

@@ -49,6 +49,7 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 @Path("/offer/v1/swift-migration")
 @Tag(name = "Admin-Offer")
 public class AdminOfferSwiftMigrationResource extends ApplicationStatusResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminOfferSwiftMigrationResource.class);
 
     private final SwiftMigrationService swiftMigrationService;
@@ -63,8 +64,10 @@ public class AdminOfferSwiftMigrationResource extends ApplicationStatusResource 
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response launchSwiftMigration(SwiftMigrationRequest swiftMigrationRequest) {
         ParametersChecker.checkParameter("Request required", swiftMigrationRequest);
-        ParametersChecker
-            .checkParameter("Swift migration mode required", swiftMigrationRequest.getSwiftMigrationMode());
+        ParametersChecker.checkParameter(
+            "Swift migration mode required",
+            swiftMigrationRequest.getSwiftMigrationMode()
+        );
         LOGGER.info("Starting swift offer migration - " + swiftMigrationRequest.getSwiftMigrationMode());
 
         boolean migrationStarted =
@@ -84,7 +87,6 @@ public class AdminOfferSwiftMigrationResource extends ApplicationStatusResource 
     @Consumes(APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response checkSwiftMigrationInProgress() {
-
         boolean migrationInProgress = this.swiftMigrationService.isMigrationInProgress();
 
         if (!migrationInProgress) {
@@ -101,7 +103,6 @@ public class AdminOfferSwiftMigrationResource extends ApplicationStatusResource 
     @Consumes(APPLICATION_JSON)
     @VitamAuthentication(authentLevel = AuthenticationLevel.BASIC_AUTHENT)
     public Response getSwiftMigrationResult() {
-
         boolean hasMigrationSucceeded = this.swiftMigrationService.hasMigrationSucceeded();
 
         if (hasMigrationSucceeded) {

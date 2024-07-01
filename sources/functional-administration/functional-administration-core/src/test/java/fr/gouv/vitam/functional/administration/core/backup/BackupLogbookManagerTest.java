@@ -57,9 +57,12 @@ import static org.mockito.Mockito.verify;
  *
  */
 public class BackupLogbookManagerTest {
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
 
     public static Integer TENANT_ID = 0;
@@ -78,8 +81,7 @@ public class BackupLogbookManagerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         //Given
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
-        BackupLogbookManager manager =
-            new BackupLogbookManager(logbookOperationsClientFactory);
+        BackupLogbookManager manager = new BackupLogbookManager(logbookOperationsClientFactory);
 
         Digest digest = new Digest(VitamConfiguration.getDefaultDigestType());
         digest.update("toto".getBytes());
@@ -109,8 +111,7 @@ public class BackupLogbookManagerTest {
 
         //Given
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
-        BackupLogbookManager manager =
-            new BackupLogbookManager(logbookOperationsClientFactory);
+        BackupLogbookManager manager = new BackupLogbookManager(logbookOperationsClientFactory);
         ObjectNode evdetData = JsonHandler.createObjectNode();
         evdetData.put(BackupLogbookManager.ERROR_MESSAGE, "errorMessage");
         // When
@@ -124,8 +125,5 @@ public class BackupLogbookManagerTest {
         assertThat(parameter.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(parameter.getParameterValue(outcome)).isEqualTo("KO");
         assertThat(parameter.getParameterValue(eventDetailData)).isEqualTo(SanityChecker.sanitizeJson(evdetData));
-
     }
-
-
 }

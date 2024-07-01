@@ -32,9 +32,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class CollectJsonMetadataLine {
 
-    public static final TypeReference<CollectJsonMetadataLine> TYPE_REFERENCE =
-        new TypeReference<>() {
-        };
+    public static final TypeReference<CollectJsonMetadataLine> TYPE_REFERENCE = new TypeReference<>() {};
 
     public static final String FILE_FIELD = "File";
     public static final String SELECTOR_FIELD = "Selector";
@@ -42,8 +40,10 @@ public class CollectJsonMetadataLine {
 
     @JsonProperty(FILE_FIELD)
     private String file;
+
     @JsonProperty(SELECTOR_FIELD)
     private CollectJsonMetadataSelector selector;
+
     @JsonProperty(UNIT_CONTENT_FIELD)
     private ObjectNode unitContent;
 
@@ -64,8 +64,7 @@ public class CollectJsonMetadataLine {
         return selector;
     }
 
-    public CollectJsonMetadataLine setSelector(
-        CollectJsonMetadataSelector selector) {
+    public CollectJsonMetadataLine setSelector(CollectJsonMetadataSelector selector) {
         this.selector = selector;
         return this;
     }

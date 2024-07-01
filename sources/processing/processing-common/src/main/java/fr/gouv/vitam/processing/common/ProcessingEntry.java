@@ -48,7 +48,6 @@ public class ProcessingEntry {
     @JsonProperty("extraParams")
     private Map<String, String> extraParams;
 
-
     /**
      * ProcessingEntry constructor
      *
@@ -71,7 +70,6 @@ public class ProcessingEntry {
     public String getContainer() {
         return container;
     }
-
 
     /**
      * @return the workflow identifier

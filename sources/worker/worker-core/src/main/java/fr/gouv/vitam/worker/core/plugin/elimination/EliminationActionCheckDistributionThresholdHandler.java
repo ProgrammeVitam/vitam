@@ -42,16 +42,17 @@ public class EliminationActionCheckDistributionThresholdHandler extends Eliminat
         super(MetaDataClientFactory.getInstance());
     }
 
-    public EliminationActionCheckDistributionThresholdHandler(
-        MetaDataClientFactory metaDataClientFactory) {
+    public EliminationActionCheckDistributionThresholdHandler(MetaDataClientFactory metaDataClientFactory) {
         super(metaDataClientFactory);
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-        return checkThreshold(handler, VitamConfiguration.getEliminationActionThreshold(),
-            ELIMINATION_ACTION_CHECK_DISTRIBUTION_THRESHOLD);
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
+        return checkThreshold(
+            handler,
+            VitamConfiguration.getEliminationActionThreshold(),
+            ELIMINATION_ACTION_CHECK_DISTRIBUTION_THRESHOLD
+        );
     }
 
     @Override

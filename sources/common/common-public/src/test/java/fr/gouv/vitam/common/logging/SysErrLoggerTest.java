@@ -38,6 +38,7 @@ import java.io.UnsupportedEncodingException;
 import static org.junit.Assert.assertTrue;
 
 public class SysErrLoggerTest {
+
     private static final String NOT_EMPTY = "Not empty";
     private static PrintStream err;
     private static final StringBuilder buf = new StringBuilder();
@@ -46,12 +47,18 @@ public class SysErrLoggerTest {
     public static void setUpBeforeClass() {
         err = System.err; // NOSONAR since Logger test
         try {
-            System.setErr(new PrintStream(new OutputStream() {
-                @Override
-                public void write(final int b) {
-                    buf.append((char) b);
-                }
-            }, true, "UTF-8"));
+            System.setErr(
+                new PrintStream(
+                    new OutputStream() {
+                        @Override
+                        public void write(final int b) {
+                            buf.append((char) b);
+                        }
+                    },
+                    true,
+                    "UTF-8"
+                )
+            );
         } catch (final UnsupportedEncodingException e) {
             throw new RuntimeErrorException(new Error(e));
         }
@@ -76,5 +83,4 @@ public class SysErrLoggerTest {
         assertTrue(buf.length() > NOT_EMPTY.length() + 5);
         buf.setLength(0);
     }
-
 }

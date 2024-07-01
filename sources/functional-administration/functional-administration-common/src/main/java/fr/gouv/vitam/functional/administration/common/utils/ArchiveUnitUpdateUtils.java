@@ -27,7 +27,6 @@
 
 package fr.gouv.vitam.functional.administration.common.utils;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -66,7 +65,6 @@ public class ArchiveUnitUpdateUtils {
     private static final String DIFF = "#diff";
     private static final String FINAL_DIFF = "diff";
 
-
     /**
      * Method used to get update query for an archive unit
      *
@@ -77,8 +75,12 @@ public class ArchiveUnitUpdateUtils {
      * @return
      * @throws InvalidCreateOperationException
      */
-    public static boolean updateCategoryRules(JsonNode rulesForCategory, List<JsonNode> listRulesByType,
-        UpdateMultiQuery query, String key) throws InvalidCreateOperationException {
+    public static boolean updateCategoryRules(
+        JsonNode rulesForCategory,
+        List<JsonNode> listRulesByType,
+        UpdateMultiQuery query,
+        String key
+    ) throws InvalidCreateOperationException {
         ArrayNode updatedRulesFinalForCategory = JsonHandler.createArrayNode();
         boolean updateNeeded = false;
         for (JsonNode ruleToUpdate : rulesForCategory) {
@@ -88,8 +90,11 @@ public class ArchiveUnitUpdateUtils {
                 // if the rule to be updated has no start date, then we dont do the maths,
                 // that means the rule is not really active - even if the query that returns
                 // the list of au to be updated has been updated, just in case, the test is still present
-                if (rule.get(RULEID).asText() != null && rule.get(RULEID).asText().equals(updateRuleName)
-                    && ruleToUpdate.get(START_DATE) != null) {
+                if (
+                    rule.get(RULEID).asText() != null &&
+                    rule.get(RULEID).asText().equals(updateRuleName) &&
+                    ruleToUpdate.get(START_DATE) != null
+                ) {
                     updateNeeded = true;
                     findIt = true;
                     final JsonNode updatedRule = computeEndDate((ObjectNode) ruleToUpdate, rule);
@@ -108,7 +113,6 @@ public class ArchiveUnitUpdateUtils {
         return updateNeeded;
     }
 
-
     @Nonnull
     public static JsonNode computeEndDate(@Nonnull ObjectNode updatingRule, JsonNode ruleModel) {
         final DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -121,7 +125,6 @@ public class ArchiveUnitUpdateUtils {
         String ruleId = updatingRule.get(RULE).asText();
 
         if (ParametersChecker.isNotEmpty(startDateString, ruleId)) {
-
             LocalDate startDate = LocalDate.parse(startDateString, timeFormatter);
             if (startDate.getYear() >= 9000) {
                 throw new IllegalStateException("Wrong Start Date");
@@ -132,8 +135,12 @@ public class ArchiveUnitUpdateUtils {
                 final String measurement = ruleModel.get(FileRules.RULEMEASUREMENT).asText();
                 if (!UNLIMITED_RULE_DURATION.equalsIgnoreCase(duration)) {
                     final RuleMeasurementEnum ruleMeasurement = RuleMeasurementEnum.getEnumFromType(measurement);
-                    updatingRule.put(END_DATE, startDate.plus(Integer.parseInt(duration),
-                        ruleMeasurement.getTemporalUnit()).format(timeFormatter));
+                    updatingRule.put(
+                        END_DATE,
+                        startDate
+                            .plus(Integer.parseInt(duration), ruleMeasurement.getTemporalUnit())
+                            .format(timeFormatter)
+                    );
                 } else {
                     // remove existing endDate
                     updatingRule.remove(END_DATE);
@@ -157,8 +164,10 @@ public class ArchiveUnitUpdateUtils {
             final JsonNode arrayNode = diff.has(_DIFF) ? diff.get(_DIFF) : diff.get(TAG_RESULTS);
             if (arrayNode != null) {
                 for (final JsonNode diffNode : arrayNode) {
-                    if (diffNode.get(VitamFieldsHelper.id()) != null &&
-                        unitId.equals(diffNode.get(VitamFieldsHelper.id()).textValue())) {
+                    if (
+                        diffNode.get(VitamFieldsHelper.id()) != null &&
+                        unitId.equals(diffNode.get(VitamFieldsHelper.id()).textValue())
+                    ) {
                         ObjectNode diffObject = JsonHandler.createObjectNode();
                         diffObject.set(FINAL_DIFF, diffNode.get(DIFF));
                         return JsonHandler.writeAsString(diffObject);

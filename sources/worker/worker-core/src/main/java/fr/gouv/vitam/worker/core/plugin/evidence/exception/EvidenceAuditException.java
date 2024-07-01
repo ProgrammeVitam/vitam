@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.evidence.exception;
 
-
 import fr.gouv.vitam.common.exception.VitamException;
 
 /**

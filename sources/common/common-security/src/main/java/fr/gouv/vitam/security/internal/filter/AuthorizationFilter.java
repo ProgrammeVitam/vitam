@@ -57,30 +57,44 @@ public class AuthorizationFilter implements DynamicFeature {
      */
     @Override
     public void configure(ResourceInfo resourceInfo, FeatureContext context) {
-
         // Retrieve @Secure annotation
         Secured securedAnnotation = resourceInfo.getResourceMethod().getAnnotation(Secured.class);
         if (securedAnnotation == null) {
-            LOGGER.debug(String.format("Ignoring Non-@%s annotated method %s.%s",
-                Secured.class.getName(), resourceInfo.getResourceClass().getName(),
-                resourceInfo.getResourceMethod().getName()));
+            LOGGER.debug(
+                String.format(
+                    "Ignoring Non-@%s annotated method %s.%s",
+                    Secured.class.getName(),
+                    resourceInfo.getResourceClass().getName(),
+                    resourceInfo.getResourceMethod().getName()
+                )
+            );
             return;
         }
 
-        LOGGER
-            .debug(String.format("Registering authorization filters with '%s' permission for %s annotated method %s.%s",
-                securedAnnotation.permission(), Secured.class.getName(),
-                resourceInfo.getResourceClass().getName(), resourceInfo.getResourceMethod().getName()));
+        LOGGER.debug(
+            String.format(
+                "Registering authorization filters with '%s' permission for %s annotated method %s.%s",
+                securedAnnotation.permission(),
+                Secured.class.getName(),
+                resourceInfo.getResourceClass().getName(),
+                resourceInfo.getResourceMethod().getName()
+            )
+        );
 
         // Must go after ExternalHeaderIdContainerFilter
-        context.register(new EndpointAdminOnlyAuthorizationFilter(securedAnnotation.isAdminOnly()),
-            Priorities.AUTHORIZATION + 10);
+        context.register(
+            new EndpointAdminOnlyAuthorizationFilter(securedAnnotation.isAdminOnly()),
+            Priorities.AUTHORIZATION + 10
+        );
         // Must go after EndpointPermissionAuthorizationFilter
-        context.register(new EndpointPermissionAuthorizationFilter(securedAnnotation.permission().getPermission()),
-            Priorities.AUTHORIZATION + 20);
+        context.register(
+            new EndpointPermissionAuthorizationFilter(securedAnnotation.permission().getPermission()),
+            Priorities.AUTHORIZATION + 20
+        );
         // Must go after EndpointPermissionAuthorizationFilter
         context.register(
             new EndpointPersonalCertificateAuthorizationFilter(securedAnnotation.permission().getPermission()),
-            Priorities.AUTHORIZATION + 30);
+            Priorities.AUTHORIZATION + 30
+        );
     }
 }

@@ -53,7 +53,6 @@ import java.util.List;
 
 import static fr.gouv.vitam.common.json.JsonHandler.unprettyPrint;
 
-
 /**
  * EvidenceAuditFinalize class
  */
@@ -72,21 +71,23 @@ public class DataCorrectionFinalize extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException {
         ItemStatus itemStatus = new ItemStatus(CORRECTION_FINALIZE);
 
         try {
-
             String reportFileName = handlerIO.getContainerName() + ".json";
 
             generateReportToWorkspace(param, handlerIO, reportFileName);
 
             saveToOffers(handlerIO, reportFileName);
-
-        } catch (ContentAddressableStorageNotFoundException | IOException | InvalidParseOperationException | BackupServiceException | ContentAddressableStorageServerException e) {
+        } catch (
+            ContentAddressableStorageNotFoundException
+            | IOException
+            | InvalidParseOperationException
+            | BackupServiceException
+            | ContentAddressableStorageServerException e
+        ) {
             throw new ProcessingException(e);
-
         }
 
         itemStatus.increment(StatusCode.OK);
@@ -94,24 +95,23 @@ public class DataCorrectionFinalize extends ActionHandler {
     }
 
     private void generateReportToWorkspace(WorkerParameters param, HandlerIO handlerIO, String reportFileName)
-        throws ProcessingException, IOException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, InvalidParseOperationException {
-
+        throws ProcessingException, IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, InvalidParseOperationException {
         if (handlerIO.isExistingFileInWorkspace(reportFileName)) {
             // Report already generated
             return;
         }
         File reportFile = handlerIO.getNewLocalFile(reportFileName);
         try {
-            List<URI> uriListObjectsWorkspace =
-                handlerIO.getUriList(handlerIO.getContainerName(), param.getObjectName());
+            List<URI> uriListObjectsWorkspace = handlerIO.getUriList(
+                handlerIO.getContainerName(),
+                param.getObjectName()
+            );
 
-            try (FileOutputStream fileOutputStream = new FileOutputStream(reportFile);
+            try (
+                FileOutputStream fileOutputStream = new FileOutputStream(reportFile);
                 BufferedOutputStream buffOut = new BufferedOutputStream(fileOutputStream)
             ) {
-
                 for (URI uri : uriListObjectsWorkspace) {
-
                     File file = handlerIO.getFileFromWorkspace(param.getObjectName() + "/" + uri.getPath());
 
                     ArrayList reportLine = JsonHandler.getFromFile(file, ArrayList.class);
@@ -127,7 +127,12 @@ public class DataCorrectionFinalize extends ActionHandler {
     }
 
     private void saveToOffers(HandlerIO handlerIO, String reportFileName) throws BackupServiceException {
-        backupService.storeIntoOffers(handlerIO.getContainerName(), reportFileName, DataCategory.REPORT,
-            reportFileName, VitamConfiguration.getDefaultStrategy());
+        backupService.storeIntoOffers(
+            handlerIO.getContainerName(),
+            reportFileName,
+            DataCategory.REPORT,
+            reportFileName,
+            VitamConfiguration.getDefaultStrategy()
+        );
     }
 }

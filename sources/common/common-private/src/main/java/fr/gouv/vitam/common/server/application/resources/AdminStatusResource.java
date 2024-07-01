@@ -48,7 +48,6 @@ import javax.ws.rs.core.StreamingOutput;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
-
 /**
  * AdminStatusResource : Manage Admin Functionality through Admin URI
  */
@@ -56,6 +55,7 @@ import java.io.Writer;
 @Consumes("application/json")
 @Produces("application/json")
 public class AdminStatusResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminStatusResource.class);
     /**
      * Status for Administration resource path
@@ -104,8 +104,6 @@ public class AdminStatusResource {
      */
     public AdminStatusResource(VitamServiceRegistry autotestService) {
         this(new BasicVitamStatusServiceImpl(), autotestService);
-
-
     }
 
     /**
@@ -118,15 +116,14 @@ public class AdminStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response adminStatus() {
         try {
-            final AdminStatusMessage message =
-                new AdminStatusMessage(
-                    JsonHandler.toJsonNode(ServerIdentity.getInstance()),
-                    statusService.getResourcesStatus(),
-                    statusService.getAdminStatus(),
-                    JsonHandler.toJsonNode(VersionHelper.getVersionSummary()));
+            final AdminStatusMessage message = new AdminStatusMessage(
+                JsonHandler.toJsonNode(ServerIdentity.getInstance()),
+                statusService.getResourcesStatus(),
+                statusService.getAdminStatus(),
+                JsonHandler.toJsonNode(VersionHelper.getVersionSummary())
+            );
             if (message.getStatus()) {
-                return Response.ok(message,
-                    MediaType.APPLICATION_JSON).build();
+                return Response.ok(message, MediaType.APPLICATION_JSON).build();
             } else {
                 return Response.status(Status.SERVICE_UNAVAILABLE).entity(message).build();
             }
@@ -146,8 +143,10 @@ public class AdminStatusResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response adminVersion() {
         try {
-            return Response.ok(JsonHandler.toJsonNode(VersionHelper.getVersionDetailedInfo()),
-                MediaType.APPLICATION_JSON).build();
+            return Response.ok(
+                JsonHandler.toJsonNode(VersionHelper.getVersionDetailedInfo()),
+                MediaType.APPLICATION_JSON
+            ).build();
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e);
             return Response.status(Status.SERVICE_UNAVAILABLE).build();
@@ -163,26 +162,22 @@ public class AdminStatusResource {
     public Response adminAutotest() {
         ObjectNode status;
         status = autotestService.getAutotestStatus();
-        return Response.status(status.get("httpCode").asInt())
-            .entity(status).build();
+        return Response.status(status.get("httpCode").asInt()).entity(status).build();
     }
 
     @Path(METRIC_URL)
     @GET
     @Produces(TextFormat.CONTENT_TYPE_004)
     public Response prometheusMetrics() {
-
-        return Response
-            .ok()
+        return Response.ok()
             .type(TextFormat.CONTENT_TYPE_004)
-            .entity((StreamingOutput)
-                output -> {
+            .entity(
+                (StreamingOutput) output -> {
                     try (final Writer writer = new OutputStreamWriter(output)) {
-                        TextFormat.write004(writer,
-                            CollectorRegistry.defaultRegistry.metricFamilySamples());
+                        TextFormat.write004(writer, CollectorRegistry.defaultRegistry.metricFamilySamples());
                     }
-                })
+                }
+            )
             .build();
     }
-
 }

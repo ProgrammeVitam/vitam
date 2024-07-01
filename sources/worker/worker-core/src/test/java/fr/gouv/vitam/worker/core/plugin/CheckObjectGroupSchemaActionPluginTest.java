@@ -54,10 +54,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
-
 public class CheckObjectGroupSchemaActionPluginTest {
 
-    @Rule public MockitoRule mockitoJUnit = MockitoJUnit.rule();
+    @Rule
+    public MockitoRule mockitoJUnit = MockitoJUnit.rule();
 
     private static final String OBJECT_GROUP_FINAL = "checkObjectGroupSchemaActionPlugin/object-group_FINAL.json";
     private static final String OBJECT_GROUP_OK = "checkObjectGroupSchemaActionPlugin/object-group_OK.json";
@@ -65,24 +65,27 @@ public class CheckObjectGroupSchemaActionPluginTest {
     private static final String OBJECT_GROUP_INVALID_CHAR =
         "checkObjectGroupSchemaActionPlugin/object-group_special_char_KO.json";
 
-    private final static String OBJECT_NAME = "OBJECT_NAME";
+    private static final String OBJECT_NAME = "OBJECT_NAME";
 
     private CheckObjectGroupSchemaActionPlugin checkObjectGroupSchemaActionPlugin;
 
-    @Mock private HandlerIO handlerIO;
-    @Mock private WorkerParameters params;
+    @Mock
+    private HandlerIO handlerIO;
 
+    @Mock
+    private WorkerParameters params;
 
-    @Mock private OntologyValidator objectGroupOntologyValidator;
-    @InjectMocks private MetadataValidationProvider metadataValidationProvider;
+    @Mock
+    private OntologyValidator objectGroupOntologyValidator;
 
+    @InjectMocks
+    private MetadataValidationProvider metadataValidationProvider;
 
     @Before
     public void setUp() throws Exception {
         when(params.getObjectName()).thenReturn("OBJECT_NAME");
         checkObjectGroupSchemaActionPlugin = new CheckObjectGroupSchemaActionPlugin(metadataValidationProvider);
     }
-
 
     @Test
     public void givenWorkspaceNotExistWhenExecuteThenReturnResponseFATAL() {
@@ -92,18 +95,22 @@ public class CheckObjectGroupSchemaActionPluginTest {
 
     @Test
     public void givenFinalCorrectObjectGroupJsonWhenExecuteThenReturnResponseOK() throws Exception {
-        when(handlerIO.getInputStreamFromWorkspace(
-            eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + OBJECT_NAME))).thenReturn(
-            PropertiesUtils.getResourceAsStream(OBJECT_GROUP_FINAL));
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + OBJECT_NAME)
+            )
+        ).thenReturn(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_FINAL));
         final ItemStatus response = checkObjectGroupSchemaActionPlugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
     }
-    
+
     @Test
     public void givenCorrectObjectGroupJsonWhenExecuteThenReturnResponseOK() throws Exception {
-        when(handlerIO.getInputStreamFromWorkspace(
-            eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + OBJECT_NAME))).thenReturn(
-            PropertiesUtils.getResourceAsStream(OBJECT_GROUP_OK));
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + OBJECT_NAME)
+            )
+        ).thenReturn(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_OK));
         File objectGroupFile = PropertiesUtils.getResourceFile(OBJECT_GROUP_FINAL);
         ObjectNode objectGroupFinal = (ObjectNode) JsonHandler.getFromFile(objectGroupFile);
         when(objectGroupOntologyValidator.verifyAndReplaceFields(any(JsonNode.class))).thenReturn(objectGroupFinal);
@@ -113,11 +120,14 @@ public class CheckObjectGroupSchemaActionPluginTest {
 
     @Test
     public void givenInvalidObjectGroupJsonWhenExecuteThenReturnResponseKO() throws Exception {
-        when(handlerIO.getInputStreamFromWorkspace(
-            eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + OBJECT_NAME))).thenReturn(
-            PropertiesUtils.getResourceAsStream(OBJECT_GROUP_INVALID));
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + OBJECT_NAME)
+            )
+        ).thenReturn(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_INVALID));
         when(objectGroupOntologyValidator.verifyAndReplaceFields(any(JsonNode.class))).thenThrow(
-            new MetadataValidationException(MetadataValidationErrorCode.ONTOLOGY_VALIDATION_FAILURE, "error"));
+            new MetadataValidationException(MetadataValidationErrorCode.ONTOLOGY_VALIDATION_FAILURE, "error")
+        );
         final ItemStatus response = checkObjectGroupSchemaActionPlugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertEquals(response.getItemId(), "CHECK_OBJECT_GROUP_SCHEMA");
@@ -126,14 +136,14 @@ public class CheckObjectGroupSchemaActionPluginTest {
 
     @Test
     public void givenObjectGrouptWithSpecialCharactersJsonWhenExecuteThenReturnResponseKO() throws Exception {
-        when(handlerIO.getInputStreamFromWorkspace(
-            eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + OBJECT_NAME))).thenReturn(
-            PropertiesUtils.getResourceAsStream(OBJECT_GROUP_INVALID_CHAR));
+        when(
+            handlerIO.getInputStreamFromWorkspace(
+                eq(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + File.separator + OBJECT_NAME)
+            )
+        ).thenReturn(PropertiesUtils.getResourceAsStream(OBJECT_GROUP_INVALID_CHAR));
         final ItemStatus response = checkObjectGroupSchemaActionPlugin.execute(params, handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "INVALID_OBJECT_GROUP");
         assertEquals(response.getItemsStatus().get("CHECK_OBJECT_GROUP_SCHEMA").getItemId(), "OBJECT_GROUP_SANITIZE");
     }
-
-
 }

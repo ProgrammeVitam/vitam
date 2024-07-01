@@ -66,5 +66,4 @@ class WorkerParametersDeserializer extends JsonDeserializer<AbstractWorkerParame
         result.setMap(parameters);
         return result;
     }
-
 }

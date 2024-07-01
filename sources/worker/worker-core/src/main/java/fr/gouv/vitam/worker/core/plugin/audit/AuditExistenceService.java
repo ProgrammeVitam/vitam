@@ -78,8 +78,8 @@ public class AuditExistenceService {
      * @param storageStrategies deployed storage strategies
      * @return result of existence check
      */
-    public AuditCheckObjectGroupResult check(AuditObjectGroup gotDetail, List<StorageStrategy> storageStrategies) throws
-        ProcessingStatusException {
+    public AuditCheckObjectGroupResult check(AuditObjectGroup gotDetail, List<StorageStrategy> storageStrategies)
+        throws ProcessingStatusException {
         AuditCheckObjectGroupResult result = new AuditCheckObjectGroupResult();
         result.setIdObjectGroup(gotDetail.getId());
 
@@ -90,23 +90,55 @@ public class AuditExistenceService {
                 if (PHYSICAL_MASTER.equals(object.getQualifier())) {
                     // Get global information for physical master
                     StorageRacineModel storageInformation = gotDetail.getStorage();
-                    List<String> offerIds =
-                        StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
-                    Map<String, Boolean> existsResult = storageClient.exists(storageInformation.getStrategyId(),
-                        DataCategory.OBJECT, object.getId(), offerIds);
-                    auditCheckObjectResult.getOfferStatuses()
-                        .putAll(existsResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                            e -> BooleanUtils.isTrue(e.getValue()) ? StatusCode.KO : StatusCode.OK)));
+                    List<String> offerIds = StorageStrategyUtils.loadOfferIds(
+                        storageInformation.getStrategyId(),
+                        storageStrategies
+                    );
+                    Map<String, Boolean> existsResult = storageClient.exists(
+                        storageInformation.getStrategyId(),
+                        DataCategory.OBJECT,
+                        object.getId(),
+                        offerIds
+                    );
+                    auditCheckObjectResult
+                        .getOfferStatuses()
+                        .putAll(
+                            existsResult
+                                .entrySet()
+                                .stream()
+                                .collect(
+                                    Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        e -> BooleanUtils.isTrue(e.getValue()) ? StatusCode.KO : StatusCode.OK
+                                    )
+                                )
+                        );
                 } else {
                     // Get object information
                     StorageJson storageInformation = object.getStorage();
-                    List<String> offerIds =
-                        StorageStrategyUtils.loadOfferIds(storageInformation.getStrategyId(), storageStrategies);
-                    Map<String, Boolean> existsResult = storageClient.exists(storageInformation.getStrategyId(),
-                        DataCategory.OBJECT, object.getId(), offerIds);
-                    auditCheckObjectResult.getOfferStatuses()
-                        .putAll(existsResult.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey,
-                            e -> BooleanUtils.isTrue(e.getValue()) ? StatusCode.OK : StatusCode.KO)));
+                    List<String> offerIds = StorageStrategyUtils.loadOfferIds(
+                        storageInformation.getStrategyId(),
+                        storageStrategies
+                    );
+                    Map<String, Boolean> existsResult = storageClient.exists(
+                        storageInformation.getStrategyId(),
+                        DataCategory.OBJECT,
+                        object.getId(),
+                        offerIds
+                    );
+                    auditCheckObjectResult
+                        .getOfferStatuses()
+                        .putAll(
+                            existsResult
+                                .entrySet()
+                                .stream()
+                                .collect(
+                                    Collectors.toMap(
+                                        Map.Entry::getKey,
+                                        e -> BooleanUtils.isTrue(e.getValue()) ? StatusCode.OK : StatusCode.KO
+                                    )
+                                )
+                        );
                 }
                 result.getObjectStatuses().add(auditCheckObjectResult);
             }
@@ -122,5 +154,4 @@ public class AuditExistenceService {
 
         return result;
     }
-
 }

@@ -36,6 +36,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 public class StringUtilsTest {
+
     @Test
     public void testRandom() {
         final byte[] byteArray0 = StringUtils.getRandom(90);
@@ -53,12 +54,11 @@ public class StringUtilsTest {
     @Test
     public void testBytesFromArrayToString() {
         final byte[] byteArray0 = StringUtils.getBytesFromArraysToString("7");
-        assertArrayEquals(new byte[] {(byte) 7}, byteArray0);
+        assertArrayEquals(new byte[] { (byte) 7 }, byteArray0);
         final byte[] byteArray1 = StringUtils.getRandom(90);
         final String sbyte = Arrays.toString(byteArray1);
         final byte[] byteArray2 = StringUtils.getBytesFromArraysToString(sbyte);
         assertArrayEquals(byteArray1, byteArray2);
-
     }
 
     @Test

@@ -34,10 +34,10 @@ public class CollectInternalClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        CollectInternalClientFactory
-            .changeMode(CollectInternalClientFactory.changeConfigurationFile("collect-internal-client.conf"));
+        CollectInternalClientFactory.changeMode(
+            CollectInternalClientFactory.changeConfigurationFile("collect-internal-client.conf")
+        );
     }
-
 
     @Test
     public void collect_client_factory_should_return_collect_client_instance_on_getClient_method_call() {

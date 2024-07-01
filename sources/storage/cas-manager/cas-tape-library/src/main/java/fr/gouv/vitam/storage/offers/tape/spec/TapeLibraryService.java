@@ -32,7 +32,6 @@ import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteErrorCode;
 import fr.gouv.vitam.storage.offers.tape.exception.ReadWriteException;
 
 public interface TapeLibraryService {
-
     String TAPE_MSG = " [Tape] : ";
     String TAPE_LABEL = "tape-Label-";
 
@@ -57,8 +56,7 @@ public interface TapeLibraryService {
 
     String getTmpOutputDirectory();
 
-    void ensureTapeIsEmpty(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges)
-        throws ReadWriteException;
+    void ensureTapeIsEmpty(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges) throws ReadWriteException;
 
     void checkNonEmptyTapeLabel(TapeCatalog tape) throws ReadWriteException;
 }

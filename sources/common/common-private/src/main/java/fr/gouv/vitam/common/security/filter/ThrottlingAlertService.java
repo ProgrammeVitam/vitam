@@ -42,17 +42,13 @@ public class ThrottlingAlertService {
     private LocalDateTime lastTimestamp;
     private int nbSuppressedRedundantAlerts = 0;
 
-    public ThrottlingAlertService(
-        AlertService alertService,
-        String errorMessage,
-        int minDelayInSeconds) {
+    public ThrottlingAlertService(AlertService alertService, String errorMessage, int minDelayInSeconds) {
         this.alertService = alertService;
         this.minDelayInSeconds = minDelayInSeconds;
         this.errorMessage = errorMessage;
     }
 
     public synchronized void reportAlert() {
-
         if (lastTimestamp == null) {
             // First invocation
             triggerAlert(1);

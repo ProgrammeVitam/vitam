@@ -55,7 +55,6 @@ public class JsonSchemaValidator {
     private static final String DATE_TIME_VITAM = "date-time-vitam";
 
     public static JsonSchemaValidator forBuiltInSchema(String schemaFilename) {
-
         try (InputStream is = JsonSchemaValidator.class.getResourceAsStream(schemaFilename)) {
             JsonNode schemaJson = JsonHandler.getFromInputStream(is);
             JsonSchema jsonSchema = JSON_SCHEMA_FACTORY.getJsonSchema(schemaJson);
@@ -90,17 +89,18 @@ public class JsonSchemaValidator {
      */
     private static JsonSchemaFactory getJsonSchemaFactory() {
         // override for date format
-        final Library library = DraftV4Library.get().thaw()
+        final Library library = DraftV4Library.get()
+            .thaw()
             .addFormatAttribute(DATE_TIME_VITAM, VitamDateTimeAttribute.getInstance())
             .freeze();
 
         final MessageBundle bundle = MessageBundles.getBundle(JsonSchemaValidationBundle.class);
         final ValidationConfiguration cfg = ValidationConfiguration.newBuilder()
             .setDefaultLibrary("http://vitam-json-schema.org/draft-04/schema#", library)
-            .setValidationMessages(bundle).freeze();
+            .setValidationMessages(bundle)
+            .freeze();
 
-        return JsonSchemaFactory.newBuilder()
-            .setValidationConfiguration(cfg).freeze();
+        return JsonSchemaFactory.newBuilder().setValidationConfiguration(cfg).freeze();
     }
 
     /**
@@ -114,10 +114,8 @@ public class JsonSchemaValidator {
                 JsonNode error = ((ListProcessingReport) report).asJson();
                 ObjectNode errorNode = JsonHandler.createObjectNode();
                 errorNode.set("validateJson", error);
-                throw new JsonSchemaValidationException(
-                    "Document schema validation failed : \n" + errorNode);
+                throw new JsonSchemaValidationException("Document schema validation failed : \n" + errorNode);
             }
-
         } catch (ProcessingException e) {
             throw new JsonSchemaValidationException("Document schema validation failed", e);
         }

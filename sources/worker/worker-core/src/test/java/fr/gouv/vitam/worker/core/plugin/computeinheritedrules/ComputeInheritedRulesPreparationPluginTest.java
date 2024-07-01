@@ -70,26 +70,33 @@ import static org.mockito.Mockito.when;
 
 public class ComputeInheritedRulesPreparationPluginTest {
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
-    @Mock private AdminManagementClientFactory adminManagementClientFactory;
+    @Mock
+    private AdminManagementClientFactory adminManagementClientFactory;
 
-    @Mock private AdminManagementClient adminManagementClient;
+    @Mock
+    private AdminManagementClient adminManagementClient;
 
-    @Mock private MetaDataClientFactory metaDataClientFactory;
+    @Mock
+    private MetaDataClientFactory metaDataClientFactory;
 
-    @Mock private MetaDataClient metaDataClient;
+    @Mock
+    private MetaDataClient metaDataClient;
 
-    @Mock private WorkspaceClientFactory workspaceClientFactory;
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
 
-    @Mock private WorkspaceClient workspaceClient;
+    @Mock
+    private WorkspaceClient workspaceClient;
 
     private ComputeInheritedRulesPreparationPlugin computeInheritedRulesPreparationPlugin;
 
-    private static final TypeReference<JsonLineModel> jsonLineModelTypeReference = new TypeReference<>() {
-    };
+    private static final TypeReference<JsonLineModel> jsonLineModelTypeReference = new TypeReference<>() {};
 
     @Before
     public void setUp() throws Exception {
@@ -97,9 +104,7 @@ public class ComputeInheritedRulesPreparationPluginTest {
         when(adminManagementClientFactory.getClient()).thenReturn(adminManagementClient);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
 
-        computeInheritedRulesPreparationPlugin =
-            new ComputeInheritedRulesPreparationPlugin(metaDataClientFactory);
-
+        computeInheritedRulesPreparationPlugin = new ComputeInheritedRulesPreparationPlugin(metaDataClientFactory);
     }
 
     @Test
@@ -108,8 +113,9 @@ public class ComputeInheritedRulesPreparationPluginTest {
         InputStream query = PropertiesUtils.getResourceAsStream("computeInheritedRules/query.json");
         File distributionFile = temporaryFolder.newFile();
         WorkerParameters workerParameters = mock(WorkerParameters.class);
-        JsonNode unitResponse =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/unit.json"));
+        JsonNode unitResponse = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("computeInheritedRules/unit.json")
+        );
         when(metaDataClient.selectUnits(any())).thenReturn(unitResponse);
         HandlerIO handlerIO = mock(HandlerIO.class);
         when(handlerIO.getJsonFromWorkspace(anyString())).thenReturn(JsonHandler.getFromInputStream(query));
@@ -122,16 +128,23 @@ public class ComputeInheritedRulesPreparationPluginTest {
                 Files.copy(distributionFileCaptured.toPath(), fileOutputStream);
             }
             return null;
-        }).when(handlerIO)
-            .transferFileToWorkspace(ArgumentMatchers.eq(UNITS_JSONL_FILE), any(), ArgumentMatchers.eq(true),
-                ArgumentMatchers.eq(false));
+        })
+            .when(handlerIO)
+            .transferFileToWorkspace(
+                ArgumentMatchers.eq(UNITS_JSONL_FILE),
+                any(),
+                ArgumentMatchers.eq(true),
+                ArgumentMatchers.eq(false)
+            );
         // When
         ItemStatus itemStatus = computeInheritedRulesPreparationPlugin.execute(workerParameters, handlerIO);
         // Then
         StatusCode globalStatus = itemStatus.getGlobalStatus();
         assertThat(globalStatus).isEqualTo(StatusCode.OK);
-        JsonLineGenericIterator<JsonLineModel> lines =
-            new JsonLineGenericIterator<>(new FileInputStream(resultFile), jsonLineModelTypeReference);
+        JsonLineGenericIterator<JsonLineModel> lines = new JsonLineGenericIterator<>(
+            new FileInputStream(resultFile),
+            jsonLineModelTypeReference
+        );
 
         List<String> unitIds = lines.stream().map(JsonLineModel::getId).collect(Collectors.toList());
         assertThat(unitIds.size()).isEqualTo(4);
@@ -144,8 +157,9 @@ public class ComputeInheritedRulesPreparationPluginTest {
         InputStream query = PropertiesUtils.getResourceAsStream("computeInheritedRules/query.json");
         File distributionFile = temporaryFolder.newFile();
         WorkerParameters workerParameters = mock(WorkerParameters.class);
-        JsonNode unitResponse =
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream("computeInheritedRules/unit.json"));
+        JsonNode unitResponse = JsonHandler.getFromInputStream(
+            PropertiesUtils.getResourceAsStream("computeInheritedRules/unit.json")
+        );
         when(metaDataClient.selectUnits(any())).thenReturn(unitResponse);
         TestHandlerIO handler = new TestHandlerIO();
         handler.setJsonFromWorkspace("query.json", JsonHandler.getFromInputStream(query));
@@ -158,5 +172,4 @@ public class ComputeInheritedRulesPreparationPluginTest {
         File transferredFileToWorkspace = handler.getTransferedFileToWorkspace(UNITS_JSONL_FILE);
         assertThat(Files.exists(transferredFileToWorkspace.toPath())).isEqualTo(false);
     }
-
 }

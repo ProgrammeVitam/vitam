@@ -34,6 +34,7 @@ public class DedicatedTenantConfiguration {
 
     @JsonProperty("tenants")
     private String tenants;
+
     @JsonProperty("logbookoperation")
     private CollectionConfiguration logbookoperation;
 
@@ -41,8 +42,7 @@ public class DedicatedTenantConfiguration {
         // Default constructor for deserialization
     }
 
-    public DedicatedTenantConfiguration(String tenants,
-        CollectionConfiguration logbookoperation) {
+    public DedicatedTenantConfiguration(String tenants, CollectionConfiguration logbookoperation) {
         this.tenants = tenants;
         this.logbookoperation = logbookoperation;
     }
@@ -60,17 +60,21 @@ public class DedicatedTenantConfiguration {
         return logbookoperation;
     }
 
-    public DedicatedTenantConfiguration setLogbookoperation(
-        CollectionConfiguration logbookoperation) {
+    public DedicatedTenantConfiguration setLogbookoperation(CollectionConfiguration logbookoperation) {
         this.logbookoperation = logbookoperation;
         return this;
     }
 
     @Override
     public String toString() {
-        return "DedicatedTenantConfiguration{" +
-            "tenants='" + tenants + '\'' +
-            ", logbookoperation=" + logbookoperation +
-            '}';
+        return (
+            "DedicatedTenantConfiguration{" +
+            "tenants='" +
+            tenants +
+            '\'' +
+            ", logbookoperation=" +
+            logbookoperation +
+            '}'
+        );
     }
 }

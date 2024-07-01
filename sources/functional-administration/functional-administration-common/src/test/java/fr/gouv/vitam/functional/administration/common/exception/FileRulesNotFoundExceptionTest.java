@@ -41,5 +41,3 @@ public class FileRulesNotFoundExceptionTest {
         assertNotNull(new FileRulesNotFoundException("test", new Exception()).getCause());
     }
 }
-
-

@@ -29,10 +29,9 @@ package fr.gouv.vitam.storage.engine.common.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public enum OfferLogAction {
-
     @JsonProperty("write")
     WRITE,
 
     @JsonProperty("delete")
-    DELETE
+    DELETE,
 }

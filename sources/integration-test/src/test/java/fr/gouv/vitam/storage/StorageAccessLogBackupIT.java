@@ -90,19 +90,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class StorageAccessLogBackupIT extends VitamRuleRunner {
 
-    public static final TypeReference<JsonNode> TYPE_REFERENCE = new TypeReference<>() {
-    };
+    public static final TypeReference<JsonNode> TYPE_REFERENCE = new TypeReference<>() {};
     public static final String STRATEGY_ID = "default";
+
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(StorageAccessLogBackupIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                LogbookMain.class,
-                WorkspaceMain.class,
-                DefaultOfferMain.class,
-                StorageMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        StorageAccessLogBackupIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(LogbookMain.class, WorkspaceMain.class, DefaultOfferMain.class, StorageMain.class)
+    );
 
     private static final int TENANT_0 = 0;
 
@@ -136,10 +133,7 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
     }
 
     private static void cleanup() {
-        runAfterMongo(Sets.newHashSet(
-            LogbookCollections.OPERATION.getName(),
-            OfferCollections.OFFER_LOG.getName()
-        ));
+        runAfterMongo(Sets.newHashSet(LogbookCollections.OPERATION.getName(), OfferCollections.OFFER_LOG.getName()));
 
         runAfterEs(
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
@@ -154,14 +148,14 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
     @Test
     public void testStorageAccessLogBackupNonAdminTenantThenKO() {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // Given
             VitamThreadUtils.getVitamSession().setTenantId(0);
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
 
             // When / Then
-            assertThatThrownBy(() -> storageClient.storageAccessLogBackup(Arrays.asList(0, 1)))
-                .isInstanceOf(StorageServerClientException.class);
+            assertThatThrownBy(() -> storageClient.storageAccessLogBackup(Arrays.asList(0, 1))).isInstanceOf(
+                StorageServerClientException.class
+            );
         }
     }
 
@@ -169,14 +163,14 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
     @Test
     public void testStorageAccessLogBackupEmptyThenOK() throws Exception {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // Given
             VitamThreadUtils.getVitamSession().setTenantId(1);
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(1));
 
             // When
-            RequestResponseOK<StorageLogBackupResult> storageLogBackupResults =
-                storageClient.storageAccessLogBackup(Arrays.asList(0, 1));
+            RequestResponseOK<StorageLogBackupResult> storageLogBackupResults = storageClient.storageAccessLogBackup(
+                Arrays.asList(0, 1)
+            );
 
             // Then
 
@@ -188,23 +182,32 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
             assertThat(storageLogBackupResults.getResults().get(1).getTenantId()).isEqualTo(1);
 
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-            LogbookOperation logbookOperation =
-                getLogbookOperation(storageLogBackupResults.getResults().get(0).getOperationId());
+            LogbookOperation logbookOperation = getLogbookOperation(
+                storageLogBackupResults.getResults().get(0).getOperationId()
+            );
 
             assertThat(logbookOperation.getEvTypeProc()).isEqualTo(STORAGE_BACKUP.name());
             assertThat(logbookOperation.getEvType()).isEqualTo(STORAGE_ACCESS_BACKUP);
-            assertThat(logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1).getOutDetail())
-                .isEqualTo(STORAGE_ACCESS_BACKUP + "." + StatusCode.OK.name());
+            assertThat(
+                logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1).getOutDetail()
+            ).isEqualTo(STORAGE_ACCESS_BACKUP + "." + StatusCode.OK.name());
 
             // Check storage access log
-            CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, null, DataCategory.STORAGEACCESSLOG);
+            CloseableIterator<ObjectEntry> storageLogs = storageClient.listContainer(
+                STRATEGY_ID,
+                null,
+                DataCategory.STORAGEACCESSLOG
+            );
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             assertThat(objectEntries.get(0).getObjectId()).isNotNull();
 
-            Response storageLogResponse = storageClient.getContainerAsync(STRATEGY_ID, objectEntries
-                .get(0).getObjectId(), DataCategory.STORAGEACCESSLOG, AccessLogUtils.getNoLogAccessLog());
+            Response storageLogResponse = storageClient.getContainerAsync(
+                STRATEGY_ID,
+                objectEntries.get(0).getObjectId(),
+                DataCategory.STORAGEACCESSLOG,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream inputStream = storageLogResponse.readEntity(InputStream.class);
             assertThat(inputStream.read()).isEqualTo(IOUtils.EOF);
         }
@@ -214,7 +217,6 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
     @Test
     public void testStorageAccessLogBackupWithNonLoggedAccessThenOK() throws Exception {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // Given
             VitamThreadUtils.getVitamSession().setTenantId(1);
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(1));
@@ -224,12 +226,17 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
             writeFileToOffers(objectId, size);
 
             // When
-            storageClient.getContainerAsync(STRATEGY_ID, objectId, DataCategory.OBJECT,
-                AccessLogUtils.getNoLogAccessLog());
+            storageClient.getContainerAsync(
+                STRATEGY_ID,
+                objectId,
+                DataCategory.OBJECT,
+                AccessLogUtils.getNoLogAccessLog()
+            );
 
             // When
-            RequestResponseOK<StorageLogBackupResult> storageLogBackupResults =
-                storageClient.storageAccessLogBackup(Arrays.asList(0, 1));
+            RequestResponseOK<StorageLogBackupResult> storageLogBackupResults = storageClient.storageAccessLogBackup(
+                Arrays.asList(0, 1)
+            );
 
             // Then
 
@@ -241,23 +248,32 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
             assertThat(storageLogBackupResults.getResults().get(1).getTenantId()).isEqualTo(1);
 
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-            LogbookOperation logbookOperation =
-                getLogbookOperation(storageLogBackupResults.getResults().get(0).getOperationId());
+            LogbookOperation logbookOperation = getLogbookOperation(
+                storageLogBackupResults.getResults().get(0).getOperationId()
+            );
 
             assertThat(logbookOperation.getEvTypeProc()).isEqualTo(STORAGE_BACKUP.name());
             assertThat(logbookOperation.getEvType()).isEqualTo(STORAGE_ACCESS_BACKUP);
-            assertThat(logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1).getOutDetail())
-                .isEqualTo(STORAGE_ACCESS_BACKUP + "." + StatusCode.OK.name());
+            assertThat(
+                logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1).getOutDetail()
+            ).isEqualTo(STORAGE_ACCESS_BACKUP + "." + StatusCode.OK.name());
 
             // Check storage access log
-            CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, null, DataCategory.STORAGEACCESSLOG);
+            CloseableIterator<ObjectEntry> storageLogs = storageClient.listContainer(
+                STRATEGY_ID,
+                null,
+                DataCategory.STORAGEACCESSLOG
+            );
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             assertThat(objectEntries.get(0).getObjectId()).isNotNull();
 
-            Response storageLogResponse = storageClient.getContainerAsync(STRATEGY_ID, objectEntries
-                .get(0).getObjectId(), DataCategory.STORAGEACCESSLOG, AccessLogUtils.getNoLogAccessLog());
+            Response storageLogResponse = storageClient.getContainerAsync(
+                STRATEGY_ID,
+                objectEntries.get(0).getObjectId(),
+                DataCategory.STORAGEACCESSLOG,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream inputStream = storageLogResponse.readEntity(InputStream.class);
             assertThat(inputStream.read()).isEqualTo(IOUtils.EOF);
         }
@@ -267,7 +283,6 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
     @Test
     public void testStorageAccessLogBackupWithAccessLoggingDisabledInAccessContractThanOK() throws Exception {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // Given
             VitamThreadUtils.getVitamSession().setTenantId(1);
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(1));
@@ -277,19 +292,28 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
             writeFileToOffers(objectId, size);
 
             // When
-            AccessContractModel accessContract = new AccessContractModel()
-                .setAccessLog(ActivationStatus.INACTIVE);
+            AccessContractModel accessContract = new AccessContractModel().setAccessLog(ActivationStatus.INACTIVE);
             VitamThreadUtils.getVitamSession().setContract(accessContract);
             VitamThreadUtils.getVitamSession().setContextId("contextId");
             VitamThreadUtils.getVitamSession().setApplicationSessionId("applicationId");
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID());
 
-            storageClient.getContainerAsync(STRATEGY_ID, objectId, DataCategory.OBJECT,
-                AccessLogUtils.getInfoForAccessLog("BinaryMaster", 1,
-                    VitamThreadUtils.getVitamSession(), (long) size, "unitId"));
+            storageClient.getContainerAsync(
+                STRATEGY_ID,
+                objectId,
+                DataCategory.OBJECT,
+                AccessLogUtils.getInfoForAccessLog(
+                    "BinaryMaster",
+                    1,
+                    VitamThreadUtils.getVitamSession(),
+                    (long) size,
+                    "unitId"
+                )
+            );
 
-            RequestResponseOK<StorageLogBackupResult> storageLogBackupResults =
-                storageClient.storageAccessLogBackup(Arrays.asList(0, 1));
+            RequestResponseOK<StorageLogBackupResult> storageLogBackupResults = storageClient.storageAccessLogBackup(
+                Arrays.asList(0, 1)
+            );
 
             // Then
 
@@ -301,23 +325,32 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
             assertThat(storageLogBackupResults.getResults().get(1).getTenantId()).isEqualTo(1);
 
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-            LogbookOperation logbookOperation =
-                getLogbookOperation(storageLogBackupResults.getResults().get(0).getOperationId());
+            LogbookOperation logbookOperation = getLogbookOperation(
+                storageLogBackupResults.getResults().get(0).getOperationId()
+            );
 
             assertThat(logbookOperation.getEvTypeProc()).isEqualTo(STORAGE_BACKUP.name());
             assertThat(logbookOperation.getEvType()).isEqualTo(STORAGE_ACCESS_BACKUP);
-            assertThat(logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1).getOutDetail())
-                .isEqualTo(STORAGE_ACCESS_BACKUP + "." + StatusCode.OK.name());
+            assertThat(
+                logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1).getOutDetail()
+            ).isEqualTo(STORAGE_ACCESS_BACKUP + "." + StatusCode.OK.name());
 
             // Check storage access log
-            CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, null, DataCategory.STORAGEACCESSLOG);
+            CloseableIterator<ObjectEntry> storageLogs = storageClient.listContainer(
+                STRATEGY_ID,
+                null,
+                DataCategory.STORAGEACCESSLOG
+            );
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             assertThat(objectEntries.get(0).getObjectId()).isNotNull();
 
-            Response storageLogResponse = storageClient.getContainerAsync(STRATEGY_ID, objectEntries
-                .get(0).getObjectId(), DataCategory.STORAGEACCESSLOG, AccessLogUtils.getNoLogAccessLog());
+            Response storageLogResponse = storageClient.getContainerAsync(
+                STRATEGY_ID,
+                objectEntries.get(0).getObjectId(),
+                DataCategory.STORAGEACCESSLOG,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream inputStream = storageLogResponse.readEntity(InputStream.class);
             assertThat(inputStream.read()).isEqualTo(IOUtils.EOF);
         }
@@ -327,7 +360,6 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
     @Test
     public void testStorageAccessLogBackupWithAccessLoggingEnabledInAccessContractThanOK() throws Exception {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // Given
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(TENANT_0));
@@ -337,8 +369,7 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
             writeFileToOffers(objectId, size);
 
             // When
-            AccessContractModel accessContract = new AccessContractModel()
-                .setAccessLog(ActivationStatus.ACTIVE);
+            AccessContractModel accessContract = new AccessContractModel().setAccessLog(ActivationStatus.ACTIVE);
             VitamThreadUtils.getVitamSession().setContract(accessContract);
             VitamThreadUtils.getVitamSession().setContextId("contextId");
             VitamThreadUtils.getVitamSession().setApplicationSessionId("applicationId");
@@ -346,15 +377,25 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
             VitamThreadUtils.getVitamSession().setRequestId(requestId);
 
             LocalDateTime beforeAccess = LocalDateUtil.now();
-            storageClient.getContainerAsync(STRATEGY_ID, objectId, DataCategory.OBJECT,
-                AccessLogUtils.getInfoForAccessLog("BinaryMaster", 1,
-                    VitamThreadUtils.getVitamSession(), (long) size, "unitId"));
+            storageClient.getContainerAsync(
+                STRATEGY_ID,
+                objectId,
+                DataCategory.OBJECT,
+                AccessLogUtils.getInfoForAccessLog(
+                    "BinaryMaster",
+                    1,
+                    VitamThreadUtils.getVitamSession(),
+                    (long) size,
+                    "unitId"
+                )
+            );
             LocalDateTime afterAccess = LocalDateUtil.now();
 
             VitamThreadUtils.getVitamSession().setTenantId(1);
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(1));
-            RequestResponseOK<StorageLogBackupResult> storageLogBackupResults =
-                storageClient.storageAccessLogBackup(Arrays.asList(0, 1));
+            RequestResponseOK<StorageLogBackupResult> storageLogBackupResults = storageClient.storageAccessLogBackup(
+                Arrays.asList(0, 1)
+            );
 
             // Then
 
@@ -366,47 +407,55 @@ public class StorageAccessLogBackupIT extends VitamRuleRunner {
             assertThat(storageLogBackupResults.getResults().get(1).getTenantId()).isEqualTo(1);
 
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-            LogbookOperation logbookOperation =
-                getLogbookOperation(storageLogBackupResults.getResults().get(0).getOperationId());
+            LogbookOperation logbookOperation = getLogbookOperation(
+                storageLogBackupResults.getResults().get(0).getOperationId()
+            );
 
             assertThat(logbookOperation.getEvTypeProc()).isEqualTo(STORAGE_BACKUP.name());
             assertThat(logbookOperation.getEvType()).isEqualTo(STORAGE_ACCESS_BACKUP);
-            assertThat(logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1).getOutDetail())
-                .isEqualTo(STORAGE_ACCESS_BACKUP + "." + StatusCode.OK.name());
+            assertThat(
+                logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1).getOutDetail()
+            ).isEqualTo(STORAGE_ACCESS_BACKUP + "." + StatusCode.OK.name());
 
             // Check storage access log
-            CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, null, DataCategory.STORAGEACCESSLOG);
+            CloseableIterator<ObjectEntry> storageLogs = storageClient.listContainer(
+                STRATEGY_ID,
+                null,
+                DataCategory.STORAGEACCESSLOG
+            );
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             assertThat(objectEntries.get(0).getObjectId()).isNotNull();
 
-            Response storageLogResponse = storageClient.getContainerAsync(STRATEGY_ID, objectEntries
-                .get(0).getObjectId(), DataCategory.STORAGEACCESSLOG, AccessLogUtils.getNoLogAccessLog());
+            Response storageLogResponse = storageClient.getContainerAsync(
+                STRATEGY_ID,
+                objectEntries.get(0).getObjectId(),
+                DataCategory.STORAGEACCESSLOG,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream inputStream = storageLogResponse.readEntity(InputStream.class);
             List<JsonNode> logs = IteratorUtils.toList(new JsonLineGenericIterator<>(inputStream, TYPE_REFERENCE));
             JsonNode storageLog = logs.get(0);
             assertThat(logs).hasSize(1);
 
-            assertThat(storageLog.get(StorageLogbookParameterName.eventDateTime.name()).asText())
-                .isBetween(LocalDateUtil.getFormattedDateForMongo(beforeAccess),
-                    LocalDateUtil.getFormattedDateForMongo(afterAccess));
-            assertThat(storageLog.get(StorageLogbookParameterName.xRequestId.name()).asText())
-                .isEqualTo(requestId.getId());
-            assertThat(storageLog.get(StorageLogbookParameterName.applicationId.name()).asText())
-                .isEqualTo("applicationId");
-            assertThat(storageLog.get(StorageLogbookParameterName.objectIdentifier.name()).asText())
-                .isEqualTo(objectId);
-            assertThat(storageLog.get(StorageLogbookParameterName.size.name()).asLong())
-                .isEqualTo(size);
-            assertThat(storageLog.get(StorageLogbookParameterName.qualifier.name()).asText())
-                .isEqualTo("BinaryMaster");
-            assertThat(storageLog.get(StorageLogbookParameterName.version.name()).asLong())
-                .isEqualTo(1);
-            assertThat(storageLog.get(StorageLogbookParameterName.contextId.name()).asText())
-                .isEqualTo("contextId");
-            assertThat(storageLog.get(StorageLogbookParameterName.archivesId.name()).asText())
-                .isEqualTo("unitId");
+            assertThat(storageLog.get(StorageLogbookParameterName.eventDateTime.name()).asText()).isBetween(
+                LocalDateUtil.getFormattedDateForMongo(beforeAccess),
+                LocalDateUtil.getFormattedDateForMongo(afterAccess)
+            );
+            assertThat(storageLog.get(StorageLogbookParameterName.xRequestId.name()).asText()).isEqualTo(
+                requestId.getId()
+            );
+            assertThat(storageLog.get(StorageLogbookParameterName.applicationId.name()).asText()).isEqualTo(
+                "applicationId"
+            );
+            assertThat(storageLog.get(StorageLogbookParameterName.objectIdentifier.name()).asText()).isEqualTo(
+                objectId
+            );
+            assertThat(storageLog.get(StorageLogbookParameterName.size.name()).asLong()).isEqualTo(size);
+            assertThat(storageLog.get(StorageLogbookParameterName.qualifier.name()).asText()).isEqualTo("BinaryMaster");
+            assertThat(storageLog.get(StorageLogbookParameterName.version.name()).asLong()).isEqualTo(1);
+            assertThat(storageLog.get(StorageLogbookParameterName.contextId.name()).asText()).isEqualTo("contextId");
+            assertThat(storageLog.get(StorageLogbookParameterName.archivesId.name()).asText()).isEqualTo("unitId");
         }
     }
 }

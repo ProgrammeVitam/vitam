@@ -53,6 +53,4 @@ public class ShutDownHookFilter implements ContainerRequestFilter, ContainerResp
     public void filter(ContainerRequestContext requestContext) throws IOException {
         threadManager.addRequest(requestContext.getHeaders());
     }
-
-
 }

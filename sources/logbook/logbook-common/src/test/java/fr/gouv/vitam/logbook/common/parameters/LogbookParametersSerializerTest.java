@@ -44,8 +44,7 @@ public class LogbookParametersSerializerTest {
 
     @Test
     public void shouldSerializeOperationParameters() throws IOException {
-        final LogbookOperationParameters params =
-            LogbookParameterHelper.newLogbookOperationParameters();
+        final LogbookOperationParameters params = LogbookParameterHelper.newLogbookOperationParameters();
         assertNotNull(params);
 
         for (final LogbookParameterName value : LogbookParameterName.values()) {
@@ -65,24 +64,28 @@ public class LogbookParametersSerializerTest {
         final SerializerProvider serializerProvider = new ObjectMapper().getSerializerProvider();
         logbookParametersSerializer.serialize(params, generator, serializerProvider);
         generator.flush();
-        assertThat(stringJson.toString(),
-            is(equalTo("{\"eventIdentifier\":\"eventIdentifier\",\"parentEventIdentifier\":null," +
-                "\"eventType\":\"eventType\",\"eventDateTime\":\"eventDateTime\"," +
-                "\"eventIdentifierProcess\":\"eventIdentifierProcess\",\"eventTypeProcess\":\"eventTypeProcess\"," +
-                "\"outcome\":\"outcome\",\"outcomeDetail\":\"outcomeDetail\",\"outcomeDetailMessage\":\"outcomeDetailMessage\"," +
-                "\"agentIdentifier\":\"agentIdentifier\",\"agentIdentifierApplication\":\"agentIdentifierApplication\"," +
-                "\"agentIdentifierPersonae\":\"agentIdentifierPersonae\"," +
-                "\"agentIdentifierApplicationSession\":\"agentIdentifierApplicationSession\",\"eventIdentifierRequest\":\"eventIdentifierRequest\"," +
-                "\"objectIdentifier\":\"objectIdentifier\",\"lifeCycleIdentifier\":\"lifeCycleIdentifier\",\"objectIdentifierRequest\":\"objectIdentifierRequest\"," +
-                "\"objectIdentifierIncome\":\"objectIdentifierIncome\",\"masterData\":\"masterData\",\"rightsStatementIdentifier\":\"rightsStatementIdentifier\"," +
-                "\"agIdExt\":\"agIdExt\",\"eventDetailData\":\"eventDetailData\"}")));
+        assertThat(
+            stringJson.toString(),
+            is(
+                equalTo(
+                    "{\"eventIdentifier\":\"eventIdentifier\",\"parentEventIdentifier\":null," +
+                    "\"eventType\":\"eventType\",\"eventDateTime\":\"eventDateTime\"," +
+                    "\"eventIdentifierProcess\":\"eventIdentifierProcess\",\"eventTypeProcess\":\"eventTypeProcess\"," +
+                    "\"outcome\":\"outcome\",\"outcomeDetail\":\"outcomeDetail\",\"outcomeDetailMessage\":\"outcomeDetailMessage\"," +
+                    "\"agentIdentifier\":\"agentIdentifier\",\"agentIdentifierApplication\":\"agentIdentifierApplication\"," +
+                    "\"agentIdentifierPersonae\":\"agentIdentifierPersonae\"," +
+                    "\"agentIdentifierApplicationSession\":\"agentIdentifierApplicationSession\",\"eventIdentifierRequest\":\"eventIdentifierRequest\"," +
+                    "\"objectIdentifier\":\"objectIdentifier\",\"lifeCycleIdentifier\":\"lifeCycleIdentifier\",\"objectIdentifierRequest\":\"objectIdentifierRequest\"," +
+                    "\"objectIdentifierIncome\":\"objectIdentifierIncome\",\"masterData\":\"masterData\",\"rightsStatementIdentifier\":\"rightsStatementIdentifier\"," +
+                    "\"agIdExt\":\"agIdExt\",\"eventDetailData\":\"eventDetailData\"}"
+                )
+            )
+        );
     }
-
 
     @Test
     public void shouldSerializeUnitParameters() throws IOException {
-        final LogbookLifeCycleUnitParameters params =
-            LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
+        final LogbookLifeCycleUnitParameters params = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         assertNotNull(params);
 
         for (final LogbookParameterName value : LogbookParameterName.values()) {
@@ -101,18 +104,22 @@ public class LogbookParametersSerializerTest {
         final SerializerProvider serializerProvider = new ObjectMapper().getSerializerProvider();
         logbookParametersSerializer.serialize(params, generator, serializerProvider);
         generator.flush();
-        assertThat(stringJson.toString(),
-            is(equalTo("{\"eventIdentifier\":\"eventIdentifier\",\"parentEventIdentifier\":null," +
-                "\"eventType\":\"eventType\",\"eventDateTime\":\"eventDateTime\"," +
-                "\"eventIdentifierProcess\":\"eventIdentifierProcess\",\"eventTypeProcess\":\"eventTypeProcess\"," +
-                "\"outcome\":\"outcome\",\"outcomeDetail\":\"outcomeDetail\",\"outcomeDetailMessage\":\"outcomeDetailMessage\"," +
-                "\"agentIdentifier\":\"agentIdentifier\",\"agentIdentifierApplication\":\"agentIdentifierApplication\"," +
-                "\"agentIdentifierPersonae\":\"agentIdentifierPersonae\"," +
-                "\"agentIdentifierApplicationSession\":\"agentIdentifierApplicationSession\",\"eventIdentifierRequest\":\"eventIdentifierRequest\"," +
-                "\"objectIdentifier\":\"objectIdentifier\",\"lifeCycleIdentifier\":\"lifeCycleIdentifier\",\"objectIdentifierRequest\":\"objectIdentifierRequest\"," +
-                "\"objectIdentifierIncome\":\"objectIdentifierIncome\",\"masterData\":\"masterData\",\"rightsStatementIdentifier\":\"rightsStatementIdentifier\"," +
-                "\"agIdExt\":\"agIdExt\",\"eventDetailData\":\"eventDetailData\"}")));
+        assertThat(
+            stringJson.toString(),
+            is(
+                equalTo(
+                    "{\"eventIdentifier\":\"eventIdentifier\",\"parentEventIdentifier\":null," +
+                    "\"eventType\":\"eventType\",\"eventDateTime\":\"eventDateTime\"," +
+                    "\"eventIdentifierProcess\":\"eventIdentifierProcess\",\"eventTypeProcess\":\"eventTypeProcess\"," +
+                    "\"outcome\":\"outcome\",\"outcomeDetail\":\"outcomeDetail\",\"outcomeDetailMessage\":\"outcomeDetailMessage\"," +
+                    "\"agentIdentifier\":\"agentIdentifier\",\"agentIdentifierApplication\":\"agentIdentifierApplication\"," +
+                    "\"agentIdentifierPersonae\":\"agentIdentifierPersonae\"," +
+                    "\"agentIdentifierApplicationSession\":\"agentIdentifierApplicationSession\",\"eventIdentifierRequest\":\"eventIdentifierRequest\"," +
+                    "\"objectIdentifier\":\"objectIdentifier\",\"lifeCycleIdentifier\":\"lifeCycleIdentifier\",\"objectIdentifierRequest\":\"objectIdentifierRequest\"," +
+                    "\"objectIdentifierIncome\":\"objectIdentifierIncome\",\"masterData\":\"masterData\",\"rightsStatementIdentifier\":\"rightsStatementIdentifier\"," +
+                    "\"agIdExt\":\"agIdExt\",\"eventDetailData\":\"eventDetailData\"}"
+                )
+            )
+        );
     }
-
-
 }

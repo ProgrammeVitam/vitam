@@ -174,5 +174,5 @@ public enum LogbookParameterName {
     /**
      * events list
      */
-    events
+    events,
 }

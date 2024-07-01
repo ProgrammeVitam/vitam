@@ -58,7 +58,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-
 /**
  * A validator performs syntax and possibly semantic validation of a single piece of data from an untrusted source.
  *
@@ -86,7 +85,7 @@ public class HTMLValidationRule extends StringValidationRule {
             final ClassLoader[] loaders = new ClassLoader[] {
                 Thread.currentThread().getContextClassLoader(),
                 ClassLoader.getSystemClassLoader(),
-                HTMLValidationRule.class.getClassLoader()
+                HTMLValidationRule.class.getClassLoader(),
             };
             for (final ClassLoader loader : loaders) {
                 resourceStream = loader.getResourceAsStream(ANTISAMYPOLICY_FILENAME);
@@ -167,8 +166,11 @@ public class HTMLValidationRule extends StringValidationRule {
             if (allowNull) {
                 return null;
             }
-            throw new ValidationException(context + " is required",
-                "AntiSamy validation error: context=" + context + ", input=" + input, context);
+            throw new ValidationException(
+                context + " is required",
+                "AntiSamy validation error: context=" + context + ", input=" + input,
+                context
+            );
         }
 
         final String canonical = super.getValid(context, input);
@@ -183,15 +185,23 @@ public class HTMLValidationRule extends StringValidationRule {
             }
 
             return test.getCleanHTML().trim();
-
         } catch (final ScanException e) {
-            throw new ValidationException(context + ": Invalid HTML input",
-                "Invalid HTML input: context=" + context + " error=" + e.getMessage(), e, context);
+            throw new ValidationException(
+                context + ": Invalid HTML input",
+                "Invalid HTML input: context=" + context + " error=" + e.getMessage(),
+                e,
+                context
+            );
         } catch (final PolicyException e) {
-            throw new ValidationException(context + ": Invalid HTML input",
-                "Invalid HTML input does not follow rules in antisamy-esapi.xml: context=" + context + " error=" +
-                    e.getMessage(),
-                e, context);
+            throw new ValidationException(
+                context + ": Invalid HTML input",
+                "Invalid HTML input does not follow rules in antisamy-esapi.xml: context=" +
+                context +
+                " error=" +
+                e.getMessage(),
+                e,
+                context
+            );
         }
     }
 }

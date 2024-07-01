@@ -71,8 +71,9 @@ public class EndpointAuthenticationFilterTest {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EndpointAuthenticationFilterTest.class);
 
     @ClassRule
-    public static RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -90,15 +91,12 @@ public class EndpointAuthenticationFilterTest {
     @Spy
     private EndpointAuthenticationFilter instance;
 
-
     public void setup(String user, String password) {
-
         // Instanciate Vitam configuration credentials.
         List<BasicAuthModel> basicAuthConfig = Collections.singletonList(new BasicAuthModel(user, password));
 
         // mock admin basic authentication informations.
-        lenient().when(configuration.getAdminBasicAuth())
-            .thenReturn(basicAuthConfig);
+        lenient().when(configuration.getAdminBasicAuth()).thenReturn(basicAuthConfig);
     }
 
     @Test
@@ -111,8 +109,7 @@ public class EndpointAuthenticationFilterTest {
         headers.add(HttpHeaders.AUTHORIZATION, "Basic YWRtaW5Vc2VyTmFtZTphZG1pblBhc3N3b3Jk");
 
         // mock context headers.
-        when(containerRequestContext.getHeaders())
-            .thenReturn(headers);
+        when(containerRequestContext.getHeaders()).thenReturn(headers);
 
         LOGGER.debug(String.format("headers informations : %s", headers));
         instance.filter(containerRequestContext);
@@ -131,8 +128,7 @@ public class EndpointAuthenticationFilterTest {
         headers.add(HttpHeaders.AUTHORIZATION, "Basic YWRtaW5Vc2VyTmFtZTphZG1pblBhc3N3b3Jk");
 
         // mock context headers.
-        when(containerRequestContext.getHeaders())
-            .thenReturn(headers);
+        when(containerRequestContext.getHeaders()).thenReturn(headers);
 
         instance.filter(containerRequestContext);
 
@@ -147,7 +143,6 @@ public class EndpointAuthenticationFilterTest {
     @Test
     @RunWithCustomExecutor
     public void testBasicAuthenticationFailed_WrongCredentials() throws Exception {
-
         setup("adminUserName", "adminPassword");
 
         // Wrong Encode to Base64 format of (adminUserName:adminPassword)
@@ -156,8 +151,7 @@ public class EndpointAuthenticationFilterTest {
         LOGGER.debug(String.format("headers informations : %s", headers));
 
         // mock context headers.
-        when(containerRequestContext.getHeaders())
-            .thenReturn(headers);
+        when(containerRequestContext.getHeaders()).thenReturn(headers);
 
         instance.filter(containerRequestContext);
 
@@ -172,7 +166,6 @@ public class EndpointAuthenticationFilterTest {
     @Test
     @RunWithCustomExecutor
     public void testBasicAuthenticationFailed_MissingInfos() throws Exception {
-
         setup("adminUserName", "adminPassword");
         // Wrong Encode to Base64 format of (adminUserName:adminPassword)
         MultivaluedMap<String, String> headers = new MultivaluedHashMap<>();
@@ -180,8 +173,7 @@ public class EndpointAuthenticationFilterTest {
         LOGGER.debug(String.format("headers informations : %s", headers));
 
         // mock context headers.
-        when(containerRequestContext.getHeaders())
-            .thenReturn(headers);
+        when(containerRequestContext.getHeaders()).thenReturn(headers);
 
         instance.filter(containerRequestContext);
 
@@ -190,8 +182,9 @@ public class EndpointAuthenticationFilterTest {
         Response response = contextArgumentCaptor.getValue();
 
         assertEquals(response.getStatus(), Response.Status.UNAUTHORIZED.getStatusCode());
-        assertEquals(response.readEntity(String.class),
-            "VitamAuthentication failed: VitamAuthentication informations are missing.");
+        assertEquals(
+            response.readEntity(String.class),
+            "VitamAuthentication failed: VitamAuthentication informations are missing."
+        );
     }
-
 }

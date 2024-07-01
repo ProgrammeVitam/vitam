@@ -37,14 +37,13 @@ import fr.gouv.vitam.common.mapping.dip.TransformJsonTreeToListOfXmlElement;
 import org.w3c.dom.Element;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class OrganizationDescriptiveMetadataTypeDeserializer
     extends JsonDeserializer<OrganizationDescriptiveMetadataType> {
-    private static final TypeReference<Map<String, Object>> REFERENCE = new TypeReference<Map<String, Object>>() {
-    };
+
+    private static final TypeReference<Map<String, Object>> REFERENCE = new TypeReference<Map<String, Object>>() {};
 
     private ObjectMapper objectMapper;
 

@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -59,7 +58,6 @@ public class TraceabilityAuditJob implements Job {
 
     public static final String OP_TYPE = "STP_OP_SECURISATION";
 
-
     /**
      * Max delay between 2 logbook operation traceability operations.
      */
@@ -71,8 +69,6 @@ public class TraceabilityAuditJob implements Job {
      */
     private Integer lifecycleTraceabilityMaxRenewalDelay;
     private ChronoUnit lifecycleTraceabilityMaxRenewalDelayUnit;
-
-
 
     /**
      * Launch audit of operation or lfc traceability for a specific tenant
@@ -98,24 +94,39 @@ public class TraceabilityAuditJob implements Job {
 
     private void loadConfiguration(JobDataMap jobDataMap) {
         operationTraceabilityMaxRenewalDelay = jobDataMap.getInt(OPERATION_TRACEABILITY_MAX_RENEWALY_DElAY);
-        operationTraceabilityMaxRenewalDelayUnit =
-            ChronoUnit.valueOf(jobDataMap.getString(OPERATION_TRACEABILITY_MAX_RENEWALY_DElAY_UNIT));
+        operationTraceabilityMaxRenewalDelayUnit = ChronoUnit.valueOf(
+            jobDataMap.getString(OPERATION_TRACEABILITY_MAX_RENEWALY_DElAY_UNIT)
+        );
         lifecycleTraceabilityMaxRenewalDelay = jobDataMap.getInt(LIFECYCLE_TRACEABILITY_MAX_RENEWALY_DElAY);
-        lifecycleTraceabilityMaxRenewalDelayUnit =
-            ChronoUnit.valueOf(jobDataMap.getString(LIFECYCLE_TRACEABILITY_MAX_RENEWALY_DElAY_Unit));
+        lifecycleTraceabilityMaxRenewalDelayUnit = ChronoUnit.valueOf(
+            jobDataMap.getString(LIFECYCLE_TRACEABILITY_MAX_RENEWALY_DElAY_Unit)
+        );
     }
 
     public void execute(JobExecutionContext context) throws JobExecutionException {
         LOGGER.info("Traceability audit operation in progress...");
         loadConfiguration(context.getJobDetail().getJobDataMap());
-        VitamConfiguration.getTenants().forEach(tenant -> {
-            auditByTenantId(tenant, OP_TYPE, operationTraceabilityMaxRenewalDelay,
-                operationTraceabilityMaxRenewalDelayUnit);
-            auditByTenantId(tenant, Contexts.UNIT_LFC_TRACEABILITY.getEventType(), lifecycleTraceabilityMaxRenewalDelay,
-                lifecycleTraceabilityMaxRenewalDelayUnit);
-            auditByTenantId(tenant, Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
-                lifecycleTraceabilityMaxRenewalDelay, lifecycleTraceabilityMaxRenewalDelayUnit);
-        });
+        VitamConfiguration.getTenants()
+            .forEach(tenant -> {
+                auditByTenantId(
+                    tenant,
+                    OP_TYPE,
+                    operationTraceabilityMaxRenewalDelay,
+                    operationTraceabilityMaxRenewalDelayUnit
+                );
+                auditByTenantId(
+                    tenant,
+                    Contexts.UNIT_LFC_TRACEABILITY.getEventType(),
+                    lifecycleTraceabilityMaxRenewalDelay,
+                    lifecycleTraceabilityMaxRenewalDelayUnit
+                );
+                auditByTenantId(
+                    tenant,
+                    Contexts.OBJECTGROUP_LFC_TRACEABILITY.getEventType(),
+                    lifecycleTraceabilityMaxRenewalDelay,
+                    lifecycleTraceabilityMaxRenewalDelayUnit
+                );
+            });
 
         LOGGER.info("Traceability audit operation is finished");
     }

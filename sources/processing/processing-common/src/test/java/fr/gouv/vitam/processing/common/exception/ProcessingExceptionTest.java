@@ -38,8 +38,7 @@ public class ProcessingExceptionTest {
 
     @Test
     public void testConstructor() {
-        assertEquals(EXCEPTION + ": " + ERROR,
-            new ProcessingException(ERROR, new Exception()).toString());
+        assertEquals(EXCEPTION + ": " + ERROR, new ProcessingException(ERROR, new Exception()).toString());
         assertEquals(ERROR, new ProcessingException(ERROR).getMessage());
         assertEquals(JAVA_ERROR, new ProcessingException(new Exception()).getMessage());
     }

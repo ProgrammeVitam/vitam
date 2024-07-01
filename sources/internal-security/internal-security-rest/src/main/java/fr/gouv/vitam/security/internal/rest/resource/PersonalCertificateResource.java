@@ -55,7 +55,6 @@ public class PersonalCertificateResource {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PersonalCertificateResource.class);
 
-
     private final PermissionService permissionService;
 
     private final PersonalCertificateService personalCertificateService;
@@ -68,7 +67,8 @@ public class PersonalCertificateResource {
      */
     public PersonalCertificateResource(
         PermissionService permissionService,
-        PersonalCertificateService personalCertificateService) {
+        PersonalCertificateService personalCertificateService
+    ) {
         this.permissionService = permissionService;
         this.personalCertificateService = personalCertificateService;
     }
@@ -87,8 +87,7 @@ public class PersonalCertificateResource {
     @Path("/personal-certificate-check/{permission}")
     @GET
     @Consumes(MediaType.APPLICATION_OCTET_STREAM)
-    public void checkPersonalCertificate(byte[] certificate,
-        @PathParam("permission") String permission)
+    public void checkPersonalCertificate(byte[] certificate, @PathParam("permission") String permission)
         throws LogbookClientException, InvalidParseOperationException, PersonalCertificateException {
         ParametersChecker.checkParameter("Permission cannot be null", permission);
 
@@ -105,7 +104,8 @@ public class PersonalCertificateResource {
     @Path("/permission-check/{permission}")
     @Produces(MediaType.APPLICATION_JSON)
     public IsPersonalCertificateRequiredModel isPersonalCertificateRequiredForPermission(
-        @PathParam("permission") String permission) {
+        @PathParam("permission") String permission
+    ) {
         ParametersChecker.checkParameter("Permission cannot be null", permission);
 
         return permissionService.isPersonalCertificateRequiredForPermission(permission);

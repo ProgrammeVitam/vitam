@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.model.StatusCode;
  * StatusOutcome
  */
 public class StatusOutcome {
+
     private final StatusCode statusCode;
     private final String outDetail;
     private final String outMessg;

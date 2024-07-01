@@ -43,6 +43,7 @@ import static org.junit.Assert.assertTrue;
 
 @SuppressWarnings("javadoc")
 public class VitamLoggerFactoryTest {
+
     private static final Exception e = new Exception();
     private VitamLoggerFactory oldLoggerFactory;
     private VitamLogger mock;

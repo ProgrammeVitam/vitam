@@ -134,7 +134,6 @@ public class FileStorageProviderTest {
         }
     }
 
-
     @Test
     public void testDisabledStorageOffer() throws Exception {
         final FileStorageProvider fsProvider = new FileStorageProvider();

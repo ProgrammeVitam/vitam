@@ -66,9 +66,6 @@ public class CollectionConfiguration {
 
     @Override
     public String toString() {
-        return "ConfigurationCollection{" +
-            "shards=" + numberOfShards +
-            ", replicas=" + numberOfReplicas +
-            '}';
+        return "ConfigurationCollection{" + "shards=" + numberOfShards + ", replicas=" + numberOfReplicas + '}';
     }
 }

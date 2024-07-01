@@ -51,13 +51,11 @@ public class MultiplexedStreamWriter {
     }
 
     public void appendEntry(long size, InputStream inputStream) throws IOException {
-
         // Write size
         dataOutputStream.writeLong(size);
 
         // Write body
-        ExactSizeInputStream exactSizeInputStream =
-            new ExactSizeInputStream(inputStream, size);
+        ExactSizeInputStream exactSizeInputStream = new ExactSizeInputStream(inputStream, size);
         IOUtils.copy(exactSizeInputStream, this.dataOutputStream);
     }
 

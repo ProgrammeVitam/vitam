@@ -131,22 +131,23 @@ public abstract class UpdateUnitFinalize extends ActionHandler {
         this(
             BatchReportClientFactory.getInstance(),
             LogbookOperationsClientFactory.getInstance(),
-            StorageClientFactory.getInstance());
+            StorageClientFactory.getInstance()
+        );
     }
 
     @VisibleForTesting
-    protected UpdateUnitFinalize(BatchReportClientFactory batchReportClientFactory,
+    protected UpdateUnitFinalize(
+        BatchReportClientFactory batchReportClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
-        StorageClientFactory storageClientFactory) {
+        StorageClientFactory storageClientFactory
+    ) {
         this.batchReportClientFactory = batchReportClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.storageClientFactory = storageClientFactory;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
             ReportResults reportResult = storeReportToWorkspace(param, handler);
 
@@ -155,35 +156,52 @@ public abstract class UpdateUnitFinalize extends ActionHandler {
             cleanupReport(param);
 
             if (reportResult == null) {
-                return buildItemStatus(getPluginId(), WARNING, EventDetails.of(getUpdateType() +
-                    " report generation WARNING. Vitam results are absent, seems to be not logbook events..."));
+                return buildItemStatus(
+                    getPluginId(),
+                    WARNING,
+                    EventDetails.of(
+                        getUpdateType() +
+                        " report generation WARNING. Vitam results are absent, seems to be not logbook events..."
+                    )
+                );
             }
 
             if (reportResult.getNbKo() != 0 || reportResult.getNbWarning() != 0) {
-                return buildItemStatus(getPluginId(), WARNING, EventDetails.of(getUpdateType() +
-                    " report generation WARNING. Some update operations have a KO or WARNING status."));
+                return buildItemStatus(
+                    getPluginId(),
+                    WARNING,
+                    EventDetails.of(
+                        getUpdateType() +
+                        " report generation WARNING. Some update operations have a KO or WARNING status."
+                    )
+                );
             }
 
             if (reportResult.getTotal() == 0 || reportResult.getNbOk() == 0) {
-                return buildItemStatus(getPluginId(), KO,
-                    EventDetails.of(getUpdateType() + " report generation KO. No update done."));
+                return buildItemStatus(
+                    getPluginId(),
+                    KO,
+                    EventDetails.of(getUpdateType() + " report generation KO. No update done.")
+                );
             }
 
             return buildItemStatus(getPluginId(), OK, EventDetails.of(getUpdateType() + " report generation OK."));
-
-        } catch (LogbookClientException | VitamClientInternalException | StorageNotFoundClientException |
-            StorageServerClientException | StorageAlreadyExistsClientException | InvalidParseOperationException e) {
+        } catch (
+            LogbookClientException
+            | VitamClientInternalException
+            | StorageNotFoundClientException
+            | StorageServerClientException
+            | StorageAlreadyExistsClientException
+            | InvalidParseOperationException e
+        ) {
             LOGGER.error(e);
-            return buildItemStatus(getPluginId(), FATAL,
-                EventDetails.of("Client error when generating report."));
+            return buildItemStatus(getPluginId(), FATAL, EventDetails.of("Client error when generating report."));
         }
     }
 
     private ReportResults storeReportToWorkspace(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException, InvalidParseOperationException, LogbookClientException,
-        VitamClientInternalException {
+        throws ProcessingException, InvalidParseOperationException, LogbookClientException, VitamClientInternalException {
         try (BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
             if (handler.isExistingFileInWorkspace(WORKSPACE_REPORT_URI)) {
                 // Report already generated (idempotency)
                 JsonNode report = handler.getJsonFromWorkspace(WORKSPACE_REPORT_URI);
@@ -197,7 +215,9 @@ public abstract class UpdateUnitFinalize extends ActionHandler {
     }
 
     protected ReportSummary getReport(LogbookOperation logbook) {
-        Optional<LogbookEventOperation> logbookEvent = logbook.getEvents().stream()
+        Optional<LogbookEventOperation> logbookEvent = logbook
+            .getEvents()
+            .stream()
             .filter(e -> e.getEvType().startsWith(getUpdateActionKey()))
             .reduce((a, b) -> b);
 
@@ -219,16 +239,19 @@ public abstract class UpdateUnitFinalize extends ActionHandler {
 
     private Report generateReport(WorkerParameters param)
         throws InvalidParseOperationException, LogbookClientException {
-
         LogbookOperation logbook = getLogbookInformation(param);
         OperationSummary operationSummary = getOperationSummary(logbook, param.getContainerName());
         ReportSummary reportSummary = getReport(logbook);
         // Agregate status of logbook operations when ko occurs
-        if (reportSummary.getVitamResults() != null && reportSummary.getVitamResults().getNbKo() > 0 &&
-            WARNING.name().equals(param.getWorkflowStatusKo())) {
+        if (
+            reportSummary.getVitamResults() != null &&
+            reportSummary.getVitamResults().getNbKo() > 0 &&
+            WARNING.name().equals(param.getWorkflowStatusKo())
+        ) {
             operationSummary.setOutcome(operationSummary.getOutcome().replace(KO.name(), param.getWorkflowStatusKo()));
-            operationSummary
-                .setOutDetail(operationSummary.getOutDetail().replace(KO.name(), param.getWorkflowStatusKo()));
+            operationSummary.setOutDetail(
+                operationSummary.getOutDetail().replace(KO.name(), param.getWorkflowStatusKo())
+            );
         }
         JsonNode context = JsonHandler.createObjectNode();
         return new Report(operationSummary, reportSummary, context);
@@ -240,8 +263,12 @@ public abstract class UpdateUnitFinalize extends ActionHandler {
             ObjectDescription description = new ObjectDescription();
             description.setWorkspaceContainerGUID(param.getContainerName());
             description.setWorkspaceObjectURI(WORKSPACE_REPORT_URI);
-            storageClient.storeFileFromWorkspace(VitamConfiguration.getDefaultStrategy(), DataCategory.REPORT,
-                param.getContainerName() + JSONL_EXTENSION, description);
+            storageClient.storeFileFromWorkspace(
+                VitamConfiguration.getDefaultStrategy(),
+                DataCategory.REPORT,
+                param.getContainerName() + JSONL_EXTENSION,
+                description
+            );
         }
     }
 
@@ -285,7 +312,6 @@ public abstract class UpdateUnitFinalize extends ActionHandler {
         );
     }
 
-
     protected Map<StatusCode, Integer> getStatusStatistic(LogbookEvent logbookEvent) {
         String outMessg = logbookEvent.getOutMessg();
         if (StringUtils.isBlank(outMessg)) {
@@ -297,10 +323,17 @@ public abstract class UpdateUnitFinalize extends ActionHandler {
         }
         return Stream.of(splitedMessage)
             .reduce((first, second) -> second)
-            .map(last -> Stream.of(last.split("\\s"))
-                .filter(StringUtils::isNotBlank)
-                .collect(
-                    Collectors.toMap(s -> StatusCode.valueOf(s.split(":")[0]), s -> Integer.valueOf(s.split(":")[1]))))
+            .map(
+                last ->
+                    Stream.of(last.split("\\s"))
+                        .filter(StringUtils::isNotBlank)
+                        .collect(
+                            Collectors.toMap(
+                                s -> StatusCode.valueOf(s.split(":")[0]),
+                                s -> Integer.valueOf(s.split(":")[1])
+                            )
+                        )
+            )
             .orElse(Collections.emptyMap());
     }
 

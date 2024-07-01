@@ -45,7 +45,6 @@ public class X509CredentialsSha256Matcher extends AbstractX509CredentialsMatcher
     @Override
     public boolean doX509CredentialsMatch(X509AuthenticationToken token, X509AuthenticationInfo info) {
         try {
-
             // FIXME : Arrays.equals !!!
             final String clientCertSha256 = new Sha256Hash(token.getX509Certificate().getEncoded()).toHex();
             final String subjectCertSha256 = new Sha256Hash(info.getX509Certificate().getEncoded()).toHex();
@@ -57,16 +56,15 @@ public class X509CredentialsSha256Matcher extends AbstractX509CredentialsMatcher
             } else {
                 LOGGER.debug(
                     "Client certificate Sha256 hash ({}) do not match the one provided by the Realm ({}), will return false",
-                    clientCertSha256, subjectCertSha256);
+                    clientCertSha256,
+                    subjectCertSha256
+                );
             }
 
             return match;
-
         } catch (final CertificateEncodingException ex) {
             LOGGER.debug("Unable to do credentials matching", ex);
             return false;
         }
-
     }
-
 }

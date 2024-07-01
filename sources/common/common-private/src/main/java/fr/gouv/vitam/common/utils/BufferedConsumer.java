@@ -44,7 +44,6 @@ public class BufferedConsumer<T> implements Consumer<T>, AutoCloseable {
 
     @Override
     public void accept(T entry) {
-
         entryBuffer.add(entry);
 
         if (entryBuffer.size() >= bufferSize) {
@@ -54,7 +53,6 @@ public class BufferedConsumer<T> implements Consumer<T>, AutoCloseable {
 
     public void flush() {
         if (!this.entryBuffer.isEmpty()) {
-
             this.bufferConsumer.accept(entryBuffer);
             this.entryBuffer.clear();
         }

@@ -34,16 +34,15 @@ import java.util.function.Function;
  */
 public final class CloseableIteratorUtils {
 
-    private CloseableIteratorUtils() {
-    }
+    private CloseableIteratorUtils() {}
 
     /**
      * Maps a CloseableIterator from un input type T to an output type R using a mapper function.
      */
     public static <T, R> CloseableIterator<R> map(
         CloseableIterator<T> closeableIterator,
-        Function<? super T, ? extends R> mapper) {
-
+        Function<? super T, ? extends R> mapper
+    ) {
         return new CloseableIterator<R>() {
             @Override
             public boolean hasNext() {
@@ -101,5 +100,4 @@ public final class CloseableIteratorUtils {
             // NOP
         }
     }
-
 }

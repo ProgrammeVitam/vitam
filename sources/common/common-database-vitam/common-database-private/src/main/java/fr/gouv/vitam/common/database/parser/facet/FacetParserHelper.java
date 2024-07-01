@@ -55,8 +55,7 @@ public class FacetParserHelper extends FacetHelper {
     /**
      * Construction
      */
-    protected FacetParserHelper() {
-    }
+    protected FacetParserHelper() {}
 
     /**
      * Transform facet jsonNode in terms Facet object
@@ -74,11 +73,13 @@ public class FacetParserHelper extends FacetHelper {
 
         if (!terms.has(FACETARGS.ORDER.exactToken())) {
             throw new InvalidCreateOperationException(
-                String.format("facet must contain a %s parameter", FACETARGS.ORDER.exactToken()));
+                String.format("facet must contain a %s parameter", FACETARGS.ORDER.exactToken())
+            );
         }
         if (!terms.has(FACETARGS.SIZE.exactToken())) {
             throw new InvalidCreateOperationException(
-                String.format("facet must contain a %s parameter", FACETARGS.SIZE.exactToken()));
+                String.format("facet must contain a %s parameter", FACETARGS.SIZE.exactToken())
+            );
         }
 
         String translatedNestedPath = null;
@@ -98,7 +99,6 @@ public class FacetParserHelper extends FacetHelper {
 
         Integer size = terms.get(FACETARGS.SIZE.exactToken()).asInt();
         FacetOrder order = FacetOrder.valueOf(terms.get(FACETARGS.ORDER.exactToken()).asText());
-
 
         return FacetHelper.terms(name, translatedFieldName, translatedNestedPath, size, order);
     }
@@ -124,8 +124,12 @@ public class FacetParserHelper extends FacetHelper {
         ranges.forEach(item -> {
             JsonNode from = item.get(FACETARGS.FROM.exactToken());
             JsonNode to = item.get(FACETARGS.TO.exactToken());
-            rangesList.add(new RangeFacetValue(from != null && !from.isNull() ? from.asText() : null,
-                to != null && !to.isNull() ? to.asText() : null));
+            rangesList.add(
+                new RangeFacetValue(
+                    from != null && !from.isNull() ? from.asText() : null,
+                    to != null && !to.isNull() ? to.asText() : null
+                )
+            );
         });
 
         String translatedNestedPath = null;
@@ -144,7 +148,6 @@ public class FacetParserHelper extends FacetHelper {
         }
 
         return FacetHelper.dateRange(name, translatedFieldName, translatedNestedPath, dateFormat, rangesList);
-
     }
 
     /**

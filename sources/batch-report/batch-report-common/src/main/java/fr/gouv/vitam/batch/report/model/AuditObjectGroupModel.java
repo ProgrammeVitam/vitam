@@ -58,8 +58,12 @@ public class AuditObjectGroupModel {
         // Empty constructor for deserialization
     }
 
-    public AuditObjectGroupModel(String processId, String creationDateTime,
-        AuditObjectGroupReportEntry metadata, int tenant) {
+    public AuditObjectGroupModel(
+        String processId,
+        String creationDateTime,
+        AuditObjectGroupReportEntry metadata,
+        int tenant
+    ) {
         this.processId = processId;
         this.creationDateTime = creationDateTime;
         this.metadata = metadata;
@@ -100,21 +104,24 @@ public class AuditObjectGroupModel {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this)
-            return true;
+        if (o == this) return true;
         if (!(o instanceof AuditObjectGroupReportEntry)) {
             return false;
         }
         AuditObjectGroupModel auditObjectGroupModel = (AuditObjectGroupModel) o;
 
-        return Objects.equals(getTenant(), auditObjectGroupModel.getTenant())
-            && Objects.equals(getProcessId(), auditObjectGroupModel.getProcessId())
-            && Objects.equals(getMetadataId(this), getMetadataId(auditObjectGroupModel));
+        return (
+            Objects.equals(getTenant(), auditObjectGroupModel.getTenant()) &&
+            Objects.equals(getProcessId(), auditObjectGroupModel.getProcessId()) &&
+            Objects.equals(getMetadataId(this), getMetadataId(auditObjectGroupModel))
+        );
     }
 
     private static String getMetadataId(AuditObjectGroupModel auditObjectGroupModel) {
-        if (auditObjectGroupModel.getMetadata() == null
-            || StringUtils.isEmpty(auditObjectGroupModel.getMetadata().getDetailId())) {
+        if (
+            auditObjectGroupModel.getMetadata() == null ||
+            StringUtils.isEmpty(auditObjectGroupModel.getMetadata().getDetailId())
+        ) {
             throw new IllegalArgumentException("Invalid metadata");
         }
 

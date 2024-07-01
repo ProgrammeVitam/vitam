@@ -72,31 +72,79 @@ public class ReadOnlyShieldStorageDistribution implements StorageDistribution {
     }
 
     @Override
-    public StoredInfoResult copyObjectFromOfferToOffer(DataContext context, String sourceOffer,
-        String destinationOffer) {
-        throw reportIllegalAccess("Cannot write in ReadOnly mode. Could not copy object " + context.getCategory()
-            + "/" + context.getObjectId() + " from offer " + sourceOffer + " to offer " + destinationOffer);
+    public StoredInfoResult copyObjectFromOfferToOffer(
+        DataContext context,
+        String sourceOffer,
+        String destinationOffer
+    ) {
+        throw reportIllegalAccess(
+            "Cannot write in ReadOnly mode. Could not copy object " +
+            context.getCategory() +
+            "/" +
+            context.getObjectId() +
+            " from offer " +
+            sourceOffer +
+            " to offer " +
+            destinationOffer
+        );
     }
 
     @Override
-    public StoredInfoResult storeDataInAllOffers(String strategyId, String objectId,
-        ObjectDescription createObjectDescription, DataCategory category, String requester) {
-        throw reportIllegalAccess("Cannot write in ReadOnly mode. Could not copy object " + category + "/" + objectId +
-            " to all offers for strategy " + strategyId);
+    public StoredInfoResult storeDataInAllOffers(
+        String strategyId,
+        String objectId,
+        ObjectDescription createObjectDescription,
+        DataCategory category,
+        String requester
+    ) {
+        throw reportIllegalAccess(
+            "Cannot write in ReadOnly mode. Could not copy object " +
+            category +
+            "/" +
+            objectId +
+            " to all offers for strategy " +
+            strategyId
+        );
     }
 
     @Override
-    public StoredInfoResult storeDataInOffers(String strategyId, String origin, String objectId, DataCategory category,
-        String requester, List<String> offerIds, Response response) {
-        throw reportIllegalAccess("Cannot write in ReadOnly mode. Could not copy object " + category + "/" +
-            objectId + " to offers " + offerIds);
+    public StoredInfoResult storeDataInOffers(
+        String strategyId,
+        String origin,
+        String objectId,
+        DataCategory category,
+        String requester,
+        List<String> offerIds,
+        Response response
+    ) {
+        throw reportIllegalAccess(
+            "Cannot write in ReadOnly mode. Could not copy object " +
+            category +
+            "/" +
+            objectId +
+            " to offers " +
+            offerIds
+        );
     }
 
     @Override
-    public StoredInfoResult storeDataInOffers(String strategyId, String origin, StreamAndInfo streamAndInfo,
-        String objectId, DataCategory category, String requester, List<String> offerIds) {
-        throw reportIllegalAccess("Cannot write in ReadOnly mode. Could not copy object " + category + "/" +
-            objectId + " to offers " + offerIds);
+    public StoredInfoResult storeDataInOffers(
+        String strategyId,
+        String origin,
+        StreamAndInfo streamAndInfo,
+        String objectId,
+        DataCategory category,
+        String requester,
+        List<String> offerIds
+    ) {
+        throw reportIllegalAccess(
+            "Cannot write in ReadOnly mode. Could not copy object " +
+            category +
+            "/" +
+            objectId +
+            " to offers " +
+            offerIds
+        );
     }
 
     @Override
@@ -116,70 +164,126 @@ public class ReadOnlyShieldStorageDistribution implements StorageDistribution {
     }
 
     @Override
-    public CloseableIterator<ObjectEntry> listContainerObjectsForOffer(DataCategory category, String offerId,
-        boolean includeDisabled) throws StorageException {
+    public CloseableIterator<ObjectEntry> listContainerObjectsForOffer(
+        DataCategory category,
+        String offerId,
+        boolean includeDisabled
+    ) throws StorageException {
         return innerStorageDistribution.listContainerObjectsForOffer(category, offerId, includeDisabled);
     }
 
     @Override
-    public RequestResponse<OfferLog> getOfferLogs(String strategyId, DataCategory category, Long offset, int limit,
-        Order order) throws StorageException {
+    public RequestResponse<OfferLog> getOfferLogs(
+        String strategyId,
+        DataCategory category,
+        Long offset,
+        int limit,
+        Order order
+    ) throws StorageException {
         return innerStorageDistribution.getOfferLogs(strategyId, category, offset, limit, order);
     }
 
     @Override
-    public RequestResponse<OfferLog> getOfferLogsByOfferId(String strategyId, String offerId, DataCategory category,
-        Long offset, int limit, Order order) throws StorageException {
+    public RequestResponse<OfferLog> getOfferLogsByOfferId(
+        String strategyId,
+        String offerId,
+        DataCategory category,
+        Long offset,
+        int limit,
+        Order order
+    ) throws StorageException {
         return innerStorageDistribution.getOfferLogsByOfferId(strategyId, offerId, category, offset, limit, order);
     }
 
     @Override
-    public Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category,
-        AccessLogInfoModel logInformation) throws StorageException {
+    public Response getContainerByCategory(
+        String strategyId,
+        String origin,
+        String objectId,
+        DataCategory category,
+        AccessLogInfoModel logInformation
+    ) throws StorageException {
         return innerStorageDistribution.getContainerByCategory(strategyId, origin, objectId, category, logInformation);
     }
 
     @Override
-    public Response getContainerByCategory(String strategyId, String origin, String objectId, DataCategory category,
-        String offerId) throws StorageException {
+    public Response getContainerByCategory(
+        String strategyId,
+        String origin,
+        String objectId,
+        DataCategory category,
+        String offerId
+    ) throws StorageException {
         return innerStorageDistribution.getContainerByCategory(strategyId, origin, objectId, category, offerId);
     }
 
     @Override
-    public JsonNode getContainerInformation(String strategyId, DataCategory type, String objectId,
-        List<String> offerIds, boolean noCache) throws StorageException {
+    public JsonNode getContainerInformation(
+        String strategyId,
+        DataCategory type,
+        String objectId,
+        List<String> offerIds,
+        boolean noCache
+    ) throws StorageException {
         return innerStorageDistribution.getContainerInformation(strategyId, type, objectId, offerIds, noCache);
     }
 
     @Override
-    public Map<String, Boolean> checkObjectExisting(String strategyId, String objectId, DataCategory category,
-        List<String> offerIds) throws StorageException {
+    public Map<String, Boolean> checkObjectExisting(
+        String strategyId,
+        String objectId,
+        DataCategory category,
+        List<String> offerIds
+    ) throws StorageException {
         return innerStorageDistribution.checkObjectExisting(strategyId, objectId, category, offerIds);
     }
 
     @Override
     public void deleteObjectInAllOffers(String strategyId, DataContext context) {
-        throw reportIllegalAccess("Cannot write in ReadOnly mode. Could not delete object " + context.getCategory() +
-            "/" + context.getObjectId() + " from all offers of strategy " + strategyId);
+        throw reportIllegalAccess(
+            "Cannot write in ReadOnly mode. Could not delete object " +
+            context.getCategory() +
+            "/" +
+            context.getObjectId() +
+            " from all offers of strategy " +
+            strategyId
+        );
     }
 
     @Override
     public void deleteObjectInOffers(String strategyId, DataContext context, List<String> offers) {
-        throw reportIllegalAccess("Cannot write in ReadOnly mode. Could not delete object " + context.getCategory() +
-            "/" + context.getObjectId() + " from offers " + offers);
+        throw reportIllegalAccess(
+            "Cannot write in ReadOnly mode. Could not delete object " +
+            context.getCategory() +
+            "/" +
+            context.getObjectId() +
+            " from offers " +
+            offers
+        );
     }
 
     @Override
-    public List<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId, DataCategory type,
-        List<String> objectIds, List<String> offerIds) throws StorageException {
+    public List<BatchObjectInformationResponse> getBatchObjectInformation(
+        String strategyId,
+        DataCategory type,
+        List<String> objectIds,
+        List<String> offerIds
+    ) throws StorageException {
         return innerStorageDistribution.getBatchObjectInformation(strategyId, type, objectIds, offerIds);
     }
 
     @Override
-    public BulkObjectStoreResponse bulkCreateFromWorkspace(String strategyId,
-        BulkObjectStoreRequest bulkObjectStoreRequest, String requester) {
-        throw reportIllegalAccess("Cannot write in ReadOnly mode. Could not proceed bulk objects write for container " +
-            bulkObjectStoreRequest.getType() + " into all offers of strategy " + strategyId);
+    public BulkObjectStoreResponse bulkCreateFromWorkspace(
+        String strategyId,
+        BulkObjectStoreRequest bulkObjectStoreRequest,
+        String requester
+    ) {
+        throw reportIllegalAccess(
+            "Cannot write in ReadOnly mode. Could not proceed bulk objects write for container " +
+            bulkObjectStoreRequest.getType() +
+            " into all offers of strategy " +
+            strategyId
+        );
     }
 
     @Override
@@ -188,28 +292,52 @@ public class ReadOnlyShieldStorageDistribution implements StorageDistribution {
     }
 
     @Override
-    public Optional<String> createAccessRequestIfRequired(String strategyId, String offerId, DataCategory dataCategory,
-        List<String> objectsNames) throws StorageException {
+    public Optional<String> createAccessRequestIfRequired(
+        String strategyId,
+        String offerId,
+        DataCategory dataCategory,
+        List<String> objectsNames
+    ) throws StorageException {
         return innerStorageDistribution.createAccessRequestIfRequired(strategyId, offerId, dataCategory, objectsNames);
     }
 
     @Override
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
-        List<String> accessRequestIds, boolean adminCrossTenantAccessRequestAllowed) throws StorageException {
-        return innerStorageDistribution.checkAccessRequestStatuses(strategyId, offerId, accessRequestIds,
-            adminCrossTenantAccessRequestAllowed);
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(
+        String strategyId,
+        String offerId,
+        List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) throws StorageException {
+        return innerStorageDistribution.checkAccessRequestStatuses(
+            strategyId,
+            offerId,
+            accessRequestIds,
+            adminCrossTenantAccessRequestAllowed
+        );
     }
 
     @Override
-    public void removeAccessRequest(String strategyId, String offerId, String accessRequestId,
-        boolean adminCrossTenantAccessRequestAllowed) throws StorageException {
-        innerStorageDistribution.removeAccessRequest(strategyId, offerId, accessRequestId,
-            adminCrossTenantAccessRequestAllowed);
+    public void removeAccessRequest(
+        String strategyId,
+        String offerId,
+        String accessRequestId,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) throws StorageException {
+        innerStorageDistribution.removeAccessRequest(
+            strategyId,
+            offerId,
+            accessRequestId,
+            adminCrossTenantAccessRequestAllowed
+        );
     }
 
     @Override
-    public boolean checkObjectAvailability(String strategyId, String offerId, DataCategory dataCategory,
-        List<String> objectsNames) throws StorageException {
+    public boolean checkObjectAvailability(
+        String strategyId,
+        String offerId,
+        DataCategory dataCategory,
+        List<String> objectsNames
+    ) throws StorageException {
         return innerStorageDistribution.checkObjectAvailability(strategyId, offerId, dataCategory, objectsNames);
     }
 

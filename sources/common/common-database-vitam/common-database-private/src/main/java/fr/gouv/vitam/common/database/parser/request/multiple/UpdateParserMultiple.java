@@ -108,13 +108,11 @@ public class UpdateParserMultiple extends RequestParserMultiple {
      * @param rootNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void actionParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void actionParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
-        GlobalDatas.sanityParametersCheck(rootNode.toString(),
-            GlobalDatasParser.NB_ACTIONS);
+        GlobalDatas.sanityParametersCheck(rootNode.toString(), GlobalDatasParser.NB_ACTIONS);
         try {
             for (final JsonNode node : (ArrayNode) rootNode) {
                 Iterator<Entry<String, JsonNode>> iterator = node.fields();
@@ -126,8 +124,7 @@ public class UpdateParserMultiple extends RequestParserMultiple {
                 iterator = null;
             }
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Action: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Action: " + rootNode, e);
         }
     }
 
@@ -137,8 +134,7 @@ public class UpdateParserMultiple extends RequestParserMultiple {
      * @param rootNode JsonNode
      * @throws InvalidParseOperationException if rootNode could not parse to JSON
      */
-    protected void thresholdParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void thresholdParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -146,13 +142,11 @@ public class UpdateParserMultiple extends RequestParserMultiple {
         try {
             ((UpdateMultiQuery) request).setThreshold(rootNode.asLong());
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Action: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Action: " + rootNode, e);
         }
     }
 
-    protected void setregexParse(final JsonNode rootNode)
-        throws InvalidParseOperationException {
+    protected void setregexParse(final JsonNode rootNode) throws InvalidParseOperationException {
         if (rootNode == null) {
             return;
         }
@@ -160,8 +154,7 @@ public class UpdateParserMultiple extends RequestParserMultiple {
         try {
             ((UpdateMultiQuery) request).setThreshold(rootNode.asLong());
         } catch (final Exception e) {
-            throw new InvalidParseOperationException(
-                "Parse in error for Action: " + rootNode, e);
+            throw new InvalidParseOperationException("Parse in error for Action: " + rootNode, e);
         }
     }
 
@@ -175,16 +168,14 @@ public class UpdateParserMultiple extends RequestParserMultiple {
     protected static final UPDATEACTION getUpdateActionId(final String actionroot)
         throws InvalidParseOperationException {
         if (!actionroot.startsWith(BuilderToken.DEFAULT_PREFIX)) {
-            throw new InvalidParseOperationException(
-                "Incorrect action $command: " + actionroot);
+            throw new InvalidParseOperationException("Incorrect action $command: " + actionroot);
         }
         final String command = actionroot.substring(1).toUpperCase();
         UPDATEACTION action = null;
         try {
             action = UPDATEACTION.valueOf(command);
         } catch (final IllegalArgumentException e) {
-            throw new InvalidParseOperationException("Invalid action command: " + command,
-                e);
+            throw new InvalidParseOperationException("Invalid action command: " + command, e);
         }
         return action;
     }
@@ -217,8 +208,7 @@ public class UpdateParserMultiple extends RequestParserMultiple {
             case SETREGEX:
                 return setregex(command, updateAdapter);
             default:
-                throw new InvalidParseOperationException(
-                    "Invalid command: " + refCommand);
+                throw new InvalidParseOperationException("Invalid command: " + refCommand);
         }
     }
 

@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import fr.gouv.vitam.common.VitamConfiguration;
@@ -68,8 +67,9 @@ public class ReferentialCreateSymblolicAccessionRegisterJobTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private AdminManagementClientFactory adminManagementClientFactory;
@@ -93,14 +93,15 @@ public class ReferentialCreateSymblolicAccessionRegisterJobTest {
     @Test
     @RunWithCustomExecutor
     public void testRuleAuditOKThenSuccess() throws Exception {
-
         // Given
         AtomicInteger tenantId = new AtomicInteger();
-        doAnswer((args) -> {
+        doAnswer(args -> {
             assertThat(Thread.currentThread()).isInstanceOf(VitamThreadFactory.VitamThread.class);
             tenantId.set(VitamThreadUtils.getVitamSession().getTenantId());
             return new RequestResponseOK<AccessionRegisterSymbolic>();
-        }).when(adminManagementClient).createAccessionRegisterSymbolic(any());
+        })
+            .when(adminManagementClient)
+            .createAccessionRegisterSymbolic(any());
 
         // When
 
@@ -116,14 +117,15 @@ public class ReferentialCreateSymblolicAccessionRegisterJobTest {
     @Test
     @RunWithCustomExecutor
     public void testRuleAuditKOThenException() throws Exception {
-
         // Given
         doThrow(new AdminManagementClientServerException("prb"))
-            .when(adminManagementClient).createAccessionRegisterSymbolic(any());
+            .when(adminManagementClient)
+            .createAccessionRegisterSymbolic(any());
 
         // When / Then
-        assertThatThrownBy(() -> accessionRegisterSymbolicMain.execute(context))
-            .isInstanceOf(JobExecutionException.class);
+        assertThatThrownBy(() -> accessionRegisterSymbolicMain.execute(context)).isInstanceOf(
+            JobExecutionException.class
+        );
         verify(adminManagementClient).createAccessionRegisterSymbolic(any());
     }
 }

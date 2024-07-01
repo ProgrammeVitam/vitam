@@ -44,8 +44,7 @@ public class PerformanceLogger {
     /**
      * default constructor, cannot be instantiate.
      */
-    private PerformanceLogger() {
-    }
+    private PerformanceLogger() {}
 
     /**
      * log performance information with step, action and task.

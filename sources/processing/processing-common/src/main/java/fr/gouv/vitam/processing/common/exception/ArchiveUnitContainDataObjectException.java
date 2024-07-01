@@ -31,6 +31,7 @@ package fr.gouv.vitam.processing.common.exception;
  * of exception occurs when an archive unit references a Binary Data Object instead of a Data Object Group
  */
 public class ArchiveUnitContainDataObjectException extends ProcessingException {
+
     private static final long serialVersionUID = -8063612650088096556L;
 
     private String unitId;
@@ -70,8 +71,13 @@ public class ArchiveUnitContainDataObjectException extends ProcessingException {
      * @param gotId
      * @param eventDetailData
      */
-    public ArchiveUnitContainDataObjectException(String message, String unitId, String bdoId, String gotId,
-        String eventDetailData) {
+    public ArchiveUnitContainDataObjectException(
+        String message,
+        String unitId,
+        String bdoId,
+        String gotId,
+        String eventDetailData
+    ) {
         super(message);
         this.unitId = unitId;
         this.gotId = gotId;
@@ -108,5 +114,4 @@ public class ArchiveUnitContainDataObjectException extends ProcessingException {
     public String getEventDetailData() {
         return eventDetailData;
     }
-
 }

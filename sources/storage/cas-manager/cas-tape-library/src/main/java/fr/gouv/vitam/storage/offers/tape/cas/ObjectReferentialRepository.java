@@ -89,23 +89,31 @@ public class ObjectReferentialRepository {
         } catch (MongoException ex) {
             throw new ObjectReferentialException(
                 "Could not insert or update tar referential for id " +
-                    tapeObjectReferentialEntity.getId().getContainerName() + "/" +
-                    tapeObjectReferentialEntity.getId().getObjectName(), ex);
+                tapeObjectReferentialEntity.getId().getContainerName() +
+                "/" +
+                tapeObjectReferentialEntity.getId().getObjectName(),
+                ex
+            );
         }
     }
 
     public Optional<TapeObjectReferentialEntity> find(String containerName, String objectName)
         throws ObjectReferentialException {
-
         Document document;
         try {
-            document = collection.find(
-                    Filters.eq(TapeObjectReferentialEntity.ID,
-                        toBson(new TapeLibraryObjectReferentialId(containerName, objectName))))
+            document = collection
+                .find(
+                    Filters.eq(
+                        TapeObjectReferentialEntity.ID,
+                        toBson(new TapeLibraryObjectReferentialId(containerName, objectName))
+                    )
+                )
                 .first();
         } catch (MongoException ex) {
-            throw new ObjectReferentialException("Could not find storage location by id " +
-                containerName + "/" + objectName, ex);
+            throw new ObjectReferentialException(
+                "Could not find storage location by id " + containerName + "/" + objectName,
+                ex
+            );
         }
 
         if (document == null) {
@@ -121,65 +129,73 @@ public class ObjectReferentialRepository {
 
     public List<TapeObjectReferentialEntity> bulkFind(String containerName, Set<String> objectNames)
         throws ObjectReferentialException {
-
         if (objectNames.isEmpty()) {
             return Collections.emptyList();
         }
 
         // Process in bulks
-        Iterator<List<String>> objectNameBulks =
-            Iterators.partition(objectNames.iterator(), this.bulkSize);
+        Iterator<List<String>> objectNameBulks = Iterators.partition(objectNames.iterator(), this.bulkSize);
 
         List<TapeObjectReferentialEntity> result = new ArrayList<>();
         while (objectNameBulks.hasNext()) {
-
-            List<Document> objectReferentialIds = objectNameBulks.next().stream()
+            List<Document> objectReferentialIds = objectNameBulks
+                .next()
+                .stream()
                 .map(objectName -> toBson(new TapeLibraryObjectReferentialId(containerName, objectName)))
                 .collect(Collectors.toList());
 
-            try (MongoCursor<Document> iterator =
-                collection.find(Filters.in(TapeObjectReferentialEntity.ID, objectReferentialIds)).iterator()) {
-
+            try (
+                MongoCursor<Document> iterator = collection
+                    .find(Filters.in(TapeObjectReferentialEntity.ID, objectReferentialIds))
+                    .iterator()
+            ) {
                 while (iterator.hasNext()) {
                     Document document = iterator.next();
                     try {
                         result.add(fromBson(document));
                     } catch (InvalidParseOperationException e) {
                         throw new IllegalStateException(
-                            "Could not parse documents from DB " + BsonHelper.stringify(document), e);
+                            "Could not parse documents from DB " + BsonHelper.stringify(document),
+                            e
+                        );
                     }
                 }
-
             } catch (MongoException ex) {
-                throw new ObjectReferentialException("Could not find storage location by ids " +
-                    objectNames + " in container " + containerName, ex);
+                throw new ObjectReferentialException(
+                    "Could not find storage location by ids " + objectNames + " in container " + containerName,
+                    ex
+                );
             }
         }
         return result;
     }
 
-    public void updateStorageLocation(String containerName, String objectName, String storageId,
-        TapeLibraryTarObjectStorageLocation tapeLibraryTarStorageLocation)
-        throws ObjectReferentialException {
-
+    public void updateStorageLocation(
+        String containerName,
+        String objectName,
+        String storageId,
+        TapeLibraryTarObjectStorageLocation tapeLibraryTarStorageLocation
+    ) throws ObjectReferentialException {
         try {
             collection.updateOne(
                 Filters.and(
-                    Filters.eq(TapeObjectReferentialEntity.ID,
-                        toBson(new TapeLibraryObjectReferentialId(containerName, objectName))),
+                    Filters.eq(
+                        TapeObjectReferentialEntity.ID,
+                        toBson(new TapeLibraryObjectReferentialId(containerName, objectName))
+                    ),
                     Filters.eq(TapeObjectReferentialEntity.STORAGE_ID, storageId)
                 ),
                 Updates.combine(
-                    Updates.set(TapeObjectReferentialEntity.LOCATION,
-                        toBson(tapeLibraryTarStorageLocation)),
-                    Updates.set(TapeObjectReferentialEntity.LAST_UPDATE_DATE,
-                        LocalDateUtil.now().toString())
+                    Updates.set(TapeObjectReferentialEntity.LOCATION, toBson(tapeLibraryTarStorageLocation)),
+                    Updates.set(TapeObjectReferentialEntity.LAST_UPDATE_DATE, LocalDateUtil.now().toString())
                 ),
                 new UpdateOptions().upsert(false)
             );
         } catch (MongoException ex) {
-            throw new ObjectReferentialException("Could not update storage location for " +
-                containerName + "/" + objectName, ex);
+            throw new ObjectReferentialException(
+                "Could not update storage location for " + containerName + "/" + objectName,
+                ex
+            );
         }
     }
 
@@ -187,57 +203,84 @@ public class ObjectReferentialRepository {
         throws ObjectReferentialException {
         try {
             DeleteResult deleteResult = collection.deleteOne(
-                Filters.eq(TapeObjectReferentialEntity.ID,
-                    toBson(tapeLibraryObjectReferentialId)));
+                Filters.eq(TapeObjectReferentialEntity.ID, toBson(tapeLibraryObjectReferentialId))
+            );
 
             return (deleteResult.getDeletedCount() > 0L);
         } catch (MongoException ex) {
             throw new ObjectReferentialException(
                 "Could not delete tar referential for id " +
-                    tapeLibraryObjectReferentialId.getContainerName() + "/" +
-                    tapeLibraryObjectReferentialId.getObjectName(), ex);
+                tapeLibraryObjectReferentialId.getContainerName() +
+                "/" +
+                tapeLibraryObjectReferentialId.getObjectName(),
+                ex
+            );
         }
     }
 
     public Set<String> selectArchiveIdsByObjectIds(Iterator<TapeLibraryObjectReferentialId> objectIdIterator)
         throws ObjectReferentialException {
-
-        Iterator<List<TapeLibraryObjectReferentialId>> objectIdBulkIterator =
-            Iterators.partition(objectIdIterator, bulkSize);
+        Iterator<List<TapeLibraryObjectReferentialId>> objectIdBulkIterator = Iterators.partition(
+            objectIdIterator,
+            bulkSize
+        );
         Set<String> archiveIds = new HashSet<>();
         while (objectIdBulkIterator.hasNext()) {
-
-            List<Document> objectReferentialIds = objectIdBulkIterator.next().stream()
+            List<Document> objectReferentialIds = objectIdBulkIterator
+                .next()
+                .stream()
                 .map(this::toBson)
                 .collect(Collectors.toList());
 
             List<Bson> pipeline = List.of(
-                Aggregates.match(Filters.and(
-                    Filters.in(TapeObjectReferentialEntity.ID, objectReferentialIds),
-                    Filters.eq(TapeObjectReferentialEntity.LOCATION + "." + TapeLibraryObjectStorageLocation.TYPE,
-                        TapeLibraryObjectStorageLocation.TAR))),
-                Aggregates.project(new Document()
-                    .append("_id", 0)
-                    .append(TapeObjectReferentialEntity.LOCATION + "." + TapeLibraryTarObjectStorageLocation.TAR_ENTRIES
-                        + "." + TarEntryDescription.TAR_FILE_ID, 1)),
-                Aggregates.unwind("$" + TapeObjectReferentialEntity.LOCATION + "." +
-                    TapeLibraryTarObjectStorageLocation.TAR_ENTRIES),
-                Aggregates.unwind("$" + TapeObjectReferentialEntity.LOCATION + "." +
-                    TapeLibraryTarObjectStorageLocation.TAR_ENTRIES + "." + TarEntryDescription.TAR_FILE_ID),
+                Aggregates.match(
+                    Filters.and(
+                        Filters.in(TapeObjectReferentialEntity.ID, objectReferentialIds),
+                        Filters.eq(
+                            TapeObjectReferentialEntity.LOCATION + "." + TapeLibraryObjectStorageLocation.TYPE,
+                            TapeLibraryObjectStorageLocation.TAR
+                        )
+                    )
+                ),
+                Aggregates.project(
+                    new Document()
+                        .append("_id", 0)
+                        .append(
+                            TapeObjectReferentialEntity.LOCATION +
+                            "." +
+                            TapeLibraryTarObjectStorageLocation.TAR_ENTRIES +
+                            "." +
+                            TarEntryDescription.TAR_FILE_ID,
+                            1
+                        )
+                ),
+                Aggregates.unwind(
+                    "$" + TapeObjectReferentialEntity.LOCATION + "." + TapeLibraryTarObjectStorageLocation.TAR_ENTRIES
+                ),
+                Aggregates.unwind(
+                    "$" +
+                    TapeObjectReferentialEntity.LOCATION +
+                    "." +
+                    TapeLibraryTarObjectStorageLocation.TAR_ENTRIES +
+                    "." +
+                    TarEntryDescription.TAR_FILE_ID
+                ),
                 // Deduplicate tarIds
-                Aggregates.group("$" + TapeObjectReferentialEntity.LOCATION + "." +
-                    TapeLibraryTarObjectStorageLocation.TAR_ENTRIES + "." + TarEntryDescription.TAR_FILE_ID)
+                Aggregates.group(
+                    "$" +
+                    TapeObjectReferentialEntity.LOCATION +
+                    "." +
+                    TapeLibraryTarObjectStorageLocation.TAR_ENTRIES +
+                    "." +
+                    TarEntryDescription.TAR_FILE_ID
+                )
             );
 
-            try (MongoCursor<Document> iterator = collection
-                .aggregate(pipeline)
-                .allowDiskUse(true)
-                .iterator()) {
+            try (MongoCursor<Document> iterator = collection.aggregate(pipeline).allowDiskUse(true).iterator()) {
                 while (iterator.hasNext()) {
                     Document document = iterator.next();
                     archiveIds.add(document.getString("_id"));
                 }
-
             } catch (MongoException ex) {
                 throw new ObjectReferentialException("Could not find archiveIds by objectIds", ex);
             }
@@ -249,27 +292,30 @@ public class ObjectReferentialRepository {
         return Document.parse(JsonHandler.unprettyPrint(object));
     }
 
-    private TapeObjectReferentialEntity fromBson(Document document)
-        throws InvalidParseOperationException {
+    private TapeObjectReferentialEntity fromBson(Document document) throws InvalidParseOperationException {
         return BsonHelper.fromDocumentToObject(document, TapeObjectReferentialEntity.class);
     }
 
     public CloseableIterator<ObjectEntry> listContainerObjectEntries(String containerName)
         throws ObjectReferentialException {
-
         try {
-            MongoCursor<Document> mongoCursor = collection.find(
-                    Filters.eq(TapeObjectReferentialEntity.ID + "." + TapeLibraryObjectReferentialId.CONTAINER_NAME,
-                        containerName))
-                .projection(Projections.include(
-                    TapeObjectReferentialEntity.ID + "." + TapeLibraryObjectReferentialId.OBJECT_NAME,
-                    TapeObjectReferentialEntity.SIZE
-                ))
+            MongoCursor<Document> mongoCursor = collection
+                .find(
+                    Filters.eq(
+                        TapeObjectReferentialEntity.ID + "." + TapeLibraryObjectReferentialId.CONTAINER_NAME,
+                        containerName
+                    )
+                )
+                .projection(
+                    Projections.include(
+                        TapeObjectReferentialEntity.ID + "." + TapeLibraryObjectReferentialId.OBJECT_NAME,
+                        TapeObjectReferentialEntity.SIZE
+                    )
+                )
                 .batchSize(VitamConfiguration.getBatchSize())
                 .iterator();
 
             return new CloseableIterator<>() {
-
                 @Override
                 public void close() {
                     mongoCursor.close();
@@ -291,7 +337,6 @@ public class ObjectReferentialRepository {
                     );
                 }
             };
-
         } catch (MongoException ex) {
             throw new ObjectReferentialException("Could not list objects of container " + containerName, ex);
         }

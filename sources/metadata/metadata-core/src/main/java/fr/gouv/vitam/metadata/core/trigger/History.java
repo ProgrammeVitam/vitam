@@ -86,5 +86,4 @@ public class History {
 
         return currentNode;
     }
-
 }

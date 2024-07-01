@@ -51,8 +51,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class CheckConcurrentWorkflowLockHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(CheckConcurrentWorkflowLockHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(CheckConcurrentWorkflowLockHandler.class);
 
     private static final String CHECK_CONCURRENT_WORKFLOW_LOCK = "CHECK_CONCURRENT_WORKFLOW_LOCK";
     private static final int WORKFLOW_IDS_RANK = 0;
@@ -75,32 +74,41 @@ public class CheckConcurrentWorkflowLockHandler extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             String workflowIdsStr = (String) handler.getInput(WORKFLOW_IDS_RANK);
             List<String> workflowIds = Arrays.stream(workflowIdsStr.split(","))
                 .map(String::trim)
                 .collect(Collectors.toList());
 
-            List<ProcessDetail> concurrentWorkflows = lightweightWorkflowLock
-                .listConcurrentWorkflows(workflowIds, param.getContainerName());
+            List<ProcessDetail> concurrentWorkflows = lightweightWorkflowLock.listConcurrentWorkflows(
+                workflowIds,
+                param.getContainerName()
+            );
 
             if (!concurrentWorkflows.isEmpty()) {
-
-                LOGGER.error("Concurrent process(es) found " +
-                    concurrentWorkflows.stream().map(
-                            i -> i.getProcessType() + " " + i.getOperationId() + "(" + i.getGlobalState() + "/" +
-                                i.getStepStatus() + ")")
-                        .collect(Collectors.joining(", ", "[", "]")));
+                LOGGER.error(
+                    "Concurrent process(es) found " +
+                    concurrentWorkflows
+                        .stream()
+                        .map(
+                            i ->
+                                i.getProcessType() +
+                                " " +
+                                i.getOperationId() +
+                                "(" +
+                                i.getGlobalState() +
+                                "/" +
+                                i.getStepStatus() +
+                                ")"
+                        )
+                        .collect(Collectors.joining(", ", "[", "]"))
+                );
 
                 ObjectNode eventDetails = JsonHandler.createObjectNode();
                 eventDetails.put("error", CONCURRENT_PROCESSES_FOUND);
                 return buildItemStatus(CHECK_CONCURRENT_WORKFLOW_LOCK, StatusCode.KO, eventDetails);
             }
-
         } catch (VitamClientException e) {
             LOGGER.error("Concurrent workflow lock check failed", e);
             return buildItemStatus(CHECK_CONCURRENT_WORKFLOW_LOCK, StatusCode.FATAL, null);

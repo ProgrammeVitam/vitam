@@ -36,15 +36,10 @@ import java.util.List;
 public class MappingLoaderTestUtils {
 
     public static MappingLoader getTestMappingLoader() {
-        List<ElasticsearchExternalMetadataMapping> mappingData =
-            Arrays.asList(
-                new ElasticsearchExternalMetadataMapping("Unit",
-                    ElasticsearchTestHelper.loadUnitMapping()
-                ),
-                new ElasticsearchExternalMetadataMapping("ObjectGroup",
-                    ElasticsearchTestHelper.loadObjectGroupMapping()
-                )
-            );
+        List<ElasticsearchExternalMetadataMapping> mappingData = Arrays.asList(
+            new ElasticsearchExternalMetadataMapping("Unit", ElasticsearchTestHelper.loadUnitMapping()),
+            new ElasticsearchExternalMetadataMapping("ObjectGroup", ElasticsearchTestHelper.loadObjectGroupMapping())
+        );
         return new MappingLoader(mappingData);
     }
 }

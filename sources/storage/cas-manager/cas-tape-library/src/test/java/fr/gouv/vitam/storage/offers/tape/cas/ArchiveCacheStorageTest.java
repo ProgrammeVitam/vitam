@@ -84,7 +84,6 @@ public class ArchiveCacheStorageTest {
     private static final String FILE_BUCKET_3 = "fileBucket3";
     private static final String UNKNOWN_FILE_BUCKET = "unknown";
 
-
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -115,17 +114,16 @@ public class ArchiveCacheStorageTest {
 
     @Before
     public void beforeTest() throws IOException {
-
         tempFolder.create();
 
         // Valid fileBucketIds
         List<String> validFilesBucketIds = Arrays.asList(FILE_BUCKET_1, FILE_BUCKET_2, FILE_BUCKET_3);
-        doAnswer((args) -> validFilesBucketIds.contains(args.getArgument(0, String.class)))
-            .when(bucketTopologyHelper).isValidFileBucketId(anyString());
+        doAnswer(args -> validFilesBucketIds.contains(args.getArgument(0, String.class)))
+            .when(bucketTopologyHelper)
+            .isValidFileBucketId(anyString());
 
         // Executor
-        doAnswer((args) -> {
-
+        doAnswer(args -> {
             Runnable command = args.getArgument(0);
             new Thread(() -> {
                 try {
@@ -139,16 +137,16 @@ public class ArchiveCacheStorageTest {
                 }
             }).start();
             return null;
-        }).when(evictionExecutor).execute(any());
+        })
+            .when(evictionExecutor)
+            .execute(any());
 
         doReturn(evictionJudge).when(archiveCacheEvictionController).computeEvictionJudge();
     }
 
     @After
     public void afterTests() {
-
-        assertThat(failedExecutor.get())
-            .withFailMessage("Executor command failed with exception").isFalse();
+        assertThat(failedExecutor.get()).withFailMessage("Executor command failed with exception").isFalse();
 
         // Ensure no more interactions with mocks
         verifyNoMoreInteractions(alertService, evictionExecutor);
@@ -157,12 +155,17 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testInitialization_givenEmptyCacheFolderWhenCacheInitializedThenOK()
         throws IllegalPathException, IOException {
-
         // Given (empty dir)
 
         // When
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L
+        );
 
         // Then
         assertThat(instance.getMaxStorageSpace()).isEqualTo(1_000_000L);
@@ -177,16 +180,22 @@ public class ArchiveCacheStorageTest {
 
     @Test
     public void testInitialization_givenNonEmptyCacheFolderWhenCacheInitializedThenOK() throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_1, "tarId2", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId3", 200_000);
 
         // When
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // Then
         assertThat(instance.getMaxStorageSpace()).isEqualTo(1_000_000L);
@@ -206,55 +215,78 @@ public class ArchiveCacheStorageTest {
 
     @Test
     public void testInitialization_givenRootFileInCacheFolderWhenCacheInitializedThenKO() throws Exception {
-
         // Given file stored on root folder (fileBuckedId=.)
         createArchiveFileInCache(".", "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_1, "tarId2", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId3", 200_000);
 
         // When / Then
-        assertThatThrownBy(() -> new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(
+            () ->
+                new ArchiveCacheStorage(
+                    tempFolder.getRoot().toString(),
+                    bucketTopologyHelper,
+                    archiveCacheEvictionController,
+                    1_000_000L,
+                    800_000L,
+                    700_000L,
+                    evictionExecutor,
+                    alertService
+                )
+        ).isInstanceOf(IllegalStateException.class);
         verifyNoBackgroundEviction();
     }
 
     @Test
     public void testInitialization_givenUnknownFileBucketIdInCacheFolderWhenCacheInitializedThenKO() throws Exception {
-
         // Given
         createArchiveFileInCache(UNKNOWN_FILE_BUCKET, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_1, "tarId2", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId3", 200_000);
 
         // When / Then
-        assertThatThrownBy(() -> new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(
+            () ->
+                new ArchiveCacheStorage(
+                    tempFolder.getRoot().toString(),
+                    bucketTopologyHelper,
+                    archiveCacheEvictionController,
+                    1_000_000L,
+                    800_000L,
+                    700_000L,
+                    evictionExecutor,
+                    alertService
+                )
+        ).isInstanceOf(IllegalStateException.class);
         verifyNoBackgroundEviction();
     }
 
     @Test
     public void testInitialization_givenIllegalTarIdInCacheFolderWhenCacheInitializedThenKO() throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_1, "illegal#filename", 200_000);
 
         // When / Then
-        assertThatThrownBy(() -> new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService))
-            .isInstanceOf(IllegalPathException.class);
+        assertThatThrownBy(
+            () ->
+                new ArchiveCacheStorage(
+                    tempFolder.getRoot().toString(),
+                    bucketTopologyHelper,
+                    archiveCacheEvictionController,
+                    1_000_000L,
+                    800_000L,
+                    700_000L,
+                    evictionExecutor,
+                    alertService
+                )
+        ).isInstanceOf(IllegalPathException.class);
         verifyNoBackgroundEviction();
     }
 
     @Test
     public void testInitialization_givenFullCacheFolderWhenCacheInitializedThenBackgroundCacheEvictionDeletesOldestArchives()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 200_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 200_000);
@@ -265,9 +297,16 @@ public class ArchiveCacheStorageTest {
         doReturn(true).when(evictionJudge).canEvictEntry(any());
 
         // When
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // Then
         assertThat(instance.getMaxStorageSpace()).isEqualTo(1_000_000L);
@@ -299,7 +338,6 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testInitialization_givenFullCacheFolderAndNonExpirableFileBucketWhenCacheInitializedThenBackgroundCacheEvictionDeletesOldestExpirableArchives()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 200_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 200_000);
@@ -312,9 +350,16 @@ public class ArchiveCacheStorageTest {
         doReturn(false).when(evictionJudge).canEvictEntry(new ArchiveCacheEntry(FILE_BUCKET_2, "tarId2"));
 
         // When
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // Then
         assertThat(instance.getMaxStorageSpace()).isEqualTo(1_000_000L);
@@ -346,21 +391,26 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservation_givenEnoughDiskSpaceWhenReservingArchiveThenArchiveReservedAndNoEviction()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 200_000);
 
         // Then
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(400_000L);
-
 
         verifyFilesState(instance, FILE_BUCKET_1, "tarId1", true, true, false);
         verifyFilesState(instance, FILE_BUCKET_2, "tarId2", true, true, false);
@@ -372,20 +422,27 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservation_givenExistingArchiveReservationWhenReservingDuplicateArchiveThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 200_000);
 
         // When / Then
-        assertThatThrownBy(() -> instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 200_000))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 200_000)).isInstanceOf(
+            IllegalArgumentException.class
+        );
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(400_000L);
 
@@ -399,19 +456,26 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservation_givenExistingArchiveInCacheWhenReservingDuplicateArchiveThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
         createArchiveFileInCache(FILE_BUCKET_3, "tarId3", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
-        assertThatThrownBy(() -> instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId1", 100_000))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId1", 100_000)).isInstanceOf(
+            IllegalArgumentException.class
+        );
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(300_000L);
 
@@ -425,19 +489,26 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservation_givenExistingArchiveOnDiskButNotOnCacheWhenReservingArchiveThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
         createArchiveFileInCache(FILE_BUCKET_1, "tarId3", 100_000);
-        assertThatThrownBy(() -> instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 100_000))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 100_000)).isInstanceOf(
+            IllegalArgumentException.class
+        );
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(200_000L);
 
@@ -451,7 +522,6 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservation_givenLowDiskSpaceWhenReservingArchiveThenArchiveReservedAndBackgroundCacheEvictionDeletesOldestExpirableArchives()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 200_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 200_000);
@@ -459,9 +529,16 @@ public class ArchiveCacheStorageTest {
         doReturn(true).when(evictionJudge).canEvictEntry(any());
         doReturn(false).when(evictionJudge).canEvictEntry(new ArchiveCacheEntry(FILE_BUCKET_1, "tarId1"));
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId4", 200_000);
@@ -489,19 +566,26 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservation_givenNoDiskSpaceWhenReservingArchiveThenKOAndNoReservationOccursAndSecurityAlert()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 200_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 200_000);
         createArchiveFileInCache(FILE_BUCKET_3, "tarId3", 200_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When
-        assertThatThrownBy(() -> instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId4", 400_000))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId4", 400_000)).isInstanceOf(
+            IllegalStateException.class
+        );
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(600_000L);
 
@@ -515,21 +599,27 @@ public class ArchiveCacheStorageTest {
     }
 
     @Test
-    public void testArchiveReservation_givenIllegalFileNameWhenReservingArchiveThenKO()
-        throws Exception {
-
+    public void testArchiveReservation_givenIllegalFileNameWhenReservingArchiveThenKO() throws Exception {
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
         createArchiveFileInCache(FILE_BUCKET_3, "tarId3", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
-        assertThatThrownBy(() -> instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "illegal#filename", 100_000))
-            .isInstanceOf(IllegalPathException.class);
+        assertThatThrownBy(
+            () -> instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "illegal#filename", 100_000)
+        ).isInstanceOf(IllegalPathException.class);
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(300_000L);
 
@@ -542,21 +632,27 @@ public class ArchiveCacheStorageTest {
     }
 
     @Test
-    public void testArchiveReservation_givenUnknownFileBucketIdWhenReservingArchiveThenKO()
-        throws Exception {
-
+    public void testArchiveReservation_givenUnknownFileBucketIdWhenReservingArchiveThenKO() throws Exception {
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
         createArchiveFileInCache(FILE_BUCKET_3, "tarId3", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
-        assertThatThrownBy(() -> instance.reserveArchiveStorageSpace(UNKNOWN_FILE_BUCKET, "tarId4", 100_000))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(
+            () -> instance.reserveArchiveStorageSpace(UNKNOWN_FILE_BUCKET, "tarId4", 100_000)
+        ).isInstanceOf(IllegalArgumentException.class);
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(300_000L);
 
@@ -566,14 +662,20 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservationConfirmation_givenArchiveReservationWhenWrittenArchiveMovedToCacheThenArchiveAddedToCache()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When
         instance.reserveArchiveStorageSpace(FILE_BUCKET_3, "tarId3", 100_000);
@@ -591,19 +693,26 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservationConfirmation_givenUnknownArchiveReservationWhenTryMovingUnreservedArchiveToCacheThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
         File tmpTar3 = createTmpArchiveFile(100_000);
-        assertThatThrownBy(() -> instance.moveArchiveToCache(tmpTar3.toPath(), FILE_BUCKET_1, "tarId3"))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.moveArchiveToCache(tmpTar3.toPath(), FILE_BUCKET_1, "tarId3")).isInstanceOf(
+            IllegalArgumentException.class
+        );
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(200_000L);
 
@@ -615,20 +724,27 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservationConfirmation_givenArchiveReservationWhenTryMovingNonExistingArchiveToCacheThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 100_000);
         Path nonExistingTmpTarFilePath = tempFolder.getRoot().toPath().resolve(FILE_BUCKET_1).resolve("tarId3.tmp");
-        assertThatThrownBy(() -> instance.moveArchiveToCache(nonExistingTmpTarFilePath, FILE_BUCKET_1, "tarId3"))
-            .isInstanceOf(FileNotFoundException.class);
+        assertThatThrownBy(
+            () -> instance.moveArchiveToCache(nonExistingTmpTarFilePath, FILE_BUCKET_1, "tarId3")
+        ).isInstanceOf(FileNotFoundException.class);
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(300_000L);
 
@@ -640,21 +756,28 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservationConfirmation_givenArchiveReservationWhenTryMovingNonRegularFileToCacheThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 100_000);
         Path nonRegularFile = tempFolder.getRoot().toPath().resolve(FILE_BUCKET_1).resolve("tarId3.tmp");
         FileUtils.forceMkdir(nonRegularFile.toFile());
-        assertThatThrownBy(() -> instance.moveArchiveToCache(nonRegularFile, FILE_BUCKET_1, "tarId3"))
-            .isInstanceOf(IOException.class);
+        assertThatThrownBy(() -> instance.moveArchiveToCache(nonRegularFile, FILE_BUCKET_1, "tarId3")).isInstanceOf(
+            IOException.class
+        );
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(300_000L);
 
@@ -666,21 +789,28 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservationConfirmation_givenArchiveReservationWhenTryMovingArchiveToExistingTargetFileThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 100_000);
         File tmpTar3 = createTmpArchiveFile(100_000);
         createArchiveFileInCache(FILE_BUCKET_1, "tarId3", 100_000);
-        assertThatThrownBy(() -> instance.moveArchiveToCache(tmpTar3.toPath(), FILE_BUCKET_1, "tarId3"))
-            .isInstanceOf(IOException.class);
+        assertThatThrownBy(() -> instance.moveArchiveToCache(tmpTar3.toPath(), FILE_BUCKET_1, "tarId3")).isInstanceOf(
+            IOException.class
+        );
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(300_000L);
 
@@ -692,20 +822,27 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservationConfirmation_givenArchiveReservationWhenTryMovingArchiveWithInvalidLengthThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 100_000);
         File tmpTar3 = createTmpArchiveFile(200_000);
-        assertThatThrownBy(() -> instance.moveArchiveToCache(tmpTar3.toPath(), FILE_BUCKET_1, "tarId3"))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.moveArchiveToCache(tmpTar3.toPath(), FILE_BUCKET_1, "tarId3")).isInstanceOf(
+            IllegalArgumentException.class
+        );
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(300_000L);
 
@@ -717,22 +854,29 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservationConfirmation_givenArchiveCanceledReservationWhenTryMovingArchiveToCacheThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 100_000);
         instance.cancelReservedArchive(FILE_BUCKET_1, "tarId3");
 
         // When / Then
         File tmpTar3 = createTmpArchiveFile(100_000);
-        assertThatThrownBy(() -> instance.moveArchiveToCache(tmpTar3.toPath(), FILE_BUCKET_1, "tarId3"))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.moveArchiveToCache(tmpTar3.toPath(), FILE_BUCKET_1, "tarId3")).isInstanceOf(
+            IllegalArgumentException.class
+        );
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(200_000L);
 
@@ -744,19 +888,26 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservationConfirmation_givenUnknownArchiveBucketWhenTryMovingArchiveToCacheThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
         File tmpTarId3 = createTmpArchiveFile(100_000);
-        assertThatThrownBy(() -> instance.moveArchiveToCache(tmpTarId3.toPath(), UNKNOWN_FILE_BUCKET, "tarId3"))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(
+            () -> instance.moveArchiveToCache(tmpTarId3.toPath(), UNKNOWN_FILE_BUCKET, "tarId3")
+        ).isInstanceOf(IllegalArgumentException.class);
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(200_000L);
 
@@ -768,20 +919,26 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservationConfirmation_givenIllegalArchiveIdWhenTryMovingArchiveToCacheThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
         File invalidFileName = createTmpArchiveFile(100_000);
         assertThatThrownBy(
-            () -> instance.moveArchiveToCache(invalidFileName.toPath(), FILE_BUCKET_1, "illegal#filename"))
-            .isInstanceOf(IllegalPathException.class);
+            () -> instance.moveArchiveToCache(invalidFileName.toPath(), FILE_BUCKET_1, "illegal#filename")
+        ).isInstanceOf(IllegalPathException.class);
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(200_000L);
 
@@ -793,14 +950,20 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservationCanceling_givenReservedArchiveWhenCancelingReservationThenCacheSpaceFreedAndReservationCanceled()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 100_000);
 
@@ -818,18 +981,25 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservationCanceling_givenNonReservedArchiveWhenCancelingReservationThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
-        assertThatThrownBy(() -> instance.cancelReservedArchive(FILE_BUCKET_1, "tarId3"))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.cancelReservedArchive(FILE_BUCKET_1, "tarId3")).isInstanceOf(
+            IllegalArgumentException.class
+        );
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(200_000L);
 
@@ -841,21 +1011,28 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReservationCanceling_givenCanceledArchiveReservationWhenDuplicateReservationCancelingThenKO()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 100_000L);
         instance.cancelReservedArchive(FILE_BUCKET_1, "tarId3");
 
         // When / Then
-        assertThatThrownBy(() -> instance.cancelReservedArchive(FILE_BUCKET_1, "tarId3"))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.cancelReservedArchive(FILE_BUCKET_1, "tarId3")).isInstanceOf(
+            IllegalArgumentException.class
+        );
 
         assertThat(instance.getCurrentStorageSpaceUsage()).isEqualTo(200_000L);
 
@@ -865,16 +1042,21 @@ public class ArchiveCacheStorageTest {
     }
 
     @Test
-    public void testArchiveReading_givenFileInCacheWhenReadingArchiveThenOK()
-        throws Exception {
-
+    public void testArchiveReading_givenFileInCacheWhenReadingArchiveThenOK() throws Exception {
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 50_000L);
         File tmpTarId3 = createTmpArchiveFile(50_000);
@@ -886,20 +1068,26 @@ public class ArchiveCacheStorageTest {
         // Then
         assertThat(tarId3InputStream).isPresent();
         assertThat(tarId3InputStream.get()).hasSameContentAs(
-            new ExactSizeInputStream(new NullInputStream(50_000L), 50_000L));
+            new ExactSizeInputStream(new NullInputStream(50_000L), 50_000L)
+        );
     }
 
     @Test
-    public void testArchiveReading_givenReservedFileWhenReadingArchiveThenNothingReturned()
-        throws Exception {
-
+    public void testArchiveReading_givenReservedFileWhenReadingArchiveThenNothingReturned() throws Exception {
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 50_000L);
 
@@ -911,16 +1099,21 @@ public class ArchiveCacheStorageTest {
     }
 
     @Test
-    public void testArchiveReading_givenUnknownFileWhenReadingArchiveThenNothingReturned()
-        throws Exception {
-
+    public void testArchiveReading_givenUnknownFileWhenReadingArchiveThenNothingReturned() throws Exception {
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 100_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 100_000);
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When
         Optional<FileInputStream> tarId3InputStream = instance.tryReadArchive(FILE_BUCKET_1, "tarId3");
@@ -932,15 +1125,21 @@ public class ArchiveCacheStorageTest {
     @Test
     public void testArchiveReading_givenFileInCacheWhenReadingArchiveThenLastUpdateDateRefreshedAndArchiveEvictedLast()
         throws Exception {
-
         // Given
         createArchiveFileInCache(FILE_BUCKET_1, "tarId1", 300_000);
         createArchiveFileInCache(FILE_BUCKET_2, "tarId2", 200_000);
         doReturn(true).when(evictionJudge).canEvictEntry(any());
 
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         instance.reserveArchiveStorageSpace(FILE_BUCKET_1, "tarId3", 50_000L);
         File tmpTarId3 = createTmpArchiveFile(50_000);
@@ -952,7 +1151,8 @@ public class ArchiveCacheStorageTest {
         // Then
         assertThat(tarId1InputStream).isPresent();
         assertThat(tarId1InputStream.get()).hasSameContentAs(
-            new ExactSizeInputStream(new NullInputStream(300_000L), 300_000L));
+            new ExactSizeInputStream(new NullInputStream(300_000L), 300_000L)
+        );
 
         // When
         instance.reserveArchiveStorageSpace(FILE_BUCKET_3, "tarId3", 300_000L);
@@ -966,35 +1166,46 @@ public class ArchiveCacheStorageTest {
     }
 
     @Test
-    public void testArchiveReading_givenIllegalArchiveNameWhenReadingArchiveThenKO()
-        throws Exception {
-
+    public void testArchiveReading_givenIllegalArchiveNameWhenReadingArchiveThenKO() throws Exception {
         // Given
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
-        assertThatThrownBy(() -> instance.tryReadArchive(FILE_BUCKET_1, "illegal#filename"))
-            .isInstanceOf(IllegalPathException.class);
+        assertThatThrownBy(() -> instance.tryReadArchive(FILE_BUCKET_1, "illegal#filename")).isInstanceOf(
+            IllegalPathException.class
+        );
     }
 
     @Test
-    public void testArchiveReading_givenUnknownArchiveBucketWhenReadingArchiveThenKO()
-        throws Exception {
-
+    public void testArchiveReading_givenUnknownArchiveBucketWhenReadingArchiveThenKO() throws Exception {
         // Given
-        ArchiveCacheStorage instance = new ArchiveCacheStorage(tempFolder.getRoot().toString(), bucketTopologyHelper,
-            archiveCacheEvictionController, 1_000_000L, 800_000L, 700_000L,
-            evictionExecutor, alertService);
+        ArchiveCacheStorage instance = new ArchiveCacheStorage(
+            tempFolder.getRoot().toString(),
+            bucketTopologyHelper,
+            archiveCacheEvictionController,
+            1_000_000L,
+            800_000L,
+            700_000L,
+            evictionExecutor,
+            alertService
+        );
 
         // When / Then
-        assertThatThrownBy(() -> instance.tryReadArchive(UNKNOWN_FILE_BUCKET, "tarId"))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.tryReadArchive(UNKNOWN_FILE_BUCKET, "tarId")).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
 
     private void createArchiveFileInCache(String fileBucketId, String filename, int size) throws IOException {
-
         File fileBucketFolder = new File(tempFolder.getRoot(), fileBucketId);
         FileUtils.forceMkdir(fileBucketFolder);
 
@@ -1002,8 +1213,11 @@ public class ArchiveCacheStorageTest {
         FileUtils.copyInputStreamToFile(new NullInputStream(size), file);
 
         logicalSleep();
-        Files.setAttribute(file.toPath(), "lastAccessTime",
-            FileTime.from(LocalDateUtil.now().toInstant(ZoneOffset.UTC)));
+        Files.setAttribute(
+            file.toPath(),
+            "lastAccessTime",
+            FileTime.from(LocalDateUtil.now().toInstant(ZoneOffset.UTC))
+        );
     }
 
     private File createTmpArchiveFile(int size) throws IOException {
@@ -1012,25 +1226,45 @@ public class ArchiveCacheStorageTest {
         return file;
     }
 
-    private void verifyFilesState(ArchiveCacheStorage instance, String fileBucketId, String tarId,
-        boolean existsOnDisk, boolean existsInCached, boolean reservedInCache) {
+    private void verifyFilesState(
+        ArchiveCacheStorage instance,
+        String fileBucketId,
+        String tarId,
+        boolean existsOnDisk,
+        boolean existsInCached,
+        boolean reservedInCache
+    ) {
         File bucketFolder = new File(tempFolder.getRoot(), fileBucketId);
 
         File file = new File(bucketFolder, tarId);
         assertThat(file.exists())
-            .withFailMessage("Expecting file " + fileBucketId + "/" + tarId + " to" +
-                (existsOnDisk ? "" : " not") + " exist on disk")
+            .withFailMessage(
+                "Expecting file " + fileBucketId + "/" + tarId + " to" + (existsOnDisk ? "" : " not") + " exist on disk"
+            )
             .isEqualTo(existsOnDisk);
 
         assertThat(instance.containsArchive(fileBucketId, tarId))
-            .withFailMessage("Expecting file " + fileBucketId + "/" + tarId + " to" +
-                (existsInCached ? "" : " not") + " exist in cache")
+            .withFailMessage(
+                "Expecting file " +
+                fileBucketId +
+                "/" +
+                tarId +
+                " to" +
+                (existsInCached ? "" : " not") +
+                " exist in cache"
+            )
             .isEqualTo(existsInCached);
 
         assertThat(instance.isArchiveReserved(fileBucketId, tarId))
             .withFailMessage(
-                "Expecting file " + fileBucketId + "/" + tarId + " to be"
-                    + (reservedInCache ? "" : " not") + " reserved in cache")
+                "Expecting file " +
+                fileBucketId +
+                "/" +
+                tarId +
+                " to be" +
+                (reservedInCache ? "" : " not") +
+                " reserved in cache"
+            )
             .isEqualTo(reservedInCache);
     }
 

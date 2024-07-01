@@ -154,5 +154,4 @@ public class VitamLoggerLog implements Logger {
     public void always(EventType type, String message, Throwable throwable) {
         // Nothing to do
     }
-
 }

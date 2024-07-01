@@ -39,6 +39,7 @@ import java.io.IOException;
  * To be registered in jackson objectMapper
  */
 public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType> {
+
     /**
      * @param jp representation (json, xml, string)
      * @param ctxt
@@ -54,5 +55,4 @@ public class IdentifierTypeDeserializer extends JsonDeserializer<IdentifierType>
 
         return identifierType;
     }
-
 }

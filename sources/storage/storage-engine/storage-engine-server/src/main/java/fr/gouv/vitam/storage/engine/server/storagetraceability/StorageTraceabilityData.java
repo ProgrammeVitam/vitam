@@ -34,6 +34,7 @@ import java.time.LocalDateTime;
  * Tuple that contains information of a previous Storage treaceability operation (from zip file)
  */
 public class StorageTraceabilityData {
+
     /**
      * The operation token.tsp content
      */

@@ -32,8 +32,7 @@ public class ParsedReclassificationDslRequest {
 
     private final List<ParsedReclassificationDslRequestEntry> entries;
 
-    public ParsedReclassificationDslRequest(
-        List<ParsedReclassificationDslRequestEntry> entries) {
+    public ParsedReclassificationDslRequest(List<ParsedReclassificationDslRequestEntry> entries) {
         this.entries = entries;
     }
 

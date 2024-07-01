@@ -36,6 +36,7 @@ package fr.gouv.vitam.common.logging;
  * and shouldn't be called more than once.
  */
 public abstract class VitamLoggerFactory {
+
     private static volatile VitamLoggerFactory defaultFactory;
     protected static VitamLogLevel currentLevel = null;
     private static boolean initialized = false;
@@ -46,14 +47,12 @@ public abstract class VitamLoggerFactory {
         VitamLoggerFactory f;
         try {
             f = new LogbackLoggerFactory(true);
-            f.newInstance(name)
-                .debug("Using Logback (SLF4J) as the default logging framework");
+            f.newInstance(name).debug("Using Logback (SLF4J) as the default logging framework");
             defaultFactory = f;
         } catch (final Exception t1) {
             SysErrLogger.FAKE_LOGGER.ignoreLog(t1);
             f = new JdkLoggerFactory(null);
-            f.newInstance(name).debug(
-                "Using java.util.logging as the default logging framework", t1);
+            f.newInstance(name).debug("Using java.util.logging as the default logging framework", t1);
         }
 
         defaultFactory = f;
@@ -65,8 +64,11 @@ public abstract class VitamLoggerFactory {
             return;
         }
         try {
-            final Class<?> clasz = Class.forName("fr.gouv.vitam.common.ServerIdentity",
-                true, VitamLoggerFactory.class.getClassLoader());
+            final Class<?> clasz = Class.forName(
+                "fr.gouv.vitam.common.ServerIdentity",
+                true,
+                VitamLoggerFactory.class.getClassLoader()
+            );
             serverIdentity = clasz.getMethod("getInstance").invoke(null);
         } catch (ClassNotFoundException | NoClassDefFoundError e) {
             // ignore

@@ -41,7 +41,7 @@ final class JdkLogger extends AbstractVitamLogger {
     static final String SELF = JdkLogger.class.getName();
     static final String SUPER = AbstractVitamLogger.class.getName();
 
-    final transient Logger logger;// NOSONAR keep it non static
+    final transient Logger logger; // NOSONAR keep it non static
 
     JdkLogger(final Logger logger) {
         super(logger.getName());
@@ -529,8 +529,7 @@ final class JdkLogger extends AbstractVitamLogger {
      *
      * See bug report #13 for more details.
      */
-    private void log(final String callerFQCN, final Level level, final String msg,
-        final Throwable t) {
+    private void log(final String callerFQCN, final Level level, final String msg, final Throwable t) {
         // millis and thread are filled by the constructor
         final LogRecord record = new LogRecord(level, msg);
         record.setLoggerName(name());

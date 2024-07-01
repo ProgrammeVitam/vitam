@@ -54,8 +54,9 @@ public class MetadataReconstructionJobTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
@@ -89,6 +90,5 @@ public class MetadataReconstructionJobTest {
         verify(metaDataClient, times(1)).reconstructCollection(any());
         verify(metaDataClient).close();
         verifyNoMoreInteractions(metaDataClient);
-
     }
 }

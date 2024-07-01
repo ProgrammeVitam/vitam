@@ -44,15 +44,18 @@ public class TempWorkspaceTest {
 
     @Test
     public void testReadWrite() throws IOException {
-
         // Given one instance with 2 files
         TempWorkspace instance = new TempWorkspace();
 
         // When writing 2 files
-        File file1 =
-            instance.writeToFile("file1.txt", new ByteArrayInputStream("toto".getBytes(StandardCharsets.UTF_8)));
-        File file2 =
-            instance.writeToFile("file2.txt", new ByteArrayInputStream("tata".getBytes(StandardCharsets.UTF_8)));
+        File file1 = instance.writeToFile(
+            "file1.txt",
+            new ByteArrayInputStream("toto".getBytes(StandardCharsets.UTF_8))
+        );
+        File file2 = instance.writeToFile(
+            "file2.txt",
+            new ByteArrayInputStream("tata".getBytes(StandardCharsets.UTF_8))
+        );
 
         // Then check file isolation
         assertThat(file1).hasName("file1.txt");
@@ -61,7 +64,7 @@ public class TempWorkspaceTest {
         assertThat(file2).hasName("file2.txt");
         assertThat(file2).hasContent("tata");
 
-        // When reading existing file 
+        // When reading existing file
         File anotherFile1 = instance.getFile("file1.txt");
 
         // Then same filename returned
@@ -82,17 +85,22 @@ public class TempWorkspaceTest {
 
     @Test
     public void testIsolationOfMultipleInstances() throws IOException {
-
         // Given 2 instances with some files
         TempWorkspace instance1 = new TempWorkspace();
         TempWorkspace instance2 = new TempWorkspace();
 
-        File instance1File1 =
-            instance1.writeToFile("file1.txt", new ByteArrayInputStream("toto".getBytes(StandardCharsets.UTF_8)));
-        File instance1File2 =
-            instance1.writeToFile("file2.txt", new ByteArrayInputStream("tata".getBytes(StandardCharsets.UTF_8)));
-        File instance2File1 =
-            instance2.writeToFile("file1.txt", new ByteArrayInputStream("titi".getBytes(StandardCharsets.UTF_8)));
+        File instance1File1 = instance1.writeToFile(
+            "file1.txt",
+            new ByteArrayInputStream("toto".getBytes(StandardCharsets.UTF_8))
+        );
+        File instance1File2 = instance1.writeToFile(
+            "file2.txt",
+            new ByteArrayInputStream("tata".getBytes(StandardCharsets.UTF_8))
+        );
+        File instance2File1 = instance2.writeToFile(
+            "file1.txt",
+            new ByteArrayInputStream("titi".getBytes(StandardCharsets.UTF_8))
+        );
 
         // Check file content isolation
         assertThat(instance1File1).hasName("file1.txt");
@@ -116,5 +124,4 @@ public class TempWorkspaceTest {
         assertThat(instance1File1).doesNotExist();
         assertThat(instance1File2).doesNotExist();
     }
-
 }

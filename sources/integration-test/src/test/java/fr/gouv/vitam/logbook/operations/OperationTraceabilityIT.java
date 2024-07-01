@@ -101,16 +101,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class OperationTraceabilityIT extends VitamRuleRunner {
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(OperationTraceabilityIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                LogbookMain.class,
-                AdminManagementMain.class,
-                WorkspaceMain.class,
-                DefaultOfferMain.class,
-                StorageMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        OperationTraceabilityIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            LogbookMain.class,
+            AdminManagementMain.class,
+            WorkspaceMain.class,
+            DefaultOfferMain.class,
+            StorageMain.class
+        )
+    );
 
     private static final int TENANT_0 = 0;
 
@@ -140,10 +142,7 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
 
     @After
     public void tearDown() {
-
-        runAfterMongo(Sets.newHashSet(
-            LogbookCollections.OPERATION.getName()
-        ));
+        runAfterMongo(Sets.newHashSet(LogbookCollections.OPERATION.getName()));
 
         runAfterEs(
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
@@ -155,7 +154,6 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void testOperationTraceability_GivenEmptyDataSetWhenFirstTraceabilityThenWarning() throws Exception {
-
         // Given : Empty DB
 
         // When : First traceability
@@ -172,9 +170,7 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void testOperationTraceability_GivenFreshOperationsWhenFirstTraceabilityThenWarning()
-        throws Exception {
-
+    public void testOperationTraceability_GivenFreshOperationsWhenFirstTraceabilityThenWarning() throws Exception {
         // Given :
         // - A recent operation (less than 5 minutes old)
         injectTestLogbookOperation();
@@ -195,7 +191,6 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
     @Test
     @RunWithCustomExecutor
     public void testOperationTraceability_GivenOperationsToSecureWhenFirstTraceabilityThenOK() throws Exception {
-
         // Given :
         // - An operation to secure
         String operation1 = injectTestLogbookOperation();
@@ -213,13 +208,18 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
         assertThat(lastEvent.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
 
         assertThat(logbookOperation.getEvDetData()).isNotNull();
-        TraceabilityEvent traceabilityEvent =
-            JsonHandler.getFromString(logbookOperation.getEvDetData(), TraceabilityEvent.class);
+        TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(
+            logbookOperation.getEvDetData(),
+            TraceabilityEvent.class
+        );
 
         assertThat(traceabilityEvent.getLogType()).isEqualTo(TraceabilityType.OPERATION);
         assertThat(traceabilityEvent.getStartDate()).isEqualTo("1970-01-01T00:00:00.000");
-        assertThatDateIsBetween(traceabilityEvent.getEndDate(),
-            beforeTraceability.minusMinutes(5), afterTraceability.minusMinutes(5));
+        assertThatDateIsBetween(
+            traceabilityEvent.getEndDate(),
+            beforeTraceability.minusMinutes(5),
+            afterTraceability.minusMinutes(5)
+        );
 
         assertThat(traceabilityEvent.getHash()).isNotNull();
         assertThat(traceabilityEvent.getTimeStampToken()).isNotNull();
@@ -237,7 +237,6 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void testOperationTraceability_GivenNoNewEntriesThenSkipTraceabilityUntilLastTraceabilityIsTooOld()
         throws Exception {
-
         // Given
         // - An already secured operation1
         injectTestLogbookOperation();
@@ -269,25 +268,33 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
         assertThat(lastEvent.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
 
         assertThat(logbookOperation1.getEvDetData()).isNotNull();
-        TraceabilityEvent traceabilityEvent1 =
-            JsonHandler.getFromString(logbookOperation1.getEvDetData(), TraceabilityEvent.class);
+        TraceabilityEvent traceabilityEvent1 = JsonHandler.getFromString(
+            logbookOperation1.getEvDetData(),
+            TraceabilityEvent.class
+        );
 
         assertThat(logbookOperation2.getEvDetData()).isNotNull();
-        TraceabilityEvent traceabilityEvent2 =
-            JsonHandler.getFromString(logbookOperation2.getEvDetData(), TraceabilityEvent.class);
+        TraceabilityEvent traceabilityEvent2 = JsonHandler.getFromString(
+            logbookOperation2.getEvDetData(),
+            TraceabilityEvent.class
+        );
 
         assertThat(traceabilityEvent2.getLogType()).isEqualTo(TraceabilityType.OPERATION);
         assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
 
-        assertThatDateIsBetween(traceabilityEvent2.getEndDate(),
-            beforeTraceability2.minusMinutes(5), afterTraceability2.minusMinutes(5));
+        assertThatDateIsBetween(
+            traceabilityEvent2.getEndDate(),
+            beforeTraceability2.minusMinutes(5),
+            afterTraceability2.minusMinutes(5)
+        );
 
         assertThat(traceabilityEvent2.getHash()).isNotNull();
         assertThat(traceabilityEvent2.getTimeStampToken()).isNotNull();
         assertThat(traceabilityEvent2.getNumberOfElements()).isEqualTo(1);
         assertThat(traceabilityEvent2.getFileName()).isNotNull();
-        assertThat(traceabilityEvent2.getPreviousLogbookTraceabilityDate())
-            .isEqualTo(traceabilityEvent1.getStartDate());
+        assertThat(traceabilityEvent2.getPreviousLogbookTraceabilityDate()).isEqualTo(
+            traceabilityEvent1.getStartDate()
+        );
 
         downloadZip(traceabilityEvent2.getFileName(), tmpFolder.getRoot());
 
@@ -298,9 +305,7 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void testOperationTraceability_GivenNoNewEntriesThenSkipTraceabilityUntilNewDataToSecure()
-        throws Exception {
-
+    public void testOperationTraceability_GivenNoNewEntriesThenSkipTraceabilityUntilNewDataToSecure() throws Exception {
         // Given
         // - An already secured operation1
         injectTestLogbookOperation();
@@ -335,25 +340,33 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
         assertThat(lastEvent.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
 
         assertThat(logbookOperation1.getEvDetData()).isNotNull();
-        TraceabilityEvent traceabilityEvent1 =
-            JsonHandler.getFromString(logbookOperation1.getEvDetData(), TraceabilityEvent.class);
+        TraceabilityEvent traceabilityEvent1 = JsonHandler.getFromString(
+            logbookOperation1.getEvDetData(),
+            TraceabilityEvent.class
+        );
 
         assertThat(logbookOperation2.getEvDetData()).isNotNull();
-        TraceabilityEvent traceabilityEvent2 =
-            JsonHandler.getFromString(logbookOperation2.getEvDetData(), TraceabilityEvent.class);
+        TraceabilityEvent traceabilityEvent2 = JsonHandler.getFromString(
+            logbookOperation2.getEvDetData(),
+            TraceabilityEvent.class
+        );
 
         assertThat(traceabilityEvent2.getLogType()).isEqualTo(TraceabilityType.OPERATION);
         assertThat(traceabilityEvent2.getStartDate()).isEqualTo(traceabilityEvent1.getEndDate());
 
-        assertThatDateIsBetween(traceabilityEvent2.getEndDate(),
-            beforeTraceability2.minusMinutes(5), afterTraceability2.minusMinutes(5));
+        assertThatDateIsBetween(
+            traceabilityEvent2.getEndDate(),
+            beforeTraceability2.minusMinutes(5),
+            afterTraceability2.minusMinutes(5)
+        );
 
         assertThat(traceabilityEvent2.getHash()).isNotNull();
         assertThat(traceabilityEvent2.getTimeStampToken()).isNotNull();
         assertThat(traceabilityEvent2.getNumberOfElements()).isEqualTo(2);
         assertThat(traceabilityEvent2.getFileName()).isNotNull();
-        assertThat(traceabilityEvent2.getPreviousLogbookTraceabilityDate())
-            .isEqualTo(traceabilityEvent1.getStartDate());
+        assertThat(traceabilityEvent2.getPreviousLogbookTraceabilityDate()).isEqualTo(
+            traceabilityEvent1.getStartDate()
+        );
 
         downloadZip(traceabilityEvent2.getFileName(), tmpFolder.getRoot());
 
@@ -366,7 +379,6 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
     @RunWithCustomExecutor
     public void testOperationTraceability_GivenOldEntriesSinceRecentTraceabilityWhenNewTraceabilityThenTraceabilityOK()
         throws Exception {
-
         // Given :
         // - An already secured operation
         String operation1 = injectTestLogbookOperation();
@@ -401,25 +413,33 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
         assertThat(lastEvent.getOutDetail()).isEqualTo("STP_OP_SECURISATION.OK");
 
         assertThat(logbookOperation2.getEvDetData()).isNotNull();
-        TraceabilityEvent traceabilityEvent1 =
-            JsonHandler.getFromString(logbookOperation1.getEvDetData(), TraceabilityEvent.class);
-        TraceabilityEvent traceabilityEvent2 =
-            JsonHandler.getFromString(logbookOperation2.getEvDetData(), TraceabilityEvent.class);
+        TraceabilityEvent traceabilityEvent1 = JsonHandler.getFromString(
+            logbookOperation1.getEvDetData(),
+            TraceabilityEvent.class
+        );
+        TraceabilityEvent traceabilityEvent2 = JsonHandler.getFromString(
+            logbookOperation2.getEvDetData(),
+            TraceabilityEvent.class
+        );
 
         assertThat(traceabilityEvent2.getLogType()).isEqualTo(TraceabilityType.OPERATION);
         assertThat(traceabilityEvent2.getStartDate()).isEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(traceabilityEvent1.getEndDate()));
+            LocalDateUtil.getFormattedDateForMongo(traceabilityEvent1.getEndDate())
+        );
         assertThat(traceabilityEvent2.getEndDate()).isGreaterThanOrEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(beforeNewTraceability.minusMinutes(5)));
+            LocalDateUtil.getFormattedDateForMongo(beforeNewTraceability.minusMinutes(5))
+        );
         assertThat(traceabilityEvent2.getEndDate()).isLessThanOrEqualTo(
-            LocalDateUtil.getFormattedDateForMongo(afterNewTraceability.minusMinutes(5)));
+            LocalDateUtil.getFormattedDateForMongo(afterNewTraceability.minusMinutes(5))
+        );
 
         assertThat(traceabilityEvent2.getHash()).isNotNull();
         assertThat(traceabilityEvent2.getTimeStampToken()).isNotNull();
         assertThat(traceabilityEvent2.getNumberOfElements()).isEqualTo(3);
         assertThat(traceabilityEvent2.getFileName()).isNotNull();
-        assertThat(traceabilityEvent2.getPreviousLogbookTraceabilityDate())
-            .isEqualTo(traceabilityEvent1.getStartDate());
+        assertThat(traceabilityEvent2.getPreviousLogbookTraceabilityDate()).isEqualTo(
+            traceabilityEvent1.getStartDate()
+        );
 
         downloadZip(traceabilityEvent2.getFileName(), tmpFolder.getRoot());
 
@@ -431,9 +451,7 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
 
     @Test
     @RunWithCustomExecutor
-    public void testOperationTraceability_GivenMultipleTenantsThenTraceabilityOKForAllTenants()
-        throws Exception {
-
+    public void testOperationTraceability_GivenMultipleTenantsThenTraceabilityOKForAllTenants() throws Exception {
         // Give : Data set for all tenants
         for (int tenantId = 0; tenantId < 3; tenantId++) {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
@@ -454,14 +472,10 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
         }
     }
 
-    private String injectTestLogbookOperation()
-        throws Exception {
-
+    private String injectTestLogbookOperation() throws Exception {
         String id = GUIDFactory.newGUID().getId();
         VitamThreadUtils.getVitamSession().setRequestId(id);
-        try (AdminManagementClient adminManagementClient =
-            AdminManagementClientFactory.getInstance().getClient()) {
-
+        try (AdminManagementClient adminManagementClient = AdminManagementClientFactory.getInstance().getClient()) {
             SecurityProfileModel securityProfileModel = new SecurityProfileModel();
             securityProfileModel.setIdentifier("Identifier" + id);
             securityProfileModel.setName("Name" + id);
@@ -478,13 +492,15 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
     private Map<Integer, String> runTraceabilityOperations(Integer... tenants)
         throws LogbookClientServerException, InvalidParseOperationException {
         Integer tenantId = VitamThreadUtils.getVitamSession().getTenantId();
-        try (final LogbookOperationsClient client =
-            LogbookOperationsClientFactory.getInstance().getClient()) {
+        try (final LogbookOperationsClient client = LogbookOperationsClientFactory.getInstance().getClient()) {
             VitamThreadUtils.getVitamSession().setTenantId(VitamConfiguration.getAdminTenant());
-            RequestResponseOK<TenantLogbookOperationTraceabilityResult> result =
-                client.traceability(Arrays.asList(tenants));
+            RequestResponseOK<TenantLogbookOperationTraceabilityResult> result = client.traceability(
+                Arrays.asList(tenants)
+            );
             // Collect to map with null values throws exceptions (https://bugs.openjdk.java.net/browse/JDK-8148463)
-            return result.getResults().stream()
+            return result
+                .getResults()
+                .stream()
                 .collect(HashMap::new, (m, v) -> m.put(v.getTenantId(), v.getOperationId()), HashMap::putAll);
         } finally {
             VitamThreadUtils.getVitamSession().setTenantId(tenantId);
@@ -500,21 +516,22 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
         }
     }
 
-    private void downloadZip(String fileName, File folder) throws IOException, StorageNotFoundException,
-        StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException {
-        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            Response containerAsync = storageClient
-                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName,
-                    DataCategory.LOGBOOK, AccessLogUtils.getNoLogAccessLog());
+    private void downloadZip(String fileName, File folder)
+        throws IOException, StorageNotFoundException, StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException {
+        try (
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient();
+            Response containerAsync = storageClient.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                fileName,
+                DataCategory.LOGBOOK,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream inputStream = containerAsync.readEntity(InputStream.class);
             ZipInputStream zipInputStream = new ZipInputStream(inputStream)
         ) {
-
             ZipEntry entry;
             while ((entry = zipInputStream.getNextEntry()) != null) {
-
-                try (FileOutputStream fileOutputStream = new FileOutputStream(
-                    new File(folder, entry.getName()))) {
+                try (FileOutputStream fileOutputStream = new FileOutputStream(new File(folder, entry.getName()))) {
                     IOUtils.copy(zipInputStream, fileOutputStream);
                 }
             }
@@ -522,13 +539,16 @@ public class OperationTraceabilityIT extends VitamRuleRunner {
     }
 
     private List<String> parseLines(List<String> lines) {
-        return lines.stream().map(line -> {
+        return lines
+            .stream()
+            .map(line -> {
                 try {
                     return JsonHandler.getFromString(line);
                 } catch (InvalidParseOperationException e) {
                     throw new RuntimeException(e);
                 }
-            }).map(json -> json.get("_id").asText())
+            })
+            .map(json -> json.get("_id").asText())
             .collect(Collectors.toList());
     }
 

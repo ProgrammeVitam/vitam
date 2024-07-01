@@ -67,8 +67,7 @@ public class LogbookCheckError implements Serializable {
     @JsonProperty("expectedLogbookMsg")
     private String expectedLogbookMsg;
 
-    public LogbookCheckError() {
-    }
+    public LogbookCheckError() {}
 
     /**
      * LogbookCheckResult constructor.
@@ -79,8 +78,13 @@ public class LogbookCheckError implements Serializable {
      * @param savedLogbookMsg
      * @param expectedLogbookMsg
      */
-    public LogbookCheckError(String operationId, String lfcId, String checkedProperty, String savedLogbookMsg,
-        String expectedLogbookMsg) {
+    public LogbookCheckError(
+        String operationId,
+        String lfcId,
+        String checkedProperty,
+        String savedLogbookMsg,
+        String expectedLogbookMsg
+    ) {
         this.operationId = operationId;
         this.lfcId = lfcId;
         this.checkedProperty = checkedProperty;
@@ -139,11 +143,14 @@ public class LogbookCheckError implements Serializable {
 
         LogbookCheckError that = (LogbookCheckError) o;
 
-        if (checkedProperty != null ? !checkedProperty.equals(that.checkedProperty) : that.checkedProperty != null)
-            return false;
-        if (savedLogbookMsg != null ? !savedLogbookMsg.equals(that.savedLogbookMsg) : that.savedLogbookMsg != null)
-            return false;
-        return expectedLogbookMsg != null ? expectedLogbookMsg.equals(that.expectedLogbookMsg)
+        if (
+            checkedProperty != null ? !checkedProperty.equals(that.checkedProperty) : that.checkedProperty != null
+        ) return false;
+        if (
+            savedLogbookMsg != null ? !savedLogbookMsg.equals(that.savedLogbookMsg) : that.savedLogbookMsg != null
+        ) return false;
+        return expectedLogbookMsg != null
+            ? expectedLogbookMsg.equals(that.expectedLogbookMsg)
             : that.expectedLogbookMsg == null;
     }
 

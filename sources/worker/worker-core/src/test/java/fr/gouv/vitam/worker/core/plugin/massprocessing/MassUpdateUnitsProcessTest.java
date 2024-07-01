@@ -50,10 +50,10 @@ import fr.gouv.vitam.functional.administration.client.AdminManagementClientFacto
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
@@ -94,6 +94,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MassUpdateUnitsProcessTest {
+
     private static final int TENANT_ID = 0;
 
     private static final String CONTAINER_NAME = "aebaaaaaaaag3r7cabf4aak2izdlnwiaaaop";
@@ -107,8 +108,9 @@ public class MassUpdateUnitsProcessTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -144,7 +146,6 @@ public class MassUpdateUnitsProcessTest {
     private AdminManagementClient adminManagementClient;
     private BatchReportClient batchReportClient;
 
-
     private InputStream unit;
     private RequestResponse<JsonNode> unitResponse;
     private JsonNode lfcResponse;
@@ -177,37 +178,58 @@ public class MassUpdateUnitsProcessTest {
     public void givingUnitListWhenMassUpdateThenReturnOK() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        final WorkerParameters params =
-            newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setProcessId(operationId)
-                .setLogbookTypeProcess(LogbookTypeProcess.MASS_UPDATE);
+        final WorkerParameters params = newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
+            .setProcessId(operationId)
+            .setLogbookTypeProcess(LogbookTypeProcess.MASS_UPDATE);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        JsonNode query =
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json"));
+        JsonNode query = JsonHandler.getFromInputStream(
+            getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json")
+        );
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(query);
         String workerId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
-        responseOK.addResult(JsonHandler.toJsonNode(
-            new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE,
-                "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
-        responseOK.addResult(JsonHandler.toJsonNode(
-            new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE,
-                "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
+        responseOK.addResult(
+            JsonHandler.toJsonNode(
+                new UpdateUnit(
+                    "aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq",
+                    StatusCode.OK,
+                    UpdateUnitKey.UNIT_METADATA_UPDATE,
+                    "update ok",
+                    "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4"
+                )
+            )
+        );
+        responseOK.addResult(
+            JsonHandler.toJsonNode(
+                new UpdateUnit(
+                    "aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq",
+                    StatusCode.OK,
+                    UpdateUnitKey.UNIT_METADATA_UPDATE,
+                    "update ok",
+                    "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4"
+                )
+            )
+        );
 
         given(handlerIO.getWorkerId()).willReturn(workerId);
         given(metadataClient.updateUnitBulk(any())).willReturn(responseOK);
         when(metadataClient.getUnitByIdRaw(any())).thenReturn(unitResponse);
         when(lfcClient.getRawUnitLifeCycleById(any())).thenReturn(lfcResponse);
-        when(workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName()))
-            .thenReturn(Response.status(Response.Status.OK).entity(unit).build());
-        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
-            .thenReturn(getStoredInfoResult());
+        when(
+            workspaceClient.getObject(CONTAINER_NAME, DataCategory.UNIT.name() + "/" + params.getObjectName())
+        ).thenReturn(Response.status(Response.Status.OK).entity(unit).build());
+        when(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).thenReturn(
+            getStoredInfoResult()
+        );
         when(adminManagementClient.findOntologies(any())).thenReturn(
-            ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode()));
+            ClientMockResultHelper.getOntologies(Response.Status.OK.getStatusCode())
+        );
 
         File reportFile = tempFolder.newFile();
         given(handlerIO.getNewLocalFile(any())).willReturn(reportFile);
@@ -224,34 +246,54 @@ public class MassUpdateUnitsProcessTest {
     public void should_a_storage_error_produce_a_fatal_item_status() throws Exception {
         // Given
         String operationId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
-        final WorkerParameters params =
-            newWorkerParameters().setWorkerGUID(GUIDFactory
-                    .newGUID().getId()).setContainerName(CONTAINER_NAME).setUrlMetadata("http://localhost:8083")
-                .setUrlWorkspace("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
-                .setProcessId(operationId)
-                .setLogbookTypeProcess(LogbookTypeProcess.MASS_UPDATE);
+        final WorkerParameters params = newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(CONTAINER_NAME)
+            .setUrlMetadata("http://localhost:8083")
+            .setUrlWorkspace("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList(UNIT1_GUID, UNIT2_GUID))
+            .setProcessId(operationId)
+            .setLogbookTypeProcess(LogbookTypeProcess.MASS_UPDATE);
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
-        JsonNode query =
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json"));
+        JsonNode query = JsonHandler.getFromInputStream(
+            getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json")
+        );
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(query);
         String workerId = GUIDFactory.newRequestIdGUID(TENANT_ID).toString();
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
-        responseOK.addResult(JsonHandler.toJsonNode(
-            new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE,
-                "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
-        responseOK.addResult(JsonHandler.toJsonNode(
-            new UpdateUnit("aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq", StatusCode.OK, UpdateUnitKey.UNIT_METADATA_UPDATE,
-                "update ok", "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4")));
+        responseOK.addResult(
+            JsonHandler.toJsonNode(
+                new UpdateUnit(
+                    "aeaqaaaaaahxpfgvab4ygalehsmdu5iaaaaq",
+                    StatusCode.OK,
+                    UpdateUnitKey.UNIT_METADATA_UPDATE,
+                    "update ok",
+                    "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4"
+                )
+            )
+        );
+        responseOK.addResult(
+            JsonHandler.toJsonNode(
+                new UpdateUnit(
+                    "aeaqaaaaaahxpfgvab4ygalehsmdvcyaaaaq",
+                    StatusCode.OK,
+                    UpdateUnitKey.UNIT_METADATA_UPDATE,
+                    "update ok",
+                    "-    Title : monSIP 5\n+    Title : monSIP 6\n-    #version : 3\n+    #version : 4"
+                )
+            )
+        );
 
         given(handlerIO.getWorkerId()).willReturn(workerId);
-        doThrow(new ProcessingException("exception")).when(handlerIO)
+        doThrow(new ProcessingException("exception"))
+            .when(handlerIO)
             .transferInputStreamToWorkspace(anyString(), any(), any(), anyBoolean());
         given(metadataClient.updateUnitBulk(any())).willReturn(responseOK);
         given(metadataClient.getUnitByIdRaw(any())).willReturn(unitResponse);
-        given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any()))
-            .willReturn(getStoredInfoResult());
+        given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).willReturn(
+            getStoredInfoResult()
+        );
         given(lfcClient.getRawUnitLifeCycleById(any())).willReturn(lfcResponse);
 
         // When
@@ -260,7 +302,8 @@ public class MassUpdateUnitsProcessTest {
         // Then
         assertThat(itemStatuses).isNotNull();
         assertThat(itemStatuses).hasSize(2);
-        assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus)
+        assertThat(itemStatuses)
+            .extracting(ItemStatus::getGlobalStatus)
             .containsOnly(StatusCode.FATAL, StatusCode.FATAL);
     }
 
@@ -280,8 +323,9 @@ public class MassUpdateUnitsProcessTest {
             .setProcessId(processId)
             .setLogbookTypeProcess(LogbookTypeProcess.MASS_UPDATE);
 
-        JsonNode query =
-            JsonHandler.getFromInputStream(getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json"));
+        JsonNode query = JsonHandler.getFromInputStream(
+            getClass().getResourceAsStream("/MassUpdateUnitsProcess/query.json")
+        );
         given(handlerIO.getJsonFromWorkspace("query.json")).willReturn(query);
 
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
@@ -300,7 +344,8 @@ public class MassUpdateUnitsProcessTest {
         given(handlerIO.getWorkerId()).willReturn(processId);
         given(handlerIO.getContainerName()).willReturn(processId);
         given(storageClient.storeFileFromWorkspace(eq("other_strategy"), any(), any(), any())).willReturn(
-            getStoredInfoResult());
+            getStoredInfoResult()
+        );
 
         LogbookLifecycle lfc = new LogbookLifecycle();
         LogbookEvent event = new LogbookEvent();

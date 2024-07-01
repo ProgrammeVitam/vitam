@@ -137,18 +137,26 @@ public class MetadataAuditService {
     private GUID eip;
 
     @VisibleForTesting
-    public MetadataAuditService(WorkspaceClientFactory workspaceClientFactory,
+    public MetadataAuditService(
+        WorkspaceClientFactory workspaceClientFactory,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
-        VitamRepositoryProvider vitamRepositoryProvider, ElasticsearchMetadataIndexManager indexManager,
-        Boolean isDataConsistencyAuditRunnable, Integer dataConsistencyAuditOplogMaxSize,
-        MongoDbShardConf mongodShardsConf, boolean dbAuthentication) {
+        VitamRepositoryProvider vitamRepositoryProvider,
+        ElasticsearchMetadataIndexManager indexManager,
+        Boolean isDataConsistencyAuditRunnable,
+        Integer dataConsistencyAuditOplogMaxSize,
+        MongoDbShardConf mongodShardsConf,
+        boolean dbAuthentication
+    ) {
         this.workspaceClientFactory = workspaceClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.indexManager = indexManager;
-        dataConsistencyAuditConfig =
-            new DataConsistencyAuditConfig(isDataConsistencyAuditRunnable, dataConsistencyAuditOplogMaxSize,
-                mongodShardsConf, dbAuthentication);
+        dataConsistencyAuditConfig = new DataConsistencyAuditConfig(
+            isDataConsistencyAuditRunnable,
+            dataConsistencyAuditOplogMaxSize,
+            mongodShardsConf,
+            dbAuthentication
+        );
     }
 
     public Response auditDataConsistencyMongoEs()
@@ -159,43 +167,43 @@ public class MetadataAuditService {
         try (WorkspaceClient workspaceClient = workspaceClientFactory.getClient()) {
             if (isAuditAlreadyRunning(logbookClient)) {
                 responseStatus = Status.BAD_REQUEST;
-                entityResponse = new VitamError(responseStatus.name()).setHttpCode(responseStatus.getStatusCode())
+                entityResponse = new VitamError(responseStatus.name())
+                    .setHttpCode(responseStatus.getStatusCode())
                     .setContext(CONTEXT_METADATA_AUDIT)
                     .setState(CODE_VITAM)
                     .setMessage(responseStatus.getReasonPhrase())
                     .setDescription("A data consistency audit is already running.");
-                return Response.status(responseStatus)
-                    .entity(entityResponse)
-                    .build();
+                return Response.status(responseStatus).entity(entityResponse).build();
             }
 
-            if (!dataConsistencyAuditConfig.getIsDataConsistencyAuditRunnable() ||
+            if (
+                !dataConsistencyAuditConfig.getIsDataConsistencyAuditRunnable() ||
                 dataConsistencyAuditConfig.getDataConsistencyAuditOplogMaxSize() == null ||
-                dataConsistencyAuditConfig.getDataConsistencyAuditOplogMaxSize() == 0) {
+                dataConsistencyAuditConfig.getDataConsistencyAuditOplogMaxSize() == 0
+            ) {
                 responseStatus = Status.BAD_REQUEST;
-                entityResponse = new VitamError(responseStatus.name()).setHttpCode(responseStatus.getStatusCode())
+                entityResponse = new VitamError(responseStatus.name())
+                    .setHttpCode(responseStatus.getStatusCode())
                     .setContext(CONTEXT_METADATA_AUDIT)
                     .setState(CODE_VITAM)
                     .setMessage(responseStatus.getReasonPhrase())
                     .setDescription("The data consistency audit params are not correct.");
-                return Response.status(responseStatus)
-                    .entity(entityResponse)
-                    .build();
+                return Response.status(responseStatus).entity(entityResponse).build();
             }
 
-            if (dataConsistencyAuditConfig.getMongodShardsConf() == null ||
+            if (
+                dataConsistencyAuditConfig.getMongodShardsConf() == null ||
                 dataConsistencyAuditConfig.getMongodShardsConf().getMongoDbShards() == null ||
-                dataConsistencyAuditConfig.getMongodShardsConf().getMongoDbShards().isEmpty()) {
+                dataConsistencyAuditConfig.getMongodShardsConf().getMongoDbShards().isEmpty()
+            ) {
                 responseStatus = Response.Status.BAD_REQUEST;
-                entityResponse =
-                    new VitamError(responseStatus.name()).setHttpCode(responseStatus.getStatusCode())
-                        .setContext(CONTEXT_METADATA_AUDIT)
-                        .setState(CODE_VITAM)
-                        .setMessage(responseStatus.getReasonPhrase())
-                        .setDescription("At least one shard is required for MongoDB configuration.");
-                return Response.status(responseStatus)
-                    .entity(entityResponse)
-                    .build();
+                entityResponse = new VitamError(responseStatus.name())
+                    .setHttpCode(responseStatus.getStatusCode())
+                    .setContext(CONTEXT_METADATA_AUDIT)
+                    .setState(CODE_VITAM)
+                    .setMessage(responseStatus.getReasonPhrase())
+                    .setDescription("At least one shard is required for MongoDB configuration.");
+                return Response.status(responseStatus).entity(entityResponse).build();
             }
 
             eip = GUIDReader.getGUID(VitamThreadUtils.getVitamSession().getRequestId());
@@ -205,25 +213,35 @@ public class MetadataAuditService {
             getShardsConfig(shardsTimeStampConfigMap, workspaceClient);
 
             LOGGER.debug("Audit data consistency : Start Reading Oplog");
-            mongoRepositoryForUnits =
-                vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection());
-            mongoRepositoryForGot =
-                vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection());
-            Map<String, ? extends MetadataDocument<?>> metadataOplogFromMongo =
-                getOplogDocumentsFromShards(shardsTimeStampConfigMap, workspaceClient);
+            mongoRepositoryForUnits = vitamRepositoryProvider.getVitamMongoRepository(
+                MetadataCollections.UNIT.getVitamCollection()
+            );
+            mongoRepositoryForGot = vitamRepositoryProvider.getVitamMongoRepository(
+                MetadataCollections.OBJECTGROUP.getVitamCollection()
+            );
+            Map<String, ? extends MetadataDocument<?>> metadataOplogFromMongo = getOplogDocumentsFromShards(
+                shardsTimeStampConfigMap,
+                workspaceClient
+            );
 
             LOGGER.debug("Audit data consistency : Start Reading indexes from ES");
-            elasticsearchUnitsRepository =
-                vitamRepositoryProvider.getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
-                    indexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT));
-            elasticsearchGotRepository =
-                vitamRepositoryProvider.getVitamESRepository(MetadataCollections.OBJECTGROUP.getVitamCollection(),
-                    indexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP));
-            Map<String, ? extends MetadataDocument<?>> metadataOpLogFromEs = metadataOplogFromMongo.entrySet().stream()
+            elasticsearchUnitsRepository = vitamRepositoryProvider.getVitamESRepository(
+                MetadataCollections.UNIT.getVitamCollection(),
+                indexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)
+            );
+            elasticsearchGotRepository = vitamRepositoryProvider.getVitamESRepository(
+                MetadataCollections.OBJECTGROUP.getVitamCollection(),
+                indexManager.getElasticsearchIndexAliasResolver(MetadataCollections.OBJECTGROUP)
+            );
+            Map<String, ? extends MetadataDocument<?>> metadataOpLogFromEs = metadataOplogFromMongo
+                .entrySet()
+                .stream()
                 .map(elmt -> new SimpleEntry<>(elmt.getKey(), getDocumentFromEs(elmt)))
                 .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-            Map<String, String> incoherantData =
-                generateIncoherantDocuments(metadataOplogFromMongo, metadataOpLogFromEs);
+            Map<String, String> incoherantData = generateIncoherantDocuments(
+                metadataOplogFromMongo,
+                metadataOpLogFromEs
+            );
 
             LOGGER.debug("Audit data consistency : Update Logbook with {} resulted data", incoherantData.size());
             if (incoherantData.isEmpty()) {
@@ -232,26 +250,41 @@ public class MetadataAuditService {
                 rectifyDataInElasticsearch(logbookClient, metadataOplogFromMongo, metadataOpLogFromEs, incoherantData);
             }
 
-            Map<String, Object> responseResults =
-                Map.of("requestId", eip.getId(), "IncoherantDataSize", incoherantData.size());
+            Map<String, Object> responseResults = Map.of(
+                "requestId",
+                eip.getId(),
+                "IncoherantDataSize",
+                incoherantData.size()
+            );
             entityResponse = JsonHandler.toJsonNode(responseResults);
             LOGGER.debug("Audit data consistency : End of audit");
-        } catch (ContentAddressableStorageNotFoundException | IOException | InvalidParseOperationException
-            | ContentAddressableStorageServerException | InvalidGuidOperationException e) {
+        } catch (
+            ContentAddressableStorageNotFoundException
+            | IOException
+            | InvalidParseOperationException
+            | ContentAddressableStorageServerException
+            | InvalidGuidOperationException e
+        ) {
             LOGGER.error(e);
             errorLogbookForAudit(logbookClient, e.getMessage());
             responseStatus = Response.Status.BAD_REQUEST;
-            entityResponse = new VitamError(responseStatus.name()).setHttpCode(responseStatus.getStatusCode())
+            entityResponse = new VitamError(responseStatus.name())
+                .setHttpCode(responseStatus.getStatusCode())
                 .setContext(CONTEXT_METADATA_AUDIT)
                 .setState(CODE_VITAM)
                 .setMessage(responseStatus.getReasonPhrase())
                 .setDescription(e.getMessage());
-        } catch (LogbookClientBadRequestException | LogbookClientAlreadyExistsException | LogbookClientServerException
-            | LogbookClientNotFoundException e) {
+        } catch (
+            LogbookClientBadRequestException
+            | LogbookClientAlreadyExistsException
+            | LogbookClientServerException
+            | LogbookClientNotFoundException e
+        ) {
             errorLogbookForAudit(logbookClient, e.getMessage());
             LOGGER.error(e);
             responseStatus = Response.Status.BAD_REQUEST;
-            entityResponse = new VitamError(responseStatus.name()).setHttpCode(responseStatus.getStatusCode())
+            entityResponse = new VitamError(responseStatus.name())
+                .setHttpCode(responseStatus.getStatusCode())
                 .setContext(LOGBOOK_METADATA_AUDIT)
                 .setState(CODE_VITAM)
                 .setMessage(responseStatus.getReasonPhrase())
@@ -260,38 +293,44 @@ public class MetadataAuditService {
             errorLogbookForAudit(logbookClient, e.getMessage());
             LOGGER.error(e);
             responseStatus = Response.Status.BAD_REQUEST;
-            entityResponse = new VitamError(responseStatus.name()).setHttpCode(responseStatus.getStatusCode())
+            entityResponse = new VitamError(responseStatus.name())
+                .setHttpCode(responseStatus.getStatusCode())
                 .setContext(DATABASE_METADATA_AUDIT)
                 .setState(CODE_VITAM)
                 .setMessage(responseStatus.getReasonPhrase())
                 .setDescription(e.getMessage());
         }
-        return Response.status(responseStatus)
-            .entity(entityResponse)
-            .build();
+        return Response.status(responseStatus).entity(entityResponse).build();
     }
 
-    private void rectifyDataInElasticsearch(LogbookOperationsClient logbookClient,
+    private void rectifyDataInElasticsearch(
+        LogbookOperationsClient logbookClient,
         Map<String, ? extends MetadataDocument<?>> metadataOplogFromMongo,
         Map<String, ? extends MetadataDocument<?>> metadataOpLogFromEs,
-        Map<String, String> incoherantData)
-        throws DatabaseException, InvalidParseOperationException, LogbookClientNotFoundException,
-        LogbookClientBadRequestException, LogbookClientServerException {
+        Map<String, String> incoherantData
+    )
+        throws DatabaseException, InvalidParseOperationException, LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
         LOGGER.debug("Audit data consistency : Start updating incoherants documents in ES");
         alertService.createAlert(
-            incoherantData.size() + " incoherant documents detected when running data consistency audit");
+            incoherantData.size() + " incoherant documents detected when running data consistency audit"
+        );
         updateIncoherantDataFromEs(metadataOplogFromMongo, incoherantData);
         deleteIncoherantDataFromEs(metadataOplogFromMongo, metadataOpLogFromEs, incoherantData);
 
-        Map<String, ? extends MetadataDocument<?>> metadataOpLogFromEsAfterUpdate =
-            metadataOplogFromMongo.entrySet().stream()
-                .map(elmt -> new SimpleEntry<>(elmt.getKey(), getDocumentFromEs(elmt)))
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-        Map<String, String> incoherantDataAfterUpdate =
-            generateIncoherantDocuments(metadataOplogFromMongo, metadataOpLogFromEsAfterUpdate);
+        Map<String, ? extends MetadataDocument<?>> metadataOpLogFromEsAfterUpdate = metadataOplogFromMongo
+            .entrySet()
+            .stream()
+            .map(elmt -> new SimpleEntry<>(elmt.getKey(), getDocumentFromEs(elmt)))
+            .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+        Map<String, String> incoherantDataAfterUpdate = generateIncoherantDocuments(
+            metadataOplogFromMongo,
+            metadataOpLogFromEsAfterUpdate
+        );
         if (incoherantDataAfterUpdate.isEmpty()) {
-            final String msgWarnToDisplay =
-                String.format("Audit data consistency : %s document(s) have been updated in ES", incoherantData.size());
+            final String msgWarnToDisplay = String.format(
+                "Audit data consistency : %s document(s) have been updated in ES",
+                incoherantData.size()
+            );
             LOGGER.warn(msgWarnToDisplay);
             warningLogbookForAudit(logbookClient, msgWarnToDisplay);
         } else {
@@ -301,71 +340,95 @@ public class MetadataAuditService {
         }
     }
 
-    private void deleteIncoherantDataFromEs(Map<String, ? extends MetadataDocument<?>> metadataOplogFromMongo,
-        Map<String, ? extends MetadataDocument<?>> metadataOpLogFromEs, Map<String, String> incoherantData) {
-        Set<String> documentIdsToDeleteInES = incoherantData.keySet().stream()
+    private void deleteIncoherantDataFromEs(
+        Map<String, ? extends MetadataDocument<?>> metadataOplogFromMongo,
+        Map<String, ? extends MetadataDocument<?>> metadataOpLogFromEs,
+        Map<String, String> incoherantData
+    ) {
+        Set<String> documentIdsToDeleteInES = incoherantData
+            .keySet()
+            .stream()
             .filter(elmt -> metadataOplogFromMongo.get(elmt).isEmpty())
             .collect(Collectors.toSet());
         if (!documentIdsToDeleteInES.isEmpty()) {
-            List<? extends MetadataDocument> documentsToDelete = metadataOpLogFromEs.values().stream()
+            List<? extends MetadataDocument> documentsToDelete = metadataOpLogFromEs
+                .values()
+                .stream()
                 .filter(elmt -> documentIdsToDeleteInES.contains(elmt.getId()))
                 .collect(Collectors.toList());
-            Map<Pair<Integer, Boolean>, List<String>> documentsToDeleteByTenant = documentsToDelete.stream()
-                .collect(Collectors.toMap(
-                    elmt -> Pair.of(elmt.getTenantId(), elmt instanceof Unit),
-                    elmt -> new ArrayList<>(Collections.singleton(elmt.getId())),
-                    (oldElmt, newElmt) -> {
-                        oldElmt.addAll(newElmt);
-                        return oldElmt;
-                    }));
-            documentsToDeleteByTenant.keySet().forEach(key -> {
-                try {
-                    if (key.getRight()) {
-                        elasticsearchUnitsRepository.delete(documentsToDeleteByTenant.get(key), key.getLeft());
-                    } else {
-                        elasticsearchGotRepository.delete(documentsToDeleteByTenant.get(key), key.getLeft());
+            Map<Pair<Integer, Boolean>, List<String>> documentsToDeleteByTenant = documentsToDelete
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        elmt -> Pair.of(elmt.getTenantId(), elmt instanceof Unit),
+                        elmt -> new ArrayList<>(Collections.singleton(elmt.getId())),
+                        (oldElmt, newElmt) -> {
+                            oldElmt.addAll(newElmt);
+                            return oldElmt;
+                        }
+                    )
+                );
+            documentsToDeleteByTenant
+                .keySet()
+                .forEach(key -> {
+                    try {
+                        if (key.getRight()) {
+                            elasticsearchUnitsRepository.delete(documentsToDeleteByTenant.get(key), key.getLeft());
+                        } else {
+                            elasticsearchGotRepository.delete(documentsToDeleteByTenant.get(key), key.getLeft());
+                        }
+                    } catch (DatabaseException e) {
+                        LOGGER.error(e.getMessage());
                     }
-                } catch (DatabaseException e) {
-                    LOGGER.error(e.getMessage());
-                }
-            });
+                });
         }
     }
 
-    private void updateIncoherantDataFromEs(Map<String, ? extends MetadataDocument<?>> metadataOplogFromMongo,
-        Map<String, String> incoherantData) throws DatabaseException {
-        List<Document> documentsToUpdateInES = metadataOplogFromMongo.values().stream()
+    private void updateIncoherantDataFromEs(
+        Map<String, ? extends MetadataDocument<?>> metadataOplogFromMongo,
+        Map<String, String> incoherantData
+    ) throws DatabaseException {
+        List<Document> documentsToUpdateInES = metadataOplogFromMongo
+            .values()
+            .stream()
             .filter(elmt -> incoherantData.containsKey(elmt.get(FIELD_ID)))
             .collect(Collectors.toList());
-        elasticsearchUnitsRepository.save(documentsToUpdateInES.stream().filter(elmt -> elmt instanceof Unit)
-            .collect(Collectors.toList()));
-        elasticsearchGotRepository.save(documentsToUpdateInES.stream().filter(elmt -> elmt instanceof ObjectGroup)
-            .collect(Collectors.toList()));
+        elasticsearchUnitsRepository.save(
+            documentsToUpdateInES.stream().filter(elmt -> elmt instanceof Unit).collect(Collectors.toList())
+        );
+        elasticsearchGotRepository.save(
+            documentsToUpdateInES.stream().filter(elmt -> elmt instanceof ObjectGroup).collect(Collectors.toList())
+        );
     }
 
     private boolean isAuditAlreadyRunning(LogbookOperationsClient logbookClient)
         throws LogbookClientServerException, InvalidParseOperationException {
-        RequestResponse<JsonNode> lastOperationByType =
-            logbookClient.getLastOperationByType(AUDIT_DATA_CONSISTENCY_EVT);
-        if (lastOperationByType instanceof RequestResponseOK &&
-            !((RequestResponseOK<JsonNode>) lastOperationByType).getResults().isEmpty()) {
-            LogbookOperation lastLogbook =
-                JsonHandler.getFromJsonNode(((RequestResponseOK<JsonNode>) lastOperationByType).getResults().get(0),
-                    LogbookOperation.class);
+        RequestResponse<JsonNode> lastOperationByType = logbookClient.getLastOperationByType(
+            AUDIT_DATA_CONSISTENCY_EVT
+        );
+        if (
+            lastOperationByType instanceof RequestResponseOK &&
+            !((RequestResponseOK<JsonNode>) lastOperationByType).getResults().isEmpty()
+        ) {
+            LogbookOperation lastLogbook = JsonHandler.getFromJsonNode(
+                ((RequestResponseOK<JsonNode>) lastOperationByType).getResults().get(0),
+                LogbookOperation.class
+            );
             return lastLogbook.getEvents().isEmpty();
         }
         return false;
     }
 
     private MetadataDocument<?> getDocumentFromEs(Entry<String, ? extends MetadataDocument<?>> entrySet) {
-        return entrySet.getValue() instanceof Unit ?
-            new Unit(getIndexByDocument(elasticsearchUnitsRepository, entrySet)) :
-            new ObjectGroup(getIndexByDocument(elasticsearchGotRepository, entrySet));
+        return entrySet.getValue() instanceof Unit
+            ? new Unit(getIndexByDocument(elasticsearchUnitsRepository, entrySet))
+            : new ObjectGroup(getIndexByDocument(elasticsearchGotRepository, entrySet));
     }
 
     private Map<String, String> generateIncoherantDocuments(
-        Map<String, ? extends MetadataDocument<?>> metadataOplogFromMongo, Map<String,
-        ? extends MetadataDocument<?>> metadataOpLogFromEs) throws InvalidParseOperationException {
+        Map<String, ? extends MetadataDocument<?>> metadataOplogFromMongo,
+        Map<String, ? extends MetadataDocument<?>> metadataOpLogFromEs
+    ) throws InvalidParseOperationException {
         Map<String, String> incoherantData = new HashMap<>();
         for (String documentId : metadataOplogFromMongo.keySet()) {
             if (metadataOpLogFromEs.containsKey(documentId)) {
@@ -382,8 +445,10 @@ public class MetadataAuditService {
         return incoherantData;
     }
 
-    private Document getIndexByDocument(VitamElasticsearchRepository elasticsearchRepository,
-        Map.Entry<String, ? extends MetadataDocument<?>> elmt) {
+    private Document getIndexByDocument(
+        VitamElasticsearchRepository elasticsearchRepository,
+        Map.Entry<String, ? extends MetadataDocument<?>> elmt
+    ) {
         try {
             Document result = elasticsearchRepository.getDocumentById(elmt.getKey()).orElse(new Document());
             if (!result.isEmpty()) {
@@ -397,23 +462,32 @@ public class MetadataAuditService {
     }
 
     private void getShardsConfig(Map<String, BsonTimestamp> shardsTimeStampConfigMap, WorkspaceClient workspaceClient)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException,
-        InvalidParseOperationException, IOException {
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException, InvalidParseOperationException, IOException {
         if (workspaceClient.isExistingContainer(AUDIT_CONTAINER_NAME)) {
             Map<String, Object> mapFromObject;
-            final InputStream stream = (InputStream) workspaceClient.getObject(AUDIT_CONTAINER_NAME,
-                TMP_FILE_NAME_FOR_SHARDS_CONFIG + JSON_EXTENSION).getEntity();
+            final InputStream stream = (InputStream) workspaceClient
+                .getObject(AUDIT_CONTAINER_NAME, TMP_FILE_NAME_FOR_SHARDS_CONFIG + JSON_EXTENSION)
+                .getEntity();
             mapFromObject = JsonHandler.getMapFromString(IOUtils.toString(stream, UTF_8));
-            shardsTimeStampConfigMap.putAll(mapFromObject.entrySet()
-                .stream()
-                .map(e -> new SimpleEntry<>(e.getKey(), convertToBsonTimestamp(e.getValue())))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+            shardsTimeStampConfigMap.putAll(
+                mapFromObject
+                    .entrySet()
+                    .stream()
+                    .map(e -> new SimpleEntry<>(e.getKey(), convertToBsonTimestamp(e.getValue())))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue))
+            );
         } else {
             workspaceClient.createContainer(AUDIT_CONTAINER_NAME);
             for (MongoDbShard mongoDbShard : dataConsistencyAuditConfig.getMongodShardsConf().getMongoDbShards()) {
-                mongoDbShard.getMongoDbNodes().forEach(dbNode ->
-                    shardsTimeStampConfigMap.put(
-                        mongoDbShard.getShardName() + ":" + dbNode.getDbHost() + ":" + dbNode.getDbPort(), null));
+                mongoDbShard
+                    .getMongoDbNodes()
+                    .forEach(
+                        dbNode ->
+                            shardsTimeStampConfigMap.put(
+                                mongoDbShard.getShardName() + ":" + dbNode.getDbHost() + ":" + dbNode.getDbPort(),
+                                null
+                            )
+                    );
             }
             storeDbShardsConfig(shardsTimeStampConfigMap, workspaceClient);
         }
@@ -421,46 +495,63 @@ public class MetadataAuditService {
 
     private Map<String, ? extends MetadataDocument<?>> getOplogDocumentsFromShards(
         Map<String, BsonTimestamp> shardsTimeStampConfigMap,
-        WorkspaceClient workspaceClient) {
+        WorkspaceClient workspaceClient
+    ) {
         boolean isShardsTimeStampConfigMapTouched = false;
         final String dbUserName = dataConsistencyAuditConfig.getMongodShardsConf().getDbUserName();
         final String dbUserPassword = dataConsistencyAuditConfig.getMongodShardsConf().getDbPassword();
-        final List<String> collectionsToScan =
-            Arrays.stream(MetadataCollections.values()).map(collection -> collection.getCollection().
-                getNamespace().getFullName()).collect(Collectors.toList());
+        final List<String> collectionsToScan = Arrays.stream(MetadataCollections.values())
+            .map(collection -> collection.getCollection().getNamespace().getFullName())
+            .collect(Collectors.toList());
         Map<String, MetadataDocument<?>> metadataOplogDocuments = new HashMap<>();
         for (MongoDbShard mongoDbShard : dataConsistencyAuditConfig.getMongodShardsConf().getMongoDbShards()) {
             for (MongoDbNode dbNode : mongoDbShard.getMongoDbNodes()) {
                 // Create OplogInstance
-                OplogReader oplogReader = createOplogReaderInstance(dbUserName, dbUserPassword, dbNode,
+                OplogReader oplogReader = createOplogReaderInstance(
+                    dbUserName,
+                    dbUserPassword,
+                    dbNode,
                     dataConsistencyAuditConfig.isDbAuthentication(),
-                    dataConsistencyAuditConfig.getDataConsistencyAuditOplogMaxSize());
+                    dataConsistencyAuditConfig.getDataConsistencyAuditOplogMaxSize()
+                );
                 // Read Oplog from node
                 final String shardNameForMapConfig =
                     mongoDbShard.getShardName() + ":" + dbNode.getDbHost() + ":" + dbNode.getDbPort();
-                Map<String, Document> oplogByShard =
-                    oplogReader.readDocumentsFromOplogByShardAndCollections(collectionsToScan,
-                        shardsTimeStampConfigMap.get(shardNameForMapConfig)
-                    );
+                Map<String, Document> oplogByShard = oplogReader.readDocumentsFromOplogByShardAndCollections(
+                    collectionsToScan,
+                    shardsTimeStampConfigMap.get(shardNameForMapConfig)
+                );
                 if (!oplogByShard.isEmpty()) {
                     if (metadataOplogDocuments.isEmpty()) {
-                        LOGGER.info(oplogByShard.size() + " operations will be added for data consistency audit from " +
-                            shardNameForMapConfig);
+                        LOGGER.info(
+                            oplogByShard.size() +
+                            " operations will be added for data consistency audit from " +
+                            shardNameForMapConfig
+                        );
                         metadataOplogDocuments.putAll(getDocumentsFromMongo(oplogByShard));
                     } else {
-                        Map<String, Document> oplogByShardToAdd = oplogByShard.entrySet().stream()
+                        Map<String, Document> oplogByShardToAdd = oplogByShard
+                            .entrySet()
+                            .stream()
                             .filter(elmt -> !metadataOplogDocuments.keySet().contains(elmt.getKey()))
                             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                         LOGGER.info(
-                            oplogByShardToAdd.size() + " operations will be added for data consistency audit from " +
-                                shardNameForMapConfig);
+                            oplogByShardToAdd.size() +
+                            " operations will be added for data consistency audit from " +
+                            shardNameForMapConfig
+                        );
                         metadataOplogDocuments.putAll(getDocumentsFromMongo(oplogByShardToAdd));
                     }
-                    BsonTimestamp maxTimeStampScanned =
-                        oplogByShard.values().stream().map(elmt -> ((BsonTimestamp) elmt.get(OPERATION_TIME)))
-                            .max(BsonTimestamp::compareTo).get();
-                    if (shardsTimeStampConfigMap.get(shardNameForMapConfig) == null ||
-                        maxTimeStampScanned.compareTo(shardsTimeStampConfigMap.get(shardNameForMapConfig)) > 0) {
+                    BsonTimestamp maxTimeStampScanned = oplogByShard
+                        .values()
+                        .stream()
+                        .map(elmt -> ((BsonTimestamp) elmt.get(OPERATION_TIME)))
+                        .max(BsonTimestamp::compareTo)
+                        .get();
+                    if (
+                        shardsTimeStampConfigMap.get(shardNameForMapConfig) == null ||
+                        maxTimeStampScanned.compareTo(shardsTimeStampConfigMap.get(shardNameForMapConfig)) > 0
+                    ) {
                         isShardsTimeStampConfigMapTouched = true;
                         shardsTimeStampConfigMap.put(shardNameForMapConfig, maxTimeStampScanned);
                     }
@@ -474,28 +565,51 @@ public class MetadataAuditService {
         return metadataOplogDocuments;
     }
 
-    private OplogReader createOplogReaderInstance(String dbUserName, String dbUserPassword, MongoDbNode dbNode,
-        Boolean dbAuthentication, Integer dataConsistencyAuditOplogMaxSize) {
+    private OplogReader createOplogReaderInstance(
+        String dbUserName,
+        String dbUserPassword,
+        MongoDbNode dbNode,
+        Boolean dbAuthentication,
+        Integer dataConsistencyAuditOplogMaxSize
+    ) {
         LOGGER.info("Connecting to MongoDB Shard Node");
 
-        DbConfiguration dbConfiguration =
-            new DbConfigurationImpl(List.of(dbNode), DB_NAME, dbAuthentication, dbUserName, dbUserPassword);
+        DbConfiguration dbConfiguration = new DbConfigurationImpl(
+            List.of(dbNode),
+            DB_NAME,
+            dbAuthentication,
+            dbUserName,
+            dbUserPassword
+        );
         MongoClient mongoClient = MongoDbAccess.createMongoClient(dbConfiguration);
 
         return new OplogReader(mongoClient, dataConsistencyAuditOplogMaxSize);
     }
 
     private Map<String, MetadataDocument<?>> getDocumentsFromMongo(Map<String, Document> documentsToScan) {
-        return documentsToScan.entrySet().stream()
-            .map(elmt -> new SimpleEntry<>(elmt.getKey(), elmt.getValue().get(COLLECTION_NAME)
-                .toString().equals(MetadataCollections.UNIT.getCollection().getNamespace().getFullName()) ?
-                getDocumentFromMongo(Unit.class, elmt) :
-                getDocumentFromMongo(ObjectGroup.class, elmt)))
+        return documentsToScan
+            .entrySet()
+            .stream()
+            .map(
+                elmt ->
+                    new SimpleEntry<>(
+                        elmt.getKey(),
+                        elmt
+                                .getValue()
+                                .get(COLLECTION_NAME)
+                                .toString()
+                                .equals(MetadataCollections.UNIT.getCollection().getNamespace().getFullName())
+                            ? getDocumentFromMongo(Unit.class, elmt)
+                            : getDocumentFromMongo(ObjectGroup.class, elmt)
+                    )
+            )
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private MetadataDocument<?> getDocumentFromMongo(Class<? extends MetadataDocument> clasz,
-        Entry<String, Document> elmt) {
+    private MetadataDocument<?> getDocumentFromMongo(
+        Class<? extends MetadataDocument> clasz,
+        Entry<String, Document> elmt
+    ) {
         try {
             if (clasz == Unit.class) {
                 Document unitDoc = mongoRepositoryForUnits.getByID(elmt.getKey(), null).orElse(new Document());
@@ -520,32 +634,46 @@ public class MetadataAuditService {
 
     private void startLogbookForAudit(LogbookOperationsClient logbookClient)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-        final LogbookOperationParameters logbookParametersForAuditStart = LogbookParameterHelper
-            .newLogbookOperationParameters(eip, AUDIT_DATA_CONSISTENCY_EVT, eip,
-                LogbookTypeProcess.DATA_CONSISTENCY_AUDIT, StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(AUDIT_DATA_CONSISTENCY_EVT, StatusCode.STARTED), eip);
+        final LogbookOperationParameters logbookParametersForAuditStart =
+            LogbookParameterHelper.newLogbookOperationParameters(
+                eip,
+                AUDIT_DATA_CONSISTENCY_EVT,
+                eip,
+                LogbookTypeProcess.DATA_CONSISTENCY_AUDIT,
+                StatusCode.STARTED,
+                VitamLogbookMessages.getCodeOp(AUDIT_DATA_CONSISTENCY_EVT, StatusCode.STARTED),
+                eip
+            );
         logbookClient.create(logbookParametersForAuditStart);
     }
 
     private void successLogbookForAudit(LogbookOperationsClient logbookClient)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, AUDIT_DATA_CONSISTENCY_EVT, eip,
-                LogbookTypeProcess.DATA_CONSISTENCY_AUDIT,
-                StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(AUDIT_DATA_CONSISTENCY_EVT, StatusCode.OK), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            AUDIT_DATA_CONSISTENCY_EVT,
+            eip,
+            LogbookTypeProcess.DATA_CONSISTENCY_AUDIT,
+            StatusCode.OK,
+            VitamLogbookMessages.getCodeOp(AUDIT_DATA_CONSISTENCY_EVT, StatusCode.OK),
+            eip
+        );
         logbookClient.update(logbookParameters);
     }
 
     private void warningLogbookForAudit(LogbookOperationsClient logbookClient, String message)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, AUDIT_DATA_CONSISTENCY_EVT, eip,
-                LogbookTypeProcess.DATA_CONSISTENCY_AUDIT,
-                StatusCode.WARNING,
-                VitamLogbookMessages.getCodeOp(AUDIT_DATA_CONSISTENCY_EVT, StatusCode.WARNING), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            AUDIT_DATA_CONSISTENCY_EVT,
+            eip,
+            LogbookTypeProcess.DATA_CONSISTENCY_AUDIT,
+            StatusCode.WARNING,
+            VitamLogbookMessages.getCodeOp(AUDIT_DATA_CONSISTENCY_EVT, StatusCode.WARNING),
+            eip
+        );
         final ObjectNode msgJson = JsonHandler.createObjectNode();
         msgJson.put("AuditWarnCheck", message);
         logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, msgJson.toString());
@@ -555,11 +683,15 @@ public class MetadataAuditService {
     private void errorLogbookForAudit(LogbookOperationsClient logbookClient, String message)
         throws LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(VitamConfiguration.getAdminTenant());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, AUDIT_DATA_CONSISTENCY_EVT, eip,
-                LogbookTypeProcess.DATA_CONSISTENCY_AUDIT,
-                StatusCode.KO,
-                VitamLogbookMessages.getCodeOp(AUDIT_DATA_CONSISTENCY_EVT, StatusCode.KO), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            AUDIT_DATA_CONSISTENCY_EVT,
+            eip,
+            LogbookTypeProcess.DATA_CONSISTENCY_AUDIT,
+            StatusCode.KO,
+            VitamLogbookMessages.getCodeOp(AUDIT_DATA_CONSISTENCY_EVT, StatusCode.KO),
+            eip
+        );
         final ObjectNode msgJson = JsonHandler.createObjectNode();
         msgJson.put("AuditErrorCheck", message);
         logbookParameters.putParameterValue(LogbookParameterName.eventDetailData, msgJson.toString());
@@ -569,10 +701,15 @@ public class MetadataAuditService {
     private BsonTimestamp convertToBsonTimestamp(Object value) {
         try {
             JsonNode valueToJsonNode = JsonHandler.toJsonNode(value);
-            if (!valueToJsonNode.isEmpty() && valueToJsonNode.get(FIELD_TIME) != null &&
-                valueToJsonNode.get(FIELD_INCREMENT) != null) {
-                return new BsonTimestamp(valueToJsonNode.get(FIELD_TIME).asInt(),
-                    valueToJsonNode.get(FIELD_INCREMENT).asInt());
+            if (
+                !valueToJsonNode.isEmpty() &&
+                valueToJsonNode.get(FIELD_TIME) != null &&
+                valueToJsonNode.get(FIELD_INCREMENT) != null
+            ) {
+                return new BsonTimestamp(
+                    valueToJsonNode.get(FIELD_TIME).asInt(),
+                    valueToJsonNode.get(FIELD_INCREMENT).asInt()
+                );
             }
         } catch (final InvalidParseOperationException e) {
             LOGGER.error(e.getMessage());
@@ -580,16 +717,20 @@ public class MetadataAuditService {
         return null;
     }
 
-    private void storeDbShardsConfig(Map<String, BsonTimestamp> shardsTimeStampConfigMap,
-        WorkspaceClient workspaceClient) {
+    private void storeDbShardsConfig(
+        Map<String, BsonTimestamp> shardsTimeStampConfigMap,
+        WorkspaceClient workspaceClient
+    ) {
         try {
             final File firstMapTmpFile = File.createTempFile(TMP_FILE_NAME_FOR_SHARDS_CONFIG, JSON_EXTENSION);
             JsonHandler.writeAsFile(JsonHandler.toJsonNode(shardsTimeStampConfigMap), firstMapTmpFile);
-            workspaceClient.putObject(AUDIT_CONTAINER_NAME, TMP_FILE_NAME_FOR_SHARDS_CONFIG + JSON_EXTENSION,
-                firstMapTmpFile);
+            workspaceClient.putObject(
+                AUDIT_CONTAINER_NAME,
+                TMP_FILE_NAME_FOR_SHARDS_CONFIG + JSON_EXTENSION,
+                firstMapTmpFile
+            );
         } catch (IOException | InvalidParseOperationException | ContentAddressableStorageServerException e) {
             LOGGER.error(e.getMessage());
         }
     }
-
 }

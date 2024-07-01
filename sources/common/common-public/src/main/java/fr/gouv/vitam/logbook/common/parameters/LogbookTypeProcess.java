@@ -165,5 +165,4 @@ public enum LogbookTypeProcess {
         }
         throw new IllegalArgumentException(type);
     }
-
 }

@@ -47,24 +47,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-
 /**
  * VitamError class
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class VitamError<T> extends RequestResponse<T> {
 
-
     @JsonProperty("code")
     private String code;
+
     @JsonProperty("context")
     private String context;
+
     @JsonProperty("state")
     private String state;
+
     @JsonProperty("message")
     private String message;
+
     @JsonProperty("description")
     private String description;
+
     @JsonProperty("errors")
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<VitamError<T>> errors;
@@ -106,7 +109,6 @@ public class VitamError<T> extends RequestResponse<T> {
         super.setHttpCode(httpCode);
         return this;
     }
-
 
     /**
      * @param context of error as String
@@ -167,7 +169,6 @@ public class VitamError<T> extends RequestResponse<T> {
         return this;
     }
 
-
     /**
      * @param error one error
      * @return the VitamError object with the list of errors is setted
@@ -182,7 +183,6 @@ public class VitamError<T> extends RequestResponse<T> {
 
         return this;
     }
-
 
     /**
      * @return the code of the VitamError object
@@ -238,8 +238,7 @@ public class VitamError<T> extends RequestResponse<T> {
      */
     public static <T> VitamError<T> getFromJsonNode(JsonNode node, Class<T> clasz)
         throws InvalidParseOperationException {
-        return JsonHandler.getFromJsonNode(node, new TypeReference<>() {
-        });
+        return JsonHandler.getFromJsonNode(node, new TypeReference<>() {});
     }
 
     /**
@@ -248,8 +247,7 @@ public class VitamError<T> extends RequestResponse<T> {
      * @throws InvalidParseOperationException if parse JsonNode node exception occurred
      */
     public static VitamError<JsonNode> getFromJsonNode(JsonNode node) throws InvalidParseOperationException {
-        return JsonHandler.getFromJsonNode(node, new TypeReference<>() {
-        });
+        return JsonHandler.getFromJsonNode(node, new TypeReference<>() {});
     }
 
     /**

@@ -60,12 +60,16 @@ public class OplogReaderTest {
 
     @Mock
     private MongoClient mockClient;
+
     @Mock
     private MongoDatabase mockDB;
+
     @Mock
     private MongoCollection mockCollection;
+
     @Mock
     private FindIterable mockIterable;
+
     @Mock
     private MongoCursor mockCursor;
 
@@ -107,17 +111,17 @@ public class OplogReaderTest {
 
     @Test
     public void givenOplogThenGenerateData() {
-
         doReturn(mockIterable).when(mockCollection).find(any(Bson.class));
         doReturn(mockIterable).when(mockIterable).sort(any());
         doReturn(mockIterable).when(mockIterable).limit(100);
         doReturn(mockCursor).when(mockIterable).iterator();
-        doReturn(true).doReturn(true).doReturn(false)
-            .when(mockCursor).hasNext();
+        doReturn(true).doReturn(true).doReturn(false).when(mockCursor).hasNext();
         doReturn(docWithSameId1).doReturn(docWithDifferentId).doReturn(null).when(mockCursor).next();
 
-        Map<String, Document> stringDocumentMap =
-            oplogReader.readDocumentsFromOplogByShardAndCollections(Collections.emptyList(), new BsonTimestamp());
+        Map<String, Document> stringDocumentMap = oplogReader.readDocumentsFromOplogByShardAndCollections(
+            Collections.emptyList(),
+            new BsonTimestamp()
+        );
         assertEquals(2, stringDocumentMap.size());
         assertTrue(stringDocumentMap.containsKey("aeaqaaaaaah2skkzabq7waluf4i33eiaaaaq"));
         assertTrue(stringDocumentMap.containsKey("aeaqaaaaaah2skkzabq7waluf4i34jiaaaaq"));
@@ -125,40 +129,50 @@ public class OplogReaderTest {
 
     @Test
     public void givenOplogThenGenerateRecentData() {
-
         doReturn(mockIterable).when(mockCollection).find(any(Bson.class));
         doReturn(mockIterable).when(mockIterable).sort(any());
         doReturn(mockIterable).when(mockIterable).limit(100);
         doReturn(mockCursor).when(mockIterable).iterator();
-        doReturn(true).doReturn(true).doReturn(true).doReturn(false)
-            .when(mockCursor).hasNext();
-        doReturn(docWithSameId1).doReturn(docWithSameId2).doReturn(docWithSameId3).doReturn(null)
-            .when(mockCursor).next();
+        doReturn(true).doReturn(true).doReturn(true).doReturn(false).when(mockCursor).hasNext();
+        doReturn(docWithSameId1)
+            .doReturn(docWithSameId2)
+            .doReturn(docWithSameId3)
+            .doReturn(null)
+            .when(mockCursor)
+            .next();
 
-        Map<String, Document> stringDocumentMap =
-            oplogReader.readDocumentsFromOplogByShardAndCollections(Collections.emptyList(), new BsonTimestamp());
+        Map<String, Document> stringDocumentMap = oplogReader.readDocumentsFromOplogByShardAndCollections(
+            Collections.emptyList(),
+            new BsonTimestamp()
+        );
         assertEquals(1, stringDocumentMap.size());
         assertTrue(stringDocumentMap.containsKey("aeaqaaaaaah2skkzabq7waluf4i33eiaaaaq"));
         // get recent value of description
-        assertEquals(description3,
-            ((Document) stringDocumentMap.get("aeaqaaaaaah2skkzabq7waluf4i33eiaaaaq").get("o")).get("Description"));
+        assertEquals(
+            description3,
+            ((Document) stringDocumentMap.get("aeaqaaaaaah2skkzabq7waluf4i33eiaaaaq").get("o")).get("Description")
+        );
     }
 
     @Test
     public void givenOplogThenGenerateOnlyFilteredData() {
-
         doReturn(mockIterable).when(mockCollection).find(any(Bson.class));
         doReturn(mockIterable).when(mockIterable).sort(any());
         doReturn(mockIterable).when(mockIterable).limit(100);
         doReturn(mockCursor).when(mockIterable).iterator();
-        doReturn(true).doReturn(true).doReturn(true).doReturn(true)
-            .doReturn(false).when(mockCursor).hasNext();
-        doReturn(docWithSameId1).doReturn(docWithDifferentId).doReturn(docWithSelectOperation)
+        doReturn(true).doReturn(true).doReturn(true).doReturn(true).doReturn(false).when(mockCursor).hasNext();
+        doReturn(docWithSameId1)
+            .doReturn(docWithDifferentId)
+            .doReturn(docWithSelectOperation)
             .doReturn(docWithDifferentCollection)
-            .doReturn(null).when(mockCursor).next();
+            .doReturn(null)
+            .when(mockCursor)
+            .next();
 
-        Map<String, Document> stringDocumentMap =
-            oplogReader.readDocumentsFromOplogByShardAndCollections(Collections.emptyList(), new BsonTimestamp());
+        Map<String, Document> stringDocumentMap = oplogReader.readDocumentsFromOplogByShardAndCollections(
+            Collections.emptyList(),
+            new BsonTimestamp()
+        );
         assertEquals(2, stringDocumentMap.size());
         assertTrue(stringDocumentMap.containsKey("aeaqaaaaaah2skkzabq7waluf4i33eiaaaaq"));
         assertTrue(stringDocumentMap.containsKey("aeaqaaaaaah2skkzabq7waluf4i34jiaaaaq"));

@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.thread;
 
-
 import fr.gouv.vitam.common.exception.VitamThreadAccessException;
 import fr.gouv.vitam.common.model.VitamSession;
 import fr.gouv.vitam.common.thread.VitamThreadFactory.VitamThread;
@@ -58,5 +57,4 @@ public class VitamThreadUtils {
 
         return session;
     }
-
 }

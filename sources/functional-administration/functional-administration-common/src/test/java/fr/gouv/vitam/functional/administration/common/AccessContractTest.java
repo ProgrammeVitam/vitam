@@ -42,17 +42,16 @@ import static org.junit.Assert.assertEquals;
 
 public class AccessContractTest {
 
-
-
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     private static final Integer TENANT_ID = 0;
 
     @Test
     @RunWithCustomExecutor
     public void testConstructor() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         AccessContract contract = new AccessContract();
         final String id = GUIDFactory.newContractGUID(TENANT_ID).getId();
@@ -64,11 +63,12 @@ public class AccessContractTest {
         contract
             .setId(id)
             .setName(name)
-            .setDescription(description).setStatus(ActivationStatus.ACTIVE)
+            .setDescription(description)
+            .setStatus(ActivationStatus.ACTIVE)
             .setLastupdate(lastupdate)
             .setCreationdate(lastupdate)
-            .setActivationdate(lastupdate).
-            setDeactivationdate(lastupdate)
+            .setActivationdate(lastupdate)
+            .setDeactivationdate(lastupdate)
             .setOriginatingAgencies(originatingAgencies);
 
         assertEquals(id, contract.getId());
@@ -79,6 +79,4 @@ public class AccessContractTest {
         assertEquals(lastupdate, contract.getDeactivationdate());
         assertEquals(originatingAgencies, contract.getOriginatingAgencies());
     }
-
-
 }

@@ -64,8 +64,10 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static java.util.stream.Collectors.toList;
 
 public class DataRectificationCheckResourceAvailability extends CheckResourceAvailability {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(DataRectificationCheckResourceAvailability.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        DataRectificationCheckResourceAvailability.class
+    );
     public static final String PLUGIN_NAME = "CORRECTIVE_AUDIT_CHECK_RESOURCE_AVAILABILITY";
     private static final String ALTER = "alter";
 
@@ -79,18 +81,25 @@ public class DataRectificationCheckResourceAvailability extends CheckResourceAva
     }
 
     @Override
-    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler) throws
-        ProcessingException {
-
+    public List<ItemStatus> executeList(WorkerParameters workerParameters, HandlerIO handler)
+        throws ProcessingException {
         try {
-            Map<DataCategory, Map<AccessRequestContext, List<String>>> entriesByCategories =
-                extractResources(workerParameters, handler);
+            Map<DataCategory, Map<AccessRequestContext, List<String>>> entriesByCategories = extractResources(
+                workerParameters,
+                handler
+            );
 
             checkResourcesAvailabilityByTypes(entriesByCategories);
 
-            return IntStream.range(0, workerParameters.getObjectNameList().size()).
-                mapToObj(index -> buildItemStatus(PLUGIN_NAME, StatusCode.OK,
-                    PluginHelper.EventDetails.of(String.format("%s executed", PLUGIN_NAME))))
+            return IntStream.range(0, workerParameters.getObjectNameList().size())
+                .mapToObj(
+                    index ->
+                        buildItemStatus(
+                            PLUGIN_NAME,
+                            StatusCode.OK,
+                            PluginHelper.EventDetails.of(String.format("%s executed", PLUGIN_NAME))
+                        )
+                )
                 .collect(toList());
         } catch (ProcessingRetryAsyncException prae) {
             LOGGER.info("Some resources where not available");
@@ -98,13 +107,13 @@ public class DataRectificationCheckResourceAvailability extends CheckResourceAva
         } catch (Exception e) {
             throw new ProcessingException(e);
         }
-
     }
 
     private Map<DataCategory, Map<AccessRequestContext, List<String>>> extractResources(
-        WorkerParameters workerParameters, HandlerIO handler) throws
-        IOException, InvalidParseOperationException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException {
+        WorkerParameters workerParameters,
+        HandlerIO handler
+    )
+        throws IOException, InvalidParseOperationException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         Map<DataCategory, Map<AccessRequestContext, List<String>>> entries = new HashMap<>();
         Map<AccessRequestContext, List<String>> entriesObjectGroup = new HashMap<>();
         Map<AccessRequestContext, List<String>> entriesObject = new HashMap<>();
@@ -112,24 +121,29 @@ public class DataRectificationCheckResourceAvailability extends CheckResourceAva
 
         for (String objectId : workerParameters.getObjectNameList()) {
             File file = handler.getFileFromWorkspace(ALTER + File.separator + objectId);
-            EvidenceAuditReportLine line =
-                JsonHandler.getFromFile(file, EvidenceAuditReportLine.class);
+            EvidenceAuditReportLine line = JsonHandler.getFromFile(file, EvidenceAuditReportLine.class);
             if (line.getObjectType().equals(MetadataType.OBJECTGROUP)) {
                 extractMetadata(line).ifPresent(
-                    pair -> entriesObjectGroup.computeIfAbsent(pair.getLeft(), (x -> new ArrayList<>()))
-                        .add(pair.getRight()));
+                    pair ->
+                        entriesObjectGroup
+                            .computeIfAbsent(pair.getLeft(), (x -> new ArrayList<>()))
+                            .add(pair.getRight())
+                );
                 Map<AccessRequestContext, List<String>> objectExtracted = extractObjects(line);
-                objectExtracted.keySet().forEach(context -> {
-                    entriesObject.computeIfAbsent(context, (x -> new ArrayList<>()))
-                        .addAll(objectExtracted.get(context));
-                });
+                objectExtracted
+                    .keySet()
+                    .forEach(context -> {
+                        entriesObject
+                            .computeIfAbsent(context, (x -> new ArrayList<>()))
+                            .addAll(objectExtracted.get(context));
+                    });
             }
 
             if (line.getObjectType().equals(MetadataType.UNIT)) {
                 extractMetadata(line).ifPresent(
-                    pair -> entriesUnit.computeIfAbsent(pair.getLeft(), (x -> new ArrayList<>())).add(pair.getRight()));
+                    pair -> entriesUnit.computeIfAbsent(pair.getLeft(), (x -> new ArrayList<>())).add(pair.getRight())
+                );
             }
-
         }
 
         entries.put(DataCategory.OBJECTGROUP, entriesObjectGroup);
@@ -141,10 +155,20 @@ public class DataRectificationCheckResourceAvailability extends CheckResourceAva
     private Optional<Pair<AccessRequestContext, String>> extractMetadata(EvidenceAuditReportLine line) {
         List<String> goodOffers = new ArrayList<>();
         List<String> badOffers = new ArrayList<>();
-        if (DataRectificationHelper.canDoCorrection(line.getOffersHashes(), line.getSecuredHash(), goodOffers,
-            badOffers)) {
-            return Optional.of(new ImmutablePair<>(new AccessRequestContext(line.getStrategyId(), goodOffers.get(0)),
-                line.getIdentifier() + ".json"));
+        if (
+            DataRectificationHelper.canDoCorrection(
+                line.getOffersHashes(),
+                line.getSecuredHash(),
+                goodOffers,
+                badOffers
+            )
+        ) {
+            return Optional.of(
+                new ImmutablePair<>(
+                    new AccessRequestContext(line.getStrategyId(), goodOffers.get(0)),
+                    line.getIdentifier() + ".json"
+                )
+            );
         } else {
             return Optional.empty();
         }
@@ -155,14 +179,23 @@ public class DataRectificationCheckResourceAvailability extends CheckResourceAva
         for (EvidenceAuditReportObject object : line.getObjectsReports()) {
             List<String> goodOffers = new ArrayList<>();
             List<String> badOffers = new ArrayList<>();
-            if (object.getEvidenceStatus() != EvidenceStatus.OK &&
-                DataRectificationHelper.canDoCorrection(object.getOffersHashes(), object.getSecuredHash(), goodOffers,
-                    badOffers)) {
-                entriesObject.computeIfAbsent(new AccessRequestContext(object.getStrategyId(), goodOffers.get(0)),
-                    (x -> new ArrayList<>())).add(object.getIdentifier());
+            if (
+                object.getEvidenceStatus() != EvidenceStatus.OK &&
+                DataRectificationHelper.canDoCorrection(
+                    object.getOffersHashes(),
+                    object.getSecuredHash(),
+                    goodOffers,
+                    badOffers
+                )
+            ) {
+                entriesObject
+                    .computeIfAbsent(
+                        new AccessRequestContext(object.getStrategyId(), goodOffers.get(0)),
+                        (x -> new ArrayList<>())
+                    )
+                    .add(object.getIdentifier());
             }
         }
         return entriesObject;
-
     }
 }

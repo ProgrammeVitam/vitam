@@ -64,8 +64,7 @@ public class PurgeObjectGroupRepository extends ReportCommonRepository {
 
     @VisibleForTesting
     public PurgeObjectGroupRepository(MongoDbAccess mongoDbAccess, String collectionName) {
-        objectGroupReportCollection =
-            mongoDbAccess.getMongoDatabase().getCollection(collectionName);
+        objectGroupReportCollection = mongoDbAccess.getMongoDatabase().getCollection(collectionName);
     }
 
     public PurgeObjectGroupRepository(MongoDbAccess mongoDbAccess) {
@@ -74,22 +73,22 @@ public class PurgeObjectGroupRepository extends ReportCommonRepository {
 
     public void bulkAppendReport(List<PurgeObjectGroupModel> reports) {
         Set<PurgeObjectGroupModel> reportsWithoutDuplicate = new HashSet<>(reports);
-        List<Document> purgeObjectGroupDocument =
-            reportsWithoutDuplicate.stream()
-                .map(ReportCommonRepository::pojoToDocument)
-                .collect(Collectors.toList());
+        List<Document> purgeObjectGroupDocument = reportsWithoutDuplicate
+            .stream()
+            .map(ReportCommonRepository::pojoToDocument)
+            .collect(Collectors.toList());
         super.bulkAppendReport(purgeObjectGroupDocument, objectGroupReportCollection);
     }
 
     public MongoCursor<Document> findCollectionByProcessIdTenant(String processId, int tenantId) {
-
-        return objectGroupReportCollection.aggregate(
+        return objectGroupReportCollection
+            .aggregate(
                 Arrays.asList(
-                    Aggregates.match(and(
-                        eq(PurgeObjectGroupModel.PROCESS_ID, processId),
-                        eq(PurgeObjectGroupModel.TENANT, tenantId)
-                    )),
-                    Aggregates.project(Projections.fields(
+                    Aggregates.match(
+                        and(eq(PurgeObjectGroupModel.PROCESS_ID, processId), eq(PurgeObjectGroupModel.TENANT, tenantId))
+                    ),
+                    Aggregates.project(
+                        Projections.fields(
                             new Document("_id", 0),
                             new Document("id", "$_metadata.id"),
                             new Document("distribGroup", null),
@@ -102,7 +101,8 @@ public class PurgeObjectGroupRepository extends ReportCommonRepository {
                             new Document("params.objectVersions", "$_metadata.objectVersions"),
                             new Document("params.objectIds", "$_metadata.objectIds")
                         )
-                    ))
+                    )
+                )
             )
             // Aggregation query requires more than 100MB to proceed.
             .allowDiskUse(true)
@@ -117,41 +117,40 @@ public class PurgeObjectGroupRepository extends ReportCommonRepository {
      * Compute Own AccessionRegisterDetails
      */
     public MongoCursor<Document> computeOwnAccessionRegisterDetails(String processId, int tenantId) {
-        return objectGroupReportCollection.aggregate(
+        return objectGroupReportCollection
+            .aggregate(
                 Arrays.asList(
                     // Filter
-                    Aggregates.match(and(
-                        eq(PurgeObjectGroupModel.PROCESS_ID, processId),
-                        eq(PurgeObjectGroupModel.TENANT, tenantId),
-                        eq("_metadata.status", "DELETED")
-                    )),
-
+                    Aggregates.match(
+                        and(
+                            eq(PurgeObjectGroupModel.PROCESS_ID, processId),
+                            eq(PurgeObjectGroupModel.TENANT, tenantId),
+                            eq("_metadata.status", "DELETED")
+                        )
+                    ),
                     // Projection
-                    Aggregates.project(Projections.fields(
+                    Aggregates.project(
+                        Projections.fields(
                             new Document("_id", 0),
                             new Document("id", "$_metadata.id"),
                             new Document(OPI, "$_metadata." + OPI),
                             new Document(ORIGINATING_AGENCY, "$_metadata." + ORIGINATING_AGENCY),
                             new Document("objectVersions", "$_metadata.objectVersions")
-
                         )
                     ),
-
                     // Create as many documents as there are items in the list objectVersions
                     Aggregates.unwind("$objectVersions"),
-
                     // Group BY
-                    Aggregates.group(new Document(OPI, "$objectVersions." + OPI)
-                            .append(OPI_GOT, "$" + OPI),
-                        Accumulators
-                            .first(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCY),
+                    Aggregates.group(
+                        new Document(OPI, "$objectVersions." + OPI).append(OPI_GOT, "$" + OPI),
+                        Accumulators.first(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCY),
                         Accumulators.sum(TOTAL_SIZE, "$objectVersions.size"),
                         Accumulators.sum(TOTAL_OBJECTS, 1),
                         Accumulators.addToSet("listGOT", "$id")
                     ),
-
                     // Projection
-                    Aggregates.project(Projections.fields(
+                    Aggregates.project(
+                        Projections.fields(
                             new Document("_id", 0),
                             new Document(OPI, "$_id." + OPI),
                             new Document(OPI_GOT, "$_id." + OPI_GOT),
@@ -161,24 +160,31 @@ public class PurgeObjectGroupRepository extends ReportCommonRepository {
                             // if opi == opi_got then $size of $listGOT else 0. @see mongodb $cond.
                             // Do not count ObjectGroup for objects where there opi is different to opi of ObjectGroup himself
                             // The ObjectGroup is already counted with his principal opi
-                            new Document(TOTAL_OBJECT_GROUPS, new Document("$cond", Lists
-                                .newArrayList(new Document("$eq", Lists.newArrayList("$_id." + OPI, "$_id." + OPI_GOT)),
-                                    new Document("$size", "$listGOT"), 0)))
+                            new Document(
+                                TOTAL_OBJECT_GROUPS,
+                                new Document(
+                                    "$cond",
+                                    Lists.newArrayList(
+                                        new Document("$eq", Lists.newArrayList("$_id." + OPI, "$_id." + OPI_GOT)),
+                                        new Document("$size", "$listGOT"),
+                                        0
+                                    )
+                                )
+                            )
                         )
                     ),
-
                     // Group BY
                     // At this point we will have multiple documents having the same opi => must be grouped by opi in the same document.
-                    Aggregates.group("$" + OPI,
-                        Accumulators
-                            .first(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCY),
+                    Aggregates.group(
+                        "$" + OPI,
+                        Accumulators.first(ORIGINATING_AGENCY, "$" + ORIGINATING_AGENCY),
                         Accumulators.sum(TOTAL_SIZE, "$" + TOTAL_SIZE),
                         Accumulators.sum(TOTAL_OBJECTS, "$" + TOTAL_OBJECTS),
                         Accumulators.sum(TOTAL_OBJECT_GROUPS, "$" + TOTAL_OBJECT_GROUPS)
                     ),
-
                     // Projection
-                    Aggregates.project(Projections.fields(
+                    Aggregates.project(
+                        Projections.fields(
                             new Document("_id", 0),
                             new Document(OPI, "$_id"),
                             new Document(ORIGINATING_AGENCY, 1),
@@ -187,7 +193,6 @@ public class PurgeObjectGroupRepository extends ReportCommonRepository {
                             new Document(TOTAL_OBJECT_GROUPS, 1)
                         )
                     ),
-
                     // Sort
                     Aggregates.sort(Sorts.descending(OPI))
                 )

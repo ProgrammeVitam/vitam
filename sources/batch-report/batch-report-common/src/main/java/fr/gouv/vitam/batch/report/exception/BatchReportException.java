@@ -31,7 +31,6 @@ package fr.gouv.vitam.batch.report.exception;
  */
 public class BatchReportException extends RuntimeException {
 
-
     public BatchReportException(String message) {
         super(message);
     }

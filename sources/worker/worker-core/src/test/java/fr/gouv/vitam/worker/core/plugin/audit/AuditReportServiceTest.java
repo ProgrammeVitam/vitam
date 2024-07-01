@@ -88,6 +88,7 @@ public class AuditReportServiceTest {
 
     @Mock
     private StorageClientFactory storageClientFactory;
+
     @Mock
     private StorageClient storageClient;
 
@@ -109,20 +110,33 @@ public class AuditReportServiceTest {
     @Test
     public void should_append_audit_report_entries() throws Exception {
         // Given
-        AuditObjectVersion version = new AuditObjectVersion("objectId1", "objectOpi1", "objectQualifier1",
-            "objectVersion1", "strategyId1", new ArrayList<ReportItemStatus>() {
-            {
-                add(new ReportItemStatus("offerId1", ReportStatus.OK));
-                add(new ReportItemStatus("offerId2", ReportStatus.OK));
-            }
-        }, ReportStatus.OK);
+        AuditObjectVersion version = new AuditObjectVersion(
+            "objectId1",
+            "objectOpi1",
+            "objectQualifier1",
+            "objectVersion1",
+            "strategyId1",
+            new ArrayList<ReportItemStatus>() {
+                {
+                    add(new ReportItemStatus("offerId1", ReportStatus.OK));
+                    add(new ReportItemStatus("offerId2", ReportStatus.OK));
+                }
+            },
+            ReportStatus.OK
+        );
 
         List<AuditObjectVersion> objectVersions = new ArrayList<AuditObjectVersion>();
         objectVersions.add(version);
 
-        AuditObjectGroupReportEntry auditReportEntry = new AuditObjectGroupReportEntry("objectGroupId1",
-            Collections.singletonList("unitId"), "originatingAgency1", "opi", objectVersions, ReportStatus.KO,
-            "outcome");
+        AuditObjectGroupReportEntry auditReportEntry = new AuditObjectGroupReportEntry(
+            "objectGroupId1",
+            Collections.singletonList("unitId"),
+            "originatingAgency1",
+            "opi",
+            objectVersions,
+            ReportStatus.KO,
+            "outcome"
+        );
 
         List<AuditObjectGroupReportEntry> reports = new ArrayList<>();
         reports.add(auditReportEntry);
@@ -133,8 +147,9 @@ public class AuditReportServiceTest {
         // Then
         assertThatCode(appendPreservation).doesNotThrowAnyException();
 
-        ArgumentCaptor<ReportBody<AuditObjectGroupReportEntry>> reportBodyArgumentCaptor =
-            ArgumentCaptor.forClass(ReportBody.class);
+        ArgumentCaptor<ReportBody<AuditObjectGroupReportEntry>> reportBodyArgumentCaptor = ArgumentCaptor.forClass(
+            ReportBody.class
+        );
         verify(batchReportClient).appendReportEntries(reportBodyArgumentCaptor.capture());
         assertThat(reportBodyArgumentCaptor.getValue().getProcessId()).isEqualTo(processId);
         assertThat(reportBodyArgumentCaptor.getValue().getEntries()).isEqualTo(reports);
@@ -143,7 +158,6 @@ public class AuditReportServiceTest {
 
     @Test
     public void should_check_report_existence_in_workspace_does_not_throw_any_exception() throws Exception {
-
         // Given / When
         ThrowingCallable checkReportExistence = () -> auditReportService.isReportWrittenInWorkspace(processId);
 
@@ -154,11 +168,23 @@ public class AuditReportServiceTest {
 
     @Test
     public void should_store_to_workspace_does_not_throw_any_exception() throws Exception {
-
-        OperationSummary operationSummary = new OperationSummary(tenantId, processId, "", "", "", "",
-            JsonHandler.createObjectNode(), JsonHandler.createObjectNode());
-        ReportSummary reportSummary = new ReportSummary(null, null, ReportType.AUDIT, new ReportResults(),
-            JsonHandler.createObjectNode());
+        OperationSummary operationSummary = new OperationSummary(
+            tenantId,
+            processId,
+            "",
+            "",
+            "",
+            "",
+            JsonHandler.createObjectNode(),
+            JsonHandler.createObjectNode()
+        );
+        ReportSummary reportSummary = new ReportSummary(
+            null,
+            null,
+            ReportType.AUDIT,
+            new ReportResults(),
+            JsonHandler.createObjectNode()
+        );
         JsonNode context = JsonHandler.createObjectNode();
 
         Report reportInfo = new Report(operationSummary, reportSummary, context);
@@ -173,23 +199,24 @@ public class AuditReportServiceTest {
 
     @Test
     public void should_store_file_to_offers() throws Exception {
-
         // Given / When
         ThrowingCallable exportReport = () -> auditReportService.storeReportToOffers(processId);
 
         // Then
         assertThatCode(exportReport).doesNotThrowAnyException();
         ArgumentCaptor<ObjectDescription> descriptionArgumentCaptor = ArgumentCaptor.forClass(ObjectDescription.class);
-        verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()),
+        verify(storageClient).storeFileFromWorkspace(
+            eq(VitamConfiguration.getDefaultStrategy()),
             eq(DataCategory.REPORT),
-            eq(processId + JSONL_EXTENSION), descriptionArgumentCaptor.capture());
+            eq(processId + JSONL_EXTENSION),
+            descriptionArgumentCaptor.capture()
+        );
         assertThat(descriptionArgumentCaptor.getValue().getWorkspaceContainerGUID()).isEqualTo(processId);
         assertThat(descriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(WORKSPACE_REPORT_URI);
     }
 
     @Test
     public void should_delete_does_not_throw_any_exception() throws Exception {
-
         // Given / When
         ThrowingCallable exportReport = () -> auditReportService.cleanupReport(processId);
 

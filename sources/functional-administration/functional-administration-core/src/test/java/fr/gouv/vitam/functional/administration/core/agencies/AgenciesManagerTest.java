@@ -59,8 +59,9 @@ public class AgenciesManagerTest {
     private static LogbookOperationsClient logbookOperationsClient;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Before
     public void setUp() {
@@ -74,7 +75,6 @@ public class AgenciesManagerTest {
     public void should_logbookStarted() throws Exception {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-
 
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
 
@@ -90,7 +90,6 @@ public class AgenciesManagerTest {
         assertThat(log.getParameterValue(eventType)).isEqualTo(AgenciesService.AGENCIES_IMPORT_EVENT);
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("STARTED");
-
     }
 
     @Test
@@ -126,20 +125,16 @@ public class AgenciesManagerTest {
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("WARNING");
         assertThat(log.getParameterValue(eventDetailData)).isEqualTo("{\"FileName\":\"test.json\"}");
-
     }
-
 
     @Test
     @RunWithCustomExecutor
     public void logError() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
-        LogbookAgenciesImportManager
-            manager = new LogbookAgenciesImportManager(logbookOperationsClientFactory);
+        LogbookAgenciesImportManager manager = new LogbookAgenciesImportManager(logbookOperationsClientFactory);
 
         //When
         manager.logError(GUIDFactory.newOperationLogbookGUID(TENANT_ID), "ErorMessage", null);
@@ -154,13 +149,11 @@ public class AgenciesManagerTest {
     @Test
     @RunWithCustomExecutor
     public void logErrorWithDetails() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         ArgumentCaptor<LogbookOperationParameters> captor = ArgumentCaptor.forClass(LogbookOperationParameters.class);
-        LogbookAgenciesImportManager
-            manager = new LogbookAgenciesImportManager(logbookOperationsClientFactory);
+        LogbookAgenciesImportManager manager = new LogbookAgenciesImportManager(logbookOperationsClientFactory);
 
         //When
         manager.logError(GUIDFactory.newOperationLogbookGUID(TENANT_ID), "ErorMessage", "DELETION");
@@ -171,6 +164,7 @@ public class AgenciesManagerTest {
         assertThat(log.getParameterValue(eventTypeProcess)).isEqualTo("MASTERDATA");
         assertThat(log.getParameterValue(outcome)).isEqualTo("KO");
         assertThat(log.getParameterValue(outcomeDetail)).isEqualTo(
-            AgenciesService.AGENCIES_IMPORT_EVENT + ".DELETION.KO");
+            AgenciesService.AGENCIES_IMPORT_EVENT + ".DELETION.KO"
+        );
     }
 }

@@ -55,8 +55,7 @@ public class LogbookCheckEvent implements Serializable {
     @JsonProperty("outcomeDetail")
     private String outcomeDetail;
 
-    public LogbookCheckEvent() {
-    }
+    public LogbookCheckEvent() {}
 
     public LogbookCheckEvent(String evType, String outcome, String outDetail) {
         this.eventType = evType;

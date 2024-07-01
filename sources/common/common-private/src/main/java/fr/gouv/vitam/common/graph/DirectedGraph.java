@@ -26,8 +26,6 @@
  */
 package fr.gouv.vitam.common.graph;
 
-
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.logging.VitamLogger;
 import fr.gouv.vitam.common.logging.VitamLoggerFactory;
@@ -110,15 +108,11 @@ public class DirectedGraph {
                 final JsonNode arrNode = up.get("_up");
 
                 for (final JsonNode idParent : arrNode) {
-
-
                     addEdge(getIndex(idParent.textValue()), getIndex(idChild));
 
                     LOGGER.debug("source:" + idParent);
                     LOGGER.debug("destin:" + idChild);
-
                 }
-
             }
         }
     }
@@ -131,7 +125,6 @@ public class DirectedGraph {
     public int getVertices() {
         return vertices;
     }
-
 
     // throw an IndexOutOfBoundsException unless 0 <= v < V
     private void validateVertex(int v) {
@@ -249,6 +242,5 @@ public class DirectedGraph {
      */
     public String getId(Integer index) {
         return indexMapping.get(index);
-
     }
 }

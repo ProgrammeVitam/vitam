@@ -27,6 +27,5 @@
 package fr.gouv.vitam.storage.offers.tape.cas;
 
 public interface LockHandle {
-
     void release();
 }

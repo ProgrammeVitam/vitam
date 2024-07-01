@@ -47,8 +47,7 @@ class WorkerParametersSerializer extends JsonSerializer<AbstractWorkerParameters
     }
 
     @Override
-    public void serialize(AbstractWorkerParameters value, JsonGenerator gen,
-        SerializerProvider serializers)
+    public void serialize(AbstractWorkerParameters value, JsonGenerator gen, SerializerProvider serializers)
         throws IOException, JsonProcessingException {
         gen.writeStartObject();
         for (final Entry<WorkerParameterName, String> item : value.getMapParameters().entrySet()) {
@@ -56,5 +55,4 @@ class WorkerParametersSerializer extends JsonSerializer<AbstractWorkerParameters
         }
         gen.writeEndObject();
     }
-
 }

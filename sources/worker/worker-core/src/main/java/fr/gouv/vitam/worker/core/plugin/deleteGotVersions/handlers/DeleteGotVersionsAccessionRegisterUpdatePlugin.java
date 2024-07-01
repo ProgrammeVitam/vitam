@@ -72,7 +72,8 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMe
 public class DeleteGotVersionsAccessionRegisterUpdatePlugin extends ActionHandler {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
-        DeleteGotVersionsAccessionRegisterUpdatePlugin.class);
+        DeleteGotVersionsAccessionRegisterUpdatePlugin.class
+    );
     private static final String PLUGIN_ID = "DELETE_GOT_VERSIONS_ACCESSION_REGISTER_UPDATE";
 
     private final AdminManagementClientFactory adminManagementClientFactory;
@@ -83,8 +84,10 @@ public class DeleteGotVersionsAccessionRegisterUpdatePlugin extends ActionHandle
     }
 
     @VisibleForTesting
-    public DeleteGotVersionsAccessionRegisterUpdatePlugin(AdminManagementClientFactory adminManagementClientFactory,
-        BatchReportClientFactory batchReportClientFactory) {
+    public DeleteGotVersionsAccessionRegisterUpdatePlugin(
+        AdminManagementClientFactory adminManagementClientFactory,
+        BatchReportClientFactory batchReportClientFactory
+    ) {
         this.adminManagementClientFactory = adminManagementClientFactory;
         this.batchReportClientFactory = batchReportClientFactory;
     }
@@ -95,38 +98,39 @@ public class DeleteGotVersionsAccessionRegisterUpdatePlugin extends ActionHandle
         try {
             return updateAccessionRegister(params);
         } catch (ProcessingStatusException e) {
-            LOGGER.error(String.format(
-                "Accession register update failed with status [%s]", e.getStatusCode()), e);
+            LOGGER.error(String.format("Accession register update failed with status [%s]", e.getStatusCode()), e);
             return buildItemStatus(PLUGIN_ID, e.getStatusCode(), e.getEventDetails());
         }
     }
 
-    private ItemStatus updateAccessionRegister(WorkerParameters params)
-        throws ProcessingStatusException {
+    private ItemStatus updateAccessionRegister(WorkerParameters params) throws ProcessingStatusException {
         try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
-
-            List<DeleteGotVersionsComputedDetails> deleteGotVersionsComputedDetails =
-                getDeletedObjectGroups(params.getContainerName());
+            List<DeleteGotVersionsComputedDetails> deleteGotVersionsComputedDetails = getDeletedObjectGroups(
+                params.getContainerName()
+            );
 
             if (deleteGotVersionsComputedDetails == null) {
                 return buildItemStatusWithMessage(PLUGIN_ID, WARNING, "No updates on Access Register");
             }
 
             for (DeleteGotVersionsComputedDetails computedDetail : deleteGotVersionsComputedDetails) {
-                AccessionRegisterDetailModel accessionRegisterDetail =
-                    getAccessionRegisterDetail(computedDetail.getOpc());
+                AccessionRegisterDetailModel accessionRegisterDetail = getAccessionRegisterDetail(
+                    computedDetail.getOpc()
+                );
 
                 long sizeDeletedGots = computedDetail.getTotalSize();
                 accessionRegisterDetail.setOperationType(LogbookTypeProcess.DELETE_GOT_VERSIONS.name());
 
                 accessionRegisterDetail.getObjectSize().setIngested(0);
                 accessionRegisterDetail.getObjectSize().setDeleted(sizeDeletedGots);
-                accessionRegisterDetail.getObjectSize()
+                accessionRegisterDetail
+                    .getObjectSize()
                     .setRemained(-1 * accessionRegisterDetail.getObjectSize().getDeleted());
 
                 accessionRegisterDetail.getTotalObjects().setIngested(0);
                 accessionRegisterDetail.getTotalObjects().setDeleted(computedDetail.getTotalObjects());
-                accessionRegisterDetail.getTotalObjects()
+                accessionRegisterDetail
+                    .getTotalObjects()
                     .setRemained(-1 * accessionRegisterDetail.getTotalObjects().getDeleted());
 
                 accessionRegisterDetail.getTotalObjectsGroups().setIngested(0);
@@ -144,10 +148,15 @@ public class DeleteGotVersionsAccessionRegisterUpdatePlugin extends ActionHandle
             }
             return buildItemStatus(PLUGIN_ID, OK);
         } catch (AdminManagementClientServerException e) {
-            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER
-                .labels(String.valueOf(ParameterHelper.getTenantParameter()), "AccessionRegister").inc();
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "[Consistency ERROR] An error occurred during accession register update", e);
+            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                String.valueOf(ParameterHelper.getTenantParameter()),
+                "AccessionRegister"
+            ).inc();
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "[Consistency ERROR] An error occurred during accession register update",
+                e
+            );
         }
     }
 
@@ -155,10 +164,13 @@ public class DeleteGotVersionsAccessionRegisterUpdatePlugin extends ActionHandle
         throws ProcessingStatusException {
         try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
             Select select = new Select();
-            select.setQuery(QueryHelper
-                .and()
-                .add(QueryHelper.eq(AccessionRegisterDetailModel.OPI, ingestOperationId),
-                    exists(VitamFieldsHelper.id())));
+            select.setQuery(
+                QueryHelper.and()
+                    .add(
+                        QueryHelper.eq(AccessionRegisterDetailModel.OPI, ingestOperationId),
+                        exists(VitamFieldsHelper.id())
+                    )
+            );
             RequestResponse<AccessionRegisterDetailModel> accessionRegisterDetail =
                 adminManagementClient.getAccessionRegisterDetail(select.getFinalSelect());
 
@@ -168,14 +180,17 @@ public class DeleteGotVersionsAccessionRegisterUpdatePlugin extends ActionHandle
                 if (!accessionRegisterDetailresponse.isEmpty()) {
                     return accessionRegisterDetailresponse.getFirstResult();
                 } else {
-                    throw new ProcessingStatusException(StatusCode.FATAL,
-                        String.format("The accessRegisterDetail for the ingest Opi: %s is EMPTY!", ingestOperationId));
+                    throw new ProcessingStatusException(
+                        StatusCode.FATAL,
+                        String.format("The accessRegisterDetail for the ingest Opi: %s is EMPTY!", ingestOperationId)
+                    );
                 }
             }
 
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                String.format("No accessRegisterDetail available for the ingest Opi: %s", ingestOperationId));
-
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                String.format("No accessRegisterDetail available for the ingest Opi: %s", ingestOperationId)
+            );
         } catch (ReferentialException | InvalidParseOperationException | InvalidCreateOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not check existing accessing register", e);
         }
@@ -188,8 +203,7 @@ public class DeleteGotVersionsAccessionRegisterUpdatePlugin extends ActionHandle
             if (resultsNode.isEmpty()) {
                 return null;
             }
-            return getFromJsonNode(resultsNode, new TypeReference<>() {
-            });
+            return getFromJsonNode(resultsNode, new TypeReference<>() {});
         } catch (Exception e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not find entries from report!", e);
         }

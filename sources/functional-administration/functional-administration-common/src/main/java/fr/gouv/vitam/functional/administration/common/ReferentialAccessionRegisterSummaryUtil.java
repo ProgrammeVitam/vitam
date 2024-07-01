@@ -83,8 +83,9 @@ public class ReferentialAccessionRegisterSummaryUtil {
         throws InvalidCreateOperationException {
         List<Action> actions = createActions(registerDetail);
         Update update = new Update();
-        update.setQuery(QueryHelper.eq(AccessionRegisterSummary.ORIGINATING_AGENCY, registerDetail
-            .getOriginatingAgency()));
+        update.setQuery(
+            QueryHelper.eq(AccessionRegisterSummary.ORIGINATING_AGENCY, registerDetail.getOriginatingAgency())
+        );
         update.addActions(actions.toArray(new IncAction[actions.size()]));
         return update;
     }
@@ -100,9 +101,15 @@ public class ReferentialAccessionRegisterSummaryUtil {
         throws InvalidCreateOperationException {
         ArrayList<Action> actions = new ArrayList<>();
 
-        actions.add(new IncAction(TOTAL_OBJECTGROUPS + "." + INGESTED, registerDetail.getTotalObjectsGroups().getIngested()));
-        actions.add(new IncAction(TOTAL_OBJECTGROUPS + "." + DELETED, registerDetail.getTotalObjectsGroups().getDeleted()));
-        actions.add(new IncAction(TOTAL_OBJECTGROUPS + "." + REMAINED, registerDetail.getTotalObjectsGroups().getRemained()));
+        actions.add(
+            new IncAction(TOTAL_OBJECTGROUPS + "." + INGESTED, registerDetail.getTotalObjectsGroups().getIngested())
+        );
+        actions.add(
+            new IncAction(TOTAL_OBJECTGROUPS + "." + DELETED, registerDetail.getTotalObjectsGroups().getDeleted())
+        );
+        actions.add(
+            new IncAction(TOTAL_OBJECTGROUPS + "." + REMAINED, registerDetail.getTotalObjectsGroups().getRemained())
+        );
 
         actions.add(new IncAction(TOTAL_OBJECTS + "." + INGESTED, registerDetail.getTotalObjects().getIngested()));
         actions.add(new IncAction(TOTAL_OBJECTS + "." + DELETED, registerDetail.getTotalObjects().getDeleted()));

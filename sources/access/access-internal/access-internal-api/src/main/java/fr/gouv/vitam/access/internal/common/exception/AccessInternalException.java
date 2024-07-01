@@ -71,8 +71,12 @@ public class AccessInternalException extends VitamException {
      * @param enableSuppression allow suppression or not
      * @param writableStackTrace allow writable stack trace or not
      */
-    public AccessInternalException(String message, Throwable cause, boolean enableSuppression,
-        boolean writableStackTrace) {
+    public AccessInternalException(
+        String message,
+        Throwable cause,
+        boolean enableSuppression,
+        boolean writableStackTrace
+    ) {
         super(message);
     }
 }

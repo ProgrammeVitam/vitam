@@ -90,16 +90,17 @@ import static fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess.ARCHIVE
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class VerifyAtrPlugin extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VerifyAtrPlugin.class);
     public static final String PLUGIN_NAME = "VERIFY_ARCHIVAL_TRANSFER_REPLY";
-    private static final URL SEDA_XSD_URL =
-        Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(
-            GENERIC_VITAM_VALIDATOR));
-    private static final URL CATALOG_URL =
-        Objects.requireNonNull(ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME));
+    private static final URL SEDA_XSD_URL = Objects.requireNonNull(
+        ValidationXsdUtils.class.getClassLoader().getResource(GENERIC_VITAM_VALIDATOR)
+    );
+    private static final URL CATALOG_URL = Objects.requireNonNull(
+        ValidationXsdUtils.class.getClassLoader().getResource(CATALOG_FILENAME)
+    );
     public static final String ATR_FOR_TRANSFER_REPLY = "ATR-for-transfer-reply-in-workspace.xml";
     private static final String TRANSFORM_XSLT_PATH = "transform.xsl";
-
 
     private final JAXBContext jaxbContext;
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
@@ -107,10 +108,7 @@ public class VerifyAtrPlugin extends ActionHandler {
     private final TransformerFactory transformerFactory;
 
     public VerifyAtrPlugin() throws Exception {
-        this(
-            JAXBContext.newInstance(ArchiveTransferReplyType.class),
-            LogbookOperationsClientFactory.getInstance()
-        );
+        this(JAXBContext.newInstance(ArchiveTransferReplyType.class), LogbookOperationsClientFactory.getInstance());
     }
 
     @VisibleForTesting
@@ -126,25 +124,40 @@ public class VerifyAtrPlugin extends ActionHandler {
         try (InputStream atr = getTransformedXmlAsInputStream(handler)) {
             xmlStreamReader = XMLInputFactoryUtils.newInstance().createXMLStreamReader(atr, "UTF-8");
             Unmarshaller unmarshaller = createUnmarshaller();
-            ArchiveTransferReplyType transferReply =
-                unmarshaller.unmarshal(xmlStreamReader, ArchiveTransferReplyType.class)
-                    .getValue();
+            ArchiveTransferReplyType transferReply = unmarshaller
+                .unmarshal(xmlStreamReader, ArchiveTransferReplyType.class)
+                .getValue();
 
             handler.addOutputResult(0, transferReply);
 
-            if (hasExistingTransferOperation(transferReply.getMessageRequestIdentifier()) &&
-                hasReplyCode(transferReply.getReplyCode())) {
+            if (
+                hasExistingTransferOperation(transferReply.getMessageRequestIdentifier()) &&
+                hasReplyCode(transferReply.getReplyCode())
+            ) {
                 return buildItemStatus(PLUGIN_NAME, OK, EventDetails.of("ATR file is valid and serialized."));
             }
 
-            return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of(
-                "Field MessageRequestIdentifier in ATR does not correspond to an existing transfer operation."));
+            return buildItemStatus(
+                PLUGIN_NAME,
+                KO,
+                EventDetails.of(
+                    "Field MessageRequestIdentifier in ATR does not correspond to an existing transfer operation."
+                )
+            );
         } catch (UnmarshalException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, KO, EventDetails.of(e.getMessage()));
-        } catch (JAXBException | ContentAddressableStorageNotFoundException | IOException | XMLStreamException |
-                 LogbookClientException | InvalidParseOperationException | ContentAddressableStorageServerException |
-                 SAXException | TransformerException e) {
+        } catch (
+            JAXBException
+            | ContentAddressableStorageNotFoundException
+            | IOException
+            | XMLStreamException
+            | LogbookClientException
+            | InvalidParseOperationException
+            | ContentAddressableStorageServerException
+            | SAXException
+            | TransformerException e
+        ) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, FATAL, EventDetails.of(e.getMessage()));
         } finally {
@@ -153,29 +166,29 @@ public class VerifyAtrPlugin extends ActionHandler {
     }
 
     private InputStream getTransformedXmlAsInputStream(HandlerIO handlerIO)
-        throws TransformerException, IOException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException {
-
+        throws TransformerException, IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         File originalATR = handlerIO.getFileFromWorkspace(ATR_FOR_TRANSFER_REPLY);
         File transformedATR = handlerIO.getNewLocalFile("transformed-" + ATR_FOR_TRANSFER_REPLY);
         Source xsl = new StreamSource(PropertiesUtils.getResourceAsStream(TRANSFORM_XSLT_PATH));
         Transformer transformer = transformerFactory.newTransformer(xsl);
-        transformer.setErrorListener(new ErrorListener() {
-            @Override
-            public void warning(TransformerException exception) {
-                LOGGER.warn("An error occurred while processing ATR transformation", exception);
-            }
+        transformer.setErrorListener(
+            new ErrorListener() {
+                @Override
+                public void warning(TransformerException exception) {
+                    LOGGER.warn("An error occurred while processing ATR transformation", exception);
+                }
 
-            @Override
-            public void error(TransformerException exception) throws TransformerException {
-                throw exception;
-            }
+                @Override
+                public void error(TransformerException exception) throws TransformerException {
+                    throw exception;
+                }
 
-            @Override
-            public void fatalError(TransformerException exception) throws TransformerException {
-                throw exception;
+                @Override
+                public void fatalError(TransformerException exception) throws TransformerException {
+                    throw exception;
+                }
             }
-        });
+        );
 
         transformer.transform(new StreamSource(originalATR), new StreamResult(transformedATR));
 
@@ -199,8 +212,10 @@ public class VerifyAtrPlugin extends ActionHandler {
                 return false;
             }
 
-            LogbookOperation transferOperation =
-                JsonHandler.getFromJsonNode(resultResponseOk.getFirstResult(), LogbookOperation.class);
+            LogbookOperation transferOperation = JsonHandler.getFromJsonNode(
+                resultResponseOk.getFirstResult(),
+                LogbookOperation.class
+            );
             if (!transferOperation.getEvType().equals(ARCHIVE_TRANSFER.name())) {
                 return false;
             }
@@ -211,8 +226,10 @@ public class VerifyAtrPlugin extends ActionHandler {
             }
 
             LogbookEventOperation lastTransferEventOperation = events.get(events.size() - 1);
-            if (!lastTransferEventOperation.getOutcome().equals(OK.name()) &&
-                !lastTransferEventOperation.getOutcome().equals(WARNING.name())) {
+            if (
+                !lastTransferEventOperation.getOutcome().equals(OK.name()) &&
+                !lastTransferEventOperation.getOutcome().equals(WARNING.name())
+            ) {
                 return false;
             }
         } catch (LogbookClientNotFoundException e) {
@@ -240,7 +257,7 @@ public class VerifyAtrPlugin extends ActionHandler {
 
     static Schema getSchema() throws SAXException {
         SchemaFactory schemaFactory = SchemaFactory.newInstance(HTTP_WWW_W3_ORG_XML_XML_SCHEMA_V1_1);
-        schemaFactory.setResourceResolver(new XMLCatalogResolver(new String[] {CATALOG_URL.toString()}, false));
+        schemaFactory.setResourceResolver(new XMLCatalogResolver(new String[] { CATALOG_URL.toString() }, false));
         return schemaFactory.newSchema(SEDA_XSD_URL);
     }
 }

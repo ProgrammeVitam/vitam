@@ -65,7 +65,6 @@ public class Profile extends VitamDocument<Profile> {
      */
     public static final String FORMAT = "Format";
 
-
     /**
      * the profile file path in storage
      */
@@ -87,12 +86,10 @@ public class Profile extends VitamDocument<Profile> {
      */
     public static final String DEACTIVATIONDATE = "DeactivationDate";
 
-
     /**
      * Empty Constructor
      */
-    public Profile() {
-    }
+    public Profile() {}
 
     /**
      * Constructor
@@ -137,7 +134,6 @@ public class Profile extends VitamDocument<Profile> {
         append(VitamDocument.ID, id);
         return this;
     }
-
 
     /**
      * The profile id
@@ -199,7 +195,6 @@ public class Profile extends VitamDocument<Profile> {
         return this;
     }
 
-
     /**
      * Get the profile status If toJson called without MongoClient configuration this will thow codec exception
      *
@@ -219,7 +214,6 @@ public class Profile extends VitamDocument<Profile> {
         append(STATUS, status);
         return this;
     }
-
 
     /**
      * Set or change the profile format (xsd, rng, ...)
@@ -241,8 +235,6 @@ public class Profile extends VitamDocument<Profile> {
         return getString(PATH);
     }
 
-
-
     /**
      * Set or change the profile path
      *
@@ -262,8 +254,6 @@ public class Profile extends VitamDocument<Profile> {
     public ProfileFormat getFormat() {
         return (ProfileFormat) get(FORMAT);
     }
-
-
 
     /**
      * @return creation date of profile
@@ -328,6 +318,4 @@ public class Profile extends VitamDocument<Profile> {
         append(DEACTIVATIONDATE, deactivationdate);
         return this;
     }
-
-
 }

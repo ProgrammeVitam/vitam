@@ -35,7 +35,6 @@ import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
  * ProcessEngine can with this callback the state machine and update it with the information about the execution of step with her status code
  */
 public interface IEventsProcessEngine {
-
     /**
      * Update the current step status code
      *

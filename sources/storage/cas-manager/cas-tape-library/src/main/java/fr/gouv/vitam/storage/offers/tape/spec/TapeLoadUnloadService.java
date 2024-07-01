@@ -30,11 +30,9 @@ import fr.gouv.vitam.storage.offers.tape.dto.TapeLibrarySpec;
 import fr.gouv.vitam.storage.offers.tape.exception.TapeCommandException;
 
 public interface TapeLoadUnloadService {
-
     TapeLibrarySpec status() throws TapeCommandException;
 
     void loadTape(int slotNumber, int driveIndex) throws TapeCommandException;
 
     void unloadTape(int slotNumber, int driveIndex) throws TapeCommandException;
-
 }

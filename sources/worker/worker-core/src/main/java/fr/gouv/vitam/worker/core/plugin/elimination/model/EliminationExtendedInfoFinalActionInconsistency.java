@@ -47,8 +47,7 @@ public class EliminationExtendedInfoFinalActionInconsistency extends Elimination
         return details;
     }
 
-    public void setDetails(
-        EliminationExtendedInfoFinalActionInconsistencyDetails details) {
+    public void setDetails(EliminationExtendedInfoFinalActionInconsistencyDetails details) {
         this.details = details;
     }
 }

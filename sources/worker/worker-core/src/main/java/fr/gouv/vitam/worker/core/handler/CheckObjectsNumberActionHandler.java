@@ -103,17 +103,13 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             final ExtractUriResponse extractUriResponse = getUriListFromManifest(handlerIO);
 
             if (extractUriResponse != null && !extractUriResponse.isErrorDuplicateUri()) {
-
                 final Set<URI> uriSetFromManifest = extractUriResponse.getUriSetManifest();
                 final List<URI> uriListFromWorkspace = getUriListFromWorkspace(handlerIO, params);
                 checkCountDigitalObjectConformity(uriSetFromManifest, uriListFromWorkspace, itemStatus);
-
             } else if (extractUriResponse != null) {
                 itemStatus.increment(StatusCode.KO, extractUriResponse.getErrorNumber());
             }
-
         } catch (final VitamKoRuntimeException e) {
-
             ObjectNode evdev = JsonHandler.createObjectNode();
             evdev.put(SedaConstants.EV_DET_TECH_DATA, e.getMessage());
             itemStatus.setEvDetailData(JsonHandler.unprettyPrint(evdev));
@@ -126,20 +122,17 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-
     /**
      * gets URI list of Digital object from the workspace, checks if there are duplicated URIs
      *
      * @return ExtractUriResponse
      * @throws ProcessingException throws when error in execution
      */
-    private ExtractUriResponse getUriListFromManifest(HandlerIO handlerIO)
-        throws ProcessingException {
+    private ExtractUriResponse getUriListFromManifest(HandlerIO handlerIO) throws ProcessingException {
         // get uri list from manifest
         final SedaUtils sedaUtils = sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(handlerIO);
         return sedaUtils.getAllDigitalObjectUriFromManifest();
     }
-
 
     /**
      * gets URI list of Digital object from the workspace, checks if there are duplicated URIs
@@ -162,8 +155,11 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
      * @param itemStatus itemStatus of handler
      * @throws ProcessingException will be throwed when one or all arguments is null
      */
-    private void checkCountDigitalObjectConformity(Set<URI> uriManifestSet, List<URI> uriListWorkspace,
-        ItemStatus itemStatus) throws ProcessingException {
+    private void checkCountDigitalObjectConformity(
+        Set<URI> uriManifestSet,
+        List<URI> uriListWorkspace,
+        ItemStatus itemStatus
+    ) throws ProcessingException {
         ParametersChecker.checkParameter("Manifest uri set is a mandatory parameter", uriManifestSet);
         ParametersChecker.checkParameter("Workspace uri list is a mandatory parameter", uriListWorkspace);
         ParametersChecker.checkParameter("ItemStatus is a mandatory parameter", itemStatus);
@@ -192,13 +188,15 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
                 status = SUBTASK_INVALID_URI;
             }
 
-            updateDetailItemStatus(itemStatus,
-                getMessageItemStatusInvalidURIandIncorrectTotals(notInWorkspace, notInManifest), status);
+            updateDetailItemStatus(
+                itemStatus,
+                getMessageItemStatusInvalidURIandIncorrectTotals(notInWorkspace, notInManifest),
+                status
+            );
         }
 
         itemStatus.setData("errorNumber", errorCount);
     }
-
 
     private String getMessageItemStatusInvalidURIandIncorrectTotals(Set<URI> notInWorkspace, Set<URI> notInManifest) {
         ObjectNode error = JsonHandler.createObjectNode();
@@ -231,7 +229,6 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
     private List<URI> getDigitalObjectUriListFromWorkspace(HandlerIO handlerIO, WorkerParameters workParams)
         throws ProcessingException, ContentAddressableStorageServerException {
         try (final WorkspaceClient workspaceClient = handlerIO.getWorkspaceClientFactory().getClient()) {
-
             // FIXME P1: We have to count here from SIP/Content and not from SIP
             // Remove one element is actually, with our SIP correct but not really true because it is not necessary
             // the manifest.xml and it is possible to have more than one file on the root SIP folder (it was removed
@@ -241,21 +238,25 @@ public class CheckObjectsNumberActionHandler extends ActionHandler {
             // To fix this, uncomment the next line and remove what is comming next.
             // return workspaceClient.getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants
             // .CONTENT_SIP_FOLDER);
-            final List<URI> uriListWorkspace =
-                JsonHandler.getFromStringAsTypeReference(workspaceClient
+            final List<URI> uriListWorkspace = JsonHandler.getFromStringAsTypeReference(
+                workspaceClient
                     .getListUriDigitalObjectFromFolder(workParams.getContainerName(), VitamConstants.SIP_FOLDER)
-                    .toJsonNode().get("$results").get(0).toString(), new TypeReference<List<URI>>() {
-                });
+                    .toJsonNode()
+                    .get("$results")
+                    .get(0)
+                    .toString(),
+                new TypeReference<List<URI>>() {}
+            );
             // FIXME P1: Ugly hack to remove (see above), just keep URI with "/" to avoid manifest.xml
-            return uriListWorkspace.stream().filter(uri -> uri.toString().contains(URL_ENCODED_SEPARATOR))
-                .collect(Collectors
-                    .toList());
+            return uriListWorkspace
+                .stream()
+                .filter(uri -> uri.toString().contains(URL_ENCODED_SEPARATOR))
+                .collect(Collectors.toList());
         } catch (InvalidParseOperationException | InvalidFormatException e) {
             throw new ProcessingException(e);
         }
     }
 
     @Override
-    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {
-    }
+    public void checkMandatoryIOParameter(HandlerIO handler) throws ProcessingException {}
 }

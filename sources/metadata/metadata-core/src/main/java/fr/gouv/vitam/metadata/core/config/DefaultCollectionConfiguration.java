@@ -34,6 +34,7 @@ public class DefaultCollectionConfiguration {
 
     @JsonProperty("unit")
     private CollectionConfiguration unit;
+
     @JsonProperty("objectgroup")
     private CollectionConfiguration objectgroup;
 
@@ -41,8 +42,7 @@ public class DefaultCollectionConfiguration {
         // Default constructor for deserialization
     }
 
-    public DefaultCollectionConfiguration(
-        CollectionConfiguration unit, CollectionConfiguration objectgroup) {
+    public DefaultCollectionConfiguration(CollectionConfiguration unit, CollectionConfiguration objectgroup) {
         this.unit = unit;
         this.objectgroup = objectgroup;
     }
@@ -67,9 +67,6 @@ public class DefaultCollectionConfiguration {
 
     @Override
     public String toString() {
-        return "DefaultCollectionConfiguration{" +
-            "unit=" + unit +
-            ", objectgroup=" + objectgroup +
-            '}';
+        return "DefaultCollectionConfiguration{" + "unit=" + unit + ", objectgroup=" + objectgroup + '}';
     }
 }

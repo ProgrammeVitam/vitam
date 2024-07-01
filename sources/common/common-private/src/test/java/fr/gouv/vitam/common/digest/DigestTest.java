@@ -49,8 +49,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 public class DigestTest {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(DigestTest.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DigestTest.class);
 
     private static final String DGMD5 = "5c12f73ecc35d2f598a6cc8213040198";
     private static final String DGSHA1 = "5b5671a4d1e924c385fe5a169be5e94110754291";
@@ -103,8 +103,7 @@ public class DigestTest {
             digest0.reset();
             byteArrayInputStream0 = new ByteArrayInputStream(byteArray0);
             final InputStream inputStream = digest0.getDigestInputStream(byteArrayInputStream0);
-            while (inputStream.read(byteArray1) >= 0) {
-            }
+            while (inputStream.read(byteArray1) >= 0) {}
             inputStream.close();
             assertEquals(hex, digest0.digestHex());
         }

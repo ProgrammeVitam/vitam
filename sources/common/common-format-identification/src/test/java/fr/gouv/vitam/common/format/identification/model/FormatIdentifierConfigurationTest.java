@@ -44,4 +44,3 @@ public class FormatIdentifierConfigurationTest {
         assertEquals("55800", configuration.getConfigurationProperties().get("port"));
     }
 }
-

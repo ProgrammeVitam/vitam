@@ -27,7 +27,6 @@
 package fr.gouv.vitam.logbook.common.parameters;
 
 public enum Contexts {
-
     BLANK_TEST(LogbookTypeProcess.INGEST_TEST, "PROCESS_SIP_UNITARY"),
     HOLDING_SCHEME(LogbookTypeProcess.MASTERDATA, "HOLDINGSCHEME"),
     FILING_SCHEME(LogbookTypeProcess.INGEST, "FILINGSCHEME"),

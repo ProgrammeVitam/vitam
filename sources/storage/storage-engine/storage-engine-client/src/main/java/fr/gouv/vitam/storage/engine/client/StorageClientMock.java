@@ -86,27 +86,29 @@ import java.util.stream.Collectors;
  * Mock client implementation for storage
  */
 public class StorageClientMock extends AbstractMockClient implements StorageClient {
-    static final String MOCK_INFOS_RESULT_ARRAY = "{\"capacities\": [{\"offerId\": \"offer1\",\"usableSpace\": " +
-        "838860800, \"nbc\": 2}," + "{\"offerId\": " + "\"offer2\",\"usableSpace\": 838860800, \"nbc\": 2}]}";
+
+    static final String MOCK_INFOS_RESULT_ARRAY =
+        "{\"capacities\": [{\"offerId\": \"offer1\",\"usableSpace\": " +
+        "838860800, \"nbc\": 2}," +
+        "{\"offerId\": " +
+        "\"offer2\",\"usableSpace\": 838860800, \"nbc\": 2}]}";
     static final String MOCK_INFOS_EMPTY_RESULT_ARRAY = "{\"capacities\": []}";
     static final String MOCK_GET_FILE_CONTENT =
         "Vitam test of long long long long long long long long long long long long long long long long long long " +
-            "long long long long long long long long long long long long long long long long long long long long " +
-            "long long long long long long long long long long long long long long long long long long long long " +
-            "long long long long long long long long long long long long long long long long long long long long " +
-            "long long long long long long long long long long long long long long long long long long long long " +
-            "long long long long long long long long long long long long long long long long long long long long " +
-            "long long long long long long long long long long long long long long long long long long long long " +
-            "long long long long long long long long long long long long long long long long long long long long " +
-            "long long long long long long long long long long long long long long long long long long long long " +
-            "long long long long long long long long long long long long long long long long long long long long " +
-            "long long long long long long long long long long long long long long long long long long long long file";
+        "long long long long long long long long long long long long long long long long long long long long " +
+        "long long long long long long long long long long long long long long long long long long long long " +
+        "long long long long long long long long long long long long long long long long long long long long " +
+        "long long long long long long long long long long long long long long long long long long long long " +
+        "long long long long long long long long long long long long long long long long long long long long " +
+        "long long long long long long long long long long long long long long long long long long long long " +
+        "long long long long long long long long long long long long long long long long long long long long " +
+        "long long long long long long long long long long long long long long long long long long long long " +
+        "long long long long long long long long long long long long long long long long long long long long " +
+        "long long long long long long long long long long long long long long long long long long long long file";
     private static final String DEFAULT_OFFER = "default";
 
-
     @Override
-    public JsonNode getStorageInformation(String strategyId)
-        throws StorageServerClientException {
+    public JsonNode getStorageInformation(String strategyId) throws StorageServerClientException {
         Integer tenantId = 0;
         try {
             tenantId = ParameterHelper.getTenantParameter();
@@ -129,28 +131,30 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     @Override
     public List<String> getOffers(String strategyId)
         throws StorageNotFoundClientException, StorageServerClientException {
-
         ArrayList<String> array = new ArrayList<>();
         array.add("id1");
         return array;
     }
 
     @Override
-    public StoredInfoResult storeFileFromWorkspace(String strategyId, DataCategory type, String guid,
-        ObjectDescription description)
-        throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
-        if ((description.getWorkspaceObjectURI().equals("ATR/responseReply.xml")
-            || description.getWorkspaceObjectURI().contains("Units/aeaqaaaaaagbcaacaang6ak4ts6paliacabq.json"))
-            && VitamThreadUtils.getVitamSession().getContractId().equals("OUR_FAILING_CONTRACT")) {
+    public StoredInfoResult storeFileFromWorkspace(
+        String strategyId,
+        DataCategory type,
+        String guid,
+        ObjectDescription description
+    ) throws StorageAlreadyExistsClientException, StorageNotFoundClientException, StorageServerClientException {
+        if (
+            (description.getWorkspaceObjectURI().equals("ATR/responseReply.xml") ||
+                description.getWorkspaceObjectURI().contains("Units/aeaqaaaaaagbcaacaang6ak4ts6paliacabq.json")) &&
+            VitamThreadUtils.getVitamSession().getContractId().equals("OUR_FAILING_CONTRACT")
+        ) {
             throw new StorageAlreadyExistsClientException("Not found.");
         }
         return generateStoredInfoResult(guid);
     }
 
-
     @Override
-    public boolean delete(String strategyId, DataCategory type, String guid)
-        throws StorageServerClientException {
+    public boolean delete(String strategyId, DataCategory type, String guid) throws StorageServerClientException {
         return true;
     }
 
@@ -167,10 +171,13 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public BulkObjectStoreResponse bulkStoreFilesFromWorkspace(String strategyId,
-        BulkObjectStoreRequest bulkObjectStoreRequest) {
-
-        Map<String, String> dummyDigests = bulkObjectStoreRequest.getObjectNames().stream()
+    public BulkObjectStoreResponse bulkStoreFilesFromWorkspace(
+        String strategyId,
+        BulkObjectStoreRequest bulkObjectStoreRequest
+    ) {
+        Map<String, String> dummyDigests = bulkObjectStoreRequest
+            .getObjectNames()
+            .stream()
             .collect(Collectors.toMap(objectId -> objectId, objectId -> "dummy-digest"));
 
         return new BulkObjectStoreResponse(
@@ -195,28 +202,41 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     @Override
     public Response getContainerAsync(String strategyId, String guid, DataCategory type, AccessLogInfoModel logInfo)
         throws StorageServerClientException, StorageNotFoundException {
-
         if (null != guid && guid.endsWith(".rng")) {
             try {
-                return new FakeInboundResponse(Status.OK,
+                return new FakeInboundResponse(
+                    Status.OK,
                     PropertiesUtils.getResourceAsStream("profile/profil_ok.rng"),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                    null
+                );
             } catch (FileNotFoundException e) {
                 throw new StorageNotFoundException(e);
             }
         } else {
-            return new FakeInboundResponse(Status.OK,
+            return new FakeInboundResponse(
+                Status.OK,
                 IOUtils.toInputStream(MOCK_GET_FILE_CONTENT, Charset.defaultCharset()),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+                MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                null
+            );
         }
     }
 
     @Override
-    public Response getContainerAsync(String strategyId, String offerId, String objectName, DataCategory type,
-        AccessLogInfoModel logInfo) throws StorageServerClientException, StorageNotFoundException {
-        return new FakeInboundResponse(Status.OK,
+    public Response getContainerAsync(
+        String strategyId,
+        String offerId,
+        String objectName,
+        DataCategory type,
+        AccessLogInfoModel logInfo
+    ) throws StorageServerClientException, StorageNotFoundException {
+        return new FakeInboundResponse(
+            Status.OK,
             IOUtils.toInputStream(MOCK_GET_FILE_CONTENT, Charset.defaultCharset()),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
     }
 
     @Override
@@ -240,15 +260,23 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public JsonNode getInformation(String strategyId, DataCategory type, String guid, List<String> offerIds,
-        boolean noCache)
-        throws StorageServerClientException, StorageNotFoundClientException {
+    public JsonNode getInformation(
+        String strategyId,
+        DataCategory type,
+        String guid,
+        List<String> offerIds,
+        boolean noCache
+    ) throws StorageServerClientException, StorageNotFoundClientException {
         try {
             ObjectNode offerIdToMetadata = JsonHandler.createObjectNode();
-            StorageMetadataResult metaData =
-                new StorageMetadataResult("aeaaaaaaaacu6xzeabinwak6t5ecmlaaaaaq", "object",
-                    "c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e",
-                    6096, "Tue Aug 31 10:20:56 SGT 2016", "Tue Aug 31 10:20:56 SGT 2016");
+            StorageMetadataResult metaData = new StorageMetadataResult(
+                "aeaaaaaaaacu6xzeabinwak6t5ecmlaaaaaq",
+                "object",
+                "c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e",
+                6096,
+                "Tue Aug 31 10:20:56 SGT 2016",
+                "Tue Aug 31 10:20:56 SGT 2016"
+            );
             offerIdToMetadata.set("localhost", JsonHandler.toJsonNode(metaData));
             return offerIdToMetadata;
         } catch (InvalidParseOperationException e) {
@@ -257,30 +285,47 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(String strategyId,
-        DataCategory type, Collection<String> offerIds,
-        Collection<String> objectIds) {
+    public RequestResponse<BatchObjectInformationResponse> getBatchObjectInformation(
+        String strategyId,
+        DataCategory type,
+        Collection<String> offerIds,
+        Collection<String> objectIds
+    ) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public RequestResponseOK copyObjectFromOfferToOffer(String objectId, DataCategory category, String source,
-        String destination, String strategyId) throws StorageServerClientException, InvalidParseOperationException {
+    public RequestResponseOK copyObjectFromOfferToOffer(
+        String objectId,
+        DataCategory category,
+        String source,
+        String destination,
+        String strategyId
+    ) throws StorageServerClientException, InvalidParseOperationException {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public RequestResponseOK create(String strategyId, String objectId, DataCategory category, InputStream inputStream,
-        Long inputStreamSize, List<String> offerIds)
-        throws StorageServerClientException, InvalidParseOperationException {
+    public RequestResponseOK create(
+        String strategyId,
+        String objectId,
+        DataCategory category,
+        InputStream inputStream,
+        Long inputStreamSize,
+        List<String> offerIds
+    ) throws StorageServerClientException, InvalidParseOperationException {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public RequestResponse<OfferLog> getOfferLogs(String strategyId, String offerId, DataCategory type, Long offset,
+    public RequestResponse<OfferLog> getOfferLogs(
+        String strategyId,
+        String offerId,
+        DataCategory type,
+        Long offset,
         int limit,
-        Order order)
-        throws StorageServerClientException {
+        Order order
+    ) throws StorageServerClientException {
         RequestResponseOK<OfferLog> requestResponseOK = new RequestResponseOK<>();
         OfferLog offerLog = new OfferLog();
         offerLog.setContainer(type.getFolder() + "_0");
@@ -304,26 +349,41 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public Optional<String> createAccessRequestIfRequired(String strategyId, String offerId, DataCategory dataCategory,
-        List<String> objectNames) {
+    public Optional<String> createAccessRequestIfRequired(
+        String strategyId,
+        String offerId,
+        DataCategory dataCategory,
+        List<String> objectNames
+    ) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(String strategyId, String offerId,
-        List<String> accessRequestIds, boolean adminCrossTenantAccessRequestAllowed) {
+    public Map<String, AccessRequestStatus> checkAccessRequestStatuses(
+        String strategyId,
+        String offerId,
+        List<String> accessRequestIds,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public void removeAccessRequest(String strategyId, String offerId, String accessRequestId,
-        boolean adminCrossTenantAccessRequestAllowed) {
+    public void removeAccessRequest(
+        String strategyId,
+        String offerId,
+        String accessRequestId,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
     @Override
-    public BulkObjectAvailabilityResponse checkBulkObjectAvailability(String strategyId, String offerId,
-        BulkObjectAvailabilityRequest bulkObjectAvailabilityRequest) {
+    public BulkObjectAvailabilityResponse checkBulkObjectAvailability(
+        String strategyId,
+        String offerId,
+        BulkObjectAvailabilityRequest bulkObjectAvailabilityRequest
+    ) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 
@@ -334,8 +394,8 @@ public class StorageClientMock extends AbstractMockClient implements StorageClie
     }
 
     @Override
-    public Response launchOfferLogCompaction(VitamContext vitamContext, String offerId) throws StorageServerClientException {
+    public Response launchOfferLogCompaction(VitamContext vitamContext, String offerId)
+        throws StorageServerClientException {
         return null;
     }
-
 }

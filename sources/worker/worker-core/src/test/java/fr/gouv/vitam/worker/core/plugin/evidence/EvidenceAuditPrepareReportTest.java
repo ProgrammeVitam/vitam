@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.evidence;
 
-
 import fr.gouv.vitam.common.model.ItemStatus;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -55,32 +54,45 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class EvidenceAuditPrepareReportTest {
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+
     private EvidenceAuditPrepareReport evidenceAuditPrepareReport;
     private static final String JOP_EVIDENCE_AUDIT_RESULTS_OK = "/evidenceAudit/JOP_EVIDENCE_AUDIT_OK.json";
     private static final String JOP_EVIDENCE_AUDIT_RESULTS_WARNING = "/evidenceAudit/JOP_EVIDENCE_AUDIT_WARNING.json";
-    @Mock public HandlerIO handlerIO;
+
+    @Mock
+    public HandlerIO handlerIO;
+
     @Mock
     WorkerParameters defaultWorkerParameters;
+
     @Mock
     private EvidenceAuditReportService evidenceAuditReportService;
+
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
     @Mock
     private LogbookOperationsClient logbookClient;
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Before
     public void setUp() throws Exception {
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookClient);
-        evidenceAuditPrepareReport =
-            new EvidenceAuditPrepareReport(evidenceAuditReportService, logbookOperationsClientFactory);
+        evidenceAuditPrepareReport = new EvidenceAuditPrepareReport(
+            evidenceAuditReportService,
+            logbookOperationsClientFactory
+        );
     }
-
 
     @RunWithCustomExecutor
     @Test
@@ -89,8 +101,9 @@ public class EvidenceAuditPrepareReportTest {
         VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacfpuagsaauscallwn433oaaaaaq");
         File file = tempFolder.newFile();
         when(handlerIO.getNewLocalFile("report.json")).thenReturn(file);
-        when(logbookClient.selectOperationById(any()))
-            .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_EVIDENCE_AUDIT_RESULTS_OK)));
+        when(logbookClient.selectOperationById(any())).thenReturn(
+            getFromInputStream(getClass().getResourceAsStream(JOP_EVIDENCE_AUDIT_RESULTS_OK))
+        );
 
         ItemStatus execute = evidenceAuditPrepareReport.execute(defaultWorkerParameters, handlerIO);
         Assertions.assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -106,8 +119,9 @@ public class EvidenceAuditPrepareReportTest {
         VitamThreadUtils.getVitamSession().setRequestId("aeeaaaaaacfpuagsaauscallwn434oaaaaaq");
         File file = tempFolder.newFile();
         when(handlerIO.getNewLocalFile("report.json")).thenReturn(file);
-        when(logbookClient.selectOperationById(any()))
-            .thenReturn(getFromInputStream(getClass().getResourceAsStream(JOP_EVIDENCE_AUDIT_RESULTS_WARNING)));
+        when(logbookClient.selectOperationById(any())).thenReturn(
+            getFromInputStream(getClass().getResourceAsStream(JOP_EVIDENCE_AUDIT_RESULTS_WARNING))
+        );
 
         ItemStatus execute = evidenceAuditPrepareReport.execute(defaultWorkerParameters, handlerIO);
         Assertions.assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);

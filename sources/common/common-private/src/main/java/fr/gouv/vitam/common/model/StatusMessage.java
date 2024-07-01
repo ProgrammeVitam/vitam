@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.logging.VitamLoggerFactory;
  * Default Status message (at that time)
  */
 public class StatusMessage {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StatusMessage.class);
 
     private String name;

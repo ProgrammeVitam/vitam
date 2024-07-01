@@ -50,11 +50,14 @@ public final class MetadataValidationProvider {
         return INSTANCE;
     }
 
-    private MetadataValidationProvider() {
-    }
+    private MetadataValidationProvider() {}
 
     @VisibleForTesting
-    public MetadataValidationProvider(OntologyValidator unitOntologyValidator, OntologyValidator objectGroupOntologyValidator, UnitValidator unitValidator) {
+    public MetadataValidationProvider(
+        OntologyValidator unitOntologyValidator,
+        OntologyValidator objectGroupOntologyValidator,
+        UnitValidator unitValidator
+    ) {
         this.unitValidator = unitValidator;
         this.unitOntologyValidator = unitOntologyValidator;
         this.objectGroupOntologyValidator = objectGroupOntologyValidator;
@@ -62,15 +65,23 @@ public final class MetadataValidationProvider {
 
     public void initialize(
         AdminManagementClientFactory adminManagementClientFactory,
-        int ontologyCacheMaxEntries, int ontologyCacheTimeoutInSeconds,
-        int archiveUnitProfileCacheMaxEntries, int archiveUnitProfileCacheTimeoutInSeconds,
-        int schemaValidatorCacheMaxEntries, int schemaValidatorCacheTimeoutInSeconds) {
-
+        int ontologyCacheMaxEntries,
+        int ontologyCacheTimeoutInSeconds,
+        int archiveUnitProfileCacheMaxEntries,
+        int archiveUnitProfileCacheTimeoutInSeconds,
+        int schemaValidatorCacheMaxEntries,
+        int schemaValidatorCacheTimeoutInSeconds
+    ) {
         CachedArchiveUnitProfileLoader archiveUnitProfileLoader = new CachedArchiveUnitProfileLoader(
-            adminManagementClientFactory, archiveUnitProfileCacheMaxEntries, archiveUnitProfileCacheTimeoutInSeconds);
+            adminManagementClientFactory,
+            archiveUnitProfileCacheMaxEntries,
+            archiveUnitProfileCacheTimeoutInSeconds
+        );
 
         CachedSchemaValidatorLoader schemaValidatorLoader = new CachedSchemaValidatorLoader(
-            schemaValidatorCacheMaxEntries, schemaValidatorCacheTimeoutInSeconds);
+            schemaValidatorCacheMaxEntries,
+            schemaValidatorCacheTimeoutInSeconds
+        );
 
         OntologyLoader unitOntologyLoader = new CachedOntologyLoader(
             ontologyCacheMaxEntries,
@@ -81,8 +92,10 @@ public final class MetadataValidationProvider {
         OntologyLoader objectGroupOntologyLoader = new CachedOntologyLoader(
             ontologyCacheMaxEntries,
             ontologyCacheTimeoutInSeconds,
-            new AdminManagementOntologyLoader(adminManagementClientFactory,
-                Optional.of(MetadataType.OBJECTGROUP.getName()))
+            new AdminManagementOntologyLoader(
+                adminManagementClientFactory,
+                Optional.of(MetadataType.OBJECTGROUP.getName())
+            )
         );
 
         this.unitOntologyValidator = new OntologyValidator(unitOntologyLoader);

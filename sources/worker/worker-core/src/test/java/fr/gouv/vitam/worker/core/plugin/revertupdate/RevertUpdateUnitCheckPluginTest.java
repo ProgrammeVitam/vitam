@@ -80,7 +80,8 @@ public class RevertUpdateUnitCheckPluginTest {
     private static final String UNIT_ID = "UNIT_ID";
     private static final String ANY_PATH = "anyPath";
 
-    String DIFF_V0 = "{\n" +
+    String DIFF_V0 =
+        "{\n" +
         "  \"diff\" : \"" +
         "-  \\\"Title\\\" : \\\"Old_Title\\\"\\n" +
         "+  \\\"Title\\\" : \\\"New_Title\\\"\\n" +
@@ -94,7 +95,8 @@ public class RevertUpdateUnitCheckPluginTest {
         "+  \\\"_av\\\" : 1\"" +
         "\n}";
 
-    String DIFF_V1 = "{\n" +
+    String DIFF_V1 =
+        "{\n" +
         "  \"diff\" : \"" +
         "-  \\\"Title_.fr\\\" : \\\"Old_Title\\\"\\n" +
         "+  \\\"Title_.fr\\\" : \\\"New_Title\\\"\\n" +
@@ -143,27 +145,37 @@ public class RevertUpdateUnitCheckPluginTest {
         WorkerParameters params = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
 
-        RevertUpdateOptions options =
-            new RevertUpdateOptions(false, createObjectNode(), OPERATION_ID, Collections.emptyList());
+        RevertUpdateOptions options = new RevertUpdateOptions(
+            false,
+            createObjectNode(),
+            OPERATION_ID,
+            Collections.emptyList()
+        );
         File optionsFile = tempFolder.newFile();
         JsonHandler.writeAsFile(options, optionsFile);
         when(handlerIO.getInput(0, File.class)).thenReturn(optionsFile);
 
-
-        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(createObjectNode().set(TAG_RESULTS,
-            createArrayNode().add(createObjectNode().put(VitamFieldsHelper.id(), UNIT_ID)
-                .set(VitamFieldsHelper.operations(), createArrayNode().add(OPERATION_ID)))));
+        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(
+            createObjectNode()
+                .set(
+                    TAG_RESULTS,
+                    createArrayNode()
+                        .add(
+                            createObjectNode()
+                                .put(VitamFieldsHelper.id(), UNIT_ID)
+                                .set(VitamFieldsHelper.operations(), createArrayNode().add(OPERATION_ID))
+                        )
+                )
+        );
 
         LogbookOperation logbookOperation = new LogbookOperation();
         LogbookEventOperation logbookEventOperation = new LogbookEventOperation();
         logbookEventOperation.setEvIdProc(OPERATION_ID);
         logbookEventOperation.setObId(UNIT_ID);
-        logbookEventOperation.setEvDetData(
-            DIFF_V0);
+        logbookEventOperation.setEvDetData(DIFF_V0);
         logbookOperation.setEvents(List.of(logbookEventOperation));
         List<JsonNode> jsonNodes = List.of(JsonHandler.toJsonNode(logbookOperation));
         when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(eq(List.of(UNIT_ID)))).thenReturn(jsonNodes);
-
 
         File jsonlFile = tempFolder.newFile();
         when(handlerIO.getNewLocalFile(eq(REVERT_UPDATE_UNITS_JSONL_FILE))).thenReturn(jsonlFile);
@@ -175,14 +187,19 @@ public class RevertUpdateUnitCheckPluginTest {
 
         assertEquals(OK, itemStatus.getGlobalStatus());
 
+        JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+            new FileInputStream(jsonlFile),
+            new TypeReference<>() {}
+        );
 
-        JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
-            new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
-            });
-
-        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString)
-            .isEqualTo(List.of(
-                "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Description\":\"Old_Description\",\"Title\":\"Old_Title\"}},{\"$unset\":[\"DescriptionLevel\"]}]}}"));
+        assertThat(jsonLineIterator)
+            .extracting(JsonLineModel::getParams)
+            .extracting(JsonNode::toString)
+            .isEqualTo(
+                List.of(
+                    "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Description\":\"Old_Description\",\"Title\":\"Old_Title\"}},{\"$unset\":[\"DescriptionLevel\"]}]}}"
+                )
+            );
     }
 
     @Test
@@ -190,27 +207,37 @@ public class RevertUpdateUnitCheckPluginTest {
         WorkerParameters params = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
 
-        RevertUpdateOptions options =
-            new RevertUpdateOptions(false, createObjectNode(), OPERATION_ID, Collections.emptyList());
+        RevertUpdateOptions options = new RevertUpdateOptions(
+            false,
+            createObjectNode(),
+            OPERATION_ID,
+            Collections.emptyList()
+        );
         File optionsFile = tempFolder.newFile();
         JsonHandler.writeAsFile(options, optionsFile);
         when(handlerIO.getInput(0, File.class)).thenReturn(optionsFile);
 
-
-        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(createObjectNode().set(TAG_RESULTS,
-            createArrayNode().add(createObjectNode().put(VitamFieldsHelper.id(), UNIT_ID)
-                .set(VitamFieldsHelper.operations(), createArrayNode().add(OPERATION_ID)))));
+        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(
+            createObjectNode()
+                .set(
+                    TAG_RESULTS,
+                    createArrayNode()
+                        .add(
+                            createObjectNode()
+                                .put(VitamFieldsHelper.id(), UNIT_ID)
+                                .set(VitamFieldsHelper.operations(), createArrayNode().add(OPERATION_ID))
+                        )
+                )
+        );
 
         LogbookOperation logbookOperation = new LogbookOperation();
         LogbookEventOperation logbookEventOperation = new LogbookEventOperation();
         logbookEventOperation.setEvIdProc(OPERATION_ID);
         logbookEventOperation.setObId(UNIT_ID);
-        logbookEventOperation.setEvDetData(
-            DIFF_V1);
+        logbookEventOperation.setEvDetData(DIFF_V1);
         logbookOperation.setEvents(List.of(logbookEventOperation));
         List<JsonNode> jsonNodes = List.of(JsonHandler.toJsonNode(logbookOperation));
         when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(eq(List.of(UNIT_ID)))).thenReturn(jsonNodes);
-
 
         File jsonlFile = tempFolder.newFile();
         when(handlerIO.getNewLocalFile(eq(REVERT_UPDATE_UNITS_JSONL_FILE))).thenReturn(jsonlFile);
@@ -222,14 +249,19 @@ public class RevertUpdateUnitCheckPluginTest {
 
         assertEquals(OK, itemStatus.getGlobalStatus());
 
+        JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+            new FileInputStream(jsonlFile),
+            new TypeReference<>() {}
+        );
 
-        JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
-            new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
-            });
-
-        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString)
-            .isEqualTo(List.of(
-                "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\",\"Description_.fr\":\"Old_Description\"}}]}}"));
+        assertThat(jsonLineIterator)
+            .extracting(JsonLineModel::getParams)
+            .extracting(JsonNode::toString)
+            .isEqualTo(
+                List.of(
+                    "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\",\"Description_.fr\":\"Old_Description\"}}]}}"
+                )
+            );
     }
 
     @Test
@@ -237,27 +269,37 @@ public class RevertUpdateUnitCheckPluginTest {
         WorkerParameters params = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
 
-        RevertUpdateOptions options =
-            new RevertUpdateOptions(false, createObjectNode(), OPERATION_ID, Collections.singletonList("Title"));
+        RevertUpdateOptions options = new RevertUpdateOptions(
+            false,
+            createObjectNode(),
+            OPERATION_ID,
+            Collections.singletonList("Title")
+        );
         File optionsFile = tempFolder.newFile();
         JsonHandler.writeAsFile(options, optionsFile);
         when(handlerIO.getInput(0, File.class)).thenReturn(optionsFile);
 
-
-        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(createObjectNode().set(TAG_RESULTS,
-            createArrayNode().add(createObjectNode().put(VitamFieldsHelper.id(), UNIT_ID)
-                .set(VitamFieldsHelper.operations(), createArrayNode().add(OPERATION_ID)))));
+        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(
+            createObjectNode()
+                .set(
+                    TAG_RESULTS,
+                    createArrayNode()
+                        .add(
+                            createObjectNode()
+                                .put(VitamFieldsHelper.id(), UNIT_ID)
+                                .set(VitamFieldsHelper.operations(), createArrayNode().add(OPERATION_ID))
+                        )
+                )
+        );
 
         LogbookOperation logbookOperation = new LogbookOperation();
         LogbookEventOperation logbookEventOperation = new LogbookEventOperation();
         logbookEventOperation.setEvIdProc(OPERATION_ID);
         logbookEventOperation.setObId(UNIT_ID);
-        logbookEventOperation.setEvDetData(
-            DIFF_V1);
+        logbookEventOperation.setEvDetData(DIFF_V1);
         logbookOperation.setEvents(List.of(logbookEventOperation));
         List<JsonNode> jsonNodes = List.of(JsonHandler.toJsonNode(logbookOperation));
         when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(eq(List.of(UNIT_ID)))).thenReturn(jsonNodes);
-
 
         File jsonlFile = tempFolder.newFile();
         when(handlerIO.getNewLocalFile(eq(REVERT_UPDATE_UNITS_JSONL_FILE))).thenReturn(jsonlFile);
@@ -269,14 +311,13 @@ public class RevertUpdateUnitCheckPluginTest {
 
         assertEquals(KO, itemStatus.getGlobalStatus());
 
-
-        JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
-            new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
-            });
+        JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+            new FileInputStream(jsonlFile),
+            new TypeReference<>() {}
+        );
 
         assertThat(jsonLineIterator).extracting(JsonLineModel::getId).isEqualTo(Collections.emptyList());
     }
-
 
     @Test
     public void should_not_distribute_when_operation_is_not_last_and_force_is_false() throws Exception {
@@ -286,16 +327,31 @@ public class RevertUpdateUnitCheckPluginTest {
         File jsonlFile = tempFolder.newFile();
         when(handlerIO.getNewLocalFile(eq(REVERT_UPDATE_UNITS_JSONL_FILE))).thenReturn(jsonlFile);
 
-        RevertUpdateOptions options =
-            new RevertUpdateOptions(false, createObjectNode(), OPERATION_ID, Collections.emptyList());
+        RevertUpdateOptions options = new RevertUpdateOptions(
+            false,
+            createObjectNode(),
+            OPERATION_ID,
+            Collections.emptyList()
+        );
         File optionsFile = tempFolder.newFile();
         JsonHandler.writeAsFile(options, optionsFile);
         when(handlerIO.getInput(0, File.class)).thenReturn(optionsFile);
 
-
-        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(createObjectNode().set(TAG_RESULTS,
-            createArrayNode().add(createObjectNode().put(VitamFieldsHelper.id(), UNIT_ID)
-                .set(VitamFieldsHelper.operations(), createArrayNode().add(OPERATION_ID).add("OPERATION_2")))));
+        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(
+            createObjectNode()
+                .set(
+                    TAG_RESULTS,
+                    createArrayNode()
+                        .add(
+                            createObjectNode()
+                                .put(VitamFieldsHelper.id(), UNIT_ID)
+                                .set(
+                                    VitamFieldsHelper.operations(),
+                                    createArrayNode().add(OPERATION_ID).add("OPERATION_2")
+                                )
+                        )
+                )
+        );
 
         when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath(ANY_PATH));
         when(handlerIO.getNewLocalFile(eq(ANY_PATH))).thenReturn(tempFolder.newFile());
@@ -310,27 +366,40 @@ public class RevertUpdateUnitCheckPluginTest {
         WorkerParameters params = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
 
-        RevertUpdateOptions options =
-            new RevertUpdateOptions(true, createObjectNode(), OPERATION_ID, Collections.singletonList("Title_.fr"));
+        RevertUpdateOptions options = new RevertUpdateOptions(
+            true,
+            createObjectNode(),
+            OPERATION_ID,
+            Collections.singletonList("Title_.fr")
+        );
         File optionsFile = tempFolder.newFile();
         JsonHandler.writeAsFile(options, optionsFile);
         when(handlerIO.getInput(0, File.class)).thenReturn(optionsFile);
 
-
-        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(createObjectNode().set(TAG_RESULTS,
-            createArrayNode().add(createObjectNode().put(VitamFieldsHelper.id(), UNIT_ID)
-                .set(VitamFieldsHelper.operations(), createArrayNode().add(OPERATION_ID).add("OPERATION_2")))));
+        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(
+            createObjectNode()
+                .set(
+                    TAG_RESULTS,
+                    createArrayNode()
+                        .add(
+                            createObjectNode()
+                                .put(VitamFieldsHelper.id(), UNIT_ID)
+                                .set(
+                                    VitamFieldsHelper.operations(),
+                                    createArrayNode().add(OPERATION_ID).add("OPERATION_2")
+                                )
+                        )
+                )
+        );
 
         LogbookOperation logbookOperation = new LogbookOperation();
         LogbookEventOperation logbookEventOperation = new LogbookEventOperation();
         logbookEventOperation.setEvIdProc(OPERATION_ID);
         logbookEventOperation.setObId(UNIT_ID);
-        logbookEventOperation.setEvDetData(
-            DIFF_V1);
+        logbookEventOperation.setEvDetData(DIFF_V1);
         logbookOperation.setEvents(List.of(logbookEventOperation));
         List<JsonNode> jsonNodes = List.of(JsonHandler.toJsonNode(logbookOperation));
         when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(eq(List.of(UNIT_ID)))).thenReturn(jsonNodes);
-
 
         File jsonlFile = tempFolder.newFile();
         when(handlerIO.getNewLocalFile(eq(REVERT_UPDATE_UNITS_JSONL_FILE))).thenReturn(jsonlFile);
@@ -342,14 +411,19 @@ public class RevertUpdateUnitCheckPluginTest {
 
         assertEquals(OK, itemStatus.getGlobalStatus());
 
+        JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+            new FileInputStream(jsonlFile),
+            new TypeReference<>() {}
+        );
 
-        JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
-            new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
-            });
-
-        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString)
-            .isEqualTo(List.of(
-                "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\"}}]}}"));
+        assertThat(jsonLineIterator)
+            .extracting(JsonLineModel::getParams)
+            .extracting(JsonNode::toString)
+            .isEqualTo(
+                List.of(
+                    "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\"}}]}}"
+                )
+            );
     }
 
     @Test
@@ -357,14 +431,19 @@ public class RevertUpdateUnitCheckPluginTest {
         WorkerParameters params = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
 
-        RevertUpdateOptions options =
-            new RevertUpdateOptions(false, createObjectNode(), OPERATION_ID, Collections.singletonList("Title"));
+        RevertUpdateOptions options = new RevertUpdateOptions(
+            false,
+            createObjectNode(),
+            OPERATION_ID,
+            Collections.singletonList("Title")
+        );
         File optionsFile = tempFolder.newFile();
         JsonHandler.writeAsFile(options, optionsFile);
         when(handlerIO.getInput(0, File.class)).thenReturn(optionsFile);
 
-        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(createObjectNode().set(TAG_RESULTS,
-            createArrayNode()));
+        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(
+            createObjectNode().set(TAG_RESULTS, createArrayNode())
+        );
 
         File jsonlFile = tempFolder.newFile();
         when(handlerIO.getNewLocalFile(eq(REVERT_UPDATE_UNITS_JSONL_FILE))).thenReturn(jsonlFile);
@@ -376,10 +455,10 @@ public class RevertUpdateUnitCheckPluginTest {
 
         assertEquals(KO, itemStatus.getGlobalStatus());
 
-
-        JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
-            new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
-            });
+        JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+            new FileInputStream(jsonlFile),
+            new TypeReference<>() {}
+        );
 
         assertThat(jsonLineIterator).extracting(JsonLineModel::getId).isEqualTo(Collections.emptyList());
     }
@@ -389,27 +468,37 @@ public class RevertUpdateUnitCheckPluginTest {
         WorkerParameters params = mock(WorkerParameters.class);
         HandlerIO handlerIO = mock(HandlerIO.class);
 
-        RevertUpdateOptions options =
-            new RevertUpdateOptions(false, createObjectNode(), OPERATION_ID, Collections.emptyList());
+        RevertUpdateOptions options = new RevertUpdateOptions(
+            false,
+            createObjectNode(),
+            OPERATION_ID,
+            Collections.emptyList()
+        );
         File optionsFile = tempFolder.newFile();
         JsonHandler.writeAsFile(options, optionsFile);
         when(handlerIO.getInput(0, File.class)).thenReturn(optionsFile);
 
-
-        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(createObjectNode().set(TAG_RESULTS,
-            createArrayNode().add(createObjectNode().put(VitamFieldsHelper.id(), UNIT_ID)
-                .set(VitamFieldsHelper.operations(), createArrayNode().add(OPERATION_ID)))));
+        when(metadataClient.selectUnits(any(JsonNode.class))).thenReturn(
+            createObjectNode()
+                .set(
+                    TAG_RESULTS,
+                    createArrayNode()
+                        .add(
+                            createObjectNode()
+                                .put(VitamFieldsHelper.id(), UNIT_ID)
+                                .set(VitamFieldsHelper.operations(), createArrayNode().add(OPERATION_ID))
+                        )
+                )
+        );
 
         LogbookOperation logbookOperation = new LogbookOperation();
         LogbookEventOperation logbookEventOperation = new LogbookEventOperation();
         logbookEventOperation.setEvIdProc(OPERATION_ID);
         logbookEventOperation.setObId(UNIT_ID);
-        logbookEventOperation.setEvDetData(
-            DIFF_V1);
+        logbookEventOperation.setEvDetData(DIFF_V1);
         logbookOperation.setEvents(List.of(logbookEventOperation));
         List<JsonNode> jsonNodes = List.of(JsonHandler.toJsonNode(logbookOperation));
         when(logbookLifeCyclesClient.getRawUnitLifeCycleByIds(eq(List.of(UNIT_ID)))).thenReturn(jsonNodes);
-
 
         File jsonlFile = tempFolder.newFile();
         when(handlerIO.getNewLocalFile(eq(REVERT_UPDATE_UNITS_JSONL_FILE))).thenReturn(jsonlFile);
@@ -421,13 +510,18 @@ public class RevertUpdateUnitCheckPluginTest {
 
         assertEquals(OK, itemStatus.getGlobalStatus());
 
+        JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+            new FileInputStream(jsonlFile),
+            new TypeReference<>() {}
+        );
 
-        JsonLineGenericIterator<JsonLineModel> jsonLineIterator =
-            new JsonLineGenericIterator<>(new FileInputStream(jsonlFile), new TypeReference<>() {
-            });
-
-        assertThat(jsonLineIterator).extracting(JsonLineModel::getParams).extracting(JsonNode::toString)
-            .isEqualTo(List.of(
-                "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\",\"Description_.fr\":\"Old_Description\"}}]}}"));
+        assertThat(jsonLineIterator)
+            .extracting(JsonLineModel::getParams)
+            .extracting(JsonNode::toString)
+            .isEqualTo(
+                List.of(
+                    "{\"queryIndex\":0,\"originQuery\":{\"$roots\":[],\"$query\":[{\"$eq\":{\"#id\":\"UNIT_ID\"}}],\"$filter\":{},\"$action\":[{\"$set\":{\"Title_.fr\":\"Old_Title\",\"Description_.fr\":\"Old_Description\"}}]}}"
+                )
+            );
     }
 }

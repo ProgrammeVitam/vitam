@@ -33,10 +33,8 @@ import fr.gouv.vitam.common.client.MockOrRestClient;
  * Basic client api for vitam client
  */
 public interface BasicClient extends MockOrRestClient {
-
     /**
      * Global status url for Application and Admin Status
      */
     String STATUS_URL = VitamConfiguration.STATUS_URL;
-
 }

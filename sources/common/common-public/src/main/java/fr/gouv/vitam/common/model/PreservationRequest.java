@@ -50,10 +50,13 @@ public class PreservationRequest {
         //for Jackson
     }
 
-    public PreservationRequest(@JsonProperty(required = true) JsonNode dslQuery,
-        @JsonProperty(required = true) String scenarioIdentifier, @JsonProperty(required = true) String targetUsage,
-        @JsonProperty(required = true) PreservationVersion version, @JsonProperty(required = true) String sourceUsage) {
-
+    public PreservationRequest(
+        @JsonProperty(required = true) JsonNode dslQuery,
+        @JsonProperty(required = true) String scenarioIdentifier,
+        @JsonProperty(required = true) String targetUsage,
+        @JsonProperty(required = true) PreservationVersion version,
+        @JsonProperty(required = true) String sourceUsage
+    ) {
         this.dslQuery = dslQuery;
         this.scenarioIdentifier = scenarioIdentifier;
         this.targetUsage = targetUsage;

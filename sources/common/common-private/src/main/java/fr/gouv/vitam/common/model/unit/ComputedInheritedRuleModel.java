@@ -45,8 +45,7 @@ public class ComputedInheritedRuleModel {
     @JsonProperty(END_DATE)
     private String endDate;
 
-    public ComputedInheritedRuleModel() {
-    }
+    public ComputedInheritedRuleModel() {}
 
     public ComputedInheritedRuleModel(String rule, String endDate) {
         this.rule = rule;

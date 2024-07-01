@@ -51,5 +51,4 @@ public class CertificateExceptionMapperTest {
         assertThat(response.getStatusInfo()).isEqualTo(BAD_REQUEST);
         assertThat(response.getEntity()).isEqualTo(message);
     }
-
 }

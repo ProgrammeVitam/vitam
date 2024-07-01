@@ -60,8 +60,7 @@ import java.util.stream.Collectors;
 
 public class MetadataRuleService {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(MetadataRuleService.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MetadataRuleService.class);
     private static final int MAX_PRINTED_MISSING_UNITS = 10;
     public static final String INHERITED_RULES = "InheritedRules";
 
@@ -91,8 +90,7 @@ public class MetadataRuleService {
      * @return the selected units with there inherited rules
      */
     public MetadataResult selectUnitsWithInheritedRules(JsonNode selectQuery)
-        throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException, VitamDBException,
-        MetaDataNotFoundException, MetaDataDocumentSizeException {
+        throws InvalidParseOperationException, MetaDataExecutionException, BadRequestException, VitamDBException, MetaDataNotFoundException, MetaDataDocumentSizeException {
         LOGGER.debug("selectUnitsWithInheritedRules / selectQuery: " + selectQuery);
 
         RequestParserMultiple parser = RequestParserHelper.getParser(selectQuery);
@@ -103,13 +101,15 @@ public class MetadataRuleService {
         // Set target collection in hint
         final SelectMultiQuery request = (SelectMultiQuery) parser.getRequest();
 
-        ObjectNode fieldsProjection =
-            (ObjectNode) request.getProjection().get(BuilderToken.PROJECTION.FIELDS.exactToken());
+        ObjectNode fieldsProjection = (ObjectNode) request
+            .getProjection()
+            .get(BuilderToken.PROJECTION.FIELDS.exactToken());
         if (fieldsProjection != null && fieldsProjection.size() > 0) {
             // Check obsolete #rules
             if (fieldsProjection.has(BuilderToken.GLOBAL.RULES.exactToken())) {
                 throw new InvalidParseOperationException(
-                    "Invalid " + BuilderToken.GLOBAL.RULES.exactToken() + " projection");
+                    "Invalid " + BuilderToken.GLOBAL.RULES.exactToken() + " projection"
+                );
             }
 
             // Ensure unit id is included (required for inherited rule computation)
@@ -125,9 +125,7 @@ public class MetadataRuleService {
     }
 
     private void computeInheritedRulesForUnits(List<JsonNode> results)
-        throws InvalidParseOperationException, MetaDataNotFoundException, MetaDataDocumentSizeException,
-        MetaDataExecutionException, BadRequestException, VitamDBException {
-
+        throws InvalidParseOperationException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataExecutionException, BadRequestException, VitamDBException {
         List<String> unitIds = new ArrayList<>();
         for (JsonNode jsonNode : results) {
             unitIds.add(jsonNode.get(VitamFieldsHelper.id()).asText());
@@ -135,8 +133,9 @@ public class MetadataRuleService {
 
         Map<String, UnitRuleModel> unitRulesByIdsMap = loadUnitRuleHierarchy(unitIds);
 
-        Map<String, UnitInheritedRulesResponseModel> inheritedRules =
-            computeInheritedRuleService.computeInheritedRules(unitRulesByIdsMap);
+        Map<String, UnitInheritedRulesResponseModel> inheritedRules = computeInheritedRuleService.computeInheritedRules(
+            unitRulesByIdsMap
+        );
 
         for (JsonNode jsonNode : results) {
             String id = jsonNode.get(VitamFieldsHelper.id()).asText();
@@ -145,8 +144,7 @@ public class MetadataRuleService {
     }
 
     private Map<String, UnitRuleModel> loadUnitRuleHierarchy(Collection<String> unitIds)
-        throws InvalidParseOperationException, MetaDataNotFoundException, MetaDataDocumentSizeException,
-        MetaDataExecutionException, BadRequestException, VitamDBException {
+        throws InvalidParseOperationException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataExecutionException, BadRequestException, VitamDBException {
         // Result map
         Map<String, UnitRuleModel> unitRulesById = new HashMap<>();
 
@@ -154,9 +152,9 @@ public class MetadataRuleService {
         Set<String> unitsToLoad = new HashSet<>(unitIds);
 
         while (!unitsToLoad.isEmpty()) {
-
             // Load units by bulk (ES $in query size is limited)
-            Set<String> bulkIds = unitsToLoad.stream()
+            Set<String> bulkIds = unitsToLoad
+                .stream()
                 .limit(MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE)
                 .collect(Collectors.toSet());
 
@@ -180,13 +178,16 @@ public class MetadataRuleService {
         }
 
         // Ensure all units have been loaded
-        List<String> notFoundUnits = unitRulesById.entrySet().stream()
+        List<String> notFoundUnits = unitRulesById
+            .entrySet()
+            .stream()
             .filter(entry -> entry.getValue() == null)
             .map(Map.Entry::getKey)
             .collect(Collectors.toList());
 
         if (!notFoundUnits.isEmpty()) {
-            String unitsToPrint = notFoundUnits.stream()
+            String unitsToPrint = notFoundUnits
+                .stream()
                 .limit(MAX_PRINTED_MISSING_UNITS)
                 .collect(Collectors.joining(",", "[", "]"));
             throw new MetaDataNotFoundException("Could not find " + notFoundUnits.size() + " units: " + unitsToPrint);
@@ -196,16 +197,15 @@ public class MetadataRuleService {
     }
 
     private List<UnitRuleModel> loadBulkUnitRules(Set<String> unitIds)
-        throws InvalidParseOperationException, MetaDataNotFoundException, MetaDataDocumentSizeException,
-        MetaDataExecutionException, BadRequestException, VitamDBException {
-
+        throws InvalidParseOperationException, MetaDataNotFoundException, MetaDataDocumentSizeException, MetaDataExecutionException, BadRequestException, VitamDBException {
         SelectMultiQuery select = new SelectMultiQuery();
         select.addRoots(unitIds.toArray(new String[0]));
         select.addUsedProjection(
             VitamFieldsHelper.id(),
             VitamFieldsHelper.unitups(),
             VitamFieldsHelper.originatingAgency(),
-            VitamFieldsHelper.management());
+            VitamFieldsHelper.management()
+        );
 
         final MetadataResult metadataResult = metaData.selectUnitsByQuery(select.getFinalSelect());
 

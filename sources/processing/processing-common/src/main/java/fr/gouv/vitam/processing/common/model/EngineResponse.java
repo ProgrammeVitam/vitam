@@ -35,7 +35,6 @@ import java.util.Map;
  */
 
 public interface EngineResponse {
-
     /**
      * @return Enum StatusCode {OK,KO,FATAL}
      */

@@ -37,18 +37,20 @@ public class AuditOptions {
 
     @JsonProperty("auditType")
     private String auditType;
+
     @JsonProperty("objectId")
     private String objectId;
+
     @JsonProperty("query")
     private JsonNode query;
+
     @JsonProperty("auditActions")
     private String auditActions;
 
     /**
      * Constructor without fields use for jackson
      */
-    public AuditOptions() {
-    }
+    public AuditOptions() {}
 
     /**
      * Constructor

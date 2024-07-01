@@ -30,7 +30,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.client.MongoCollection;
 import org.bson.Document;
 
-
 /**
  * ObjectGroup:<br>
  *
@@ -43,6 +42,7 @@ import org.bson.Document;
  * @formatter:on
  */
 public class ObjectGroup extends MetadataDocument<ObjectGroup> {
+
     private static final long serialVersionUID = -1761786017392977575L;
 
     /**

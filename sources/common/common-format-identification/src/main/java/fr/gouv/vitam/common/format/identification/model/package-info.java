@@ -28,4 +28,3 @@
  * Provides common configuration and response classes for the Format Identification module
  */
 package fr.gouv.vitam.common.format.identification.model;
-

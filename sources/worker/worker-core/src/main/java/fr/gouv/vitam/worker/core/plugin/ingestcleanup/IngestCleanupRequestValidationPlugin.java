@@ -66,8 +66,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class IngestCleanupRequestValidationPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(IngestCleanupRequestValidationPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        IngestCleanupRequestValidationPlugin.class
+    );
     String INGEST_CLEANUP_REQUEST_VALIDATION = "INGEST_CLEANUP_REQUEST_VALIDATION";
 
     private final ProcessingManagementClientFactory processingManagementClientFactory;
@@ -80,32 +81,30 @@ public class IngestCleanupRequestValidationPlugin extends ActionHandler {
     @VisibleForTesting
     IngestCleanupRequestValidationPlugin(
         ProcessingManagementClientFactory processingManagementClientFactory,
-        LogbookOperationsClientFactory logbookOperationsClientFactory) {
+        LogbookOperationsClientFactory logbookOperationsClientFactory
+    ) {
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             String ingestOperationId = param.getParameterValue(WorkerParameterName.ingestOperationIdToCleanup);
             checkIngestOperationId(ingestOperationId);
 
             LOGGER.info("Ingest cleanup request validation succeeded");
             return buildItemStatus(INGEST_CLEANUP_REQUEST_VALIDATION, StatusCode.OK);
-
         } catch (ProcessingStatusException e) {
-            LOGGER.error(String.format(
-                "Ingest cleanup request validation failed with status [%s]", e.getStatusCode()), e);
+            LOGGER.error(
+                String.format("Ingest cleanup request validation failed with status [%s]", e.getStatusCode()),
+                e
+            );
             return buildItemStatus(INGEST_CLEANUP_REQUEST_VALIDATION, e.getStatusCode(), e.getEventDetails());
         }
     }
 
     private void checkIngestOperationId(String ingestOperationId) throws ProcessingStatusException {
-
         LogbookOperation logbookOperation = getLogbookOperation(ingestOperationId);
 
         checkOperationType(ingestOperationId, logbookOperation);
@@ -121,37 +120,44 @@ public class IngestCleanupRequestValidationPlugin extends ActionHandler {
 
     private LogbookOperation getLogbookOperation(String ingestOperationId) throws ProcessingStatusException {
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
-
             JsonNode jsonNode = logbookOperationsClient.selectOperationById(ingestOperationId);
             return JsonHandler.getFromJsonNode(jsonNode.get(TAG_RESULTS).get(0), LogbookOperation.class);
-
         } catch (LogbookClientNotFoundException e) {
             throw new ProcessingStatusException(StatusCode.KO, "Logbook operation not found " + ingestOperationId);
         } catch (InvalidParseOperationException | LogbookClientException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could load logbook operation " + ingestOperationId, e);
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "Could load logbook operation " + ingestOperationId,
+                e
+            );
         }
     }
 
     private void checkOperationType(String ingestOperationId, LogbookOperation logbookOperation)
         throws ProcessingStatusException {
         if (!logbookOperation.getEvTypeProc().equals(LogbookTypeProcess.INGEST.name())) {
-            throw new ProcessingStatusException(StatusCode.KO, "Expected INGEST operation, found " +
-                logbookOperation.getEvTypeProc() + " for operation " + ingestOperationId);
+            throw new ProcessingStatusException(
+                StatusCode.KO,
+                "Expected INGEST operation, found " +
+                logbookOperation.getEvTypeProc() +
+                " for operation " +
+                ingestOperationId
+            );
         }
     }
 
     private ProcessDetail getProcessDetails(String ingestOperationId) throws ProcessingStatusException {
         try (ProcessingManagementClient processingManagementClient = processingManagementClientFactory.getClient()) {
-
             ProcessQuery query = new ProcessQuery();
             query.setId(ingestOperationId);
             RequestResponse<ProcessDetail> processDetailRequestResponse =
                 processingManagementClient.listOperationsDetails(query);
             if (!processDetailRequestResponse.isOk()) {
                 VitamError error = (VitamError) processDetailRequestResponse;
-                throw new ProcessingStatusException(StatusCode.FATAL,
-                    "Could not check active processes " + error.getDescription() + " - " + error.getMessage());
+                throw new ProcessingStatusException(
+                    StatusCode.FATAL,
+                    "Could not check active processes " + error.getDescription() + " - " + error.getMessage()
+                );
             }
 
             List<ProcessDetail> processDetails =
@@ -162,7 +168,6 @@ public class IngestCleanupRequestValidationPlugin extends ActionHandler {
             }
 
             return processDetails.get(0);
-
         } catch (VitamClientException | IllegalArgumentException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not check active processes", e);
         }
@@ -170,7 +175,6 @@ public class IngestCleanupRequestValidationPlugin extends ActionHandler {
 
     private void checkProcessCompletion(ProcessDetail processDetails, String ingestOperationId)
         throws ProcessingStatusException {
-
         if (processDetails == null) {
             LOGGER.info("Process not found --> already COMPLETED & purged from processing manager");
             return;
@@ -178,13 +182,14 @@ public class IngestCleanupRequestValidationPlugin extends ActionHandler {
 
         ProcessState processState = ProcessState.valueOf(processDetails.getGlobalState());
         if (processState != ProcessState.COMPLETED) {
-            throw new ProcessingStatusException(StatusCode.KO,
-                "Process " + ingestOperationId + " is not yet COMPLETED");
+            throw new ProcessingStatusException(
+                StatusCode.KO,
+                "Process " + ingestOperationId + " is not yet COMPLETED"
+            );
         }
     }
 
     private StatusCode getStatusCode(LogbookOperation logbookOperation, ProcessDetail processDetails) {
-
         // Get status code from process details, otherwise parse it from logbook operation
         if (processDetails != null) {
             return StatusCode.valueOf(processDetails.getStepStatus());
@@ -192,7 +197,8 @@ public class IngestCleanupRequestValidationPlugin extends ActionHandler {
         if (CollectionUtils.isEmpty(logbookOperation.getEvents())) {
             return null;
         }
-        return Lists.reverse(logbookOperation.getEvents()).stream()
+        return Lists.reverse(logbookOperation.getEvents())
+            .stream()
             .filter(e -> e.getEvType().equals(logbookOperation.getEvType()))
             .findFirst()
             .map(LogbookEvent::getOutcome)
@@ -210,7 +216,9 @@ public class IngestCleanupRequestValidationPlugin extends ActionHandler {
             LOGGER.info("Process " + ingestOperationId + " completed with errors");
             return;
         }
-        throw new ProcessingStatusException(StatusCode.KO,
-            "Process " + ingestOperationId + " did not fail (" + statusCode + ")");
+        throw new ProcessingStatusException(
+            StatusCode.KO,
+            "Process " + ingestOperationId + " did not fail (" + statusCode + ")"
+        );
     }
 }

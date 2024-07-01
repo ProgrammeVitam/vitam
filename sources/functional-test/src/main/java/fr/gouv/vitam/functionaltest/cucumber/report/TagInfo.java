@@ -27,6 +27,7 @@
 package fr.gouv.vitam.functionaltest.cucumber.report;
 
 public class TagInfo {
+
     /**
      * Tag Result
      */

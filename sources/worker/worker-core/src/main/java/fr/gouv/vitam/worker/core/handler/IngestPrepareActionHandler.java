@@ -45,11 +45,11 @@ import static fr.gouv.vitam.common.model.StatusCode.UNKNOWN;
 import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_DIGEST_MANIFEST;
 
 public class IngestPrepareActionHandler extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IngestPrepareActionHandler.class);
     private static final String IGNORED = "IGNORED";
 
-    public IngestPrepareActionHandler() {
-    }
+    public IngestPrepareActionHandler() {}
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
@@ -64,8 +64,10 @@ public class IngestPrepareActionHandler extends ActionHandler {
             ItemStatus result = JsonHandler.getFromJsonNode(externalJsonResults.get(ingestParam), ItemStatus.class);
 
             // Add Logbook only when manifest digest is NOT OK
-            if (result.getItemId().equals(CHECK_DIGEST_MANIFEST.getItemValue()) &&
-                !result.getGlobalStatus().isGreaterOrEqualToKo()) {
+            if (
+                result.getItemId().equals(CHECK_DIGEST_MANIFEST.getItemValue()) &&
+                !result.getGlobalStatus().isGreaterOrEqualToKo()
+            ) {
                 return new ItemStatus(IGNORED).increment(UNKNOWN);
             }
 

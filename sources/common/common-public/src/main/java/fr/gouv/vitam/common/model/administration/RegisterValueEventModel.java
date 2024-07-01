@@ -43,7 +43,6 @@ public class RegisterValueEventModel {
     public static final String TOTAL_OBJECTS_SIZE = "ObjSize";
     public static final String CREATION_DATE = "CreationDate";
 
-
     @JsonProperty(OPERATION)
     private String operation;
 
@@ -74,7 +73,6 @@ public class RegisterValueEventModel {
     @JsonProperty(TOTAL_OBJECTS_SIZE)
     private long objectSize = 0l;
 
-
     @JsonProperty(CREATION_DATE)
     private String creationdate;
 
@@ -83,8 +81,7 @@ public class RegisterValueEventModel {
      *
      * use for jackson
      */
-    public RegisterValueEventModel() {
-    }
+    public RegisterValueEventModel() {}
 
     /**
      * Get operation id

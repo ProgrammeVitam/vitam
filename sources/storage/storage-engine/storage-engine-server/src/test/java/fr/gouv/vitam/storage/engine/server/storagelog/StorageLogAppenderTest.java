@@ -54,7 +54,7 @@ public class StorageLogAppenderTest {
         folder.create();
     }
 
-    @Test()
+    @Test
     public void appendTest() throws IOException {
         StorageLogbookParameters params1 = buildStorageParameters("params1");
         StorageLogbookParameters params2 = buildStorageParameters("params2");
@@ -69,9 +69,9 @@ public class StorageLogAppenderTest {
         }
 
         assertThat(filePath).exists();
-        assertThat(Files.readAllBytes(filePath))
-            .isEqualTo(
-                "{\"objectIdentifier\":\"params1\"}\n{\"objectIdentifier\":\"params2\"}\n{\"objectIdentifier\":\"params3\"}\n".getBytes());
+        assertThat(Files.readAllBytes(filePath)).isEqualTo(
+            "{\"objectIdentifier\":\"params1\"}\n{\"objectIdentifier\":\"params2\"}\n{\"objectIdentifier\":\"params3\"}\n".getBytes()
+        );
     }
 
     private StorageLogbookParameters buildStorageParameters(String str) {

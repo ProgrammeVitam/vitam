@@ -26,12 +26,10 @@
  */
 package fr.gouv.vitam.common;
 
-
 /**
  * Interface of the private class ServerIdentity
  */
 public interface ServerIdentityInterface {
-
     /**
      * @return the name of the Server
      */

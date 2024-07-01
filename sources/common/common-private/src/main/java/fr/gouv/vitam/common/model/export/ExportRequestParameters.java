@@ -84,9 +84,16 @@ public class ExportRequestParameters {
     }
 
     // Dip Constructor
-    public ExportRequestParameters(String archivalAgreement, String originatingAgencyIdentifier, String comment,
-        String submissionAgencyIdentifier, String messageRequestIdentifier,
-        String authorizationRequestReplyIdentifier, String archivalAgencyIdentifier, String requesterIdentifier) {
+    public ExportRequestParameters(
+        String archivalAgreement,
+        String originatingAgencyIdentifier,
+        String comment,
+        String submissionAgencyIdentifier,
+        String messageRequestIdentifier,
+        String authorizationRequestReplyIdentifier,
+        String archivalAgencyIdentifier,
+        String requesterIdentifier
+    ) {
         this.archivalAgreement = archivalAgreement;
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
         this.comment = comment;
@@ -98,10 +105,16 @@ public class ExportRequestParameters {
     }
 
     // Transfer Constructor
-    public ExportRequestParameters(String archivalAgreement, String originatingAgencyIdentifier, String comment,
-        String submissionAgencyIdentifier, List<String> relatedTransferReference,
-        String transferRequestReplyIdentifier, String archivalAgencyIdentifier,
-        String transferringAgency) {
+    public ExportRequestParameters(
+        String archivalAgreement,
+        String originatingAgencyIdentifier,
+        String comment,
+        String submissionAgencyIdentifier,
+        List<String> relatedTransferReference,
+        String transferRequestReplyIdentifier,
+        String archivalAgencyIdentifier,
+        String transferringAgency
+    ) {
         this.archivalAgreement = archivalAgreement;
         this.originatingAgencyIdentifier = originatingAgencyIdentifier;
         this.comment = comment;
@@ -117,22 +130,29 @@ public class ExportRequestParameters {
             return null;
         }
 
-        return new ExportRequestParameters(dipRequestParameters.getArchivalAgreement(),
-            dipRequestParameters.getOriginatingAgencyIdentifier(), dipRequestParameters.getComment(),
+        return new ExportRequestParameters(
+            dipRequestParameters.getArchivalAgreement(),
+            dipRequestParameters.getOriginatingAgencyIdentifier(),
+            dipRequestParameters.getComment(),
             dipRequestParameters.getSubmissionAgencyIdentifier(),
             dipRequestParameters.getMessageRequestIdentifier(),
             dipRequestParameters.getAuthorizationRequestReplyIdentifier(),
-            dipRequestParameters.getArchivalAgencyIdentifier(), dipRequestParameters.getRequesterIdentifier());
+            dipRequestParameters.getArchivalAgencyIdentifier(),
+            dipRequestParameters.getRequesterIdentifier()
+        );
     }
 
-
     public static ExportRequestParameters from(TransferRequestParameters transferRequestParameters) {
-        return new ExportRequestParameters(transferRequestParameters.getArchivalAgreement(),
-            transferRequestParameters.getOriginatingAgencyIdentifier(), transferRequestParameters.getComment(),
+        return new ExportRequestParameters(
+            transferRequestParameters.getArchivalAgreement(),
+            transferRequestParameters.getOriginatingAgencyIdentifier(),
+            transferRequestParameters.getComment(),
             transferRequestParameters.getSubmissionAgencyIdentifier(),
             transferRequestParameters.getRelatedTransferReference(),
             transferRequestParameters.getTransferRequestReplyIdentifier(),
-            transferRequestParameters.getArchivalAgencyIdentifier(), transferRequestParameters.getTransferringAgency());
+            transferRequestParameters.getArchivalAgencyIdentifier(),
+            transferRequestParameters.getTransferringAgency()
+        );
     }
 
     public String getArchivalAgreement() {

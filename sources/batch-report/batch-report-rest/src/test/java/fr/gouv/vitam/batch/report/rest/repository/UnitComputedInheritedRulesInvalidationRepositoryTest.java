@@ -59,21 +59,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWithCustomExecutor
 public class UnitComputedInheritedRulesInvalidationRepositoryTest {
 
-    private final static String TEST_COLLECTION_NAME =
+    private static final String TEST_COLLECTION_NAME =
         UNIT_COMPUTED_INHERITED_RULES_INVALIDATION_COLLECTION_NAME + GUIDFactory.newGUID().getId();
 
-    private static final String METADATA_UNIT_ID = UnitComputedInheritedRulesInvalidationModel.METADATA + "." +
+    private static final String METADATA_UNIT_ID =
+        UnitComputedInheritedRulesInvalidationModel.METADATA +
+        "." +
         UnitComputedInheritedRulesInvalidationReportEntry.UNIT_ID;
     private static final String TENANT_ID = UnitComputedInheritedRulesInvalidationModel.TENANT;
     private static final String PROCESS_ID = UnitComputedInheritedRulesInvalidationModel.PROCESS_ID;
 
     @ClassRule
     public static RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
-    public MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), TEST_COLLECTION_NAME);
+    public MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), TEST_COLLECTION_NAME);
 
     private UnitComputedInheritedRulesInvalidationRepository repository;
 
@@ -82,8 +84,7 @@ public class UnitComputedInheritedRulesInvalidationRepositoryTest {
     @Before
     public void setUp() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
-        repository = new UnitComputedInheritedRulesInvalidationRepository(mongoDbAccess,
-            TEST_COLLECTION_NAME);
+        repository = new UnitComputedInheritedRulesInvalidationRepository(mongoDbAccess, TEST_COLLECTION_NAME);
         mongoCollection = mongoRule.getMongoCollection(TEST_COLLECTION_NAME);
         VitamThreadUtils.getVitamSession().setTenantId(0);
     }
@@ -91,16 +92,14 @@ public class UnitComputedInheritedRulesInvalidationRepositoryTest {
     @Test
     public void bulkAppendUnits_singleCallOK() throws Exception {
         // Given
-        List<String> units =
-            Arrays.asList("unit1", "unit2", "unit4");
+        List<String> units = Arrays.asList("unit1", "unit2", "unit4");
         // When
         repository.bulkAppendReport(buildReport(units, "procId1"));
 
         // Then
-        long count = mongoCollection.countDocuments(and(
-            eq(METADATA_UNIT_ID, "unit1"),
-            eq(TENANT_ID, 0),
-            eq(PROCESS_ID, "procId1")));
+        long count = mongoCollection.countDocuments(
+            and(eq(METADATA_UNIT_ID, "unit1"), eq(TENANT_ID, 0), eq(PROCESS_ID, "procId1"))
+        );
         assertThat(count).isEqualTo(1);
         assertThat(mongoCollection.countDocuments()).isEqualTo(3);
     }
@@ -108,21 +107,17 @@ public class UnitComputedInheritedRulesInvalidationRepositoryTest {
     @Test
     public void bulkAppendUnits_noDuplicates() throws Exception {
         // Given
-        List<String> units1 =
-            Arrays.asList("unit1", "unit2", "unit4");
-        List<String> units2 =
-            Arrays.asList("unit3", "unit4");
-        List<String> units3 =
-            Collections.singletonList("unit5");
+        List<String> units1 = Arrays.asList("unit1", "unit2", "unit4");
+        List<String> units2 = Arrays.asList("unit3", "unit4");
+        List<String> units3 = Collections.singletonList("unit5");
         // When
         repository.bulkAppendReport(buildReport(units1, "procId1"));
         repository.bulkAppendReport(buildReport(units2, "procId1"));
         repository.bulkAppendReport(buildReport(units3, "procId1"));
         // Then
-        long count = mongoCollection.countDocuments(and(
-            eq(METADATA_UNIT_ID, "unit1"),
-            eq(TENANT_ID, 0),
-            eq(PROCESS_ID, "procId1")));
+        long count = mongoCollection.countDocuments(
+            and(eq(METADATA_UNIT_ID, "unit1"), eq(TENANT_ID, 0), eq(PROCESS_ID, "procId1"))
+        );
         assertThat(count).isEqualTo(1);
         assertThat(mongoCollection.countDocuments()).isEqualTo(5);
     }
@@ -130,18 +125,15 @@ public class UnitComputedInheritedRulesInvalidationRepositoryTest {
     @Test
     public void bulkAppendUnits_multiProcess() throws Exception {
         // Given
-        List<String> units1 =
-            Arrays.asList("unit1", "unit2", "unit4");
-        List<String> units2 =
-            Arrays.asList("unit3", "unit4");
+        List<String> units1 = Arrays.asList("unit1", "unit2", "unit4");
+        List<String> units2 = Arrays.asList("unit3", "unit4");
         // When
         repository.bulkAppendReport(buildReport(units1, "procId1"));
         repository.bulkAppendReport(buildReport(units2, "procId2"));
         // Then
-        long count = mongoCollection.countDocuments(and(
-            eq(METADATA_UNIT_ID, "unit4"),
-            eq(TENANT_ID, 0),
-            eq(PROCESS_ID, "procId1")));
+        long count = mongoCollection.countDocuments(
+            and(eq(METADATA_UNIT_ID, "unit4"), eq(TENANT_ID, 0), eq(PROCESS_ID, "procId1"))
+        );
         assertThat(count).isEqualTo(1);
         assertThat(mongoCollection.countDocuments()).isEqualTo(5);
     }
@@ -149,10 +141,8 @@ public class UnitComputedInheritedRulesInvalidationRepositoryTest {
     @Test
     public void deleteUnitsAndProgeny_OK() throws Exception {
         // Given
-        List<String> units1 =
-            Arrays.asList("unit1", "unit2", "unit4");
-        List<String> units2 =
-            Arrays.asList("unit3", "unit4");
+        List<String> units1 = Arrays.asList("unit1", "unit2", "unit4");
+        List<String> units2 = Arrays.asList("unit3", "unit4");
 
         // When
         repository.bulkAppendReport(buildReport(units1, "procId1"));
@@ -179,19 +169,17 @@ public class UnitComputedInheritedRulesInvalidationRepositoryTest {
     @Test
     public void findCollectionByProcessIdTenant() throws Exception {
         // Given
-        List<String> units1 =
-            Arrays.asList("unit1", "unit2", "unit4");
-        List<String> units2 =
-            Arrays.asList("unit3", "unit4");
+        List<String> units1 = Arrays.asList("unit1", "unit2", "unit4");
+        List<String> units2 = Arrays.asList("unit3", "unit4");
         // When
         repository.bulkAppendReport(buildReport(units1, "procId1"));
         repository.bulkAppendReport(buildReport(units2, "procId2"));
-        CloseableIterator<Document> documents =
-            repository.findCollectionByProcessIdTenant("procId1", VitamThreadUtils.getVitamSession().getTenantId());
+        CloseableIterator<Document> documents = repository.findCollectionByProcessIdTenant(
+            "procId1",
+            VitamThreadUtils.getVitamSession().getTenantId()
+        );
         // Then
-        List<String> unitIds = Streams.stream(documents)
-            .map(doc -> doc.getString("id"))
-            .collect(Collectors.toList());
+        List<String> unitIds = Streams.stream(documents).map(doc -> doc.getString("id")).collect(Collectors.toList());
         assertThat(unitIds).containsExactlyInAnyOrderElementsOf(units1);
     }
 
@@ -199,10 +187,14 @@ public class UnitComputedInheritedRulesInvalidationRepositoryTest {
         return units
             .stream()
             .map(
-                unitId -> new UnitComputedInheritedRulesInvalidationModel(processId,
-                    VitamThreadUtils.getVitamSession().getTenantId(),
-                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
-                    new UnitComputedInheritedRulesInvalidationReportEntry(unitId))
-            ).collect(Collectors.toList());
+                unitId ->
+                    new UnitComputedInheritedRulesInvalidationModel(
+                        processId,
+                        VitamThreadUtils.getVitamSession().getTenantId(),
+                        LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()),
+                        new UnitComputedInheritedRulesInvalidationReportEntry(unitId)
+                    )
+            )
+            .collect(Collectors.toList());
     }
 }

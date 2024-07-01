@@ -48,7 +48,6 @@ public class LogbookLifeCycleUnitInProcess extends LogbookLifeCycle<LogbookLifeC
         super(parameters);
     }
 
-
     /**
      * Constructor for Codec
      *
@@ -76,8 +75,7 @@ public class LogbookLifeCycleUnitInProcess extends LogbookLifeCycle<LogbookLifeC
         super(content);
     }
 
-    public VitamDocument<LogbookLifeCycle<LogbookLifeCycleUnitParameters>> newInstance(
-        JsonNode content) {
+    public VitamDocument<LogbookLifeCycle<LogbookLifeCycleUnitParameters>> newInstance(JsonNode content) {
         return new LogbookLifeCycleUnitInProcess(content);
     }
 }

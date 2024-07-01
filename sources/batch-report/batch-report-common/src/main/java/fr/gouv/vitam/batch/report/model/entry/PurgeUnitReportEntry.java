@@ -30,17 +30,19 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.model.objectgroup.PersistentIdentifierModel;
+
 import java.util.List;
 
 public class PurgeUnitReportEntry {
-    private final static String ID = "id";
-    private final static String ORIGINATING_AGENCY = "originatingAgency";
-    private final static String OPI = "opi";
-    private final static String OBJECT_GROUP = "objectGroupId";
-    private final static String EXTRA_INFO = "extraInfo";
-    private final static String PERSISTENT_IDENTIFIER = "persistentIdentifier";
-    private final static String STATUS = "status";
-    private final static String TYPE = "type";
+
+    private static final String ID = "id";
+    private static final String ORIGINATING_AGENCY = "originatingAgency";
+    private static final String OPI = "opi";
+    private static final String OBJECT_GROUP = "objectGroupId";
+    private static final String EXTRA_INFO = "extraInfo";
+    private static final String PERSISTENT_IDENTIFIER = "persistentIdentifier";
+    private static final String STATUS = "status";
+    private static final String TYPE = "type";
 
     private final String id;
     private final String originatingAgency;
@@ -53,14 +55,15 @@ public class PurgeUnitReportEntry {
 
     @JsonCreator
     public PurgeUnitReportEntry(
-      @JsonProperty(ID) String id,
-      @JsonProperty(ORIGINATING_AGENCY) String originatingAgency,
-      @JsonProperty(OPI) String initialOperation,
-      @JsonProperty(OBJECT_GROUP) String objectGroupId,
-      @JsonProperty(STATUS) String status,
-      @JsonProperty(EXTRA_INFO) JsonNode extraInfo,
-      @JsonProperty(PERSISTENT_IDENTIFIER) List<PersistentIdentifierModel> persistentIdentifier,
-      @JsonProperty(TYPE) String type) {
+        @JsonProperty(ID) String id,
+        @JsonProperty(ORIGINATING_AGENCY) String originatingAgency,
+        @JsonProperty(OPI) String initialOperation,
+        @JsonProperty(OBJECT_GROUP) String objectGroupId,
+        @JsonProperty(STATUS) String status,
+        @JsonProperty(EXTRA_INFO) JsonNode extraInfo,
+        @JsonProperty(PERSISTENT_IDENTIFIER) List<PersistentIdentifierModel> persistentIdentifier,
+        @JsonProperty(TYPE) String type
+    ) {
         this.id = id;
         this.originatingAgency = originatingAgency;
         this.initialOperation = initialOperation;
@@ -105,6 +108,7 @@ public class PurgeUnitReportEntry {
     public List<PersistentIdentifierModel> getPersistentIdentifier() {
         return persistentIdentifier;
     }
+
     @JsonProperty(TYPE)
     public String getType() {
         return type;

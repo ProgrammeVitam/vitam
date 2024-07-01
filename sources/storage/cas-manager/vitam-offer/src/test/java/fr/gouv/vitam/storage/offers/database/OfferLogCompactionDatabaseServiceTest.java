@@ -52,6 +52,7 @@ import static fr.gouv.vitam.storage.engine.common.collection.OfferCollections.CO
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class OfferLogCompactionDatabaseServiceTest {
+
     private static final String PREFIX = GUIDFactory.newGUID().getId();
 
     private OfferLogCompactionDatabaseService service;
@@ -66,7 +67,8 @@ public class OfferLogCompactionDatabaseServiceTest {
     public void before() throws InvalidParseOperationException {
         cleanDatabase();
         service = new OfferLogCompactionDatabaseService(
-            mongoRule.getMongoDatabase().getCollection(COMPACTED_OFFER_LOG.getName()));
+            mongoRule.getMongoDatabase().getCollection(COMPACTED_OFFER_LOG.getName())
+        );
     }
 
     @AfterClass
@@ -77,7 +79,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_descending_offer_log_compaction_without_start_offset_with_high_limit() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -90,7 +91,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_descending_offer_log_compaction_without_start_offset_with_limit() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -103,7 +103,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_descending_offer_log_compaction_with_high_start_offset_with_high_limit() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -116,7 +115,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_descending_offer_log_compaction_with_high_start_offset_with_limit() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -130,7 +128,6 @@ public class OfferLogCompactionDatabaseServiceTest {
     @Test
     public void should_get_descending_offer_log_compaction_with_upper_range_start_offset_with_high_limit()
         throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -143,7 +140,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_descending_offer_log_compaction_with_upper_range_start_offset_with_limit() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -157,7 +153,6 @@ public class OfferLogCompactionDatabaseServiceTest {
     @Test
     public void should_get_descending_offer_log_compaction_with_middle_range_start_offset_with_high_limit()
         throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -171,7 +166,6 @@ public class OfferLogCompactionDatabaseServiceTest {
     @Test
     public void should_get_descending_offer_log_compaction_with_middle_range_start_offset_with_limit()
         throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -185,7 +179,6 @@ public class OfferLogCompactionDatabaseServiceTest {
     @Test
     public void should_get_descending_offer_log_compaction_with_lower_range_start_offset_with_high_limit()
         throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -198,7 +191,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_descending_offer_log_compaction_with_lower_range_start_offset_with_limit() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -211,7 +203,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_descending_offer_log_compaction_with_too_low_start_offset() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -224,7 +215,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_ascending_offer_log_compaction_without_start_offset_with_high_limit() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -237,7 +227,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_ascending_offer_log_compaction_without_start_offset_with_limit() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -250,7 +239,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_ascending_offer_log_compaction_with_low_start_offset_with_high_limit() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -263,7 +251,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_ascending_offer_log_compaction_with_low_start_offset_with_limit() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -277,7 +264,6 @@ public class OfferLogCompactionDatabaseServiceTest {
     @Test
     public void should_get_ascending_offer_log_compaction_with_lower_range_start_offset_with_high_limit()
         throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -290,7 +276,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_ascending_offer_log_compaction_with_lower_range_start_offset_with_limit() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -304,7 +289,6 @@ public class OfferLogCompactionDatabaseServiceTest {
     @Test
     public void should_get_ascending_offer_log_compaction_with_middle_range_start_offset_with_high_limit()
         throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -316,9 +300,7 @@ public class OfferLogCompactionDatabaseServiceTest {
     }
 
     @Test
-    public void should_get_ascending_offer_log_compaction_with_middle_range_start_offset_with_limit()
-        throws Exception {
-
+    public void should_get_ascending_offer_log_compaction_with_middle_range_start_offset_with_limit() throws Exception {
         // Given
         importCompactedOfferLogDataSet();
 
@@ -332,7 +314,6 @@ public class OfferLogCompactionDatabaseServiceTest {
     @Test
     public void should_get_ascending_offer_log_compaction_with_upper_range_start_offset_with_high_limit()
         throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -345,7 +326,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_ascending_offer_log_compaction_with_upper_range_start_offset_with_limit() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -358,7 +338,6 @@ public class OfferLogCompactionDatabaseServiceTest {
 
     @Test
     public void should_get_ascending_offer_log_compaction_with_too_high_start_offset() throws Exception {
-
         // Given
         importCompactedOfferLogDataSet();
 
@@ -370,7 +349,9 @@ public class OfferLogCompactionDatabaseServiceTest {
     }
 
     private static void cleanDatabase() {
-        mongoRule.getMongoDatabase().getCollection(OfferCollections.COMPACTED_OFFER_LOG.getName())
+        mongoRule
+            .getMongoDatabase()
+            .getCollection(OfferCollections.COMPACTED_OFFER_LOG.getName())
             .deleteMany(new Document());
         OfferCollections collectionPrefixed = OfferCollections.COMPACTED_OFFER_LOG;
         collectionPrefixed.setPrefix(PREFIX);
@@ -405,8 +386,11 @@ public class OfferLogCompactionDatabaseServiceTest {
             51,
             LocalDateUtil.now(),
             "containerName",
-            Arrays
-                .asList(new OfferLog().setSequence(46), new OfferLog().setSequence(48), new OfferLog().setSequence(51))
+            Arrays.asList(
+                new OfferLog().setSequence(46),
+                new OfferLog().setSequence(48),
+                new OfferLog().setSequence(51)
+            )
         );
         save(compactedOfferLog1);
         save(compactedOfferLog2);
@@ -415,7 +399,8 @@ public class OfferLogCompactionDatabaseServiceTest {
     }
 
     private void save(CompactedOfferLog compactedOfferLog) throws InvalidParseOperationException {
-        mongoRule.getMongoDatabase()
+        mongoRule
+            .getMongoDatabase()
             .getCollection(OfferCollections.COMPACTED_OFFER_LOG.getName())
             .insertOne(Document.parse(JsonHandler.writeAsString(compactedOfferLog)));
     }

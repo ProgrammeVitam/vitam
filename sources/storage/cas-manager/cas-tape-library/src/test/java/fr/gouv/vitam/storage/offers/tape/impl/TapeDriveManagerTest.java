@@ -43,6 +43,7 @@ public class TapeDriveManagerTest {
 
     @Rule
     public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
     private File tmpTarOutputDir;
     private File inputTarDir;
 
@@ -54,21 +55,23 @@ public class TapeDriveManagerTest {
 
     @Test
     public void testConstructorOneOK() {
-        TapeDriveManager tapeDriveManager = new TapeDriveManager(mock(TapeDriveConf.class),
-            inputTarDir.getAbsolutePath(), tmpTarOutputDir.getAbsolutePath());
+        TapeDriveManager tapeDriveManager = new TapeDriveManager(
+            mock(TapeDriveConf.class),
+            inputTarDir.getAbsolutePath(),
+            tmpTarOutputDir.getAbsolutePath()
+        );
         Assertions.assertThat(tapeDriveManager.getDriveCommandService()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getTapeDriveConf()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getReadWriteService()).isNotNull();
     }
 
-
     @Test
     public void testConstructorTwoOK() {
-        TapeDriveManager tapeDriveManager =
-            new TapeDriveManager(
-                mock(TapeDriveConf.class),
-                mock(TapeReadWriteService.class),
-                mock(TapeDriveCommandService.class));
+        TapeDriveManager tapeDriveManager = new TapeDriveManager(
+            mock(TapeDriveConf.class),
+            mock(TapeReadWriteService.class),
+            mock(TapeDriveCommandService.class)
+        );
         Assertions.assertThat(tapeDriveManager.getDriveCommandService()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getTapeDriveConf()).isNotNull();
         Assertions.assertThat(tapeDriveManager.getReadWriteService()).isNotNull();
@@ -79,29 +82,18 @@ public class TapeDriveManagerTest {
         new TapeDriveManager(null, inputTarDir.getAbsolutePath(), tmpTarOutputDir.getAbsolutePath());
     }
 
-
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorTwoNullTapeDriveConfKO() {
-        new TapeDriveManager(
-            null,
-            mock(TapeReadWriteService.class),
-            mock(TapeDriveCommandService.class));
+        new TapeDriveManager(null, mock(TapeReadWriteService.class), mock(TapeDriveCommandService.class));
     }
-
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorTwoNullTapeReadWriteServiceTwoKO() {
-        new TapeDriveManager(
-            mock(TapeDriveConf.class),
-            null,
-            mock(TapeDriveCommandService.class));
+        new TapeDriveManager(mock(TapeDriveConf.class), null, mock(TapeDriveCommandService.class));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testConstructorTwoNullTapeDriveCommandServiceKO() {
-        new TapeDriveManager(
-            mock(TapeDriveConf.class),
-            mock(TapeReadWriteService.class),
-            null);
+        new TapeDriveManager(mock(TapeDriveConf.class), mock(TapeReadWriteService.class), null);
     }
 }

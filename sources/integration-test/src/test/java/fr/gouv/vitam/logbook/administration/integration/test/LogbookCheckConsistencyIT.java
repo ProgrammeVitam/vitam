@@ -100,21 +100,24 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(LogbookCheckConsistencyIT.class);
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(LogbookCheckConsistencyIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                ProcessManagementMain.class,
-                DefaultOfferMain.class,
-                IngestInternalMain.class,
-                AccessInternalMain.class,
-                StorageMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        LogbookCheckConsistencyIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            ProcessManagementMain.class,
+            DefaultOfferMain.class,
+            IngestInternalMain.class,
+            AccessInternalMain.class,
+            StorageMain.class
+        )
+    );
+
     private static final String CHECK_LOGBOOK_DATA_AGENCIES = "integration-logbook/data/agencies.csv";
     private static final String ACCESS_CONTRATS_JSON = "integration-logbook/data/access_contrats.json";
     private static final String REFERENTIAL_CONTRACTS_OK_JSON =
@@ -130,7 +133,6 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
     private static final String EXPECTED_RESULTS_JSON = "integration-logbook/data/expected_results.json";
 
     private static final int TENANT_0 = 0;
-
 
     @BeforeClass
     public static void setupBeforeClass() throws Exception {
@@ -178,8 +180,7 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
 
         // Import of the agencies referential.
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            client.importAgenciesFile(PropertiesUtils.getResourceAsStream(
-                CHECK_LOGBOOK_DATA_AGENCIES), AGENCIES_CSV);
+            client.importAgenciesFile(PropertiesUtils.getResourceAsStream(CHECK_LOGBOOK_DATA_AGENCIES), AGENCIES_CSV);
         }
 
         // logbook configuration
@@ -238,8 +239,8 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
         ObjectMapper mapper = new ObjectMapper();
         Set<LogbookCheckError> expectedResults = mapper.readValue(
             PropertiesUtils.getResourceAsStream(EXPECTED_RESULTS_JSON),
-            new TypeReference<>() {
-            });
+            new TypeReference<>() {}
+        );
 
         Assertions.assertThat(logbookCheckErrors).containsAll(expectedResults);
     }
@@ -248,58 +249,61 @@ public class LogbookCheckConsistencyIT extends VitamRuleRunner {
      * import files.
      */
     private void importFiles() {
-
         try (AdminManagementClient client = AdminManagementClientFactory.getInstance().getClient()) {
-            client.importAgenciesFile(PropertiesUtils.getResourceAsStream(
-                CHECK_LOGBOOK_DATA_AGENCIES), AGENCIES_CSV);
-
+            client.importAgenciesFile(PropertiesUtils.getResourceAsStream(CHECK_LOGBOOK_DATA_AGENCIES), AGENCIES_CSV);
 
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
-            client.importFormat(PropertiesUtils.getResourceAsStream(CHECK_LOGBOOK_DROID_SIGNATURE_FILE_V94_XML),
-                DROID_SIGNATURE_FILE_V94_XML);
+            client.importFormat(
+                PropertiesUtils.getResourceAsStream(CHECK_LOGBOOK_DROID_SIGNATURE_FILE_V94_XML),
+                DROID_SIGNATURE_FILE_V94_XML
+            );
 
             // Import Rules
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
-            client.importRulesFile(PropertiesUtils.getResourceAsStream(HECK_LOGBOOK_MGT_RULES_REF_CSV),
-                MGT_RULES_REF_CSV);
+            client.importRulesFile(
+                PropertiesUtils.getResourceAsStream(HECK_LOGBOOK_MGT_RULES_REF_CSV),
+                MGT_RULES_REF_CSV
+            );
 
             // import service agent
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
-            client.importAgenciesFile(PropertiesUtils.getResourceAsStream(CHECK_LOGBOOK_DATA_AGENCIES),
-                AGENCIES_CSV);
+            client.importAgenciesFile(PropertiesUtils.getResourceAsStream(CHECK_LOGBOOK_DATA_AGENCIES), AGENCIES_CSV);
 
             // import contract
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             File fileContracts = PropertiesUtils.getResourceFile(REFERENTIAL_CONTRACTS_OK_JSON);
-            List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(fileContracts,
-                new TypeReference<>() {
-                });
+            List<IngestContractModel> IngestContractModelList = JsonHandler.getFromFileAsTypeReference(
+                fileContracts,
+                new TypeReference<>() {}
+            );
             client.importIngestContracts(IngestContractModelList);
 
             // import contrat
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
             File fileAccessContracts = PropertiesUtils.getResourceFile(ACCESS_CONTRATS_JSON);
-            List<AccessContractModel> accessContractModelList = JsonHandler
-                .getFromFileAsTypeReference(fileAccessContracts, new TypeReference<>() {
-                });
+            List<AccessContractModel> accessContractModelList = JsonHandler.getFromFileAsTypeReference(
+                fileAccessContracts,
+                new TypeReference<>() {}
+            );
             client.importAccessContracts(accessContractModelList);
-
 
             // Import Security Profile
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
-            client.importSecurityProfiles(JsonHandler
-                .getFromFileAsTypeReference(
+            client.importSecurityProfiles(
+                JsonHandler.getFromFileAsTypeReference(
                     PropertiesUtils.getResourceFile("integration-logbook/data/security_profile_ok.json"),
-                    new TypeReference<>() {
-                    }));
+                    new TypeReference<>() {}
+                )
+            );
 
             // Import Context
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
-            client.importContexts(JsonHandler
-                .getFromFileAsTypeReference(PropertiesUtils.getResourceFile("integration-logbook/data/contexts.json"),
-                    new TypeReference<>() {
-                    }));
-
+            client.importContexts(
+                JsonHandler.getFromFileAsTypeReference(
+                    PropertiesUtils.getResourceFile("integration-logbook/data/contexts.json"),
+                    new TypeReference<>() {}
+                )
+            );
         } catch (final Exception e) {
             LOGGER.error(e);
         }

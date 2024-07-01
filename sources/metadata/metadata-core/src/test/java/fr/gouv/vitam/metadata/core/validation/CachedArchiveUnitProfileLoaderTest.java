@@ -58,8 +58,9 @@ public class CachedArchiveUnitProfileLoaderTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     AdminManagementClientFactory adminManagementClientFactory;
@@ -75,7 +76,6 @@ public class CachedArchiveUnitProfileLoaderTest {
     @Test
     @RunWithCustomExecutor
     public void testLoading() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);
         GUID guid = GUIDFactory.newRequestIdGUID(3);
@@ -83,11 +83,15 @@ public class CachedArchiveUnitProfileLoaderTest {
 
         ArchiveUnitProfileModel archiveUnitProfileModel = mock(ArchiveUnitProfileModel.class);
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(archiveUnitProfileModel))
-            .when(adminManagementClient).findArchiveUnitProfilesByID("MyAUP");
+            .when(adminManagementClient)
+            .findArchiveUnitProfilesByID("MyAUP");
 
         // When
-        CachedArchiveUnitProfileLoader archiveUnitProfileLoader =
-            new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 10, 60);
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader = new CachedArchiveUnitProfileLoader(
+            adminManagementClientFactory,
+            10,
+            60
+        );
         Optional<ArchiveUnitProfileModel> result = archiveUnitProfileLoader.loadArchiveUnitProfile("MyAUP");
 
         // Then
@@ -98,7 +102,6 @@ public class CachedArchiveUnitProfileLoaderTest {
     @Test
     @RunWithCustomExecutor
     public void testReLoadingFromCache() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);
         GUID guid = GUIDFactory.newRequestIdGUID(3);
@@ -107,13 +110,18 @@ public class CachedArchiveUnitProfileLoaderTest {
         ArchiveUnitProfileModel archiveUnitProfileModel1 = mock(ArchiveUnitProfileModel.class);
         ArchiveUnitProfileModel archiveUnitProfileModel2 = mock(ArchiveUnitProfileModel.class);
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(archiveUnitProfileModel1))
-            .when(adminManagementClient).findArchiveUnitProfilesByID("MyAUP1");
+            .when(adminManagementClient)
+            .findArchiveUnitProfilesByID("MyAUP1");
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(archiveUnitProfileModel2))
-            .when(adminManagementClient).findArchiveUnitProfilesByID("MyAUP2");
+            .when(adminManagementClient)
+            .findArchiveUnitProfilesByID("MyAUP2");
 
         // When
-        CachedArchiveUnitProfileLoader archiveUnitProfileLoader =
-            new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 10, 60);
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader = new CachedArchiveUnitProfileLoader(
+            adminManagementClientFactory,
+            10,
+            60
+        );
 
         Optional<ArchiveUnitProfileModel> result1 = null;
         Optional<ArchiveUnitProfileModel> result2 = null;
@@ -132,7 +140,6 @@ public class CachedArchiveUnitProfileLoaderTest {
     @Test
     @RunWithCustomExecutor
     public void testCacheTimeout() throws Exception {
-
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(3);
         GUID guid = GUIDFactory.newRequestIdGUID(3);
@@ -140,11 +147,15 @@ public class CachedArchiveUnitProfileLoaderTest {
 
         ArchiveUnitProfileModel archiveUnitProfileModel = mock(ArchiveUnitProfileModel.class);
         doReturn(new RequestResponseOK<ArchiveUnitProfileModel>().addResult(archiveUnitProfileModel))
-            .when(adminManagementClient).findArchiveUnitProfilesByID("MyAUP");
+            .when(adminManagementClient)
+            .findArchiveUnitProfilesByID("MyAUP");
 
         // When
-        CachedArchiveUnitProfileLoader archiveUnitProfileLoader =
-            new CachedArchiveUnitProfileLoader(adminManagementClientFactory, 10, 1);
+        CachedArchiveUnitProfileLoader archiveUnitProfileLoader = new CachedArchiveUnitProfileLoader(
+            adminManagementClientFactory,
+            10,
+            1
+        );
         archiveUnitProfileLoader.loadArchiveUnitProfile("MyAUP");
         TimeUnit.SECONDS.sleep(2);
         Optional<ArchiveUnitProfileModel> result = archiveUnitProfileLoader.loadArchiveUnitProfile("MyAUP");

@@ -88,6 +88,7 @@ import static java.util.Collections.singletonList;
  */
 
 public class RunningIngestsUpdateActionPlugin extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RunningIngestsUpdateActionPlugin.class);
 
     private static final String RUNNING_INGESTS_UPDATE_TASK_ID = "UPDATE_RUNNING_INGESTS";
@@ -121,8 +122,11 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
     }
 
     @VisibleForTesting
-    public RunningIngestsUpdateActionPlugin(ProcessingManagementClientFactory processingManagementClientFactory,
-        MetaDataClientFactory metaDataClientFactory, StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin) {
+    public RunningIngestsUpdateActionPlugin(
+        ProcessingManagementClientFactory processingManagementClientFactory,
+        MetaDataClientFactory metaDataClientFactory,
+        StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin
+    ) {
         this.processingManagementClientFactory = processingManagementClientFactory;
         this.metaDataClientFactory = metaDataClientFactory;
         this.storeMetaDataUnitActionPlugin = storeMetaDataUnitActionPlugin;
@@ -145,8 +149,10 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
             LOGGER.error("Cannot parse json", e);
             itemStatus.increment(StatusCode.KO);
         }
-        return new ItemStatus(RUNNING_INGESTS_UPDATE_TASK_ID).setItemsStatus(RUNNING_INGESTS_UPDATE_TASK_ID,
-            itemStatus);
+        return new ItemStatus(RUNNING_INGESTS_UPDATE_TASK_ID).setItemsStatus(
+            RUNNING_INGESTS_UPDATE_TASK_ID,
+            itemStatus
+        );
     }
 
     private void getRunningIngests(WorkerParameters params, HandlerIO handler)
@@ -154,7 +160,8 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
         InputStream inputStream = null;
         try {
             inputStream = handler.getInputStreamFromWorkspace(
-                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON);
+                UpdateWorkflowConstants.PROCESSING_FOLDER + "/" + UpdateWorkflowConstants.UPDATED_RULES_JSON
+            );
             JsonNode rulesUpdated = JsonHandler.getFromInputStream(inputStream);
             for (final JsonNode rule : rulesUpdated) {
                 if (!updatedRulesByType.containsKey(rule.get("RuleType").asText())) {
@@ -174,7 +181,7 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                     List<JsonNode> listIngest = JsonHandler.toArrayList((ArrayNode) runningIngests);
                     long nbTry = 0;
                     while (true) {
-                        for (Iterator<JsonNode> it = listIngest.iterator(); it.hasNext(); ) {
+                        for (Iterator<JsonNode> it = listIngest.iterator(); it.hasNext();) {
                             JsonNode currentIngest = it.next();
                             checkAndProcessIngest(currentIngest, it, params, handler);
                         }
@@ -196,8 +203,9 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
             } else {
                 LOGGER.warn("No rules updated");
             }
-        } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException |
-            IOException e) {
+        } catch (
+            ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException | IOException e
+        ) {
             LOGGER.error("Workspace error: Cannot get file", e);
             throw new ProcessingException(e);
         } finally {
@@ -205,10 +213,12 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
         }
     }
 
-
-    private void checkAndProcessIngest(JsonNode currentIngest, Iterator<JsonNode> iterator, WorkerParameters params,
-        HandlerIO handlerIO)
-        throws ProcessingException, VitamDBException {
+    private void checkAndProcessIngest(
+        JsonNode currentIngest,
+        Iterator<JsonNode> iterator,
+        WorkerParameters params,
+        HandlerIO handlerIO
+    ) throws ProcessingException, VitamDBException {
         String operationId = currentIngest.get(PROCESS_ID_FIELD).asText();
 
         final WorkerParameters paramsCopy = WorkerParametersFactory.newWorkerParameters();
@@ -217,11 +227,12 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
         paramsCopy.setUrlWorkspace(params.getUrlWorkspace());
         paramsCopy.setUrlMetadata(params.getUrlMetadata());
         paramsCopy.setObjectNameList(new ArrayList<>());
-        try (MetaDataClient metaDataClient = metaDataClientFactory.getClient();
-            ProcessingManagementClient processingManagementClient = processingManagementClientFactory.getClient()) {
+        try (
+            MetaDataClient metaDataClient = metaDataClientFactory.getClient();
+            ProcessingManagementClient processingManagementClient = processingManagementClientFactory.getClient()
+        ) {
             ItemStatus status = processingManagementClient.getOperationProcessStatus(operationId);
             if (ProcessState.COMPLETED.equals(status.getGlobalState())) {
-
                 // Treat only OK or WARNING ingests else remove from list and return
                 if (status.getGlobalStatus().isGreaterOrEqualToKo()) {
                     iterator.remove();
@@ -235,8 +246,9 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                 objectNode.put(MANAGEMENT_KEY, 1);
                 projectionNode.set(FIELDS_KEY, objectNode);
                 ArrayNode arrayNode = JsonHandler.createArrayNode();
-                selectMultiple
-                    .setQuery(QueryHelper.and().add(QueryHelper.in(VitamFieldsHelper.operations(), operationId)));
+                selectMultiple.setQuery(
+                    QueryHelper.and().add(QueryHelper.in(VitamFieldsHelper.operations(), operationId))
+                );
                 selectMultiple.addRoots(arrayNode);
                 selectMultiple.addProjection(projectionNode);
                 final JsonNode unitsResultNode = metaDataClient.selectUnits(selectMultiple.getFinalSelect());
@@ -251,11 +263,15 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                             int nbUpdates = 0;
                             for (String key : updatedRulesByType.keySet()) {
                                 JsonNode categoryNode = managementNode.get(key);
-                                if (categoryNode != null &&
-                                    categoryNode.get(RULES_KEY) != null) {
-                                    if (ArchiveUnitUpdateUtils.updateCategoryRules(
-                                        categoryNode.get(RULES_KEY),
-                                        updatedRulesByType.get(key), query, key)) {
+                                if (categoryNode != null && categoryNode.get(RULES_KEY) != null) {
+                                    if (
+                                        ArchiveUnitUpdateUtils.updateCategoryRules(
+                                            categoryNode.get(RULES_KEY),
+                                            updatedRulesByType.get(key),
+                                            query,
+                                            key
+                                        )
+                                    ) {
                                         nbUpdates++;
                                     }
                                 }
@@ -263,30 +279,48 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                             if (nbUpdates > 0) {
                                 try {
                                     query.addActions(
-                                        UpdateActionHelper
-                                            .push(VitamFieldsHelper.operations(), params.getContainerName()));
-                                    JsonNode updateResultJson =
-                                        metaDataClient.updateUnitById(query.getFinalUpdate(), auGuid);
-                                    archiveUnitLifecycleUpdateUtils.logLifecycle(params, auGuid, StatusCode.OK,
+                                        UpdateActionHelper.push(
+                                            VitamFieldsHelper.operations(),
+                                            params.getContainerName()
+                                        )
+                                    );
+                                    JsonNode updateResultJson = metaDataClient.updateUnitById(
+                                        query.getFinalUpdate(),
+                                        auGuid
+                                    );
+                                    archiveUnitLifecycleUpdateUtils.logLifecycle(
+                                        params,
+                                        auGuid,
+                                        StatusCode.OK,
                                         ArchiveUnitUpdateUtils.getDiffMessageFor(updateResultJson, auGuid),
-                                        handlerIO.getLifecyclesClient());
-                                    archiveUnitLifecycleUpdateUtils.commitLifecycle(params.getContainerName(), auGuid,
-                                        handlerIO.getLifecyclesClient());
-
+                                        handlerIO.getLifecyclesClient()
+                                    );
+                                    archiveUnitLifecycleUpdateUtils.commitLifecycle(
+                                        params.getContainerName(),
+                                        auGuid,
+                                        handlerIO.getLifecyclesClient()
+                                    );
 
                                     // Save updated archive unit in the storage offer
                                     paramsCopy.setObjectName(auGuid);
                                     saveMetadataWithLfcInTheStorage(paramsCopy, handlerIO);
-
-
-                                } catch (MetaDataExecutionException | MetaDataDocumentSizeException |
-                                    MetaDataClientServerException | InvalidCreateOperationException |
-                                    InvalidParseOperationException | MetaDataNotFoundException e) {
+                                } catch (
+                                    MetaDataExecutionException
+                                    | MetaDataDocumentSizeException
+                                    | MetaDataClientServerException
+                                    | InvalidCreateOperationException
+                                    | InvalidParseOperationException
+                                    | MetaDataNotFoundException e
+                                ) {
                                     try {
-                                        handlerIO.getLifecyclesClient()
+                                        handlerIO
+                                            .getLifecyclesClient()
                                             .rollBackUnitsByOperation(params.getContainerName());
-                                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                                        LogbookClientServerException ex) {
+                                    } catch (
+                                        LogbookClientBadRequestException
+                                        | LogbookClientNotFoundException
+                                        | LogbookClientServerException ex
+                                    ) {
                                         LOGGER.error("Couldn't rollback lifecycles", ex);
                                     }
                                     throw new ProcessingException(e);
@@ -298,9 +332,16 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
                 // deal with archive units then remove the process from the list
                 iterator.remove();
             }
-        } catch (VitamClientException | InternalServerException | BadRequestException | MetaDataExecutionException |
-            MetaDataDocumentSizeException | MetaDataClientServerException | InvalidParseOperationException |
-            InvalidCreateOperationException e) {
+        } catch (
+            VitamClientException
+            | InternalServerException
+            | BadRequestException
+            | MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException
+            | InvalidParseOperationException
+            | InvalidCreateOperationException e
+        ) {
             throw new ProcessingException(e);
         }
     }
@@ -312,9 +353,11 @@ public class RunningIngestsUpdateActionPlugin extends ActionHandler {
     private void saveMetadataWithLfcInTheStorage(WorkerParameters workerParameters, HandlerIO handlerIO)
         throws ProcessingException {
         try {
-            storeMetaDataUnitActionPlugin.storeDocumentsWithLfc(workerParameters, handlerIO,
-                singletonList(workerParameters.getObjectName()));
-
+            storeMetaDataUnitActionPlugin.storeDocumentsWithLfc(
+                workerParameters,
+                handlerIO,
+                singletonList(workerParameters.getObjectName())
+            );
         } catch (VitamException e) {
             throw new ProcessingException(e);
         }

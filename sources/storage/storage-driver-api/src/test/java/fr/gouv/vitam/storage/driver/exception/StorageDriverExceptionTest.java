@@ -37,8 +37,7 @@ public class StorageDriverExceptionTest {
 
     @Test
     public void testGetDriverInfo() throws Exception {
-        StorageDriverException exc =
-            new StorageDriverException("drivername", "message", true);
+        StorageDriverException exc = new StorageDriverException("drivername", "message", true);
         exc = new StorageDriverException("drivername", true, exc);
         exc = new StorageDriverException("drivername", "message", true, exc);
         assertEquals("drivername", exc.getDriverInfo());

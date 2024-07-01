@@ -54,6 +54,7 @@ import java.util.Optional;
  * DataRectificationStep class
  */
 public class DataRectificationStep extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DataRectificationStep.class);
     private static final String CORRECTIVE_AUDIT = "CORRECTIVE_AUDIT";
     private static final String CORRECT = "correct" + File.separator;
@@ -66,21 +67,23 @@ public class DataRectificationStep extends ActionHandler {
     public DataRectificationStep(
         DataRectificationService dataRectificationService,
         StoreMetaDataObjectGroupActionPlugin storeMetaDataObjectGroupActionPlugin,
-        StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin) {
+        StoreMetaDataUnitActionPlugin storeMetaDataUnitActionPlugin
+    ) {
         this.dataRectificationService = dataRectificationService;
         this.storeMetaDataObjectGroupActionPlugin = storeMetaDataObjectGroupActionPlugin;
         this.storeMetaDataUnitActionPlugin = storeMetaDataUnitActionPlugin;
     }
 
     public DataRectificationStep() {
-        this(new DataRectificationService(), new StoreMetaDataObjectGroupActionPlugin(),
-            new StoreMetaDataUnitActionPlugin());
+        this(
+            new DataRectificationService(),
+            new StoreMetaDataObjectGroupActionPlugin(),
+            new StoreMetaDataUnitActionPlugin()
+        );
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         ItemStatus itemStatus = new ItemStatus(CORRECTIVE_AUDIT);
 
         try {
@@ -88,58 +91,62 @@ public class DataRectificationStep extends ActionHandler {
 
             File file = handler.getFileFromWorkspace(ALTER + File.separator + param.getObjectName());
 
-            EvidenceAuditReportLine evidenceAuditReportLine =
-                JsonHandler.getFromFile(file, EvidenceAuditReportLine.class);
+            EvidenceAuditReportLine evidenceAuditReportLine = JsonHandler.getFromFile(
+                file,
+                EvidenceAuditReportLine.class
+            );
 
             if (evidenceAuditReportLine.getObjectType().equals(MetadataType.OBJECTGROUP)) {
-                List<IdentifierType> objectGroups =
-                    dataRectificationService.correctObjectGroups(evidenceAuditReportLine, param.getContainerName());
+                List<IdentifierType> objectGroups = dataRectificationService.correctObjectGroups(
+                    evidenceAuditReportLine,
+                    param.getContainerName()
+                );
                 identifierTypes.addAll(objectGroups);
             }
             Optional<IdentifierType> identifierType = Optional.empty();
 
             if (evidenceAuditReportLine.getObjectType().equals(MetadataType.UNIT)) {
-
-                identifierType =
-                    dataRectificationService.correctUnits(evidenceAuditReportLine, param.getContainerName());
+                identifierType = dataRectificationService.correctUnits(
+                    evidenceAuditReportLine,
+                    param.getContainerName()
+                );
             }
             identifierType.ifPresent(identifierTypes::add);
 
             file = handler.getNewLocalFile(param.getObjectName());
 
             if (!identifierTypes.isEmpty()) {
-
                 JsonHandler.writeAsFile(identifierTypes, file);
-                handler.transferFileToWorkspace(CORRECT + param.getObjectName() + ".report.json",
-                    file, true, false);
+                handler.transferFileToWorkspace(CORRECT + param.getObjectName() + ".report.json", file, true, false);
 
                 for (IdentifierType type : identifierTypes) {
-
-                    if (type.getType().equals(DataCategory.OBJECTGROUP.name()) ||
+                    if (
+                        type.getType().equals(DataCategory.OBJECTGROUP.name()) ||
                         type.getType().equals(DataCategory.OBJECT.name())
                     ) {
                         storeMetaDataObjectGroupActionPlugin.storeDocumentsWithLfc(
-                            param, handler, Collections.singletonList(type.getId())
+                            param,
+                            handler,
+                            Collections.singletonList(type.getId())
                         );
                     }
 
                     if (type.getType().equals(DataCategory.UNIT.name())) {
                         storeMetaDataUnitActionPlugin.storeDocumentsWithLfc(
-                            param, handler, Collections.singletonList(type.getId()));
+                            param,
+                            handler,
+                            Collections.singletonList(type.getId())
+                        );
                     }
                 }
             }
 
             itemStatus.increment(StatusCode.OK);
-
         } catch (IOException | VitamException e) {
-
             LOGGER.error(e);
 
             return itemStatus.increment(StatusCode.FATAL);
         }
-        return new ItemStatus(CORRECTIVE_AUDIT)
-            .setItemsStatus(CORRECTIVE_AUDIT, itemStatus);
+        return new ItemStatus(CORRECTIVE_AUDIT).setItemsStatus(CORRECTIVE_AUDIT, itemStatus);
     }
-
 }

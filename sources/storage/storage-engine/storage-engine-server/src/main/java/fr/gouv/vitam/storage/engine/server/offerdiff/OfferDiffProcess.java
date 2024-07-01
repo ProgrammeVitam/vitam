@@ -93,14 +93,19 @@ public class OfferDiffProcess {
     }
 
     public void run() {
-
         File diffOperationTempDir = null;
         try {
-            LOGGER.info(String.format(
-                "[OfferDiff] Start offer diff process for offers '{%s}' and '{%s}' for category {%s}.",
-                offer1, offer2, dataCategory));
+            LOGGER.info(
+                String.format(
+                    "[OfferDiff] Start offer diff process for offers '{%s}' and '{%s}' for category {%s}.",
+                    offer1,
+                    offer2,
+                    dataCategory
+                )
+            );
 
-            Set<String> offerIds = distribution.getStrategies()
+            Set<String> offerIds = distribution
+                .getStrategies()
                 .values()
                 .stream()
                 .flatMap(s -> s.getOffers().stream())
@@ -121,8 +126,8 @@ public class OfferDiffProcess {
 
             LOGGER.info("[OfferDiff] Offer diff completed successfully");
             this.offerDiffStatus.setStatusCode(
-                this.offerDiffStatus.getErrorCount() == 0 ? StatusCode.OK : StatusCode.WARNING);
-
+                    this.offerDiffStatus.getErrorCount() == 0 ? StatusCode.OK : StatusCode.WARNING
+                );
         } catch (Exception e) {
             LOGGER.error("[OfferDiff]: An exception has been thrown during offer diff process.", e);
             this.offerDiffStatus.setStatusCode(StatusCode.KO);
@@ -130,27 +135,27 @@ public class OfferDiffProcess {
         } finally {
             this.offerDiffStatus.setEndDate(getCurrentDate());
 
-            LOGGER.info("[OfferDiff] Offer diff result:\n" +
-                JsonHandler.prettyPrint(this.offerDiffStatus));
+            LOGGER.info("[OfferDiff] Offer diff result:\n" + JsonHandler.prettyPrint(this.offerDiffStatus));
         }
     }
 
-    private void process(String offer1, String offer2,
-        DataCategory dataCategory, File diffOperationTempDir) throws StorageException {
-
+    private void process(String offer1, String offer2, DataCategory dataCategory, File diffOperationTempDir)
+        throws StorageException {
         LOGGER.info("[OfferDiff] Listing offer files...");
 
         ExecutorService executor = Executors.newFixedThreadPool(2, VitamThreadFactory.getInstance());
         int tenant = VitamThreadUtils.getVitamSession().getTenantId();
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
 
-        CompletableFuture<File> listOffers1CompletableFuture = CompletableFuture
-            .supplyAsync(() -> listOfferObjects(offer1, dataCategory, diffOperationTempDir, tenant, requestId),
-                executor);
+        CompletableFuture<File> listOffers1CompletableFuture = CompletableFuture.supplyAsync(
+            () -> listOfferObjects(offer1, dataCategory, diffOperationTempDir, tenant, requestId),
+            executor
+        );
 
-        CompletableFuture<File> listOffers2CompletableFuture = CompletableFuture
-            .supplyAsync(() -> listOfferObjects(offer2, dataCategory, diffOperationTempDir, tenant, requestId),
-                executor);
+        CompletableFuture<File> listOffers2CompletableFuture = CompletableFuture.supplyAsync(
+            () -> listOfferObjects(offer2, dataCategory, diffOperationTempDir, tenant, requestId),
+            executor
+        );
 
         Optional<File> offerListing1 = await(listOffers1CompletableFuture, offer1);
         Optional<File> offerListing2 = await(listOffers2CompletableFuture, offer2);
@@ -169,10 +174,11 @@ public class OfferDiffProcess {
         LOGGER.info("[OfferDiff] Comparing offer files...");
         try {
             File reportFile = createTempFile(
-                diffOperationTempDir, "_" + this.offerDiffStatus.getRequestId() + ".jsonl");
+                diffOperationTempDir,
+                "_" + this.offerDiffStatus.getRequestId() + ".jsonl"
+            );
 
             try (ReportWriter reportWriter = new ReportWriter(reportFile)) {
-
                 compareOfferListings(offer1, offer2, sortedOfferListing1, sortedOfferListing2, reportWriter);
 
                 this.offerDiffStatus.setReportFileName(reportFile.getAbsoluteFile().toString());
@@ -187,22 +193,27 @@ public class OfferDiffProcess {
         LOGGER.info("[OfferDiff] Comparing offer files done successfully !");
     }
 
-    private File listOfferObjects(String offerId, DataCategory dataCategory, File diffOperationTempDir,
-        Integer tenant, String requestId) {
-
+    private File listOfferObjects(
+        String offerId,
+        DataCategory dataCategory,
+        File diffOperationTempDir,
+        Integer tenant,
+        String requestId
+    ) {
         Thread.currentThread().setName("OfferListing-" + offerId);
         VitamThreadUtils.getVitamSession().setTenantId(tenant);
         VitamThreadUtils.getVitamSession().setRequestId(requestId);
 
-        try (CloseableIterator<ObjectEntry> objectEntryIterator =
-            this.distribution.listContainerObjectsForOffer(dataCategory, offerId, true)) {
-
+        try (
+            CloseableIterator<ObjectEntry> objectEntryIterator =
+                this.distribution.listContainerObjectsForOffer(dataCategory, offerId, true)
+        ) {
             File tempFile = createTempFile(diffOperationTempDir);
 
-            try (FileOutputStream fos = new FileOutputStream(tempFile);
+            try (
+                FileOutputStream fos = new FileOutputStream(tempFile);
                 ObjectEntryWriter objectEntryWriter = new ObjectEntryWriter(fos)
             ) {
-
                 for (int i = 0; objectEntryIterator.hasNext(); i++) {
                     objectEntryWriter.write(objectEntryIterator.next());
                     if (i > 0 && i % 10000 == 0) {
@@ -213,10 +224,10 @@ public class OfferDiffProcess {
             }
 
             return tempFile;
-
         } catch (StorageException | IOException e) {
             throw new RuntimeException(
-                "Could not list offer objects. OfferId: '" + offerId + "', dataCategory: " + dataCategory);
+                "Could not list offer objects. OfferId: '" + offerId + "', dataCategory: " + dataCategory
+            );
         }
     }
 
@@ -236,11 +247,9 @@ public class OfferDiffProcess {
     }
 
     private File sort(String offerId, File offerListing, File diffOperationTempDir) throws StorageException {
-
         LOGGER.info("[OfferDiff] Sorting offer file " + offerId);
 
         try {
-
             LargeFileSorter<ObjectEntry> objectEntryLargeFileSorter = new LargeFileSorter<>(
                 ObjectEntryLargeFileReader::new,
                 ObjectEntryLargeFileWriter::new,
@@ -259,7 +268,6 @@ public class OfferDiffProcess {
             LOGGER.info("[OfferDiff] Offer listing file " + offerId + " sorted successfully !");
 
             return result;
-
         } catch (IOException e) {
             throw new StorageException("Cloud not sort offer listing file for offer " + offerId, e);
         } finally {
@@ -267,16 +275,19 @@ public class OfferDiffProcess {
         }
     }
 
-    private void compareOfferListings(String offer1, String offer2,
-        File sortedOfferListing1, File sortedOfferListing2, ReportWriter reportWriter) throws IOException {
-
+    private void compareOfferListings(
+        String offer1,
+        String offer2,
+        File sortedOfferListing1,
+        File sortedOfferListing2,
+        ReportWriter reportWriter
+    ) throws IOException {
         try (
             InputStream inputStream1 = new FileInputStream(sortedOfferListing1);
             ObjectEntryReader objectEntryReader1 = new ObjectEntryReader(inputStream1);
             InputStream inputStream2 = new FileInputStream(sortedOfferListing2);
             ObjectEntryReader objectEntryReader2 = new ObjectEntryReader(inputStream2)
         ) {
-
             PeekingIterator<ObjectEntry> peekingIterator1 = new PeekingIterator<>(objectEntryReader1);
             PeekingIterator<ObjectEntry> peekingIterator2 = new PeekingIterator<>(objectEntryReader2);
 
@@ -285,8 +296,13 @@ public class OfferDiffProcess {
                     String objectId1 = peekingIterator1.peek().getObjectId();
                     String objectId2 = peekingIterator2.peek().getObjectId();
                     if (objectId1.equals(objectId2)) {
-                        reportDifference(peekingIterator1.next(), peekingIterator2.next(), offer1, offer2,
-                            reportWriter);
+                        reportDifference(
+                            peekingIterator1.next(),
+                            peekingIterator2.next(),
+                            offer1,
+                            offer2,
+                            reportWriter
+                        );
                     } else if (objectId1.compareTo(objectId2) < 0) {
                         reportDifference(peekingIterator1.next(), null, offer1, offer2, reportWriter);
                     } else {
@@ -298,34 +314,63 @@ public class OfferDiffProcess {
                     reportDifference(null, peekingIterator2.next(), offer1, offer2, reportWriter);
                 }
             }
-
         }
     }
 
-    private void reportDifference(ObjectEntry objectEntry1, ObjectEntry objectEntry2, String offer1, String offer2,
-        ReportWriter reportWriter) throws IOException {
-
+    private void reportDifference(
+        ObjectEntry objectEntry1,
+        ObjectEntry objectEntry2,
+        String offer1,
+        String offer2,
+        ReportWriter reportWriter
+    ) throws IOException {
         if (objectEntry1 != null && objectEntry2 != null) {
             if (objectEntry1.getSize() == objectEntry2.getSize()) {
                 LOGGER.debug("File " + objectEntry1.getObjectId() + " matches. Size: " + objectEntry1.getSize());
                 reportWriter.reportMatchingObject(objectEntry1.getObjectId());
             } else {
                 LOGGER.warn(
-                    "File " + objectEntry1.getObjectId() + " found on both offers, but size mismatches. " + offer1 +
-                        ": " + objectEntry1.getSize() + "bytes , " + offer2 + ": " + objectEntry2.getSize() + " bytes");
-                reportWriter
-                    .reportObjectMismatch(objectEntry1.getObjectId(), objectEntry1.getSize(), objectEntry2.getSize());
+                    "File " +
+                    objectEntry1.getObjectId() +
+                    " found on both offers, but size mismatches. " +
+                    offer1 +
+                    ": " +
+                    objectEntry1.getSize() +
+                    "bytes , " +
+                    offer2 +
+                    ": " +
+                    objectEntry2.getSize() +
+                    " bytes"
+                );
+                reportWriter.reportObjectMismatch(
+                    objectEntry1.getObjectId(),
+                    objectEntry1.getSize(),
+                    objectEntry2.getSize()
+                );
             }
         } else if (objectEntry1 != null) {
             LOGGER.warn(
-                "File " + objectEntry1.getObjectId() + " found on offer " + offer1 +
-                    " (" + objectEntry1.getSize() + "bytes), but is missing from offer " + offer2);
+                "File " +
+                objectEntry1.getObjectId() +
+                " found on offer " +
+                offer1 +
+                " (" +
+                objectEntry1.getSize() +
+                "bytes), but is missing from offer " +
+                offer2
+            );
             reportWriter.reportObjectMismatch(objectEntry1.getObjectId(), objectEntry1.getSize(), null);
-
         } else {
             LOGGER.warn(
-                "File " + objectEntry2.getObjectId() + " found on offer " + offer2 +
-                    " (" + objectEntry2.getSize() + "bytes), but is missing from offer " + offer1);
+                "File " +
+                objectEntry2.getObjectId() +
+                " found on offer " +
+                offer2 +
+                " (" +
+                objectEntry2.getSize() +
+                "bytes), but is missing from offer " +
+                offer1
+            );
             reportWriter.reportObjectMismatch(objectEntry2.getObjectId(), null, objectEntry2.getSize());
         }
     }
@@ -348,7 +393,6 @@ public class OfferDiffProcess {
         return LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
     }
 
-
     private File createTempFile(File diffOperationTempDir) throws IOException {
         return createTempFile(diffOperationTempDir, null);
     }
@@ -370,8 +414,10 @@ public class OfferDiffProcess {
 
     private File createProcessTempStorageDir() throws IOException {
         File tempDir = new File(VitamConfiguration.getVitamTmpFolder());
-        File diffOperationTempDir =
-            new File(tempDir, "offer_diff_" + VitamThreadUtils.getVitamSession().getRequestId());
+        File diffOperationTempDir = new File(
+            tempDir,
+            "offer_diff_" + VitamThreadUtils.getVitamSession().getRequestId()
+        );
         FileUtils.forceMkdir(diffOperationTempDir);
         return diffOperationTempDir;
     }

@@ -74,7 +74,6 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-
 public class ProcessManagementResourceTest extends ResteasyTestApplication {
 
     private static final String CONF_FILE_NAME = "processing.conf";
@@ -100,12 +99,10 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
 
     {
         try {
-            VitamApplicationInitializr.get()
-                .initialize(serverConfiguration, workerClientFactory, processManagement);
+            VitamApplicationInitializr.get().initialize(serverConfiguration, workerClientFactory, processManagement);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     @Override
@@ -127,7 +124,6 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
         application.start();
         RestAssured.port = port;
         RestAssured.basePath = DATA_URI;
-
     }
 
     @AfterClass
@@ -158,7 +154,6 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
 
     @Test
     public void shouldReturnResponseAccepted() throws Exception {
-
         ItemStatus itemStatus = new ItemStatus();
         itemStatus.increment(StatusCode.OK);
         itemStatus.setGlobalState(ProcessState.RUNNING);
@@ -170,19 +165,39 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
 
         given()
             .contentType(ContentType.JSON)
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.INIT.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
-            .post(operationByIdURI).then()
+            .headers(
+                GlobalDataRest.X_CONTEXT_ID,
+                CONTEXT_ID,
+                GlobalDataRest.X_ACTION,
+                ProcessAction.INIT.getValue(),
+                GlobalDataRest.X_REQUEST_ID,
+                processId.toString(),
+                GlobalDataRest.X_TENANT_ID,
+                TENANT_ID
+            )
+            .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID))
+            .when()
+            .post(operationByIdURI)
+            .then()
             .statusCode(Status.CREATED.getStatusCode());
 
         when(processManagement.resume(any(), anyInt(), anyBoolean())).thenReturn(itemStatus);
         given()
             .contentType(ContentType.JSON)
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
-            .post(operationByIdURI).then()
+            .headers(
+                GlobalDataRest.X_CONTEXT_ID,
+                CONTEXT_ID,
+                GlobalDataRest.X_ACTION,
+                ProcessAction.RESUME.getValue(),
+                GlobalDataRest.X_REQUEST_ID,
+                processId.toString(),
+                GlobalDataRest.X_TENANT_ID,
+                TENANT_ID
+            )
+            .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID))
+            .when()
+            .post(operationByIdURI)
+            .then()
             .statusCode(Status.ACCEPTED.getStatusCode());
     }
 
@@ -197,10 +212,20 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
         final GUID processId = GUIDFactory.newGUID();
         given()
             .contentType(ContentType.JSON)
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.INIT.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry(CONTAINER_NAME, NOT_EXITS_WORKFLOW_ID)).when()
-            .post(OPERATION_ID_URI).then()
+            .headers(
+                GlobalDataRest.X_CONTEXT_ID,
+                CONTEXT_ID,
+                GlobalDataRest.X_ACTION,
+                ProcessAction.INIT.getValue(),
+                GlobalDataRest.X_REQUEST_ID,
+                processId.toString(),
+                GlobalDataRest.X_TENANT_ID,
+                TENANT_ID
+            )
+            .body(new ProcessingEntry(CONTAINER_NAME, NOT_EXITS_WORKFLOW_ID))
+            .when()
+            .post(OPERATION_ID_URI)
+            .then()
             .statusCode(Status.PRECONDITION_FAILED.getStatusCode());
     }
 
@@ -223,38 +248,78 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
         when(processManagement.init(any(), anyString())).thenReturn(new ProcessWorkflow());
         given()
             .contentType(ContentType.JSON)
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.INIT.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
-            .post(operationByIdURI).then()
+            .headers(
+                GlobalDataRest.X_CONTEXT_ID,
+                CONTEXT_ID,
+                GlobalDataRest.X_ACTION,
+                ProcessAction.INIT.getValue(),
+                GlobalDataRest.X_REQUEST_ID,
+                processId.toString(),
+                GlobalDataRest.X_TENANT_ID,
+                TENANT_ID
+            )
+            .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID))
+            .when()
+            .post(operationByIdURI)
+            .then()
             .statusCode(Status.CREATED.getStatusCode());
 
         when(processManagement.resume(any(), anyInt(), anyBoolean())).thenReturn(itemStatus);
         given()
             .contentType(ContentType.JSON)
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
-            .post(operationByIdURI).then()
+            .headers(
+                GlobalDataRest.X_CONTEXT_ID,
+                CONTEXT_ID,
+                GlobalDataRest.X_ACTION,
+                ProcessAction.RESUME.getValue(),
+                GlobalDataRest.X_REQUEST_ID,
+                processId.toString(),
+                GlobalDataRest.X_TENANT_ID,
+                TENANT_ID
+            )
+            .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID))
+            .when()
+            .post(operationByIdURI)
+            .then()
             .statusCode(Status.ACCEPTED.getStatusCode());
 
         doThrow(new StateNotAllowedException("")).when(processManagement).resume(any(), anyInt(), anyBoolean());
         given()
             .contentType(ContentType.JSON)
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.RESUME.getValue(),
-                GlobalDataRest.X_REQUEST_ID, processId.toString(), GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID)).when()
-            .post(operationByIdURI).then()
+            .headers(
+                GlobalDataRest.X_CONTEXT_ID,
+                CONTEXT_ID,
+                GlobalDataRest.X_ACTION,
+                ProcessAction.RESUME.getValue(),
+                GlobalDataRest.X_REQUEST_ID,
+                processId.toString(),
+                GlobalDataRest.X_TENANT_ID,
+                TENANT_ID
+            )
+            .body(new ProcessingEntry(processId.getId(), EXITS_WORKFLOW_ID))
+            .when()
+            .post(operationByIdURI)
+            .then()
             .statusCode(Status.CONFLICT.getStatusCode());
     }
 
     @Test
     public void shouldReturnResponseNOTFOUNDIfheadWorkflowByIdNotFound() throws Exception {
         given()
-            .contentType(ContentType.JSON).when()
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.PAUSE.getValue(),
-                GlobalDataRest.X_REQUEST_ID, ID, GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .head(OPERATION_ID_URI).then()
+            .contentType(ContentType.JSON)
+            .when()
+            .headers(
+                GlobalDataRest.X_CONTEXT_ID,
+                CONTEXT_ID,
+                GlobalDataRest.X_ACTION,
+                ProcessAction.PAUSE.getValue(),
+                GlobalDataRest.X_REQUEST_ID,
+                ID,
+                GlobalDataRest.X_TENANT_ID,
+                TENANT_ID
+            )
+            .head(OPERATION_ID_URI)
+            .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
@@ -268,10 +333,20 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
         doThrow(new ProcessingException("")).when(processManagement).cancel(anyString(), anyInt());
         given()
             .contentType(ContentType.JSON)
-            .headers(GlobalDataRest.X_CONTEXT_ID, CONTEXT_ID, GlobalDataRest.X_ACTION, ProcessAction.PAUSE.getValue(),
-                GlobalDataRest.X_REQUEST_ID, ID, GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(ID).when()
-            .delete(OPERATION_ID_URI).then()
+            .headers(
+                GlobalDataRest.X_CONTEXT_ID,
+                CONTEXT_ID,
+                GlobalDataRest.X_ACTION,
+                ProcessAction.PAUSE.getValue(),
+                GlobalDataRest.X_REQUEST_ID,
+                ID,
+                GlobalDataRest.X_TENANT_ID,
+                TENANT_ID
+            )
+            .body(ID)
+            .when()
+            .delete(OPERATION_ID_URI)
+            .then()
             .statusCode(Status.NOT_FOUND.getStatusCode());
     }
 
@@ -288,13 +363,13 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_REQUEST_ID, ID, GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .when().get(WORKFLOWS_URI).then()
-            .statusCode(Status.OK.getStatusCode()).assertThat()
+            .when()
+            .get(WORKFLOWS_URI)
+            .then()
+            .statusCode(Status.OK.getStatusCode())
+            .assertThat()
             .body(containsString(EXITS_WORKFLOW_ID));
-
     }
-
-
 
     /**
      * Apply forced pause tests
@@ -309,9 +384,11 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(pause).when()
+            .body(pause)
+            .when()
             .post(FORCE_PAUSE_URI)
-            .then().assertThat()
+            .then()
+            .assertThat()
             .statusCode(Status.OK.getStatusCode());
 
         doThrow(new ProcessingException("be null")).when(processManagement).forcePause(any());
@@ -320,9 +397,11 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(pause).when()
+            .body(pause)
+            .when()
             .post(FORCE_PAUSE_URI)
-            .then().assertThat()
+            .then()
+            .assertThat()
             .statusCode(Status.BAD_REQUEST.getStatusCode())
             .body(containsString("be null"));
 
@@ -331,11 +410,12 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(pause).when()
+            .body(pause)
+            .when()
             .post(FORCE_PAUSE_URI)
-            .then().assertThat()
+            .then()
+            .assertThat()
             .statusCode(Status.OK.getStatusCode());
-
 
         doThrow(new ProcessingException("is not a valid process type")).when(processManagement).forcePause(any());
         //Inexisting type
@@ -343,9 +423,11 @@ public class ProcessManagementResourceTest extends ResteasyTestApplication {
         given()
             .contentType(ContentType.JSON)
             .headers(GlobalDataRest.X_TENANT_ID, TENANT_ID)
-            .body(pause).when()
+            .body(pause)
+            .when()
             .post(FORCE_PAUSE_URI)
-            .then().assertThat()
+            .then()
+            .assertThat()
             .statusCode(Status.BAD_REQUEST.getStatusCode())
             .body(containsString("is not a valid process type"));
     }

@@ -32,7 +32,6 @@ import java.util.List;
  * Base for Common rule Interface in order to manage seda multi versions
  */
 public interface CommonRuleBase {
-
     /**
      * Gets the value of the ruleAndStartDate property.
      *
@@ -53,5 +52,4 @@ public interface CommonRuleBase {
      * @param value true or false
      */
     void setPreventInheritance(Boolean value);
-
 }

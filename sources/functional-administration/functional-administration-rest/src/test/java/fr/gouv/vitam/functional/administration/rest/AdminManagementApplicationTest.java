@@ -61,35 +61,35 @@ public class AdminManagementApplicationTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, MongoRule.getDataBasePort()));
 
-
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+        final AdminManagementConfiguration realAdminConfig = PropertiesUtils.readYaml(
+            adminConfig,
+            AdminManagementConfiguration.class
+        );
         realAdminConfig.setMongoDbNodes(nodes);
         realAdminConfig.setDbName(MongoRule.VITAM_DB);
         realAdminConfig.setElasticsearchNodes(esNodes);
         realAdminConfig.setClusterName(ElasticsearchRule.VITAM_CLUSTER);
         adminConfigFile = File.createTempFile("test", ADMIN_MANAGEMENT_CONF, adminConfig.getParentFile());
         PropertiesUtils.writeYaml(adminConfigFile, realAdminConfig);
-
     }
-
 
     @Test
     public void testFunctionnalIdConfiguration() throws Exception {
         final File adminConfig = PropertiesUtils.findFile(ADMIN_MANAGEMENT_CONF);
-        final AdminManagementConfiguration realAdminConfig =
-            PropertiesUtils.readYaml(adminConfig, AdminManagementConfiguration.class);
+        final AdminManagementConfiguration realAdminConfig = PropertiesUtils.readYaml(
+            adminConfig,
+            AdminManagementConfiguration.class
+        );
 
-        Map<Integer, List<String>> list =
-            realAdminConfig.getListEnableExternalIdentifiers();
+        Map<Integer, List<String>> list = realAdminConfig.getListEnableExternalIdentifiers();
         assertThat(list.get(0).get(0)).isEqualTo("INGEST_CONTRACT");
         assertThat(list.get(0).get(1)).isEqualTo("RULES");
         assertThat(list.get(1).get(0)).isEqualTo("ACCESS_CONTRACT");

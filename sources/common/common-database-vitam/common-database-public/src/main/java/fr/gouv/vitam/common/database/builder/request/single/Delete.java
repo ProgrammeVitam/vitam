@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * Delete: { $query : query, $filter : multi } or [ query, multi ]
  */
 public class Delete extends RequestSingle {
+
     /**
      * @param mult True to act on multiple elements, False to act only on 1 element
      * @return this Delete
@@ -68,8 +69,7 @@ public class Delete extends RequestSingle {
      * @throws InvalidParseOperationException if filter invalid
      */
     @Override
-    public final Delete setFilter(final JsonNode filterContent)
-        throws InvalidParseOperationException {
+    public final Delete setFilter(final JsonNode filterContent) throws InvalidParseOperationException {
         super.setFilter(filterContent);
         return setMult(filterContent);
     }

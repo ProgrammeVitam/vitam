@@ -42,11 +42,11 @@ import fr.gouv.vitam.worker.core.plugin.evidence.report.EvidenceAuditReportServi
 
 import static fr.gouv.vitam.worker.core.plugin.CommonReportService.WORKSPACE_REPORT_URI;
 
-
 /**
  * EvidenceAuditFinalize class
  */
 public class EvidenceAuditFinalize extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(EvidenceAuditFinalize.class);
 
     private static final String EVIDENCE_AUDIT_FINALIZE = "EVIDENCE_AUDIT_FINALIZE";
@@ -63,8 +63,7 @@ public class EvidenceAuditFinalize extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handlerIO) throws ProcessingException {
         ItemStatus itemStatus = new ItemStatus(EVIDENCE_AUDIT_FINALIZE);
 
         try {
@@ -85,7 +84,6 @@ public class EvidenceAuditFinalize extends ActionHandler {
 
             itemStatus.increment(StatusCode.OK);
             return new ItemStatus(EVIDENCE_AUDIT_FINALIZE).setItemsStatus(EVIDENCE_AUDIT_FINALIZE, itemStatus);
-
         } catch (ProcessingStatusException e) {
             LOGGER.error(e);
             itemStatus.increment(e.getStatusCode());

@@ -50,8 +50,9 @@ import static org.mockito.Mockito.verify;
 public class PurgeAccessionRegisterPreparationHandlerTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -71,21 +72,20 @@ public class PurgeAccessionRegisterPreparationHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
         doAnswer(args -> tempFolder.newFile(args.getArgument(0))).when(handler).getNewLocalFile(any());
 
-        params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+        params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectName("REF")
             .setCurrentStep("StepName");
 
-        doReturn(VitamThreadUtils.getVitamSession().getRequestId())
-            .when(handler).getContainerName();
+        doReturn(VitamThreadUtils.getVitamSession().getRequestId()).when(handler).getContainerName();
 
         instance = new PurgeAccessionRegisterPreparationHandler("PLUGIN_ACTION", purgeReportService);
     }
@@ -93,12 +93,10 @@ public class PurgeAccessionRegisterPreparationHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void testExecuteSuccess() throws Exception {
-
         // Given / When
         instance.execute(params, handler);
 
         // Then
-        verify(purgeReportService)
-            .exportAccessionRegisters(VitamThreadUtils.getVitamSession().getRequestId());
+        verify(purgeReportService).exportAccessionRegisters(VitamThreadUtils.getVitamSession().getRequestId());
     }
 }

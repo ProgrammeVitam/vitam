@@ -30,7 +30,6 @@ package fr.gouv.vitam.common.server.application.configuration;
  * Generic interface for a Database connection
  */
 public interface DatabaseConnection {
-
     /**
      * Check the connection of the database
      *
@@ -44,5 +43,4 @@ public interface DatabaseConnection {
      * @return information on the database
      */
     String getInfo();
-
 }

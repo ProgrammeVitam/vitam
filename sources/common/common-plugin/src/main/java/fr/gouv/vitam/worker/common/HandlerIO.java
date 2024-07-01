@@ -52,7 +52,6 @@ import java.util.Map;
  * Interface of HandlerIO for all Handlers
  */
 public interface HandlerIO extends VitamAutoCloseable {
-
     /**
      * Add Input parameters
      *
@@ -186,8 +185,7 @@ public interface HandlerIO extends VitamAutoCloseable {
     void transferFileToWorkspace(String workspacePath, File sourceFile, boolean toDelete, boolean asyncIO)
         throws ProcessingException;
 
-    void transferAtomicFileToWorkspace(String workspacePath, File sourceFile)
-        throws ProcessingException;
+    void transferAtomicFileToWorkspace(String workspacePath, File sourceFile) throws ProcessingException;
 
     /**
      * Helper to write an InputStream to Workspace<br/>
@@ -216,8 +214,7 @@ public interface HandlerIO extends VitamAutoCloseable {
     // TODO P2: could transfer a sort of cache list that could be clean without cleaning other parameters (for handler
     // parallel)
     File getFileFromWorkspace(String objectName)
-        throws IOException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException;
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * get Map of File With Params From folder in Workspace
@@ -242,8 +239,7 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @throws ContentAddressableStorageServerException
      */
     InputStream getInputStreamFromWorkspace(String objectName)
-        throws IOException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException;
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException;
 
     /**
      * Consume any entity and close response
@@ -282,9 +278,13 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @param asyncIO asynchronously send to the workspace
      * @throws ProcessingException
      */
-    void transferJsonToWorkspace(String collectionName, String workspacePath, JsonNode jsonNode, boolean toDelete,
-        boolean asyncIO)
-        throws ProcessingException;
+    void transferJsonToWorkspace(
+        String collectionName,
+        String workspacePath,
+        JsonNode jsonNode,
+        boolean toDelete,
+        boolean asyncIO
+    ) throws ProcessingException;
 
     /**
      * @param container
@@ -294,9 +294,13 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @param asyncIO asynchronously send and unzip file to/in the workspace
      * @throws ContentAddressableStorageException
      */
-    void unzipInputStreamOnWorkspace(String container, String folderName, String archiveMimeType,
-        InputStream uploadedInputStream, boolean asyncIO)
-        throws ContentAddressableStorageException;
+    void unzipInputStreamOnWorkspace(
+        String container,
+        String folderName,
+        String archiveMimeType,
+        InputStream uploadedInputStream,
+        boolean asyncIO
+    ) throws ContentAddressableStorageException;
 
     /**
      * If true then start async manager, if false then waitEndOfTransfer and stop asyncManager
@@ -304,7 +308,6 @@ public interface HandlerIO extends VitamAutoCloseable {
      * @param asyncIo
      */
     void enableAsync(boolean asyncIo) throws WorkerspaceQueueException;
-
 
     /**
      * Remove a specific folder

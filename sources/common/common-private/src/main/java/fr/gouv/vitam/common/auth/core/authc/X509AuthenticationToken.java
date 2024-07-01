@@ -83,8 +83,12 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
      * @param clientHexSerialNumber
      * @param host
      */
-    public X509AuthenticationToken(X500Principal clientSubjectDN, X500Principal clientIssuerDN,
-        String clientHexSerialNumber, String host) {
+    public X509AuthenticationToken(
+        X500Principal clientSubjectDN,
+        X500Principal clientIssuerDN,
+        String clientHexSerialNumber,
+        String host
+    ) {
         certificate = null;
         certChain = new X509Certificate[] {};
         subjectDN = clientSubjectDN;
@@ -161,5 +165,4 @@ public class X509AuthenticationToken implements AuthenticationToken, HostAuthent
     public String getHost() {
         return host;
     }
-
 }

@@ -25,7 +25,6 @@
  * accept its terms.
  */
 
-
 package fr.gouv.vitam.scheduler.server.job;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -80,10 +79,11 @@ public class MetadataReconstructionJob implements Job {
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
             LOGGER.info("Process of reconstruction in progress...");
             List<ReconstructionRequestItem> requestItemList = new ArrayList<>();
-            VitamConfiguration.getTenants().forEach(tenant -> {
-                requestItemList.add(getReconstructionRequestItem(tenant, UNIT));
-                requestItemList.add(getReconstructionRequestItem(tenant, OBJECTGROUP));
-            });
+            VitamConfiguration.getTenants()
+                .forEach(tenant -> {
+                    requestItemList.add(getReconstructionRequestItem(tenant, UNIT));
+                    requestItemList.add(getReconstructionRequestItem(tenant, OBJECTGROUP));
+                });
             requestItemList.add(getReconstructionRequestItem(VitamConfiguration.getAdminTenant(), UNIT_GRAPH));
             requestItemList.add(getReconstructionRequestItem(VitamConfiguration.getAdminTenant(), OBJECTGROUP_GRAPH));
 
@@ -99,5 +99,4 @@ public class MetadataReconstructionJob implements Job {
         requestItem.setCollection(collection).setTenant(tenant).setLimit(VitamConfiguration.getRestoreBulkSize());
         return requestItem;
     }
-
 }

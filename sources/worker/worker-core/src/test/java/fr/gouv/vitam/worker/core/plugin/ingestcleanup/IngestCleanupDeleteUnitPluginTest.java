@@ -59,8 +59,9 @@ import static org.mockito.Mockito.verify;
 public class IngestCleanupDeleteUnitPluginTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -76,23 +77,19 @@ public class IngestCleanupDeleteUnitPluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
     }
 
     @After
-    public void tearDown() {
-    }
+    public void tearDown() {}
 
     @Test
     @RunWithCustomExecutor
     public void testExecuteList_OK() throws Exception {
-
         // Given
         WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
-            .setObjectMetadataList(Arrays.asList(
-                buildUnitParams(1), buildUnitParams(2), buildUnitParams(3)));
+            .setObjectMetadataList(Arrays.asList(buildUnitParams(1), buildUnitParams(2), buildUnitParams(3)));
 
         // When
         List<ItemStatus> itemStatus = instance.executeList(params, handler);
@@ -102,15 +99,17 @@ public class IngestCleanupDeleteUnitPluginTest {
 
         // Then
         Map<String, String> unitIdsWithStrategies = ImmutableMap.of(
-            "id_unit_1", "default-fake",
-            "id_unit_2", "default-fake",
-            "id_unit_3", "default-fake");
+            "id_unit_1",
+            "default-fake",
+            "id_unit_2",
+            "default-fake",
+            "id_unit_3",
+            "default-fake"
+        );
         verify(purgeDeleteService).deleteUnits(eq(unitIdsWithStrategies));
     }
 
     private JsonNode buildUnitParams(Integer index) {
-        return JsonHandler.createObjectNode()
-            .put("id", "id_unit_" + index)
-            .put("strategyId", "default-fake");
+        return JsonHandler.createObjectNode().put("id", "id_unit_" + index).put("strategyId", "default-fake");
     }
 }

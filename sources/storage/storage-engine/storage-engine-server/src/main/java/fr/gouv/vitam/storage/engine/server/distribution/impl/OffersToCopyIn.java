@@ -38,6 +38,7 @@ import java.util.Map;
  * manage list ok and ko for retry storage feature
  */
 public class OffersToCopyIn {
+
     /**
      * Offers transfer OK
      */
@@ -53,7 +54,6 @@ public class OffersToCopyIn {
 
     private String readRequestID;
     private boolean readOrderCompleted;
-
 
     /**
      * create  OffersToCopyIn with one
@@ -83,8 +83,6 @@ public class OffersToCopyIn {
         }
     }
 
-
-
     /**
      * Get OK offers list
      *
@@ -102,7 +100,6 @@ public class OffersToCopyIn {
     public List<String> getKoOffers() {
         return new ArrayList<>(koOffers);
     }
-
 
     /**
      * Get global result for storage distribution

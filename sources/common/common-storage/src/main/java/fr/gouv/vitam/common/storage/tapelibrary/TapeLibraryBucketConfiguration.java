@@ -34,6 +34,7 @@ public class TapeLibraryBucketConfiguration {
 
     @JsonProperty("tenants")
     private List<Integer> tenants;
+
     @JsonProperty("tarBufferingTimeoutInMinutes")
     private int tarBufferingTimeoutInMinutes = 60;
 

@@ -69,8 +69,7 @@ public class Step {
 
     private volatile PauseOrCancelAction pauseOrCancelAction = PauseOrCancelAction.ACTION_RUN;
 
-    public Step() {
-    }
+    public Step() {}
 
     @JsonCreator
     public Step(
@@ -80,7 +79,8 @@ public class Step {
         @JsonProperty("behavior") ProcessBehavior behavior,
         @JsonProperty("distribution") Distribution distribution,
         @JsonProperty("actions") List<Action> actions,
-        @JsonProperty("waitFor") String waitFor) {
+        @JsonProperty("waitFor") String waitFor
+    ) {
         this.id = id;
         this.workerGroupId = workerGroupId;
         this.stepName = stepName;

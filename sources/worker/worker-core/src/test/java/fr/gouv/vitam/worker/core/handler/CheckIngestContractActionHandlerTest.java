@@ -72,6 +72,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class CheckIngestContractActionHandlerTest {
+
     CheckIngestContractActionHandler handler;
     private static final String HANDLER_ID = "CHECK_CONTRACT_INGEST";
     private AdminManagementClient adminClient;
@@ -93,7 +94,8 @@ public class CheckIngestContractActionHandlerTest {
 
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private HandlerIO handlerIO = mock(HandlerIO.class);
 
@@ -115,8 +117,9 @@ public class CheckIngestContractActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setContextId("FakeContext");
 
-        when(adminClient.findIngestContractsByID(any()))
-            .thenReturn(createIngestContract(ActivationStatus.ACTIVE, null));
+        when(adminClient.findIngestContractsByID(any())).thenReturn(
+            createIngestContract(ActivationStatus.ACTIVE, null)
+        );
         when(adminClient.findContextById(any())).thenReturn(ClientMockResultHelper.getContexts(200));
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
@@ -127,8 +130,9 @@ public class CheckIngestContractActionHandlerTest {
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
 
         reset(adminClient);
-        when(adminClient.findIngestContractsByID(any()))
-            .thenReturn(createIngestContract(ActivationStatus.INACTIVE, null));
+        when(adminClient.findIngestContractsByID(any())).thenReturn(
+            createIngestContract(ActivationStatus.INACTIVE, null)
+        );
         response = handler.execute(getWorkerParametersInstance(), handlerIO);
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "CONTRACT_INACTIVE");
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
@@ -137,7 +141,6 @@ public class CheckIngestContractActionHandlerTest {
     @Test
     @RunWithCustomExecutor
     public void givenSipWithoutContractThenReturnResponseKO() {
-
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(false));
 
         handler = new CheckIngestContractActionHandler(adminManagementClientFactory, storageClientFactory);
@@ -150,16 +153,18 @@ public class CheckIngestContractActionHandlerTest {
 
     @Test
     @RunWithCustomExecutor
-    public void givenSipWithValidManagementContractThenReturnResponseOK() throws InvalidParseOperationException,
-        AdminManagementClientServerException, ReferentialNotFoundException, StorageServerClientException {
+    public void givenSipWithValidManagementContractThenReturnResponseOK()
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException, StorageServerClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setContextId("FakeContext");
 
-        when(adminClient.findIngestContractsByID(any()))
-            .thenReturn(createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER));
+        when(adminClient.findIngestContractsByID(any())).thenReturn(
+            createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER)
+        );
         when(adminClient.findContextById(any())).thenReturn(ClientMockResultHelper.getContexts(200));
-        when(adminClient.findManagementContractsByID(any()))
-            .thenReturn(createManagementContract(ActivationStatus.ACTIVE));
+        when(adminClient.findManagementContractsByID(any())).thenReturn(
+            createManagementContract(ActivationStatus.ACTIVE)
+        );
         when(storageClient.getStorageStrategies()).thenReturn(createStorageStrategies());
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
@@ -168,7 +173,6 @@ public class CheckIngestContractActionHandlerTest {
 
         ItemStatus response = handler.execute(getWorkerParametersInstance(), handlerIO);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
-
     }
 
     @Test
@@ -178,11 +182,13 @@ public class CheckIngestContractActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setContextId("FakeContext");
 
-        when(adminClient.findIngestContractsByID(any()))
-            .thenReturn(createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER));
+        when(adminClient.findIngestContractsByID(any())).thenReturn(
+            createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER)
+        );
         when(adminClient.findContextById(any())).thenReturn(ClientMockResultHelper.getContexts(200));
-        when(adminClient.findManagementContractsByID(any()))
-            .thenThrow(new ReferentialNotFoundException("MC not found"));
+        when(adminClient.findManagementContractsByID(any())).thenThrow(
+            new ReferentialNotFoundException("MC not found")
+        );
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
         handler = new CheckIngestContractActionHandler(adminManagementClientFactory, storageClientFactory);
@@ -191,7 +197,6 @@ public class CheckIngestContractActionHandlerTest {
         ItemStatus response = handler.execute(getWorkerParametersInstance(), handlerIO);
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "MANAGEMENT_CONTRACT_UNKNOWN");
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-
     }
 
     @Test
@@ -201,11 +206,13 @@ public class CheckIngestContractActionHandlerTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setContextId("FakeContext");
 
-        when(adminClient.findIngestContractsByID(any()))
-            .thenReturn(createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER));
+        when(adminClient.findIngestContractsByID(any())).thenReturn(
+            createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER)
+        );
         when(adminClient.findContextById(any())).thenReturn(ClientMockResultHelper.getContexts(200));
-        when(adminClient.findManagementContractsByID(any()))
-            .thenReturn(createManagementContract(ActivationStatus.INACTIVE));
+        when(adminClient.findManagementContractsByID(any())).thenReturn(
+            createManagementContract(ActivationStatus.INACTIVE)
+        );
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
         handler = new CheckIngestContractActionHandler(adminManagementClientFactory, storageClientFactory);
@@ -214,23 +221,22 @@ public class CheckIngestContractActionHandlerTest {
         ItemStatus response = handler.execute(getWorkerParametersInstance(), handlerIO);
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "MANAGEMENT_CONTRACT_INACTIVE");
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenSipWithManagementContractNotFoundStrategyThenReturnResponseKO()
-        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException,
-        StorageServerClientException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException, StorageServerClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setContextId("FakeContext");
 
-        when(adminClient.findIngestContractsByID(any()))
-            .thenReturn(createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER));
+        when(adminClient.findIngestContractsByID(any())).thenReturn(
+            createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER)
+        );
         when(adminClient.findContextById(any())).thenReturn(ClientMockResultHelper.getContexts(200));
-        when(adminClient.findManagementContractsByID(any()))
-            .thenReturn(createManagementContractWithStrategies(ActivationStatus.ACTIVE, "default", "default",
-                "fake-fake-fake"));
+        when(adminClient.findManagementContractsByID(any())).thenReturn(
+            createManagementContractWithStrategies(ActivationStatus.ACTIVE, "default", "default", "fake-fake-fake")
+        );
         when(storageClient.getStorageStrategies()).thenReturn(createStorageStrategies());
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
@@ -240,23 +246,27 @@ public class CheckIngestContractActionHandlerTest {
         ItemStatus response = handler.execute(getWorkerParametersInstance(), handlerIO);
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "MANAGEMENT_CONTRACT_INVALID");
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenSipWithManagementContractNotReferentUnitStrategyThenReturnResponseKO()
-        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException,
-        StorageServerClientException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException, StorageServerClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setContextId("FakeContext");
 
-        when(adminClient.findIngestContractsByID(any()))
-            .thenReturn(createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER));
+        when(adminClient.findIngestContractsByID(any())).thenReturn(
+            createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER)
+        );
         when(adminClient.findContextById(any())).thenReturn(ClientMockResultHelper.getContexts(200));
-        when(adminClient.findManagementContractsByID(any()))
-            .thenReturn(createManagementContractWithStrategies(ActivationStatus.ACTIVE, "withDefault", "withoutDefault",
-                "withoutDefault"));
+        when(adminClient.findManagementContractsByID(any())).thenReturn(
+            createManagementContractWithStrategies(
+                ActivationStatus.ACTIVE,
+                "withDefault",
+                "withoutDefault",
+                "withoutDefault"
+            )
+        );
         when(storageClient.getStorageStrategies()).thenReturn(createStorageStrategies());
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
@@ -266,23 +276,27 @@ public class CheckIngestContractActionHandlerTest {
         ItemStatus response = handler.execute(getWorkerParametersInstance(), handlerIO);
         assertEquals(response.getGlobalOutcomeDetailSubcode(), "MANAGEMENT_CONTRACT_INVALID");
         assertEquals(response.getGlobalStatus(), StatusCode.KO);
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenSipWithManagementContractStorageExceptionThenReturnResponseFatal()
-        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException,
-        StorageServerClientException {
+        throws InvalidParseOperationException, AdminManagementClientServerException, ReferentialNotFoundException, StorageServerClientException {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setContextId("FakeContext");
 
-        when(adminClient.findIngestContractsByID(any()))
-            .thenReturn(createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER));
+        when(adminClient.findIngestContractsByID(any())).thenReturn(
+            createIngestContract(ActivationStatus.ACTIVE, MANAGEMENT_CONTRACT_IDENTIFIER)
+        );
         when(adminClient.findContextById(any())).thenReturn(ClientMockResultHelper.getContexts(200));
-        when(adminClient.findManagementContractsByID(any()))
-            .thenReturn(createManagementContractWithStrategies(ActivationStatus.ACTIVE, "withDefault", "withDefault",
-                "withoutDefault"));
+        when(adminClient.findManagementContractsByID(any())).thenReturn(
+            createManagementContractWithStrategies(
+                ActivationStatus.ACTIVE,
+                "withDefault",
+                "withDefault",
+                "withoutDefault"
+            )
+        );
         when(storageClient.getStorageStrategies()).thenThrow(new StorageServerClientException("exception fatal"));
         when(handlerIO.getInput(0)).thenReturn(getMandatoryValueMapInstance(true));
 
@@ -301,8 +315,10 @@ public class CheckIngestContractActionHandlerTest {
      * @return the created instance.
      * @throws InvalidParseOperationException
      */
-    private static RequestResponse<IngestContractModel> createIngestContract(ActivationStatus status,
-        String managementContractId) throws InvalidParseOperationException {
+    private static RequestResponse<IngestContractModel> createIngestContract(
+        ActivationStatus status,
+        String managementContractId
+    ) throws InvalidParseOperationException {
         IngestContractModel contract = new IngestContractModel();
         contract.setIdentifier(CONTRACT_IDENTIFIER);
         contract.setStatus(status);
@@ -320,7 +336,11 @@ public class CheckIngestContractActionHandlerTest {
      * @return the created instance.
      */
     private static RequestResponse<ManagementContractModel> createManagementContractWithStrategies(
-        ActivationStatus status, String unitStrategy, String gotStrategy, String objectStrategy) {
+        ActivationStatus status,
+        String unitStrategy,
+        String gotStrategy,
+        String objectStrategy
+    ) {
         ManagementContractModel contract = new ManagementContractModel();
         contract.setIdentifier(MANAGEMENT_CONTRACT_IDENTIFIER);
         contract.setStatus(status);
@@ -358,18 +378,21 @@ public class CheckIngestContractActionHandlerTest {
     private static RequestResponse<StorageStrategy> createStorageStrategies() throws InvalidParseOperationException {
         StorageStrategy defaultStrategy = new StorageStrategy();
         defaultStrategy.setId("default");
-        defaultStrategy.setOffers(Arrays.asList(createOfferReference("offerReferent", true),
-            createOfferReference("offerNotReferent", false)));
+        defaultStrategy.setOffers(
+            Arrays.asList(createOfferReference("offerReferent", true), createOfferReference("offerNotReferent", false))
+        );
         StorageStrategy withDefaultStrategy = new StorageStrategy();
         withDefaultStrategy.setId("withDefault");
-        withDefaultStrategy.setOffers(Arrays.asList(createOfferReference("offerReferent", true),
-            createOfferReference("offerNotReferent", false)));
+        withDefaultStrategy.setOffers(
+            Arrays.asList(createOfferReference("offerReferent", true), createOfferReference("offerNotReferent", false))
+        );
         StorageStrategy withoutDefaultStrategy = new StorageStrategy();
         withoutDefaultStrategy.setId("withoutDefault");
         withoutDefaultStrategy.setOffers(Arrays.asList(createOfferReference("offerNotReferent", false)));
 
-        return ClientMockResultHelper
-            .createResponse(Arrays.asList(defaultStrategy, withDefaultStrategy, withoutDefaultStrategy));
+        return ClientMockResultHelper.createResponse(
+            Arrays.asList(defaultStrategy, withDefaultStrategy, withoutDefaultStrategy)
+        );
     }
 
     private static OfferReference createOfferReference(String offerReferenceId, boolean isReferent) {
@@ -403,12 +426,14 @@ public class CheckIngestContractActionHandlerTest {
      * @return the created instance.
      */
     private WorkerParameters getWorkerParametersInstance() {
-        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters().setUrlWorkspace(FAKE_URL)
-            .setUrlMetadata(FAKE_URL).setObjectNameList(Lists.newArrayList("objectName.json"))
-            .setObjectName("objectName.json").setCurrentStep("STP_INGEST_CONTROL_SIP")
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace(FAKE_URL)
+            .setUrlMetadata(FAKE_URL)
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("STP_INGEST_CONTROL_SIP")
             .setContainerName(guid.getId());
 
         return params;
     }
-
 }

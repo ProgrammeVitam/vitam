@@ -32,6 +32,7 @@ public class PurgeObjectParams {
 
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("strategyId")
     private String strategyId;
 

@@ -148,10 +148,13 @@ public class VarNameAdapter {
         final Iterator<Entry<String, JsonNode>> iterator = request.fields();
         while (iterator.hasNext()) {
             final Entry<String, JsonNode> entry = iterator.next();
-            if (entry.getKey().charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR ||
-                entry.getValue().asText().charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR) {
+            if (
+                entry.getKey().charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR ||
+                entry.getValue().asText().charAt(0) == ParserTokens.DEFAULT_HASH_PREFIX_CHAR
+            ) {
                 throw new InvalidParseOperationException(
-                    "Parameter using '#' not allowed in Rename action: " + request);
+                    "Parameter using '#' not allowed in Rename action: " + request
+                );
             }
         }
     }

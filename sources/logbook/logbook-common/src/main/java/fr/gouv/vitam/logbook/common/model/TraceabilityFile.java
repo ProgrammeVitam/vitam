@@ -60,7 +60,6 @@ public class TraceabilityFile implements AutoCloseable {
     static final String SECURISATION_VERSION_LABEL = "securisationVersion";
     private static final String SECURISATION_VERSION = "V1";
 
-
     private static final byte[] LINE_SEPARATOR = "\n".getBytes();
 
     private final ZipArchiveOutputStream archive;
@@ -151,8 +150,7 @@ public class TraceabilityFile implements AutoCloseable {
      * @param endDate of the traceability process
      * @throws IOException if any error occurs while attempting to write in zip
      */
-    public void storeAdditionalInformation(long numberOfLine, String startDate,
-        String endDate) throws IOException {
+    public void storeAdditionalInformation(long numberOfLine, String startDate, String endDate) throws IOException {
         ZipArchiveEntry entry;
         entry = new ZipArchiveEntry(ADDITIONAL_INFORMATION_FILENAME);
         archive.putArchiveEntry(entry);
@@ -176,8 +174,12 @@ public class TraceabilityFile implements AutoCloseable {
      * @param currentHashMinusOneYear hash of the (Year - 1) traceability operation merkleTree root
      * @throws IOException if any error occurs while attempting to write in zip
      */
-    public void storeComputedInformation(String currentHash,
-        String previousHash, String currentHashMinusOneMonth, String currentHashMinusOneYear) throws IOException {
+    public void storeComputedInformation(
+        String currentHash,
+        String previousHash,
+        String currentHashMinusOneMonth,
+        String currentHashMinusOneYear
+    ) throws IOException {
         final ZipArchiveEntry entry = new ZipArchiveEntry(COMPUTING_INFORMATION_FILENAME);
         archive.putArchiveEntry(entry);
         archive.write(String.format("currentHash=%s", currentHash).getBytes());
@@ -189,7 +191,6 @@ public class TraceabilityFile implements AutoCloseable {
         archive.write(String.format("previousTimestampTokenMinusOneYear=%s", currentHashMinusOneYear).getBytes());
         archive.write(LINE_SEPARATOR);
         archive.closeArchiveEntry();
-
     }
 
     /**

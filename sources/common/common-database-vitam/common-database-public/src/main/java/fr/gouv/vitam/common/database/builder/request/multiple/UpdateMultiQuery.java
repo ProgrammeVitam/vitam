@@ -44,6 +44,7 @@ import java.util.function.Consumer;
  * Update: { $roots: roots, $query : query, $filter : multi, $action : action } or [ roots, query, multi, action ]
  */
 public class UpdateMultiQuery extends RequestMultiple {
+
     protected List<Action> actions = new ArrayList<>();
 
     /**
@@ -51,12 +52,14 @@ public class UpdateMultiQuery extends RequestMultiple {
      */
     public final UpdateMultiQuery resetActions() {
         if (actions != null) {
-            actions.forEach(new Consumer<Action>() {
-                @Override
-                public void accept(Action t) {
-                    t.clean();
+            actions.forEach(
+                new Consumer<Action>() {
+                    @Override
+                    public void accept(Action t) {
+                        t.clean();
+                    }
                 }
-            });
+            );
             actions.clear();
         }
         return this;
@@ -104,8 +107,7 @@ public class UpdateMultiQuery extends RequestMultiple {
      * @throws InvalidParseOperationException when query is not valid
      */
     @Override
-    public final UpdateMultiQuery setFilter(final JsonNode filterContent)
-        throws InvalidParseOperationException {
+    public final UpdateMultiQuery setFilter(final JsonNode filterContent) throws InvalidParseOperationException {
         super.setFilter(filterContent);
         return setMult(filterContent);
     }
@@ -115,12 +117,10 @@ public class UpdateMultiQuery extends RequestMultiple {
      * @return this Update
      * @throws InvalidCreateOperationException when action is not valid
      */
-    public final UpdateMultiQuery addActions(final Action... action)
-        throws InvalidCreateOperationException {
+    public final UpdateMultiQuery addActions(final Action... action) throws InvalidCreateOperationException {
         for (final Action act : action) {
             if (!act.isReady()) {
-                throw new InvalidCreateOperationException(
-                    "Action is not ready to be added: " + act.getCurrentAction());
+                throw new InvalidCreateOperationException("Action is not ready to be added: " + act.getCurrentAction());
             }
             actions.add(act);
         }
@@ -171,12 +171,10 @@ public class UpdateMultiQuery extends RequestMultiple {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("UPDATEACTION: ").append(super.toString())
-            .append("\n\tActions: ");
+        builder.append("UPDATEACTION: ").append(super.toString()).append("\n\tActions: ");
         for (final Action subaction : getActions()) {
             builder.append("\n").append(subaction);
         }
         return builder.toString();
     }
-
 }

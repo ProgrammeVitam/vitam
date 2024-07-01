@@ -45,19 +45,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class JsonLineTestUtils {
 
-    private static final TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<JsonNode>() {
-    };
+    private static final TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<JsonNode>() {};
 
     public static void assertJsonlReportsEqual(InputStream actualInputStream, InputStream expectedReportInputStream)
         throws InvalidParseOperationException {
         try (
             JsonLineGenericIterator<JsonNode> resultReportIterator = new JsonLineGenericIterator<>(
-                actualInputStream, JSON_NODE_TYPE_REFERENCE);
+                actualInputStream,
+                JSON_NODE_TYPE_REFERENCE
+            );
             JsonLineGenericIterator<JsonNode> expectedReportIterator = new JsonLineGenericIterator<>(
                 expectedReportInputStream,
-                JSON_NODE_TYPE_REFERENCE);
+                JSON_NODE_TYPE_REFERENCE
+            );
         ) {
-
             JsonAssert.assertJsonEquals(
                 JsonHandler.toJsonNode(IteratorUtils.toList(resultReportIterator)),
                 JsonHandler.toJsonNode(IteratorUtils.toList(expectedReportIterator))
@@ -70,17 +71,21 @@ public class JsonLineTestUtils {
         assertJsonlReportsEqualUnordered(new FileInputStream(actual), new FileInputStream(expected), headerLines);
     }
 
-    public static void assertJsonlReportsEqualUnordered(InputStream actualInputStream,
+    public static void assertJsonlReportsEqualUnordered(
+        InputStream actualInputStream,
         InputStream expectedReportInputStream,
-        int headerLines) {
+        int headerLines
+    ) {
         try (
             JsonLineGenericIterator<JsonNode> actualReportIterator = new JsonLineGenericIterator<>(
-                actualInputStream, JSON_NODE_TYPE_REFERENCE);
+                actualInputStream,
+                JSON_NODE_TYPE_REFERENCE
+            );
             JsonLineGenericIterator<JsonNode> expectedReportIterator = new JsonLineGenericIterator<>(
                 expectedReportInputStream,
-                JSON_NODE_TYPE_REFERENCE);
+                JSON_NODE_TYPE_REFERENCE
+            );
         ) {
-
             // Compare headers
             for (int i = 0; i < headerLines; i++) {
                 JsonAssert.assertJsonEquals(actualReportIterator.next(), expectedReportIterator.next());

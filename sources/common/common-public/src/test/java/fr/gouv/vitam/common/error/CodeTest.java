@@ -69,8 +69,9 @@ public class CodeTest {
                     c = service.getCode().charAt(i);
                     if ((c < 0x30 || c > 0x39) && (c < 0x41 || c > 0x5a)) {
                         error = true;
-                        LOGGER.error(ERROR_SERVICE + String.format(MESSAGE_CODE_RANGE, service.getCode(), service
-                            .name()));
+                        LOGGER.error(
+                            ERROR_SERVICE + String.format(MESSAGE_CODE_RANGE, service.getCode(), service.name())
+                        );
                         break;
                     }
                 }
@@ -114,14 +115,16 @@ public class CodeTest {
             if (vitamCode.getItem().length() != 2) {
                 error = true;
                 LOGGER.error(
-                    ERROR_CODE_VITAM + String.format(MESSAGE_CODE_LENGTH, vitamCode.name(), vitamCode.getItem()));
+                    ERROR_CODE_VITAM + String.format(MESSAGE_CODE_LENGTH, vitamCode.name(), vitamCode.getItem())
+                );
             }
             for (int i = 0; i < vitamCode.getItem().length(); i++) {
                 c = vitamCode.getItem().charAt(i);
                 if ((c < 0x30 || c > 0x39) && (c < 0x41 || c > 0x5a)) {
                     error = true;
-                    LOGGER.error(ERROR_CODE_VITAM + String.format(MESSAGE_CODE_RANGE, vitamCode.getItem(), vitamCode
-                        .name()));
+                    LOGGER.error(
+                        ERROR_CODE_VITAM + String.format(MESSAGE_CODE_RANGE, vitamCode.getItem(), vitamCode.name())
+                    );
                     break;
                 }
             }
@@ -138,8 +141,14 @@ public class CodeTest {
         final List<String> messages = new ArrayList<>();
         for (final ServiceName service : ServiceName.values()) {
             if (enumCodesNames.containsKey(service.getCode())) {
-                messages.add(String.format(DUPLICATE_MESSAGE, service.getCode(), service.name(), enumCodesNames
-                    .get(service.getCode())));
+                messages.add(
+                    String.format(
+                        DUPLICATE_MESSAGE,
+                        service.getCode(),
+                        service.name(),
+                        enumCodesNames.get(service.getCode())
+                    )
+                );
             } else {
                 enumCodesNames.put(service.getCode(), service.name());
             }
@@ -156,8 +165,14 @@ public class CodeTest {
         final List<String> messages = new ArrayList<>();
         for (final DomainName domain : DomainName.values()) {
             if (enumCodesNames.containsKey(domain.getCode())) {
-                messages.add(String.format(DUPLICATE_MESSAGE, domain.getCode(), domain.name(), enumCodesNames
-                    .get(domain.getCode())));
+                messages.add(
+                    String.format(
+                        DUPLICATE_MESSAGE,
+                        domain.getCode(),
+                        domain.name(),
+                        enumCodesNames.get(domain.getCode())
+                    )
+                );
             } else {
                 enumCodesNames.put(domain.getCode(), domain.name());
             }
@@ -181,7 +196,9 @@ public class CodeTest {
                 enumCodesNames.put(code, vitamCode.name());
             }
         }
-        assertTrue(ERROR_CODE_VITAM + messages.stream().map(s -> s).collect(Collectors.joining("\n")),
-            messages.isEmpty());
+        assertTrue(
+            ERROR_CODE_VITAM + messages.stream().map(s -> s).collect(Collectors.joining("\n")),
+            messages.isEmpty()
+        );
     }
 }

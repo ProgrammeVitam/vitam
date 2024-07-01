@@ -49,14 +49,12 @@ public class TypeChoiceFormat extends Format {
      * Accessor for Jackson
      * set the map of the json types allowed for the object.
      */
-    public void setChoices(
-        Map<JsonTypeName, Format> choices) {
+    public void setChoices(Map<JsonTypeName, Format> choices) {
         this.choices = choices;
     }
 
     @Override
     public void validate(JsonNode node, Consumer<String> fieldReport, ValidatorEngine validator) {
-
         JsonTypeName typeName = fromJsonNodeType(node.getNodeType());
         Format choosen = choices.get(typeName);
 
@@ -81,8 +79,7 @@ public class TypeChoiceFormat extends Format {
         builder.append("{");
         boolean notFirst = false;
         for (Map.Entry<JsonTypeName, Format> entry : choices.entrySet()) {
-            if (notFirst)
-                builder.append("}|{");
+            if (notFirst) builder.append("}|{");
             builder.append(entry.getKey());
             builder.append("-> ");
             builder.append(entry.getValue().debugInfo());
@@ -91,5 +88,4 @@ public class TypeChoiceFormat extends Format {
         builder.append("}");
         return builder.toString();
     }
-
 }

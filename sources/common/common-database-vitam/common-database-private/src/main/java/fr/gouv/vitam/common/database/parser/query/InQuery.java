@@ -42,6 +42,7 @@ import java.util.Map.Entry;
  * In and Nin queries
  */
 public class InQuery extends fr.gouv.vitam.common.database.builder.query.InQuery {
+
     /**
      * For Parsing
      *
@@ -90,5 +91,4 @@ public class InQuery extends fr.gouv.vitam.common.database.builder.query.InQuery
         currentObject = array;
         setReady(true);
     }
-
 }

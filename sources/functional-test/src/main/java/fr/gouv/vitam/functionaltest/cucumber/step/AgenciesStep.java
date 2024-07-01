@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functionaltest.cucumber.step;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
@@ -72,8 +71,6 @@ public class AgenciesStep extends CommonStep {
         return model;
     }
 
-
-
     public void setModel(JsonNode model) {
         this.model = model;
     }
@@ -82,8 +79,6 @@ public class AgenciesStep extends CommonStep {
      * generic model result
      */
     private JsonNode model;
-
-
 
     /**
      * define a sip
@@ -94,7 +89,6 @@ public class AgenciesStep extends CommonStep {
     public void a_sip_named(String fileName) {
         this.fileName = fileName;
     }
-
 
     @Then("^j'importe les services producteurs$")
     public void uploadAgency() {
@@ -114,10 +108,9 @@ public class AgenciesStep extends CommonStep {
     private void uploadAgency(Boolean expectedStatus) {
         Path sip = Paths.get(world.getBaseDirectory(), fileName);
         try (InputStream inputStream = Files.newInputStream(sip, StandardOpenOption.READ)) {
-            RequestResponse response =
-                world.getAdminClient()
-                    .createAgencies(new VitamContext(world.getTenantId()), inputStream,
-                        fileName);
+            RequestResponse response = world
+                .getAdminClient()
+                .createAgencies(new VitamContext(world.getTenantId()), inputStream, fileName);
             if (expectedStatus != null) {
                 if (expectedStatus) {
                     assertThat(response.getHttpCode()).isEqualTo(Response.Status.CREATED.getStatusCode());
@@ -134,17 +127,16 @@ public class AgenciesStep extends CommonStep {
 
     @When("^je cherche un service producteur nommé (.*)")
     public void search_contracts(String name)
-        throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException,
-        VitamClientException {
+        throws AccessExternalClientException, InvalidParseOperationException, InvalidCreateOperationException, VitamClientException {
         final fr.gouv.vitam.common.database.builder.request.single.Select select =
             new fr.gouv.vitam.common.database.builder.request.single.Select();
 
         select.setQuery(eq("Name", name));
         final JsonNode query = select.getFinalSelect();
 
-        RequestResponse<AgenciesModel> ingestResponse =
-            world.getAdminClient()
-                .findAgencies(new VitamContext(world.getTenantId()).setAccessContract("ContratTNR"), query);
+        RequestResponse<AgenciesModel> ingestResponse = world
+            .getAdminClient()
+            .findAgencies(new VitamContext(world.getTenantId()).setAccessContract("ContratTNR"), query);
 
         assertThat(ingestResponse.isOk()).isTrue();
 

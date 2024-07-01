@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.functional.administration.client.api;
 
-
 import fr.gouv.vitam.common.database.parameter.IndexParameters;
 import fr.gouv.vitam.common.database.parameter.SwitchIndexParameters;
 import fr.gouv.vitam.common.server.application.junit.ResteasyTestApplication;
@@ -40,17 +39,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.List;
 
-
 @Path("/adminmanagement/v1")
 @javax.ws.rs.ApplicationPath("webresources")
 public class ReindexationResourceMock {
+
     private final ResteasyTestApplication.ExpectedResults mock;
 
     private static final String REINDEX_URI = "/reindex";
     private static final String ALIASES_URI = "/alias";
 
-    public ReindexationResourceMock(
-        ResteasyTestApplication.ExpectedResults mock) {
+    public ReindexationResourceMock(ResteasyTestApplication.ExpectedResults mock) {
         this.mock = mock;
     }
 

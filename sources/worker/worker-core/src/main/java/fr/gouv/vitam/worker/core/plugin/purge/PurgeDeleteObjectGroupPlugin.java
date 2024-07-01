@@ -57,8 +57,7 @@ import static java.util.Collections.singletonList;
  */
 public class PurgeDeleteObjectGroupPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(PurgeDeleteObjectGroupPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PurgeDeleteObjectGroupPlugin.class);
 
     private final String actionId;
     private final PurgeDeleteService purgeDeleteService;
@@ -76,24 +75,22 @@ public class PurgeDeleteObjectGroupPlugin extends ActionHandler {
      * Test only constructor
      */
     @VisibleForTesting
-    protected PurgeDeleteObjectGroupPlugin(
-        String actionId, PurgeDeleteService purgeDeleteService) {
+    protected PurgeDeleteObjectGroupPlugin(String actionId, PurgeDeleteService purgeDeleteService) {
         this.actionId = actionId;
         this.purgeDeleteService = purgeDeleteService;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         throw new ProcessingException("No need to implements method");
     }
 
     @Override
     public List<ItemStatus> executeList(WorkerParameters param, HandlerIO handler) {
-
         try {
-
-            List<PurgeObjectGroupParams> objectGroupParams = param.getObjectMetadataList().stream()
+            List<PurgeObjectGroupParams> objectGroupParams = param
+                .getObjectMetadataList()
+                .stream()
                 .map(og -> {
                     try {
                         return JsonHandler.getFromJsonNode(og, PurgeObjectGroupParams.class);
@@ -103,59 +100,62 @@ public class PurgeDeleteObjectGroupPlugin extends ActionHandler {
                 })
                 .collect(Collectors.toList());
 
-            Map<String, String> objectGroupIdsWithStrategies = objectGroupParams.stream()
+            Map<String, String> objectGroupIdsWithStrategies = objectGroupParams
+                .stream()
                 .collect(Collectors.toMap(PurgeObjectGroupParams::getId, PurgeObjectGroupParams::getStrategyId));
 
             processObjectGroups(objectGroupIdsWithStrategies);
 
-
-            Map<String, String> objectIdsWithStrategies = objectGroupParams.stream()
+            Map<String, String> objectIdsWithStrategies = objectGroupParams
+                .stream()
                 .flatMap(objectGroup -> objectGroup.getObjects().stream())
                 .collect(Collectors.toMap(PurgeObjectParams::getId, PurgeObjectParams::getStrategyId));
 
             processObjects(objectIdsWithStrategies);
 
             return buildBulkItemStatus(param, actionId, StatusCode.OK);
-
         } catch (ProcessingStatusException e) {
             LOGGER.error("Purge of object groups failed with status " + e.getStatusCode(), e);
-            return singletonList(
-                buildItemStatus(actionId, e.getStatusCode(), e.getEventDetails()));
+            return singletonList(buildItemStatus(actionId, e.getStatusCode(), e.getEventDetails()));
         }
-
     }
 
     private void processObjectGroups(Map<String, String> objectGroupIdsWithStrategies)
         throws ProcessingStatusException {
-
         LOGGER.info("Deleting object groups [" + String.join(", ", objectGroupIdsWithStrategies.keySet()) + "]");
 
         try {
-
             purgeDeleteService.deleteObjectGroups(objectGroupIdsWithStrategies);
-
-        } catch (InvalidParseOperationException | MetaDataExecutionException | MetaDataClientServerException |
-            LogbookClientBadRequestException | StorageServerClientException | LogbookClientServerException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not delete object groups [" + String.join(", ", objectGroupIdsWithStrategies.keySet()) + "]", e);
+        } catch (
+            InvalidParseOperationException
+            | MetaDataExecutionException
+            | MetaDataClientServerException
+            | LogbookClientBadRequestException
+            | StorageServerClientException
+            | LogbookClientServerException e
+        ) {
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "Could not delete object groups [" + String.join(", ", objectGroupIdsWithStrategies.keySet()) + "]",
+                e
+            );
         }
     }
 
     private void processObjects(Map<String, String> objectIdsWithStrategies) throws ProcessingStatusException {
-
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Deleting object binaries [" + String.join(", ", objectIdsWithStrategies.keySet()) + "]");
         }
 
         try {
-
             purgeDeleteService.deleteObjects(objectIdsWithStrategies);
-
         } catch (StorageServerClientException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Could not delete object groups [" + String.join(", ", objectIdsWithStrategies.keySet()) + "]", e);
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "Could not delete object groups [" + String.join(", ", objectIdsWithStrategies.keySet()) + "]",
+                e
+            );
         }
-
     }
 
     @Override

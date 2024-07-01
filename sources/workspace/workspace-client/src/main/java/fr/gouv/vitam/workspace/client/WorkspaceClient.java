@@ -76,6 +76,7 @@ import static fr.gouv.vitam.common.model.WorkspaceConstants.FREESPACE;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 public class WorkspaceClient extends DefaultClient {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkspaceClient.class);
 
     private static final String OBJECTS = "/objects/";
@@ -86,10 +87,8 @@ public class WorkspaceClient extends DefaultClient {
     private static final String FILES_WITH_PARAMS = "/filesWithParams";
     private static final String FREESPACE_URL = "/" + FREESPACE;
 
-    private static final GenericType<List<URI>> URI_LIST_TYPE = new GenericType<>() {
-    };
-    private static final GenericType<Map<String, FileParams>> FILES_MAP_TYPE = new GenericType<>() {
-    };
+    private static final GenericType<List<URI>> URI_LIST_TYPE = new GenericType<>() {};
+    private static final GenericType<Map<String, FileParams>> FILES_MAP_TYPE = new GenericType<>() {};
 
     WorkspaceClient(WorkspaceClientFactory factory) {
         super(factory);
@@ -107,82 +106,134 @@ public class WorkspaceClient extends DefaultClient {
         }
     }
 
-    public void createContainer(String containerName)
-        throws ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+    public void createContainer(String containerName) throws ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
         try (Response response = make(post().withPath(CONTAINERS + containerName).withJsonAccept())) {
             check(response);
-        } catch (VitamClientInternalException | ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageNotFoundException
+            | ContentAddressableStorageAlreadyExistException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
     public void deleteContainer(String containerName, boolean deleteRecursive)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        try (Response response = make(
-            delete().withPath(CONTAINERS + containerName).withHeader(X_RECURSIVE, deleteRecursive).withJsonAccept())) {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
+        try (
+            Response response = make(
+                delete().withPath(CONTAINERS + containerName).withHeader(X_RECURSIVE, deleteRecursive).withJsonAccept()
+            )
+        ) {
             check(response);
-        } catch (VitamClientInternalException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageAlreadyExistException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
     public boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
         try (Response response = make(head().withPath(CONTAINERS + containerName).withJsonAccept())) {
             check(response);
             return true;
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException e) {
             LOGGER.info(e);
             return false;
-        } catch (VitamClientInternalException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
     public void createFolder(String containerName, String folderName)
         throws ContentAddressableStorageAlreadyExistException, ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                folderName);
-        try (Response response = make(
-            post().withPath(CONTAINERS + containerName + FOLDERS + folderName).withJsonAccept())) {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            folderName
+        );
+        try (
+            Response response = make(
+                post().withPath(CONTAINERS + containerName + FOLDERS + folderName).withJsonAccept()
+            )
+        ) {
             check(response);
-        } catch (ContentAddressableStorageNotFoundException | VitamClientInternalException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            ContentAddressableStorageNotFoundException
+            | VitamClientInternalException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
     public void deleteFolder(String containerName, String folderName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                folderName);
-        try (Response response = make(
-            delete().withPath(CONTAINERS + containerName + FOLDERS + folderName).withJsonAccept())) {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            folderName
+        );
+        try (
+            Response response = make(
+                delete().withPath(CONTAINERS + containerName + FOLDERS + folderName).withJsonAccept()
+            )
+        ) {
             check(response);
-        } catch (VitamClientInternalException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageAlreadyExistException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
     public boolean isExistingFolder(String containerName, String folderName)
         throws ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                folderName);
-        try (Response response = make(
-            head().withPath(CONTAINERS + containerName + FOLDERS + folderName).withJsonAccept())) {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            folderName
+        );
+        try (
+            Response response = make(
+                head().withPath(CONTAINERS + containerName + FOLDERS + folderName).withJsonAccept()
+            )
+        ) {
             check(response);
             return true;
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageBadRequestException e) {
             LOGGER.info(e);
             return false;
-        } catch (VitamClientInternalException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageAlreadyExistException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageAlreadyExistException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
@@ -194,9 +245,11 @@ public class WorkspaceClient extends DefaultClient {
 
     public void putObject(String containerName, String objectName, Object object)
         throws ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                objectName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
         VitamRequestBuilder request = post()
             .withPath(CONTAINERS + containerName + OBJECTS + objectName)
             .withBody(object)
@@ -204,16 +257,24 @@ public class WorkspaceClient extends DefaultClient {
             .withJsonAccept();
         try (Response response = make(request)) {
             check(response);
-        } catch (VitamClientInternalException | ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageNotFoundException
+            | ContentAddressableStorageAlreadyExistException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
     public void putAtomicObject(String containerName, String objectName, InputStream stream, long size)
         throws ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                objectName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
         if (size < 0) {
             throw new IllegalArgumentException("Invalid size " + size);
         }
@@ -225,22 +286,35 @@ public class WorkspaceClient extends DefaultClient {
             .withJsonAccept();
         try (Response response = make(request)) {
             check(response);
-        } catch (VitamClientInternalException | ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageNotFoundException
+            | ContentAddressableStorageAlreadyExistException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
     public Response getObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                objectName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
         Response response = null;
         try {
             response = make(get().withPath(CONTAINERS + containerName + OBJECTS + objectName).withOctetAccept());
             check(response);
             return response;
-        } catch (VitamClientInternalException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageAlreadyExistException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         } finally {
             if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
@@ -251,9 +325,11 @@ public class WorkspaceClient extends DefaultClient {
 
     public Response getObject(String containerName, String objectName, long offset, Long maxChunkSize)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                objectName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
         Response response = null;
         try {
             VitamRequestBuilder request = get()
@@ -264,7 +340,12 @@ public class WorkspaceClient extends DefaultClient {
             response = make(request);
             check(response);
             return response;
-        } catch (VitamClientInternalException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageAlreadyExistException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         } finally {
             if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
@@ -275,18 +356,28 @@ public class WorkspaceClient extends DefaultClient {
 
     public Response bulkGetObjects(String containerName, List<String> objectURIs)
         throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                objectURIs);
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            objectURIs.toArray());
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectURIs
+        );
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            objectURIs.toArray()
+        );
         Response response = null;
         try {
-            response =
-                make(get().withPath(CONTAINERS + containerName + "/objects").withBody(objectURIs).withJsonOctet());
+            response = make(
+                get().withPath(CONTAINERS + containerName + "/objects").withBody(objectURIs).withJsonOctet()
+            );
             check(response);
             return response;
-        } catch (VitamClientInternalException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageAlreadyExistException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         } finally {
             if (response != null && !SUCCESSFUL.equals(response.getStatusInfo().getFamily())) {
@@ -297,88 +388,142 @@ public class WorkspaceClient extends DefaultClient {
 
     public void deleteObject(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                objectName);
-        try (Response response = make(
-            delete().withPath(CONTAINERS + containerName + OBJECTS + objectName).withJsonAccept())) {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
+        try (
+            Response response = make(
+                delete().withPath(CONTAINERS + containerName + OBJECTS + objectName).withJsonAccept()
+            )
+        ) {
             check(response);
-        } catch (VitamClientInternalException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageAlreadyExistException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
     public boolean isExistingObject(String containerName, String objectName)
         throws ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                objectName);
-        try (Response response = make(
-            head().withPath(CONTAINERS + containerName + OBJECTS + objectName).withJsonAccept())) {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
+        try (
+            Response response = make(
+                head().withPath(CONTAINERS + containerName + OBJECTS + objectName).withJsonAccept()
+            )
+        ) {
             check(response);
             return true;
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException e) {
             LOGGER.info(e);
             return false;
-        } catch (VitamClientInternalException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
     public RequestResponse<List<URI>> getListUriDigitalObjectFromFolder(String containerName, String folderName)
         throws ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                folderName);
-        try (Response response = make(
-            get().withPath(CONTAINERS + containerName + FOLDERS + folderName).withJsonAccept())) {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            folderName
+        );
+        try (
+            Response response = make(get().withPath(CONTAINERS + containerName + FOLDERS + folderName).withJsonAccept())
+        ) {
             check(response);
             List<URI> uris = response.readEntity(URI_LIST_TYPE);
             return new RequestResponseOK().addResult(uris == null ? Collections.<URI>emptyList() : uris);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException e) {
             LOGGER.info(e);
             return new RequestResponseOK().addResult(Collections.<URI>emptyList());
-        } catch (VitamClientInternalException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
-    public RequestResponse<Map<String, FileParams>> getFilesWithParamsFromFolder(String containerName,
-        String folderName)
-        throws ContentAddressableStorageServerException {
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, folderName);
-        try (Response response = make(
-            get().withPath(CONTAINERS + containerName + FOLDERS + folderName + FILES_WITH_PARAMS).withJsonAccept())) {
+    public RequestResponse<Map<String, FileParams>> getFilesWithParamsFromFolder(
+        String containerName,
+        String folderName
+    ) throws ContentAddressableStorageServerException {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            folderName
+        );
+        try (
+            Response response = make(
+                get().withPath(CONTAINERS + containerName + FOLDERS + folderName + FILES_WITH_PARAMS).withJsonAccept()
+            )
+        ) {
             check(response);
             Map filesMap = response.readEntity(FILES_MAP_TYPE);
             return new RequestResponseOK().addResult(filesMap == null ? Collections.emptyMap() : filesMap);
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException e) {
             LOGGER.info(e);
             return new RequestResponseOK().addResult(Collections.emptyMap());
-        } catch (VitamClientInternalException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
     public void compress(String containerName, CompressInformation compressInformation)
         throws ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(), containerName);
-        try (Response response = make(
-            post().withPath(CONTAINERS + containerName).withBody(compressInformation).withJson())) {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
+        try (
+            Response response = make(
+                post().withPath(CONTAINERS + containerName).withBody(compressInformation).withJson()
+            )
+        ) {
             check(response);
-        } catch (VitamClientInternalException | ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageNotFoundException
+            | ContentAddressableStorageAlreadyExistException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
-    public void uncompressObject(String containerName, String folderName, String archiveType,
-        InputStream inputStreamObject)
-        throws ContentAddressableStorageException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                folderName, archiveType);
+    public void uncompressObject(
+        String containerName,
+        String folderName,
+        String archiveType,
+        InputStream inputStreamObject
+    ) throws ContentAddressableStorageException {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_FOLDER_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            folderName,
+            archiveType
+        );
         if (!isExistingContainer(containerName)) {
             LOGGER.debug(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
             throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
@@ -406,11 +551,20 @@ public class WorkspaceClient extends DefaultClient {
 
     public String computeObjectDigest(String containerName, String objectName, DigestType algo)
         throws ContentAddressableStorageException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                objectName, algo);
-        try (Response response = make(head().withPath(CONTAINERS + containerName + OBJECTS + objectName)
-            .withHeader(X_DIGEST_ALGORITHM, algo.getName()).withJsonAccept())) {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName,
+            algo
+        );
+        try (
+            Response response = make(
+                head()
+                    .withPath(CONTAINERS + containerName + OBJECTS + objectName)
+                    .withHeader(X_DIGEST_ALGORITHM, algo.getName())
+                    .withJsonAccept()
+            )
+        ) {
             check(response);
             return response.getHeaderString(X_DIGEST);
         } catch (VitamClientInternalException e) {
@@ -420,20 +574,27 @@ public class WorkspaceClient extends DefaultClient {
 
     RequestResponse<JsonNode> getObjectInformation(String containerName, String objectName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
-        ParametersChecker
-            .checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName,
-                objectName);
-        try (Response response = make(
-            get().withPath(CONTAINERS + containerName + OBJECTS + objectName).withJsonAccept())) {
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
+        try (
+            Response response = make(get().withPath(CONTAINERS + containerName + OBJECTS + objectName).withJsonAccept())
+        ) {
             check(response);
             return new RequestResponseOK().addResult(response.readEntity(JsonNode.class));
-        } catch (VitamClientInternalException | ContentAddressableStorageAlreadyExistException | ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException e) {
+        } catch (
+            VitamClientInternalException
+            | ContentAddressableStorageAlreadyExistException
+            | ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
-    boolean checkObject(String containerName, String objectId, String digest,
-        DigestType digestAlgorithm)
+    boolean checkObject(String containerName, String objectId, String digest, DigestType digestAlgorithm)
         throws ContentAddressableStorageException {
         return computeObjectDigest(containerName, objectId, digestAlgorithm).equals(digest);
     }
@@ -441,18 +602,25 @@ public class WorkspaceClient extends DefaultClient {
     public void purgeOldFilesInContainer(String containerName, TimeToLive timeToLive)
         throws ContentAddressableStorageServerException {
         ParametersChecker.checkParameter("Mandatory parameters", containerName, timeToLive);
-        try (Response response = make(
-            delete().withPath(CONTAINERS + containerName + OLD_FILES).withBody(timeToLive).withJson())) {
+        try (
+            Response response = make(
+                delete().withPath(CONTAINERS + containerName + OLD_FILES).withBody(timeToLive).withJson()
+            )
+        ) {
             check(response);
-        } catch (ContentAddressableStorageNotAcceptableException | ContentAddressableStorageBadRequestException | ContentAddressableStorageNotFoundException | ContentAddressableStorageAlreadyExistException | VitamClientInternalException e) {
+        } catch (
+            ContentAddressableStorageNotAcceptableException
+            | ContentAddressableStorageBadRequestException
+            | ContentAddressableStorageNotFoundException
+            | ContentAddressableStorageAlreadyExistException
+            | VitamClientInternalException e
+        ) {
             throw new ContentAddressableStorageServerException(e);
         }
     }
 
     private void check(Response response)
-        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageAlreadyExistException,
-        ContentAddressableStorageNotAcceptableException, ContentAddressableStorageBadRequestException {
+        throws ContentAddressableStorageServerException, ContentAddressableStorageNotFoundException, ContentAddressableStorageAlreadyExistException, ContentAddressableStorageNotAcceptableException, ContentAddressableStorageBadRequestException {
         Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily())) {
             return;
@@ -463,16 +631,22 @@ public class WorkspaceClient extends DefaultClient {
                 throw new ContentAddressableStorageNotFoundException(ErrorMessage.CONTAINER_NOT_FOUND.getMessage());
             case CONFLICT:
                 throw new ContentAddressableStorageAlreadyExistException(
-                    ErrorMessage.FOLDER_ALREADY_EXIST.getMessage());
+                    ErrorMessage.FOLDER_ALREADY_EXIST.getMessage()
+                );
             case BAD_REQUEST:
                 throw new ContentAddressableStorageBadRequestException(ErrorMessage.BAD_REQUEST.getMessage());
             case NOT_ACCEPTABLE:
                 throw new ContentAddressableStorageNotAcceptableException(
-                    ErrorMessage.NOT_ACCEPTABLE_FILES.getMessage());
+                    ErrorMessage.NOT_ACCEPTABLE_FILES.getMessage()
+                );
             default:
-                throw new ContentAddressableStorageServerException(String
-                    .format("Response in error with status '%d' and reason '%s'.", status.getStatusCode(),
-                        status.getReasonPhrase()));
+                throw new ContentAddressableStorageServerException(
+                    String.format(
+                        "Response in error with status '%d' and reason '%s'.",
+                        status.getStatusCode(),
+                        status.getReasonPhrase()
+                    )
+                );
         }
     }
 }

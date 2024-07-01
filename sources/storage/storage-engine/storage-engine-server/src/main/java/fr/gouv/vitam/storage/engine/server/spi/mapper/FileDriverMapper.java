@@ -61,8 +61,10 @@ public class FileDriverMapper implements DriverMapper {
 
     private FileDriverMapper() {
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(DRIVER_MAPPING_CONF_FILE),
-                FileDriverMapperConfiguration.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(DRIVER_MAPPING_CONF_FILE),
+                FileDriverMapperConfiguration.class
+            );
         } catch (final IOException exc) {
             LOGGER.error(VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_INITIALIZE), exc);
         }
@@ -78,7 +80,8 @@ public class FileDriverMapper implements DriverMapper {
     public static FileDriverMapper getInstance() throws StorageDriverMapperException {
         if (configuration == null) {
             throw new StorageDriverMapperException(
-                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_INITIALIZE));
+                VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_INITIALIZE)
+            );
         }
         return INSTANCE;
     }
@@ -112,7 +115,6 @@ public class FileDriverMapper implements DriverMapper {
             offerIds = addOfferTo(offerIdToAdd, offerIds);
         }
         persistDriverMapping(driverName, offerIds);
-
     }
 
     @Override
@@ -137,7 +139,8 @@ public class FileDriverMapper implements DriverMapper {
 
     private List<String> getOfferIdsFrom(File fileDriverMapping) throws IOException {
         final String content = com.google.common.io.Files.readFirstLine(fileDriverMapping, Charset.defaultCharset());
-        return content == null ? new ArrayList<>()
+        return content == null
+            ? new ArrayList<>()
             : Pattern.compile(configuration.getDelimiter()).splitAsStream(content).collect(Collectors.toList());
     }
 
@@ -185,14 +188,16 @@ public class FileDriverMapper implements DriverMapper {
 
     private void persistDriverMapping(String driverName, List<String> offerIds) throws StorageDriverMapperException {
         try {
-            Files.write(Paths.get(configuration.getDriverMappingPath() + driverName),
-                getContentFrom(offerIds).getBytes());
+            Files.write(
+                Paths.get(configuration.getDriverMappingPath() + driverName),
+                getContentFrom(offerIds).getBytes()
+            );
         } catch (final IOException exc) {
             final String log = VitamCodeHelper.getLogMessage(VitamCode.STORAGE_DRIVER_MAPPING_SAVE, driverName);
             LOGGER.error(
-                log + " File: " + Paths.get(configuration.getDriverMappingPath() + driverName).toAbsolutePath());
+                log + " File: " + Paths.get(configuration.getDriverMappingPath() + driverName).toAbsolutePath()
+            );
             throw new StorageDriverMapperException(log, exc);
         }
     }
-
 }

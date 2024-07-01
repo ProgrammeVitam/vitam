@@ -81,15 +81,19 @@ public class UnitGraphInfoLoader {
      * @param select the selection dsl
      * @param accessContractModel the access contract
      */
-    public Set<String> selectUnitsByQueryDslAndAccessContract(MetaDataClient metaDataClient,
-        SelectMultiQuery select, AccessContractModel accessContractModel)
-        throws InvalidParseOperationException, VitamDBException, MetaDataDocumentSizeException,
-        MetaDataExecutionException, MetaDataClientServerException, InvalidCreateOperationException {
-
+    public Set<String> selectUnitsByQueryDslAndAccessContract(
+        MetaDataClient metaDataClient,
+        SelectMultiQuery select,
+        AccessContractModel accessContractModel
+    )
+        throws InvalidParseOperationException, VitamDBException, MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException, InvalidCreateOperationException {
         // Only return document id
         select.addUsedProjection(VitamFieldsHelper.id());
-        JsonNode selectWithAccessContractFilter = AccessContractRestrictionHelper
-            .applyAccessContractRestrictionForUnitForSelect(select.getFinalSelect(), accessContractModel);
+        JsonNode selectWithAccessContractFilter =
+            AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(
+                select.getFinalSelect(),
+                accessContractModel
+            );
 
         JsonNode resultJson = metaDataClient.selectUnits(selectWithAccessContractFilter);
 
@@ -109,15 +113,15 @@ public class UnitGraphInfoLoader {
      * @param unitIds the unit ids to check
      * @param accessContractModel the access contract
      */
-    public Set<String> selectUnitsByIdsAndAccessContract(MetaDataClient metaDataClient, Set<String> unitIds,
-        AccessContractModel accessContractModel)
-        throws InvalidParseOperationException, InvalidCreateOperationException, VitamDBException,
-        MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException {
-
+    public Set<String> selectUnitsByIdsAndAccessContract(
+        MetaDataClient metaDataClient,
+        Set<String> unitIds,
+        AccessContractModel accessContractModel
+    )
+        throws InvalidParseOperationException, InvalidCreateOperationException, VitamDBException, MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException {
         Set<String> foundUnitIds = new HashSet<>();
 
         for (List<String> ids : ListUtils.partition(new ArrayList<>(unitIds), MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE)) {
-
             SelectMultiQuery select = new SelectMultiQuery();
             select.setQuery(QueryHelper.in(VitamFieldsHelper.id(), ids.toArray(new String[0])));
 
@@ -132,9 +136,7 @@ public class UnitGraphInfoLoader {
      * @param unitIds the units ids
      */
     public Map<String, UnitGraphInfo> selectAllUnitGraphByIds(MetaDataClient metaDataClient, Set<String> unitIds)
-        throws InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, MetaDataClientServerException, InvalidCreateOperationException {
-
+        throws InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException, InvalidCreateOperationException {
         // Result map
         Map<String, UnitGraphInfo> unitGraphById = new HashMap<>();
 
@@ -142,9 +144,9 @@ public class UnitGraphInfoLoader {
         Set<String> unitsToLoad = new HashSet<>(unitIds);
 
         while (!unitsToLoad.isEmpty()) {
-
             // Load units by bulk (ES $in query size is limited)
-            Set<String> bulkIds = unitsToLoad.stream()
+            Set<String> bulkIds = unitsToLoad
+                .stream()
                 .limit(MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE)
                 .collect(Collectors.toSet());
 
@@ -171,9 +173,7 @@ public class UnitGraphInfoLoader {
     }
 
     private List<UnitGraphInfo> loadBulkUnitGraph(MetaDataClient metaDataClient, Collection<String> bulkIds)
-        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException,
-        MetaDataDocumentSizeException, MetaDataClientServerException {
-
+        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataExecutionException, MetaDataDocumentSizeException, MetaDataClientServerException {
         SelectMultiQuery select = new SelectMultiQuery();
         select.setQuery(QueryHelper.in(VitamFieldsHelper.id(), bulkIds.toArray(new String[0])));
 
@@ -184,27 +184,27 @@ public class UnitGraphInfoLoader {
         fields.put(VitamFieldsHelper.unitType(), 1);
         select.setProjection(projection);
 
-        JsonNode resultJson =
-            metaDataClient.selectUnits(select.getFinalSelect()).get(RESULTS);
+        JsonNode resultJson = metaDataClient.selectUnits(select.getFinalSelect()).get(RESULTS);
 
         UnitGraphInfo[] unitGraphInfo = JsonHandler.getFromJsonNode(resultJson, UnitGraphInfo[].class);
         return Arrays.asList(unitGraphInfo);
     }
 
-    public Map<String, InheritedRuleCategoryResponseModel> loadInheritedHoldRules(MetaDataClient metaDataClient,
-        Set<String> unitsIdToRearrange)
-        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataDocumentSizeException,
-        MetaDataExecutionException, MetaDataClientServerException {
-
+    public Map<String, InheritedRuleCategoryResponseModel> loadInheritedHoldRules(
+        MetaDataClient metaDataClient,
+        Set<String> unitsIdToRearrange
+    )
+        throws InvalidCreateOperationException, InvalidParseOperationException, MetaDataDocumentSizeException, MetaDataExecutionException, MetaDataClientServerException {
         // Result map
         Map<String, InheritedRuleCategoryResponseModel> result = new HashMap<>();
 
         // Load units by bulk (ES $in query size is limited)
-        Iterator<List<String>> idIterator =
-            Iterators.partition(unitsIdToRearrange.iterator(), MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE);
+        Iterator<List<String>> idIterator = Iterators.partition(
+            unitsIdToRearrange.iterator(),
+            MAX_ELASTIC_SEARCH_IN_REQUEST_SIZE
+        );
 
         while (idIterator.hasNext()) {
-
             List<String> bulkIds = idIterator.next();
 
             SelectMultiQuery select = new SelectMultiQuery();
@@ -218,10 +218,13 @@ public class UnitGraphInfoLoader {
                 String unitId = unitJson.get(VitamFieldsHelper.id()).asText();
 
                 JsonNode inheritedRules = unitJson.get(MetadataRuleService.INHERITED_RULES);
-                UnitInheritedRulesResponseModel unitInheritedRulesResponseModel =
-                    JsonHandler.getFromJsonNode(inheritedRules, UnitInheritedRulesResponseModel.class);
-                InheritedRuleCategoryResponseModel inheritedHoldRules =
-                    unitInheritedRulesResponseModel.getRuleCategories().get(VitamConstants.TAG_RULE_HOLD);
+                UnitInheritedRulesResponseModel unitInheritedRulesResponseModel = JsonHandler.getFromJsonNode(
+                    inheritedRules,
+                    UnitInheritedRulesResponseModel.class
+                );
+                InheritedRuleCategoryResponseModel inheritedHoldRules = unitInheritedRulesResponseModel
+                    .getRuleCategories()
+                    .get(VitamConstants.TAG_RULE_HOLD);
 
                 result.put(unitId, inheritedHoldRules);
             }

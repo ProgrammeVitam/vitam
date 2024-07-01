@@ -37,6 +37,7 @@ import java.util.List;
  * Boolean Query
  */
 public class BooleanQuery extends Query {
+
     protected List<Query> queries = new ArrayList<>();
 
     protected BooleanQuery() {
@@ -59,8 +60,7 @@ public class BooleanQuery extends Query {
                 currentTokenQUERY = booleanQuery;
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    "Query " + booleanQuery + " is not a Boolean Query");
+                throw new InvalidCreateOperationException("Query " + booleanQuery + " is not a Boolean Query");
         }
     }
 
@@ -80,8 +80,7 @@ public class BooleanQuery extends Query {
      * @return the BooleanQuery
      * @throws InvalidCreateOperationException when not ready or error
      */
-    public final BooleanQuery add(final Query... queries)
-        throws InvalidCreateOperationException {
+    public final BooleanQuery add(final Query... queries) throws InvalidCreateOperationException {
         if (currentTokenQUERY != null) {
             switch (currentTokenQUERY) {
                 case AND:
@@ -90,19 +89,23 @@ public class BooleanQuery extends Query {
                     break;
                 default:
                     throw new InvalidCreateOperationException(
-                        "Requests cannot be added since this is not a boolean request: " + currentTokenQUERY);
+                        "Requests cannot be added since this is not a boolean request: " + currentTokenQUERY
+                    );
             }
         }
         final ArrayNode array = (ArrayNode) currentObject;
         for (final Query elt : queries) {
             if (!elt.isReady()) {
                 throw new InvalidCreateOperationException(
-                    "Requests cannot be added since not ready: " + elt.getCurrentQuery());
+                    "Requests cannot be added since not ready: " + elt.getCurrentQuery()
+                );
             }
             // in case sub request has those element set: not allowed
             elt.cleanDepth();
-            if ((currentTokenQUERY == QUERY.AND && elt.currentTokenQUERY == QUERY.AND) ||
-                (currentTokenQUERY == QUERY.OR && elt.currentTokenQUERY == QUERY.OR)) {
+            if (
+                (currentTokenQUERY == QUERY.AND && elt.currentTokenQUERY == QUERY.AND) ||
+                (currentTokenQUERY == QUERY.OR && elt.currentTokenQUERY == QUERY.OR)
+            ) {
                 final BooleanQuery subelts = (BooleanQuery) elt;
                 for (final Query sub : subelts.queries) {
                     this.queries.add(sub);

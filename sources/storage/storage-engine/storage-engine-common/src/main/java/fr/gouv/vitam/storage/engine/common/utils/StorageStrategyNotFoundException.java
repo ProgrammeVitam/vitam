@@ -52,5 +52,4 @@ public class StorageStrategyNotFoundException extends VitamException {
     public String getVariableName() {
         return variableName;
     }
-
 }

@@ -50,32 +50,45 @@ public class VersionHelper {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(VersionHelper.class);
 
-    private final static List<Map<String, String>> cachedComponents = new ArrayList<>();
+    private static final List<Map<String, String>> cachedComponents = new ArrayList<>();
 
-    private final static String MANIFEST_VITAM_FLAG = "Vitam-component";
+    private static final String MANIFEST_VITAM_FLAG = "Vitam-component";
 
     /**
      * Tag used to group the summary by
      */
-    public final static String MANIFEST_SUMMARY_TAG = "Scm-commit-id";
+    public static final String MANIFEST_SUMMARY_TAG = "Scm-commit-id";
 
     /**
      * Read-only list of attributes searched into the main section of the jar manifests.
      */
-    public final static List<String> MANIFEST_FIELDS =
-        Collections.unmodifiableList(Arrays.asList("Maven-groupId", "Maven-artefactId",
-            "Maven-version", "Scm-branch", "Scm-tags", MANIFEST_SUMMARY_TAG, "Scm-commit-id-abbrev", "Scm-dirty",
-            "Scm-commit-time", "Maven-build-timestamp", "Build-Jdk"));
+    public static final List<String> MANIFEST_FIELDS = Collections.unmodifiableList(
+        Arrays.asList(
+            "Maven-groupId",
+            "Maven-artefactId",
+            "Maven-version",
+            "Scm-branch",
+            "Scm-tags",
+            MANIFEST_SUMMARY_TAG,
+            "Scm-commit-id-abbrev",
+            "Scm-dirty",
+            "Scm-commit-time",
+            "Maven-build-timestamp",
+            "Build-Jdk"
+        )
+    );
 
     static {
         List<URL> resources;
         try {
-            resources =
-                Collections.list(Thread.currentThread().getContextClassLoader().getResources(JarFile.MANIFEST_NAME));
+            resources = Collections.list(
+                Thread.currentThread().getContextClassLoader().getResources(JarFile.MANIFEST_NAME)
+            );
         } catch (IOException e) {
             LOGGER.warn(
                 "Unable to open any MANIFEST.MF during the search of component versions... No component version will be available in status API.",
-                e);
+                e
+            );
             resources = new LinkedList<>();
         }
         if (resources.isEmpty()) {
@@ -90,8 +103,12 @@ public class VersionHelper {
                     cachedComponents.add(extractManifestInfo(manifest));
                 }
             } catch (Exception e) {
-                LOGGER.warn("Unable to open MANIFEST.MF (from " + resource +
-                    ") to search for the component version... Skipping component.", e);
+                LOGGER.warn(
+                    "Unable to open MANIFEST.MF (from " +
+                    resource +
+                    ") to search for the component version... Skipping component.",
+                    e
+                );
             }
         }
     }
@@ -112,9 +129,14 @@ public class VersionHelper {
      */
     public static Map<String, Long> getVersionSummary() {
         // No need to return a read-only collection here, as this map is created just there and doesn't contain mutable elements.
-        return cachedComponents.stream().collect(
-            Collectors.groupingBy(n -> n.getOrDefault(MANIFEST_SUMMARY_TAG, "<no commit id found>"),
-                Collectors.counting()));
+        return cachedComponents
+            .stream()
+            .collect(
+                Collectors.groupingBy(
+                    n -> n.getOrDefault(MANIFEST_SUMMARY_TAG, "<no commit id found>"),
+                    Collectors.counting()
+                )
+            );
     }
 
     /**
@@ -132,5 +154,4 @@ public class VersionHelper {
         LOGGER.info("Found component : {}", result);
         return Collections.unmodifiableMap(result);
     }
-
 }

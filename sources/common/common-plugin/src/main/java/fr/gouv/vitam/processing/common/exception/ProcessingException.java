@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.exception.VitamException;
  * Exception is the superclass of all VITAM processing exceptions.
  */
 public class ProcessingException extends VitamException {
+
     private static final long serialVersionUID = 6288951051488329582L;
 
     /**

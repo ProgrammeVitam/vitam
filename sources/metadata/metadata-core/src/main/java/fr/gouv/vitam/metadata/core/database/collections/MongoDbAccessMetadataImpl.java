@@ -42,8 +42,7 @@ import org.bson.Document;
  */
 public class MongoDbAccessMetadataImpl extends MongoDbAccess {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(MongoDbAccess.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MongoDbAccess.class);
 
     private final ElasticsearchAccessMetadata esClient;
 
@@ -55,9 +54,14 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
      * @param unitCollection
      * @param objectCollection
      */
-    public MongoDbAccessMetadataImpl(MongoClient mongoClient, String dbname, boolean recreate,
-        ElasticsearchAccessMetadata esClient, MetadataCollections unitCollection,
-        MetadataCollections objectCollection) {
+    public MongoDbAccessMetadataImpl(
+        MongoClient mongoClient,
+        String dbname,
+        boolean recreate,
+        ElasticsearchAccessMetadata esClient,
+        MetadataCollections unitCollection,
+        MetadataCollections objectCollection
+    ) {
         super(mongoClient, dbname);
         this.esClient = esClient;
 
@@ -85,8 +89,7 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         for (final MetadataCollections coll : MetadataCollections.values()) {
             if (coll != null && coll.getCollection() != null) {
                 @SuppressWarnings("unchecked")
-                final ListIndexesIterable<Document> list =
-                    coll.getCollection().listIndexes();
+                final ListIndexesIterable<Document> list = coll.getCollection().listIndexes();
                 for (final Document dbObject : list) {
                     builder.append(coll.getName()).append(' ').append(dbObject).append('\n');
                 }
@@ -129,12 +132,15 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         }
         for (Integer tenantId : tenantIds) {
             if (count > 0) {
-                final DeleteResult result =
-                    MetadataCollections.UNIT.getCollection().deleteMany(new Document().append("_tenant", tenantId));
+                final DeleteResult result = MetadataCollections.UNIT.getCollection()
+                    .deleteMany(new Document().append("_tenant", tenantId));
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug(MetadataCollections.UNIT.getName() + " result.result.getDeletedCount(): " + result
-                        .getDeletedCount());
+                    LOGGER.debug(
+                        MetadataCollections.UNIT.getName() +
+                        " result.result.getDeletedCount(): " +
+                        result.getDeletedCount()
+                    );
                 }
 
                 esClient.purgeIndexForTesting(MetadataCollections.UNIT, tenantId);
@@ -155,13 +161,14 @@ public class MongoDbAccessMetadataImpl extends MongoDbAccess {
         }
         for (Integer tenantId : tenantIds) {
             if (count > 0) {
-                final DeleteResult result =
-                    MetadataCollections.OBJECTGROUP.getCollection()
-                        .deleteMany(new Document().append("_tenant", tenantId));
+                final DeleteResult result = MetadataCollections.OBJECTGROUP.getCollection()
+                    .deleteMany(new Document().append("_tenant", tenantId));
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug(
-                        MetadataCollections.OBJECTGROUP.getName() + " result.result.getDeletedCount(): " + result
-                            .getDeletedCount());
+                        MetadataCollections.OBJECTGROUP.getName() +
+                        " result.result.getDeletedCount(): " +
+                        result.getDeletedCount()
+                    );
                 }
                 esClient.purgeIndexForTesting(MetadataCollections.OBJECTGROUP, tenantId);
             }

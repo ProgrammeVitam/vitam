@@ -49,8 +49,10 @@ public class CachedArchiveUnitProfileLoader {
     private final LoadingCache<String, Optional<ArchiveUnitProfileModel>> archiveUnitProfileCache;
 
     public CachedArchiveUnitProfileLoader(
-        AdminManagementClientFactory adminManagementClientFactory, int maxEntriesInCache, int cacheTimeoutInSeconds) {
-
+        AdminManagementClientFactory adminManagementClientFactory,
+        int maxEntriesInCache,
+        int cacheTimeoutInSeconds
+    ) {
         this.adminManagementClientFactory = adminManagementClientFactory;
         CacheBuilder<Object, Object> objectObjectCacheBuilder = CacheBuilder.newBuilder();
         // Max entries in cache
@@ -59,14 +61,15 @@ public class CachedArchiveUnitProfileLoader {
         objectObjectCacheBuilder.expireAfterAccess(cacheTimeoutInSeconds, TimeUnit.SECONDS);
         // Okay to GC
         objectObjectCacheBuilder.weakValues();
-        this.archiveUnitProfileCache = objectObjectCacheBuilder
-            .build(new CacheLoader<String, Optional<ArchiveUnitProfileModel>>() {
+        this.archiveUnitProfileCache = objectObjectCacheBuilder.build(
+            new CacheLoader<String, Optional<ArchiveUnitProfileModel>>() {
                 @Override
                 public Optional<ArchiveUnitProfileModel> load(String key) {
                     String aupId = key.substring(key.indexOf('/') + 1);
                     return loadArchiveUnitProfileFromAdminManagement(aupId);
                 }
-            });
+            }
+        );
     }
 
     public Optional<ArchiveUnitProfileModel> loadArchiveUnitProfile(String aupId) {
@@ -75,7 +78,6 @@ public class CachedArchiveUnitProfileLoader {
     }
 
     private Optional<ArchiveUnitProfileModel> loadArchiveUnitProfileFromAdminManagement(String aupId) {
-
         try (AdminManagementClient adminClient = adminManagementClientFactory.getClient()) {
             RequestResponse<ArchiveUnitProfileModel> aup = adminClient.findArchiveUnitProfilesByID(aupId);
             if (!aup.isOk()) {
@@ -83,7 +85,6 @@ public class CachedArchiveUnitProfileLoader {
             }
 
             return Optional.of(((RequestResponseOK<ArchiveUnitProfileModel>) aup).getFirstResult());
-
         } catch (ReferentialNotFoundException e) {
             return Optional.empty();
         } catch (AdminManagementClientServerException e) {

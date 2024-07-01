@@ -43,8 +43,9 @@ import java.io.InputStream;
  */
 public class ReclassificationQuerySchemaValidator implements DslValidator {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReclassificationQuerySchemaValidator.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ReclassificationQuerySchemaValidator.class
+    );
 
     private final Schema schema;
 
@@ -54,10 +55,16 @@ public class ReclassificationQuerySchemaValidator implements DslValidator {
      * @throws IOException thrown when the schema file is not found or invalid
      */
     public ReclassificationQuerySchemaValidator() throws IOException {
-        LOGGER.debug("Loading schema {} from {}", DslSchema.RECLASSIFICATION_QUERY.name(),
-            DslSchema.RECLASSIFICATION_QUERY.getFilename());
-        try (final InputStream schemaSource =
-            PropertiesUtils.getResourceAsStream(DslSchema.RECLASSIFICATION_QUERY.getFilename())) {
+        LOGGER.debug(
+            "Loading schema {} from {}",
+            DslSchema.RECLASSIFICATION_QUERY.name(),
+            DslSchema.RECLASSIFICATION_QUERY.getFilename()
+        );
+        try (
+            final InputStream schemaSource = PropertiesUtils.getResourceAsStream(
+                DslSchema.RECLASSIFICATION_QUERY.getFilename()
+            )
+        ) {
             schema = Schema.getSchema().loadTypes(schemaSource).build();
         }
     }
@@ -66,5 +73,4 @@ public class ReclassificationQuerySchemaValidator implements DslValidator {
     public void validate(JsonNode dsl) throws ValidationException {
         Validator.validate(schema, "DSL", dsl);
     }
-
 }

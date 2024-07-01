@@ -89,7 +89,8 @@ public class DeleteGotVersionsFinalizationPlugin extends ActionHandler {
     @VisibleForTesting
     public DeleteGotVersionsFinalizationPlugin(
         DeleteGotVersionsReportService deleteGotVersionsReportService,
-        LogbookOperationsClient logbookOperationsClient) {
+        LogbookOperationsClient logbookOperationsClient
+    ) {
         this.deleteGotVersionsReportService = deleteGotVersionsReportService;
         this.logbookOperationsClient = logbookOperationsClient;
     }
@@ -110,10 +111,7 @@ public class DeleteGotVersionsFinalizationPlugin extends ActionHandler {
     }
 
     private void storeReportToWorkspace(WorkerParameters param, HandlerIO handler)
-        throws IOException, InvalidParseOperationException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, LogbookClientException,
-        ProcessingStatusException {
-
+        throws IOException, InvalidParseOperationException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, LogbookClientException, ProcessingStatusException {
         if (deleteGotVersionsReportService.isReportWrittenInWorkspace(param.getContainerName())) {
             // Report already generated to workspace (idempotency)
             return;
@@ -122,15 +120,19 @@ public class DeleteGotVersionsFinalizationPlugin extends ActionHandler {
         try (InputStream inputRequest = handler.getInputStreamFromWorkspace("deleteGotVersionsRequest")) {
             // create operation Summary
             JsonNode result = logbookOperationsClient.selectOperationById(param.getContainerName());
-            RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK =
-                RequestResponseOK.getFromJsonNode(result);
-            LogbookOperation logbookOperationVersionModel =
-                JsonHandler
-                    .getFromJsonNode(logbookOperationVersionModelResponseOK.getFirstResult(), LogbookOperation.class);
+            RequestResponseOK<JsonNode> logbookOperationVersionModelResponseOK = RequestResponseOK.getFromJsonNode(
+                result
+            );
+            LogbookOperation logbookOperationVersionModel = JsonHandler.getFromJsonNode(
+                logbookOperationVersionModelResponseOK.getFirstResult(),
+                LogbookOperation.class
+            );
 
             // create operation Summary
-            OperationSummary operationSummary =
-                getOperationSummary(logbookOperationVersionModel, param.getContainerName());
+            OperationSummary operationSummary = getOperationSummary(
+                logbookOperationVersionModel,
+                param.getContainerName()
+            );
 
             // create report Summary
             String startDate = logbookOperationVersionModel.getEvDateTime();
@@ -138,12 +140,13 @@ public class DeleteGotVersionsFinalizationPlugin extends ActionHandler {
             ReportType reportType = ReportType.DELETE_GOT_VERSIONS;
             ReportResults vitamResults = new ReportResults();
             ObjectNode extendedInfo = JsonHandler.createObjectNode();
-            ReportSummary reportSummary =
-                new ReportSummary(startDate, endDate, reportType, vitamResults, extendedInfo);
+            ReportSummary reportSummary = new ReportSummary(startDate, endDate, reportType, vitamResults, extendedInfo);
 
             // Create context
-            DeleteGotVersionsRequest deleteGotVersionsRequest =
-                JsonHandler.getFromInputStream(inputRequest, DeleteGotVersionsRequest.class);
+            DeleteGotVersionsRequest deleteGotVersionsRequest = JsonHandler.getFromInputStream(
+                inputRequest,
+                DeleteGotVersionsRequest.class
+            );
             JsonNode context = JsonHandler.toJsonNode(deleteGotVersionsRequest);
 
             Report reportInfo = new Report(operationSummary, reportSummary, context);
@@ -161,9 +164,10 @@ public class DeleteGotVersionsFinalizationPlugin extends ActionHandler {
         LogbookEventOperation referenceEvent = events.get(events.size() - 2);
         if (!globalOutcome.equals(OK)) {
             // Get the action's event that generates the status ( PS : bypass the first result because its the step's event )
-            List<LogbookEventOperation> referenceEventsOfOutcome =
-                events.stream().filter(elmt -> elmt.getOutcome().equals(globalOutcome.name()))
-                    .collect(Collectors.toList());
+            List<LogbookEventOperation> referenceEventsOfOutcome = events
+                .stream()
+                .filter(elmt -> elmt.getOutcome().equals(globalOutcome.name()))
+                .collect(Collectors.toList());
             referenceEvent = referenceEventsOfOutcome.get(1);
         }
         JsonNode rSI = StringUtils.isNotBlank(logbook.getRightsStatementIdentifier())

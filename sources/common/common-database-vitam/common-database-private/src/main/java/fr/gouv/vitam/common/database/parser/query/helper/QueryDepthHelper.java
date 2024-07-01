@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.database.builder.query.Query;
  * Helper for Parsing and Execution
  */
 public class QueryDepthHelper extends Query {
+
     /**
      * Helper for Parsing and Execution
      */

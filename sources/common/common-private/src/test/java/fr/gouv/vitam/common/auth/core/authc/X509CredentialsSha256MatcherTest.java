@@ -40,13 +40,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class X509CredentialsSha256MatcherTest {
+
     private X509Certificate cert;
     private X509Certificate cert2;
     private X509AuthenticationToken token;
     private X509CredentialsSha256Matcher match;
 
-    byte[] certBytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9};
-    byte[] cert2Bytes = new byte[] {'[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 8};
+    byte[] certBytes = new byte[] { '[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 9 };
+    byte[] cert2Bytes = new byte[] { '[', 'B', '@', 1, 4, 0, 'c', 9, 'f', 3, 8 };
     BigInteger serial = new BigInteger("1000000000000000");
 
     @Before
@@ -59,7 +60,7 @@ public class X509CredentialsSha256MatcherTest {
         when(cert2.getEncoded()).thenReturn(cert2Bytes);
         when(cert2.getSerialNumber()).thenReturn(serial);
 
-        final X509Certificate[] clientCertChain = new X509Certificate[] {cert};
+        final X509Certificate[] clientCertChain = new X509Certificate[] { cert };
         token = new X509AuthenticationToken(clientCertChain, "XXX");
 
         match = new X509CredentialsSha256Matcher();
@@ -80,5 +81,4 @@ public class X509CredentialsSha256MatcherTest {
         final X509AuthenticationInfo info = new X509AuthenticationInfo("username", cert2, grantedIssuers, "testRealm");
         assertFalse(match.doCredentialsMatch(token, info));
     }
-
 }

@@ -54,8 +54,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class DeleteGotVersionsStoreMetadataAndLfcPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(DeleteGotVersionsStoreMetadataAndLfcPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        DeleteGotVersionsStoreMetadataAndLfcPlugin.class
+    );
 
     private static final String PLUGIN_NAME = "STORE_METADATA_AND_LFC_WORKSPACE";
 
@@ -67,7 +68,8 @@ public class DeleteGotVersionsStoreMetadataAndLfcPlugin extends ActionHandler {
 
     @VisibleForTesting
     public DeleteGotVersionsStoreMetadataAndLfcPlugin(
-        StoreMetaDataObjectGroupActionPlugin storeMetaDataObjectGroupActionPlugin) {
+        StoreMetaDataObjectGroupActionPlugin storeMetaDataObjectGroupActionPlugin
+    ) {
         this.storeMetaDataObjectGroupActionPlugin = storeMetaDataObjectGroupActionPlugin;
     }
 
@@ -81,9 +83,10 @@ public class DeleteGotVersionsStoreMetadataAndLfcPlugin extends ActionHandler {
         try {
             for (int i = 0; i < objectGroupToDeleteReportEntriesNodes.size(); i++) {
                 StatusCode statusCode = OK;
-                List<ObjectGroupToDeleteReportEntry> objectGroupToDeleteReportEntries =
-                    getFromJsonNode(objectGroupToDeleteReportEntriesNodes.get(i), new TypeReference<>() {
-                    });
+                List<ObjectGroupToDeleteReportEntry> objectGroupToDeleteReportEntries = getFromJsonNode(
+                    objectGroupToDeleteReportEntriesNodes.get(i),
+                    new TypeReference<>() {}
+                );
 
                 if (objectGroupToDeleteReportEntries.stream().anyMatch(elmt -> elmt.getStatus().equals(WARNING))) {
                     statusCode = WARNING;
@@ -96,8 +99,7 @@ public class DeleteGotVersionsStoreMetadataAndLfcPlugin extends ActionHandler {
 
             storeMetaDataObjectGroupActionPlugin.storeDocumentsWithLfc(params, handler, gotsToStore);
         } catch (VitamException e) {
-            final String errorMsg =
-                "No objectGroupToDelete entries found for Object group in distribution file.";
+            final String errorMsg = "No objectGroupToDelete entries found for Object group in distribution file.";
             ObjectNode error = createObjectNode().put("error", errorMsg);
             itemStatuses.add(buildItemStatus(PLUGIN_NAME, FATAL, error));
         }

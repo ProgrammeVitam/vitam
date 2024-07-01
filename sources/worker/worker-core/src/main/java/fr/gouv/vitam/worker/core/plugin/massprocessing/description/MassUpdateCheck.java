@@ -45,6 +45,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMessage;
 
 public class MassUpdateCheck extends ActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(MassUpdateCheck.class);
     private static final String PLUGIN_NAME = "MASS_UPDATE_CHECK";
 
@@ -62,11 +63,14 @@ public class MassUpdateCheck extends ActionHandler {
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-            List<String> internalKeyFields =
-                internalActionKeysRetriever.getInternalActionKeyFields(handler.getJsonFromWorkspace("query.json"));
+            List<String> internalKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(
+                handler.getJsonFromWorkspace("query.json")
+            );
             if (!internalKeyFields.isEmpty()) {
-                String message = String.format("Invalid DSL query: cannot contains '%s' internal field(s).",
-                    String.join(", ", internalKeyFields));
+                String message = String.format(
+                    "Invalid DSL query: cannot contains '%s' internal field(s).",
+                    String.join(", ", internalKeyFields)
+                );
                 return buildItemStatusWithMessage(PLUGIN_NAME, KO, message);
             }
 

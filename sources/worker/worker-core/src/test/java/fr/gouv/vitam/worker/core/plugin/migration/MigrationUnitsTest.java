@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.worker.core.plugin.migration;
 
-
 import com.fasterxml.jackson.databind.JsonNode;
 import fr.gouv.vitam.common.guid.GUID;
 import fr.gouv.vitam.common.guid.GUIDFactory;
@@ -41,10 +40,10 @@ import fr.gouv.vitam.common.thread.VitamThreadUtils;
 import fr.gouv.vitam.logbook.common.parameters.LogbookTypeProcess;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClient;
 import fr.gouv.vitam.logbook.lifecycles.client.LogbookLifeCyclesClientFactory;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.parameter.WorkerParameters;
 import fr.gouv.vitam.storage.engine.client.StorageClient;
 import fr.gouv.vitam.storage.engine.client.StorageClientFactory;
@@ -73,25 +72,47 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class MigrationUnitsTest {
+
     private static final int TENAN_ID = 0;
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    @Mock private MetaDataClientFactory metaDataClientFactory;
-    @Mock private MetaDataClient metaDataClient;
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Mock private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
-    @Mock private LogbookLifeCyclesClient logbookLifeCyclesClient;
+    @Rule
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
-    @Mock private StorageClientFactory storageClientFactory;
-    @Mock private StorageClient storageClient;
+    @Mock
+    private MetaDataClientFactory metaDataClientFactory;
 
-    @Mock private WorkspaceClientFactory workspaceClientFactory;
-    @Mock private WorkspaceClient workspaceClient;
+    @Mock
+    private MetaDataClient metaDataClient;
 
-    @Mock private HandlerIO handlerIO;
-    @Mock private WorkerParameters defaultWorkerParameters;
+    @Mock
+    private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
+    @Mock
+    private LogbookLifeCyclesClient logbookLifeCyclesClient;
+
+    @Mock
+    private StorageClientFactory storageClientFactory;
+
+    @Mock
+    private StorageClient storageClient;
+
+    @Mock
+    private WorkspaceClientFactory workspaceClientFactory;
+
+    @Mock
+    private WorkspaceClient workspaceClient;
+
+    @Mock
+    private HandlerIO handlerIO;
+
+    @Mock
+    private WorkerParameters defaultWorkerParameters;
+
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -111,7 +132,6 @@ public class MigrationUnitsTest {
     @Test
     @RunWithCustomExecutor
     public void should_migrate_and_save_units() throws Exception {
-
         //GIVEN
         VitamThreadUtils.getVitamSession().setTenantId(TENAN_ID);
         String containerName = GUIDFactory.newRequestIdGUID(TENAN_ID).getId();
@@ -122,18 +142,25 @@ public class MigrationUnitsTest {
         GUID guid = GUIDFactory.newGUID();
 
         RequestResponseOK<JsonNode> updateUnitRequestResponseOK = new RequestResponseOK<>();
-        updateUnitRequestResponseOK.addResult(JsonHandler.toJsonNode(new UpdateUnit(guid.getId(), StatusCode.OK,
-            UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA, "", "")));
+        updateUnitRequestResponseOK.addResult(
+            JsonHandler.toJsonNode(
+                new UpdateUnit(guid.getId(), StatusCode.OK, UpdateUnitKey.UNIT_METADATA_NO_NEW_DATA, "", "")
+            )
+        );
         when(metaDataClient.updateUnitBulk(any())).thenReturn(updateUnitRequestResponseOK);
 
-        MigrationUnits migrationUnits =
-            new MigrationUnits(metaDataClientFactory, logbookLifeCyclesClientFactory, storageClientFactory);
+        MigrationUnits migrationUnits = new MigrationUnits(
+            metaDataClientFactory,
+            logbookLifeCyclesClientFactory,
+            storageClientFactory
+        );
         when(defaultWorkerParameters.getContainerName()).thenReturn(containerName);
         when(defaultWorkerParameters.getObjectName()).thenReturn(guid.getId());
 
-        RequestResponseOK<JsonNode> unitResponse = JsonHandler
-            .getFromInputStream(getClass().getResourceAsStream("/migration/resultRawMetadata.json"),
-                RequestResponseOK.class);
+        RequestResponseOK<JsonNode> unitResponse = JsonHandler.getFromInputStream(
+            getClass().getResourceAsStream("/migration/resultRawMetadata.json"),
+            RequestResponseOK.class
+        );
         when(metaDataClient.getUnitByIdRaw(guid.getId())).thenReturn(unitResponse);
 
         //WHEN
@@ -141,8 +168,11 @@ public class MigrationUnitsTest {
 
         //THEN
         assertThat(itemStatuses).extracting(ItemStatus::getGlobalStatus).contains(StatusCode.OK);
-        verify(storageClient).storeFileFromWorkspace(eq("default-fake"), eq(DataCategory.UNIT),
+        verify(storageClient).storeFileFromWorkspace(
+            eq("default-fake"),
+            eq(DataCategory.UNIT),
             eq(guid.getId() + ".json"),
-            any(ObjectDescription.class));
+            any(ObjectDescription.class)
+        );
     }
 }

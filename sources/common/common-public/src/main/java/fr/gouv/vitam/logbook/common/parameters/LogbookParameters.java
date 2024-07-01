@@ -36,7 +36,6 @@ import java.util.Map;
  * Logbook parameters
  */
 public interface LogbookParameters extends VitamParameter<LogbookParameterName> {
-
     /**
      * The EventDateTime is set by the Logbook methods during creation or append
      *
@@ -123,8 +122,13 @@ public interface LogbookParameters extends VitamParameter<LogbookParameterName> 
      * @param params the additional parameters for the message if any (may be null)
      * @return this
      */
-    LogbookParameters setFinalStatus(String handlerId, String subTaskId,
-        StatusCode code, String additionalMessage, String... params);
+    LogbookParameters setFinalStatus(
+        String handlerId,
+        String subTaskId,
+        StatusCode code,
+        String additionalMessage,
+        String... params
+    );
 
     /**
      * Update the current LogbookParameters with status and message
@@ -135,7 +139,5 @@ public interface LogbookParameters extends VitamParameter<LogbookParameterName> 
      * @param params the additional parameters for the message if any (may be null)
      * @return this
      */
-    LogbookParameters setBeginningLog(String handlerId, String subTaskId, String additionalMessage,
-        String... params);
-
+    LogbookParameters setBeginningLog(String handlerId, String subTaskId, String additionalMessage, String... params);
 }

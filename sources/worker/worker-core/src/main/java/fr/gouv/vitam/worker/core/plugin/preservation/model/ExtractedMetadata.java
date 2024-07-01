@@ -37,7 +37,6 @@ public class ExtractedMetadata {
     @JsonProperty("RawMetadata")
     private String rawMetadata;
 
-
     public ExtractedMetadata() {
         // Empty constructor for deserialization
     }

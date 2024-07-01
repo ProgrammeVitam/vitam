@@ -38,21 +38,23 @@ import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class FieldHistoryManager {
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(FieldHistoryManager.class);
 
     private final Map<String, ChangesHistory> triggers = new HashMap<>();
 
-
     public FieldHistoryManager(String fileNameTriggersConfig) {
         try {
             for (HistoryTriggerConfig config : JsonHandler.getFromInputStream(
-                PropertiesUtils.getResourceAsStream(fileNameTriggersConfig), HistoryTriggerConfig[].class)) {
+                PropertiesUtils.getResourceAsStream(fileNameTriggersConfig),
+                HistoryTriggerConfig[].class
+            )) {
                 if (triggers.get(config.getFieldPathTriggeredForHistory()) == null) {
-                    triggers.put(config.getFieldPathTriggeredForHistory(),
-                        new ChangesHistory(config.getObjectPathForHistory()));
+                    triggers.put(
+                        config.getFieldPathTriggeredForHistory(),
+                        new ChangesHistory(config.getObjectPathForHistory())
+                    );
                 }
             }
         } catch (InvalidParseOperationException | FileNotFoundException e) {
@@ -60,7 +62,6 @@ public class FieldHistoryManager {
             throw new ChangesTriggerConfigFileException(e);
         }
     }
-
 
     public void trigger(JsonNode unitBeforeChanges, JsonNode unitAfterChanges) {
         for (Map.Entry<String, ChangesHistory> trigger : triggers.entrySet()) {
@@ -70,15 +71,16 @@ public class FieldHistoryManager {
         }
     }
 
-
-    private boolean isUpdatedFieldForHistory(String fieldPathForHistory, JsonNode unitBeforeUpdate,
-        JsonNode unitAfterUpdate) {
+    private boolean isUpdatedFieldForHistory(
+        String fieldPathForHistory,
+        JsonNode unitBeforeUpdate,
+        JsonNode unitAfterUpdate
+    ) {
         String valueBeforeUpdate = getValue(fieldPathForHistory, unitBeforeUpdate);
         String valueAfterUpdate = getValue(fieldPathForHistory, unitAfterUpdate);
 
         return !StringUtils.equals(valueBeforeUpdate, valueAfterUpdate);
     }
-
 
     private String getValue(String fieldForHistorical, JsonNode unit) {
         JsonNode node = JsonHandler.findNode(unit, fieldForHistorical);
@@ -89,5 +91,4 @@ public class FieldHistoryManager {
 
         return node.asText();
     }
-
 }

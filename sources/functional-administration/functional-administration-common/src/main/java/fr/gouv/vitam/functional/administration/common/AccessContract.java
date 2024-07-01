@@ -37,6 +37,7 @@ import java.util.Set;
  * Defines an Access contract model for SIP transfer control. </BR>
  */
 public class AccessContract extends VitamDocument<AccessContract> {
+
     /**
      * the contract id
      */
@@ -76,12 +77,10 @@ public class AccessContract extends VitamDocument<AccessContract> {
      */
     public static final String DEACTIVATIONDATE = "DeactivationDate";
 
-
     /**
      * Empty Constructor
      */
-    public AccessContract() {
-    }
+    public AccessContract() {}
 
     /**
      * Constructor
@@ -167,7 +166,6 @@ public class AccessContract extends VitamDocument<AccessContract> {
         return this;
     }
 
-
     /**
      * Get the contract status
      *
@@ -195,7 +193,6 @@ public class AccessContract extends VitamDocument<AccessContract> {
         append(STATUS, status.name());
         return this;
     }
-
 
     /**
      * @return collection of originating agencies
@@ -278,5 +275,4 @@ public class AccessContract extends VitamDocument<AccessContract> {
         append(DEACTIVATIONDATE, deactivationdate);
         return this;
     }
-
 }

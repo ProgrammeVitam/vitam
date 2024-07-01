@@ -53,32 +53,27 @@ public final class JsonSorter {
      */
     @VisibleForTesting
     public static void sortJsonEntriesByKeys(JsonNode jsonNode, List<String> orderedKeys) {
-
         /*
          * Missing field < null field < field="A" < field = "Z"
          *
          * eg. [{"key1":"a","key2":"c"},{"key1":"a","key2":"b"}] -> [{"key1":"a","key2":"b"},{"key1":"a","key2":"c"}]
          */
 
-        if (jsonNode == null)
-            return;
+        if (jsonNode == null) return;
 
-        for (Iterator<JsonNode> it = jsonNode.elements(); it.hasNext(); ) {
+        for (Iterator<JsonNode> it = jsonNode.elements(); it.hasNext();) {
             JsonNode value = it.next();
             sortJsonEntriesByKeys(value, orderedKeys);
         }
 
         if (jsonNode.isArray() && jsonNode.size() > 1 && jsonNode.get(0).isObject()) {
-
             ArrayNode arrayNode = (ArrayNode) jsonNode;
 
             List<ObjectNode> items = new ArrayList<>();
             jsonNode.forEach(i -> items.add((ObjectNode) i));
 
             items.sort((node1, node2) -> {
-
                 for (String sortKey : orderedKeys) {
-
                     JsonNode jsonValue1 = node1.get(sortKey);
                     JsonNode jsonValue2 = node2.get(sortKey);
 
@@ -89,7 +84,6 @@ public final class JsonSorter {
                     } else if (jsonValue2 == null) {
                         return 1;
                     } else {
-
                         if (jsonValue1.isNull() && jsonValue2.isNull()) {
                             // Skip
                         } else if (jsonValue1.isNull()) {
@@ -97,11 +91,8 @@ public final class JsonSorter {
                         } else if (jsonValue2.isNull()) {
                             return 1;
                         } else {
-
                             int sort = jsonValue1.asText().compareTo(node2.get(sortKey).asText());
-                            if (sort != 0)
-                                return sort;
-
+                            if (sort != 0) return sort;
                         }
                     }
                 }

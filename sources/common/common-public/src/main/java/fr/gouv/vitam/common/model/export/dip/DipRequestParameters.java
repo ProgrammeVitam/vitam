@@ -63,7 +63,6 @@ public class DipRequestParameters {
     @JsonProperty(AUTHORIZATION_REQUEST_REPLY_IDENTIFIER)
     private String authorizationRequestReplyIdentifier;
 
-
     public String getArchivalAgreement() {
         return archivalAgreement;
     }

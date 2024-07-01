@@ -51,10 +51,8 @@ public class MultiplexedStreamReader implements AutoCloseable {
     }
 
     public Optional<ExactSizeInputStream> readNextEntry() throws IOException {
-
         long size = dataInputStream.readLong();
         if (size == EOF_MARKER) {
-
             if (dataInputStream.read() != EOF) {
                 throw new IOException("Expected EOF");
             }
@@ -63,13 +61,7 @@ public class MultiplexedStreamReader implements AutoCloseable {
         }
 
         return Optional.of(
-            new ExactSizeInputStream(
-                new BoundedInputStream(
-                    new CloseShieldInputStream(dataInputStream),
-                    size
-                ),
-                size
-            )
+            new ExactSizeInputStream(new BoundedInputStream(new CloseShieldInputStream(dataInputStream), size), size)
         );
     }
 

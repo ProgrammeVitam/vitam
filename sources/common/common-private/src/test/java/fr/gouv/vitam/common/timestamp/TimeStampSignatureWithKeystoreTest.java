@@ -56,24 +56,24 @@ public class TimeStampSignatureWithKeystoreTest {
 
     @Before
     public void init()
-        throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException,
-        IOException, URISyntaxException {
+        throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, URISyntaxException {
         final URL url = this.getClass().getResource("/tsa.p12");
-        timeStampSignatureWithKeystore =
-            new TimeStampSignatureWithKeystore(new File(url.toURI()), "1234".toCharArray());
+        timeStampSignatureWithKeystore = new TimeStampSignatureWithKeystore(
+            new File(url.toURI()),
+            "1234".toCharArray()
+        );
     }
 
     @Test
     public void should_fail_if_keystore_has_many_aliases()
-        throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException,
-        IOException {
+        throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException {
         // Given
         final URL url = this.getClass().getResource("/keystore_with_multiple_key.p12");
 
         // When / Then
-        assertThatThrownBy(
-            () -> new TimeStampSignatureWithKeystore(new File(url.toURI()), "secret".toCharArray()))
-            .isInstanceOf(IllegalArgumentException.class).hasMessage("Keystore has many key");
+        assertThatThrownBy(() -> new TimeStampSignatureWithKeystore(new File(url.toURI()), "secret".toCharArray()))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("Keystore has many key");
     }
 
     @Test
@@ -82,7 +82,7 @@ public class TimeStampSignatureWithKeystoreTest {
         // Given
         final TimeStampRequestGenerator reqGen = new TimeStampRequestGenerator();
         reqGen.setCertReq(true);
-        final byte[] hash = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        final byte[] hash = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         final BigInteger nonce = BigInteger.TEN;
         final TimeStampRequest request = reqGen.generate(TSPAlgorithms.SHA1, hash, nonce);
 
@@ -97,5 +97,4 @@ public class TimeStampSignatureWithKeystoreTest {
         assertThat(timeStampToken.getTimeStampInfo().getMessageImprintDigest()).isEqualTo(hash);
         assertThat(timeStampToken.getCertificates().getMatches(null)).hasSize(2);
     }
-
 }

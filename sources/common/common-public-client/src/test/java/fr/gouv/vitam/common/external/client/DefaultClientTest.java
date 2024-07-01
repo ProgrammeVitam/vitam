@@ -66,19 +66,19 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class DefaultClientTest extends ResteasyTestApplication {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(DefaultClientTest.class);
     private static final String RESOURCE_PATH = "/vitam-test/v1";
 
-    private final static ExpectedResults mock = mock(ExpectedResults.class);
+    private static final ExpectedResults mock = mock(ExpectedResults.class);
 
     private static DefaultClient client;
 
-    static TestVitamClientFactory
-        factory = new TestVitamClientFactory<DefaultClient>(
-        1, RESOURCE_PATH);
-    public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(DefaultClientTest.class, factory);
-
+    static TestVitamClientFactory factory = new TestVitamClientFactory<DefaultClient>(1, RESOURCE_PATH);
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        DefaultClientTest.class,
+        factory
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Throwable {
@@ -105,6 +105,7 @@ public class DefaultClientTest extends ResteasyTestApplication {
     @Path(RESOURCE_PATH)
     @javax.ws.rs.ApplicationPath("webresources")
     public static class MockResource extends ApplicationStatusResource {
+
         private final ExpectedResults mock;
 
         public MockResource(ExpectedResults mock) {
@@ -130,19 +131,23 @@ public class DefaultClientTest extends ResteasyTestApplication {
     @Test
     public void constructorWithGivenClient() throws VitamClientException {
         final Client mock = mock(Client.class);
-        final TestVitamClientFactory<DefaultClient> testMockFactory =
-            new TestVitamClientFactory<>(vitamServerTestRunner.getBusinessPort(), RESOURCE_PATH, mock);
+        final TestVitamClientFactory<DefaultClient> testMockFactory = new TestVitamClientFactory<>(
+            vitamServerTestRunner.getBusinessPort(),
+            RESOURCE_PATH,
+            mock
+        );
         try (DefaultClient testClient = testMockFactory.getClient()) {
             assertEquals(mock, testClient.getClient());
-            assertEquals("http://localhost:" + vitamServerTestRunner.getBusinessPort() + client.getResourcePath(),
-                testClient.getServiceUrl());
+            assertEquals(
+                "http://localhost:" + vitamServerTestRunner.getBusinessPort() + client.getResourcePath(),
+                testClient.getServiceUrl()
+            );
         }
     }
 
     @Test
     public void statusExecutionWithBody() throws Exception {
-        when(mock.get()).thenReturn(
-            Response.status(Response.Status.NO_CONTENT).build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.NO_CONTENT).build());
         client.checkStatus();
         assertTrue("no exception".length() > 0);
         assertTrue(client.getClientFactory().getChunkedMode());
@@ -155,35 +160,36 @@ public class DefaultClientTest extends ResteasyTestApplication {
     @Test
     public void statusExecutionThroughPerformRequest() throws Exception {
         when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
+            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build()
+        );
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("X-Test", "testvalue");
         LOGGER.warn("Coinfig: " + client.getClientFactory().getDefaultConfigCient());
-        Response message =
-            client.make(
-                VitamRequestBuilder.get().withPath(BasicClient.STATUS_URL).withHeaders(headers).withJsonAccept());
+        Response message = client.make(
+            VitamRequestBuilder.get().withPath(BasicClient.STATUS_URL).withHeaders(headers).withJsonAccept()
+        );
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
         when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
+            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build()
+        );
         message = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
         when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
+            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build()
+        );
         message = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept().withChunckedMode(true));
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
         when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
+            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build()
+        );
         message = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
         when(mock.get()).thenReturn(
-            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
-                .build());
-        message =
-            client.make(VitamRequestBuilder.get().withPath("/status").withJson().withHeaders(headers).withBody("{}"));
+            Response.status(Response.Status.OK).entity("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").build()
+        );
+        message = client.make(
+            VitamRequestBuilder.get().withPath("/status").withJson().withHeaders(headers).withBody("{}")
+        );
         assertEquals(Response.Status.OK.getStatusCode(), message.getStatus());
     }
 
@@ -240,8 +246,7 @@ public class DefaultClientTest extends ResteasyTestApplication {
         }
         try {
             when(mock.get()).thenThrow(new NotFoundException());
-            response =
-                client.make(VitamRequestBuilder.get().withPath("/statusNotFound").withJsonAccept());
+            response = client.make(VitamRequestBuilder.get().withPath("/statusNotFound").withJsonAccept());
             assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus());
         } catch (final Exception e) {
             // Ignore
@@ -249,24 +254,32 @@ public class DefaultClientTest extends ResteasyTestApplication {
         // try to get the retry when unavailable host
         vitamServerTestRunner.stop();
         try {
-            response =
-                client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
+            response = client.make(VitamRequestBuilder.get().withPath("/status").withJsonAccept());
             fail("Should generate an exception");
         } catch (final VitamClientInternalException e) {
             // Ignore
             LOGGER.info(e);
         }
         try {
-            response = client.make(VitamRequestBuilder.get().withPath("/status").withJson()
-                .withBody("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}"));
+            response = client.make(
+                VitamRequestBuilder.get()
+                    .withPath("/status")
+                    .withJson()
+                    .withBody("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
+            );
             fail("Should generate an exception");
         } catch (final VitamClientInternalException e) {
             // Ignore
             LOGGER.info(e);
         }
         try {
-            response = client.make(VitamRequestBuilder.get().withPath("/status").withJson()
-                .withBody("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}").withChunckedMode(true));
+            response = client.make(
+                VitamRequestBuilder.get()
+                    .withPath("/status")
+                    .withJson()
+                    .withBody("{\"pid\":\"1\",\"name\":\"name1\", \"role\":\"role1\"}")
+                    .withChunckedMode(true)
+            );
             fail("Should generate an exception");
         } catch (final VitamClientInternalException e) {
             // Ignore

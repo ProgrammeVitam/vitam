@@ -30,6 +30,7 @@ package fr.gouv.vitam.storage.engine.common.exception;
  * Exception thrown when any unwilling technical exception occurs
  */
 public class StorageTechnicalException extends StorageException {
+
     /**
      *
      */

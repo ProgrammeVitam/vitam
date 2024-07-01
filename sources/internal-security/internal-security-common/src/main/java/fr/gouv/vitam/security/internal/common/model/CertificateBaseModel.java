@@ -63,7 +63,7 @@ public class CertificateBaseModel {
     private byte[] certificate;
 
     @JsonProperty(STATUS_TAG)
-    private String certificateStatus = CertificateStatus.VALID.name();  //Default to 'VALID'
+    private String certificateStatus = CertificateStatus.VALID.name(); //Default to 'VALID'
 
     @JsonProperty(EXPIRATION_DATE_TAG)
     private String expirationDate;
@@ -71,8 +71,7 @@ public class CertificateBaseModel {
     @JsonProperty(REVOCATION_DATE_TAG)
     private String revocationDate;
 
-    public CertificateBaseModel() {
-    }
+    public CertificateBaseModel() {}
 
     public String getId() {
         return id;

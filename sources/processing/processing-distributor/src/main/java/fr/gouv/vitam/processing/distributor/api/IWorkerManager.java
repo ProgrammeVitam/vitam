@@ -45,7 +45,6 @@ import java.util.List;
  * Manage the parallelism calls to worker in the same distributor
  */
 public interface IWorkerManager {
-
     /**
      * VitamLogger
      */
@@ -75,17 +74,23 @@ public interface IWorkerManager {
         // Load the list of worker from database
         // for now it is a file content json data
         try {
-            List<WorkerBean> workerBeans =
-                JsonHandler.getFromFileAsTypeReference(registerWorkerFile, new TypeReference<List<WorkerBean>>() {
-                });
+            List<WorkerBean> workerBeans = JsonHandler.getFromFileAsTypeReference(
+                registerWorkerFile,
+                new TypeReference<List<WorkerBean>>() {}
+            );
             for (WorkerBean workerBean : workerBeans) {
                 String workerId = workerBean.getWorkerId();
                 String familyId = workerBean.getFamily();
                 // Ignore if the familyId or the workerId is null
                 if (familyId == null || workerId == null) {
                     // Mandatory argument missing : Continue with the next worker
-                    LOGGER.error("Mandatory arguments missing: family = " + familyId + ", worker= " + workerId +
-                        ". Continue with next workers");
+                    LOGGER.error(
+                        "Mandatory arguments missing: family = " +
+                        familyId +
+                        ", worker= " +
+                        workerId +
+                        ". Continue with next workers"
+                    );
                     continue;
                 }
                 WorkerRemoteConfiguration config = workerBean.getConfiguration();
@@ -107,7 +112,6 @@ public interface IWorkerManager {
         // Backup worker list to file
         marshallToDB();
     }
-
 
     boolean checkStatusWorker(String serverHost, int serverPort);
 
@@ -139,8 +143,7 @@ public interface IWorkerManager {
      * @throws WorkerFamilyNotFoundException : when the family is unknown
      * @throws IOException if IOException occurs
      */
-    void unregisterWorker(String familyId, String workerId)
-        throws WorkerFamilyNotFoundException, IOException;
+    void unregisterWorker(String familyId, String workerId) throws WorkerFamilyNotFoundException, IOException;
 
     /**
      * Marshall to Database

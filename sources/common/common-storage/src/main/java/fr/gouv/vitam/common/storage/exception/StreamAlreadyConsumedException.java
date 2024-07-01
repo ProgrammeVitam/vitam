@@ -29,6 +29,7 @@ package fr.gouv.vitam.common.storage.exception;
 import java.io.IOException;
 
 public class StreamAlreadyConsumedException extends IOException {
+
     public StreamAlreadyConsumedException(String s) {
         super(s);
     }

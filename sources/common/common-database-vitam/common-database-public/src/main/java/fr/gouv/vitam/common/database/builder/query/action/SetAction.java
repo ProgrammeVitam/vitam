@@ -44,6 +44,7 @@ import java.util.Map.Entry;
  * Set Action: $set : { name : value, name : value, ... }
  */
 public class SetAction extends Action {
+
     private static final String CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME =
         " cannot be updated with empty variable name";
     private static final String CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION =
@@ -63,8 +64,7 @@ public class SetAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetAction(final String variableName, final String value)
-        throws InvalidCreateOperationException {
+    public SetAction(final String variableName, final String value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.SET, variableName, value);
         currentUPDATEACTION = UPDATEACTION.SET;
@@ -78,8 +78,7 @@ public class SetAction extends Action {
      * @param value key value as a list of values
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetAction(final String variableName, final List<?> value)
-        throws InvalidCreateOperationException {
+    public SetAction(final String variableName, final List<?> value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.SET, variableName, value);
         currentUPDATEACTION = UPDATEACTION.SET;
@@ -92,11 +91,9 @@ public class SetAction extends Action {
      * @param variableNameValue map of key and Value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetAction(final Map<String, ?> variableNameValue)
-        throws InvalidCreateOperationException {
+    public SetAction(final Map<String, ?> variableNameValue) throws InvalidCreateOperationException {
         super();
-        currentObject =
-            ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
+        currentObject = ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
         final ObjectNode node = (ObjectNode) currentObject;
         for (final Entry<String, ?> entry : variableNameValue.entrySet()) {
             final String name = entry.getKey();
@@ -121,12 +118,9 @@ public class SetAction extends Action {
      * @param updateData ObjectNode natively
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetAction(final ObjectNode updateData)
-        throws InvalidCreateOperationException {
+    public SetAction(final ObjectNode updateData) throws InvalidCreateOperationException {
         super();
-
-        currentObject =
-            ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
+        currentObject = ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
         final ObjectNode node = (ObjectNode) currentObject;
 
         Iterator<String> iterator = updateData.fieldNames();
@@ -150,8 +144,7 @@ public class SetAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetAction(final String variableName, final long value)
-        throws InvalidCreateOperationException {
+    public SetAction(final String variableName, final long value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.SET, variableName, value);
         currentUPDATEACTION = UPDATEACTION.SET;
@@ -165,8 +158,7 @@ public class SetAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetAction(final String variableName, final boolean value)
-        throws InvalidCreateOperationException {
+    public SetAction(final String variableName, final boolean value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.SET, variableName, value);
         currentUPDATEACTION = UPDATEACTION.SET;
@@ -180,8 +172,7 @@ public class SetAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetAction(final String variableName, final double value)
-        throws InvalidCreateOperationException {
+    public SetAction(final String variableName, final double value) throws InvalidCreateOperationException {
         super();
         createActionVariableValue(UPDATEACTION.SET, variableName, value);
         currentUPDATEACTION = UPDATEACTION.SET;
@@ -195,20 +186,19 @@ public class SetAction extends Action {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public SetAction(final String variableName, final Date value)
-        throws InvalidCreateOperationException {
+    public SetAction(final String variableName, final Date value) throws InvalidCreateOperationException {
         super();
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                ACTION + currentUPDATEACTION + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME2);
+                ACTION + currentUPDATEACTION + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME2
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
         } catch (final InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
-        currentObject =
-            ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
+        currentObject = ((ObjectNode) currentObject).putObject(UPDATEACTION.SET.exactToken());
         final ObjectNode node = (ObjectNode) currentObject;
         node.set(variableName, GlobalDatas.getDate(value));
         currentUPDATEACTION = UPDATEACTION.SET;
@@ -223,15 +213,16 @@ public class SetAction extends Action {
      * @return the SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final SetAction add(final String variableName, final String value)
-        throws InvalidCreateOperationException {
+    public final SetAction add(final String variableName, final String value) throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -251,15 +242,16 @@ public class SetAction extends Action {
      * @return the SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final SetAction add(final String variableName, final boolean value)
-        throws InvalidCreateOperationException {
+    public final SetAction add(final String variableName, final boolean value) throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -278,15 +270,16 @@ public class SetAction extends Action {
      * @return the SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final SetAction add(final String variableName, final long value)
-        throws InvalidCreateOperationException {
+    public final SetAction add(final String variableName, final long value) throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -305,15 +298,16 @@ public class SetAction extends Action {
      * @return the SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final SetAction add(final String variableName, final double value)
-        throws InvalidCreateOperationException {
+    public final SetAction add(final String variableName, final double value) throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -332,15 +326,16 @@ public class SetAction extends Action {
      * @return the SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final SetAction add(final String variableName, final Date value)
-        throws InvalidCreateOperationException {
+    public final SetAction add(final String variableName, final Date value) throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -359,19 +354,19 @@ public class SetAction extends Action {
      * @return the SetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final SetAction add(final String variableName, final List<?> values)
-        throws InvalidCreateOperationException {
+    public final SetAction add(final String variableName, final List<?> values) throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.SET) {
             throw new InvalidCreateOperationException(
-                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION);
+                CANNOT_ADD_A_SET_ELEMENT_SINCE_THIS_IS_NOT_A_SET_ACTION + currentUPDATEACTION
+            );
         }
         if (variableName == null || variableName.trim().isEmpty()) {
             throw new InvalidCreateOperationException(
-                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME);
+                ACTION + currentUPDATEACTION + CANNOT_BE_UPDATED_WITH_EMPTY_VARIABLE_NAME
+            );
         }
         if (values == null) {
-            throw new InvalidCreateOperationException(
-                ACTION + currentUPDATEACTION + " cannot update with null list");
+            throw new InvalidCreateOperationException(ACTION + currentUPDATEACTION + " cannot update with null list");
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);

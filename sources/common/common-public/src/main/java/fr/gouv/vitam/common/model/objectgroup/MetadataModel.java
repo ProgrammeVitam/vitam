@@ -41,12 +41,16 @@ public class MetadataModel {
 
     @JsonProperty("Document")
     private Map<String, Object> document;
+
     @JsonProperty("Text")
     private Map<String, Object> text;
+
     @JsonProperty("Image")
     private Map<String, Object> image;
+
     @JsonProperty("Audio")
     private Map<String, Object> audio;
+
     @JsonProperty("Video")
     private Map<String, Object> video;
 
@@ -105,5 +109,4 @@ public class MetadataModel {
         }
         this.any.put(key, value);
     }
-
 }

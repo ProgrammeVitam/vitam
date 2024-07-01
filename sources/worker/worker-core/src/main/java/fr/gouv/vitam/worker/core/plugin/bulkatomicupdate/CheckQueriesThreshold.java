@@ -51,8 +51,7 @@ public class CheckQueriesThreshold extends ActionHandler {
     private static final String CHECK_QUERIES_THRESHOLD_PLUGIN_NAME = "CHECK_QUERIES_THRESHOLD";
     private static final String QUERY_NAME_IN = "query.json";
 
-    public CheckQueriesThreshold() {
-    }
+    public CheckQueriesThreshold() {}
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
@@ -61,21 +60,29 @@ public class CheckQueriesThreshold extends ActionHandler {
         ArrayNode queries = (ArrayNode) queryNode.get(BulkAtomicUpdateModelUtils.QUERIES);
 
         final long total = queries.size();
-        final long threshold = hasThresholdParameter ? queryNode.get(BulkAtomicUpdateModelUtils.THRESHOLD).asLong() :
-            DEFAULT_THRESHOLD;
+        final long threshold = hasThresholdParameter
+            ? queryNode.get(BulkAtomicUpdateModelUtils.THRESHOLD).asLong()
+            : DEFAULT_THRESHOLD;
 
         if (total > threshold) {
             ObjectNode eventDetails = JsonHandler.createObjectNode();
-            eventDetails
-                .put("error", String.format("Too many queries found. Threshold=%d, found=%d", threshold, total));
+            eventDetails.put(
+                "error",
+                String.format("Too many queries found. Threshold=%d, found=%d", threshold, total)
+            );
             return buildItemStatus(CHECK_QUERIES_THRESHOLD_PLUGIN_NAME, StatusCode.KO, eventDetails);
         }
 
         if (total > DEFAULT_THRESHOLD) {
             ObjectNode eventDetails = JsonHandler.createObjectNode();
-            eventDetails
-                .put("warning", String.format("Queries count exceeds default threshold. Default threshold=%d, found=%d",
-                    DEFAULT_THRESHOLD, total));
+            eventDetails.put(
+                "warning",
+                String.format(
+                    "Queries count exceeds default threshold. Default threshold=%d, found=%d",
+                    DEFAULT_THRESHOLD,
+                    total
+                )
+            );
 
             return buildItemStatus(CHECK_QUERIES_THRESHOLD_PLUGIN_NAME, StatusCode.WARNING, eventDetails);
         }

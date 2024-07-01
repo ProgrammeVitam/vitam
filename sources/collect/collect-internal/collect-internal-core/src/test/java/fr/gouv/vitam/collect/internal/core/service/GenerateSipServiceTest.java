@@ -41,8 +41,9 @@ import java.io.FileNotFoundException;
 public class GenerateSipServiceTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Test
     @RunWithCustomExecutor
@@ -50,12 +51,10 @@ public class GenerateSipServiceTest {
         throws FileNotFoundException, XMLStreamException, JAXBException, InvalidParseOperationException {
         //Given
         VitamThreadUtils.getVitamSession().setTenantId(1);
-
         //When
         //generateSipService.generateSip(transactionId);
 
         //Then
-
 
     }
 }

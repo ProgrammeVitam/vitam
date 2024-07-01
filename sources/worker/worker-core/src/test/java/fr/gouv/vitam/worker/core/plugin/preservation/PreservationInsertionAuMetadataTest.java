@@ -38,10 +38,10 @@ import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutorRule;
 import fr.gouv.vitam.common.thread.VitamThreadPoolExecutor;
 import fr.gouv.vitam.metadata.api.exception.MetaDataExecutionException;
-import fr.gouv.vitam.metadata.client.MetaDataClient;
-import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.metadata.api.model.UpdateUnit;
 import fr.gouv.vitam.metadata.api.model.UpdateUnitKey;
+import fr.gouv.vitam.metadata.client.MetaDataClient;
+import fr.gouv.vitam.metadata.client.MetaDataClientFactory;
 import fr.gouv.vitam.processing.common.exception.ProcessingException;
 import fr.gouv.vitam.worker.common.HandlerIO;
 import fr.gouv.vitam.worker.core.plugin.preservation.model.PreservationDistributionLine;
@@ -73,8 +73,9 @@ public class PreservationInsertionAuMetadataTest {
     public MockitoRule rule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
@@ -96,15 +97,27 @@ public class PreservationInsertionAuMetadataTest {
         given(metaDataClientFactory.getClient()).willReturn(metaDataClient);
         plugin = new PreservationInsertionAuMetadata(metaDataClientFactory);
 
-        PreservationDistributionLine preservationDistributionLine =
-            new PreservationDistributionLine("fmt/43", "photo.jpg",
-                Collections.singletonList(new ActionPreservation(ActionTypePreservation.EXTRACT_AU)), "test", "unitId",
-                "objectId",
-                true, 45, "auId", "BinaryMaster", "BinaryMaster", "other_binary_strategy",
-                "ScenarioId", "griffinIdentifier", Collections.singleton("key"));
+        PreservationDistributionLine preservationDistributionLine = new PreservationDistributionLine(
+            "fmt/43",
+            "photo.jpg",
+            Collections.singletonList(new ActionPreservation(ActionTypePreservation.EXTRACT_AU)),
+            "test",
+            "unitId",
+            "objectId",
+            true,
+            45,
+            "auId",
+            "BinaryMaster",
+            "BinaryMaster",
+            "other_binary_strategy",
+            "ScenarioId",
+            "griffinIdentifier",
+            Collections.singleton("key")
+        );
         parameter.setObjectNameList(Collections.singletonList("unitId"));
         parameter.setObjectMetadataList(
-            Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine)));
+            Collections.singletonList(JsonHandler.toJsonNode(preservationDistributionLine))
+        );
     }
 
     @Test
@@ -124,7 +137,8 @@ public class PreservationInsertionAuMetadataTest {
         responseOK.addResult(updatedUnit);
         RequestResponseOK<Object> objectRequestResponseOK = new RequestResponseOK<>().addResult(updatedUnit);
         given(metaDataClient.updateUnitById(any(), eq("unitId"))).willReturn(
-            JsonHandler.toJsonNode(objectRequestResponseOK));
+            JsonHandler.toJsonNode(objectRequestResponseOK)
+        );
 
         // When
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, handler);
@@ -132,7 +146,8 @@ public class PreservationInsertionAuMetadataTest {
         // Then
         assertThat(itemStatuses.size()).isEqualTo(1);
         assertThat(itemStatuses.get(0)).extracting(ItemStatus::getGlobalStatus).isEqualTo(OK);
-        assertThat(itemStatuses.get(0)).extracting(ItemStatus::getItemId)
+        assertThat(itemStatuses.get(0))
+            .extracting(ItemStatus::getItemId)
             .isEqualTo("PRESERVATION_INSERTION_AU_METADATA");
     }
 
@@ -140,8 +155,9 @@ public class PreservationInsertionAuMetadataTest {
     @RunWithCustomExecutor
     public void should_throw_MetaData_exception_when_update_extracted_Metadata() throws Exception {
         // Given
-        doThrow(new MetaDataExecutionException("Exception when updating unit by MDClient")).
-            when(metaDataClient).updateUnitById(any(), eq("unitId"));
+        doThrow(new MetaDataExecutionException("Exception when updating unit by MDClient"))
+            .when(metaDataClient)
+            .updateUnitById(any(), eq("unitId"));
 
         // When
         ThrowingCallable shouldThrow = () -> plugin.executeList(parameter, handler);
@@ -168,14 +184,16 @@ public class PreservationInsertionAuMetadataTest {
         ArgumentCaptor<JsonNode> captor = ArgumentCaptor.forClass(JsonNode.class);
         RequestResponseOK<Object> objectRequestResponseOK = new RequestResponseOK<>().addResult(updatedUnit);
         given(metaDataClient.updateUnitById(captor.capture(), eq("unitId"))).willReturn(
-            JsonHandler.toJsonNode(objectRequestResponseOK));
+            JsonHandler.toJsonNode(objectRequestResponseOK)
+        );
 
         // When
         plugin.executeList(parameter, handler);
 
         // Then
         assertThat(captor.getValue().get("$action").get(1).get("$push").get("#operations").get(0).asText()).isEqualTo(
-            parameter.getRequestId());
+            parameter.getRequestId()
+        );
     }
 
     @Test
@@ -195,7 +213,8 @@ public class PreservationInsertionAuMetadataTest {
         ArgumentCaptor<JsonNode> captor = ArgumentCaptor.forClass(JsonNode.class);
         RequestResponseOK<Object> objectRequestResponseOK = new RequestResponseOK<>().addResult(updatedUnit);
         given(metaDataClient.updateUnitById(captor.capture(), eq("unitId"))).willReturn(
-            JsonHandler.toJsonNode(objectRequestResponseOK));
+            JsonHandler.toJsonNode(objectRequestResponseOK)
+        );
 
         // When
         ThrowingCallable shouldThrow = () -> plugin.executeList(parameter, handler);
@@ -220,7 +239,8 @@ public class PreservationInsertionAuMetadataTest {
         responseOK.addResult(updatedUnit);
         RequestResponseOK<Object> objectRequestResponseOK = new RequestResponseOK<>().addResult(updatedUnit);
         given(metaDataClient.updateUnitById(any(), eq("unitId"))).willReturn(
-            JsonHandler.toJsonNode(objectRequestResponseOK));
+            JsonHandler.toJsonNode(objectRequestResponseOK)
+        );
 
         // When
         List<ItemStatus> itemStatuses = plugin.executeList(parameter, handler);
@@ -228,7 +248,8 @@ public class PreservationInsertionAuMetadataTest {
         // Then
         assertThat(itemStatuses.size()).isEqualTo(1);
         assertThat(itemStatuses.get(0)).extracting(ItemStatus::getGlobalStatus).isEqualTo(FATAL);
-        assertThat(itemStatuses.get(0)).extracting(ItemStatus::getItemId)
+        assertThat(itemStatuses.get(0))
+            .extracting(ItemStatus::getItemId)
             .isEqualTo("PRESERVATION_INSERTION_AU_METADATA");
     }
 }

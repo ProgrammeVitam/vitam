@@ -68,12 +68,7 @@ public class OffsetRepository {
      * @param collection the collection name
      */
     public void createOrUpdateOffset(int tenant, String strategy, String collection, long offset) {
-
-        Bson offsetFilter = and(
-            eq("_tenant", tenant),
-            eq("strategy", strategy),
-            eq("collection", collection)
-        );
+        Bson offsetFilter = and(eq("_tenant", tenant), eq("strategy", strategy), eq("collection", collection));
 
         Bson offsetUpdate = Updates.set("offset", offset);
 
@@ -92,11 +87,7 @@ public class OffsetRepository {
      * @return the offset value for collection/tenant, 0L if not found
      */
     public long findOffsetBy(int tenant, String strategy, String collection) {
-        Bson offsetFilter = and(
-            eq("_tenant", tenant),
-            eq("strategy", strategy),
-            eq("collection", collection)
-        );
+        Bson offsetFilter = and(eq("_tenant", tenant), eq("strategy", strategy), eq("collection", collection));
 
         Document first = offerCollection.find(offsetFilter).first();
         if (first == null) {
@@ -105,5 +96,4 @@ public class OffsetRepository {
 
         return first.get("offset", Long.class);
     }
-
 }

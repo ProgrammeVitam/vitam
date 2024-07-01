@@ -32,11 +32,11 @@ import fr.gouv.vitam.common.ParametersChecker;
  * SecureClientConfiguration interface's implementation
  */
 public class SecureClientConfigurationImpl extends ClientConfigurationImpl implements SecureClientConfiguration {
+
     private static final String CONFIGURATION_PARAMETERS = "SecureClientConfiguration parameters";
     private boolean secure = true;
     private SSLConfiguration sslConfiguration = new SSLConfiguration();
     private boolean hostnameVerification = true;
-
 
     /**
      * Empty SecureClientConfiguration constructor for YAMLFactory
@@ -68,7 +68,6 @@ public class SecureClientConfigurationImpl extends ClientConfigurationImpl imple
         this(serverHost, serverPort, secure, new SSLConfiguration(), true);
     }
 
-
     /**
      * ClientConfiguration constructor
      *
@@ -78,11 +77,14 @@ public class SecureClientConfigurationImpl extends ClientConfigurationImpl imple
      * @param sslConfiguration
      * @throws IllegalArgumentException if configuration param is null or empty or serverPort &lt;= 0
      */
-    public SecureClientConfigurationImpl(String serverHost, int serverPort, boolean secure,
-        SSLConfiguration sslConfiguration) {
+    public SecureClientConfigurationImpl(
+        String serverHost,
+        int serverPort,
+        boolean secure,
+        SSLConfiguration sslConfiguration
+    ) {
         this(serverHost, serverPort, secure, sslConfiguration, true);
     }
-
 
     /**
      * ClientConfiguration constructor
@@ -94,8 +96,13 @@ public class SecureClientConfigurationImpl extends ClientConfigurationImpl imple
      * @param hostnameVerification
      * @throws IllegalArgumentException if any configuration param is null or empty or serverPort &lt;= 0
      */
-    public SecureClientConfigurationImpl(String serverHost, int serverPort, boolean secure,
-        SSLConfiguration sslConfiguration, boolean hostnameVerification) {
+    public SecureClientConfigurationImpl(
+        String serverHost,
+        int serverPort,
+        boolean secure,
+        SSLConfiguration sslConfiguration,
+        boolean hostnameVerification
+    ) {
         super(serverHost, serverPort);
         this.secure = secure;
         this.hostnameVerification = hostnameVerification;
@@ -106,7 +113,6 @@ public class SecureClientConfigurationImpl extends ClientConfigurationImpl imple
     public boolean isSecure() {
         return secure;
     }
-
 
     @Override
     public boolean isHostnameVerification() {
@@ -127,7 +133,6 @@ public class SecureClientConfigurationImpl extends ClientConfigurationImpl imple
         return this;
     }
 
-
     /**
      * @param secure the secure to set
      * @return this
@@ -146,5 +151,4 @@ public class SecureClientConfigurationImpl extends ClientConfigurationImpl imple
         this.sslConfiguration = sslConfiguration;
         return this;
     }
-
 }

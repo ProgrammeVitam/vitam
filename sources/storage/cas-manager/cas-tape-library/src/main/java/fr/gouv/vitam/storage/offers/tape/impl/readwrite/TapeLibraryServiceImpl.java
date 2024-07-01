@@ -65,19 +65,24 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
 
     public final String MSG_PREFIX;
 
-    public TapeLibraryServiceImpl(TapeDriveService tapeDriveService, TapeRobotPool tapeRobotPool,
-        int fullCartridgeDetectionThresholdInMB) {
+    public TapeLibraryServiceImpl(
+        TapeDriveService tapeDriveService,
+        TapeRobotPool tapeRobotPool,
+        int fullCartridgeDetectionThresholdInMB
+    ) {
         this.tapeDriveService = tapeDriveService;
         this.tapeRobotPool = tapeRobotPool;
         this.fullCartridgeDetectionThresholdInMB = fullCartridgeDetectionThresholdInMB;
-        this.MSG_PREFIX = String.format("[Library] : %s, [Drive] : %s, ", tapeRobotPool.getLibraryIdentifier(),
-            tapeDriveService.getTapeDriveConf().getIndex());
+        this.MSG_PREFIX = String.format(
+            "[Library] : %s, [Drive] : %s, ",
+            tapeRobotPool.getLibraryIdentifier(),
+            tapeDriveService.getTapeDriveConf().getIndex()
+        );
     }
 
     @Override
     public void goToPosition(TapeCatalog tape, Integer position, ReadWriteErrorCode readWriteErrorCode)
         throws ReadWriteException {
-
         if (position == 0) {
             rewindTape(tape);
             return;
@@ -85,18 +90,24 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
 
         int offset = position - tape.getCurrentPosition();
         if (offset == 0) {
-            LOGGER.debug("No need to move (current position=" + tape.getCurrentPosition()
-                + ", target position=" + position + ")");
+            LOGGER.debug(
+                "No need to move (current position=" + tape.getCurrentPosition() + ", target position=" + position + ")"
+            );
             return;
         }
 
         try {
             tapeDriveService.getDriveCommandService().move(Math.abs(offset), offset < 0);
         } catch (TapeCommandException e) {
-            throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
+            throw new ReadWriteException(
+                MSG_PREFIX +
+                TAPE_MSG +
+                tape.getCode() +
                 " Action : FSF goto position Error , Entity: " +
                 JsonHandler.unprettyPrint(e.getDetails()),
-                readWriteErrorCode, e);
+                readWriteErrorCode,
+                e
+            );
         }
 
         // Update current position only if fsf/bsf command success
@@ -108,26 +119,34 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
         try {
             tapeDriveService.getDriveCommandService().rewind();
         } catch (TapeCommandException e) {
-            throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
+            throw new ReadWriteException(
+                MSG_PREFIX +
+                TAPE_MSG +
+                tape.getCode() +
                 " Action : Rewind Tape, Entity: " +
-                JsonHandler.unprettyPrint(e.getDetails()), ReadWriteErrorCode.KO_ON_REWIND_TAPE, e);
+                JsonHandler.unprettyPrint(e.getDetails()),
+                ReadWriteErrorCode.KO_ON_REWIND_TAPE,
+                e
+            );
         }
 
         tape.setCurrentPosition(0);
     }
 
     @Override
-    public void write(String filePath, long writtenBytes, TapeCatalog tape)
-        throws ReadWriteException {
+    public void write(String filePath, long writtenBytes, TapeCatalog tape) throws ReadWriteException {
         if (tape == null) {
             throw new ReadWriteException(
-                MSG_PREFIX + ", Error: can't write, current tape is null.", ReadWriteErrorCode.NULL_CURRENT_TAPE);
+                MSG_PREFIX + ", Error: can't write, current tape is null.",
+                ReadWriteErrorCode.NULL_CURRENT_TAPE
+            );
         }
 
         if (tape.getFileCount() < tape.getCurrentPosition()) {
             throw new ReadWriteException(
                 MSG_PREFIX + ", Error: current position must be <= to fileCount.",
-                ReadWriteErrorCode.KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT);
+                ReadWriteErrorCode.KO_TAPE_CURRENT_POSITION_GREATER_THAN_FILE_COUNT
+            );
         }
 
         try {
@@ -136,10 +155,14 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
             try {
                 tapeDriveService.getReadWriteService().writeToTape(filePath);
             } catch (TapeCommandException e) {
-
-                LOGGER.error(MSG_PREFIX + TAPE_MSG + tape.getCode() +
+                LOGGER.error(
+                    MSG_PREFIX +
+                    TAPE_MSG +
+                    tape.getCode() +
                     " Action : Write, Entity: " +
-                    JsonHandler.unprettyPrint(e.getDetails()), e);
+                    JsonHandler.unprettyPrint(e.getDetails()),
+                    e
+                );
 
                 // Check tape capacity :
                 // EndOfTape status is not properly handled by MTX utility.
@@ -156,29 +179,50 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                 long tapeOccupation = tape.getWrittenBytes() + writtenBytes;
 
                 if (tapeOccupation >= fullCartridgeDetectionThresholdInMB * MB_TO_BYTES) {
-                    throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
-                        " Action : Write, Drive Status: " + JsonHandler.unprettyPrint(status) +
-                        ", Error: End Of Tape, Tape Occupation: " + tapeOccupation + " (bytes)" +
-                        ", Cartridge type: " + cartridgeType + "]",
-                        ReadWriteErrorCode.KO_ON_END_OF_TAPE, e);
+                    throw new ReadWriteException(
+                        MSG_PREFIX +
+                        TAPE_MSG +
+                        tape.getCode() +
+                        " Action : Write, Drive Status: " +
+                        JsonHandler.unprettyPrint(status) +
+                        ", Error: End Of Tape, Tape Occupation: " +
+                        tapeOccupation +
+                        " (bytes)" +
+                        ", Cartridge type: " +
+                        cartridgeType +
+                        "]",
+                        ReadWriteErrorCode.KO_ON_END_OF_TAPE,
+                        e
+                    );
                 }
 
                 tape.setTapeState(TapeState.CONFLICT);
 
-                throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
-                    " Action : Write, Drive Status: " + JsonHandler.unprettyPrint(status) +
+                throw new ReadWriteException(
+                    MSG_PREFIX +
+                    TAPE_MSG +
+                    tape.getCode() +
+                    " Action : Write, Drive Status: " +
+                    JsonHandler.unprettyPrint(status) +
                     ", Error: Tape is CORRUPTED" +
-                    ", Cartridge type: '" + cartridgeType + "'" +
-                    ", Tape space usage: " + tapeOccupation + " (bytes)" +
-                    ", Full tape threshold: " + (fullCartridgeDetectionThresholdInMB * MB_TO_BYTES) + " (bytes)",
-                    ReadWriteErrorCode.KO_ON_WRITE_TO_TAPE, e);
+                    ", Cartridge type: '" +
+                    cartridgeType +
+                    "'" +
+                    ", Tape space usage: " +
+                    tapeOccupation +
+                    " (bytes)" +
+                    ", Full tape threshold: " +
+                    (fullCartridgeDetectionThresholdInMB * MB_TO_BYTES) +
+                    " (bytes)",
+                    ReadWriteErrorCode.KO_ON_WRITE_TO_TAPE,
+                    e
+                );
             }
 
             tape.setFileCount(tape.getFileCount() + 1);
             tape.setCurrentPosition(tape.getFileCount());
             tape.setWrittenBytes(tape.getWrittenBytes() + writtenBytes);
             tape.setTapeState(TapeState.OPEN);
-
         } catch (ReadWriteException e) {
             throw e;
         } catch (Exception e) {
@@ -188,7 +232,6 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
 
     @Override
     public void read(TapeCatalog tape, Integer position, String outputPath) throws ReadWriteException {
-
         // Seek position
         goToPosition(tape, position, ReadWriteErrorCode.KO_ON_GO_TO_POSITION);
 
@@ -198,12 +241,16 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
 
             // Advance tape position
             tape.setCurrentPosition(tape.getCurrentPosition() + 1);
-
         } catch (TapeCommandException e) {
-
-            throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
-                " Action : Write, Entity: " + JsonHandler.unprettyPrint(e.getDetails()),
-                ReadWriteErrorCode.KO_ON_READ_FROM_TAPE, e);
+            throw new ReadWriteException(
+                MSG_PREFIX +
+                TAPE_MSG +
+                tape.getCode() +
+                " Action : Write, Entity: " +
+                JsonHandler.unprettyPrint(e.getDetails()),
+                ReadWriteErrorCode.KO_ON_READ_FROM_TAPE,
+                e
+            );
         }
     }
 
@@ -211,12 +258,17 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
     public void loadTape(TapeCatalog tape) throws ReadWriteException {
         ParametersChecker.checkParameter(
             MSG_PREFIX + ", Error: tape to load is null. please get markReady tape from catalog",
-            tape);
+            tape
+        );
 
         if (null == tape.getCurrentLocation()) {
-            throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
+            throw new ReadWriteException(
+                MSG_PREFIX +
+                TAPE_MSG +
+                tape.getCode() +
                 ", Error: tape current location is null. please update catalog",
-                ReadWriteErrorCode.TAPE_LOCATION_CONFLICT_ON_LOAD);
+                ReadWriteErrorCode.TAPE_LOCATION_CONFLICT_ON_LOAD
+            );
         }
 
         Integer driveIndex = tapeDriveService.getTapeDriveConf().getIndex();
@@ -241,12 +293,16 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                 // Update tape location
                 tape.setPreviousLocation(tape.getCurrentLocation());
                 tape.setCurrentLocation(new TapeLocation(getDriveIndex(), TapeLocationType.DRIVE));
-
             } catch (TapeCommandException e) {
                 throw new ReadWriteException(
-                    MSG_PREFIX + TAPE_MSG + tape.getCode() + ", Action : load, Entity: " +
-                        JsonHandler.unprettyPrint(e.getDetails()),
-                    ReadWriteErrorCode.KO_ON_LOAD_TAPE, e);
+                    MSG_PREFIX +
+                    TAPE_MSG +
+                    tape.getCode() +
+                    ", Action : load, Entity: " +
+                    JsonHandler.unprettyPrint(e.getDetails()),
+                    ReadWriteErrorCode.KO_ON_LOAD_TAPE,
+                    e
+                );
             } finally {
                 tapeRobotPool.pushRobotService(tapeRobotService);
             }
@@ -271,19 +327,23 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                     break;
                 case DRIVE:
                 case OUTSIDE:
-                    throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
-                        ", Error: previous location should no be in drive",
-                        ReadWriteErrorCode.TAPE_LOCATION_CONFLICT_ON_UNLOAD);
+                    throw new ReadWriteException(
+                        MSG_PREFIX + TAPE_MSG + tape.getCode() + ", Error: previous location should no be in drive",
+                        ReadWriteErrorCode.TAPE_LOCATION_CONFLICT_ON_UNLOAD
+                    );
                 default:
                     throw new IllegalArgumentException(
-                        MSG_PREFIX + TAPE_MSG + tape.getCode() + ", Error: location type not implemented");
+                        MSG_PREFIX + TAPE_MSG + tape.getCode() + ", Error: location type not implemented"
+                    );
             }
         }
 
         if (null == slotIndex) {
             // FIXME : slotIndex = findEmptySlot() ?
-            throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
-                ", Error : no empty slot found => cannot unload tape", ReadWriteErrorCode.NO_EMPTY_SLOT_FOUND);
+            throw new ReadWriteException(
+                MSG_PREFIX + TAPE_MSG + tape.getCode() + ", Error : no empty slot found => cannot unload tape",
+                ReadWriteErrorCode.NO_EMPTY_SLOT_FOUND
+            );
         }
 
         // Eject tape
@@ -296,10 +356,15 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
         try {
             tapeDriveService.getDriveCommandService().eject();
         } catch (TapeCommandException e) {
-            throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
+            throw new ReadWriteException(
+                MSG_PREFIX +
+                TAPE_MSG +
+                tape.getCode() +
                 " Action : Eject tape with forced rewind, Error: Could not rewind or unload tape, Entity: " +
                 JsonHandler.unprettyPrint(e.getDetails()),
-                ReadWriteErrorCode.KO_REWIND_BEFORE_UNLOAD_TAPE, e);
+                ReadWriteErrorCode.KO_REWIND_BEFORE_UNLOAD_TAPE,
+                e
+            );
         }
 
         tape.setCurrentPosition(0);
@@ -308,7 +373,6 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
     private void unloadTapeFromDriveToSlot(TapeCatalog tape, Integer driveIndex, Integer slotIndex)
         throws ReadWriteException {
         try {
-
             final TapeRobotService tapeRobotService = tapeRobotPool.checkoutRobotService();
 
             try {
@@ -318,12 +382,17 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                     loadUnloadService.unloadTape(slotIndex, driveIndex);
                 } catch (TapeCommandException e) {
                     throw new ReadWriteException(
-                        MSG_PREFIX + TAPE_MSG + tape.getCode() + ", Action : unload, Entity: " +
-                            JsonHandler.unprettyPrint(e.getDetails()), ReadWriteErrorCode.KO_ON_UNLOAD_TAPE, e);
+                        MSG_PREFIX +
+                        TAPE_MSG +
+                        tape.getCode() +
+                        ", Action : unload, Entity: " +
+                        JsonHandler.unprettyPrint(e.getDetails()),
+                        ReadWriteErrorCode.KO_ON_UNLOAD_TAPE,
+                        e
+                    );
                 }
 
                 tape.setCurrentLocation(tape.getPreviousLocation());
-
             } finally {
                 tapeRobotPool.pushRobotService(tapeRobotService);
             }
@@ -342,17 +411,25 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
             try {
                 return tapeDriveService.getDriveCommandService().status();
             } catch (TapeCommandException e) {
-
                 retry--;
                 if (retry == 0) {
-                    throw new ReadWriteException(MSG_PREFIX + TAPE_MSG +
-                        " Action : drive status, Entity: " + JsonHandler.unprettyPrint(e.getDetails()),
-                        readWriteErrorCode);
+                    throw new ReadWriteException(
+                        MSG_PREFIX +
+                        TAPE_MSG +
+                        " Action : drive status, Entity: " +
+                        JsonHandler.unprettyPrint(e.getDetails()),
+                        readWriteErrorCode
+                    );
                 }
 
-                LOGGER.error(MSG_PREFIX + TAPE_MSG +
-                        " Action : drive status, Entity: " + JsonHandler.unprettyPrint(e.getDetails()),
-                    ReadWriteErrorCode.KO_ON_STATUS, e);
+                LOGGER.error(
+                    MSG_PREFIX +
+                    TAPE_MSG +
+                    " Action : drive status, Entity: " +
+                    JsonHandler.unprettyPrint(e.getDetails()),
+                    ReadWriteErrorCode.KO_ON_STATUS,
+                    e
+                );
 
                 Uninterruptibles.sleepUninterruptibly(SLEEP_TIME, TimeUnit.MILLISECONDS);
             }
@@ -375,14 +452,12 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
     }
 
     @Override
-    public void ensureTapeIsEmpty(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges)
-        throws ReadWriteException {
-
+    public void ensureTapeIsEmpty(TapeCatalog tape, boolean forceOverrideNonEmptyCartridges) throws ReadWriteException {
         // Check empty tape
         try {
-
             LOGGER.debug(
-                MSG_PREFIX + TAPE_MSG + tape.getCode() + ", Action: try read from empty tape (expected to fail)");
+                MSG_PREFIX + TAPE_MSG + tape.getCode() + ", Action: try read from empty tape (expected to fail)"
+            );
             tapeDriveService.getDriveCommandService().move(1, false);
 
             // Moving tape to next position was expected to fail as tape was supposed to be empty, but was not.
@@ -392,24 +467,33 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
                 try {
                     tapeDriveService.getDriveCommandService().rewind();
                 } catch (TapeCommandException e) {
-                    throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
+                    throw new ReadWriteException(
+                        MSG_PREFIX +
+                        TAPE_MSG +
+                        tape.getCode() +
                         " Action : Force override non empty tape, " +
                         "Error: Could not rewind for force empty cartridge overriding, Entity: " +
                         JsonHandler.unprettyPrint(e.getDetails()),
-                        ReadWriteErrorCode.KO_REWIND_BEFORE_FORCE_OVERRIDE_NON_EMPTY_TAPE, e);
+                        ReadWriteErrorCode.KO_REWIND_BEFORE_FORCE_OVERRIDE_NON_EMPTY_TAPE,
+                        e
+                    );
                 }
             } else {
-
                 tape.setCurrentPosition(tape.getCurrentPosition() + 1);
-                throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
+                throw new ReadWriteException(
+                    MSG_PREFIX +
+                    TAPE_MSG +
+                    tape.getCode() +
                     " Action : Is Tape Empty, Error: Tape not empty but tape catalog is empty",
-                    ReadWriteErrorCode.KO_LABEL_DISCORDING_NOT_EMPTY_TAPE);
+                    ReadWriteErrorCode.KO_LABEL_DISCORDING_NOT_EMPTY_TAPE
+                );
             }
-
         } catch (TapeCommandException e) {
             // Nominal case (expected to fail)
-            LOGGER.debug(MSG_PREFIX + TAPE_MSG + tape.getCode() +
-                ", Action: trying read from empty tape failed successfully", e);
+            LOGGER.debug(
+                MSG_PREFIX + TAPE_MSG + tape.getCode() + ", Action: trying read from empty tape failed successfully",
+                e
+            );
         }
 
         // Do status to get tape TYPE and some other information (update catalog)
@@ -424,16 +508,20 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
         // Read Label from tape
         File labelFile = null;
         try {
-
             labelFile = new File(this.getTmpOutputDirectory(), GUIDFactory.newGUID().getId());
 
             try {
-                tapeDriveService.getReadWriteService()
-                    .readFromTape(labelFile.getAbsolutePath());
+                tapeDriveService.getReadWriteService().readFromTape(labelFile.getAbsolutePath());
             } catch (TapeCommandException e) {
-                throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
-                    " Action : Read from tape, Entity: " + JsonHandler.unprettyPrint(e.getDetails()),
-                    ReadWriteErrorCode.KO_ON_READ_LABEL, e);
+                throw new ReadWriteException(
+                    MSG_PREFIX +
+                    TAPE_MSG +
+                    tape.getCode() +
+                    " Action : Read from tape, Entity: " +
+                    JsonHandler.unprettyPrint(e.getDetails()),
+                    ReadWriteErrorCode.KO_ON_READ_LABEL,
+                    e
+                );
             }
 
             TapeCatalogLabel tapeLabel = JsonHandler.getFromFile(labelFile, TapeCatalogLabel.class);
@@ -441,14 +529,19 @@ public class TapeLibraryServiceImpl implements TapeLibraryService {
             final TapeCatalogLabel tapeCatalogLabel = tape.getLabel();
 
             if (!Objects.equals(tapeLabel.getId(), tapeCatalogLabel.getId())) {
-                throw new ReadWriteException(MSG_PREFIX + TAPE_MSG + tape.getCode() +
-                    " Action : Check tape label, Expected label: " + tapeCatalogLabel.getId()
-                    + ", read label: " + tapeLabel.getId(),
-                    ReadWriteErrorCode.KO_LABEL_DISCORDING);
+                throw new ReadWriteException(
+                    MSG_PREFIX +
+                    TAPE_MSG +
+                    tape.getCode() +
+                    " Action : Check tape label, Expected label: " +
+                    tapeCatalogLabel.getId() +
+                    ", read label: " +
+                    tapeLabel.getId(),
+                    ReadWriteErrorCode.KO_LABEL_DISCORDING
+                );
             }
 
             tape.setCurrentPosition(1);
-
         } catch (ReadWriteException e) {
             throw e;
         } catch (Exception e) {

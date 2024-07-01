@@ -84,8 +84,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatusWithMe
 
 public class ChecksSecureTraceabilityDataStoragelogPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ChecksSecureTraceabilityDataStoragelogPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ChecksSecureTraceabilityDataStoragelogPlugin.class
+    );
     private static final String PLUGIN_NAME = "CHECKS_SECURE_TRACEABILITY_DATA_STORAGELOG";
 
     private static final int EVENT_DETAIL_DATA_IN_RANK = 0;
@@ -104,127 +105,204 @@ public class ChecksSecureTraceabilityDataStoragelogPlugin extends ActionHandler 
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         if (handler.isExistingFileInWorkspace(param.getObjectName() + File.separator + ERROR_FLAG)) {
             return buildItemStatus(PLUGIN_NAME, KO);
         }
         try (StorageClient storageClient = storageClientFactory.getClient()) {
             File traceabilityEventJsonFile = (File) handler.getInput(EVENT_DETAIL_DATA_IN_RANK);
-            TraceabilityEvent traceabilityEvent =
-                JsonHandler.getFromFile(traceabilityEventJsonFile, TraceabilityEvent.class);
+            TraceabilityEvent traceabilityEvent = JsonHandler.getFromFile(
+                traceabilityEventJsonFile,
+                TraceabilityEvent.class
+            );
             if (traceabilityEvent.getLogType().equals(TraceabilityType.STORAGE)) {
                 final String dataFilePath =
-                    WorkspaceConstants.TRACEABILITY_OPERATION_DIRECTORY + File.separator + param.getObjectName() +
-                        File.separator + DATA_FILE;
+                    WorkspaceConstants.TRACEABILITY_OPERATION_DIRECTORY +
+                    File.separator +
+                    param.getObjectName() +
+                    File.separator +
+                    DATA_FILE;
                 // todo : add zip fingerprint to TraceabilityEvent
-                TraceabilityEvent traceabilityDataEvent =
-                    JsonHandler.getFromJsonNode(handler.getJsonFromWorkspace(dataFilePath), TraceabilityEvent.class);
+                TraceabilityEvent traceabilityDataEvent = JsonHandler.getFromJsonNode(
+                    handler.getJsonFromWorkspace(dataFilePath),
+                    TraceabilityEvent.class
+                );
 
                 Map<String, String> digests = new HashMap<>();
 
                 List<String> offerIds = storageClient.getOffers(VitamConfiguration.getDefaultStrategy());
-                Map<String, Boolean> existsMap = new HashMap<>(storageClient
-                    .exists(VitamConfiguration.getDefaultStrategy(), DataCategory.STORAGELOG,
+                Map<String, Boolean> existsMap = new HashMap<>(
+                    storageClient.exists(
+                        VitamConfiguration.getDefaultStrategy(),
+                        DataCategory.STORAGELOG,
                         traceabilityDataEvent.getFileName(),
-                        offerIds));
+                        offerIds
+                    )
+                );
                 boolean exists = existsMap.values().stream().allMatch(e -> e);
                 if (!exists) {
                     existsMap.values().removeIf(Predicate.isEqual(Boolean.TRUE));
-                    ItemStatus result = buildItemStatusWithMessage(PLUGIN_NAME, KO, String
-                        .format("Cannot find storagelog data with filename %s in offers %s",
-                            traceabilityDataEvent.getFileName(), existsMap.keySet().toString()));
-                    updateReport(param, handler, t ->
-                        t.setStatus(result.getGlobalStatus().name()).setMessage(result.getMessage()).setError(
-                                TraceabilityError.FILE_NOT_FOUND)
-                            .appendExtraData(
-                                Map.of(FILE_ID, traceabilityDataEvent.getFileName(), OFFERS_HASHES, digests)));
+                    ItemStatus result = buildItemStatusWithMessage(
+                        PLUGIN_NAME,
+                        KO,
+                        String.format(
+                            "Cannot find storagelog data with filename %s in offers %s",
+                            traceabilityDataEvent.getFileName(),
+                            existsMap.keySet().toString()
+                        )
+                    );
+                    updateReport(
+                        param,
+                        handler,
+                        t ->
+                            t
+                                .setStatus(result.getGlobalStatus().name())
+                                .setMessage(result.getMessage())
+                                .setError(TraceabilityError.FILE_NOT_FOUND)
+                                .appendExtraData(
+                                    Map.of(FILE_ID, traceabilityDataEvent.getFileName(), OFFERS_HASHES, digests)
+                                )
+                    );
                     return result;
                 }
 
                 digests.putAll(
-                    getOfferDigests(storageClient, traceabilityDataEvent.getFileName(),
-                        VitamConfiguration.getDefaultStrategy(), offerIds));
+                    getOfferDigests(
+                        storageClient,
+                        traceabilityDataEvent.getFileName(),
+                        VitamConfiguration.getDefaultStrategy(),
+                        offerIds
+                    )
+                );
 
                 Set<String> hashes = new HashSet<>(digests.values());
                 if (hashes.isEmpty()) {
-                    ItemStatus result =
-                        buildItemStatusWithMessage(PLUGIN_NAME, KO, "Error: unable to retrive all hashes!");
-                    updateReport(param, handler,
-                        t -> t.setStatus(result.getGlobalStatus().name()).setMessage(result.getMessage())
-                            .setError(TraceabilityError.HASH_NOT_FOUND)
-                            .appendExtraData(Map.of(OFFERS_HASHES, digests)));
+                    ItemStatus result = buildItemStatusWithMessage(
+                        PLUGIN_NAME,
+                        KO,
+                        "Error: unable to retrive all hashes!"
+                    );
+                    updateReport(
+                        param,
+                        handler,
+                        t ->
+                            t
+                                .setStatus(result.getGlobalStatus().name())
+                                .setMessage(result.getMessage())
+                                .setError(TraceabilityError.HASH_NOT_FOUND)
+                                .appendExtraData(Map.of(OFFERS_HASHES, digests))
+                    );
                     return result;
                 }
                 try {
                     final String digest = Iterables.getOnlyElement(hashes);
 
-                    Response response = storageClient
-                        .getContainerAsync(VitamConfiguration.getDefaultStrategy(), traceabilityDataEvent.getFileName(),
-                            DataCategory.STORAGELOG, AccessLogUtils.getNoLogAccessLog());
-                    DigestType digestType = (traceabilityDataEvent.getDigestAlgorithm() != null) ?
-                        traceabilityDataEvent.getDigestAlgorithm() :
-                        VitamConfiguration.getDefaultDigestType();
+                    Response response = storageClient.getContainerAsync(
+                        VitamConfiguration.getDefaultStrategy(),
+                        traceabilityDataEvent.getFileName(),
+                        DataCategory.STORAGELOG,
+                        AccessLogUtils.getNoLogAccessLog()
+                    );
+                    DigestType digestType = (traceabilityDataEvent.getDigestAlgorithm() != null)
+                        ? traceabilityDataEvent.getDigestAlgorithm()
+                        : VitamConfiguration.getDefaultDigestType();
 
                     Digest eventDigest = new Digest(digestType);
                     eventDigest.update(response.readEntity(InputStream.class));
 
                     if (!eventDigest.digestHex().equals(digest)) {
-                        ItemStatus result = buildItemStatusWithMessage(PLUGIN_NAME, KO,
-                            "Storagelog data fingerprint invalid");
-                        updateReport(param, handler,
-                            t -> t.setStatus(result.getGlobalStatus().name()).setMessage(result.getMessage())
-                                .setError(TraceabilityError.INVALID_FINGERPRINT)
-                                .appendExtraData(
-                                    Map.of(OFFERS_HASHES, digests, SECURED_HASH, eventDigest.digestHex())));
+                        ItemStatus result = buildItemStatusWithMessage(
+                            PLUGIN_NAME,
+                            KO,
+                            "Storagelog data fingerprint invalid"
+                        );
+                        updateReport(
+                            param,
+                            handler,
+                            t ->
+                                t
+                                    .setStatus(result.getGlobalStatus().name())
+                                    .setMessage(result.getMessage())
+                                    .setError(TraceabilityError.INVALID_FINGERPRINT)
+                                    .appendExtraData(
+                                        Map.of(OFFERS_HASHES, digests, SECURED_HASH, eventDigest.digestHex())
+                                    )
+                        );
                         return result;
                     }
-
                 } catch (IllegalArgumentException e) {
-                    ItemStatus result =
-                        buildItemStatusWithMessage(PLUGIN_NAME, KO, "Error: Storagelog hashes are not equals!");
-                    updateReport(param, handler,
-                        t -> t.setStatus(result.getGlobalStatus().name()).setMessage(result.getMessage())
-                            .setError(TraceabilityError.INEQUAL_HASHES).appendExtraData(
-                                Map.of(OFFERS_HASHES, digests)));
+                    ItemStatus result = buildItemStatusWithMessage(
+                        PLUGIN_NAME,
+                        KO,
+                        "Error: Storagelog hashes are not equals!"
+                    );
+                    updateReport(
+                        param,
+                        handler,
+                        t ->
+                            t
+                                .setStatus(result.getGlobalStatus().name())
+                                .setMessage(result.getMessage())
+                                .setError(TraceabilityError.INEQUAL_HASHES)
+                                .appendExtraData(Map.of(OFFERS_HASHES, digests))
+                    );
                     return result;
                 }
 
-
                 ItemStatus result = buildItemStatus(PLUGIN_NAME, StatusCode.OK);
-                updateReport(param, handler, t ->
-                    t.setStatus(result.getGlobalStatus().name()).setMessage(result.getMessage()));
+                updateReport(
+                    param,
+                    handler,
+                    t -> t.setStatus(result.getGlobalStatus().name()).setMessage(result.getMessage())
+                );
                 return result;
             }
 
             return buildItemStatus(PLUGIN_NAME, StatusCode.OK);
-        } catch (InvalidParseOperationException | IOException | StorageServerClientException | StorageNotFoundClientException | StorageNotFoundException | StorageUnavailableDataFromAsyncOfferClientException e) {
+        } catch (
+            InvalidParseOperationException
+            | IOException
+            | StorageServerClientException
+            | StorageNotFoundClientException
+            | StorageNotFoundException
+            | StorageUnavailableDataFromAsyncOfferClientException e
+        ) {
             throw new ProcessingException(e);
         }
-
     }
 
     private void updateReport(WorkerParameters param, HandlerIO handlerIO, Consumer<TraceabilityReportEntry> updater)
         throws IOException, ProcessingException, InvalidParseOperationException {
         String path = param.getObjectName() + File.separator + WorkspaceConstants.REPORT;
-        TraceabilityReportEntry traceabilityReportEntry =
-            JsonHandler.getFromJsonNode(handlerIO.getJsonFromWorkspace(path), TraceabilityReportEntry.class);
+        TraceabilityReportEntry traceabilityReportEntry = JsonHandler.getFromJsonNode(
+            handlerIO.getJsonFromWorkspace(path),
+            TraceabilityReportEntry.class
+        );
         updater.accept(traceabilityReportEntry);
         HandlerUtils.save(handlerIO, traceabilityReportEntry, path);
     }
 
-    private Map<String, String> getOfferDigests(StorageClient storageClient,
+    private Map<String, String> getOfferDigests(
+        StorageClient storageClient,
         String objectGuid,
-        String strategyId, List<String> offerIds) throws StorageNotFoundClientException, StorageServerClientException {
-        JsonNode information =
-            storageClient.getInformation(strategyId, DataCategory.STORAGELOG, objectGuid, offerIds, true);
+        String strategyId,
+        List<String> offerIds
+    ) throws StorageNotFoundClientException, StorageServerClientException {
+        JsonNode information = storageClient.getInformation(
+            strategyId,
+            DataCategory.STORAGELOG,
+            objectGuid,
+            offerIds,
+            true
+        );
 
-        return offerIds.stream()
+        return offerIds
+            .stream()
             .map(e -> new SimpleEntry<>(e, information.get(e)))
             .filter(e -> Objects.nonNull(e.getValue()))
             .filter(e -> !e.getValue().isMissingNode())
             .filter(e -> !e.getValue().isNull())
-            .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().get(DIGEST).textValue())
-            ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            .map(e -> new SimpleEntry<>(e.getKey(), e.getValue().get(DIGEST).textValue()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 // FIXME Think about Unit tests
 public class WebApplicationResourceAuthTest {
+
     // Take it from conf file
     private static final String DEFAULT_WEB_APP_CONTEXT = "/ihm-recette";
     private static final String CREDENTIALS = "{\"token\": {\"principal\": \"user\", \"credentials\": \"user\"}}";
@@ -80,12 +81,8 @@ public class WebApplicationResourceAuthTest {
         RestAssured.port = port;
         RestAssured.basePath = DEFAULT_WEB_APP_CONTEXT + "/v1/api";
 
-        Response response = given()
-            .contentType(ContentType.JSON)
-            .body(CREDENTIALS)
-            .post("/login");
+        Response response = given().contentType(ContentType.JSON).body(CREDENTIALS).post("/login");
         assertThat(response.getCookie("JSESSIONID")).isNotEmpty();
         assertThat(response.getBody().prettyPrint()).contains("tokenCSRF");
     }
-
 }

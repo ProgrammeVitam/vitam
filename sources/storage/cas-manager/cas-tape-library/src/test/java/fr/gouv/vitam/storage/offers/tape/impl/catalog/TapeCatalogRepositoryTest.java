@@ -61,16 +61,19 @@ public class TapeCatalogRepositoryTest {
         OfferCollections.TAPE_CATALOG.getName() + GUIDFactory.newGUID().getId();
 
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), TAPE_CATALOG_COLLECTION);
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(),
+        TAPE_CATALOG_COLLECTION
+    );
 
     private static TapeCatalogRepository tapeCatalogRepository;
 
     @BeforeClass
     public static void setUpBeforeClass() {
         MongoDbAccess mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
-        tapeCatalogRepository = new TapeCatalogRepository(mongoDbAccess.getMongoDatabase()
-            .getCollection(TAPE_CATALOG_COLLECTION));
+        tapeCatalogRepository = new TapeCatalogRepository(
+            mongoDbAccess.getMongoDatabase().getCollection(TAPE_CATALOG_COLLECTION)
+        );
     }
 
     @After
@@ -187,9 +190,7 @@ public class TapeCatalogRepositoryTest {
     }
 
     @Test
-    public void shouldCountTapesByState()
-        throws TapeCatalogException {
-
+    public void shouldCountTapesByState() throws TapeCatalogException {
         TapeCatalog tapeCatalog1 = getTapeModel();
         tapeCatalog1.setTapeState(TapeState.FULL);
         tapeCatalogRepository.createTape(tapeCatalog1);
@@ -218,11 +219,7 @@ public class TapeCatalogRepositoryTest {
         Map<TapeState, Integer> stats = tapeCatalogRepository.countByState();
 
         // Then
-        assertThat(stats).isEqualTo(Map.of(
-            TapeState.FULL, 2,
-            TapeState.EMPTY, 1,
-            TapeState.OPEN, 3)
-        );
+        assertThat(stats).isEqualTo(Map.of(TapeState.FULL, 2, TapeState.EMPTY, 1, TapeState.OPEN, 3));
         assertThat(stats.getOrDefault(TapeState.CONFLICT, 0)).isEqualTo(0);
     }
 
@@ -241,5 +238,4 @@ public class TapeCatalogRepositoryTest {
         tapeCatalog.setPreviousLocation(new TapeLocation(2, TapeLocationType.SLOT));
         return tapeCatalog;
     }
-
 }

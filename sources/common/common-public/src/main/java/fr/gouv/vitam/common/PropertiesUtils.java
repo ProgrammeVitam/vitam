@@ -180,7 +180,6 @@ public final class PropertiesUtils {
         return getResourceFile(resourcesFile).toPath();
     }
 
-
     public static Stream<String> getResourceListing(Class clazz, String path) throws URISyntaxException, IOException {
         URL dirURL = clazz.getClassLoader().getResource(path);
         if (dirURL != null && dirURL.getProtocol().equals("file")) {
@@ -240,7 +239,6 @@ public final class PropertiesUtils {
                     // Third try using Resources
                     file = getResourceFile(filename);
                 }
-
             }
         } catch (final FileNotFoundException e) {
             // need to rewrite the exception
@@ -303,7 +301,6 @@ public final class PropertiesUtils {
         } catch (IOException e) {
             throw new VitamRuntimeException(e);
         }
-
     }
 
     /**

@@ -54,11 +54,13 @@ public class LogbookCheckResult implements Serializable {
     @JsonProperty("checkErrors")
     private Set<LogbookCheckError> checkErrors;
 
-    public LogbookCheckResult() {
-    }
+    public LogbookCheckResult() {}
 
-    public LogbookCheckResult(Integer tenant, Set<LogbookCheckEvent> checkedEvents,
-        Set<LogbookCheckError> checkErrors) {
+    public LogbookCheckResult(
+        Integer tenant,
+        Set<LogbookCheckEvent> checkedEvents,
+        Set<LogbookCheckError> checkErrors
+    ) {
         this.tenant = tenant;
         this.checkedEvents = checkedEvents;
         this.checkErrors = checkErrors;

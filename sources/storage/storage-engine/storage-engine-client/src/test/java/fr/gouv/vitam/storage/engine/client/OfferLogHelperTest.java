@@ -62,8 +62,10 @@ public class OfferLogHelperTest {
 
     @Mock
     private StorageClientFactory storageClientFactory;
+
     @Mock
     private StorageClient storageClient;
+
     private List<String> offerIds = Arrays.asList("offer1", "offer2");
     private static final String DEFAULT_OFFER_ID = "default";
 
@@ -73,45 +75,61 @@ public class OfferLogHelperTest {
         doReturn(offerIds).when(storageClient).getOffers(VitamConfiguration.getDefaultStrategy());
     }
 
-    private void givenOfferLogOffsets(List<Integer> filesOffsets)
-        throws StorageServerClientException {
-        doAnswer(
-            args -> {
-                Long startOffset = args.getArgument(3);
-                int limit = args.getArgument(4);
+    private void givenOfferLogOffsets(List<Integer> filesOffsets) throws StorageServerClientException {
+        doAnswer(args -> {
+            Long startOffset = args.getArgument(3);
+            int limit = args.getArgument(4);
 
-                return new RequestResponseOK<>()
-                    .addAllResults(filesOffsets.stream()
+            return new RequestResponseOK<>()
+                .addAllResults(
+                    filesOffsets
+                        .stream()
                         .filter(o -> startOffset == null || o >= startOffset)
                         .limit(limit)
                         .map(o -> new OfferLog(o, LocalDateUtil.now(), "0_unit", "file" + o, OfferLogAction.WRITE))
-                        .collect(Collectors.toList()));
-            }
-        ).when(storageClient)
-            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER_ID), eq(DataCategory.UNIT),
-                anyLong(), anyInt(),
-                eq(Order.ASC));
+                        .collect(Collectors.toList())
+                );
+        })
+            .when(storageClient)
+            .getOfferLogs(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DEFAULT_OFFER_ID),
+                eq(DataCategory.UNIT),
+                anyLong(),
+                anyInt(),
+                eq(Order.ASC)
+            );
     }
 
     @Test
     public void testOffsetAndLimitV2OfferLogs() throws Exception {
-
         // Given
         List<Integer> filesOffsets = Arrays.asList(10, 20, 30, 40, 50, 60, 70, 80, 90, 100);
         givenOfferLogOffsets(filesOffsets);
 
-        Iterator<OfferLog> offerLogIterator =
-            OfferLogHelper.getListing(storageClientFactory, VitamConfiguration.getDefaultStrategy(), DEFAULT_OFFER_ID,
-                DataCategory.UNIT, 20L, Order.ASC, 5, 7);
+        Iterator<OfferLog> offerLogIterator = OfferLogHelper.getListing(
+            storageClientFactory,
+            VitamConfiguration.getDefaultStrategy(),
+            DEFAULT_OFFER_ID,
+            DataCategory.UNIT,
+            20L,
+            Order.ASC,
+            5,
+            7
+        );
 
         // When
         assertThat(offerLogIterator)
             .extracting(OfferLog::getFileName)
             .containsExactly("file20", "file30", "file40", "file50", "file60", "file70", "file80");
 
-        verify(storageClient, times(2))
-            .getOfferLogs(eq(VitamConfiguration.getDefaultStrategy()), eq(DEFAULT_OFFER_ID), eq(DataCategory.UNIT),
-                anyLong(), anyInt(),
-                eq(Order.ASC));
+        verify(storageClient, times(2)).getOfferLogs(
+            eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DEFAULT_OFFER_ID),
+            eq(DataCategory.UNIT),
+            anyLong(),
+            anyInt(),
+            eq(Order.ASC)
+        );
     }
 }

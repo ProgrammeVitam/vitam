@@ -50,11 +50,9 @@ public class TarAppenderTest {
 
     @Test
     public void testAppender() throws IOException {
-
         // Given
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
-
             byte[] data1 = "data1".getBytes();
             byte[] data2 = "data2".getBytes();
             byte[] data3 = "data3".getBytes();
@@ -77,17 +75,14 @@ public class TarAppenderTest {
             checkEntryAtPos(tarFilePath, entry2);
             checkEntryAtPos(tarFilePath, entry3);
             assertThat(tarAppender.getEntryCount()).isEqualTo(3);
-
         }
     }
 
     @Test
     public void testMaxEntrySize() throws IOException {
-
         // Given
         Path tarFilePath = temporaryFolder.getRoot().toPath().resolve(TAR_FILE_ID);
         try (TarAppender tarAppender = new TarAppender(tarFilePath, TAR_FILE_ID, 1_000_000L)) {
-
             // When / Then
             assertThat(tarAppender.canAppend(600_000L)).isTrue();
             tarAppender.append("entry1", new NullInputStream(600_000L), 600_000L);

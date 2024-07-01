@@ -34,11 +34,11 @@ import java.util.List;
 
 public class AuditObjectGroupReportEntry extends ReportEntry {
 
-    private final static String PARENT_UNIT_IDS = "parentUnitIds";
-    private final static String ORIGINATING_AGENCY = "originatingAgency";
-    private final static String OPI = "opi";
-    private final static String OBJECT_VERSIONS = "objectVersions";
-    private final static String STATUS = "status";
+    private static final String PARENT_UNIT_IDS = "parentUnitIds";
+    private static final String ORIGINATING_AGENCY = "originatingAgency";
+    private static final String OPI = "opi";
+    private static final String OBJECT_VERSIONS = "objectVersions";
+    private static final String STATUS = "status";
 
     private final List<String> parentUnitIds;
     private final String originatingAgency;
@@ -54,7 +54,8 @@ public class AuditObjectGroupReportEntry extends ReportEntry {
         @JsonProperty(OPI) String opi,
         @JsonProperty(OBJECT_VERSIONS) List<AuditObjectVersion> objectVersions,
         @JsonProperty(STATUS) ReportStatus status,
-        @JsonProperty(OUTCOME) String outcome) {
+        @JsonProperty(OUTCOME) String outcome
+    ) {
         super(outcome, "objectGroup", objectGroupId);
         this.parentUnitIds = parentUnitIds;
         this.originatingAgency = originatingAgency;

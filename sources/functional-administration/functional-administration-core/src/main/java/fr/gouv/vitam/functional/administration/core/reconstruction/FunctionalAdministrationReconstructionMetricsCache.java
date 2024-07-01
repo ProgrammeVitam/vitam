@@ -41,28 +41,31 @@ import java.util.concurrent.TimeUnit;
 @ThreadSafe
 public class FunctionalAdministrationReconstructionMetricsCache {
 
-    private final PassiveExpiringCache<Pair<FunctionalAdminCollections, Integer>, LocalDateTime>
-        reconstructionMetricsCache;
+    private final PassiveExpiringCache<
+        Pair<FunctionalAdminCollections, Integer>,
+        LocalDateTime
+    > reconstructionMetricsCache;
 
     public FunctionalAdministrationReconstructionMetricsCache(long cacheDuration, TimeUnit cacheDurationUnit) {
         this.reconstructionMetricsCache = new PassiveExpiringCache<>(cacheDuration, cacheDurationUnit);
     }
 
-    public void registerLastDocumentReconstructionDate(FunctionalAdminCollections collection, int tenant,
-        LocalDateTime lastDocumentReconstructionDate) {
+    public void registerLastDocumentReconstructionDate(
+        FunctionalAdminCollections collection,
+        int tenant,
+        LocalDateTime lastDocumentReconstructionDate
+    ) {
         ParametersChecker.checkParameter("Missing collection", collection);
         ParametersChecker.checkParameter("Missing lastReconstructedDocumentDate", lastDocumentReconstructionDate);
 
-        reconstructionMetricsCache.put(
-            new ImmutablePair<>(collection, tenant),
-            lastDocumentReconstructionDate);
+        reconstructionMetricsCache.put(new ImmutablePair<>(collection, tenant), lastDocumentReconstructionDate);
     }
 
     public Duration getReconstructionLatency(FunctionalAdminCollections collection, int tenant) {
         ParametersChecker.checkParameter("Missing collection", collection);
 
-        LocalDateTime lastReconstructionDate = this.reconstructionMetricsCache.get(
-            new ImmutablePair<>(collection, tenant));
+        LocalDateTime lastReconstructionDate =
+            this.reconstructionMetricsCache.get(new ImmutablePair<>(collection, tenant));
 
         if (lastReconstructionDate == null) {
             return null;

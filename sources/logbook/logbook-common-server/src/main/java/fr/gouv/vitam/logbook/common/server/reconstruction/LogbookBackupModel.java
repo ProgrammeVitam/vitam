@@ -32,6 +32,7 @@ import org.bson.Document;
  * LogbookBackupModel
  */
 public class LogbookBackupModel {
+
     /**
      * logbookId.
      */

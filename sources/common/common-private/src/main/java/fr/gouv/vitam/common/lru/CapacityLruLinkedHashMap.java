@@ -36,6 +36,7 @@ import java.util.Map;
  * author Damian Momot
  */
 class CapacityLruLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
+
     /**
      *
      */
@@ -51,10 +52,8 @@ class CapacityLruLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
      * @param loadFactor
      * @throws IllegalArgumentException if capacity is not positive
      */
-    protected CapacityLruLinkedHashMap(int capacity, int initialCapacity,
-        float loadFactor) {
+    protected CapacityLruLinkedHashMap(int capacity, int initialCapacity, float loadFactor) {
         super(initialCapacity, loadFactor, true);
-
         if (capacity <= 0) {
             throw new IllegalArgumentException("capacity must be positive");
         }
@@ -75,5 +74,4 @@ class CapacityLruLinkedHashMap<K, V> extends LinkedHashMap<K, V> {
     public int getCapacity() {
         return this.capacity;
     }
-
 }

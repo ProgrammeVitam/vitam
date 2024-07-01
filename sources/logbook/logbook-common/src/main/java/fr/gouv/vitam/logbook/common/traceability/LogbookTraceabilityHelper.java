@@ -43,7 +43,6 @@ import java.time.LocalDateTime;
  * Interface used to handle specific steps of the traceability process
  */
 public interface LogbookTraceabilityHelper {
-
     LocalDateTime INITIAL_START_DATE = LocalDateTime.of(1970, 1, 1, 0, 0);
 
     /**
@@ -55,8 +54,7 @@ public interface LogbookTraceabilityHelper {
      * @throws IOException if any error occurs while writing in traceabilityFile
      * @throws TraceabilityException for any other errors specifically in the search / data transformation
      */
-    void saveDataInZip(MerkleTreeAlgo algo, TraceabilityFile file)
-        throws IOException, TraceabilityException;
+    void saveDataInZip(MerkleTreeAlgo algo, TraceabilityFile file) throws IOException, TraceabilityException;
 
     /**
      * Prepare and start the traceability operation
@@ -87,8 +85,7 @@ public interface LogbookTraceabilityHelper {
      * @param event traceability event that should be updated by this operation
      * @throws TraceabilityException if any error occurs
      */
-    void storeAndDeleteZip(Integer tenant, String strategyId, File zipFile, String fileName,
-        TraceabilityEvent event)
+    void storeAndDeleteZip(Integer tenant, String strategyId, File zipFile, String fileName, TraceabilityEvent event)
         throws TraceabilityException;
 
     /**

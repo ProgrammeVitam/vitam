@@ -33,7 +33,6 @@ public class AccessParams {
 
     private AccessInternalConfiguration serverConfiguration;
 
-
     /**
      * default constructor Default Constructor AccessParams
      */

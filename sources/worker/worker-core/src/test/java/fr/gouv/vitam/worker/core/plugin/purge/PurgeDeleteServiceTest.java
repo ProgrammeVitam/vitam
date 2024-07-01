@@ -60,24 +60,28 @@ import static org.mockito.Mockito.verify;
 public class PurgeDeleteServiceTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
+
     @Mock
     private MetaDataClient metaDataClient;
 
     @Mock
     private StorageClientFactory storageClientFactory;
+
     @Mock
     private StorageClient storageClient;
 
     @Mock
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
+
     @Mock
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
 
@@ -86,21 +90,27 @@ public class PurgeDeleteServiceTest {
 
     @Before
     public void setUp() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
 
         doReturn(metaDataClient).when(metaDataClientFactory).getClient();
         doReturn(storageClient).when(storageClientFactory).getClient();
         doReturn(logbookLifeCyclesClient).when(logbookLifeCyclesClientFactory).getClient();
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void deleteObjects() throws Exception {
-        instance.deleteObjects(ImmutableMap.of("id1", VitamConfiguration.getDefaultStrategy(), "id2",
-            VitamConfiguration.getDefaultStrategy(), "id3", VitamConfiguration.getDefaultStrategy()));
+        instance.deleteObjects(
+            ImmutableMap.of(
+                "id1",
+                VitamConfiguration.getDefaultStrategy(),
+                "id2",
+                VitamConfiguration.getDefaultStrategy(),
+                "id3",
+                VitamConfiguration.getDefaultStrategy()
+            )
+        );
 
         verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, "id1");
         verify(storageClient).delete(VitamConfiguration.getDefaultStrategy(), DataCategory.OBJECT, "id2");
@@ -110,8 +120,14 @@ public class PurgeDeleteServiceTest {
     @Test
     @RunWithCustomExecutor
     public void deleteObjectGroups() throws Exception {
-        Map<String, String> gotIdsWithStrategies = ImmutableMap.of("got1", VitamConfiguration.getDefaultStrategy(),
-            "got2", VitamConfiguration.getDefaultStrategy(), "got3", VitamConfiguration.getDefaultStrategy());
+        Map<String, String> gotIdsWithStrategies = ImmutableMap.of(
+            "got1",
+            VitamConfiguration.getDefaultStrategy(),
+            "got2",
+            VitamConfiguration.getDefaultStrategy(),
+            "got3",
+            VitamConfiguration.getDefaultStrategy()
+        );
         instance.deleteObjectGroups(gotIdsWithStrategies);
 
         verify(logbookLifeCyclesClient).deleteLifecycleObjectGroupBulk(eq(gotIdsWithStrategies.keySet()));
@@ -125,8 +141,14 @@ public class PurgeDeleteServiceTest {
     @Test
     @RunWithCustomExecutor
     public void deleteUnits() throws Exception {
-        Map<String, String> unitIdsWithStrategies = ImmutableMap.of("unit1", VitamConfiguration.getDefaultStrategy(),
-            "unit2", VitamConfiguration.getDefaultStrategy(), "unit3", VitamConfiguration.getDefaultStrategy());
+        Map<String, String> unitIdsWithStrategies = ImmutableMap.of(
+            "unit1",
+            VitamConfiguration.getDefaultStrategy(),
+            "unit2",
+            VitamConfiguration.getDefaultStrategy(),
+            "unit3",
+            VitamConfiguration.getDefaultStrategy()
+        );
         instance.deleteUnits(unitIdsWithStrategies);
 
         verify(logbookLifeCyclesClient).deleteLifecycleUnitsBulk(eq(unitIdsWithStrategies.keySet()));
@@ -140,7 +162,6 @@ public class PurgeDeleteServiceTest {
     @Test
     @RunWithCustomExecutor
     public void detachObjectGroupFromDeleteParentUnits() throws Exception {
-
         String opId = GUIDFactory.newGUID().toString();
         String gotId = GUIDFactory.newGUID().toString();
         instance.detachObjectGroupFromDeleteParentUnits(gotId, new HashSet<>(Arrays.asList("unit1", "unit2")));

@@ -107,9 +107,7 @@ public class ArchiveUnitProfileManager {
         };
     }
 
-    public boolean validateArchiveUnitProfile(ArchiveUnitProfileModel profile,
-        VitamError error) {
-
+    public boolean validateArchiveUnitProfile(ArchiveUnitProfileModel profile, VitamError error) {
         for (ArchiveUnitProfileValidator validator : validators.keySet()) {
             Optional<ArchiveUnitProfileValidator.RejectionCause> result = validator.validate(profile);
             if (result.isPresent()) {
@@ -122,7 +120,6 @@ public class ArchiveUnitProfileManager {
         }
         return true;
     }
-
 
     private VitamError getVitamError(String message, String description) {
         return new VitamError(VitamCode.ARCHIVE_UNIT_PROFILE_VALIDATION_ERROR.getItem())
@@ -137,23 +134,30 @@ public class ArchiveUnitProfileManager {
      *
      * @param errorsDetails
      */
-    public void logValidationError(String eventType, String objectId, String errorsDetails,
-        String KOEventType)
+    public void logValidationError(String eventType, String objectId, String errorsDetails, String KOEventType)
         throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.KO,
-                VitamLogbookMessages.getFromFullCodeKey(KOEventType), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.KO,
+            VitamLogbookMessages.getFromFullCodeKey(KOEventType),
+            eip
+        );
 
         logbookParameters.putParameterValue(LogbookParameterName.outcomeDetail, KOEventType);
         logbookMessageError(objectId, errorsDetails, logbookParameters, KOEventType);
         logbookClient.update(logbookParameters);
     }
 
-    private void logbookMessageError(String objectId, String errorsDetails,
-        LogbookOperationParameters logbookParameters) {
+    private void logbookMessageError(
+        String objectId,
+        String errorsDetails,
+        LogbookOperationParameters logbookParameters
+    ) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
@@ -170,8 +174,12 @@ public class ArchiveUnitProfileManager {
         }
     }
 
-    private void logbookMessageError(String objectId, String errorsDetails,
-        LogbookOperationParameters logbookParameters, String KOEventType) {
+    private void logbookMessageError(
+        String objectId,
+        String errorsDetails,
+        LogbookOperationParameters logbookParameters,
+        String KOEventType
+    ) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
@@ -220,10 +228,15 @@ public class ArchiveUnitProfileManager {
     public void logFatalError(String eventType, String objectId, String errorsDetails) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.FATAL,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.FATAL,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL),
+            eip
+        );
 
         logbookMessageError(objectId, errorsDetails, logbookParameters);
 
@@ -236,14 +249,18 @@ public class ArchiveUnitProfileManager {
      * @throws VitamException
      */
     public void logStarted(String eventType, String objectId) throws VitamException {
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eip,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED),
+            eip
+        );
 
         logbookMessageError(objectId, null, logbookParameters);
         logbookClient.create(logbookParameters);
-
     }
 
     /**
@@ -253,10 +270,15 @@ public class ArchiveUnitProfileManager {
      */
     public void logSuccess(String eventType, String objectId, String message) throws VitamException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.OK,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK),
+            eip
+        );
 
         if (null != objectId && !objectId.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, objectId);
@@ -275,7 +297,7 @@ public class ArchiveUnitProfileManager {
      * @return
      */
     public ArchiveUnitProfileValidator createMandatoryParamsValidator() {
-        return (profile) -> {
+        return profile -> {
             ArchiveUnitProfileValidator.RejectionCause rejection = null;
             if (profile.getName() == null || profile.getName().length() == 0) {
                 rejection = ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing(ArchiveUnitProfile.NAME);
@@ -290,7 +312,7 @@ public class ArchiveUnitProfileManager {
      * @return the validator with thrown errors
      */
     public ArchiveUnitProfileValidator createWrongFieldFormatValidator() {
-        return (archiveUnitProfile) -> {
+        return archiveUnitProfile -> {
             ArchiveUnitProfileValidator.RejectionCause rejection = null;
 
             String now = LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now());
@@ -298,51 +320,56 @@ public class ArchiveUnitProfileManager {
                 archiveUnitProfile.setStatus(ArchiveUnitProfileStatus.INACTIVE);
             }
 
-            if (!archiveUnitProfile.getStatus().equals(ArchiveUnitProfileStatus.ACTIVE) &&
-                !archiveUnitProfile.getStatus().equals(ArchiveUnitProfileStatus.INACTIVE)) {
+            if (
+                !archiveUnitProfile.getStatus().equals(ArchiveUnitProfileStatus.ACTIVE) &&
+                !archiveUnitProfile.getStatus().equals(ArchiveUnitProfileStatus.INACTIVE)
+            ) {
                 LOGGER.error("Error archive unit profile status not valide (must be ACTIVE or INACTIVE");
-                rejection =
-                    ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing(
-                        "Status " + archiveUnitProfile.getStatus() +
-                            " not valide must be ACTIVE or INACTIVE");
+                rejection = ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing(
+                    "Status " + archiveUnitProfile.getStatus() + " not valide must be ACTIVE or INACTIVE"
+                );
             }
 
-
             try {
-                if (archiveUnitProfile.getCreationdate() == null ||
-                    archiveUnitProfile.getCreationdate().trim().isEmpty()) {
+                if (
+                    archiveUnitProfile.getCreationdate() == null ||
+                    archiveUnitProfile.getCreationdate().trim().isEmpty()
+                ) {
                     archiveUnitProfile.setCreationdate(now);
                 } else {
-                    archiveUnitProfile
-                        .setCreationdate(LocalDateUtil.getFormattedDateForMongo(archiveUnitProfile.getCreationdate()));
+                    archiveUnitProfile.setCreationdate(
+                        LocalDateUtil.getFormattedDateForMongo(archiveUnitProfile.getCreationdate())
+                    );
                 }
-
             } catch (Exception e) {
                 LOGGER.error("Error profile parse dates", e);
                 rejection = ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing("CreationDate");
             }
             try {
-                if (archiveUnitProfile.getActivationdate() == null ||
-                    archiveUnitProfile.getActivationdate().trim().isEmpty()) {
+                if (
+                    archiveUnitProfile.getActivationdate() == null ||
+                    archiveUnitProfile.getActivationdate().trim().isEmpty()
+                ) {
                     archiveUnitProfile.setActivationdate(now);
                 } else {
                     archiveUnitProfile.setActivationdate(
-                        LocalDateUtil.getFormattedDateForMongo(archiveUnitProfile.getActivationdate()));
-
+                        LocalDateUtil.getFormattedDateForMongo(archiveUnitProfile.getActivationdate())
+                    );
                 }
             } catch (Exception e) {
                 LOGGER.error("Error profile parse dates", e);
                 rejection = ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing("ActivationDate");
             }
             try {
-
-                if (archiveUnitProfile.getDeactivationdate() == null ||
-                    archiveUnitProfile.getDeactivationdate().trim().isEmpty()) {
+                if (
+                    archiveUnitProfile.getDeactivationdate() == null ||
+                    archiveUnitProfile.getDeactivationdate().trim().isEmpty()
+                ) {
                     archiveUnitProfile.setDeactivationdate(now);
                 } else {
-
                     archiveUnitProfile.setDeactivationdate(
-                        LocalDateUtil.getFormattedDateForMongo(archiveUnitProfile.getDeactivationdate()));
+                        LocalDateUtil.getFormattedDateForMongo(archiveUnitProfile.getDeactivationdate())
+                    );
                 }
             } catch (Exception e) {
                 LOGGER.error("Error profile parse dates", e);
@@ -361,10 +388,9 @@ public class ArchiveUnitProfileManager {
      * @return
      */
     public ArchiveUnitProfileValidator checkEmptyIdentifierSlaveModeValidator() {
-        return (archiveUnitProfile) -> {
+        return archiveUnitProfile -> {
             if (archiveUnitProfile.getIdentifier() == null || archiveUnitProfile.getIdentifier().isEmpty()) {
-                return Optional.of(RejectionCause.rejectMandatoryMissing(
-                    ArchiveUnitProfile.IDENTIFIER));
+                return Optional.of(RejectionCause.rejectMandatoryMissing(ArchiveUnitProfile.IDENTIFIER));
             }
             return Optional.empty();
         };
@@ -376,23 +402,26 @@ public class ArchiveUnitProfileManager {
      * @return
      */
     public ArchiveUnitProfileValidator createCheckDuplicateInDatabaseValidator() {
-        return (profile) -> {
+        return profile -> {
             if (ParametersChecker.isNotEmpty(profile.getIdentifier())) {
                 int tenant = ParameterHelper.getTenantParameter();
-                Bson clause = and(eq(VitamDocument.TENANT_ID, tenant),
-                    eq(ArchiveUnitProfile.IDENTIFIER, profile.getIdentifier()));
+                Bson clause = and(
+                    eq(VitamDocument.TENANT_ID, tenant),
+                    eq(ArchiveUnitProfile.IDENTIFIER, profile.getIdentifier())
+                );
                 boolean exist =
                     FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE.getCollection().countDocuments(clause) > 0;
                 if (exist) {
-                    return Optional.of(ArchiveUnitProfileValidator.RejectionCause.rejectDuplicateIdentifierInDatabase(
-                        profile.getIdentifier()));
+                    return Optional.of(
+                        ArchiveUnitProfileValidator.RejectionCause.rejectDuplicateIdentifierInDatabase(
+                            profile.getIdentifier()
+                        )
+                    );
                 }
             }
             return Optional.empty();
-
         };
     }
-
 
     /**
      * Check if the archive unit ControlSchema property is a valid jon schema .
@@ -400,20 +429,21 @@ public class ArchiveUnitProfileManager {
      * @return
      */
     public ArchiveUnitProfileValidator createJsonSchemaValidator() {
-        return (profile) -> {
+        return profile -> {
             if (profile.getControlSchema() != null) {
                 try {
                     JsonSchemaValidator.forUserSchema(profile.getControlSchema());
                     return Optional.empty();
                 } catch (InvalidJsonSchemaException e) {
                     return Optional.of(
-                        ArchiveUnitProfileValidator.RejectionCause.rejectJsonShema(ArchiveUnitProfile.CONTROLSCHEMA));
+                        ArchiveUnitProfileValidator.RejectionCause.rejectJsonShema(ArchiveUnitProfile.CONTROLSCHEMA)
+                    );
                 }
             } else {
-                return Optional.of(ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing(
-                    ArchiveUnitProfile.CONTROLSCHEMA));
+                return Optional.of(
+                    ArchiveUnitProfileValidator.RejectionCause.rejectMandatoryMissing(ArchiveUnitProfile.CONTROLSCHEMA)
+                );
             }
-
         };
     }
 
@@ -423,32 +453,34 @@ public class ArchiveUnitProfileManager {
      * @return
      */
     public ArchiveUnitProfileValidator createCheckUsedJsonSchema() {
-        return (profile) -> {
+        return profile -> {
             if (ParametersChecker.isNotEmpty(profile.getIdentifier())) {
-
                 final SelectMultiQuery selectMultiple = new SelectMultiQuery();
                 try {
-                    selectMultiple
-                        .setQuery(QueryHelper.eq("ArchiveUnitProfile", profile.getIdentifier()));
+                    selectMultiple.setQuery(QueryHelper.eq("ArchiveUnitProfile", profile.getIdentifier()));
                     JsonNode jsonNode = metaDataClient.selectUnits(selectMultiple.getFinalSelect());
                     if (jsonNode != null && jsonNode.get("$results").size() > 0) {
                         return Optional.of(
                             ArchiveUnitProfileValidator.RejectionCause.rejectJsonSchemaModificationIfInUse(
-                                profile.getName()));
+                                profile.getName()
+                            )
+                        );
                     }
-                } catch (InvalidCreateOperationException | InvalidParseOperationException |
-                         MetaDataExecutionException |
-                         MetaDataDocumentSizeException | MetaDataClientServerException e) {
-                    return Optional.of(ArchiveUnitProfileValidator.RejectionCause.rejectJsonSchemaModificationIfInUse(
-                        profile.getName()));
+                } catch (
+                    InvalidCreateOperationException
+                    | InvalidParseOperationException
+                    | MetaDataExecutionException
+                    | MetaDataDocumentSizeException
+                    | MetaDataClientServerException e
+                ) {
+                    return Optional.of(
+                        ArchiveUnitProfileValidator.RejectionCause.rejectJsonSchemaModificationIfInUse(
+                            profile.getName()
+                        )
+                    );
                 }
-
             }
             return Optional.empty();
-
         };
     }
-
-
 }
-

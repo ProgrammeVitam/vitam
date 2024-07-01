@@ -31,9 +31,7 @@ package fr.gouv.vitam.functional.administration.common.exception;
  */
 public class FileRulesNotFoundException extends FileRulesException {
 
-
     private static final long serialVersionUID = -8759869194114350122L;
-
 
     /**
      * @param message associated message

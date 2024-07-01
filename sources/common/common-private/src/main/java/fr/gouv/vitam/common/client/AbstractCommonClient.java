@@ -68,6 +68,7 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_ENCODING;
 import static javax.ws.rs.core.Response.Status.Family.SUCCESSFUL;
 
 abstract class AbstractCommonClient implements BasicClient {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AbstractCommonClient.class);
 
     private final RetryableParameters retryableParameters;
@@ -91,10 +92,12 @@ abstract class AbstractCommonClient implements BasicClient {
     };
 
     private boolean isNetworkException(Throwable th) {
-        return (th instanceof ConnectTimeoutException
-            || th instanceof UnknownHostException
-            || th instanceof NoHttpResponseException
-            || th instanceof SocketException);
+        return (
+            th instanceof ConnectTimeoutException ||
+            th instanceof UnknownHostException ||
+            th instanceof NoHttpResponseException ||
+            th instanceof SocketException
+        );
     }
 
     AbstractCommonClient(VitamClientFactoryInterface<?> factory) {
@@ -147,11 +150,8 @@ abstract class AbstractCommonClient implements BasicClient {
     }
 
     @Override
-    public void checkStatus(MultivaluedHashMap<String, Object> headers)
-        throws VitamApplicationServerException {
-        VitamRequestBuilder request = VitamRequestBuilder.get()
-            .withPath(STATUS_URL)
-            .withJsonAccept();
+    public void checkStatus(MultivaluedHashMap<String, Object> headers) throws VitamApplicationServerException {
+        VitamRequestBuilder request = VitamRequestBuilder.get().withPath(STATUS_URL).withJsonAccept();
         if (headers != null) {
             request.withHeaders(headers);
         }
@@ -200,9 +200,12 @@ abstract class AbstractCommonClient implements BasicClient {
 
     public Response make(VitamRequestBuilder request) throws VitamClientInternalException {
         if (StringUtils.isNotBlank(request.getBaseUrl())) {
-            throw new VitamRuntimeException(String
-                .format("Base URL must not be 'set' with method 'make' it will be override, here it equals '%s'.",
-                    request.getBaseUrl()));
+            throw new VitamRuntimeException(
+                String.format(
+                    "Base URL must not be 'set' with method 'make' it will be override, here it equals '%s'.",
+                    request.getBaseUrl()
+                )
+            );
         }
         request.withBaseUrl(getServiceUrl());
         return doRequest(request);
@@ -226,8 +229,10 @@ abstract class AbstractCommonClient implements BasicClient {
                     request.withHeader(X_TIMESTAMP, xTimestamp);
                     request.withHeader(X_PLATFORM_ID, getXPlatformId(request, xTimestamp));
                 }
-                Response response = builder(request)
-                    .method(request.getHttpMethod(), Entity.entity(body, request.getContentType()));
+                Response response = builder(request).method(
+                    request.getHttpMethod(),
+                    Entity.entity(body, request.getContentType())
+                );
                 return new VitamAutoClosableResponse(response);
             }
 
@@ -238,11 +243,9 @@ abstract class AbstractCommonClient implements BasicClient {
                     request.withHeaderReplaceExisting(X_PLATFORM_ID, getXPlatformId(request, xTimestamp));
                 }
                 if (body == null) {
-                    return builder(request)
-                        .method(request.getHttpMethod());
+                    return builder(request).method(request.getHttpMethod());
                 }
-                return builder(request)
-                    .method(request.getHttpMethod(), Entity.entity(body, request.getContentType()));
+                return builder(request).method(request.getHttpMethod(), Entity.entity(body, request.getContentType()));
             };
 
             return new VitamAutoClosableResponse(retryable().exec(delegate));
@@ -256,20 +259,15 @@ abstract class AbstractCommonClient implements BasicClient {
     }
 
     private Builder builder(VitamRequestBuilder request) {
-        Client client = request.isChunckedMode()
-            ? this.chunkedClient
-            : this.client;
+        Client client = request.isChunckedMode() ? this.chunkedClient : this.client;
 
-        WebTarget webTarget = client.target(request.getBaseUrl())
-            .path(request.getPath());
+        WebTarget webTarget = client.target(request.getBaseUrl()).path(request.getPath());
 
         for (Entry<String, String> entry : request.getQueryParams().entrySet()) {
             webTarget = webTarget.queryParam(entry.getKey(), entry.getValue());
         }
 
-        return webTarget.request()
-            .headers(request.getHeaders())
-            .accept(request.getAccept());
+        return webTarget.request().headers(request.getHeaders()).accept(request.getAccept());
     }
 
     private String getXTimestamp() {
@@ -287,9 +285,7 @@ abstract class AbstractCommonClient implements BasicClient {
     }
 
     private String getAuthorizationUrl(String originalPath, String baseUrl) {
-        String path = originalPath.startsWith("/")
-            ? originalPath
-            : "/" + originalPath;
+        String path = originalPath.startsWith("/") ? originalPath : "/" + originalPath;
 
         if (baseUrl.endsWith(ADMIN_PATH)) {
             return ADMIN_PATH + getResourcePath() + path;

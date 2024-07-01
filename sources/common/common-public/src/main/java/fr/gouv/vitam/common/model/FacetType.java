@@ -37,6 +37,5 @@ public enum FacetType {
     /**
      * default constructor. <br/>
      */
-    FacetType() {
-    }
+    FacetType() {}
 }

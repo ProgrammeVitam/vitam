@@ -59,7 +59,6 @@ public enum CheckObjectsNumberMessage {
      */
     COUNT_DIGITAL_OBJECT_CONSISTENT("Conformité du nombre d'objets numériques");
 
-
     private final String message;
 
     private CheckObjectsNumberMessage(String message) {
@@ -74,5 +73,4 @@ public enum CheckObjectsNumberMessage {
     public String getMessage() {
         return message;
     }
-
 }

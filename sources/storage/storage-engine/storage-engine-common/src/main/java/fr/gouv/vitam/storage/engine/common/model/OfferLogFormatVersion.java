@@ -27,7 +27,6 @@
 package fr.gouv.vitam.storage.engine.common.model;
 
 public enum OfferLogFormatVersion {
-
     /**
      * Write offer logs where stored BEFORE actual object storage in CAS (optimistic).
      *
@@ -38,5 +37,5 @@ public enum OfferLogFormatVersion {
     /**
      * Write offer logs are stored only AFTER successful object storage in CAS (pessimistic)
      */
-    V2
+    V2,
 }

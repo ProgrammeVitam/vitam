@@ -52,8 +52,10 @@ import java.util.Map.Entry;
  * Check SIP - Object and Archiveunit Consistency handler
  */
 public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(CheckObjectUnitConsistencyActionHandler.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        CheckObjectUnitConsistencyActionHandler.class
+    );
 
     private static final int OBJECTGROUP_TO_GUID_MAP_RANK = 1;
     private static final int OBJECTGROUP_TO_UNIT_MAP_RANK = 0;
@@ -76,8 +78,6 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
     public static final String getId() {
         return HANDLER_ID;
     }
-
-
 
     @Override
     public ItemStatus execute(WorkerParameters params, HandlerIO handler) throws ProcessingException {
@@ -104,16 +104,21 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
      * @param params worker parameter
      * @return list of non conform OG
      */
-    private List<String> findObjectGroupsNonReferencedByArchiveUnit(HandlerIO handlerIO, WorkerParameters params,
-        ItemStatus itemStatus) {
+    private List<String> findObjectGroupsNonReferencedByArchiveUnit(
+        HandlerIO handlerIO,
+        WorkerParameters params,
+        ItemStatus itemStatus
+    ) {
         final List<String> ogList = new ArrayList<>();
 
         @SuppressWarnings("unchecked")
-        final Map<String, Object> objectGroupToUnitStoredMap =
-            (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_UNIT_MAP_RANK);
+        final Map<String, Object> objectGroupToUnitStoredMap = (Map<String, Object>) handlerIO.getInput(
+            OBJECTGROUP_TO_UNIT_MAP_RANK
+        );
         @SuppressWarnings("unchecked")
-        final Map<String, Object> objectGroupToGuidStoredMap =
-            (Map<String, Object>) handlerIO.getInput(OBJECTGROUP_TO_GUID_MAP_RANK);
+        final Map<String, Object> objectGroupToGuidStoredMap = (Map<String, Object>) handlerIO.getInput(
+            OBJECTGROUP_TO_GUID_MAP_RANK
+        );
 
         if (objectGroupToGuidStoredMap.size() == 0) {
             itemStatus.increment(StatusCode.OK);
@@ -128,18 +133,32 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                         // Update logbook OG lifecycle
                         final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
                             LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
-                        logbookLifecycleObjectGroupParameters.setFinalStatus(SUBTASK_ORPHAN, null, StatusCode.KO,
-                            null);
-                        LogbookLifecycleWorkerHelper.updateLifeCycleStep(handlerIO.getHelper(),
-                            logbookLifecycleObjectGroupParameters, params, HANDLER_ID, params.getLogbookTypeProcess(),
-                            StatusCode.KO, objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
+                        logbookLifecycleObjectGroupParameters.setFinalStatus(SUBTASK_ORPHAN, null, StatusCode.KO, null);
+                        LogbookLifecycleWorkerHelper.updateLifeCycleStep(
+                            handlerIO.getHelper(),
+                            logbookLifecycleObjectGroupParameters,
+                            params,
+                            HANDLER_ID,
+                            params.getLogbookTypeProcess(),
+                            StatusCode.KO,
+                            objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString()
+                        );
 
-                        final String objectID = logbookLifecycleObjectGroupParameters
-                            .getParameterValue(LogbookParameterName.objectIdentifier);
-                        handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
-                            handlerIO.getHelper().removeUpdateDelegate(objectID));
-                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                        LogbookClientServerException | ProcessingException e) {
+                        final String objectID = logbookLifecycleObjectGroupParameters.getParameterValue(
+                            LogbookParameterName.objectIdentifier
+                        );
+                        handlerIO
+                            .getLifecyclesClient()
+                            .bulkUpdateObjectGroup(
+                                params.getContainerName(),
+                                handlerIO.getHelper().removeUpdateDelegate(objectID)
+                            );
+                    } catch (
+                        LogbookClientBadRequestException
+                        | LogbookClientNotFoundException
+                        | LogbookClientServerException
+                        | ProcessingException e
+                    ) {
                         LOGGER.error("Can not update logbook lifcycle", e);
                     }
                     ogList.add(objectGroup.getKey());
@@ -149,18 +168,32 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
                         // Update logbook OG lifecycle
                         final LogbookLifeCycleObjectGroupParameters logbookLifecycleObjectGroupParameters =
                             LogbookParameterHelper.newLogbookLifeCycleObjectGroupParameters();
-                        logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.OK,
-                            null);
-                        LogbookLifecycleWorkerHelper.updateLifeCycleStep(handlerIO.getHelper(),
-                            logbookLifecycleObjectGroupParameters, params, HANDLER_ID, params.getLogbookTypeProcess(),
-                            StatusCode.OK, objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString());
+                        logbookLifecycleObjectGroupParameters.setFinalStatus(HANDLER_ID, null, StatusCode.OK, null);
+                        LogbookLifecycleWorkerHelper.updateLifeCycleStep(
+                            handlerIO.getHelper(),
+                            logbookLifecycleObjectGroupParameters,
+                            params,
+                            HANDLER_ID,
+                            params.getLogbookTypeProcess(),
+                            StatusCode.OK,
+                            objectGroupToGuidStoredMap.get(objectGroup.getKey()).toString()
+                        );
 
-                        final String objectID = logbookLifecycleObjectGroupParameters
-                            .getParameterValue(LogbookParameterName.objectIdentifier);
-                        handlerIO.getLifecyclesClient().bulkUpdateObjectGroup(params.getContainerName(),
-                            handlerIO.getHelper().removeUpdateDelegate(objectID));
-                    } catch (LogbookClientBadRequestException | LogbookClientNotFoundException |
-                        LogbookClientServerException | ProcessingException e) {
+                        final String objectID = logbookLifecycleObjectGroupParameters.getParameterValue(
+                            LogbookParameterName.objectIdentifier
+                        );
+                        handlerIO
+                            .getLifecyclesClient()
+                            .bulkUpdateObjectGroup(
+                                params.getContainerName(),
+                                handlerIO.getHelper().removeUpdateDelegate(objectID)
+                            );
+                    } catch (
+                        LogbookClientBadRequestException
+                        | LogbookClientNotFoundException
+                        | LogbookClientServerException
+                        | ProcessingException e
+                    ) {
                         LOGGER.error("Can not update logbook lifcycle", e);
                     }
                 }
@@ -175,5 +208,4 @@ public class CheckObjectUnitConsistencyActionHandler extends ActionHandler {
             throw new ProcessingException(HandlerIOImpl.NOT_CONFORM_PARAM);
         }
     }
-
 }

@@ -128,6 +128,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class DefaultOfferServiceTest {
+
     private static final String CONTAINER_PATH = "container";
     private static final String ARCHIVE_FILE_TXT = "archivefile.txt";
     private static final String ARCHIVE_FILE2_TXT = "archivefile2.txt";
@@ -158,8 +159,9 @@ public class DefaultOfferServiceTest {
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private OfferLogDatabaseService offerDatabaseService;
@@ -188,8 +190,10 @@ public class DefaultOfferServiceTest {
         conf.put("storagePath", tempFolder.getRoot().getAbsolutePath());
         PropertiesUtils.writeYaml(confFile, conf);
 
-        configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
-            StorageConfiguration.class);
+        configuration = PropertiesUtils.readYaml(
+            PropertiesUtils.findFile(DEFAULT_STORAGE_CONF),
+            StorageConfiguration.class
+        );
         if (!Strings.isNullOrEmpty(configuration.getStoragePath())) {
             configuration.setStoragePath(FileUtil.getFileCanonicalPath(configuration.getStoragePath()));
         }
@@ -204,14 +208,21 @@ public class DefaultOfferServiceTest {
             configuration,
             null,
             offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, BATCH_METADATA_COMPUTATION_TIMEOUT
+            MAX_BATCH_THREAD_POOL_SIZE,
+            BATCH_METADATA_COMPUTATION_TIMEOUT
         );
     }
 
     @Test
     public void createObjectTestNoContainer() throws Exception {
-        offerService.createObject(FAKE_CONTAINER, OBJECT_ID, new FakeInputStream(1024), OBJECT_TYPE, 1024L,
-            VitamConfiguration.getDefaultDigestType());
+        offerService.createObject(
+            FAKE_CONTAINER,
+            OBJECT_ID,
+            new FakeInputStream(1024),
+            OBJECT_TYPE,
+            1024L,
+            VitamConfiguration.getDefaultDigestType()
+        );
     }
 
     @Test
@@ -230,14 +241,21 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void createObjectTest() throws Exception {
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
-            .thenReturn(1L);
+        when(
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID)
+        ).thenReturn(1L);
         String computedDigest;
 
         // object
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            computedDigest = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, 8766L,
-                VitamConfiguration.getDefaultDigestType());
+            computedDigest = offerService.createObject(
+                CONTAINER_PATH,
+                OBJECT_ID,
+                in,
+                OBJECT_TYPE,
+                8766L,
+                VitamConfiguration.getDefaultDigestType()
+            );
         }
         // check
         final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
@@ -246,8 +264,10 @@ public class DefaultOfferServiceTest {
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
         assertEquals(computedDigest, digest.toString());
-        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
-            digest.toString());
+        assertEquals(
+            offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
+            digest.toString()
+        );
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
         verify(offerDatabaseService).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE, 1L);
@@ -256,16 +276,29 @@ public class DefaultOfferServiceTest {
     @Test
     public void createObject_OverrideExistingUpdatableObject() throws Exception {
         // object
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
-            .thenReturn(1L);
+        when(
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID)
+        ).thenReturn(1L);
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, UNIT_TYPE, 8766L,
-                VitamConfiguration.getDefaultDigestType());
+            offerService.createObject(
+                CONTAINER_PATH,
+                OBJECT_ID,
+                in,
+                UNIT_TYPE,
+                8766L,
+                VitamConfiguration.getDefaultDigestType()
+            );
         }
         String computedDigestV2;
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE2_TXT))) {
-            computedDigestV2 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, UNIT_TYPE, 13L,
-                VitamConfiguration.getDefaultDigestType());
+            computedDigestV2 = offerService.createObject(
+                CONTAINER_PATH,
+                OBJECT_ID,
+                in,
+                UNIT_TYPE,
+                13L,
+                VitamConfiguration.getDefaultDigestType()
+            );
         }
 
         // check
@@ -275,8 +308,10 @@ public class DefaultOfferServiceTest {
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
         assertEquals(computedDigestV2, digest.toString());
-        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
-            digest.toString());
+        assertEquals(
+            offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
+            digest.toString()
+        );
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
         verify(offerDatabaseService, times(2)).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE, 1L);
@@ -285,16 +320,29 @@ public class DefaultOfferServiceTest {
     @Test
     public void createObject_OverrideExistingNonUpdatableObjectWithSameContent() throws Exception {
         // object
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
-            .thenReturn(10L);
+        when(
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID)
+        ).thenReturn(10L);
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, 8766L,
-                VitamConfiguration.getDefaultDigestType());
+            offerService.createObject(
+                CONTAINER_PATH,
+                OBJECT_ID,
+                in,
+                OBJECT_TYPE,
+                8766L,
+                VitamConfiguration.getDefaultDigestType()
+            );
         }
         String computedDigestV2;
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            computedDigestV2 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, 8766L,
-                VitamConfiguration.getDefaultDigestType());
+            computedDigestV2 = offerService.createObject(
+                CONTAINER_PATH,
+                OBJECT_ID,
+                in,
+                OBJECT_TYPE,
+                8766L,
+                VitamConfiguration.getDefaultDigestType()
+            );
         }
 
         // check
@@ -304,8 +352,10 @@ public class DefaultOfferServiceTest {
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
         assertEquals(computedDigestV2, digest.toString());
-        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
-            digest.toString());
+        assertEquals(
+            offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
+            digest.toString()
+        );
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
         verify(offerDatabaseService, times(2)).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE, 10L);
@@ -314,20 +364,34 @@ public class DefaultOfferServiceTest {
     @Test
     public void createObject_TryOverrideExistingNonUpdatableObjectWithDifferentContentFails() throws Exception {
         // Given
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID))
-            .thenReturn(1L);
+        when(
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID)
+        ).thenReturn(1L);
         String computedDigestV1;
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE_TXT))) {
-            computedDigestV1 = offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, 8766L,
-                VitamConfiguration.getDefaultDigestType());
+            computedDigestV1 = offerService.createObject(
+                CONTAINER_PATH,
+                OBJECT_ID,
+                in,
+                OBJECT_TYPE,
+                8766L,
+                VitamConfiguration.getDefaultDigestType()
+            );
         }
 
         // When / Then
         try (FileInputStream in = new FileInputStream(PropertiesUtils.findFile(ARCHIVE_FILE2_TXT))) {
             assertThatThrownBy(
-                () -> offerService.createObject(CONTAINER_PATH, OBJECT_ID, in, OBJECT_TYPE, 13L,
-                    VitamConfiguration.getDefaultDigestType()))
-                .isInstanceOf(NonUpdatableContentAddressableStorageException.class);
+                () ->
+                    offerService.createObject(
+                        CONTAINER_PATH,
+                        OBJECT_ID,
+                        in,
+                        OBJECT_TYPE,
+                        13L,
+                        VitamConfiguration.getDefaultDigestType()
+                    )
+            ).isInstanceOf(NonUpdatableContentAddressableStorageException.class);
         }
 
         final File testFile = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
@@ -336,8 +400,10 @@ public class DefaultOfferServiceTest {
 
         final Digest digest = Digest.digest(testFile, VitamConfiguration.getDefaultDigestType());
         assertEquals(computedDigestV1, digest.toString());
-        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
-            digest.toString());
+        assertEquals(
+            offerService.getObjectDigest(CONTAINER_PATH, OBJECT_ID, VitamConfiguration.getDefaultDigestType()),
+            digest.toString()
+        );
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, OBJECT_ID));
         verify(offerDatabaseService, times(1)).save(CONTAINER_PATH, OBJECT_ID, OfferLogAction.WRITE, 1L);
@@ -348,8 +414,14 @@ public class DefaultOfferServiceTest {
         assertNotNull(offerService);
 
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, 18L,
-            VitamConfiguration.getDefaultDigestType());
+        offerService.createObject(
+            CONTAINER_PATH,
+            OBJECT_ID_2,
+            streamToStore,
+            OBJECT_TYPE,
+            18L,
+            VitamConfiguration.getDefaultDigestType()
+        );
 
         final ObjectContent response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_2);
         assertNotNull(response);
@@ -362,8 +434,14 @@ public class DefaultOfferServiceTest {
         assertNotNull(offerService);
 
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
-        offerService.createObject(CONTAINER_PATH, OBJECT_ID_2, streamToStore, OBJECT_TYPE, 18L,
-            VitamConfiguration.getDefaultDigestType());
+        offerService.createObject(
+            CONTAINER_PATH,
+            OBJECT_ID_2,
+            streamToStore,
+            OBJECT_TYPE,
+            18L,
+            VitamConfiguration.getDefaultDigestType()
+        );
 
         // check
         final File container = new File(tempFolder.getRoot(), CONTAINER_PATH);
@@ -390,16 +468,20 @@ public class DefaultOfferServiceTest {
         // creation of an object
         final InputStream streamToStore = StreamUtils.toInputStream(OBJECT_ID_2_CONTENT);
 
-        offerService.createObject(CONTAINER_PATH, OBJECT_ID_DELETE, streamToStore,
-            DataCategory.UNIT, 18L, VitamConfiguration.getDefaultDigestType());
+        offerService.createObject(
+            CONTAINER_PATH,
+            OBJECT_ID_DELETE,
+            streamToStore,
+            DataCategory.UNIT,
+            18L,
+            VitamConfiguration.getDefaultDigestType()
+        );
 
         // check if the object has been created
         final ObjectContent response = offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE);
         assertNotNull(response);
         assertNotNull(response.getInputStream());
         response.getInputStream().close();
-
-
 
         // check that if we try to delete an object
         // algorithm, it succeeds
@@ -409,25 +491,29 @@ public class DefaultOfferServiceTest {
             // check that the object has been deleted
             offerService.getObject(CONTAINER_PATH, OBJECT_ID_DELETE);
             fail("Should raized an exception");
-        } catch (ContentAddressableStorageNotFoundException exc) {
-
-        }
-
+        } catch (ContentAddressableStorageNotFoundException exc) {}
     }
 
     @Test
     public void listCursorTest() throws Exception {
         assertNotNull(offerService);
         for (int i = 0; i < 150; i++) {
-            offerService.createObject(CONTAINER_PATH, OBJECT + i, new FakeInputStream(50), OBJECT_TYPE, 50L,
-                VitamConfiguration.getDefaultDigestType());
+            offerService.createObject(
+                CONTAINER_PATH,
+                OBJECT + i,
+                new FakeInputStream(50),
+                OBJECT_TYPE,
+                50L,
+                VitamConfiguration.getDefaultDigestType()
+            );
         }
         ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
         offerService.listObjects(CONTAINER_PATH, objectListingListener);
         ArgumentCaptor<ObjectEntry> objectEntryArgumentCaptor = ArgumentCaptor.forClass(ObjectEntry.class);
-        verify(objectListingListener, times(150)).
-            handleObjectEntry(objectEntryArgumentCaptor.capture());
-        Set<String> objectIds = objectEntryArgumentCaptor.getAllValues().stream()
+        verify(objectListingListener, times(150)).handleObjectEntry(objectEntryArgumentCaptor.capture());
+        Set<String> objectIds = objectEntryArgumentCaptor
+            .getAllValues()
+            .stream()
             .map(ObjectEntry::getObjectId)
             .collect(Collectors.toSet());
         Set<String> expectedObjectIds = IntStream.range(0, 150).mapToObj(i -> OBJECT + i).collect(Collectors.toSet());
@@ -436,7 +522,6 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void listObjectMissingContainer() throws Exception {
-
         // Given
         String unknownContainer = "unknown-container-" + GUIDFactory.newGUID();
         ObjectListingListener objectListingListener = mock(ObjectListingListener.class);
@@ -453,10 +538,10 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void getOfferLogs() {
-        when(offerDatabaseService.getDescendingOfferLogsBy(CONTAINER_PATH, 0L, 2))
-            .thenReturn(getOfferLogs(CONTAINER_PATH, 0, 2));
-        when(offerDatabaseService.getDescendingOfferLogsBy(CONTAINER_PATH, 2L, 3))
-            .thenThrow(MongoWriteException.class);
+        when(offerDatabaseService.getDescendingOfferLogsBy(CONTAINER_PATH, 0L, 2)).thenReturn(
+            getOfferLogs(CONTAINER_PATH, 0, 2)
+        );
+        when(offerDatabaseService.getDescendingOfferLogsBy(CONTAINER_PATH, 2L, 3)).thenThrow(MongoWriteException.class);
         assertNotNull(offerService);
 
         assertThatCode(() -> {
@@ -469,9 +554,11 @@ public class DefaultOfferServiceTest {
 
     private List<OfferLog> getOfferLogs(String containerName, long offset, int limit) {
         return LongStream.range(offset + 1, offset + 1 + limit)
-            .mapToObj(l -> new OfferLog(containerName, OBJECT + l, OfferLogAction.WRITE)
-                .setSequence(l)
-                .setTime(LocalDateUtil.now())
+            .mapToObj(
+                l ->
+                    new OfferLog(containerName, OBJECT + l, OfferLogAction.WRITE)
+                        .setSequence(l)
+                        .setTime(LocalDateUtil.now())
             )
             .collect(Collectors.toList());
     }
@@ -482,8 +569,9 @@ public class DefaultOfferServiceTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID().getId());
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L))
-            .thenReturn(10L);
+        when(
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L)
+        ).thenReturn(10L);
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
         MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
 
@@ -492,15 +580,21 @@ public class DefaultOfferServiceTest {
             CONTAINER_PATH,
             Collections.singletonList(OBJECT_ID),
             multiplexedStreamReader,
-            OBJECT_TYPE, DigestType.SHA512);
+            OBJECT_TYPE,
+            DigestType.SHA512
+        );
 
         // Then
         assertThat(storageBulkPutResult.getEntries()).hasSize(1);
         StorageBulkPutResultEntry entry1 = storageBulkPutResult.getEntries().get(0);
         checkFile(file1, offerService, entry1, OBJECT_ID);
 
-        verify(offerDatabaseService)
-            .bulkSave(eq(CONTAINER_PATH), eq(Collections.singletonList(OBJECT_ID)), eq(OfferLogAction.WRITE), eq(10L));
+        verify(offerDatabaseService).bulkSave(
+            eq(CONTAINER_PATH),
+            eq(Collections.singletonList(OBJECT_ID)),
+            eq(OfferLogAction.WRITE),
+            eq(10L)
+        );
     }
 
     @Test
@@ -509,8 +603,9 @@ public class DefaultOfferServiceTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID().getId());
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L))
-            .thenReturn(10L);
+        when(
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L)
+        ).thenReturn(10L);
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
         File file2 = PropertiesUtils.findFile(ARCHIVE_FILE2_TXT);
         File file3 = PropertiesUtils.findFile(ARCHIVE_FILE3_TXT);
@@ -521,7 +616,9 @@ public class DefaultOfferServiceTest {
             CONTAINER_PATH,
             Arrays.asList(OBJECT_ID, OBJECT_ID_2, OBJECT_ID_3),
             multiplexedStreamReader,
-            OBJECT_TYPE, DigestType.SHA512);
+            OBJECT_TYPE,
+            DigestType.SHA512
+        );
 
         // Then
         assertThat(storageBulkPutResult.getEntries()).hasSize(3);
@@ -529,8 +626,12 @@ public class DefaultOfferServiceTest {
         checkFile(file2, offerService, storageBulkPutResult.getEntries().get(1), OBJECT_ID_2);
         checkFile(file3, offerService, storageBulkPutResult.getEntries().get(2), OBJECT_ID_3);
 
-        verify(offerDatabaseService).bulkSave(eq(CONTAINER_PATH),
-            eq(Arrays.asList(OBJECT_ID, OBJECT_ID_2, OBJECT_ID_3)), eq(OfferLogAction.WRITE), eq(0L));
+        verify(offerDatabaseService).bulkSave(
+            eq(CONTAINER_PATH),
+            eq(Arrays.asList(OBJECT_ID, OBJECT_ID_2, OBJECT_ID_3)),
+            eq(OfferLogAction.WRITE),
+            eq(0L)
+        );
     }
 
     @Test
@@ -539,20 +640,29 @@ public class DefaultOfferServiceTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID().getId());
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L))
-            .thenReturn(1L);
+        when(
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L)
+        ).thenReturn(1L);
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
 
         // When
         MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
         StorageBulkPutResult storageBulkPutResult1 = offerService.bulkPutObjects(
-            CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader, OBJECT_TYPE,
-            DigestType.SHA512);
+            CONTAINER_PATH,
+            Collections.singletonList(OBJECT_ID),
+            multiplexedStreamReader,
+            OBJECT_TYPE,
+            DigestType.SHA512
+        );
 
         MultiplexedStreamReader multiplexedStreamReader2 = createMultiplexedStreamReader(file1);
         StorageBulkPutResult storageBulkPutResult2 = offerService.bulkPutObjects(
-            CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader2, OBJECT_TYPE,
-            DigestType.SHA512);
+            CONTAINER_PATH,
+            Collections.singletonList(OBJECT_ID),
+            multiplexedStreamReader2,
+            OBJECT_TYPE,
+            DigestType.SHA512
+        );
 
         // Then
         assertThat(storageBulkPutResult1.getEntries()).hasSize(1);
@@ -561,8 +671,12 @@ public class DefaultOfferServiceTest {
         assertThat(storageBulkPutResult2.getEntries()).hasSize(1);
         checkFile(file1, offerService, storageBulkPutResult2.getEntries().get(0), OBJECT_ID);
 
-        verify(offerDatabaseService, times(2)).bulkSave(eq(CONTAINER_PATH),
-            eq(Collections.singletonList(OBJECT_ID)), eq(OfferLogAction.WRITE), eq(1L));
+        verify(offerDatabaseService, times(2)).bulkSave(
+            eq(CONTAINER_PATH),
+            eq(Collections.singletonList(OBJECT_ID)),
+            eq(OfferLogAction.WRITE),
+            eq(1L)
+        );
     }
 
     @Test
@@ -571,31 +685,44 @@ public class DefaultOfferServiceTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID().getId());
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L))
-            .thenReturn(10L);
+        when(
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L)
+        ).thenReturn(10L);
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
         File file2 = PropertiesUtils.findFile(ARCHIVE_FILE2_TXT);
 
         // When
         MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
         StorageBulkPutResult storageBulkPutResult1 = offerService.bulkPutObjects(
-            CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader, OBJECT_TYPE,
-            DigestType.SHA512);
+            CONTAINER_PATH,
+            Collections.singletonList(OBJECT_ID),
+            multiplexedStreamReader,
+            OBJECT_TYPE,
+            DigestType.SHA512
+        );
 
         // Try import again
         assertThatThrownBy(() -> {
             MultiplexedStreamReader multiplexedStreamReader2 = createMultiplexedStreamReader(file2);
             offerService.bulkPutObjects(
-                CONTAINER_PATH, Collections.singletonList(OBJECT_ID), multiplexedStreamReader2,
-                OBJECT_TYPE, DigestType.SHA512);
+                CONTAINER_PATH,
+                Collections.singletonList(OBJECT_ID),
+                multiplexedStreamReader2,
+                OBJECT_TYPE,
+                DigestType.SHA512
+            );
         }).isInstanceOf(NonUpdatableContentAddressableStorageException.class);
 
         // Then (check non updated)
         assertThat(storageBulkPutResult1.getEntries()).hasSize(1);
         checkFile(file1, offerService, storageBulkPutResult1.getEntries().get(0), OBJECT_ID);
 
-        verify(offerDatabaseService).bulkSave(eq(CONTAINER_PATH),
-            eq(Collections.singletonList(OBJECT_ID)), eq(OfferLogAction.WRITE), eq(10L));
+        verify(offerDatabaseService).bulkSave(
+            eq(CONTAINER_PATH),
+            eq(Collections.singletonList(OBJECT_ID)),
+            eq(OfferLogAction.WRITE),
+            eq(10L)
+        );
     }
 
     @Test
@@ -604,31 +731,45 @@ public class DefaultOfferServiceTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newGUID().getId());
-        when(offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L))
-            .thenReturn(1L);
+        when(
+            offerSequenceDatabaseService.getNextSequence(OfferSequenceDatabaseService.BACKUP_LOG_SEQUENCE_ID, 1L)
+        ).thenReturn(1L);
         File file1 = PropertiesUtils.findFile(ARCHIVE_FILE_TXT);
         File file2 = PropertiesUtils.findFile(ARCHIVE_FILE2_TXT);
 
         // When
         MultiplexedStreamReader multiplexedStreamReader = createMultiplexedStreamReader(file1);
         StorageBulkPutResult storageBulkPutResult1 = offerService.bulkPutObjects(
-            CONTAINER_PATH, Arrays.asList(OBJECT_ID), multiplexedStreamReader, UNIT_TYPE, DigestType.SHA512);
+            CONTAINER_PATH,
+            Arrays.asList(OBJECT_ID),
+            multiplexedStreamReader,
+            UNIT_TYPE,
+            DigestType.SHA512
+        );
 
         MultiplexedStreamReader multiplexedStreamReader2 = createMultiplexedStreamReader(file2);
         StorageBulkPutResult storageBulkPutResult2 = offerService.bulkPutObjects(
-            CONTAINER_PATH, Arrays.asList(OBJECT_ID), multiplexedStreamReader2, UNIT_TYPE, DigestType.SHA512);
+            CONTAINER_PATH,
+            Arrays.asList(OBJECT_ID),
+            multiplexedStreamReader2,
+            UNIT_TYPE,
+            DigestType.SHA512
+        );
 
         // Then (check updated content)
         assertThat(storageBulkPutResult1.getEntries()).hasSize(1);
         assertThat(storageBulkPutResult2.getEntries()).hasSize(1);
         checkFile(file2, offerService, storageBulkPutResult2.getEntries().get(0), OBJECT_ID);
 
-        verify(offerDatabaseService, times(2)).bulkSave(eq(CONTAINER_PATH),
-            eq(Collections.singletonList(OBJECT_ID)), eq(OfferLogAction.WRITE), eq(1L));
+        verify(offerDatabaseService, times(2)).bulkSave(
+            eq(CONTAINER_PATH),
+            eq(Collections.singletonList(OBJECT_ID)),
+            eq(OfferLogAction.WRITE),
+            eq(1L)
+        );
     }
 
     private MultiplexedStreamReader createMultiplexedStreamReader(File... files) throws IOException {
-
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         MultiplexedStreamWriter multiplexedStreamWriter = new MultiplexedStreamWriter(byteArrayOutputStream);
 
@@ -641,17 +782,19 @@ public class DefaultOfferServiceTest {
         return new MultiplexedStreamReader(byteArrayOutputStream.toInputStream());
     }
 
-    private void checkFile(File testFile, DefaultOfferService offerService, StorageBulkPutResultEntry entry,
-        String objectId)
-        throws IOException, ContentAddressableStorageException {
+    private void checkFile(
+        File testFile,
+        DefaultOfferService offerService,
+        StorageBulkPutResultEntry entry,
+        String objectId
+    ) throws IOException, ContentAddressableStorageException {
         File offerFile = new File(tempFolder.getRoot(), CONTAINER_PATH + "/" + objectId);
         assertThat(offerFile).hasSameContentAs(testFile);
 
         Digest digest = Digest.digest(testFile, getDefaultDigestType());
 
         assertEquals(entry.getDigest(), digest.toString());
-        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, objectId,
-            getDefaultDigestType()), digest.toString());
+        assertEquals(offerService.getObjectDigest(CONTAINER_PATH, objectId, getDefaultDigestType()), digest.toString());
 
         assertTrue(offerService.isObjectExist(CONTAINER_PATH, objectId));
     }
@@ -660,10 +803,17 @@ public class DefaultOfferServiceTest {
     public void should_compact_logs_into_compaction_collection() throws Exception {
         // Given
         OfferLogCompactionConfiguration config = new OfferLogCompactionConfiguration(1, ChronoUnit.SECONDS, 4);
-        offerService = new DefaultOfferServiceImpl(defaultStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            config, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, BATCH_METADATA_COMPUTATION_TIMEOUT);
+        offerService = new DefaultOfferServiceImpl(
+            defaultStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            config,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            BATCH_METADATA_COMPUTATION_TIMEOUT
+        );
 
         List<OfferLog> logs = Arrays.asList(
             new OfferLog(1, LocalDateUtil.now(), "container", "filename", OfferLogAction.WRITE),
@@ -672,25 +822,35 @@ public class DefaultOfferServiceTest {
             new OfferLog(4, LocalDateUtil.now(), "container", "filename", OfferLogAction.WRITE)
         );
 
-        when(offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(),
-            config.getExpirationUnit())).thenReturn(toCloseableIterable(logs));
+        when(
+            offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(), config.getExpirationUnit())
+        ).thenReturn(toCloseableIterable(logs));
 
         // When
         offerService.compactOfferLogs();
 
         // Then
-        verify(offerLogAndCompactedOfferLogService, times(1))
-            .almostTransactionalSaveAndDelete(any(CompactedOfferLog.class), eq(logs));
+        verify(offerLogAndCompactedOfferLogService, times(1)).almostTransactionalSaveAndDelete(
+            any(CompactedOfferLog.class),
+            eq(logs)
+        );
     }
 
     @Test
     public void should_compaction_contains_4_logs() throws Exception {
         // Given
         OfferLogCompactionConfiguration config = new OfferLogCompactionConfiguration(15, ChronoUnit.SECONDS, 4);
-        offerService = new DefaultOfferServiceImpl(defaultStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            config, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, BATCH_METADATA_COMPUTATION_TIMEOUT);
+        offerService = new DefaultOfferServiceImpl(
+            defaultStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            config,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            BATCH_METADATA_COMPUTATION_TIMEOUT
+        );
 
         List<OfferLog> logs = Arrays.asList(
             new OfferLog(1, LocalDateUtil.now(), "container", "filename", OfferLogAction.WRITE),
@@ -699,75 +859,131 @@ public class DefaultOfferServiceTest {
             new OfferLog(4, LocalDateUtil.now(), "container", "filename", OfferLogAction.WRITE)
         );
 
-        when(offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(),
-            config.getExpirationUnit())).thenReturn(toCloseableIterable(logs));
+        when(
+            offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(), config.getExpirationUnit())
+        ).thenReturn(toCloseableIterable(logs));
 
-        CompactedOfferLog compactedOfferLogExpected =
-            new CompactedOfferLog(1, 4, LocalDateUtil.now(), "container", logs);
+        CompactedOfferLog compactedOfferLogExpected = new CompactedOfferLog(
+            1,
+            4,
+            LocalDateUtil.now(),
+            "container",
+            logs
+        );
         ArgumentCaptor<CompactedOfferLog> compactionSaved = ArgumentCaptor.forClass(CompactedOfferLog.class);
 
-        doNothing().when(offerLogAndCompactedOfferLogService)
+        doNothing()
+            .when(offerLogAndCompactedOfferLogService)
             .almostTransactionalSaveAndDelete(compactionSaved.capture(), anyList());
 
         // When
         offerService.compactOfferLogs();
 
         // Then
-        verify(offerLogAndCompactedOfferLogService, times(1))
-            .almostTransactionalSaveAndDelete(any(CompactedOfferLog.class), eq(logs));
+        verify(offerLogAndCompactedOfferLogService, times(1)).almostTransactionalSaveAndDelete(
+            any(CompactedOfferLog.class),
+            eq(logs)
+        );
         assertThat(compactionSaved.getValue()).isEqualToComparingOnlyGivenFields(
-            compactedOfferLogExpected, "SequenceStart", "SequenceEnd", "Container", "Logs");
+            compactedOfferLogExpected,
+            "SequenceStart",
+            "SequenceEnd",
+            "Container",
+            "Logs"
+        );
     }
 
     @Test
     public void should_save_multiple_compaction_when_different_container() throws Exception {
         // Given
         OfferLogCompactionConfiguration config = new OfferLogCompactionConfiguration(15, ChronoUnit.SECONDS, 4);
-        offerService = new DefaultOfferServiceImpl(defaultStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            config, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, BATCH_METADATA_COMPUTATION_TIMEOUT);
+        offerService = new DefaultOfferServiceImpl(
+            defaultStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            config,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            BATCH_METADATA_COMPUTATION_TIMEOUT
+        );
 
         List<OfferLog> logs1 = Arrays.asList(
             new OfferLog(1, LocalDateUtil.now(), "container1", "filename", OfferLogAction.WRITE),
             new OfferLog(3, LocalDateUtil.now(), "container1", "filename", OfferLogAction.WRITE),
-            new OfferLog(5, LocalDateUtil.now(), "container1", "filename", OfferLogAction.WRITE));
+            new OfferLog(5, LocalDateUtil.now(), "container1", "filename", OfferLogAction.WRITE)
+        );
 
         List<OfferLog> logs2 = Collections.singletonList(
-            new OfferLog(2, LocalDateUtil.now(), "container2", "filename", OfferLogAction.WRITE));
+            new OfferLog(2, LocalDateUtil.now(), "container2", "filename", OfferLogAction.WRITE)
+        );
         List<OfferLog> logs3 = Collections.singletonList(
-            new OfferLog(4, LocalDateUtil.now(), "container3", "filename", OfferLogAction.WRITE));
+            new OfferLog(4, LocalDateUtil.now(), "container3", "filename", OfferLogAction.WRITE)
+        );
 
-        List<OfferLog> logs = Stream.of(logs1, logs2, logs3)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toList());
+        List<OfferLog> logs = Stream.of(logs1, logs2, logs3).flatMap(Collection::stream).collect(Collectors.toList());
 
-        when(offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(),
-            config.getExpirationUnit())).thenReturn(toCloseableIterable(logs));
+        when(
+            offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(), config.getExpirationUnit())
+        ).thenReturn(toCloseableIterable(logs));
 
-        CompactedOfferLog compactedOfferLogExpected1 =
-            new CompactedOfferLog(1, 5, LocalDateUtil.now(), "container1", logs1);
-        CompactedOfferLog compactedOfferLogExpected2 =
-            new CompactedOfferLog(2, 2, LocalDateUtil.now(), "container2", logs2);
-        CompactedOfferLog compactedOfferLogExpected3 =
-            new CompactedOfferLog(4, 4, LocalDateUtil.now(), "container3", logs3);
+        CompactedOfferLog compactedOfferLogExpected1 = new CompactedOfferLog(
+            1,
+            5,
+            LocalDateUtil.now(),
+            "container1",
+            logs1
+        );
+        CompactedOfferLog compactedOfferLogExpected2 = new CompactedOfferLog(
+            2,
+            2,
+            LocalDateUtil.now(),
+            "container2",
+            logs2
+        );
+        CompactedOfferLog compactedOfferLogExpected3 = new CompactedOfferLog(
+            4,
+            4,
+            LocalDateUtil.now(),
+            "container3",
+            logs3
+        );
         ArgumentCaptor<CompactedOfferLog> compactionSaved = ArgumentCaptor.forClass(CompactedOfferLog.class);
 
-        doNothing().when(offerLogAndCompactedOfferLogService)
+        doNothing()
+            .when(offerLogAndCompactedOfferLogService)
             .almostTransactionalSaveAndDelete(compactionSaved.capture(), anyList());
 
         // When
         offerService.compactOfferLogs();
 
         // Then
-        verify(offerLogAndCompactedOfferLogService, times(3))
-            .almostTransactionalSaveAndDelete(any(CompactedOfferLog.class), anyList());
+        verify(offerLogAndCompactedOfferLogService, times(3)).almostTransactionalSaveAndDelete(
+            any(CompactedOfferLog.class),
+            anyList()
+        );
         assertThat(compactionSaved.getAllValues().get(0)).isEqualToComparingOnlyGivenFields(
-            compactedOfferLogExpected1, "SequenceStart", "SequenceEnd", "Container", "Logs");
+            compactedOfferLogExpected1,
+            "SequenceStart",
+            "SequenceEnd",
+            "Container",
+            "Logs"
+        );
         assertThat(compactionSaved.getAllValues().get(1)).isEqualToComparingOnlyGivenFields(
-            compactedOfferLogExpected2, "SequenceStart", "SequenceEnd", "Container", "Logs");
+            compactedOfferLogExpected2,
+            "SequenceStart",
+            "SequenceEnd",
+            "Container",
+            "Logs"
+        );
         assertThat(compactionSaved.getAllValues().get(2)).isEqualToComparingOnlyGivenFields(
-            compactedOfferLogExpected3, "SequenceStart", "SequenceEnd", "Container", "Logs");
+            compactedOfferLogExpected3,
+            "SequenceStart",
+            "SequenceEnd",
+            "Container",
+            "Logs"
+        );
     }
 
     @Test
@@ -775,10 +991,17 @@ public class DefaultOfferServiceTest {
         // Given
 
         OfferLogCompactionConfiguration config = new OfferLogCompactionConfiguration(15, ChronoUnit.SECONDS, 2);
-        offerService = new DefaultOfferServiceImpl(defaultStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            config, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, BATCH_METADATA_COMPUTATION_TIMEOUT);
+        offerService = new DefaultOfferServiceImpl(
+            defaultStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            config,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            BATCH_METADATA_COMPUTATION_TIMEOUT
+        );
 
         OfferLog offerLog = new OfferLog(1, LocalDateUtil.now(), "container1", "filename", OfferLogAction.WRITE);
         OfferLog offerLog1 = new OfferLog(2, LocalDateUtil.now(), "container1", "filename", OfferLogAction.WRITE);
@@ -789,57 +1012,101 @@ public class DefaultOfferServiceTest {
 
         List<OfferLog> logs = Arrays.asList(offerLog, offerLog1, offerLog2, offerLog3, offerLog4, offerLog5);
 
-        when(offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(),
-            config.getExpirationUnit())).thenReturn(toCloseableIterable(logs));
+        when(
+            offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(), config.getExpirationUnit())
+        ).thenReturn(toCloseableIterable(logs));
 
         List<OfferLog> logs1 = Arrays.asList(offerLog, offerLog1);
         List<OfferLog> logs2 = Arrays.asList(offerLog2, offerLog3);
         List<OfferLog> logs3 = Arrays.asList(offerLog4, offerLog5);
 
-        CompactedOfferLog compactedOfferLogExpected1 =
-            new CompactedOfferLog(1, 2, LocalDateUtil.now(), "container1", logs1);
-        CompactedOfferLog compactedOfferLogExpected2 =
-            new CompactedOfferLog(3, 4, LocalDateUtil.now(), "container1", logs2);
-        CompactedOfferLog compactedOfferLogExpected3 =
-            new CompactedOfferLog(5, 6, LocalDateUtil.now(), "container1", logs3);
+        CompactedOfferLog compactedOfferLogExpected1 = new CompactedOfferLog(
+            1,
+            2,
+            LocalDateUtil.now(),
+            "container1",
+            logs1
+        );
+        CompactedOfferLog compactedOfferLogExpected2 = new CompactedOfferLog(
+            3,
+            4,
+            LocalDateUtil.now(),
+            "container1",
+            logs2
+        );
+        CompactedOfferLog compactedOfferLogExpected3 = new CompactedOfferLog(
+            5,
+            6,
+            LocalDateUtil.now(),
+            "container1",
+            logs3
+        );
         ArgumentCaptor<CompactedOfferLog> compactionSaved = ArgumentCaptor.forClass(CompactedOfferLog.class);
 
-        doNothing().when(offerLogAndCompactedOfferLogService)
+        doNothing()
+            .when(offerLogAndCompactedOfferLogService)
             .almostTransactionalSaveAndDelete(compactionSaved.capture(), anyList());
 
         // When
         offerService.compactOfferLogs();
 
         // Then
-        verify(offerLogAndCompactedOfferLogService, times(3))
-            .almostTransactionalSaveAndDelete(any(CompactedOfferLog.class), anyList());
+        verify(offerLogAndCompactedOfferLogService, times(3)).almostTransactionalSaveAndDelete(
+            any(CompactedOfferLog.class),
+            anyList()
+        );
 
         assertThat(compactionSaved.getAllValues().get(0)).isEqualToComparingOnlyGivenFields(
-            compactedOfferLogExpected1, "SequenceStart", "SequenceEnd", "Container", "Logs");
+            compactedOfferLogExpected1,
+            "SequenceStart",
+            "SequenceEnd",
+            "Container",
+            "Logs"
+        );
         assertThat(compactionSaved.getAllValues().get(1)).isEqualToComparingOnlyGivenFields(
-            compactedOfferLogExpected2, "SequenceStart", "SequenceEnd", "Container", "Logs");
+            compactedOfferLogExpected2,
+            "SequenceStart",
+            "SequenceEnd",
+            "Container",
+            "Logs"
+        );
         assertThat(compactionSaved.getAllValues().get(2)).isEqualToComparingOnlyGivenFields(
-            compactedOfferLogExpected3, "SequenceStart", "SequenceEnd", "Container", "Logs");
+            compactedOfferLogExpected3,
+            "SequenceStart",
+            "SequenceEnd",
+            "Container",
+            "Logs"
+        );
     }
 
     @Test
     public void should_do_nothing_when_no_logs_to_compact() throws Exception {
         // Given
         OfferLogCompactionConfiguration config = new OfferLogCompactionConfiguration(1, ChronoUnit.SECONDS, 4);
-        offerService = new DefaultOfferServiceImpl(defaultStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            config, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, BATCH_METADATA_COMPUTATION_TIMEOUT);
+        offerService = new DefaultOfferServiceImpl(
+            defaultStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            config,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            BATCH_METADATA_COMPUTATION_TIMEOUT
+        );
 
-        when(offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(),
-            config.getExpirationUnit())).thenReturn(toCloseableIterable(Collections.emptyList()));
+        when(
+            offerDatabaseService.getExpiredOfferLogByContainer(config.getExpirationValue(), config.getExpirationUnit())
+        ).thenReturn(toCloseableIterable(Collections.emptyList()));
 
         // When
         offerService.compactOfferLogs();
 
         // Then
-        verify(offerLogAndCompactedOfferLogService, times(0))
-            .almostTransactionalSaveAndDelete(any(CompactedOfferLog.class), anyList());
+        verify(offerLogAndCompactedOfferLogService, times(0)).almostTransactionalSaveAndDelete(
+            any(CompactedOfferLog.class),
+            anyList()
+        );
     }
 
     @Test
@@ -850,8 +1117,7 @@ public class DefaultOfferServiceTest {
             new OfferLog(4, LocalDateUtil.now(), "containerName", "fileName2", OfferLogAction.WRITE),
             new OfferLog(3, LocalDateUtil.now(), "containerName", "fileName3", OfferLogAction.WRITE)
         );
-        when(offerDatabaseService.getDescendingOfferLogsBy("containerName", 5L, 3))
-            .thenReturn(expectedOfferLogs);
+        when(offerDatabaseService.getDescendingOfferLogsBy("containerName", 5L, 3)).thenReturn(expectedOfferLogs);
 
         // When
         List<OfferLog> logs = offerService.getOfferLogs("containerName", 5L, 3, DESC);
@@ -873,12 +1139,12 @@ public class DefaultOfferServiceTest {
         OfferLog offerLog3 = new OfferLog(2, LocalDateUtil.now(), "containerName", "fileName2", OfferLogAction.WRITE);
 
         List<OfferLog> expectedOfferLogs = Arrays.asList(offerLog, offerLog1, offerLog2);
-        when(offerDatabaseService.getDescendingOfferLogsBy("containerName", 5L, 4))
-            .thenReturn(expectedOfferLogs);
+        when(offerDatabaseService.getDescendingOfferLogsBy("containerName", 5L, 4)).thenReturn(expectedOfferLogs);
 
         List<OfferLog> compactedOfferLogs = Collections.singletonList(offerLog3);
-        when(offerLogCompactionDatabaseService.getDescendingOfferLogCompactionBy("containerName", 2L, 1))
-            .thenReturn(compactedOfferLogs);
+        when(offerLogCompactionDatabaseService.getDescendingOfferLogCompactionBy("containerName", 2L, 1)).thenReturn(
+            compactedOfferLogs
+        );
 
         // When
         List<OfferLog> logs = offerService.getOfferLogs("containerName", 5L, 4, DESC);
@@ -899,16 +1165,16 @@ public class DefaultOfferServiceTest {
             new OfferLog(2, LocalDateUtil.now(), "containerName", "fileName2", OfferLogAction.WRITE),
             new OfferLog(3, LocalDateUtil.now(), "containerName", "fileName3", OfferLogAction.WRITE)
         );
-        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 1L, 3))
-            .thenReturn(expectedOfferLogs);
+        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 1L, 3)).thenReturn(
+            expectedOfferLogs
+        );
 
         // When
         List<OfferLog> logs = offerService.getOfferLogs("containerName", 1L, 3, ASC);
 
         // Then
         assertThat(logs).isEqualTo(expectedOfferLogs);
-        verify(offerLogCompactionDatabaseService, times(1))
-            .getAscendingOfferLogCompactionBy("containerName", 1L, 3);
+        verify(offerLogCompactionDatabaseService, times(1)).getAscendingOfferLogCompactionBy("containerName", 1L, 3);
         verifyNoMoreInteractions(offerDatabaseService);
         verifyNoMoreInteractions(offerLogCompactionDatabaseService);
     }
@@ -923,14 +1189,17 @@ public class DefaultOfferServiceTest {
         OfferLog offerLog4 = new OfferLog(4, LocalDateUtil.now(), "containerName", "fileName4", OfferLogAction.WRITE);
         OfferLog offerLog5 = new OfferLog(5, LocalDateUtil.now(), "containerName", "fileName5", OfferLogAction.WRITE);
 
-        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 1L, 6))
-            .thenReturn(Arrays.asList(offerLog1, offerLog2));
+        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 1L, 6)).thenReturn(
+            Arrays.asList(offerLog1, offerLog2)
+        );
 
-        when(offerDatabaseService.getAscendingOfferLogsBy("containerName", 3L, 4))
-            .thenReturn(Arrays.asList(offerLog3, offerLog4, offerLog5));
+        when(offerDatabaseService.getAscendingOfferLogsBy("containerName", 3L, 4)).thenReturn(
+            Arrays.asList(offerLog3, offerLog4, offerLog5)
+        );
 
-        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 3L, 6))
-            .thenReturn(Collections.emptyList());
+        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 3L, 6)).thenReturn(
+            Collections.emptyList()
+        );
 
         // When
         List<OfferLog> logs = offerService.getOfferLogs("containerName", 1L, 6, ASC);
@@ -961,14 +1230,17 @@ public class DefaultOfferServiceTest {
         // On first query compacted offer log only retrieves OfferLog sequences 1 to 2
         // Concurrently, OfferLogs with sequences 3 to 5 will just be compacted, but not sequences 6 to 7
 
-        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 1L, 6))
-            .thenReturn(Arrays.asList(offerLog1, offerLog2));
+        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 1L, 6)).thenReturn(
+            Arrays.asList(offerLog1, offerLog2)
+        );
 
-        when(offerDatabaseService.getAscendingOfferLogsBy("containerName", 3L, 4))
-            .thenReturn(Arrays.asList(offerLog6, offerLog7));
+        when(offerDatabaseService.getAscendingOfferLogsBy("containerName", 3L, 4)).thenReturn(
+            Arrays.asList(offerLog6, offerLog7)
+        );
 
-        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 3L, 4))
-            .thenReturn(Arrays.asList(offerLog3, offerLog4, offerLog5));
+        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 3L, 4)).thenReturn(
+            Arrays.asList(offerLog3, offerLog4, offerLog5)
+        );
 
         // When
         List<OfferLog> logs = offerService.getOfferLogs("containerName", 1L, 6, ASC);
@@ -998,14 +1270,17 @@ public class DefaultOfferServiceTest {
         // On first query compacted offer log only retrieves OfferLog sequences 1 to 2
         // Concurrently, OfferLogs with sequences 3 to 5 are being partially compacted (add to CompactedOfferLog, but not yet removed from OfferLog)
 
-        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 1L, 6))
-            .thenReturn(Arrays.asList(offerLog1, offerLog2));
+        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 1L, 6)).thenReturn(
+            Arrays.asList(offerLog1, offerLog2)
+        );
 
-        when(offerDatabaseService.getAscendingOfferLogsBy("containerName", 3L, 4))
-            .thenReturn(Arrays.asList(offerLog3, offerLog4, offerLog5, offerLog6));
+        when(offerDatabaseService.getAscendingOfferLogsBy("containerName", 3L, 4)).thenReturn(
+            Arrays.asList(offerLog3, offerLog4, offerLog5, offerLog6)
+        );
 
-        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 3L, 4))
-            .thenReturn(Arrays.asList(offerLog3, offerLog4, offerLog5));
+        when(offerLogCompactionDatabaseService.getAscendingOfferLogCompactionBy("containerName", 3L, 4)).thenReturn(
+            Arrays.asList(offerLog3, offerLog4, offerLog5)
+        );
 
         // When
         List<OfferLog> logs = offerService.getOfferLogs("containerName", 1L, 6, ASC);
@@ -1021,29 +1296,49 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void getBulkMetadataWithExistingObjects() throws Exception {
-
         // Given
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
-        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            null, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, BATCH_METADATA_COMPUTATION_TIMEOUT);
+        offerService = new DefaultOfferServiceImpl(
+            contentAddressableStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            BATCH_METADATA_COMPUTATION_TIMEOUT
+        );
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String objectName = args.getArgument(1);
-            return new StorageMetadataResult(objectName, null, "digest-" + objectName, objectName.hashCode(), null,
-                null);
-        }).when(contentAddressableStorage).getObjectMetadata(eq(CONTAINER_PATH), anyString(), eq(false));
+            return new StorageMetadataResult(
+                objectName,
+                null,
+                "digest-" + objectName,
+                objectName.hashCode(),
+                null,
+                null
+            );
+        })
+            .when(contentAddressableStorage)
+            .getObjectMetadata(eq(CONTAINER_PATH), anyString(), eq(false));
 
         // When
-        StorageBulkMetadataResult result =
-            offerService.getBulkMetadata(CONTAINER_PATH, Arrays.asList("guid1", "guid2", "guid3"), false);
+        StorageBulkMetadataResult result = offerService.getBulkMetadata(
+            CONTAINER_PATH,
+            Arrays.asList("guid1", "guid2", "guid3"),
+            false
+        );
 
         // Then
         assertThat(result.getObjectMetadata()).hasSize(3);
         assertThat(result.getObjectMetadata())
-            .extracting(StorageBulkMetadataResultEntry::getObjectName, StorageBulkMetadataResultEntry::getDigest,
-                StorageBulkMetadataResultEntry::getSize)
+            .extracting(
+                StorageBulkMetadataResultEntry::getObjectName,
+                StorageBulkMetadataResultEntry::getDigest,
+                StorageBulkMetadataResultEntry::getSize
+            )
             .containsExactlyInAnyOrder(
                 new Tuple("guid1", "digest-guid1", (long) "guid1".hashCode()),
                 new Tuple("guid2", "digest-guid2", (long) "guid2".hashCode()),
@@ -1053,34 +1348,54 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void getBulkMetadataWithMissingObject() throws Exception {
-
         // Given
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
-        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            null, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, BATCH_METADATA_COMPUTATION_TIMEOUT);
+        offerService = new DefaultOfferServiceImpl(
+            contentAddressableStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            BATCH_METADATA_COMPUTATION_TIMEOUT
+        );
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String objectName = args.getArgument(1);
 
             if (objectName.equals("guid2")) {
                 throw new ContentAddressableStorageNotFoundException("");
             }
 
-            return new StorageMetadataResult(objectName, null, "digest-" + objectName, objectName.hashCode(), null,
-                null);
-        }).when(contentAddressableStorage).getObjectMetadata(eq(CONTAINER_PATH), anyString(), eq(false));
+            return new StorageMetadataResult(
+                objectName,
+                null,
+                "digest-" + objectName,
+                objectName.hashCode(),
+                null,
+                null
+            );
+        })
+            .when(contentAddressableStorage)
+            .getObjectMetadata(eq(CONTAINER_PATH), anyString(), eq(false));
 
         // When
-        StorageBulkMetadataResult result =
-            offerService.getBulkMetadata(CONTAINER_PATH, Arrays.asList("guid1", "guid2", "guid3"), false);
+        StorageBulkMetadataResult result = offerService.getBulkMetadata(
+            CONTAINER_PATH,
+            Arrays.asList("guid1", "guid2", "guid3"),
+            false
+        );
 
         // Then
         assertThat(result.getObjectMetadata()).hasSize(3);
         assertThat(result.getObjectMetadata())
-            .extracting(StorageBulkMetadataResultEntry::getObjectName, StorageBulkMetadataResultEntry::getDigest,
-                StorageBulkMetadataResultEntry::getSize)
+            .extracting(
+                StorageBulkMetadataResultEntry::getObjectName,
+                StorageBulkMetadataResultEntry::getDigest,
+                StorageBulkMetadataResultEntry::getSize
+            )
             .containsExactlyInAnyOrder(
                 new Tuple("guid1", "digest-guid1", (long) "guid1".hashCode()),
                 new Tuple("guid2", null, null),
@@ -1090,70 +1405,105 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void getBulkMetadataWithAtLeastOneStorageExceptionThenThrowException() throws Exception {
-
         // Given
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
-        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            null, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, BATCH_METADATA_COMPUTATION_TIMEOUT);
+        offerService = new DefaultOfferServiceImpl(
+            contentAddressableStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            BATCH_METADATA_COMPUTATION_TIMEOUT
+        );
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String objectName = args.getArgument(1);
 
             if (objectName.equals("guid2")) {
                 throw new ContentAddressableStorageException("");
             }
 
-            return new StorageMetadataResult(objectName, null, "digest-" + objectName, objectName.hashCode(), null,
-                null);
-        }).when(contentAddressableStorage).getObjectMetadata(eq(CONTAINER_PATH), anyString(), eq(false));
+            return new StorageMetadataResult(
+                objectName,
+                null,
+                "digest-" + objectName,
+                objectName.hashCode(),
+                null,
+                null
+            );
+        })
+            .when(contentAddressableStorage)
+            .getObjectMetadata(eq(CONTAINER_PATH), anyString(), eq(false));
 
         // When / Then
         assertThatThrownBy(
-            () -> offerService.getBulkMetadata(CONTAINER_PATH, Arrays.asList("guid1", "guid2", "guid3"), false))
-            .isInstanceOf(ContentAddressableStorageException.class);
+            () -> offerService.getBulkMetadata(CONTAINER_PATH, Arrays.asList("guid1", "guid2", "guid3"), false)
+        ).isInstanceOf(ContentAddressableStorageException.class);
     }
 
     @Test
     public void getBulkMetadataWithTimeoutThenThrowException() throws Exception {
-
         // Given
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
-        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            null, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, 1);
+        offerService = new DefaultOfferServiceImpl(
+            contentAddressableStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            1
+        );
 
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String objectName = args.getArgument(1);
 
             if (objectName.equals("guid2")) {
                 TimeUnit.SECONDS.sleep(60);
             }
 
-            return new StorageMetadataResult(objectName, null, "digest-" + objectName, objectName.hashCode(), null,
-                null);
-        }).when(contentAddressableStorage).getObjectMetadata(eq(CONTAINER_PATH), anyString(), eq(false));
+            return new StorageMetadataResult(
+                objectName,
+                null,
+                "digest-" + objectName,
+                objectName.hashCode(),
+                null,
+                null
+            );
+        })
+            .when(contentAddressableStorage)
+            .getObjectMetadata(eq(CONTAINER_PATH), anyString(), eq(false));
 
         // When / Then
         assertThatThrownBy(
-            () -> offerService.getBulkMetadata(CONTAINER_PATH, Arrays.asList("guid1", "guid2", "guid3"), false))
-            .isInstanceOf(ContentAddressableStorageException.class);
+            () -> offerService.getBulkMetadata(CONTAINER_PATH, Arrays.asList("guid1", "guid2", "guid3"), false)
+        ).isInstanceOf(ContentAddressableStorageException.class);
     }
 
     @Test
     public void givenTapeOfferWhenCreateAccessRequestThenOK() throws ContentAddressableStorageException {
-
         // Given
         configuration.setProvider(StorageProvider.TAPE_LIBRARY.getValue());
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
-        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            null, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, 1);
+        offerService = new DefaultOfferServiceImpl(
+            contentAddressableStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            1
+        );
 
-        doReturn("accessRequestId").when(contentAddressableStorage)
+        doReturn("accessRequestId")
+            .when(contentAddressableStorage)
             .createAccessRequest("container", List.of("obj1", "obj2"));
 
         // When
@@ -1165,82 +1515,105 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void givenNonTapeOfferWhenCreateAccessRequestThenKO() throws ContentAddressableStorageException {
-
         // Given
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
-        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            null, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, 1);
+        offerService = new DefaultOfferServiceImpl(
+            contentAddressableStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            1
+        );
 
-        doReturn("accessRequestId").when(contentAddressableStorage)
+        doReturn("accessRequestId")
+            .when(contentAddressableStorage)
             .createAccessRequest("container", List.of("obj1", "obj2"));
 
         // When / Then
-        assertThatThrownBy(() -> offerService.createAccessRequest("container", List.of("obj1", "obj2")))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(() -> offerService.createAccessRequest("container", List.of("obj1", "obj2"))).isInstanceOf(
+            ContentAddressableStorageException.class
+        );
     }
 
     @Test
     public void givenTapeOfferWhenCheckAccessRequestStatusesThenOK() throws ContentAddressableStorageException {
-
         // Given
         configuration.setProvider(StorageProvider.TAPE_LIBRARY.getValue());
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
-        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            null, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, 1);
+        offerService = new DefaultOfferServiceImpl(
+            contentAddressableStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            1
+        );
 
-        doReturn(Map.of(
-            "accessRequest1", AccessRequestStatus.EXPIRED,
-            "accessRequest2", AccessRequestStatus.READY
-        )).when(contentAddressableStorage)
+        doReturn(Map.of("accessRequest1", AccessRequestStatus.EXPIRED, "accessRequest2", AccessRequestStatus.READY))
+            .when(contentAddressableStorage)
             .checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2"), true);
 
         // When
-        Map<String, AccessRequestStatus> accessRequestStatuses =
-            offerService.checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2"), true);
+        Map<String, AccessRequestStatus> accessRequestStatuses = offerService.checkAccessRequestStatuses(
+            List.of("accessRequest1", "accessRequest2"),
+            true
+        );
 
         // Then
-        assertThat(accessRequestStatuses).isEqualTo(Map.of(
-            "accessRequest1", AccessRequestStatus.EXPIRED,
-            "accessRequest2", AccessRequestStatus.READY
-        ));
+        assertThat(accessRequestStatuses).isEqualTo(
+            Map.of("accessRequest1", AccessRequestStatus.EXPIRED, "accessRequest2", AccessRequestStatus.READY)
+        );
     }
 
     @Test
     public void givenNonTapeOfferWhenCheckAccessRequestStatusesThenKO() throws ContentAddressableStorageException {
-
         // Given
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
-        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            null, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, 1);
+        offerService = new DefaultOfferServiceImpl(
+            contentAddressableStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            1
+        );
 
-        doReturn(Map.of(
-            "accessRequest1", AccessRequestStatus.EXPIRED,
-            "accessRequest2", AccessRequestStatus.READY
-        )).when(contentAddressableStorage)
+        doReturn(Map.of("accessRequest1", AccessRequestStatus.EXPIRED, "accessRequest2", AccessRequestStatus.READY))
+            .when(contentAddressableStorage)
             .checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2"), true);
 
         // When / Then
-        assertThatThrownBy(() ->
-            offerService.checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2"), true))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(
+            () -> offerService.checkAccessRequestStatuses(List.of("accessRequest1", "accessRequest2"), true)
+        ).isInstanceOf(ContentAddressableStorageException.class);
     }
 
     @Test
     public void givenTapeOfferWhenRemoveAccessRequestThenOK() throws ContentAddressableStorageException {
-
         // Given
         configuration.setProvider(StorageProvider.TAPE_LIBRARY.getValue());
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
-        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            null, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, 1);
+        offerService = new DefaultOfferServiceImpl(
+            contentAddressableStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            1
+        );
 
         // When
         offerService.removeAccessRequest("accessRequest1", true);
@@ -1251,32 +1624,44 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void givenNonTapeOfferWhenRemoveAccessRequestThenOK() {
-
         // Given
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
-        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            null, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, 1);
+        offerService = new DefaultOfferServiceImpl(
+            contentAddressableStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            1
+        );
 
         // When / Then
-        assertThatThrownBy(() -> offerService.removeAccessRequest("accessRequest1", true))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(() -> offerService.removeAccessRequest("accessRequest1", true)).isInstanceOf(
+            ContentAddressableStorageException.class
+        );
     }
 
     @Test
     public void givenTapeOfferWhenCheckObjectAvailabilityThenOK() throws ContentAddressableStorageException {
-
         // Given
         configuration.setProvider(StorageProvider.TAPE_LIBRARY.getValue());
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
-        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            null, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, 1);
+        offerService = new DefaultOfferServiceImpl(
+            contentAddressableStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            1
+        );
 
-        doReturn(true).when(contentAddressableStorage)
-            .checkObjectAvailability("container", List.of("obj1", "obj2"));
+        doReturn(true).when(contentAddressableStorage).checkObjectAvailability("container", List.of("obj1", "obj2"));
 
         // When
         boolean areObjectsAvailable = offerService.checkObjectAvailability("container", List.of("obj1", "obj2"));
@@ -1287,20 +1672,26 @@ public class DefaultOfferServiceTest {
 
     @Test
     public void givenNonTapeOfferWhenCheckObjectAvailabilityThenKO() throws ContentAddressableStorageException {
-
         // Given
         ContentAddressableStorage contentAddressableStorage = mock(ContentAddressableStorage.class);
-        offerService = new DefaultOfferServiceImpl(contentAddressableStorage,
-            offerLogCompactionDatabaseService, offerDatabaseService, offerSequenceDatabaseService, configuration,
-            null, offerLogAndCompactedOfferLogService,
-            MAX_BATCH_THREAD_POOL_SIZE, 1);
+        offerService = new DefaultOfferServiceImpl(
+            contentAddressableStorage,
+            offerLogCompactionDatabaseService,
+            offerDatabaseService,
+            offerSequenceDatabaseService,
+            configuration,
+            null,
+            offerLogAndCompactedOfferLogService,
+            MAX_BATCH_THREAD_POOL_SIZE,
+            1
+        );
 
-        doReturn(true).when(contentAddressableStorage)
-            .checkObjectAvailability("container", List.of("obj1", "obj2"));
+        doReturn(true).when(contentAddressableStorage).checkObjectAvailability("container", List.of("obj1", "obj2"));
 
         // When / Then
-        assertThatThrownBy(() -> offerService.checkObjectAvailability("container", List.of("obj1", "obj2")))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(
+            () -> offerService.checkObjectAvailability("container", List.of("obj1", "obj2"))
+        ).isInstanceOf(ContentAddressableStorageException.class);
     }
 
     private <T> CloseableIterable<T> toCloseableIterable(List<T> offerLogs) {

@@ -42,23 +42,33 @@ public final class ExecutorUtils {
         // Do not use a corePoolSize < maximumPoolSize with a LinkedBlockingQueue based queue
         // Otherwise, maximumPoolSize will never be reached
         // See https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/ThreadPoolExecutor.html
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(maxBatchThreadPoolSize, maxBatchThreadPoolSize,
-            1L, TimeUnit.MINUTES,
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+            maxBatchThreadPoolSize,
+            maxBatchThreadPoolSize,
+            1L,
+            TimeUnit.MINUTES,
             new LinkedBlockingQueue<>(),
-            VitamThreadFactory.getInstance());
+            VitamThreadFactory.getInstance()
+        );
         threadPoolExecutor.allowCoreThreadTimeOut(true);
         return threadPoolExecutor;
     }
 
-    public static ThreadPoolExecutor createScalableBatchExecutorService(int maxBatchThreadPoolSize,
-        int maxQueueSizeBeforeBlocking) {
+    public static ThreadPoolExecutor createScalableBatchExecutorService(
+        int maxBatchThreadPoolSize,
+        int maxQueueSizeBeforeBlocking
+    ) {
         // ThreadPool executor with limited queue size
         // Once queue size is reached, producer is blocked to limit active workset
         // https://stackoverflow.com/a/52059445/106971
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(maxBatchThreadPoolSize, maxBatchThreadPoolSize,
-            1L, TimeUnit.MINUTES,
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+            maxBatchThreadPoolSize,
+            maxBatchThreadPoolSize,
+            1L,
+            TimeUnit.MINUTES,
             new ThreadPoolQueue<>(maxQueueSizeBeforeBlocking),
-            VitamThreadFactory.getInstance());
+            VitamThreadFactory.getInstance()
+        );
         threadPoolExecutor.allowCoreThreadTimeOut(true);
         return threadPoolExecutor;
     }

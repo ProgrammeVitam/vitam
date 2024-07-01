@@ -34,6 +34,7 @@ import java.util.Map;
  * vitam-error-messages.properties
  */
 public class VitamErrorMessages {
+
     private static final String DEFAULT_PROPERTY_FILENAME = "vitam-error-messages";
     private static final VitamErrorMessages VITAM_ERROR_MESSAGES = new VitamErrorMessages();
 

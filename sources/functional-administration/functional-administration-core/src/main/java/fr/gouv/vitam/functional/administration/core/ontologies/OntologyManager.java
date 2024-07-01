@@ -55,7 +55,6 @@ import java.util.Map;
  */
 public class OntologyManager {
 
-
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(OntologyManager.class);
 
     private final Map<String, List<ErrorReportOntologies>> errors;
@@ -64,8 +63,11 @@ public class OntologyManager {
 
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
 
-    public OntologyManager(LogbookOperationsClientFactory logbookOperationsClientFactory, GUID eip,
-        Map<String, List<ErrorReportOntologies>> errors) {
+    public OntologyManager(
+        LogbookOperationsClientFactory logbookOperationsClientFactory,
+        GUID eip,
+        Map<String, List<ErrorReportOntologies>> errors
+    ) {
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
         this.eip = eip;
         this.errors = errors;
@@ -77,8 +79,11 @@ public class OntologyManager {
      * @param identifier
      * @param error
      */
-    public void addError(String identifier, ErrorReportOntologies error,
-        Map<String, List<ErrorReportOntologies>> errors) {
+    public void addError(
+        String identifier,
+        ErrorReportOntologies error,
+        Map<String, List<ErrorReportOntologies>> errors
+    ) {
         List<ErrorReportOntologies> lineErrors = this.errors.get(identifier);
         if (lineErrors == null) {
             lineErrors = new ArrayList<>();
@@ -95,18 +100,26 @@ public class OntologyManager {
     public void logValidationError(String eventType, String objectId, String errorsDetails) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.KO,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.KO,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.KO),
+            eip
+        );
         logbookMessageError(objectId, errorsDetails, logbookParameters);
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
             logbookOperationsClient.update(logbookParameters);
         }
     }
 
-    private void logbookMessageError(String objectId, String errorsDetails,
-        LogbookOperationParameters logbookParameters) {
+    private void logbookMessageError(
+        String objectId,
+        String errorsDetails,
+        LogbookOperationParameters logbookParameters
+    ) {
         if (null != errorsDetails && !errorsDetails.isEmpty()) {
             try {
                 final ObjectNode object = JsonHandler.createObjectNode();
@@ -132,10 +145,15 @@ public class OntologyManager {
     public void logFatalError(String eventType, String objectId, String errorsDetails) throws VitamException {
         LOGGER.error("There validation errors on the input file {}", errorsDetails);
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.FATAL,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.FATAL,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.FATAL),
+            eip
+        );
 
         logbookMessageError(objectId, errorsDetails, logbookParameters);
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
@@ -149,10 +167,15 @@ public class OntologyManager {
      * @throws VitamException
      */
     public void logStarted(String eventType, String objectId) throws VitamException {
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eip, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.STARTED,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eip,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.STARTED,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.STARTED),
+            eip
+        );
 
         logbookMessageError(objectId, null, logbookParameters);
         try (LogbookOperationsClient logbookOperationsClient = logbookOperationsClientFactory.getClient()) {
@@ -167,10 +190,15 @@ public class OntologyManager {
      */
     public void logSuccess(String eventType, String objectId, String message) throws VitamException {
         final GUID eipId = GUIDFactory.newOperationLogbookGUID(ParameterHelper.getTenantParameter());
-        final LogbookOperationParameters logbookParameters = LogbookParameterHelper
-            .newLogbookOperationParameters(eipId, eventType, eip, LogbookTypeProcess.MASTERDATA,
-                StatusCode.OK,
-                VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK), eip);
+        final LogbookOperationParameters logbookParameters = LogbookParameterHelper.newLogbookOperationParameters(
+            eipId,
+            eventType,
+            eip,
+            LogbookTypeProcess.MASTERDATA,
+            StatusCode.OK,
+            VitamLogbookMessages.getCodeOp(eventType, StatusCode.OK),
+            eip
+        );
 
         if (null != objectId && !objectId.isEmpty()) {
             logbookParameters.putParameterValue(LogbookParameterName.objectIdentifier, objectId);
@@ -184,4 +212,3 @@ public class OntologyManager {
         }
     }
 }
-

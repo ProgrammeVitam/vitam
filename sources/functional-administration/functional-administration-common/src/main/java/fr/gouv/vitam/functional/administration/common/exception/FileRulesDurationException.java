@@ -35,6 +35,7 @@ import java.util.Map;
  * Exception throw when rule duration is inferior than duration in configuration
  */
 public class FileRulesDurationException extends FileRulesReadException {
+
     /**
      * @param message message to associate with the exception
      * @param cause cause to associate with the exception

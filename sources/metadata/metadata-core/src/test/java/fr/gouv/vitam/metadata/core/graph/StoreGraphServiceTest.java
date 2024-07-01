@@ -71,8 +71,9 @@ import static org.mockito.Mockito.when;
 public class StoreGraphServiceTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -95,7 +96,6 @@ public class StoreGraphServiceTest {
     @Mock
     private StorageClientFactory storageClientFactory;
 
-
     @Mock
     private StorageClient storageClient;
 
@@ -104,7 +104,6 @@ public class StoreGraphServiceTest {
 
     @Mock
     private MongoCursor mongoCursorUnit;
-
 
     @Mock
     private FindIterable findIterableGot;
@@ -125,10 +124,12 @@ public class StoreGraphServiceTest {
         given(unitRepository.findDocuments(any(), anyInt())).willReturn(findIterableUnit);
         given(gotRepository.findDocuments(any(), anyInt())).willReturn(findIterableGot);
 
-        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()))
-            .willReturn(unitRepository);
-        given(vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection()))
-            .willReturn(gotRepository);
+        given(
+            vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+        ).willReturn(unitRepository);
+        given(
+            vitamRepositoryProvider.getVitamMongoRepository(MetadataCollections.OBJECTGROUP.getVitamCollection())
+        ).willReturn(gotRepository);
 
         given(findIterableUnit.projection(any())).willReturn(findIterableUnit);
         given(findIterableUnit.iterator()).willReturn(mongoCursorUnit);
@@ -146,14 +147,19 @@ public class StoreGraphServiceTest {
         throws StoreGraphException, StorageServerClientException, StorageNotFoundClientException {
         // given
         when(
-            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, DataCategory.UNIT_GRAPH,
-                null, null, Order.DESC,
-                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
-            .thenReturn(IteratorUtils.emptyIterator());
+            restoreBackupService.getListing(
+                VitamConfiguration.getDefaultStrategy(),
+                null,
+                DataCategory.UNIT_GRAPH,
+                null,
+                null,
+                Order.DESC,
+                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE
+            )
+        ).thenReturn(IteratorUtils.emptyIterator());
 
         LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
         assertThat(date).isEqualTo(StoreGraphService.INITIAL_START_DATE);
-
     }
 
     @Test
@@ -164,18 +170,28 @@ public class StoreGraphServiceTest {
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
         when(
-            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, DataCategory.UNIT_GRAPH,
-                null, null, Order.DESC,
-                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
-            .thenReturn(
-                IteratorUtils.singletonIterator(
-                    new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                        OfferLogAction.WRITE)));
+            restoreBackupService.getListing(
+                VitamConfiguration.getDefaultStrategy(),
+                null,
+                DataCategory.UNIT_GRAPH,
+                null,
+                null,
+                Order.DESC,
+                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE
+            )
+        ).thenReturn(
+            IteratorUtils.singletonIterator(
+                new OfferLog(
+                    DataCategory.UNIT_GRAPH.getCollectionName(),
+                    startDate + "_" + endDate,
+                    OfferLogAction.WRITE
+                )
+            )
+        );
         LocalDateTime dateTime = LocalDateTime.from(StoreGraphService.formatter.parse(endDate));
         LocalDateTime date = storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
         assertThat(date).isEqualTo(dateTime);
     }
-
 
     @Test(expected = StoreGraphException.class)
     @RunWithCustomExecutor
@@ -183,10 +199,16 @@ public class StoreGraphServiceTest {
         throws StoreGraphException, StorageServerClientException, StorageNotFoundClientException {
         // given
         when(
-            restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, DataCategory.UNIT_GRAPH,
-                null, null, Order.DESC,
-                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
-            .thenThrow(new RuntimeException(""));
+            restoreBackupService.getListing(
+                VitamConfiguration.getDefaultStrategy(),
+                null,
+                DataCategory.UNIT_GRAPH,
+                null,
+                null,
+                Order.DESC,
+                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE
+            )
+        ).thenThrow(new RuntimeException(""));
         storeGraphService.getLastGraphStoreDate(MetadataCollections.UNIT);
     }
 
@@ -197,20 +219,39 @@ public class StoreGraphServiceTest {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, DataCategory.UNIT_GRAPH,
-            null, null,
-            Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
-            .thenReturn(IteratorUtils.singletonIterator(
-                new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                    OfferLogAction.WRITE)));
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null,
-            DataCategory.OBJECTGROUP_GRAPH, null, null,
-            Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
-            .thenReturn(IteratorUtils.emptyIterator());
+        when(
+            restoreBackupService.getListing(
+                VitamConfiguration.getDefaultStrategy(),
+                null,
+                DataCategory.UNIT_GRAPH,
+                null,
+                null,
+                Order.DESC,
+                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE
+            )
+        ).thenReturn(
+            IteratorUtils.singletonIterator(
+                new OfferLog(
+                    DataCategory.UNIT_GRAPH.getCollectionName(),
+                    startDate + "_" + endDate,
+                    OfferLogAction.WRITE
+                )
+            )
+        );
+        when(
+            restoreBackupService.getListing(
+                VitamConfiguration.getDefaultStrategy(),
+                null,
+                DataCategory.OBJECTGROUP_GRAPH,
+                null,
+                null,
+                Order.DESC,
+                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE
+            )
+        ).thenReturn(IteratorUtils.emptyIterator());
 
-        final int[] cpt = {0};
+        final int[] cpt = { 0 };
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> {
-
             if (cpt[0] > 4) {
                 return false;
             }
@@ -234,16 +275,36 @@ public class StoreGraphServiceTest {
         // given
         String startDate = "2018-01-01-00-00-00-000";
         String endDate = "2018-01-01-06-30-10-123";
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null, DataCategory.UNIT_GRAPH,
-            null, null,
-            Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
-            .thenReturn(IteratorUtils.singletonIterator(
-                new OfferLog(DataCategory.UNIT_GRAPH.getCollectionName(), startDate + "_" + endDate,
-                    OfferLogAction.WRITE)));
-        when(restoreBackupService.getListing(VitamConfiguration.getDefaultStrategy(), null,
-            DataCategory.OBJECTGROUP_GRAPH, null, null,
-            Order.DESC, LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE))
-            .thenReturn(IteratorUtils.emptyIterator());
+        when(
+            restoreBackupService.getListing(
+                VitamConfiguration.getDefaultStrategy(),
+                null,
+                DataCategory.UNIT_GRAPH,
+                null,
+                null,
+                Order.DESC,
+                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE
+            )
+        ).thenReturn(
+            IteratorUtils.singletonIterator(
+                new OfferLog(
+                    DataCategory.UNIT_GRAPH.getCollectionName(),
+                    startDate + "_" + endDate,
+                    OfferLogAction.WRITE
+                )
+            )
+        );
+        when(
+            restoreBackupService.getListing(
+                VitamConfiguration.getDefaultStrategy(),
+                null,
+                DataCategory.OBJECTGROUP_GRAPH,
+                null,
+                null,
+                Order.DESC,
+                LAST_GRAPHSTORE_OFFERLOG_BATCH_SIZE
+            )
+        ).thenReturn(IteratorUtils.emptyIterator());
 
         when(mongoCursorUnit.hasNext()).thenAnswer(o -> false);
 

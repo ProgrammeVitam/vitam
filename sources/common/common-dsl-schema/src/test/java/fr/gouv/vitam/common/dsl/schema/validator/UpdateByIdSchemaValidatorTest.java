@@ -37,7 +37,6 @@ import java.io.IOException;
 
 public class UpdateByIdSchemaValidatorTest {
 
-
     @Test
     public void testUpdateByIdValidator() throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new UpdateByIdSchemaValidator();

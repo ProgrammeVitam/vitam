@@ -59,11 +59,10 @@ import java.security.SecureRandom;
  *
  * Where nnnnn is a number between 0 and 2^22 (4194304).
  */
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS,
-    property = "@class")
+@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS, property = "@class")
 final class GUIDImplPrivate extends GUIDImpl {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(GUIDImplPrivate.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(GUIDImplPrivate.class);
 
     private static final String FR_GOUV_VITAM_PROCESS_ID = "fr.gouv.vitam.processId";
     private static final Object FORSYNC = new Object();
@@ -177,20 +176,16 @@ final class GUIDImplPrivate extends GUIDImpl {
      * @param worm True if Worm GUID
      * @throws IllegalArgumentException if any of the argument are out of range
      */
-    GUIDImplPrivate(final int objectTypeId, final int tenantId, final int platformId,
-        final boolean worm) {
+    GUIDImplPrivate(final int objectTypeId, final int tenantId, final int platformId, final boolean worm) {
         super();
         if (objectTypeId < 0 || objectTypeId > 0xFF) {
-            throw new IllegalArgumentException(
-                "Object Type ID must be between 0 and 255: " + objectTypeId);
+            throw new IllegalArgumentException("Object Type ID must be between 0 and 255: " + objectTypeId);
         }
         if (tenantId < 0 || tenantId > 0x3FFFFFFF) {
-            throw new IllegalArgumentException(
-                "DomainId must be between 0 and 2^30-1: " + tenantId);
+            throw new IllegalArgumentException("DomainId must be between 0 and 2^30-1: " + tenantId);
         }
         if (platformId < 0) {
-            throw new IllegalArgumentException(
-                "PlatformId must be between 0 and 2^31-1: " + platformId);
+            throw new IllegalArgumentException("PlatformId must be between 0 and 2^31-1: " + platformId);
         }
 
         // atomically
@@ -239,7 +234,7 @@ final class GUIDImplPrivate extends GUIDImpl {
         guid[PLATFORM_POS + 1] = (byte) (value & 0xFF);
         value >>>= BYTE_SIZE;
         if (worm) {
-            guid[PLATFORM_POS] = (byte) (0x80 | value & 0x7F);
+            guid[PLATFORM_POS] = (byte) (0x80 | (value & 0x7F));
         } else {
             guid[PLATFORM_POS] = (byte) (value & 0x7F);
         }
@@ -274,7 +269,6 @@ final class GUIDImplPrivate extends GUIDImpl {
         guid[COUNTER_POS + 1] = (byte) (value & 0xFF);
         value >>>= BYTE_SIZE;
         guid[COUNTER_POS] = (byte) (value & 0xFF);
-
     }
 
     /**
@@ -303,8 +297,7 @@ final class GUIDImplPrivate extends GUIDImpl {
         if (System.getSecurityManager() == null) {
             return ClassLoader.getSystemClassLoader();
         } else {
-            return AccessController.doPrivileged(
-                (PrivilegedAction<ClassLoader>) ClassLoader::getSystemClassLoader);
+            return AccessController.doPrivileged((PrivilegedAction<ClassLoader>) ClassLoader::getSystemClassLoader);
         }
     }
 
@@ -366,29 +359,27 @@ final class GUIDImplPrivate extends GUIDImpl {
      * @param emptyClasses
      * @return the processId as String
      */
-    private static String jvmProcessIdManagementFactory(final ClassLoader loader, final Object[] emptyObjects,
-        final Class<?>[] emptyClasses) {
+    private static String jvmProcessIdManagementFactory(
+        final ClassLoader loader,
+        final Object[] emptyObjects,
+        final Class<?>[] emptyClasses
+    ) {
         String value;
         try {
             // Invoke
             // java.lang.management.ManagementFactory.getRuntimeMXBean().getName()
-            final Class<?> mgmtFactoryType = Class.forName(
-                "java.lang.management.ManagementFactory", true, loader);
-            final Class<?> runtimeMxBeanType = Class
-                .forName("java.lang.management.RuntimeMXBean", true, loader);
+            final Class<?> mgmtFactoryType = Class.forName("java.lang.management.ManagementFactory", true, loader);
+            final Class<?> runtimeMxBeanType = Class.forName("java.lang.management.RuntimeMXBean", true, loader);
 
-            final Method getRuntimeMXBean =
-                mgmtFactoryType.getMethod("getRuntimeMXBean", emptyClasses);
+            final Method getRuntimeMXBean = mgmtFactoryType.getMethod("getRuntimeMXBean", emptyClasses);
             final Object bean = getRuntimeMXBean.invoke(null, emptyObjects);
-            final Method getName =
-                runtimeMxBeanType.getDeclaredMethod("getName", emptyClasses);
+            final Method getName = runtimeMxBeanType.getDeclaredMethod("getName", emptyClasses);
             value = (String) getName.invoke(bean, emptyObjects);
         } catch (final Exception e) {
             LOGGER.debug("Unable to get PID, try another way", e);
             try {
                 // Invoke android.os.Process.myPid()
-                final Class<?> processType =
-                    Class.forName("android.os.Process", true, loader);
+                final Class<?> processType = Class.forName("android.os.Process", true, loader);
                 final Method myPid = processType.getMethod("myPid", emptyClasses);
                 value = myPid.invoke(null, emptyObjects).toString();
             } catch (final Exception e2) {

@@ -74,10 +74,12 @@ public class SortedLevelJsonLineWriterTest {
 
     @Before
     public void setup() {
-        doAnswer((args) -> {
+        doAnswer(args -> {
             String filename = args.getArgument(0);
             return tempFolder.newFile(filename);
-        }).when(handler).getNewLocalFile((anyString()));
+        })
+            .when(handler)
+            .getNewLocalFile((anyString()));
     }
 
     @After
@@ -87,7 +89,6 @@ public class SortedLevelJsonLineWriterTest {
 
     @Test
     public void testEmpty() throws Exception {
-
         // Given
 
         // When
@@ -103,7 +104,6 @@ public class SortedLevelJsonLineWriterTest {
 
     @Test
     public void testOneEntry() throws Exception {
-
         // Given
         JsonLineModel line1 = new JsonLineModel("id13-1", 13, JsonHandler.createObjectNode());
         instance.addEntry(line1);
@@ -122,7 +122,6 @@ public class SortedLevelJsonLineWriterTest {
 
     @Test
     public void testMultipleEntriesSameLevel() throws Exception {
-
         // Given
         JsonLineModel line1 = new JsonLineModel("id13-1", 13, JsonHandler.createObjectNode());
         JsonLineModel line2 = new JsonLineModel("id13-2", 13, JsonHandler.createObjectNode());
@@ -145,7 +144,6 @@ public class SortedLevelJsonLineWriterTest {
 
     @Test
     public void testMultipleEntriesAscending() throws Exception {
-
         // Given
         JsonLineModel line1 = new JsonLineModel("id13-1", 13, JsonHandler.createObjectNode());
         JsonLineModel line2 = new JsonLineModel("id12-1", 12, JsonHandler.createObjectNode());
@@ -174,7 +172,6 @@ public class SortedLevelJsonLineWriterTest {
 
     @Test
     public void testMultipleEntriesDescending() throws Exception {
-
         // Given
         JsonLineModel line1 = new JsonLineModel("id13-1", 13, JsonHandler.createObjectNode());
         JsonLineModel line2 = new JsonLineModel("id12-1", 12, JsonHandler.createObjectNode());
@@ -203,22 +200,22 @@ public class SortedLevelJsonLineWriterTest {
 
     @Test
     public void testTooManyLevelThenException() throws Exception {
-
         // Given
         for (int i = 1; i <= 100; i++) {
             instance.addEntry(new JsonLineModel("id" + i, i, JsonHandler.createObjectNode()));
         }
 
         // When / Then
-        assertThatThrownBy(() -> instance.addEntry(new JsonLineModel("id101", 101, JsonHandler.createObjectNode())))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(
+            () -> instance.addEntry(new JsonLineModel("id101", 101, JsonHandler.createObjectNode()))
+        ).isInstanceOf(IllegalStateException.class);
     }
 
     private InputStream buildExpectedReport(JsonLineModel... lines) throws IOException {
-
         try (
             ByteArrayOutputStream expectedOS = new ByteArrayOutputStream();
-            JsonLineWriter jsonLineWriter = new JsonLineWriter(expectedOS)) {
+            JsonLineWriter jsonLineWriter = new JsonLineWriter(expectedOS)
+        ) {
             for (JsonLineModel line : lines) {
                 jsonLineWriter.addEntry(line);
             }

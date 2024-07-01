@@ -58,16 +58,24 @@ import static org.mockito.Mockito.when;
  * EvidenceAuditDatabaseCheckTest class
  */
 public class EvidenceAuditDatabaseCheckTest {
-    public static final String UNITTYPE = "{\n" +
-        "  \"id\" : \"aeaqaaaaaaebta56aam5ualcdnzc4wiaaabq\",\n" +
-        "  \"metadaType\" : \"UNIT\"\n" +
-        "}";
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Rule public TemporaryFolder tempFolder = new TemporaryFolder();
-    @Mock public HandlerIO handlerIO;
-    @Mock private EvidenceService evidenceService;
+    public static final String UNITTYPE =
+        "{\n" + "  \"id\" : \"aeaqaaaaaaebta56aam5ualcdnzc4wiaaabq\",\n" + "  \"metadaType\" : \"UNIT\"\n" + "}";
+
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
+
+    @Mock
+    public HandlerIO handlerIO;
+
+    @Mock
+    private EvidenceService evidenceService;
+
     private EvidenceAuditDatabaseCheck evidenceAuditDatabaseCheck;
+
     @Mock
     private EvidenceAuditReportService evidenceAuditReportService;
 
@@ -87,32 +95,33 @@ public class EvidenceAuditDatabaseCheckTest {
         writeAsFile(getFromString(UNITTYPE), file);
 
         when(handlerIO.getFileFromWorkspace("Object/test")).thenReturn(file);
-        EvidenceAuditParameters evidenceAuditParameters = JsonHandler
-            .getFromFile(PropertiesUtils.getResourceFile("evidenceAudit/parameters.json"),
-                EvidenceAuditParameters.class);
+        EvidenceAuditParameters evidenceAuditParameters = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("evidenceAudit/parameters.json"),
+            EvidenceAuditParameters.class
+        );
         when(handlerIO.getNewLocalFile("test.tmp")).thenReturn(file2);
         when(handlerIO.getInput(0)).thenReturn(PropertiesUtils.getResourceFile("evidenceAudit/strategies.json"));
 
         when(evidenceService.evidenceAuditsChecks(eq("test"), eq(MetadataType.UNIT), any())).thenReturn(
-            evidenceAuditParameters);
+            evidenceAuditParameters
+        );
 
-        ItemStatus execute =
-            evidenceAuditDatabaseCheck.execute(defaultWorkerParameters, handlerIO);
+        ItemStatus execute = evidenceAuditDatabaseCheck.execute(defaultWorkerParameters, handlerIO);
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.OK);
-        EvidenceAuditParameters evidenceAuditParameters2 =
-            JsonHandler.getFromFile(file2, EvidenceAuditParameters.class);
+        EvidenceAuditParameters evidenceAuditParameters2 = JsonHandler.getFromFile(
+            file2,
+            EvidenceAuditParameters.class
+        );
 
         assertThat(evidenceAuditParameters.getAuditMessage()).isEqualTo(evidenceAuditParameters2.getAuditMessage());
-        assertThat(evidenceAuditParameters.getObjectStorageMetadataResultMap())
-            .isEqualTo(evidenceAuditParameters2.getObjectStorageMetadataResultMap());
+        assertThat(evidenceAuditParameters.getObjectStorageMetadataResultMap()).isEqualTo(
+            evidenceAuditParameters2.getObjectStorageMetadataResultMap()
+        );
         assertThat(evidenceAuditParameters.getEvidenceStatus()).isEqualTo(evidenceAuditParameters2.getEvidenceStatus());
 
         when(handlerIO.getFileFromWorkspace(any())).thenThrow(IOException.class);
 
-        execute =
-            evidenceAuditDatabaseCheck.execute(defaultWorkerParameters, handlerIO);
+        execute = evidenceAuditDatabaseCheck.execute(defaultWorkerParameters, handlerIO);
         assertThat(execute.getGlobalStatus()).isEqualTo(StatusCode.FATAL);
-
     }
-
 }

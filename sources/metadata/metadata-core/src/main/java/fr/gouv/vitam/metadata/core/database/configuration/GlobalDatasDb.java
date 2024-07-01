@@ -32,6 +32,7 @@ import fr.gouv.vitam.common.database.parser.request.GlobalDatasParser;
  * Default configuration for DB support
  */
 public class GlobalDatasDb extends GlobalDatasParser {
+
     /**
      * Should we use filter to select from graph parents, or within request (filtering seems better)
      */
@@ -51,11 +52,11 @@ public class GlobalDatasDb extends GlobalDatasParser {
     /**
      * Default local address to be used by the client (null means no specific address)
      */
-    public static String localNetworkAddress = null;// NOSONAR Change can be done
+    public static String localNetworkAddress = null; // NOSONAR Change can be done
     /**
      * limit before using ES in 1 level only (set to -1 means use ES at all time)
      */
-    public static long limitES = 10001;// NOSONAR Change can be done
+    public static long limitES = 10001; // NOSONAR Change can be done
     /**
      * limit before flushing ES with Bulk
      */
@@ -102,5 +103,4 @@ public class GlobalDatasDb extends GlobalDatasParser {
      * default limit scroll size
      */
     public static final int DEFAULT_LIMIT_SCROLL = 100;
-
 }

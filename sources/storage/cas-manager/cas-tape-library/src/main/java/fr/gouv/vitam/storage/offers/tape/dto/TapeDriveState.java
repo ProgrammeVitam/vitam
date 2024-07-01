@@ -127,7 +127,6 @@ public class TapeDriveState implements TapeDriveSpec {
     }
 
     public List<TapeDriveStatus> addToDriveStatuses(TapeDriveStatus driveStatus) {
-
         driveStatuses.add(driveStatus);
 
         return this.driveStatuses;

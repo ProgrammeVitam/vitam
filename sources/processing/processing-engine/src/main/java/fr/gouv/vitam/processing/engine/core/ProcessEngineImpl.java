@@ -79,7 +79,6 @@ import java.util.concurrent.TimeUnit;
 
 import static fr.gouv.vitam.common.model.VitamConstants.DETAILS;
 
-
 /**
  * ProcessEngineImpl class manages the context and call a process distributor
  */
@@ -101,9 +100,12 @@ public class ProcessEngineImpl implements ProcessEngine {
     private final LogbookOperationsClientFactory logbookOperationsClientFactory;
     private final WorkspaceClientFactory workspaceClientFactory;
 
-    public ProcessEngineImpl(WorkerParameters workerParameters, ProcessDistributor processDistributor,
+    public ProcessEngineImpl(
+        WorkerParameters workerParameters,
+        ProcessDistributor processDistributor,
         LogbookOperationsClientFactory logbookOperationsClientFactory,
-        WorkspaceClientFactory workspaceClientFactory) {
+        WorkspaceClientFactory workspaceClientFactory
+    ) {
         this.processDistributor = processDistributor;
         this.workerParameters = workerParameters;
         this.logbookOperationsClientFactory = logbookOperationsClientFactory;
@@ -118,7 +120,6 @@ public class ProcessEngineImpl implements ProcessEngine {
     @Override
     public CompletableFuture<ItemStatus> start(ProcessStep step, WorkerParameters workerParameters)
         throws ProcessingEngineException {
-
         if (null == stateMachineCallback) {
             throw new ProcessingEngineException("IEventsProcessEngine is required");
         }
@@ -145,40 +146,56 @@ public class ProcessEngineImpl implements ProcessEngine {
         final LogbookTypeProcess logbookTypeProcess = this.workerParameters.getLogbookTypeProcess();
 
         // Prepare the logbook operation
-        LogbookOperationParameters logbookParameter =
-            logbookBeforeDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess);
+        LogbookOperationParameters logbookParameter = logbookBeforeDistributorCall(
+            step,
+            this.workerParameters,
+            tenantId,
+            logbookTypeProcess
+        );
 
         // update the process monitoring for this step
-        if (!PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction()) &&
-            !PauseOrCancelAction.ACTION_REPLAY.equals(step.getPauseOrCancelAction())) {
+        if (
+            !PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction()) &&
+            !PauseOrCancelAction.ACTION_REPLAY.equals(step.getPauseOrCancelAction())
+        ) {
             stateMachineCallback.onUpdate(StatusCode.STARTED);
         }
 
         this.workerParameters.setCurrentStep(step.getStepName());
 
-        this.workerParameters.putParameterValue(WorkerParameterName.workflowStatusKo,
-            stateMachineCallback.getCurrentProcessWorkflowStatus().name());
+        this.workerParameters.putParameterValue(
+                WorkerParameterName.workflowStatusKo,
+                stateMachineCallback.getCurrentProcessWorkflowStatus().name()
+            );
 
         Stopwatch stopwatch = Stopwatch.createStarted();
 
-        return CompletableFuture
-            // Check if the property waitFor is assigned before distributing (if yes it's an entry condition)
-            .runAsync(() -> waitForStep(step, operationId, stopwatch), VitamThreadPoolExecutor.getDefaultExecutor())
+        return CompletableFuture.runAsync( // Check if the property waitFor is assigned before distributing (if yes it's an entry condition)
+            () -> waitForStep(step, operationId, stopwatch),
+            VitamThreadPoolExecutor.getDefaultExecutor()
+        )
             // call distributor in async mode
-            .thenApplyAsync((e) -> callDistributor(step, this.workerParameters, operationId),
-                VitamThreadPoolExecutor.getDefaultExecutor())
+            .thenApplyAsync(
+                e -> callDistributor(step, this.workerParameters, operationId),
+                VitamThreadPoolExecutor.getDefaultExecutor()
+            )
             // When the distributor responds, finalize the logbook persistence
             .thenApply(distributorResponse -> {
                 try {
                     // Do not log if stop, replay or cancel occurs
                     // we have to logbook the event of the current step
-                    if (step.getPauseOrCancelAction() ==
-                        PauseOrCancelAction.ACTION_PAUSE) {// Do not logbook the event, as the step will be resumed
+                    if (step.getPauseOrCancelAction() == PauseOrCancelAction.ACTION_PAUSE) { // Do not logbook the event, as the step will be resumed
                         return distributorResponse;
                     }
 
-                    logbookAfterDistributorCall(step, this.workerParameters, tenantId, logbookTypeProcess,
-                        logbookParameter, distributorResponse);
+                    logbookAfterDistributorCall(
+                        step,
+                        this.workerParameters,
+                        tenantId,
+                        logbookTypeProcess,
+                        logbookParameter,
+                        distributorResponse
+                    );
                     return distributorResponse;
                 } catch (Exception e) {
                     throw new RuntimeException(e);
@@ -199,7 +216,7 @@ public class ProcessEngineImpl implements ProcessEngine {
                 return distributorResponse;
             })
             // When exception occurred
-            .exceptionally((e) -> {
+            .exceptionally(e -> {
                 stateMachineCallback.onError(e);
                 PERFORMANCE_LOGGER.log(step.getStepName(), stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 throw new CompletionException(e);
@@ -212,8 +229,10 @@ public class ProcessEngineImpl implements ProcessEngine {
                 // Increase sleepDelay (*2) in every check to avoid lot of calls to workspace
                 int sleepDelay = 1;
                 final int maxSleepDelay = 60;
-                while (!workspaceClient.isExistingObject(operationId, step.getWaitFor()) &&
-                    stopwatch.elapsed(TimeUnit.SECONDS) < VitamConfiguration.getProcessEngineWaitForStepTimeout()) {
+                while (
+                    !workspaceClient.isExistingObject(operationId, step.getWaitFor()) &&
+                    stopwatch.elapsed(TimeUnit.SECONDS) < VitamConfiguration.getProcessEngineWaitForStepTimeout()
+                ) {
                     TimeUnit.SECONDS.sleep(sleepDelay);
                     sleepDelay = Math.min(sleepDelay * 2, maxSleepDelay);
                 }
@@ -237,8 +256,12 @@ public class ProcessEngineImpl implements ProcessEngine {
      * @return
      * @throws ProcessingEngineException
      */
-    private LogbookOperationParameters logbookBeforeDistributorCall(ProcessStep step, WorkerParameters workParams,
-        int tenantId, LogbookTypeProcess logbookTypeProcess) throws ProcessingEngineException {
+    private LogbookOperationParameters logbookBeforeDistributorCall(
+        ProcessStep step,
+        WorkerParameters workParams,
+        int tenantId,
+        LogbookTypeProcess logbookTypeProcess
+    ) throws ProcessingEngineException {
         try (final LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
             MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
             LogbookOperationParameters parameters;
@@ -250,15 +273,18 @@ public class ProcessEngineImpl implements ProcessEngine {
                 logbookTypeProcess,
                 StatusCode.OK, // default to OK
                 messageLogbookEngineHelper.getLabelOp(step.getStepName(), StatusCode.OK),
-                GUIDReader.getGUID(workParams.getRequestId())); // default status code to OK
+                GUIDReader.getGUID(workParams.getRequestId())
+            ); // default status code to OK
             parameters.putParameterValue(
                 LogbookParameterName.outcomeDetail,
-                messageLogbookEngineHelper
-                    .getOutcomeDetail(step.getStepName(), StatusCode.OK)); // default outcome to OK
+                messageLogbookEngineHelper.getOutcomeDetail(step.getStepName(), StatusCode.OK)
+            ); // default outcome to OK
 
             // FIXME: bug 6542 events maybe lost or operation backup to the offer not done
-            if (PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction()) ||
-                PauseOrCancelAction.ACTION_REPLAY.equals(step.getPauseOrCancelAction())) {
+            if (
+                PauseOrCancelAction.ACTION_RECOVER.equals(step.getPauseOrCancelAction()) ||
+                PauseOrCancelAction.ACTION_REPLAY.equals(step.getPauseOrCancelAction())
+            ) {
                 return parameters;
             }
 
@@ -271,20 +297,26 @@ public class ProcessEngineImpl implements ProcessEngine {
                 logbookTypeProcess,
                 StatusCode.OK,
                 messageLogbookEngineHelper.getLabelOp(eventType, StatusCode.OK),
-                GUIDReader.getGUID(workParams.getRequestId()));
+                GUIDReader.getGUID(workParams.getRequestId())
+            );
             startedParameters.putParameterValue(
                 LogbookParameterName.outcomeDetail,
-                messageLogbookEngineHelper.getOutcomeDetail(eventType, StatusCode.OK));
+                messageLogbookEngineHelper.getOutcomeDetail(eventType, StatusCode.OK)
+            );
 
             // update logbook op
             logbookClient.update(startedParameters);
 
             return parameters;
-        } catch (LogbookClientBadRequestException | LogbookClientServerException | InvalidGuidOperationException | LogbookClientNotFoundException e) {
+        } catch (
+            LogbookClientBadRequestException
+            | LogbookClientServerException
+            | InvalidGuidOperationException
+            | LogbookClientNotFoundException e
+        ) {
             throw new ProcessingEngineException(e);
         }
     }
-
 
     /**
      * Call distributor to start the given step
@@ -296,9 +328,10 @@ public class ProcessEngineImpl implements ProcessEngine {
      */
     private ItemStatus callDistributor(ProcessStep step, WorkerParameters workParams, String operationId) {
         Histogram.Timer stepExecutionDurationTimer =
-            CommonProcessingMetrics.PROCESS_WORKFLOW_STEP_EXECUTION_DURATION_HISTOGRAM
-                .labels(workParams.getLogbookTypeProcess().name(), step.getStepName())
-                .startTimer();
+            CommonProcessingMetrics.PROCESS_WORKFLOW_STEP_EXECUTION_DURATION_HISTOGRAM.labels(
+                workParams.getLogbookTypeProcess().name(),
+                step.getStepName()
+            ).startTimer();
         try {
             return processDistributor.distribute(workParams, step, operationId);
         } finally {
@@ -321,10 +354,15 @@ public class ProcessEngineImpl implements ProcessEngine {
      * @throws LogbookClientServerException
      * @throws InvalidParseOperationException
      */
-    private void logbookAfterDistributorCall(ProcessStep step, WorkerParameters workParams, int tenantId,
-        LogbookTypeProcess logbookTypeProcess, LogbookOperationParameters parameters, ItemStatus stepResponse)
-        throws InvalidGuidOperationException, LogbookClientNotFoundException, LogbookClientBadRequestException,
-        LogbookClientServerException, InvalidParseOperationException {
+    private void logbookAfterDistributorCall(
+        ProcessStep step,
+        WorkerParameters workParams,
+        int tenantId,
+        LogbookTypeProcess logbookTypeProcess,
+        LogbookOperationParameters parameters,
+        ItemStatus stepResponse
+    )
+        throws InvalidGuidOperationException, LogbookClientNotFoundException, LogbookClientBadRequestException, LogbookClientServerException, InvalidParseOperationException {
         MessageLogbookEngineHelper messageLogbookEngineHelper = new MessageLogbookEngineHelper(logbookTypeProcess);
         final LogbookOperationsClientHelper helper = new LogbookOperationsClientHelper();
         final String stepEventIdentifier = parameters.getParameterValue(LogbookParameterName.eventIdentifier);
@@ -353,8 +391,9 @@ public class ProcessEngineImpl implements ProcessEngine {
             }
         }
 
-        String rightsStatementIdentifier =
-            (String) stepResponse.getData(LogbookMongoDbName.rightsStatementIdentifier.getDbname());
+        String rightsStatementIdentifier = (String) stepResponse.getData(
+            LogbookMongoDbName.rightsStatementIdentifier.getDbname()
+        );
 
         if (rightsStatementIdentifier != null) {
             parameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier, rightsStatementIdentifier);
@@ -382,12 +421,15 @@ public class ProcessEngineImpl implements ProcessEngine {
 
         parameters.putParameterValue(LogbookParameterName.eventIdentifier, stepEventIdentifier);
         parameters.putParameterValue(LogbookParameterName.eventType, step.getStepName());
-        parameters.putParameterValue(LogbookParameterName.outcome,
-            stepResponse.getGlobalStatus().name());
-        parameters.putParameterValue(LogbookParameterName.outcomeDetail,
-            messageLogbookEngineHelper.getOutcomeDetail(step.getStepName(), stepResponse.getGlobalStatus()));
-        parameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            messageLogbookEngineHelper.getLabelOp(stepResponse.getItemId(), stepResponse.getGlobalStatus()));
+        parameters.putParameterValue(LogbookParameterName.outcome, stepResponse.getGlobalStatus().name());
+        parameters.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            messageLogbookEngineHelper.getOutcomeDetail(step.getStepName(), stepResponse.getGlobalStatus())
+        );
+        parameters.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            messageLogbookEngineHelper.getLabelOp(stepResponse.getItemId(), stepResponse.getGlobalStatus())
+        );
 
         helper.updateDelegate(parameters);
 
@@ -397,7 +439,6 @@ public class ProcessEngineImpl implements ProcessEngine {
             // Each handler could have a list itself => ItemStatus
             final ItemStatus itemStatus = stepResponse.getItemsStatus().get(handlerId);
             if (itemStatus != null) {
-
                 final GUID actionEventIdentifier = GUIDFactory.newEventGUID(tenantId);
                 final LogbookOperationParameters actionLogBookParameters =
                     LogbookParameterHelper.newLogbookOperationParameters(
@@ -406,26 +447,40 @@ public class ProcessEngineImpl implements ProcessEngine {
                         GUIDReader.getGUID(workParams.getContainerName()),
                         logbookTypeProcess,
                         itemStatus.getGlobalStatus(),
-                        null, DETAILS + itemStatus.computeStatusMeterMessage(),
-                        GUIDReader.getGUID(workParams.getRequestId()));
-                actionLogBookParameters
-                    .putParameterValue(LogbookParameterName.parentEventIdentifier, stepEventIdentifier);
+                        null,
+                        DETAILS + itemStatus.computeStatusMeterMessage(),
+                        GUIDReader.getGUID(workParams.getRequestId())
+                    );
+                actionLogBookParameters.putParameterValue(
+                    LogbookParameterName.parentEventIdentifier,
+                    stepEventIdentifier
+                );
 
                 if (itemStatus.getGlobalOutcomeDetailSubcode() != null) {
-                    actionLogBookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                    actionLogBookParameters.putParameterValue(
+                        LogbookParameterName.outcomeDetail,
                         messageLogbookEngineHelper.getOutcomeDetail(
                             handlerId + "." + itemStatus.getGlobalOutcomeDetailSubcode(),
-                            itemStatus.getGlobalStatus()));
-                    actionLogBookParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                            itemStatus.getGlobalStatus()
+                        )
+                    );
+                    actionLogBookParameters.putParameterValue(
+                        LogbookParameterName.outcomeDetailMessage,
                         messageLogbookEngineHelper.getLabelOp(
                             handlerId + "." + itemStatus.getGlobalOutcomeDetailSubcode(),
-                            itemStatus.getGlobalStatus()) + DETAILS + itemStatus.computeStatusMeterMessage());
+                            itemStatus.getGlobalStatus()
+                        ) +
+                        DETAILS +
+                        itemStatus.computeStatusMeterMessage()
+                    );
                 }
 
                 if (itemStatus.getMasterData() != null) {
                     JsonNode value = JsonHandler.toJsonNode(itemStatus.getMasterData());
-                    actionLogBookParameters
-                        .putParameterValue(LogbookParameterName.masterData, JsonHandler.writeAsString(value));
+                    actionLogBookParameters.putParameterValue(
+                        LogbookParameterName.masterData,
+                        JsonHandler.writeAsString(value)
+                    );
                 }
                 if (itemStatus.getEvDetailData() != null) {
                     final String eventDetailData = itemStatus.getEvDetailData();
@@ -443,28 +498,44 @@ public class ProcessEngineImpl implements ProcessEngine {
                             GUIDReader.getGUID(workParams.getContainerName()),
                             logbookTypeProcess,
                             sub.getGlobalStatus(),
-                            null, DETAILS + sub.computeStatusMeterMessage(),
-                            GUIDReader.getGUID(workParams.getRequestId()));
-                    subLogBookParameters.putParameterValue(LogbookParameterName.parentEventIdentifier,
-                        actionEventIdentifier.getId());
+                            null,
+                            DETAILS + sub.computeStatusMeterMessage(),
+                            GUIDReader.getGUID(workParams.getRequestId())
+                        );
+                    subLogBookParameters.putParameterValue(
+                        LogbookParameterName.parentEventIdentifier,
+                        actionEventIdentifier.getId()
+                    );
 
                     if (sub.getGlobalOutcomeDetailSubcode() != null) {
-                        subLogBookParameters.putParameterValue(LogbookParameterName.outcomeDetail,
+                        subLogBookParameters.putParameterValue(
+                            LogbookParameterName.outcomeDetail,
                             messageLogbookEngineHelper.getOutcomeDetail(
                                 handlerId + "." + sub.getItemId() + "." + sub.getGlobalOutcomeDetailSubcode(),
-                                sub.getGlobalStatus()));
-                        subLogBookParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
+                                sub.getGlobalStatus()
+                            )
+                        );
+                        subLogBookParameters.putParameterValue(
+                            LogbookParameterName.outcomeDetailMessage,
                             messageLogbookEngineHelper.getLabelOp(
                                 handlerId + "." + sub.getItemId() + "." + sub.getGlobalOutcomeDetailSubcode(),
-                                sub.getGlobalStatus()) + DETAILS + sub.computeStatusMeterMessage());
+                                sub.getGlobalStatus()
+                            ) +
+                            DETAILS +
+                            sub.computeStatusMeterMessage()
+                        );
                     }
                     if (sub.getData(LogbookMongoDbName.rightsStatementIdentifier.getDbname()) != null) {
-                        subLogBookParameters.putParameterValue(LogbookParameterName.rightsStatementIdentifier,
-                            sub.getData(LogbookMongoDbName.rightsStatementIdentifier.getDbname()).toString());
+                        subLogBookParameters.putParameterValue(
+                            LogbookParameterName.rightsStatementIdentifier,
+                            sub.getData(LogbookMongoDbName.rightsStatementIdentifier.getDbname()).toString()
+                        );
                     }
                     if (sub.getData(AGENCY_DETAIL) != null) {
-                        subLogBookParameters
-                            .putParameterValue(LogbookParameterName.agIdExt, sub.getData(AGENCY_DETAIL).toString());
+                        subLogBookParameters.putParameterValue(
+                            LogbookParameterName.agIdExt,
+                            sub.getData(AGENCY_DETAIL).toString()
+                        );
                     }
                     // logbook for subtasks
                     helper.updateDelegate(subLogBookParameters);
@@ -474,16 +545,15 @@ public class ProcessEngineImpl implements ProcessEngine {
 
         final ItemStatus itemStatusObjectListEmpty = stepResponse.getItemsStatus().get(OBJECTS_LIST_EMPTY);
         if (itemStatusObjectListEmpty != null) {
-            final LogbookOperationParameters actionParameters =
-                LogbookParameterHelper.newLogbookOperationParameters(
-                    GUIDFactory.newEventGUID(tenantId),
-                    OBJECTS_LIST_EMPTY,
-                    GUIDReader.getGUID(workParams.getContainerName()),
-                    logbookTypeProcess,
-                    itemStatusObjectListEmpty.getGlobalStatus(),
-                    messageLogbookEngineHelper
-                        .getLabelOp(OBJECTS_LIST_EMPTY, itemStatusObjectListEmpty.getGlobalStatus()),
-                    GUIDReader.getGUID(workParams.getRequestId()));
+            final LogbookOperationParameters actionParameters = LogbookParameterHelper.newLogbookOperationParameters(
+                GUIDFactory.newEventGUID(tenantId),
+                OBJECTS_LIST_EMPTY,
+                GUIDReader.getGUID(workParams.getContainerName()),
+                logbookTypeProcess,
+                itemStatusObjectListEmpty.getGlobalStatus(),
+                messageLogbookEngineHelper.getLabelOp(OBJECTS_LIST_EMPTY, itemStatusObjectListEmpty.getGlobalStatus()),
+                GUIDReader.getGUID(workParams.getRequestId())
+            );
             actionParameters.putParameterValue(LogbookParameterName.parentEventIdentifier, stepEventIdentifier);
             helper.updateDelegate(actionParameters);
         }
@@ -495,33 +565,38 @@ public class ProcessEngineImpl implements ProcessEngine {
             final GUID eventIdentifier = GUIDFactory.newEventGUID(operationGuid);
 
             // Pre-compute the status code using latest global status of the process workflow
-            StatusCode statusCode =
-                (stateMachineCallback.getCurrentProcessWorkflowStatus().compareTo(stepResponse.getGlobalStatus()) < 0 ||
-                    StatusCode.FATAL.equals(stateMachineCallback.getCurrentProcessWorkflowStatus())) ?
-                    stepResponse.getGlobalStatus() :
-                    stateMachineCallback.getCurrentProcessWorkflowStatus();
-
+            StatusCode statusCode = (stateMachineCallback
+                            .getCurrentProcessWorkflowStatus()
+                            .compareTo(stepResponse.getGlobalStatus()) <
+                        0 ||
+                    StatusCode.FATAL.equals(stateMachineCallback.getCurrentProcessWorkflowStatus()))
+                ? stepResponse.getGlobalStatus()
+                : stateMachineCallback.getCurrentProcessWorkflowStatus();
 
             GUID requestId = GUIDReader.getGUID(workParams.getRequestId());
 
-            final LogbookOperationParameters parametersFinal = LogbookParameterHelper
-                .newLogbookOperationParameters(
-                    eventIdentifier,
-                    eventType,
-                    operationGuid,
-                    logbookTypeProcess,
-                    statusCode,
-                    messageLogbookEngineHelper.getLabelOp(eventType, statusCode),
-                    requestId);
-            parameters.putParameterValue(LogbookParameterName.outcomeDetail,
-                messageLogbookEngineHelper.getOutcomeDetail(eventType, statusCode));
+            final LogbookOperationParameters parametersFinal = LogbookParameterHelper.newLogbookOperationParameters(
+                eventIdentifier,
+                eventType,
+                operationGuid,
+                logbookTypeProcess,
+                statusCode,
+                messageLogbookEngineHelper.getLabelOp(eventType, statusCode),
+                requestId
+            );
+            parameters.putParameterValue(
+                LogbookParameterName.outcomeDetail,
+                messageLogbookEngineHelper.getOutcomeDetail(eventType, statusCode)
+            );
 
             helper.updateDelegate(parametersFinal);
         }
 
         try (final LogbookOperationsClient logbookClient = logbookOperationsClientFactory.getClient()) {
-            logbookClient.update(workParams.getContainerName(),
-                helper.removeUpdateDelegate(workParams.getContainerName()));
+            logbookClient.update(
+                workParams.getContainerName(),
+                helper.removeUpdateDelegate(workParams.getContainerName())
+            );
         }
 
         // update the process with the final status
@@ -531,4 +606,3 @@ public class ProcessEngineImpl implements ProcessEngine {
         }
     }
 }
-

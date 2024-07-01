@@ -43,8 +43,11 @@ public class TraceabilityStatistics {
         // Empty constructor for deserialization
     }
 
-    private TraceabilityStatistics(EntryTraceabilityStatistics units,
-        EntryTraceabilityStatistics objectGroups, EntryTraceabilityStatistics objects) {
+    private TraceabilityStatistics(
+        EntryTraceabilityStatistics units,
+        EntryTraceabilityStatistics objectGroups,
+        EntryTraceabilityStatistics objects
+    ) {
         this.units = units;
         this.objectGroups = objectGroups;
         this.objects = objects;
@@ -54,8 +57,10 @@ public class TraceabilityStatistics {
         return new TraceabilityStatistics(units, null, null);
     }
 
-    public static TraceabilityStatistics ofObjectGroupsTraceabilityStatistics(EntryTraceabilityStatistics objectGroups,
-        EntryTraceabilityStatistics objects) {
+    public static TraceabilityStatistics ofObjectGroupsTraceabilityStatistics(
+        EntryTraceabilityStatistics objectGroups,
+        EntryTraceabilityStatistics objects
+    ) {
         return new TraceabilityStatistics(null, objectGroups, objects);
     }
 
@@ -73,10 +78,15 @@ public class TraceabilityStatistics {
 
     @Override
     public String toString() {
-        return "TraceabilityStatistics{" +
-            "units=" + units +
-            ", objectGroups=" + objectGroups +
-            ", objects=" + objects +
-            '}';
+        return (
+            "TraceabilityStatistics{" +
+            "units=" +
+            units +
+            ", objectGroups=" +
+            objectGroups +
+            ", objects=" +
+            objects +
+            '}'
+        );
     }
 }

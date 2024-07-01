@@ -79,6 +79,7 @@ public class ArchiveUnitProfileModel {
      * ControlSchema Tag
      */
     public static final String FIELDS = "Fields";
+
     /**
      * unique id
      */
@@ -261,7 +262,4 @@ public class ArchiveUnitProfileModel {
         this.fields = fields;
         return this;
     }
-
-
-
 }

@@ -81,7 +81,6 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -102,13 +101,15 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
      */
     private final AmazonS3 client;
 
-    public AmazonS3V1(StorageConfiguration configuration) throws KeyManagementException, NoSuchAlgorithmException,
-        KeyStoreException, CertificateException, IOException {
+    public AmazonS3V1(StorageConfiguration configuration)
+        throws KeyManagementException, NoSuchAlgorithmException, KeyStoreException, CertificateException, IOException {
         super(configuration);
         LOGGER.debug("Instanciation of amazon S3 V1 client");
 
-        EndpointConfiguration endpointConfiguration = new EndpointConfiguration(configuration.getS3Endpoint(),
-            configuration.getS3RegionName());
+        EndpointConfiguration endpointConfiguration = new EndpointConfiguration(
+            configuration.getS3Endpoint(),
+            configuration.getS3RegionName()
+        );
 
         ClientConfiguration clientConfig = new ClientConfiguration();
         if (StringUtils.isNotBlank(configuration.getS3SignerType())) {
@@ -130,18 +131,26 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             ApacheHttpClientConfig apacheClient = clientConfig.getApacheHttpClientConfig();
             File file = new File(configuration.getS3TrustStore());
             SSLContext ctx = SSLContexts.custom()
-                .loadTrustMaterial(file, configuration.getS3TrustStorePassword().toCharArray()).build();
-            SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(ctx,
-                ALLOW_ALL_HOSTNAME_VERIFIER);
+                .loadTrustMaterial(file, configuration.getS3TrustStorePassword().toCharArray())
+                .build();
+            SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(
+                ctx,
+                ALLOW_ALL_HOSTNAME_VERIFIER
+            );
             apacheClient.withSslSocketFactory(sslConnectionSocketFactory);
         }
 
-        AWSCredentials credentials = new BasicAWSCredentials(configuration.getS3AccessKey(),
-            configuration.getS3SecretKey());
+        AWSCredentials credentials = new BasicAWSCredentials(
+            configuration.getS3AccessKey(),
+            configuration.getS3SecretKey()
+        );
 
-        this.client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials))
-            .withClientConfiguration(clientConfig).withEndpointConfiguration(endpointConfiguration)
-            .withPathStyleAccessEnabled(configuration.isS3PathStyleAccessEnabled()).build();
+        this.client = AmazonS3ClientBuilder.standard()
+            .withCredentials(new AWSStaticCredentialsProvider(credentials))
+            .withClientConfiguration(clientConfig)
+            .withEndpointConfiguration(endpointConfiguration)
+            .withPathStyleAccessEnabled(configuration.isS3PathStyleAccessEnabled())
+            .build();
     }
 
     @VisibleForTesting
@@ -153,25 +162,41 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
     @Override
     public void createContainer(String containerName) throws ContentAddressableStorageServerException {
         LOGGER.debug(String.format("Create container %s", containerName));
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
         String bucketName = generateBucketName(containerName);
         try {
             client.createBucket(bucketName);
         } catch (AmazonServiceException e) {
-
-            LOGGER.debug(String.format(
-                "Error when trying to create container with name: %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                containerName, e.getErrorCode(), e.getErrorType(), e.getErrorMessage()), e);
-            if (AmazonS3APIErrorCodes.BUCKET_ALREADY_EXISTS.getErrorCode().equals(e.getErrorCode())
-                || AmazonS3APIErrorCodes.BUCKET_ALREADY_OWNED_BY_YOU.getErrorCode().equals(e.getErrorCode())) {
+            LOGGER.debug(
+                String.format(
+                    "Error when trying to create container with name: %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
+                    containerName,
+                    e.getErrorCode(),
+                    e.getErrorType(),
+                    e.getErrorMessage()
+                ),
+                e
+            );
+            if (
+                AmazonS3APIErrorCodes.BUCKET_ALREADY_EXISTS.getErrorCode().equals(e.getErrorCode()) ||
+                AmazonS3APIErrorCodes.BUCKET_ALREADY_OWNED_BY_YOU.getErrorCode().equals(e.getErrorCode())
+            ) {
                 LOGGER.warn("Container " + containerName + " already exists");
             } else {
                 throw new ContentAddressableStorageServerException("Error when trying to create container", e);
             }
         } catch (SdkBaseException e) {
-            LOGGER.debug(String.format("Error when trying to create container with name: %s. Reason: errorMessage=%s",
-                containerName, e.getMessage()), e);
+            LOGGER.debug(
+                String.format(
+                    "Error when trying to create container with name: %s. Reason: errorMessage=%s",
+                    containerName,
+                    e.getMessage()
+                ),
+                e
+            );
             throw new ContentAddressableStorageServerException("Error when trying to create container", e);
         }
     }
@@ -179,8 +204,10 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
     @Override
     public boolean isExistingContainer(String containerName) throws ContentAddressableStorageServerException {
         LOGGER.debug(String.format("Check existance of container %s", containerName));
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
         String bucketName = generateBucketName(containerName);
         if (super.isExistingContainerInCache(containerName)) {
             return true;
@@ -190,36 +217,64 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             cacheExistsContainer(containerName, exists);
             return exists;
         } catch (SdkBaseException e) {
-            LOGGER.debug(String.format("Error when checking existance of container %s. Reason: errorMessage=%s",
-                containerName, e.getMessage()), e);
+            LOGGER.debug(
+                String.format(
+                    "Error when checking existance of container %s. Reason: errorMessage=%s",
+                    containerName,
+                    e.getMessage()
+                ),
+                e
+            );
             throw new ContentAddressableStorageServerException("Error when trying to check existance of container", e);
         }
     }
 
     @Override
-    public void writeObject(String containerName, String objectName, InputStream inputStream, DigestType digestType,
-        long size) throws ContentAddressableStorageException {
+    public void writeObject(
+        String containerName,
+        String objectName,
+        InputStream inputStream,
+        DigestType digestType,
+        long size
+    ) throws ContentAddressableStorageException {
         LOGGER.debug(String.format("Upload object %s in container %s", objectName, containerName));
         ParametersChecker.checkParameter(
-            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName, objectName);
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
         String bucketName = generateBucketName(containerName);
         storeObject(containerName, objectName, inputStream, size, bucketName);
     }
 
     @Override
-    public void checkObjectDigestAndStoreDigest(String containerName, String objectName, String objectDigest,
-        DigestType digestType, long size)
-        throws ContentAddressableStorageException {
+    public void checkObjectDigestAndStoreDigest(
+        String containerName,
+        String objectName,
+        String objectDigest,
+        DigestType digestType,
+        long size
+    ) throws ContentAddressableStorageException {
         ParametersChecker.checkParameter(
-            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(), containerName, objectName);
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
 
         String bucketName = generateBucketName(containerName);
 
         String computedDigest = computeObjectDigest(containerName, objectName, digestType);
         if (!objectDigest.equals(computedDigest)) {
             throw new ContentAddressableStorageException(
-                "Illegal state for container " + containerName + " and object " + objectName + ". Stream digest "
-                    + objectDigest + " is not equal to computed digest " + computedDigest);
+                "Illegal state for container " +
+                containerName +
+                " and object " +
+                objectName +
+                ". Stream digest " +
+                objectDigest +
+                " is not equal to computed digest " +
+                computedDigest
+            );
         }
 
         storeDigest(containerName, objectName, digestType, objectDigest, bucketName);
@@ -235,62 +290,101 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
                 client.putObject(bucketName, objectName, stream, objectMetadata);
             } catch (AmazonServiceException e) {
                 LOGGER.debug(
-                    String.format("Error when trying to upload object %s in container %s. Reason: errorMessage=%s",
-                        objectName, containerName, e.getMessage()),
-                    e);
+                    String.format(
+                        "Error when trying to upload object %s in container %s. Reason: errorMessage=%s",
+                        objectName,
+                        containerName,
+                        e.getMessage()
+                    ),
+                    e
+                );
                 if (AmazonS3APIErrorCodes.NO_SUCH_BUCKET.getErrorCode().equals(e.getErrorCode())) {
                     throw new ContentAddressableStorageNotFoundException(
-                        "Error when trying to upload object : container does not exists", e);
+                        "Error when trying to upload object : container does not exists",
+                        e
+                    );
                 } else {
                     throw new ContentAddressableStorageServerException("Error when trying to upload object", e);
                 }
             } catch (SdkBaseException e) {
                 LOGGER.debug(
-                    String.format("Error when trying to upload object %s in container %s. Reason: errorMessage=%s",
-                        objectName, containerName, e.getMessage()),
-                    e);
+                    String.format(
+                        "Error when trying to upload object %s in container %s. Reason: errorMessage=%s",
+                        objectName,
+                        containerName,
+                        e.getMessage()
+                    ),
+                    e
+                );
                 throw new ContentAddressableStorageServerException("Error when trying to upload object", e);
             }
         } finally {
-            PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
-                "REAL_S3_PUT_OBJECT", times.elapsed(TimeUnit.MILLISECONDS));
+            PerformanceLogger.getInstance()
+                .log(
+                    "STP_Offer_" + getConfiguration().getProvider(),
+                    containerName,
+                    "REAL_S3_PUT_OBJECT",
+                    times.elapsed(TimeUnit.MILLISECONDS)
+                );
         }
     }
 
-    private void storeDigest(String containerName, String objectName, DigestType digestType, String digest,
-        String bucketName) throws ContentAddressableStorageException {
-
+    private void storeDigest(
+        String containerName,
+        String objectName,
+        DigestType digestType,
+        String digest,
+        String bucketName
+    ) throws ContentAddressableStorageException {
         Stopwatch stopwatch = Stopwatch.createStarted();
         ObjectMetadata metadataToUpdate = new ObjectMetadata();
         metadataToUpdate.addUserMetadata(X_OBJECT_META_DIGEST, digest);
         metadataToUpdate.addUserMetadata(X_OBJECT_META_DIGEST_TYPE, digestType.getName());
 
-        CopyObjectRequest request = new CopyObjectRequest(bucketName, objectName, bucketName, objectName)
-            .withNewObjectMetadata(metadataToUpdate);
+        CopyObjectRequest request = new CopyObjectRequest(
+            bucketName,
+            objectName,
+            bucketName,
+            objectName
+        ).withNewObjectMetadata(metadataToUpdate);
 
         try {
             CopyObjectResult updateMetadataResult = client.copyObject(request);
             if (updateMetadataResult == null) {
                 LOGGER.error("Failed to update object metadata -> try remove object");
                 throw new ContentAddressableStorageServerException(
-                    "Cannot put object " + objectName + " on container " + containerName);
+                    "Cannot put object " + objectName + " on container " + containerName
+                );
             }
         } catch (SdkBaseException e) {
-            LOGGER.debug(String.format(
-                "Error when trying to update metadatas of object %s in container %s. Reason: errorMessage=%s",
-                objectName, containerName, e.getMessage()), e);
+            LOGGER.debug(
+                String.format(
+                    "Error when trying to update metadatas of object %s in container %s. Reason: errorMessage=%s",
+                    objectName,
+                    containerName,
+                    e.getMessage()
+                ),
+                e
+            );
             throw new ContentAddressableStorageServerException("Error when trying to update metadatas of object", e);
         }
-        PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
-            "STORE_DIGEST_IN_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+        PerformanceLogger.getInstance()
+            .log(
+                "STP_Offer_" + getConfiguration().getProvider(),
+                containerName,
+                "STORE_DIGEST_IN_METADATA",
+                stopwatch.elapsed(TimeUnit.MILLISECONDS)
+            );
     }
 
     @Override
-    public ObjectContent getObject(String containerName, String objectName)
-        throws ContentAddressableStorageException {
+    public ObjectContent getObject(String containerName, String objectName) throws ContentAddressableStorageException {
         LOGGER.debug(String.format("Download object %s from container %s", objectName, containerName));
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
         String bucketName = generateBucketName(containerName);
         GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, objectName);
         try {
@@ -299,55 +393,86 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             InputStream inputStream = object.getObjectContent().getDelegateStream();
             return new ObjectContent(inputStream, size);
         } catch (AmazonServiceException e) {
-            LOGGER.debug(String.format(
-                "Error when trying to download object %s from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                objectName, containerName, e.getErrorCode(), e.getErrorType(), e.getErrorMessage()), e);
+            LOGGER.debug(
+                String.format(
+                    "Error when trying to download object %s from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
+                    objectName,
+                    containerName,
+                    e.getErrorCode(),
+                    e.getErrorType(),
+                    e.getErrorMessage()
+                ),
+                e
+            );
             if (AmazonS3APIErrorCodes.NO_SUCH_KEY.getErrorCode().equals(e.getErrorCode())) {
                 throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName, e);
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName,
+                    e
+                );
             } else if (AmazonS3APIErrorCodes.NO_SUCH_BUCKET.getErrorCode().equals(e.getErrorCode())) {
                 throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, e);
+                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName,
+                    e
+                );
             } else {
                 throw new ContentAddressableStorageServerException("Error when trying to download object", e);
             }
-
         } catch (SdkBaseException e) {
             LOGGER.debug(
-                String.format("Error when trying to download object %s from container %s. Reason: errorMessage=%s",
-                    objectName, containerName, e.getMessage()),
-                e);
+                String.format(
+                    "Error when trying to download object %s from container %s. Reason: errorMessage=%s",
+                    objectName,
+                    containerName,
+                    e.getMessage()
+                ),
+                e
+            );
             throw new ContentAddressableStorageServerException("Error when trying to download object", e);
         }
-
     }
 
     @Override
-    public void deleteObject(String containerName, String objectName)
-        throws ContentAddressableStorageException {
+    public void deleteObject(String containerName, String objectName) throws ContentAddressableStorageException {
         LOGGER.debug(String.format("Delete object %s from container %s", objectName, containerName));
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectName
+        );
         String bucketName = generateBucketName(containerName);
         DeleteObjectRequest deleteObjectRequest = new DeleteObjectRequest(bucketName, objectName);
         try {
             client.deleteObject(deleteObjectRequest);
         } catch (AmazonServiceException e) {
-            LOGGER.debug(String.format(
-                "Error when trying to delete object %s from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                objectName, containerName, e.getErrorCode(), e.getErrorType(), e.getErrorMessage()), e);
+            LOGGER.debug(
+                String.format(
+                    "Error when trying to delete object %s from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
+                    objectName,
+                    containerName,
+                    e.getErrorCode(),
+                    e.getErrorType(),
+                    e.getErrorMessage()
+                ),
+                e
+            );
             if (AmazonS3APIErrorCodes.NO_SUCH_BUCKET.getErrorCode().equals(e.getErrorCode())) {
                 throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, e);
+                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName,
+                    e
+                );
             } else {
                 throw new ContentAddressableStorageServerException("Error when trying to delete object", e);
             }
-
         } catch (SdkBaseException e) {
             LOGGER.debug(
-                String.format("Error when trying to delete object %s from container %s. Reason: errorMessage=%s",
-                    objectName, containerName, e.getMessage()),
-                e);
+                String.format(
+                    "Error when trying to delete object %s from container %s. Reason: errorMessage=%s",
+                    objectName,
+                    containerName,
+                    e.getMessage()
+                ),
+                e
+            );
             throw new ContentAddressableStorageServerException("Error when trying to delete object " + objectName, e);
         }
     }
@@ -360,9 +485,15 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         try {
             return client.doesObjectExist(bucketName, objectName);
         } catch (SdkBaseException e) {
-            LOGGER.debug(String.format(
-                "Error when trying to check existance of object %s in container %s. Reason: errorMessage=%s",
-                objectName, containerName, e.getMessage()), e);
+            LOGGER.debug(
+                String.format(
+                    "Error when trying to check existance of object %s in container %s. Reason: errorMessage=%s",
+                    objectName,
+                    containerName,
+                    e.getMessage()
+                ),
+                e
+            );
             throw new ContentAddressableStorageServerException("Error when trying to check existance of object", e);
         }
     }
@@ -376,28 +507,52 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             Stopwatch stopwatch = Stopwatch.createStarted();
             String bucketName = generateBucketName(containerName);
             try {
-                GetObjectMetadataRequest getObjectMetadataRequest = new GetObjectMetadataRequest(bucketName,
-                    objectName);
+                GetObjectMetadataRequest getObjectMetadataRequest = new GetObjectMetadataRequest(
+                    bucketName,
+                    objectName
+                );
                 ObjectMetadata objectMetadata = client.getObjectMetadata(getObjectMetadataRequest);
-                PerformanceLogger.getInstance().log("STP_Offer_" + getConfiguration().getProvider(), containerName,
-                    "READ_DIGEST_FROM_METADATA", stopwatch.elapsed(TimeUnit.MILLISECONDS));
+                PerformanceLogger.getInstance()
+                    .log(
+                        "STP_Offer_" + getConfiguration().getProvider(),
+                        containerName,
+                        "READ_DIGEST_FROM_METADATA",
+                        stopwatch.elapsed(TimeUnit.MILLISECONDS)
+                    );
                 return getDigestFromObjectMetadata(containerName, objectName, digestType, bucketName, objectMetadata);
             } catch (AmazonServiceException e) {
-                LOGGER.debug(String.format(
-                    "Error when trying to compute digest of object %s from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                    objectName, containerName, e.getErrorCode(), e.getErrorType(), e.getErrorMessage()), e);
+                LOGGER.debug(
+                    String.format(
+                        "Error when trying to compute digest of object %s from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
+                        objectName,
+                        containerName,
+                        e.getErrorCode(),
+                        e.getErrorType(),
+                        e.getErrorMessage()
+                    ),
+                    e
+                );
                 if (AmazonS3APIErrorCodes.NOT_FOUND.getErrorCode().equals(e.getErrorCode())) {
                     throw new ContentAddressableStorageNotFoundException(
-                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName, e);
+                        ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectName,
+                        e
+                    );
                 } else {
-                    throw new ContentAddressableStorageServerException("Error when trying to compute digest of object",
-                        e);
+                    throw new ContentAddressableStorageServerException(
+                        "Error when trying to compute digest of object",
+                        e
+                    );
                 }
-
             } catch (SdkBaseException e) {
-                LOGGER.debug(String.format(
-                    "Error when trying to compute digest of object %s from container %s. Reason: errorMessage=%s",
-                    objectName, containerName, e.getMessage()), e);
+                LOGGER.debug(
+                    String.format(
+                        "Error when trying to compute digest of object %s from container %s. Reason: errorMessage=%s",
+                        objectName,
+                        containerName,
+                        e.getMessage()
+                    ),
+                    e
+                );
                 throw new ContentAddressableStorageServerException("Error when trying to compute digest of object", e);
             }
         }
@@ -405,19 +560,29 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         return computeObjectDigest(containerName, objectName, digestType);
     }
 
-    private String getDigestFromObjectMetadata(String containerName, String objectName, DigestType digestType,
+    private String getDigestFromObjectMetadata(
+        String containerName,
+        String objectName,
+        DigestType digestType,
         String bucketName,
-        ObjectMetadata objectMetadata) throws ContentAddressableStorageException {
-        if (null != objectMetadata && objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST) &&
+        ObjectMetadata objectMetadata
+    ) throws ContentAddressableStorageException {
+        if (
+            null != objectMetadata &&
+            objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST) &&
             objectMetadata.getUserMetadata().containsKey(X_OBJECT_META_DIGEST_TYPE) &&
             digestType.getName().equals(objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST_TYPE)) &&
-            null != objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST)) {
-
+            null != objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST)
+        ) {
             return objectMetadata.getUserMetadata().get(X_OBJECT_META_DIGEST);
         } else {
-            LOGGER.warn(String.format(
-                "Could not retrieve cached digest of object '%s' in container '%s'. Recomputing digest",
-                objectName, containerName));
+            LOGGER.warn(
+                String.format(
+                    "Could not retrieve cached digest of object '%s' in container '%s'. Recomputing digest",
+                    objectName,
+                    containerName
+                )
+            );
             String digestToStore = computeObjectDigest(containerName, objectName, digestType);
             storeDigest(containerName, objectName, digestType, digestToStore, bucketName);
             return digestToStore;
@@ -428,8 +593,10 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
     public ContainerInformation getContainerInformation(String containerName)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         LOGGER.debug(String.format("Get information of container %s", containerName));
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
         // we do not call the storage since it is not pertinent in s3
         final ContainerInformation containerInformation = new ContainerInformation();
         containerInformation.setUsableSpace(-1);
@@ -440,8 +607,11 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
     public MetadatasObject getObjectMetadata(String containerName, String objectId, boolean noCache)
         throws ContentAddressableStorageException {
         LOGGER.debug(String.format("Get metadatas of object %s in container %s", objectId, containerName));
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
-            containerName, objectId);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_OBJECT_NAMES_ARE_A_MANDATORY_PARAMETER.getMessage(),
+            containerName,
+            objectId
+        );
         String bucketName = generateBucketName(containerName);
         try {
             MetadatasStorageObject result = new MetadatasStorageObject();
@@ -451,42 +621,63 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
             result.setType(containerName.split("_")[1]);
             result.setObjectName(objectId);
             result.setDigest(
-                noCache ? computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType()) :
-                    getDigestFromObjectMetadata(containerName, objectId, VitamConfiguration.getDefaultDigestType(),
-                        bucketName, objectMetadata));
+                noCache
+                    ? computeObjectDigest(containerName, objectId, VitamConfiguration.getDefaultDigestType())
+                    : getDigestFromObjectMetadata(
+                        containerName,
+                        objectId,
+                        VitamConfiguration.getDefaultDigestType(),
+                        bucketName,
+                        objectMetadata
+                    )
+            );
             result.setFileSize(objectMetadata.getContentLength());
             result.setLastModifiedDate(objectMetadata.getLastModified().toString());
             return result;
         } catch (AmazonServiceException e) {
-            LOGGER.debug(String.format(
-                "Error when trying to get metadatas of object %s in container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                objectId, containerName, e.getErrorCode(), e.getErrorType(), e.getErrorMessage()), e);
+            LOGGER.debug(
+                String.format(
+                    "Error when trying to get metadatas of object %s in container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
+                    objectId,
+                    containerName,
+                    e.getErrorCode(),
+                    e.getErrorType(),
+                    e.getErrorMessage()
+                ),
+                e
+            );
             if (AmazonS3APIErrorCodes.NOT_FOUND.getErrorCode().equals(e.getErrorCode())) {
                 throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectId, e);
+                    ErrorMessage.OBJECT_NOT_FOUND.getMessage() + objectId,
+                    e
+                );
             } else {
                 throw new ContentAddressableStorageServerException("Error when trying to get metadatas of object", e);
             }
-
         } catch (SdkBaseException e) {
-            LOGGER.debug(String.format(
-                "Error when trying to get metadatas of object %s in container %s. Reason: errorMessage=%s",
-                objectId, containerName, e.getMessage()), e);
+            LOGGER.debug(
+                String.format(
+                    "Error when trying to get metadatas of object %s in container %s. Reason: errorMessage=%s",
+                    objectId,
+                    containerName,
+                    e.getMessage()
+                ),
+                e
+            );
             throw new ContentAddressableStorageServerException("Error when trying to get metadatas of object", e);
         }
-
     }
 
     @Override
     public void listContainer(String containerName, ObjectListingListener objectListingListener)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, IOException {
-
         LOGGER.debug(String.format("Listing of object in container %s", containerName));
-        ParametersChecker.checkParameter(ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
-            containerName);
+        ParametersChecker.checkParameter(
+            ErrorMessage.CONTAINER_NAME_IS_A_MANDATORY_PARAMETER.getMessage(),
+            containerName
+        );
         String bucketName = generateBucketName(containerName);
         try {
-
             String continuationToken = null;
             do {
                 ListObjectsV2Request listObjectsV2Request = new ListObjectsV2Request();
@@ -497,29 +688,41 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
                 ListObjectsV2Result listObjectsV2Result = client.listObjectsV2(listObjectsV2Request);
 
                 for (S3ObjectSummary objectSummary : listObjectsV2Result.getObjectSummaries()) {
-                    objectListingListener.handleObjectEntry(new ObjectEntry(
-                        objectSummary.getKey(),
-                        objectSummary.getSize()
-                    ));
+                    objectListingListener.handleObjectEntry(
+                        new ObjectEntry(objectSummary.getKey(), objectSummary.getSize())
+                    );
                 }
 
                 continuationToken = listObjectsV2Result.getNextContinuationToken();
-
             } while (continuationToken != null);
-
         } catch (AmazonServiceException e) {
-            LOGGER.debug(String.format(
-                "Error when trying to list objects from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
-                containerName, e.getErrorCode(), e.getErrorType(), e.getErrorMessage()), e);
+            LOGGER.debug(
+                String.format(
+                    "Error when trying to list objects from container %s. Reason: errorCode=%s, errorType=%s, errorMessage=%s",
+                    containerName,
+                    e.getErrorCode(),
+                    e.getErrorType(),
+                    e.getErrorMessage()
+                ),
+                e
+            );
             if (AmazonS3APIErrorCodes.NO_SUCH_BUCKET.getErrorCode().equals(e.getErrorCode())) {
                 throw new ContentAddressableStorageNotFoundException(
-                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName, e);
+                    ErrorMessage.CONTAINER_NOT_FOUND.getMessage() + containerName,
+                    e
+                );
             } else {
                 throw new ContentAddressableStorageServerException("Error when trying to list objects", e);
             }
         } catch (SdkBaseException e) {
-            LOGGER.debug(String.format("Error when trying to list objects from container %s. Reason: errorMessage=%s",
-                containerName, e.getMessage()), e);
+            LOGGER.debug(
+                String.format(
+                    "Error when trying to list objects from container %s. Reason: errorMessage=%s",
+                    containerName,
+                    e.getMessage()
+                ),
+                e
+            );
             throw new ContentAddressableStorageServerException("Error when trying to list objects", e);
         }
     }
@@ -545,5 +748,4 @@ public class AmazonS3V1 extends ContentAddressableStorageAbstract {
         BucketNameUtils.validateBucketName(bucketName);
         return bucketName;
     }
-
 }

@@ -73,7 +73,6 @@ public class RunWithCustomExecutorRule implements TestRule, ClassRule {
         this.executor = executor;
     }
 
-
     @Override
     public Statement apply(Statement base, Description description) {
         // Restricts the rule application to the tests annotated with the relevant annotation
@@ -93,6 +92,7 @@ public class RunWithCustomExecutorRule implements TestRule, ClassRule {
      * Statement used to launch decorated statement in a VitamThread
      */
     private class RunInVitamThreadStatement extends Statement {
+
         private final Statement baseStatement;
 
         public RunInVitamThreadStatement(Statement base) {
@@ -102,13 +102,16 @@ public class RunWithCustomExecutorRule implements TestRule, ClassRule {
         @Override
         public void evaluate() throws Throwable {
             try {
-                CompletableFuture<Void> run = CompletableFuture.runAsync(() -> {
-                    try {
-                        baseStatement.evaluate();
-                    } catch (Throwable e) {
-                        throw new CompletionException(e);
-                    }
-                }, executor);
+                CompletableFuture<Void> run = CompletableFuture.runAsync(
+                    () -> {
+                        try {
+                            baseStatement.evaluate();
+                        } catch (Throwable e) {
+                            throw new CompletionException(e);
+                        }
+                    },
+                    executor
+                );
                 run.join();
             } catch (CompletionException e) {
                 throw e.getCause();

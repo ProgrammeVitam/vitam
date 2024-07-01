@@ -37,9 +37,11 @@ import java.net.URI;
  * WorkspaceClient factory for creating workspace client
  */
 public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> {
+
     private static final WorkspaceClientFactory WORKSPACE_CLIENT_FACTORY = new WorkspaceClientFactory("/workspace/v1");
-    private static final WorkspaceClientFactory WORKSPACE_COLLECT_CLIENT_FACTORY =
-        new WorkspaceClientFactory("/workspace-collect/v1");
+    private static final WorkspaceClientFactory WORKSPACE_COLLECT_CLIENT_FACTORY = new WorkspaceClientFactory(
+        "/workspace-collect/v1"
+    );
 
     private WorkspaceClientFactory(String resourcePath) {
         super(null, resourcePath);
@@ -93,7 +95,6 @@ public class WorkspaceClientFactory extends VitamClientFactory<WorkspaceClient> 
         final ClientConfiguration configuration = new ClientConfigurationImpl(uri.getHost(), uri.getPort());
         changeMode(configuration, workspaceType);
     }
-
 
     /**
      * @param configuration null for MOCK

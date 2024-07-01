@@ -72,7 +72,7 @@ public class AdminIdentityResource {
         throws InvalidParseOperationException, CertificateException {
         ParametersChecker.checkParameter("Certificate cannot be null", (Object) identityInsertModel.getCertificate());
         final Optional<IdentityModel> identity = identityService.findIdentity(identityInsertModel.getCertificate());
-        if(identity.isPresent()) {
+        if (identity.isPresent()) {
             return Response.status(Response.Status.CONFLICT).build();
         }
         identityService.createIdentity(identityInsertModel);
@@ -95,5 +95,4 @@ public class AdminIdentityResource {
         ParametersChecker.checkParameter("Certificate cannot be null", identityInsertModel.getCertificate());
         return identityService.linkContextToIdentity(identityInsertModel).orElseThrow(NotFoundException::new);
     }
-
 }

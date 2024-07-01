@@ -55,13 +55,10 @@ public class WorkerBean {
      */
     private WorkerRemoteConfiguration configuration;
 
-
     /**
      * Constructor for test purpose
      */
-    WorkerBean() {
-
-    }
+    WorkerBean() {}
 
     /**
      * @param name : the name of the worker
@@ -71,10 +68,13 @@ public class WorkerBean {
      * @param configuration : the configuration of the worker
      */
     @JsonCreator
-    public WorkerBean(@JsonProperty("name") String name, @JsonProperty("family") String family,
+    public WorkerBean(
+        @JsonProperty("name") String name,
+        @JsonProperty("family") String family,
         @JsonProperty("capacity") int capacity,
         @JsonProperty("status") String status,
-        @JsonProperty("configuration") WorkerRemoteConfiguration configuration) {
+        @JsonProperty("configuration") WorkerRemoteConfiguration configuration
+    ) {
         ParametersChecker.checkParameter("name is a mandatory parameter", name);
         ParametersChecker.checkParameter("family is a mandatory parameter", family);
         ParametersChecker.checkParameter("capacity is a mandatory parameter", capacity);
@@ -88,16 +88,12 @@ public class WorkerBean {
         this.configuration = configuration;
     }
 
-
-
     /**
      * @return the name
      */
     public String getName() {
         return name;
     }
-
-
 
     /**
      * @param name the worker name to set
@@ -108,16 +104,12 @@ public class WorkerBean {
         return this;
     }
 
-
-
     /**
      * @return the id of the worker
      */
     public String getWorkerId() {
         return workerId;
     }
-
-
 
     /**
      * @param workerId the workerId to set
@@ -128,16 +120,12 @@ public class WorkerBean {
         return this;
     }
 
-
-
     /**
      * @return the family
      */
     public String getFamily() {
         return family;
     }
-
-
 
     /**
      * @param family the worker Family to set
@@ -148,16 +136,12 @@ public class WorkerBean {
         return this;
     }
 
-
-
     /**
      * @return the capacity
      */
     public int getCapacity() {
         return capacity;
     }
-
-
 
     /**
      * @param capacity the capacity to set
@@ -168,15 +152,12 @@ public class WorkerBean {
         return this;
     }
 
-
     /**
      * @return the status
      */
     public String getStatus() {
         return status;
     }
-
-
 
     /**
      * @param status the status to set
@@ -187,14 +168,12 @@ public class WorkerBean {
         return this;
     }
 
-
     /**
      * @return the WorkerRemoteConfiguration including properties to connect to the Worker
      */
     public WorkerRemoteConfiguration getConfiguration() {
         return configuration;
     }
-
 
     /**
      * @param configuration the WorkerRemoteConfiguration to set
@@ -204,7 +183,6 @@ public class WorkerBean {
         this.configuration = configuration;
         return this;
     }
-
 
     /**
      * toString : get the workerId, workerName, workerFamily, status on worker as String
@@ -221,7 +199,4 @@ public class WorkerBean {
         }
         return sb.toString();
     }
-
-
-
 }

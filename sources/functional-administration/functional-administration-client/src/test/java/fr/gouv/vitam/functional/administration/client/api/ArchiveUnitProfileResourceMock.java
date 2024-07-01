@@ -44,7 +44,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.List;
 
-
 @Path("/adminmanagement/v1")
 @ApplicationPath("webresources")
 public class ArchiveUnitProfileResourceMock {
@@ -53,8 +52,7 @@ public class ArchiveUnitProfileResourceMock {
 
     private final ResteasyTestApplication.ExpectedResults mock;
 
-    public ArchiveUnitProfileResourceMock(
-        ResteasyTestApplication.ExpectedResults mock) {
+    public ArchiveUnitProfileResourceMock(ResteasyTestApplication.ExpectedResults mock) {
         this.mock = mock;
     }
 

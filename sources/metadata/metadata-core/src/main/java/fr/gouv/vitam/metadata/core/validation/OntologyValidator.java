@@ -60,14 +60,14 @@ import static java.time.temporal.ChronoField.HOUR_OF_DAY;
 
 public class OntologyValidator {
 
-    private static final DateTimeFormatter XSD_DATATYPE_DATE_FORMATTER =
-        new DateTimeFormatterBuilder()
-            .appendOptional(DateTimeFormatter
-                .ofPattern("u-MM-dd['T'HH:mm:ss[.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S][xxx][X]][xxx][X]"))
-            .appendOptional(DateTimeFormatter
-                .ofPattern("u/MM/dd['T'HH:mm:ss[.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S][xxx][X]][xxx][X]"))
-            .toFormatter();
-
+    private static final DateTimeFormatter XSD_DATATYPE_DATE_FORMATTER = new DateTimeFormatterBuilder()
+        .appendOptional(
+            DateTimeFormatter.ofPattern("u-MM-dd['T'HH:mm:ss[.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S][xxx][X]][xxx][X]")
+        )
+        .appendOptional(
+            DateTimeFormatter.ofPattern("u/MM/dd['T'HH:mm:ss[.SSSSSS][.SSSSS][.SSSS][.SSS][.SS][.S][xxx][X]][xxx][X]")
+        )
+        .toFormatter();
 
     private static float MAX_UTF8_BYTES_PER_CHAR = StandardCharsets.UTF_8.newEncoder().maxBytesPerChar();
 
@@ -84,12 +84,12 @@ public class OntologyValidator {
      * @return error list
      */
     public ObjectNode verifyAndReplaceFields(JsonNode jsonNode) throws MetadataValidationException {
-
         ObjectNode transformedJsonNode = jsonNode.deepCopy();
 
         List<OntologyModel> ontologyModels = ontologyLoader.loadOntologies();
-        Map<String, OntologyModel> ontologyModelMap =
-            ontologyModels.stream().collect(Collectors.toMap(OntologyModel::getIdentifier, oM -> oM));
+        Map<String, OntologyModel> ontologyModelMap = ontologyModels
+            .stream()
+            .collect(Collectors.toMap(OntologyModel::getIdentifier, oM -> oM));
 
         List<String> errors = new ArrayList<>();
         Iterator<Map.Entry<String, JsonNode>> iterator = transformedJsonNode.fields();
@@ -99,7 +99,8 @@ public class OntologyValidator {
         }
 
         if (!errors.isEmpty()) {
-            String error = "metadata contains fields declared in ontology with a wrong format : " +
+            String error =
+                "metadata contains fields declared in ontology with a wrong format : " +
                 CollectionUtils.join(errors, ",");
             throw new MetadataValidationException(MetadataValidationErrorCode.ONTOLOGY_VALIDATION_FAILURE, error);
         }
@@ -107,8 +108,11 @@ public class OntologyValidator {
         return transformedJsonNode;
     }
 
-    private void verifyAndReplaceFields(JsonNode node, Map<String, OntologyModel> ontologyModelMap,
-        List<String> errors) {
+    private void verifyAndReplaceFields(
+        JsonNode node,
+        Map<String, OntologyModel> ontologyModelMap,
+        List<String> errors
+    ) {
         Iterator<Map.Entry<String, JsonNode>> iterator = node.fields();
         while (iterator.hasNext()) {
             Map.Entry<String, JsonNode> entry = iterator.next();
@@ -116,8 +120,12 @@ public class OntologyValidator {
         }
     }
 
-    private void verifyLine(JsonNode node, Map<String, OntologyModel> ontologyModelMap, List<String> errors,
-        Map.Entry<String, JsonNode> entry) {
+    private void verifyLine(
+        JsonNode node,
+        Map<String, OntologyModel> ontologyModelMap,
+        List<String> errors,
+        Map.Entry<String, JsonNode> entry
+    ) {
         String fieldName = entry.getKey();
 
         OntologyModel ontology = ontologyModelMap.get(fieldName);
@@ -139,11 +147,17 @@ public class OntologyValidator {
             return;
         }
         errors.addAll(replacePropertyField(fieldValue, ontology, node, fieldName));
-
     }
 
-    private void verifyField(Map<String, OntologyModel> ontologyModelMap, List<String> errors, String fieldName,
-        OntologyModel ontology, ArrayNode fieldValue, int i, JsonNode jn) {
+    private void verifyField(
+        Map<String, OntologyModel> ontologyModelMap,
+        List<String> errors,
+        String fieldName,
+        OntologyModel ontology,
+        ArrayNode fieldValue,
+        int i,
+        JsonNode jn
+    ) {
         if (null == jn || null == jn.asText()) {
             return;
         }
@@ -153,14 +167,11 @@ public class OntologyValidator {
             return;
         }
         try {
-            fieldValue
-                .set(i, checkFieldLengthAndForceFieldTyping(fieldName, jn, ontology));
+            fieldValue.set(i, checkFieldLengthAndForceFieldTyping(fieldName, jn, ontology));
         } catch (IllegalArgumentException | DateTimeParseException e) {
             errors.add(String.format("Error '%s' on field '%s'.", e.getMessage(), fieldName));
         }
-
     }
-
 
     /**
      * Example of fieldContainer:  fieldContainer = "{'fieldName': 'fieldValue'}"
@@ -171,45 +182,64 @@ public class OntologyValidator {
      * @param fieldName fieldName
      * @return List
      */
-    private List<String> replacePropertyField(JsonNode fieldValue, OntologyModel ontology, JsonNode fieldContainer,
-        String fieldName) {
+    private List<String> replacePropertyField(
+        JsonNode fieldValue,
+        OntologyModel ontology,
+        JsonNode fieldContainer,
+        String fieldName
+    ) {
         ObjectNode objectNodeContainer = (ObjectNode) fieldContainer;
         if (!fieldValue.isNull() && !fieldValue.isMissingNode()) {
             try {
-                objectNodeContainer.set(fieldName,
-                    checkFieldLengthAndForceFieldTyping(fieldName, fieldValue, ontology));
+                objectNodeContainer.set(
+                    fieldName,
+                    checkFieldLengthAndForceFieldTyping(fieldName, fieldValue, ontology)
+                );
             } catch (IllegalArgumentException | DateTimeParseException e) {
-                return Collections.singletonList(String
-                    .format("Error: <%s> on field '%s'.", e.getMessage(), fieldName));
+                return Collections.singletonList(
+                    String.format("Error: <%s> on field '%s'.", e.getMessage(), fieldName)
+                );
             }
         }
         return Collections.emptyList();
     }
 
-
-    private JsonNode checkFieldLengthAndForceFieldTyping(String fieldName, JsonNode fieldValueNode,
-        OntologyModel ontologyModel) {
+    private JsonNode checkFieldLengthAndForceFieldTyping(
+        String fieldName,
+        JsonNode fieldValueNode,
+        OntologyModel ontologyModel
+    ) {
         // In case where no ontology is provided
         if (null == ontologyModel) {
-            return validateValueLength(fieldName, fieldValueNode, VitamConfiguration.getTextMaxLength(),
+            return validateValueLength(
+                fieldName,
+                fieldValueNode,
+                VitamConfiguration.getTextMaxLength(),
                 "Not accepted value for the text field (%s) whose UTF8 encoding is longer than the max length " +
-                    VitamConfiguration.getTextMaxLength());
+                VitamConfiguration.getTextMaxLength()
+            );
         }
 
         switch (ontologyModel.getType()) {
             case TEXT:
-                return validateValueLength(fieldName, fieldValueNode, VitamConfiguration.getTextMaxLength(),
+                return validateValueLength(
+                    fieldName,
+                    fieldValueNode,
+                    VitamConfiguration.getTextMaxLength(),
                     "Not accepted value for the text field (%s) whose UTF8 encoding is longer than the max length " +
-                        VitamConfiguration.getTextMaxLength());
+                    VitamConfiguration.getTextMaxLength()
+                );
             case GEO_POINT:
             case ENUM:
-                // FIXME : Useless?
+            // FIXME : Useless?
             case KEYWORD:
-                return validateValueLength(fieldName, fieldValueNode,
+                return validateValueLength(
+                    fieldName,
+                    fieldValueNode,
                     VitamConfiguration.getKeywordMaxLength(),
                     "Not accepted value for the Keyword field (%s) whose UTF8 encoding is longer than the max length " +
-                        VitamConfiguration.getTextMaxLength());
-
+                    VitamConfiguration.getTextMaxLength()
+                );
             case DOUBLE:
                 if (fieldValueNode.isDouble()) {
                     return fieldValueNode;
@@ -227,10 +257,10 @@ public class OntologyValidator {
                     return fieldValueNode;
                 }
                 return BooleanNode.valueOf(
-                    BooleanUtils.toBoolean(fieldValueNode.asText().toLowerCase(), "true", "false"));
+                    BooleanUtils.toBoolean(fieldValueNode.asText().toLowerCase(), "true", "false")
+                );
             default:
-                throw new IllegalStateException(
-                    String.format("Not implemented for type %s", fieldValueNode.asText()));
+                throw new IllegalStateException(String.format("Not implemented for type %s", fieldValueNode.asText()));
         }
     }
 
@@ -243,8 +273,7 @@ public class OntologyValidator {
      * @param message message
      * @return JsonNode
      */
-    private JsonNode validateValueLength(String fieldName, JsonNode fieldValueNode, int maxUtf8Length,
-        String message) {
+    private JsonNode validateValueLength(String fieldName, JsonNode fieldValueNode, int maxUtf8Length, String message) {
         if (null == fieldValueNode) {
             return null;
         }
@@ -264,7 +293,6 @@ public class OntologyValidator {
      * ES stores data in lucene indexes that have 32Kb max limit per token.
      */
     public static boolean stringExceedsMaxLuceneUtf8StorageSize(String textValue, int maxUtf8Length) {
-
         /*
          * Optimisation : most string values are small, and will never exceed max storage length.
          * We'll check if max string length (in chars) can never exceed max storage length in UTF-8.

@@ -39,7 +39,6 @@ public class IllegalArgumentExceptionMapper implements ExceptionMapper<IllegalAr
 
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IllegalArgumentExceptionMapper.class);
 
-
     /**
      * @param exception
      * @return
@@ -49,5 +48,4 @@ public class IllegalArgumentExceptionMapper implements ExceptionMapper<IllegalAr
         LOGGER.error(exception);
         return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
     }
-
 }

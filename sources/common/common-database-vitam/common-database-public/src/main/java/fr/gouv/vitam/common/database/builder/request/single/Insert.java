@@ -38,6 +38,7 @@ import fr.gouv.vitam.common.json.JsonHandler;
  * Insert: { $query: query, $data : data , $filter: filter} // No query in
  */
 public class Insert extends RequestSingle {
+
     protected ArrayNode data;
 
     /**
@@ -83,8 +84,7 @@ public class Insert extends RequestSingle {
      * @return this Insert
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Insert setData(final JsonNode dataContent)
-        throws InvalidParseOperationException {
+    public final Insert setData(final JsonNode dataContent) throws InvalidParseOperationException {
         if (data == null) {
             data = JsonHandler.createArrayNode();
         }
@@ -101,8 +101,7 @@ public class Insert extends RequestSingle {
      * @return this Insert
      * @throws InvalidParseOperationException when query is invalid
      */
-    public final Insert parseData(final String data)
-        throws InvalidParseOperationException {
+    public final Insert parseData(final String data) throws InvalidParseOperationException {
         GlobalDatas.sanityValueCheck(data);
         final JsonNode dataContent = JsonHandler.getFromString(data);
         return setData(dataContent);
@@ -146,10 +145,7 @@ public class Insert extends RequestSingle {
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
-        builder.append("INSERT: ").append(super.toString())
-            .append("\n\tData: ").append(data);
+        builder.append("INSERT: ").append(super.toString()).append("\n\tData: ").append(data);
         return builder.toString();
     }
-
-
 }

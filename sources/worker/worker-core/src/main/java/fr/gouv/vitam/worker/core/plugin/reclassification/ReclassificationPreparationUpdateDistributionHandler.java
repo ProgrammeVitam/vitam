@@ -56,8 +56,9 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class ReclassificationPreparationUpdateDistributionHandler extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ReclassificationPreparationUpdateDistributionHandler.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ReclassificationPreparationUpdateDistributionHandler.class
+    );
 
     private static final String RECLASSIFICATION_PREPARATION_UPDATE_DISTRIBUTION =
         "RECLASSIFICATION_PREPARATION_UPDATE_DISTRIBUTION";
@@ -88,21 +89,20 @@ public class ReclassificationPreparationUpdateDistributionHandler extends Action
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             // Load / parse & validate request
             ReclassificationOrders reclassificationOrders = loadReclassificationOrders(handler);
 
             // Prepare distributions
             prepareUpdates(reclassificationOrders, handler);
-
         } catch (ProcessingStatusException e) {
             LOGGER.error("Reclassification update distribution failed with status [" + e.getStatusCode() + "]", e);
-            return buildItemStatus(RECLASSIFICATION_PREPARATION_UPDATE_DISTRIBUTION, e.getStatusCode(),
-                e.getEventDetails());
+            return buildItemStatus(
+                RECLASSIFICATION_PREPARATION_UPDATE_DISTRIBUTION,
+                e.getStatusCode(),
+                e.getEventDetails()
+            );
         }
 
         LOGGER.info("Reclassification update distribution succeeded");
@@ -114,50 +114,56 @@ public class ReclassificationPreparationUpdateDistributionHandler extends Action
         return (ReclassificationOrders) handler.getInput(RECLASSIFICATION_ORDERS_PARAMETER_RANK);
     }
 
-    private void prepareUpdates(ReclassificationOrders reclassificationUpdates,
-        HandlerIO handler) throws ProcessingStatusException {
-
+    private void prepareUpdates(ReclassificationOrders reclassificationUpdates, HandlerIO handler)
+        throws ProcessingStatusException {
         prepareDetachments(reclassificationUpdates, handler);
 
         prepareAttachments(reclassificationUpdates, handler);
 
         prepareUnitAndObjectGroupGraphUpdates(reclassificationUpdates);
-
     }
 
     private void prepareDetachments(ReclassificationOrders reclassificationOrders, HandlerIO handler)
         throws ProcessingStatusException {
-
         for (String childUnitId : reclassificationOrders.getChildToParentDetachments().keySet()) {
-            storeToWorkspace(handler, reclassificationOrders.getChildToParentDetachments().get(childUnitId),
-                UNITS_TO_DETACH_DIR + "/" + childUnitId);
+            storeToWorkspace(
+                handler,
+                reclassificationOrders.getChildToParentDetachments().get(childUnitId),
+                UNITS_TO_DETACH_DIR + "/" + childUnitId
+            );
         }
     }
 
     private void prepareAttachments(ReclassificationOrders reclassificationOrders, HandlerIO handler)
         throws ProcessingStatusException {
-
         for (String childUnitId : reclassificationOrders.getChildToParentAttachments().keySet()) {
-            storeToWorkspace(handler, reclassificationOrders.getChildToParentAttachments().get(childUnitId),
-                UNITS_TO_ATTACH_DIR + "/" + childUnitId);
+            storeToWorkspace(
+                handler,
+                reclassificationOrders.getChildToParentAttachments().get(childUnitId),
+                UNITS_TO_ATTACH_DIR + "/" + childUnitId
+            );
         }
     }
 
     private void prepareUnitAndObjectGroupGraphUpdates(ReclassificationOrders reclassificationOrders)
         throws ProcessingStatusException {
-
         try (MetaDataClient metaDataClient = metaDataClientFactory.getClient()) {
-
             Set<String> unitIds = SetUtils.union(
                 reclassificationOrders.getChildToParentAttachments().keySet(),
-                reclassificationOrders.getChildToParentDetachments().keySet());
+                reclassificationOrders.getChildToParentDetachments().keySet()
+            );
 
             metaDataClient.exportReclassificationChildNodes(
-                unitIds, UNITS_TO_UPDATE_JSONL_FILE, OG_TO_UPDATE_JSONL_FILE);
-
+                unitIds,
+                UNITS_TO_UPDATE_JSONL_FILE,
+                OG_TO_UPDATE_JSONL_FILE
+            );
         } catch (VitamClientException | MetaDataExecutionException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                COULD_NOT_EXPORT_THE_LIST_OF_UNITS_AND_OBJECT_GROUPS_TO_UPDATE, e);
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                COULD_NOT_EXPORT_THE_LIST_OF_UNITS_AND_OBJECT_GROUPS_TO_UPDATE,
+                e
+            );
         }
     }
 

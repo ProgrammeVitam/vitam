@@ -62,9 +62,7 @@ public class IhmRecetteClient extends DefaultClient {
     }
 
     public void deleteTnrCollectionsTenant(String tenantId) throws VitamException {
-        VitamRequestBuilder request = delete()
-            .withHeader(X_TENANT_ID, tenantId)
-            .withJsonAccept();
+        VitamRequestBuilder request = delete().withHeader(X_TENANT_ID, tenantId).withJsonAccept();
 
         for (String url : COLLECTION_TO_EMPTY) {
             try (Response response = make(request.withPath(url))) {
@@ -78,9 +76,11 @@ public class IhmRecetteClient extends DefaultClient {
         if (SUCCESSFUL.equals(status.getFamily())) {
             return;
         }
-        String message =
-            String.format("Error with the response, get status: '%d' and reason '%s'.", response.getStatus(),
-                status.getReasonPhrase());
+        String message = String.format(
+            "Error with the response, get status: '%d' and reason '%s'.",
+            response.getStatus(),
+            status.getReasonPhrase()
+        );
         throw new VitamClientInternalException(message);
     }
 }

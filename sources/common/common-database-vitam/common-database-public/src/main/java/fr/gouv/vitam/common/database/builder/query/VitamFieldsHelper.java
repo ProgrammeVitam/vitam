@@ -76,8 +76,6 @@ import static fr.gouv.vitam.common.database.builder.request.configuration.Builde
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VALID_COMPUTED_INHERITED_RULES;
 import static fr.gouv.vitam.common.database.builder.request.configuration.BuilderToken.PROJECTIONARGS.VERSION;
 
-
-
 /**
  * Vitam Field Helper to facilitate the usage of field names
  */
@@ -393,8 +391,6 @@ public class VitamFieldsHelper {
     public static String opts() {
         return OPERATION_TRANSFERS.exactToken();
     }
-
-
 
     /**
      * @return #elimination

@@ -92,17 +92,19 @@ public class PausedProcessingIT extends VitamRuleRunner {
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PausedProcessingIT.class);
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(PausedProcessingIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                ProcessManagementMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        PausedProcessingIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            ProcessManagementMain.class
+        )
+    );
 
     private static final Integer TENANT_ID = 0;
 
@@ -116,13 +118,14 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     private WorkspaceClient workspaceClient;
     // used to check processed elements per step
-    private int[] elementCountPerStep = {1, 1, 1, 2, 5, 1, 2, 5, 2, 5, 0, 1, 1};
+    private int[] elementCountPerStep = { 1, 1, 1, 2, 5, 1, 2, 5, 2, 5, 0, 1, 1 };
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
         handleBeforeClass(Arrays.asList(0, 1), Collections.emptyMap());
-        CONFIG_SIEGFRIED_PATH =
-            PropertiesUtils.getResourcePath("integration-processing/format-identifiers.conf").toString();
+        CONFIG_SIEGFRIED_PATH = PropertiesUtils.getResourcePath(
+            "integration-processing/format-identifiers.conf"
+        ).toString();
         FormatIdentifierFactory.getInstance().changeConfigurationFile(CONFIG_SIEGFRIED_PATH);
         new DataLoader("integration-processing").prepareData();
     }
@@ -156,20 +159,20 @@ public class PausedProcessingIT extends VitamRuleRunner {
         createLogbookOperation(operationGuid, objectGuid);
 
         // workspace client dezip SIP in workspace
-        final InputStream zipInputStreamSipObject =
-            PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
+        final InputStream zipInputStreamSipObject = PropertiesUtils.getResourceAsStream(SIP_FILE_OK_NAME);
         workspaceClient = WorkspaceClientFactory.getInstance().getClient();
         workspaceClient.createContainer(containerName);
-        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP,
-            zipInputStreamSipObject);
+        workspaceClient.uncompressObject(containerName, SIP_FOLDER, CommonMediaType.ZIP, zipInputStreamSipObject);
         // Insert sanityCheck file & StpUpload
         insertWaitForStepEssentialFiles(containerName);
 
-        ProcessingManagementClientFactory.getInstance().getClient()
+        ProcessingManagementClientFactory.getInstance()
+            .getClient()
             .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
         // wait a little bit
 
-        RequestResponse<ItemStatus> respSanityCheckSip = ProcessingManagementClientFactory.getInstance().getClient()
+        RequestResponse<ItemStatus> respSanityCheckSip = ProcessingManagementClientFactory.getInstance()
+            .getClient()
             .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(), ProcessAction.NEXT.getValue());
         // wait a little bit
         assertNotNull(respSanityCheckSip);
@@ -177,8 +180,8 @@ public class PausedProcessingIT extends VitamRuleRunner {
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), respSanityCheckSip.getStatus());
 
         waitOperation(containerName);
-        ProcessWorkflow processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+        ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
+            .findOneProcessWorkflow(containerName, TENANT_ID);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.PAUSE, processWorkflow.getState());
@@ -195,23 +198,23 @@ public class PausedProcessingIT extends VitamRuleRunner {
         LOGGER.info("After RE-START");
 
         // Next on the old paused ans persisted workflow
-        RequestResponse<ItemStatus> respStpUpload =
-            ProcessingManagementClientFactory.getInstance().getClient()
-                .updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
+        RequestResponse<ItemStatus> respStpUpload = ProcessingManagementClientFactory.getInstance()
+            .getClient()
+            .updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
         assertNotNull(respStpUpload);
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), respStpUpload.getStatus());
         waitOperation(containerName);
 
-        RequestResponse<ItemStatus> respIngestControl =
-            ProcessingManagementClientFactory.getInstance().getClient()
-                .updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
+        RequestResponse<ItemStatus> respIngestControl = ProcessingManagementClientFactory.getInstance()
+            .getClient()
+            .updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
         assertNotNull(respIngestControl);
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), respIngestControl.getStatus());
         waitOperation(containerName);
 
-        RequestResponse<ItemStatus> respOgCheckTransform =
-            ProcessingManagementClientFactory.getInstance().getClient()
-                .updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
+        RequestResponse<ItemStatus> respOgCheckTransform = ProcessingManagementClientFactory.getInstance()
+            .getClient()
+            .updateOperationActionProcess(ProcessAction.NEXT.getValue(), containerName);
         assertNotNull(respOgCheckTransform);
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), respOgCheckTransform.getStatus());
         waitOperation(containerName);
@@ -221,16 +224,15 @@ public class PausedProcessingIT extends VitamRuleRunner {
         assertEquals(ProcessState.PAUSE, processWorkflow.getState());
         assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
 
-        respOgCheckTransform = ProcessingManagementClientFactory.getInstance().getClient()
-            .updateOperationActionProcess(ProcessAction.RESUME.getValue(),
-                containerName);
+        respOgCheckTransform = ProcessingManagementClientFactory.getInstance()
+            .getClient()
+            .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
         assertNotNull(respOgCheckTransform);
 
         assertEquals(Response.Status.ACCEPTED.getStatusCode(), respOgCheckTransform.getStatus());
 
         waitOperation(containerName);
-        processWorkflow =
-            ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+        processWorkflow = ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
 
         assertNotNull(processWorkflow);
         assertEquals(ProcessState.COMPLETED, processWorkflow.getState());
@@ -305,21 +307,26 @@ public class PausedProcessingIT extends VitamRuleRunner {
             // Insert sanityCheck file & StpUpload
             insertWaitForStepEssentialFiles(containerName);
 
-            ProcessingManagementClientFactory.getInstance().getClient()
+            ProcessingManagementClientFactory.getInstance()
+                .getClient()
                 .initVitamProcess(containerName, Contexts.DEFAULT_WORKFLOW.name());
 
             // process execute
-            RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance().getClient()
-                .executeOperationProcess(containerName, Contexts.DEFAULT_WORKFLOW.name(),
-                    ProcessAction.NEXT.getValue());
+            RequestResponse<ItemStatus> resp = ProcessingManagementClientFactory.getInstance()
+                .getClient()
+                .executeOperationProcess(
+                    containerName,
+                    Contexts.DEFAULT_WORKFLOW.name(),
+                    ProcessAction.NEXT.getValue()
+                );
             assertNotNull(resp);
             assertThat(resp.isOk()).isTrue();
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), resp.getStatus());
 
             // check process
             waitOperation(containerName);
-            ProcessWorkflow processWorkflow =
-                ProcessMonitoringImpl.getInstance().findOneProcessWorkflow(containerName, TENANT_ID);
+            ProcessWorkflow processWorkflow = ProcessMonitoringImpl.getInstance()
+                .findOneProcessWorkflow(containerName, TENANT_ID);
             assertNotNull(processWorkflow);
             assertEquals(ProcessState.PAUSE, processWorkflow.getState());
             assertEquals(StatusCode.OK, processWorkflow.getStatus());
@@ -329,9 +336,9 @@ public class PausedProcessingIT extends VitamRuleRunner {
             runner.stopMetadataServer(false);
 
             // resume process
-            RequestResponse<ItemStatus> ret =
-                ProcessingManagementClientFactory.getInstance().getClient()
-                    .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
+            RequestResponse<ItemStatus> ret = ProcessingManagementClientFactory.getInstance()
+                .getClient()
+                .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
 
@@ -357,7 +364,8 @@ public class PausedProcessingIT extends VitamRuleRunner {
             }
 
             // resume process
-            ret = ProcessingManagementClientFactory.getInstance().getClient()
+            ret = ProcessingManagementClientFactory.getInstance()
+                .getClient()
                 .updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
             assertNotNull(ret);
             assertEquals(Response.Status.ACCEPTED.getStatusCode(), ret.getStatus());
@@ -368,10 +376,14 @@ public class PausedProcessingIT extends VitamRuleRunner {
             assertNotNull(processWorkflow);
             // if MD server restarted process should complete with status Warning, otherwise it must still in pause with status Fatal
             if (restartMDServerAfterFatal) {
-                assertEquals(restartMDServerAfterFatal ? ProcessState.COMPLETED : ProcessState.PAUSE,
-                    processWorkflow.getState());
-                assertEquals(restartMDServerAfterFatal ? StatusCode.WARNING : StatusCode.FATAL,
-                    processWorkflow.getStatus());
+                assertEquals(
+                    restartMDServerAfterFatal ? ProcessState.COMPLETED : ProcessState.PAUSE,
+                    processWorkflow.getState()
+                );
+                assertEquals(
+                    restartMDServerAfterFatal ? StatusCode.WARNING : StatusCode.FATAL,
+                    processWorkflow.getStatus()
+                );
 
                 // check if all steps are OK
                 checkAllSteps(processWorkflow);
@@ -391,8 +403,9 @@ public class PausedProcessingIT extends VitamRuleRunner {
         int stepIndex = 0;
         for (ProcessStep step : processWorkflow.getSteps()) {
             // check status
-            assertTrue(step.getStepStatusCode().equals(StatusCode.OK) ||
-                step.getStepStatusCode().equals(StatusCode.WARNING));
+            assertTrue(
+                step.getStepStatusCode().equals(StatusCode.OK) || step.getStepStatusCode().equals(StatusCode.WARNING)
+            );
 
             // check processed elements
             Assertions.assertThat(step.getElementProcessed().get()).isEqualTo(step.getElementToProcess().get());
@@ -402,15 +415,17 @@ public class PausedProcessingIT extends VitamRuleRunner {
 
     private void createLogbookOperation(GUID operationId, GUID objectId)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
 
         final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationId, "Process_SIP_unitary", objectId,
-            LogbookTypeProcess.INGEST, StatusCode.STARTED,
+            operationId,
+            "Process_SIP_unitary",
+            objectId,
+            LogbookTypeProcess.INGEST,
+            StatusCode.STARTED,
             operationId != null ? operationId.toString() : "outcomeDetailMessage",
-            operationId);
+            operationId
+        );
         logbookClient.create(initParameters);
     }
-
 }

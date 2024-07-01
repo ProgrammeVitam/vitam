@@ -57,7 +57,8 @@ public class BsonHelper {
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
         // Replace objectMapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, true);
-        objectMapper.configOverride(Map.class)
+        objectMapper
+            .configOverride(Map.class)
             .setIncludeAsProperty(JsonInclude.Value.construct(JsonInclude.Include.ALWAYS, JsonInclude.Include.ALWAYS));
         objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS); // Serialize all fields
         objectMapper.disable(SerializationFeature.INDENT_OUTPUT); // Unpretty print

@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.storage.engine.server.rest.writeprotection;
 
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -36,9 +35,7 @@ import java.lang.annotation.Target;
  * Annotation for Storage Engine endpoints for to prevent access to Write APIs (reserved for primary site only)
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Target({ ElementType.METHOD })
 public @interface WriteProtection {
-
     boolean value();
-
 }

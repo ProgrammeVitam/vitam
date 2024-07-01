@@ -39,7 +39,6 @@ public class Entry {
     @JsonProperty("name")
     private final String name;
 
-
     /**
      * Creates a new Entry associated with a param name
      *
@@ -51,7 +50,6 @@ public class Entry {
         this.name = name;
     }
 
-
     /**
      * Getter for name from Entry class
      *
@@ -61,5 +59,4 @@ public class Entry {
     public String getName() {
         return name;
     }
-
 }

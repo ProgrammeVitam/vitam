@@ -61,8 +61,7 @@ import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
  */
 public class PurgeAccessionRegisterUpdatePlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(PurgeAccessionRegisterUpdatePlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(PurgeAccessionRegisterUpdatePlugin.class);
 
     private final String actionId;
     private final LogbookTypeProcess logbookTypeProcess;
@@ -82,39 +81,36 @@ public class PurgeAccessionRegisterUpdatePlugin extends ActionHandler {
      * Test only constructor
      */
     @VisibleForTesting
-    protected PurgeAccessionRegisterUpdatePlugin(String actionId, LogbookTypeProcess logbookTypeProcess,
-        AdminManagementClientFactory adminManagementClientFactory) {
+    protected PurgeAccessionRegisterUpdatePlugin(
+        String actionId,
+        LogbookTypeProcess logbookTypeProcess,
+        AdminManagementClientFactory adminManagementClientFactory
+    ) {
         this.actionId = actionId;
         this.logbookTypeProcess = logbookTypeProcess;
         this.adminManagementClientFactory = adminManagementClientFactory;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             updateAccessionRegister(param);
 
             LOGGER.info("Purge accession register update succeeded");
             return buildItemStatus(actionId, StatusCode.OK, null);
-
         } catch (ProcessingStatusException e) {
-            LOGGER.error(String.format(
-                "Purge accession register update failed with status [%s]", e.getStatusCode()), e);
-            return buildItemStatus(actionId, e.getStatusCode(),
-                e.getEventDetails());
+            LOGGER.error(
+                String.format("Purge accession register update failed with status [%s]", e.getStatusCode()),
+                e
+            );
+            return buildItemStatus(actionId, e.getStatusCode(), e.getEventDetails());
         }
     }
 
     private void updateAccessionRegister(WorkerParameters param) throws ProcessingStatusException {
-
-        PurgeAccessionRegisterModel purgeAccessionRegisterModel =
-            loadPurgeAccessionRegisterModel(param);
+        PurgeAccessionRegisterModel purgeAccessionRegisterModel = loadPurgeAccessionRegisterModel(param);
 
         try (AdminManagementClient adminManagementClient = adminManagementClientFactory.getClient()) {
-
             RegisterValueEventModel registerValueEvent = new RegisterValueEventModel()
                 .setOperation(param.getContainerName())
                 .setOperationType(logbookTypeProcess.name())
@@ -124,19 +120,20 @@ public class PurgeAccessionRegisterUpdatePlugin extends ActionHandler {
                 .setObjectSize(-1 * purgeAccessionRegisterModel.getTotalSize())
                 .setCreationdate(LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
-            RegisterValueDetailModel totalUnits =
-                new RegisterValueDetailModel().setIngested(0)
-                    .setDeleted(purgeAccessionRegisterModel.getTotalUnits())
-                    .setRemained(-1 * purgeAccessionRegisterModel.getTotalUnits());
-            RegisterValueDetailModel totalObjectsGroups =
-                new RegisterValueDetailModel().setIngested(0)
-                    .setDeleted(purgeAccessionRegisterModel.getTotalObjectGroups())
-                    .setRemained(-1 * purgeAccessionRegisterModel.getTotalObjectGroups());
-            RegisterValueDetailModel totalObjects =
-                new RegisterValueDetailModel().setIngested(0)
-                    .setDeleted(purgeAccessionRegisterModel.getTotalObjects())
-                    .setRemained(-1 * purgeAccessionRegisterModel.getTotalObjects());
-            RegisterValueDetailModel objectSize = new RegisterValueDetailModel().setIngested(0)
+            RegisterValueDetailModel totalUnits = new RegisterValueDetailModel()
+                .setIngested(0)
+                .setDeleted(purgeAccessionRegisterModel.getTotalUnits())
+                .setRemained(-1 * purgeAccessionRegisterModel.getTotalUnits());
+            RegisterValueDetailModel totalObjectsGroups = new RegisterValueDetailModel()
+                .setIngested(0)
+                .setDeleted(purgeAccessionRegisterModel.getTotalObjectGroups())
+                .setRemained(-1 * purgeAccessionRegisterModel.getTotalObjectGroups());
+            RegisterValueDetailModel totalObjects = new RegisterValueDetailModel()
+                .setIngested(0)
+                .setDeleted(purgeAccessionRegisterModel.getTotalObjects())
+                .setRemained(-1 * purgeAccessionRegisterModel.getTotalObjects());
+            RegisterValueDetailModel objectSize = new RegisterValueDetailModel()
+                .setIngested(0)
                 .setDeleted(purgeAccessionRegisterModel.getTotalSize())
                 .setRemained(-1 * purgeAccessionRegisterModel.getTotalSize());
 
@@ -162,13 +159,16 @@ public class PurgeAccessionRegisterUpdatePlugin extends ActionHandler {
                 .setStatus(AccessionRegisterStatus.STORED_AND_UPDATED);
 
             adminManagementClient.createOrUpdateAccessionRegister(accessionRegisterDetailModel);
-
-
         } catch (AdminManagementClientServerException e) {
-            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(String.valueOf(ParameterHelper.getTenantParameter()),
-                "AccessionRegister").inc();
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "[Consistency ERROR] An error occurred during accession register update", e);
+            VitamCommonMetrics.CONSISTENCY_ERROR_COUNTER.labels(
+                String.valueOf(ParameterHelper.getTenantParameter()),
+                "AccessionRegister"
+            ).inc();
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "[Consistency ERROR] An error occurred during accession register update",
+                e
+            );
         }
     }
 
@@ -176,7 +176,6 @@ public class PurgeAccessionRegisterUpdatePlugin extends ActionHandler {
         throws ProcessingStatusException {
         try {
             return JsonHandler.getFromJsonNode(param.getObjectMetadata(), PurgeAccessionRegisterModel.class);
-
         } catch (InvalidParseOperationException e) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not load accession register data", e);
         }

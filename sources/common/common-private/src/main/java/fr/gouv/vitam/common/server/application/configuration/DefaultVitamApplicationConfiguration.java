@@ -35,6 +35,7 @@ import java.util.List;
  * Default minimal Vitam Application Configuration
  */
 public abstract class DefaultVitamApplicationConfiguration implements VitamApplicationConfiguration {
+
     protected static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
     protected String jettyConfig;
     private boolean authentication = false;
@@ -68,7 +69,6 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
         return authentication;
     }
 
-
     /**
      * @param authentication the authentication to set
      * @return this
@@ -86,7 +86,6 @@ public abstract class DefaultVitamApplicationConfiguration implements VitamAppli
     public boolean isTenantFilter() {
         return tenantFilter;
     }
-
 
     /**
      * @param tenantFilter the tenantFilter to set

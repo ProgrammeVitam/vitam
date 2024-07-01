@@ -49,15 +49,14 @@ import java.util.Map;
  * Abstract RequestResponse for all request response in Vitam
  */
 public abstract class RequestResponse<T> {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(RequestResponse.class);
 
     @JsonProperty("httpCode")
     private int httpCode;
 
-
     @JsonIgnore
     private Map<String, String> vitamHeaders = new HashMap<>();
-
 
     /**
      * @return the httpCode
@@ -77,7 +76,6 @@ public abstract class RequestResponse<T> {
         return this;
     }
 
-
     @JsonIgnore
     public int getStatus() {
         return httpCode;
@@ -90,7 +88,6 @@ public abstract class RequestResponse<T> {
     public boolean isOk() {
         return this instanceof RequestResponseOK;
     }
-
 
     @JsonIgnore
     public RequestResponse<T> addHeader(String key, String value) {
@@ -107,7 +104,6 @@ public abstract class RequestResponse<T> {
     public Map<String, String> getVitamHeaders() {
         return this.vitamHeaders;
     }
-
 
     @JsonIgnore
     public void unSetVitamHeaders() {
@@ -181,8 +177,10 @@ public abstract class RequestResponse<T> {
         if (result != null && !result.isEmpty()) {
             if (result.contains("$hits")) {
                 try {
-                    final RequestResponse<T> ret =
-                        RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(result), clazz);
+                    final RequestResponse<T> ret = RequestResponseOK.getFromJsonNode(
+                        JsonHandler.getFromString(result),
+                        clazz
+                    );
                     return ret.parseHeadersFromResponse(response);
                 } catch (final InvalidParseOperationException e) {
                     // Issue, trying RequestResponseOK model
@@ -190,8 +188,10 @@ public abstract class RequestResponse<T> {
                 }
             } else if (result.contains("httpCode")) {
                 try {
-                    final VitamError<T> error = JsonHandler.getFromStringAsTypeReference(result, new TypeReference<>() {
-                    });
+                    final VitamError<T> error = JsonHandler.getFromStringAsTypeReference(
+                        result,
+                        new TypeReference<>() {}
+                    );
                     return error.parseHeadersFromResponse(response);
                 } catch (final InvalidParseOperationException | InvalidFormatException e) {
                     // Issue, while trying VitamError model
@@ -200,7 +200,9 @@ public abstract class RequestResponse<T> {
             }
             throw new IllegalStateException("Cannot parse the response");
         }
-        return VitamError.newVitamError(clazz).setCode("").setHttpCode(response.getStatus())
+        return VitamError.newVitamError(clazz)
+            .setCode("")
+            .setHttpCode(response.getStatus())
             .addHeader(GlobalDataRest.X_REQUEST_ID, response.getHeaderString(GlobalDataRest.X_REQUEST_ID));
     }
 
@@ -213,8 +215,10 @@ public abstract class RequestResponse<T> {
     @SuppressWarnings("unused")
     public static <T> RequestResponseOK<T> parseRequestResponseOk(Response response, Class<T> clasz)
         throws InvalidParseOperationException {
-        final RequestResponseOK<T> ret =
-            RequestResponseOK.getFromJsonNode(JsonHandler.getFromString(response.readEntity(String.class)), clasz);
+        final RequestResponseOK<T> ret = RequestResponseOK.getFromJsonNode(
+            JsonHandler.getFromString(response.readEntity(String.class)),
+            clasz
+        );
         ret.parseHeadersFromResponse(response);
         return ret;
     }
@@ -239,8 +243,10 @@ public abstract class RequestResponse<T> {
     @SuppressWarnings("unused")
     public static <T> VitamError<T> parseVitamError(Response response, Class<T> clasz)
         throws InvalidParseOperationException {
-        final VitamError<T> error =
-            VitamError.getFromJsonNode(JsonHandler.getFromString(response.readEntity(String.class)), clasz);
+        final VitamError<T> error = VitamError.getFromJsonNode(
+            JsonHandler.getFromString(response.readEntity(String.class)),
+            clasz
+        );
         error.parseHeadersFromResponse(response);
         return error;
     }
@@ -254,7 +260,6 @@ public abstract class RequestResponse<T> {
     public static VitamError<JsonNode> parseVitamError(Response response) throws InvalidParseOperationException {
         return VitamError.parseVitamError(response, JsonNode.class);
     }
-
 
     /**
      * Check if the JsonNode is a RequestResponse and OK
@@ -288,5 +293,4 @@ public abstract class RequestResponse<T> {
      * @return Response
      */
     public abstract Response toResponse();
-
 }

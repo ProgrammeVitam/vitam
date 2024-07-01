@@ -69,8 +69,7 @@ public class ArchiveUnitMapper {
     private DescriptiveMetadataMapper descriptiveMetadataMapper;
     private RuleMapper ruleMapper;
 
-    public ArchiveUnitMapper(DescriptiveMetadataMapper descriptiveMetadataMapper,
-        RuleMapper ruleMapper) {
+    public ArchiveUnitMapper(DescriptiveMetadataMapper descriptiveMetadataMapper, RuleMapper ruleMapper) {
         this.descriptiveMetadataMapper = descriptiveMetadataMapper;
         this.ruleMapper = ruleMapper;
     }
@@ -86,10 +85,14 @@ public class ArchiveUnitMapper {
      * @param sedaVersion
      * @return ArchiveUnitRoot
      */
-    public ArchiveUnitRoot map(ArchiveUnitType archiveUnitType, String id, String groupId, String operationId,
-        String unitType, String sedaVersion)
-        throws ProcessingMalformedDataException, ProcessingObjectReferenceException {
-
+    public ArchiveUnitRoot map(
+        ArchiveUnitType archiveUnitType,
+        String id,
+        String groupId,
+        String operationId,
+        String unitType,
+        String sedaVersion
+    ) throws ProcessingMalformedDataException, ProcessingObjectReferenceException {
         ArchiveUnitRoot archiveUnitRoot = new ArchiveUnitRoot();
         ArchiveUnitInternalModel archiveUnit = archiveUnitRoot.getArchiveUnit();
         archiveUnit.setId(id);
@@ -121,7 +124,8 @@ public class ArchiveUnitMapper {
         }
 
         if (management != null && management.getLogBook() != null) {
-            List<LogbookEvent> logbookExternal = management.getLogBook()
+            List<LogbookEvent> logbookExternal = management
+                .getLogBook()
                 .getEvent()
                 .stream()
                 .map(this::toLogbookEvent)
@@ -158,7 +162,8 @@ public class ArchiveUnitMapper {
     }
 
     private String getElementAsText(EventType eventType, String name) {
-        return eventType.getAny()
+        return eventType
+            .getAny()
             .stream()
             .map(object -> (Element) object)
             .filter(element -> element.getLocalName().equals(name))
@@ -170,24 +175,26 @@ public class ArchiveUnitMapper {
 
     public DataObjectReference mapAndValidateDataObjectReference(ArchiveUnitType archiveUnitType)
         throws ProcessingObjectReferenceException {
-        List<DataObjectReference> objectReferences =
-            archiveUnitType.getArchiveUnitOrDataObjectReferenceOrDataObjectGroup().stream()
-                .filter(item -> item instanceof JAXBElement)
-                .filter(item -> ((JAXBElement) item).getDeclaredType().equals(DataObjectRefType.class))
-                .map(item -> (JAXBElement) item)
-                .map(JAXBElement::getValue)
-                .map(item -> (DataObjectRefType) item)
-                .map(item -> {
-                    DataObjectReference dataObjectReference = new DataObjectReference();
-                    dataObjectReference.setDataObjectGroupReferenceId(item.getDataObjectGroupReferenceId());
+        List<DataObjectReference> objectReferences = archiveUnitType
+            .getArchiveUnitOrDataObjectReferenceOrDataObjectGroup()
+            .stream()
+            .filter(item -> item instanceof JAXBElement)
+            .filter(item -> ((JAXBElement) item).getDeclaredType().equals(DataObjectRefType.class))
+            .map(item -> (JAXBElement) item)
+            .map(JAXBElement::getValue)
+            .map(item -> (DataObjectRefType) item)
+            .map(item -> {
+                DataObjectReference dataObjectReference = new DataObjectReference();
+                dataObjectReference.setDataObjectGroupReferenceId(item.getDataObjectGroupReferenceId());
 
-                    return dataObjectReference;
-                })
-                .collect(Collectors.toList());
+                return dataObjectReference;
+            })
+            .collect(Collectors.toList());
 
         if (objectReferences.size() > 1) {
-            throw new ProcessingObjectReferenceException("archive unit '" + archiveUnitType.getId() +
-                "' references more than one technical object group");
+            throw new ProcessingObjectReferenceException(
+                "archive unit '" + archiveUnitType.getId() + "' references more than one technical object group"
+            );
         }
 
         return Iterables.getOnlyElement(objectReferences, null);
@@ -248,7 +255,6 @@ public class ArchiveUnitMapper {
         RuleCategoryModel classificationRuleCategory = ruleMapper.fillCommonRule(classificationRule);
 
         if (classificationRule != null) {
-
             if (classificationRuleCategory == null) {
                 classificationRuleCategory = new RuleCategoryModel();
             }
@@ -267,14 +273,15 @@ public class ArchiveUnitMapper {
 
             if (classificationRule.getClassificationReassessingDate() != null) {
                 classificationRuleCategory.setClassificationReassessingDate(
-                    classificationRule.getClassificationReassessingDate().toString());
+                    classificationRule.getClassificationReassessingDate().toString()
+                );
             }
 
             if (classificationRule.isNeedReassessingAuthorization() != null) {
-                classificationRuleCategory
-                    .setNeedReassessingAuthorization(classificationRule.isNeedReassessingAuthorization());
+                classificationRuleCategory.setNeedReassessingAuthorization(
+                    classificationRule.isNeedReassessingAuthorization()
+                );
             }
-
         }
 
         if (managementModel.getClassification() != null) {
@@ -282,7 +289,6 @@ public class ArchiveUnitMapper {
         } else {
             managementModel.setClassification(classificationRuleCategory);
         }
-
     }
 
     private void fillReuseRule(ManagementType managementType, ManagementModel managementModel) {
@@ -340,15 +346,15 @@ public class ArchiveUnitMapper {
         }
     }
 
-    private void fillHistory(List<ManagementHistoryType> managementHistoryType,
-        List<ArchiveUnitHistoryModel> archiveUnitHistoryModel)
-        throws ProcessingMalformedDataException {
+    private void fillHistory(
+        List<ManagementHistoryType> managementHistoryType,
+        List<ArchiveUnitHistoryModel> archiveUnitHistoryModel
+    ) throws ProcessingMalformedDataException {
         if (managementHistoryType == null) {
             return;
         }
 
         for (ManagementHistoryType historyType : managementHistoryType) {
-
             ArchiveUnitHistoryModel historyModel = new ArchiveUnitHistoryModel();
             historyModel.setUpdateDate(historyType.getUpdateDate().toString());
             historyModel.getData().setVersion(historyType.getData().getVersion());
@@ -357,5 +363,4 @@ public class ArchiveUnitMapper {
             archiveUnitHistoryModel.add(historyModel);
         }
     }
-
 }

@@ -103,7 +103,6 @@ import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_FILENAME_M
 import static fr.gouv.vitam.common.model.ingest.CheckSanityItem.CHECK_FORMAT;
 import static fr.gouv.vitam.common.model.processing.LifecycleState.FLUSH_LFC;
 
-
 /**
  * WorkerImpl class implements Worker interface
  * <p>
@@ -171,30 +170,23 @@ public class WorkerImpl implements Worker {
         actions.put(CheckObjectsNumberActionHandler.getId(), CheckObjectsNumberActionHandler::new);
         actions.put(CheckNoObjectsActionHandler.getId(), CheckNoObjectsActionHandler::new);
         actions.put(CheckVersionActionHandler.getId(), CheckVersionActionHandler::new);
-        actions.put(CheckStorageAvailabilityActionHandler.getId(),
-            CheckStorageAvailabilityActionHandler::new);
-        actions.put(CheckObjectUnitConsistencyActionHandler.getId(),
-            CheckObjectUnitConsistencyActionHandler::new);
-        actions.put(PrepareStorageInfoActionHandler.getId(),
-            PrepareStorageInfoActionHandler::new);
-        actions.put(IngestAccessionRegisterActionHandler.getId(),
-            IngestAccessionRegisterActionHandler::new);
-        actions.put(PreservationAccessionRegisterActionHandler.getId(),
-            PreservationAccessionRegisterActionHandler::new);
-        actions.put(TransferNotificationActionHandler.getId(),
-            TransferNotificationActionHandler::new);
+        actions.put(CheckStorageAvailabilityActionHandler.getId(), CheckStorageAvailabilityActionHandler::new);
+        actions.put(CheckObjectUnitConsistencyActionHandler.getId(), CheckObjectUnitConsistencyActionHandler::new);
+        actions.put(PrepareStorageInfoActionHandler.getId(), PrepareStorageInfoActionHandler::new);
+        actions.put(IngestAccessionRegisterActionHandler.getId(), IngestAccessionRegisterActionHandler::new);
+        actions.put(
+            PreservationAccessionRegisterActionHandler.getId(),
+            PreservationAccessionRegisterActionHandler::new
+        );
+        actions.put(TransferNotificationActionHandler.getId(), TransferNotificationActionHandler::new);
         actions.put(DummyHandler.getId(), DummyHandler::new);
 
-        actions.put(CommitLifeCycleUnitActionHandler.getId(),
-            CommitLifeCycleUnitActionHandler::new);
-        actions.put(CommitLifeCycleObjectGroupActionHandler.getId(),
-            CommitLifeCycleObjectGroupActionHandler::new);
+        actions.put(CommitLifeCycleUnitActionHandler.getId(), CommitLifeCycleUnitActionHandler::new);
+        actions.put(CommitLifeCycleObjectGroupActionHandler.getId(), CommitLifeCycleObjectGroupActionHandler::new);
 
-        actions.put(RollBackActionHandler.getId(),
-            RollBackActionHandler::new);
+        actions.put(RollBackActionHandler.getId(), RollBackActionHandler::new);
 
-        actions.put(CheckHeaderActionHandler.getId(),
-            CheckHeaderActionHandler::new);
+        actions.put(CheckHeaderActionHandler.getId(), CheckHeaderActionHandler::new);
 
         CheckNoObjectsActionHandler checkNoObjectsActionHandler = new CheckNoObjectsActionHandler();
         CheckObjectsNumberActionHandler checkObjectsNumberActionHandler = new CheckObjectsNumberActionHandler();
@@ -202,55 +194,74 @@ public class WorkerImpl implements Worker {
         CheckObjectUnitConsistencyActionHandler checkObjectUnitConsistencyActionHandler =
             new CheckObjectUnitConsistencyActionHandler();
         CheckDataObjectPackageActionHandler checkDataObjectPackageActionHandler =
-            new CheckDataObjectPackageActionHandler(checkNoObjectsActionHandler, checkObjectsNumberActionHandler,
-                extractSedaActionHandler, checkObjectUnitConsistencyActionHandler);
+            new CheckDataObjectPackageActionHandler(
+                checkNoObjectsActionHandler,
+                checkObjectsNumberActionHandler,
+                extractSedaActionHandler,
+                checkObjectUnitConsistencyActionHandler
+            );
         actions.put(CheckDataObjectPackageActionHandler.getId(), () -> checkDataObjectPackageActionHandler);
 
-        actions.put(ListRunningIngestsActionHandler.getId(),
-            ListRunningIngestsActionHandler::new);
-        actions.put(ListArchiveUnitsActionHandler.getId(),
-            ListArchiveUnitsActionHandler::new);
+        actions.put(ListRunningIngestsActionHandler.getId(), ListRunningIngestsActionHandler::new);
+        actions.put(ListArchiveUnitsActionHandler.getId(), ListArchiveUnitsActionHandler::new);
 
-        actions.put(CheckConcurrentWorkflowLockHandler.getId(),
-            CheckConcurrentWorkflowLockHandler::new);
-        actions.put(ReclassificationPreparationLoadRequestHandler.getId(),
-            ReclassificationPreparationLoadRequestHandler::new);
-        actions.put(ReclassificationPreparationCheckGraphHandler.getId(),
-            ReclassificationPreparationCheckGraphHandler::new);
-        actions.put(ReclassificationPreparationUpdateDistributionHandler.getId(),
-            ReclassificationPreparationUpdateDistributionHandler::new);
-        actions.put(ReclassificationFinalizationHandler.getId(),
-            ReclassificationFinalizationHandler::new);
+        actions.put(CheckConcurrentWorkflowLockHandler.getId(), CheckConcurrentWorkflowLockHandler::new);
+        actions.put(
+            ReclassificationPreparationLoadRequestHandler.getId(),
+            ReclassificationPreparationLoadRequestHandler::new
+        );
+        actions.put(
+            ReclassificationPreparationCheckGraphHandler.getId(),
+            ReclassificationPreparationCheckGraphHandler::new
+        );
+        actions.put(
+            ReclassificationPreparationUpdateDistributionHandler.getId(),
+            ReclassificationPreparationUpdateDistributionHandler::new
+        );
+        actions.put(ReclassificationFinalizationHandler.getId(), ReclassificationFinalizationHandler::new);
 
-        actions.put(EliminationAnalysisCheckDistributionThresholdHandler.getId(),
-            EliminationAnalysisCheckDistributionThresholdHandler::new);
+        actions.put(
+            EliminationAnalysisCheckDistributionThresholdHandler.getId(),
+            EliminationAnalysisCheckDistributionThresholdHandler::new
+        );
         actions.put(EliminationAnalysisPreparationHandler.getId(), EliminationAnalysisPreparationHandler::new);
         actions.put(EliminationAnalysisFinalizationHandler.getId(), EliminationAnalysisFinalizationHandler::new);
 
-        actions.put(EliminationActionCheckDistributionThresholdHandler.getId(),
-            EliminationActionCheckDistributionThresholdHandler::new);
+        actions.put(
+            EliminationActionCheckDistributionThresholdHandler.getId(),
+            EliminationActionCheckDistributionThresholdHandler::new
+        );
         actions.put(EliminationActionUnitPreparationHandler.getId(), EliminationActionUnitPreparationHandler::new);
-        actions.put(EliminationActionObjectGroupPreparationHandler.getId(),
-            EliminationActionObjectGroupPreparationHandler::new);
-        actions.put(EliminationActionAccessionRegisterPreparationHandler.getId(),
-            EliminationActionAccessionRegisterPreparationHandler::new);
+        actions.put(
+            EliminationActionObjectGroupPreparationHandler.getId(),
+            EliminationActionObjectGroupPreparationHandler::new
+        );
+        actions.put(
+            EliminationActionAccessionRegisterPreparationHandler.getId(),
+            EliminationActionAccessionRegisterPreparationHandler::new
+        );
         actions.put(EliminationActionReportGenerationHandler.getId(), EliminationActionReportGenerationHandler::new);
         actions.put(EliminationActionFinalizationHandler.getId(), EliminationActionFinalizationHandler::new);
 
         actions.put(TransferReplyUnitPreparationHandler.getId(), TransferReplyUnitPreparationHandler::new);
-        actions.put(TransferReplyObjectGroupPreparationHandler.getId(),
-            TransferReplyObjectGroupPreparationHandler::new);
-        actions.put(TransferReplyAccessionRegisterPreparationHandler.getId(),
-            TransferReplyAccessionRegisterPreparationHandler::new);
+        actions.put(
+            TransferReplyObjectGroupPreparationHandler.getId(),
+            TransferReplyObjectGroupPreparationHandler::new
+        );
+        actions.put(
+            TransferReplyAccessionRegisterPreparationHandler.getId(),
+            TransferReplyAccessionRegisterPreparationHandler::new
+        );
         actions.put(TransferReplyReportGenerationHandler.getId(), TransferReplyReportGenerationHandler::new);
 
-        actions.put(ComputedInheritedRulesCheckDistributionThreshold.getId(),
-            ComputedInheritedRulesCheckDistributionThreshold::new);
+        actions.put(
+            ComputedInheritedRulesCheckDistributionThreshold.getId(),
+            ComputedInheritedRulesCheckDistributionThreshold::new
+        );
     }
 
     @Override
-    public ItemStatus run(WorkerParameters workParams, Step step)
-        throws IllegalArgumentException, ProcessingException {
+    public ItemStatus run(WorkerParameters workParams, Step step) throws IllegalArgumentException, ProcessingException {
         // mandatory check
         ParametersChecker.checkNullOrEmptyParameters(workParams);
 
@@ -267,15 +278,18 @@ public class WorkerImpl implements Worker {
         // loop on objectList
         // Each task should have its own workerId
         workerId = GUIDFactory.newGUID().toString();
-        try (final HandlerIO handlerIO = new HandlerIOImpl(workParams.getContainerName(), workerId,
-            workParams.getObjectNameList());
-            LogbookLifeCyclesClient logbookLfcClient = LogbookLifeCyclesClientFactory.getInstance().getClient()) {
-
+        try (
+            final HandlerIO handlerIO = new HandlerIOImpl(
+                workParams.getContainerName(),
+                workerId,
+                workParams.getObjectNameList()
+            );
+            LogbookLifeCyclesClient logbookLfcClient = LogbookLifeCyclesClientFactory.getInstance().getClient()
+        ) {
             LifecycleFromWorker lifecycleFromWorker = new LifecycleFromWorker(logbookLfcClient);
 
             // loop on actions
             for (final Action action : step.getActions()) {
-
                 Stopwatch stopwatch = Stopwatch.createStarted();
 
                 // Reset handlerIO for next execution
@@ -294,21 +308,27 @@ public class WorkerImpl implements Worker {
 
                 if (pluginLoader.contains(handlerName)) {
                     try (ActionHandler actionPlugin = pluginLoader.newInstance(handlerName)) {
-
                         LOGGER.debug("START plugin ", actionDefinition.getActionKey(), step.getStepName());
 
                         pluginResponse = actionPlugin.executeList(workParams, handlerIO);
-                        List<ItemStatus> itemStatuses = pluginResponse.stream()
+                        List<ItemStatus> itemStatuses = pluginResponse
+                            .stream()
                             .flatMap(itemStatus -> itemStatus.getItemsStatus().values().stream())
                             .collect(Collectors.toList());
 
-                        aggregateItemStatus = getActionResponse(handlerName,
+                        aggregateItemStatus = getActionResponse(
+                            handlerName,
                             itemStatuses,
-                            action.getActionDefinition().getStatusAggregationBehavior());
+                            action.getActionDefinition().getStatusAggregationBehavior()
+                        );
                         aggregateItemStatus.setItemId(handlerName);
                         if (action.getActionDefinition().lifecycleEnabled()) {
-                            lifecycleFromWorker.generateLifeCycle(pluginResponse, workParams, action,
-                                step.getDistribution().getType());
+                            lifecycleFromWorker.generateLifeCycle(
+                                pluginResponse,
+                                workParams,
+                                action,
+                                step.getDistribution().getType()
+                            );
                         }
 
                         responses.setItemsStatus(aggregateItemStatus);
@@ -319,8 +339,7 @@ public class WorkerImpl implements Worker {
                         throw new HandlerNotFoundException(actionDefinition.getActionKey() + HANDLER_NOT_FOUND);
                     }
 
-                    LOGGER.debug("START handler {} in step {}", actionDefinition.getActionKey(),
-                        step.getStepName());
+                    LOGGER.debug("START handler {} in step {}", actionDefinition.getActionKey(), step.getStepName());
 
                     pluginResponse = actionHandler.executeList(workParams, handlerIO);
 
@@ -372,8 +391,11 @@ public class WorkerImpl implements Worker {
         }
     }
 
-    private static ItemStatus getActionResponse(String handlerName, List<ItemStatus> pluginResponse,
-        StatusAggregationBehavior statusBehavior) {
+    private static ItemStatus getActionResponse(
+        String handlerName,
+        List<ItemStatus> pluginResponse,
+        StatusAggregationBehavior statusBehavior
+    ) {
         ItemStatus status = new ItemStatus(handlerName);
 
         for (ItemStatus subItemStatus : pluginResponse) {

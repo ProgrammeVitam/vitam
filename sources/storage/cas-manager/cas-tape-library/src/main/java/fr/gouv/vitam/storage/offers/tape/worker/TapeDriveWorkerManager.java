@@ -65,6 +65,7 @@ import static com.mongodb.client.model.Filters.nin;
 import static java.util.function.Predicate.not;
 
 public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDriveOrderProducer {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(TapeDriveWorkerManager.class);
     private static final String TAPE_DRIVE_WORKER = "TapeDriveWorker_";
     private final QueueRepository readWriteQueue;
@@ -78,17 +79,29 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         ArchiveReferentialRepository archiveReferentialRepository,
         AccessRequestManager accessRequestManager,
         TapeLibraryPool tapeLibraryPool,
-        Map<Integer, TapeCatalog> driveTape, String inputTarPath, boolean forceOverrideNonEmptyCartridges,
+        Map<Integer, TapeCatalog> driveTape,
+        String inputTarPath,
+        boolean forceOverrideNonEmptyCartridges,
         ArchiveCacheStorage archiveCacheStorage,
         TapeCatalogService tapeCatalogService,
         Integer fullCartridgeDetectionThresholdInMB
     ) {
+        ParametersChecker.checkParameter(
+            "All params is required required",
+            tapeLibraryPool,
+            readWriteQueue,
+            archiveReferentialRepository,
+            accessRequestManager,
+            driveTape,
+            archiveCacheStorage,
+            tapeCatalogService
+        );
 
-        ParametersChecker.checkParameter("All params is required required", tapeLibraryPool, readWriteQueue,
-            archiveReferentialRepository, accessRequestManager, driveTape, archiveCacheStorage, tapeCatalogService);
-
-        if (fullCartridgeDetectionThresholdInMB == null ||
-            fullCartridgeDetectionThresholdInMB <= 0 || fullCartridgeDetectionThresholdInMB > 1_000_000_000) {
+        if (
+            fullCartridgeDetectionThresholdInMB == null ||
+            fullCartridgeDetectionThresholdInMB <= 0 ||
+            fullCartridgeDetectionThresholdInMB > 1_000_000_000
+        ) {
             throw new IllegalArgumentException("Invalid fullCartridgeDetectionThresholdInMB param");
         }
 
@@ -96,19 +109,26 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         this.workers = new ArrayList<>();
 
         for (Map.Entry<Integer, TapeDriveService> driveEntry : tapeLibraryPool.drives()) {
-            final TapeDriveWorker tapeDriveWorker =
-                new TapeDriveWorker(tapeLibraryPool, driveEntry.getValue(), tapeCatalogService,
-                    this, archiveReferentialRepository, accessRequestManager,
-                    driveTape.get(driveEntry.getKey()), inputTarPath,
-                    forceOverrideNonEmptyCartridges, archiveCacheStorage, fullCartridgeDetectionThresholdInMB);
+            final TapeDriveWorker tapeDriveWorker = new TapeDriveWorker(
+                tapeLibraryPool,
+                driveEntry.getValue(),
+                tapeCatalogService,
+                this,
+                archiveReferentialRepository,
+                accessRequestManager,
+                driveTape.get(driveEntry.getKey()),
+                inputTarPath,
+                forceOverrideNonEmptyCartridges,
+                archiveCacheStorage,
+                fullCartridgeDetectionThresholdInMB
+            );
             workers.add(tapeDriveWorker);
         }
     }
 
     public void startWorkers() {
         for (TapeDriveWorker tapeDriveWorker : workers) {
-            final Thread thread =
-                VitamThreadFactory.getInstance().newThread(tapeDriveWorker);
+            final Thread thread = VitamThreadFactory.getInstance().newThread(tapeDriveWorker);
             thread.setName(TAPE_DRIVE_WORKER + tapeDriveWorker.getIndex());
             thread.start();
             LOGGER.debug("Start worker :" + thread.getName());
@@ -117,29 +137,37 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
     public void shutdown() {
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
-        workers.forEach(w -> completableFutures
-            .add(CompletableFuture.runAsync(() -> {
-                try {
-                    w.stop();
-                } catch (Exception e) {
-                    LOGGER.error("An error occurred during worker shutdown", e);
-                }
-            }, VitamThreadPoolExecutor.getDefaultExecutor())));
+        workers.forEach(w ->
+            completableFutures.add(
+                CompletableFuture.runAsync(
+                    () -> {
+                        try {
+                            w.stop();
+                        } catch (Exception e) {
+                            LOGGER.error("An error occurred during worker shutdown", e);
+                        }
+                    },
+                    VitamThreadPoolExecutor.getDefaultExecutor()
+                )
+            ));
         CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[workers.size()])).join();
     }
 
-
     public void shutdown(long timeout, TimeUnit timeUnit) {
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
-        workers.forEach(w -> completableFutures
-            .add(CompletableFuture
-                .runAsync(() -> {
-                    try {
-                        w.stop(timeout, timeUnit);
-                    } catch (Exception e) {
-                        LOGGER.error("An error occurred during worker shutdown", e);
-                    }
-                }, VitamThreadPoolExecutor.getDefaultExecutor())));
+        workers.forEach(w ->
+            completableFutures.add(
+                CompletableFuture.runAsync(
+                    () -> {
+                        try {
+                            w.stop(timeout, timeUnit);
+                        } catch (Exception e) {
+                            LOGGER.error("An error occurred during worker shutdown", e);
+                        }
+                    },
+                    VitamThreadPoolExecutor.getDefaultExecutor()
+                )
+            ));
         CompletableFuture.allOf(completableFutures.toArray(new CompletableFuture[workers.size()])).join();
     }
 
@@ -155,16 +183,18 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
     @Override
     public synchronized Optional<? extends ReadWriteOrder> produce(TapeDriveWorker driveWorker) throws QueueException {
+        OptimisticDriveResourceStatus optimisticDriveResourceStatus = optimisticDriveResourceStatusMap.computeIfAbsent(
+            driveWorker.getIndex(),
+            i -> new OptimisticDriveResourceStatus()
+        );
 
-        OptimisticDriveResourceStatus optimisticDriveResourceStatus =
-            optimisticDriveResourceStatusMap
-                .computeIfAbsent(driveWorker.getIndex(), i -> new OptimisticDriveResourceStatus());
+        optimisticDriveResourceStatus.lastBucket = driveWorker.getCurrentTape() != null
+            ? driveWorker.getCurrentTape().getBucket()
+            : null;
 
-        optimisticDriveResourceStatus.lastBucket =
-            driveWorker.getCurrentTape() != null ? driveWorker.getCurrentTape().getBucket() : null;
-
-        optimisticDriveResourceStatus.lastTapeCode =
-            driveWorker.getCurrentTape() != null ? driveWorker.getCurrentTape().getCode() : null;
+        optimisticDriveResourceStatus.lastTapeCode = driveWorker.getCurrentTape() != null
+            ? driveWorker.getCurrentTape().getCode()
+            : null;
 
         optimisticDriveResourceStatus.targetBucket = null;
         optimisticDriveResourceStatus.targetTapeCode = null;
@@ -187,7 +217,6 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         }
 
         if (readWriteOrder.isPresent()) {
-
             if (readWriteOrder.get().isWriteOrder()) {
                 WriteOrder writeOrder = (WriteOrder) readWriteOrder.get();
                 optimisticDriveResourceStatus.targetBucket = writeOrder.getBucket();
@@ -205,11 +234,9 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
     private Optional<? extends ReadWriteOrder> selectReadWriteOrderWithWritePriority(TapeDriveWorker driveWorker)
         throws QueueException {
-
         Optional<? extends ReadWriteOrder> order = Optional.empty();
 
         if (driveWorker.getCurrentTape() != null) {
-
             order = selectWriteOrderByBucket(driveWorker.getCurrentTape().getBucket());
 
             if (order.isEmpty()) {
@@ -234,7 +261,6 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
 
     private Optional<? extends ReadWriteOrder> selectReadWriteOrderWithBackupPriority(TapeDriveWorker driveWorker)
         throws QueueException {
-
         Optional<? extends ReadWriteOrder> order = selectOrder(QueueMessageType.WriteBackupOrder);
 
         // If no write backup order then we take any other write order
@@ -245,13 +271,11 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
         return order;
     }
 
-
     private Optional<? extends ReadWriteOrder> selectReadWriteOrderByReadPriority(TapeDriveWorker driveWorker)
         throws QueueException {
         Optional<? extends ReadWriteOrder> order = Optional.empty();
 
         if (driveWorker.getCurrentTape() != null) {
-
             order = selectReadOrderByTapeCode(driveWorker.getCurrentTape().getCode());
 
             if (order.isEmpty()) {
@@ -283,66 +307,61 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
     }
 
     private Optional<? extends ReadWriteOrder> selectReadOrderByTapeCode(String tapeCode) throws QueueException {
-        return readWriteQueue.receive(
-            eq(ReadOrder.TAPE_CODE, tapeCode),
-            QueueMessageType.ReadOrder
-        );
+        return readWriteQueue.receive(eq(ReadOrder.TAPE_CODE, tapeCode), QueueMessageType.ReadOrder);
     }
 
     private Optional<? extends ReadWriteOrder> selectWriteOrderExcludingActiveBuckets() throws QueueException {
-
         // TODO: 28/03/19 parallelism (parallel drive by bucket)
-        Set<String> activeBuckets =
-            Stream.concat(
-                    this.optimisticDriveResourceStatusMap.values().stream()
-                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetBucket),
+        Set<String> activeBuckets = Stream.concat(
+            this.optimisticDriveResourceStatusMap.values()
+                .stream()
+                .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetBucket),
+            this.optimisticDriveResourceStatusMap.values()
+                .stream()
+                .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastBucket)
+        )
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
 
-                    this.optimisticDriveResourceStatusMap.values().stream()
-                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastBucket)
-                )
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        return readWriteQueue.receive(
-            nin(WriteOrder.BUCKET, activeBuckets),
-            QueueMessageType.WriteOrder
-        );
+        return readWriteQueue.receive(nin(WriteOrder.BUCKET, activeBuckets), QueueMessageType.WriteOrder);
     }
 
     private Optional<? extends ReadWriteOrder> selectReadOrderExcludingTapeCodes() throws QueueException {
+        Set<String> activeTapeCodes = Stream.concat(
+            this.optimisticDriveResourceStatusMap.values()
+                .stream()
+                .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetTapeCode),
+            this.optimisticDriveResourceStatusMap.values()
+                .stream()
+                .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastTapeCode)
+        )
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
 
-        Set<String> activeTapeCodes =
-            Stream.concat(
-                    this.optimisticDriveResourceStatusMap.values().stream()
-                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.targetTapeCode),
-                    this.optimisticDriveResourceStatusMap.values().stream()
-                        .map(optimisticDriveResourceStatus -> optimisticDriveResourceStatus.lastTapeCode)
-                )
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        return readWriteQueue.receive(
-            nin(ReadOrder.TAPE_CODE, activeTapeCodes),
-            QueueMessageType.ReadOrder
-        );
+        return readWriteQueue.receive(nin(ReadOrder.TAPE_CODE, activeTapeCodes), QueueMessageType.ReadOrder);
     }
 
     public void initializeOnBootstrap() {
         // Initialize drives concurrently
-        ExecutorService executorService =
-            Executors.newFixedThreadPool(workers.size(), VitamThreadFactory.getInstance());
+        ExecutorService executorService = Executors.newFixedThreadPool(
+            workers.size(),
+            VitamThreadFactory.getInstance()
+        );
         List<CompletableFuture<Void>> completableFutures = new ArrayList<>();
         for (TapeDriveWorker worker : workers) {
-            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(() -> {
-                try {
-                    Thread.currentThread().setName("BootstrapThreadDrive" + worker.getIndex());
-                    LOGGER.info("Initializing drive " + worker.getIndex());
-                    worker.initializeOnBootstrap();
-                } catch (Exception e) {
-                    LOGGER.error("Could not initialize worker " + worker.getIndex(), e);
-                    throw new RuntimeException("Could not initialize worker " + worker.getIndex(), e);
-                }
-            }, executorService);
+            CompletableFuture<Void> completableFuture = CompletableFuture.runAsync(
+                () -> {
+                    try {
+                        Thread.currentThread().setName("BootstrapThreadDrive" + worker.getIndex());
+                        LOGGER.info("Initializing drive " + worker.getIndex());
+                        worker.initializeOnBootstrap();
+                    } catch (Exception e) {
+                        LOGGER.error("Could not initialize worker " + worker.getIndex(), e);
+                        throw new RuntimeException("Could not initialize worker " + worker.getIndex(), e);
+                    }
+                },
+                executorService
+            );
             completableFutures.add(completableFuture);
         }
         CompletableFuture.allOf(completableFutures.toArray(CompletableFuture[]::new)).join();
@@ -354,9 +373,7 @@ public class TapeDriveWorkerManager implements TapeDriveOrderConsumer, TapeDrive
     }
 
     public int getInterruptedWorkerCount() {
-        return (int) this.workers.stream()
-            .filter(not(TapeDriveWorker::isRunning))
-            .count();
+        return (int) this.workers.stream().filter(not(TapeDriveWorker::isRunning)).count();
     }
 
     private static class OptimisticDriveResourceStatus {

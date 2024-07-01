@@ -60,6 +60,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 public class AuditExistenceServiceTest {
+
     private AuditExistenceService service;
     private StorageClient storageClient;
     private StorageClientFactory storageClientFactory;
@@ -69,7 +70,6 @@ public class AuditExistenceServiceTest {
 
     @Before
     public void setUp() throws Exception {
-
         File tempFolder = folder.newFolder();
         System.setProperty("vitam.tmp.folder", tempFolder.getAbsolutePath());
         SystemPropertyUtil.refresh();
@@ -83,16 +83,18 @@ public class AuditExistenceServiceTest {
 
     @Test
     public void shouldStatusOKWhenBinaryObjectExists() throws Exception {
-
         reset(storageClient);
         Map<String, Boolean> existsResult = new HashMap<String, Boolean>();
         existsResult.put("offer-fs-1.service.int.consul", Boolean.TRUE);
         existsResult.put("offer-fs-2.service.int.consul", Boolean.TRUE);
-        when(storageClient.exists(any(), any(), eq("aeaaaaaaaahgotryaauzialjp5zkhgiaaaaq"), any()))
-            .thenReturn(existsResult);
+        when(storageClient.exists(any(), any(), eq("aeaaaaaaaahgotryaauzialjp5zkhgiaaaaq"), any())).thenReturn(
+            existsResult
+        );
 
         JsonLineModel objectGroupLine = getFromInputStream(
-            getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_1.json"), JsonLineModel.class);
+            getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_1.json"),
+            JsonLineModel.class
+        );
         AuditObjectGroup detail = getFromJsonNode(objectGroupLine.getParams(), AuditObjectGroup.class);
 
         final AuditCheckObjectGroupResult response = service.check(detail, loadStorageStrategiesMock());
@@ -100,10 +102,12 @@ public class AuditExistenceServiceTest {
         assertThat(response.getObjectStatuses().size()).isEqualTo(1);
         assertThat(response.getObjectStatuses().get(0)).isNotNull();
         assertThat(response.getObjectStatuses().get(0).getOfferStatuses().size()).isEqualTo(2);
-        assertThat(response.getObjectStatuses().get(0).getOfferStatuses().get("offer-fs-1.service.int.consul"))
-            .isEqualTo(StatusCode.OK);
-        assertThat(response.getObjectStatuses().get(0).getOfferStatuses().get("offer-fs-2.service.int.consul"))
-            .isEqualTo(StatusCode.OK);
+        assertThat(
+            response.getObjectStatuses().get(0).getOfferStatuses().get("offer-fs-1.service.int.consul")
+        ).isEqualTo(StatusCode.OK);
+        assertThat(
+            response.getObjectStatuses().get(0).getOfferStatuses().get("offer-fs-2.service.int.consul")
+        ).isEqualTo(StatusCode.OK);
         assertThat(response.getObjectStatuses().get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
     }
 
@@ -114,14 +118,18 @@ public class AuditExistenceServiceTest {
         existsResult.put("offer-fs-1.service.int.consul", Boolean.FALSE);
         existsResult.put("offer-fs-2.service.int.consul", Boolean.FALSE);
         // physical
-        when(storageClient.exists(any(), any(), eq("aeaaaaaaaahgotryaauzialjp6aa32iaaaaq"), any()))
-            .thenReturn(existsResult);
+        when(storageClient.exists(any(), any(), eq("aeaaaaaaaahgotryaauzialjp6aa32iaaaaq"), any())).thenReturn(
+            existsResult
+        );
         // binary
-        when(storageClient.exists(any(), any(), eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any()))
-            .thenReturn(existsResult);
+        when(storageClient.exists(any(), any(), eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any())).thenReturn(
+            existsResult
+        );
 
         JsonLineModel objectGroupLine = getFromInputStream(
-            getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_3.json"), JsonLineModel.class);
+            getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_3.json"),
+            JsonLineModel.class
+        );
         AuditObjectGroup detail = getFromJsonNode(objectGroupLine.getParams(), AuditObjectGroup.class);
 
         final AuditCheckObjectGroupResult response = service.check(detail, loadStorageStrategiesMock());
@@ -134,10 +142,12 @@ public class AuditExistenceServiceTest {
         assertThat(response.getObjectStatuses().get(1)).isNotNull();
         assertThat(response.getObjectStatuses().get(1).getOfferStatuses().size()).isEqualTo(2);
         assertThat(response.getObjectStatuses().get(1).getIdObject()).isEqualTo("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq");
-        assertThat(response.getObjectStatuses().get(1).getOfferStatuses().get("offer-fs-1.service.int.consul"))
-            .isEqualTo(StatusCode.KO);
-        assertThat(response.getObjectStatuses().get(1).getOfferStatuses().get("offer-fs-2.service.int.consul"))
-            .isEqualTo(StatusCode.KO);
+        assertThat(
+            response.getObjectStatuses().get(1).getOfferStatuses().get("offer-fs-1.service.int.consul")
+        ).isEqualTo(StatusCode.KO);
+        assertThat(
+            response.getObjectStatuses().get(1).getOfferStatuses().get("offer-fs-2.service.int.consul")
+        ).isEqualTo(StatusCode.KO);
         assertThat(response.getObjectStatuses().get(1).getGlobalStatus()).isEqualTo(StatusCode.KO);
     }
 
@@ -148,14 +158,18 @@ public class AuditExistenceServiceTest {
         existsResult.put("offer-fs-1.service.int.consul", Boolean.TRUE);
         existsResult.put("offer-fs-2.service.int.consul", Boolean.TRUE);
         // physical
-        when(storageClient.exists(any(), any(), eq("aeaaaaaaaahgotryaauzialjp6aa32iaaaaq"), any()))
-            .thenReturn(existsResult);
+        when(storageClient.exists(any(), any(), eq("aeaaaaaaaahgotryaauzialjp6aa32iaaaaq"), any())).thenReturn(
+            existsResult
+        );
         // binary
-        when(storageClient.exists(any(), any(), eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any()))
-            .thenReturn(existsResult);
+        when(storageClient.exists(any(), any(), eq("aeaaaaaaaahgotryaauzialjp6aa3zyaaaaq"), any())).thenReturn(
+            existsResult
+        );
 
         JsonLineModel objectGroupLine = getFromInputStream(
-            getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_3.json"), JsonLineModel.class);
+            getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_3.json"),
+            JsonLineModel.class
+        );
         AuditObjectGroup detail = getFromJsonNode(objectGroupLine.getParams(), AuditObjectGroup.class);
 
         final AuditCheckObjectGroupResult response = service.check(detail, loadStorageStrategiesMock());
@@ -167,10 +181,12 @@ public class AuditExistenceServiceTest {
         assertThat(response.getObjectStatuses().get(0)).isNotNull();
         assertThat(response.getObjectStatuses().get(0).getOfferStatuses().size()).isEqualTo(2);
         assertThat(response.getObjectStatuses().get(0).getIdObject()).isEqualTo("aeaaaaaaaahgotryaauzialjp6aa32iaaaaq");
-        assertThat(response.getObjectStatuses().get(0).getOfferStatuses().get("offer-fs-1.service.int.consul"))
-            .isEqualTo(StatusCode.KO);
-        assertThat(response.getObjectStatuses().get(0).getOfferStatuses().get("offer-fs-2.service.int.consul"))
-            .isEqualTo(StatusCode.KO);
+        assertThat(
+            response.getObjectStatuses().get(0).getOfferStatuses().get("offer-fs-1.service.int.consul")
+        ).isEqualTo(StatusCode.KO);
+        assertThat(
+            response.getObjectStatuses().get(0).getOfferStatuses().get("offer-fs-2.service.int.consul")
+        ).isEqualTo(StatusCode.KO);
         assertThat(response.getObjectStatuses().get(0).getGlobalStatus()).isEqualTo(StatusCode.KO);
     }
 
@@ -180,13 +196,14 @@ public class AuditExistenceServiceTest {
         when(storageClient.exists(any(), any(), any(), any())).thenThrow(StorageServerClientException.class);
 
         JsonLineModel objectGroupLine = getFromInputStream(
-            getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_3.json"), JsonLineModel.class);
+            getClass().getResourceAsStream("/AuditObjectWorkflow/objectGroup_3.json"),
+            JsonLineModel.class
+        );
         AuditObjectGroup detail = getFromJsonNode(objectGroupLine.getParams(), AuditObjectGroup.class);
 
         assertThatThrownBy(() -> {
             service.check(detail, loadStorageStrategiesMock());
         }).isInstanceOf(ProcessingStatusException.class);
-
     }
 
     private List<StorageStrategy> loadStorageStrategiesMock() {

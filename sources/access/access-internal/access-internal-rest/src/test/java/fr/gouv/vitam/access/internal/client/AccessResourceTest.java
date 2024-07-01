@@ -45,6 +45,7 @@ import static org.junit.Assert.assertNotNull;
  * AccessResourceTest class
  */
 public class AccessResourceTest {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AccessResourceTest.class);
     private static final String ACCESS_RESOURCE_URI = "access/v1";
 
@@ -54,7 +55,6 @@ public class AccessResourceTest {
 
     private static JunitHelper junitHelper;
     private static int serverPort;
-
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -80,20 +80,16 @@ public class AccessResourceTest {
         VitamClientFactory.resetConnections();
     }
 
-
     @Test
     public final void test() throws Exception {
-
-        final AccessInternalClient client =
-            AccessInternalClientFactory.getInstance().getClient();
+        final AccessInternalClient client = AccessInternalClientFactory.getInstance().getClient();
         final String selectQuery =
             "{ \"$query\" : [ { \"$eq\": { \"title\" : \"test\" } } ], " +
-                " \"$filter\": { \"$orderby\": \"#id\" }, " +
-                " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
-                " }";
+            " \"$filter\": { \"$orderby\": \"#id\" }, " +
+            " \"$projection\" : { \"$fields\" : { \"#id\": 1, \"title\" : 2, \"transacdate\": 1 } } " +
+            " }";
         final JsonNode queryJson = JsonHandler.getFromString(selectQuery);
         assertNotNull(client.selectUnits(queryJson));
         assertNotNull(client.selectUnitbyId(queryJson, ID));
     }
-
 }

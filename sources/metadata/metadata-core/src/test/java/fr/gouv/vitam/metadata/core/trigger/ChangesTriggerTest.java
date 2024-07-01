@@ -33,7 +33,6 @@ import io.restassured.path.json.JsonPath;
 import org.junit.Assert;
 import org.junit.Test;
 
-
 public class ChangesTriggerTest {
 
     @Test
@@ -51,15 +50,16 @@ public class ChangesTriggerTest {
         new FieldHistoryManager("Trigger/missing-file.json");
     }
 
-
     @Test
     public void testTriggerUpdateClassificationRule() throws Exception {
         FieldHistoryManager fieldHistoryManager = new FieldHistoryManager("Trigger/history-triggers-test.json");
 
-        JsonNode before =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_update.json"));
-        JsonNode after =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_update.json"));
+        JsonNode before = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("Trigger/history_unit_before_update.json")
+        );
+        JsonNode after = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("Trigger/history_unit_after_update.json")
+        );
 
         fieldHistoryManager.trigger(before, after);
 
@@ -74,10 +74,12 @@ public class ChangesTriggerTest {
     public void testTriggerAddingClassificationRule() throws Exception {
         FieldHistoryManager fieldHistoryManager = new FieldHistoryManager("Trigger/history-triggers-test.json");
 
-        JsonNode before =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_update.json"));
-        JsonNode after =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_update.json"));
+        JsonNode before = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("Trigger/history_unit_before_update.json")
+        );
+        JsonNode after = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("Trigger/history_unit_after_update.json")
+        );
 
         fieldHistoryManager.trigger(before, after);
 
@@ -93,10 +95,12 @@ public class ChangesTriggerTest {
     public void testTriggerRemovingClassificationRule() throws Exception {
         FieldHistoryManager fieldHistoryManager = new FieldHistoryManager("Trigger/history-triggers-test.json");
 
-        JsonNode before =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_before_remove.json"));
-        JsonNode after =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("Trigger/history_unit_after_remove.json"));
+        JsonNode before = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("Trigger/history_unit_before_remove.json")
+        );
+        JsonNode after = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("Trigger/history_unit_after_remove.json")
+        );
 
         fieldHistoryManager.trigger(before, after);
 

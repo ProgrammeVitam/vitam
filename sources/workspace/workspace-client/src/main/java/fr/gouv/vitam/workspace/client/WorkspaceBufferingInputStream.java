@@ -50,10 +50,14 @@ public class WorkspaceBufferingInputStream extends InputStream {
     private boolean isLastChunk = false;
     private boolean closed = false;
 
-    public WorkspaceBufferingInputStream(WorkspaceClientFactory workspaceClientFactory,
-        String containerName, String objectName, int maxOnDiskBufferSize, int maxInMemoryBufferSize, File tmpDirectory)
-        throws IOException, ContentAddressableStorageNotFoundException {
-
+    public WorkspaceBufferingInputStream(
+        WorkspaceClientFactory workspaceClientFactory,
+        String containerName,
+        String objectName,
+        int maxOnDiskBufferSize,
+        int maxInMemoryBufferSize,
+        File tmpDirectory
+    ) throws IOException, ContentAddressableStorageNotFoundException {
         this.workspaceClientFactory = workspaceClientFactory;
         this.containerName = containerName;
         this.objectName = objectName;
@@ -65,27 +69,33 @@ public class WorkspaceBufferingInputStream extends InputStream {
         loadNextBuffer();
     }
 
-    private void loadNextBuffer()
-        throws ContentAddressableStorageNotFoundException, IOException {
-
+    private void loadNextBuffer() throws ContentAddressableStorageNotFoundException, IOException {
         // Cleanup previously open input stream
         cleanup();
 
         // Load next chunk and store it :
         // - In memory if chunk size <= maxInMemoryBufferSize
         // - In a tmp file otherwise (<= maxOnDiskBufferSize)
-        try (WorkspaceClient workspaceClient = this.workspaceClientFactory.getClient();
-            Response response = workspaceClient.getObject(this.containerName, this.objectName, this.totalReadBytes,
-                (long) this.maxOnDiskBufferSize);
-            InputStream objInputStream = response.readEntity(InputStream.class)) {
-
+        try (
+            WorkspaceClient workspaceClient = this.workspaceClientFactory.getClient();
+            Response response = workspaceClient.getObject(
+                this.containerName,
+                this.objectName,
+                this.totalReadBytes,
+                (long) this.maxOnDiskBufferSize
+            );
+            InputStream objInputStream = response.readEntity(InputStream.class)
+        ) {
             int chunkSize = Integer.parseInt(response.getHeaderString(GlobalDataRest.X_CHUNK_LENGTH));
 
-            this.inputStream = new DeferredFileBufferingInputStream(objInputStream,
-                chunkSize, maxInMemoryBufferSize, tmpDirectory);
+            this.inputStream = new DeferredFileBufferingInputStream(
+                objInputStream,
+                chunkSize,
+                maxInMemoryBufferSize,
+                tmpDirectory
+            );
 
             this.isLastChunk = chunkSize < this.maxOnDiskBufferSize;
-
         } catch (ContentAddressableStorageServerException e) {
             throw new IOException(e);
         }
@@ -99,7 +109,6 @@ public class WorkspaceBufferingInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-
         ensureNotClosed();
 
         int result = this.inputStream.read();
@@ -127,7 +136,6 @@ public class WorkspaceBufferingInputStream extends InputStream {
 
     @Override
     public int read(byte[] buffer, int off, int len) throws IOException {
-
         ensureNotClosed();
 
         int result = this.inputStream.read(buffer, off, len);

@@ -52,14 +52,14 @@ import fr.gouv.vitam.worker.core.plugin.elimination.model.EliminationAnalysisRes
 
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
-
 /**
  * Elimination analysis unit indexation plugin.
  */
 public class EliminationAnalysisUnitIndexationPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(EliminationAnalysisUnitIndexationPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        EliminationAnalysisUnitIndexationPlugin.class
+    );
 
     private static final String ELIMINATION_ANALYSIS_UNIT_INDEXATION = "ELIMINATION_ANALYSIS_UNIT_INDEXATION";
 
@@ -69,7 +69,6 @@ public class EliminationAnalysisUnitIndexationPlugin extends ActionHandler {
      * Default constructor
      */
     public EliminationAnalysisUnitIndexationPlugin() {
-
         this(MetaDataClientFactory.getInstance());
     }
 
@@ -77,17 +76,13 @@ public class EliminationAnalysisUnitIndexationPlugin extends ActionHandler {
      * Test only constructor
      */
     @VisibleForTesting
-    EliminationAnalysisUnitIndexationPlugin(
-        MetaDataClientFactory metaDataClientFactory) {
+    EliminationAnalysisUnitIndexationPlugin(MetaDataClientFactory metaDataClientFactory) {
         this.metaDataClientFactory = metaDataClientFactory;
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         try {
-
             EliminationAnalysisResult eliminationAnalysisResult = getUnitEliminationAnalysisResult(param);
 
             String unitId = param.getObjectName();
@@ -95,7 +90,6 @@ public class EliminationAnalysisUnitIndexationPlugin extends ActionHandler {
 
             LOGGER.info("Elimination analysis unit indexation succeeded");
             return buildItemStatus(ELIMINATION_ANALYSIS_UNIT_INDEXATION, StatusCode.OK, null);
-
         } catch (ProcessingStatusException e) {
             LOGGER.error("Elimination analysis unit indexation failed with status [" + e.getStatusCode() + "]", e);
             return buildItemStatus(ELIMINATION_ANALYSIS_UNIT_INDEXATION, e.getStatusCode(), e.getEventDetails());
@@ -104,18 +98,22 @@ public class EliminationAnalysisUnitIndexationPlugin extends ActionHandler {
 
     private void indexUnit(String unitId, EliminationAnalysisResult eliminationAnalysisResult)
         throws ProcessingStatusException {
-
         try (MetaDataClient client = this.metaDataClientFactory.getClient()) {
-
             UpdateMultiQuery updateMultiQuery = new UpdateMultiQuery();
 
             updateMultiQuery.addActions(
-                new PushAction(VitamFieldsHelper.elimination(),
-                    JsonHandler.toJsonNode(eliminationAnalysisResult)));
+                new PushAction(VitamFieldsHelper.elimination(), JsonHandler.toJsonNode(eliminationAnalysisResult))
+            );
 
             client.updateUnitById(updateMultiQuery.getFinalUpdateById(), unitId);
-
-        } catch (InvalidParseOperationException | InvalidCreateOperationException | MetaDataExecutionException | MetaDataDocumentSizeException | MetaDataClientServerException | MetaDataNotFoundException e) {
+        } catch (
+            InvalidParseOperationException
+            | InvalidCreateOperationException
+            | MetaDataExecutionException
+            | MetaDataDocumentSizeException
+            | MetaDataClientServerException
+            | MetaDataNotFoundException e
+        ) {
             throw new ProcessingStatusException(StatusCode.FATAL, "Could not index unit " + unitId, e);
         }
     }
@@ -125,9 +123,11 @@ public class EliminationAnalysisUnitIndexationPlugin extends ActionHandler {
         try {
             return JsonHandler.getFromJsonNode(params.getObjectMetadata(), EliminationAnalysisResult.class);
         } catch (Exception e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
                 "Could not retrieve unit elimination analysis information",
-                e);
+                e
+            );
         }
     }
 

@@ -34,8 +34,9 @@ public class ErrorMessageTest {
 
     @Test
     public void givenErrorMessage() {
-        assertEquals("Ingest external upload failed ",
-            ErrorMessage.valueOf("INGEST_EXTERNAL_UPLOAD_ERROR").getMessage());
+        assertEquals(
+            "Ingest external upload failed ",
+            ErrorMessage.valueOf("INGEST_EXTERNAL_UPLOAD_ERROR").getMessage()
+        );
     }
-
 }

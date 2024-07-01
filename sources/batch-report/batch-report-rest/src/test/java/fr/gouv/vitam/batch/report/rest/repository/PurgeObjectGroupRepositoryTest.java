@@ -26,16 +26,6 @@
  */
 package fr.gouv.vitam.batch.report.rest.repository;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPI;
-import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.ORIGINATING_AGENCY;
-import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECTS;
-import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECT_GROUPS;
-import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_SIZE;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.groups.Tuple.tuple;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -52,30 +42,40 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
 import fr.gouv.vitam.common.guid.GUIDFactory;
 import fr.gouv.vitam.common.json.JsonHandler;
 import fr.gouv.vitam.common.mongo.MongoRule;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.assertj.core.api.Assertions;
 import org.bson.Document;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.OPI;
+import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.ORIGINATING_AGENCY;
+import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECTS;
+import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_OBJECT_GROUPS;
+import static fr.gouv.vitam.batch.report.model.PurgeAccessionRegisterModel.TOTAL_SIZE;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.groups.Tuple.tuple;
+
 public class PurgeObjectGroupRepositoryTest {
+
     private static final int TENANT_ID = 0;
     private static final String PROCESS_ID = "123456789";
 
     private static final String Purge_OBJECT_GROUP = "PurgeObjectGroup" + GUIDFactory.newGUID().getId();
-    private static final TypeReference<ReportBody<PurgeObjectGroupReportEntry>>
-        TYPE_REFERENCE = new TypeReference<>() {
-    };
+    private static final TypeReference<ReportBody<PurgeObjectGroupReportEntry>> TYPE_REFERENCE =
+        new TypeReference<>() {};
 
     @Rule
-    public MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), Purge_OBJECT_GROUP);
+    public MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), Purge_OBJECT_GROUP);
 
     private PurgeObjectGroupRepository repository;
 
@@ -88,34 +88,33 @@ public class PurgeObjectGroupRepositoryTest {
         purgeObjectGroupCollection = mongoRule.getMongoCollection(Purge_OBJECT_GROUP);
     }
 
-
     @Test
-    public void should_bulk_append_objectgroup_report()
-        throws Exception {
+    public void should_bulk_append_objectgroup_report() throws Exception {
         // Given
         List<PurgeObjectGroupModel> purgeObjectGroupModels = getDocuments("/purgeObjectGroupModel.json");
         // When
         repository.bulkAppendReport(purgeObjectGroupModels);
         // Then
-        Document first = purgeObjectGroupCollection.find(and(eq(PurgeObjectGroupModel.METADATA + "." +
-            "id", "id2"), eq(PurgeObjectGroupModel.TENANT, 0))).first();
-        assertThat(first).isNotNull()
+        Document first = purgeObjectGroupCollection
+            .find(and(eq(PurgeObjectGroupModel.METADATA + "." + "id", "id2"), eq(PurgeObjectGroupModel.TENANT, 0)))
+            .first();
+        assertThat(first)
+            .isNotNull()
             .containsEntry("processId", "123456789")
             .containsEntry("_tenant", 0)
             .containsKeys("_metadata");
         Object metadata = first.get("_metadata");
         JsonNode metadataNode = JsonHandler.toJsonNode(metadata);
         JsonNode expected = JsonHandler.getFromString(
-            "{\"id\":\"id2\",\"opi\":\"opi0\",\"originatingAgency\":\"sp1\",\"status\":\"DELETED\",\"objectIds\":[\"parent\",\"parent2\"],\"objectVersions\":[{\"opi\":\"opi0\",\"size\":3},{\"opi\":\"opi0add\",\"size\":6}]}");
+            "{\"id\":\"id2\",\"opi\":\"opi0\",\"originatingAgency\":\"sp1\",\"status\":\"DELETED\",\"objectIds\":[\"parent\",\"parent2\"],\"objectVersions\":[{\"opi\":\"opi0\",\"size\":3},{\"opi\":\"opi0add\",\"size\":6}]}"
+        );
         assertThat(metadataNode).isNotNull().isEqualTo(expected);
     }
 
     @Test
-    public void should_bulk_append_objectgroup_report_and_check_no_duplicate()
-        throws Exception {
+    public void should_bulk_append_objectgroup_report_and_check_no_duplicate() throws Exception {
         // Given
-        List<PurgeObjectGroupModel> purgeUnitModels =
-            getDocuments("/purgeObjectGroupWithDuplicateObjectGroup.json");
+        List<PurgeObjectGroupModel> purgeUnitModels = getDocuments("/purgeObjectGroupWithDuplicateObjectGroup.json");
         // When
         repository.bulkAppendReport(purgeUnitModels);
         repository.bulkAppendReport(purgeUnitModels);
@@ -130,11 +129,11 @@ public class PurgeObjectGroupRepositoryTest {
     }
 
     @Test
-    public void compute_own_accession_register_multiple_objects_from_different_operation_ok()
-        throws Exception {
+    public void compute_own_accession_register_multiple_objects_from_different_operation_ok() throws Exception {
         // Given
-        List<PurgeObjectGroupModel> purgeObjectGroupModels =
-            getDocuments("/purgeObjectGroupMultipleObjectsDifferentOperations.json");
+        List<PurgeObjectGroupModel> purgeObjectGroupModels = getDocuments(
+            "/purgeObjectGroupMultipleObjectsDifferentOperations.json"
+        );
         // When
         repository.bulkAppendReport(purgeObjectGroupModels);
 
@@ -160,11 +159,11 @@ public class PurgeObjectGroupRepositoryTest {
     }
 
     @Test
-    public void compute_own_accession_register_ok()
-        throws Exception {
+    public void compute_own_accession_register_ok() throws Exception {
         // Given
         List<PurgeObjectGroupModel> purgeObjectGroupModels = getDocuments(
-            "/purgeObjectGroupWithDuplicateObjectGroup.json");
+            "/purgeObjectGroupWithDuplicateObjectGroup.json"
+        );
         // When
         repository.bulkAppendReport(purgeObjectGroupModels);
 
@@ -196,19 +195,23 @@ public class PurgeObjectGroupRepositoryTest {
     private List<PurgeObjectGroupModel> getDocuments(String filename)
         throws InvalidParseOperationException, InvalidFormatException {
         InputStream stream = getClass().getResourceAsStream(filename);
-        ReportBody<PurgeObjectGroupReportEntry> reportBody =
-            JsonHandler.getFromInputStreamAsTypeReference(stream, TYPE_REFERENCE);
-        return reportBody.getEntries().stream()
+        ReportBody<PurgeObjectGroupReportEntry> reportBody = JsonHandler.getFromInputStreamAsTypeReference(
+            stream,
+            TYPE_REFERENCE
+        );
+        return reportBody
+            .getEntries()
+            .stream()
             .map(md -> {
-                PurgeObjectGroupModel
-                    PurgeObjectGroupModel = new PurgeObjectGroupModel();
+                PurgeObjectGroupModel PurgeObjectGroupModel = new PurgeObjectGroupModel();
                 PurgeObjectGroupModel.setProcessId(reportBody.getProcessId());
                 PurgeObjectGroupModel.setTenant(0);
                 LocalDateTime localDateTime = LocalDateUtil.now();
                 PurgeObjectGroupModel.setCreationDateTime(localDateTime.toString());
                 PurgeObjectGroupModel.setMetadata(md);
                 return PurgeObjectGroupModel;
-            }).collect(Collectors.toList());
+            })
+            .collect(Collectors.toList());
     }
 
     @Test
@@ -217,8 +220,7 @@ public class PurgeObjectGroupRepositoryTest {
         List<PurgeObjectGroupModel> purgeObjectGroupModels = getDocuments("/purgeObjectGroupModel.json");
         repository.bulkAppendReport(purgeObjectGroupModels);
         // When
-        MongoCursor<Document> iterator =
-            repository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID);
+        MongoCursor<Document> iterator = repository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID);
         // Then
         List<Document> documents = new ArrayList<>();
         while (iterator.hasNext()) {
@@ -235,8 +237,7 @@ public class PurgeObjectGroupRepositoryTest {
 
         repository.bulkAppendReport(purgeObjectGroupModels);
         // When
-        MongoCursor<Document> iterator =
-          repository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID);
+        MongoCursor<Document> iterator = repository.findCollectionByProcessIdTenant(PROCESS_ID, TENANT_ID);
         // Then
         List<Document> documents = new ArrayList<>();
         while (iterator.hasNext()) {
@@ -244,7 +245,8 @@ public class PurgeObjectGroupRepositoryTest {
             documents.add(next);
         }
 
-        List<Document> persistentIdentifiers = documents.stream()
+        List<Document> persistentIdentifiers = documents
+            .stream()
             .map(doc -> ((Document) doc.get("params")).get("objectVersions"))
             .flatMap(versions -> versions != null ? ((List<Document>) versions).stream() : Stream.empty())
             .map(version -> (List<Document>) version.get("persistentIdentifier"))

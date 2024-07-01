@@ -132,29 +132,38 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
         // 1- Get data.txt file
         try (InputStream operationsInputStream = handler.getInputStreamFromWorkspace(dataFilePath)) {
             // 2- Get TraceabilityEventDetail from Workspace
-            TraceabilityEvent traceabilityEvent =
-                JsonHandler.getFromFile(traceabilityFile,
-                    TraceabilityEvent.class);
+            TraceabilityEvent traceabilityEvent = JsonHandler.getFromFile(traceabilityFile, TraceabilityEvent.class);
 
             // 3- Calculate MerkelTree hash
-            MerkleTreeAlgo merkleTreeAlgo =
-                computeMerkleTree(operationsInputStream, traceabilityEvent.getDigestAlgorithm());
+            MerkleTreeAlgo merkleTreeAlgo = computeMerkleTree(
+                operationsInputStream,
+                traceabilityEvent.getDigestAlgorithm()
+            );
 
             // calculates hash
             final String currentRootHash = currentRootHash(merkleTreeAlgo);
 
             // compare to secured and indexed hash
-            final ItemStatus subSecuredItem =
-                compareToSecuredHash(handler, zipDataFolder + File.separator + MERKLE_TREE_JSON, currentRootHash);
+            final ItemStatus subSecuredItem = compareToSecuredHash(
+                handler,
+                zipDataFolder + File.separator + MERKLE_TREE_JSON,
+                currentRootHash
+            );
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_SAVED_HASH, subSecuredItem);
 
             final ItemStatus subLoggedItemStatus = compareToLoggedHash(currentRootHash, traceabilityEvent);
             itemStatus.setItemsStatus(HANDLER_SUB_ACTION_COMPARE_WITH_INDEXED_HASH, subLoggedItemStatus);
 
             if (itemStatus.getGlobalStatus().equals(StatusCode.KO)) {
-                updateReport(params, handler, t -> t.setStatus(itemStatus.getGlobalStatus().name()).setError(
-                        TraceabilityError.INCORRECT_MERKLE_TREE)
-                    .setMessage("Error checking merkle tree"));
+                updateReport(
+                    params,
+                    handler,
+                    t ->
+                        t
+                            .setStatus(itemStatus.getGlobalStatus().name())
+                            .setError(TraceabilityError.INCORRECT_MERKLE_TREE)
+                            .setMessage("Error checking merkle tree")
+                );
                 HandlerUtils.save(handler, "", params.getObjectName() + File.separator + ERROR_FLAG);
             } else {
                 updateReport(params, handler, t -> t.setStatus(itemStatus.getGlobalStatus().name()));
@@ -167,18 +176,18 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
         return new ItemStatus(HANDLER_ID).setItemsStatus(HANDLER_ID, itemStatus);
     }
 
-
     private void updateReport(WorkerParameters param, HandlerIO handlerIO, Consumer<TraceabilityReportEntry> updater)
         throws IOException, ProcessingException, InvalidParseOperationException {
         String path = param.getObjectName() + File.separator + WorkspaceConstants.REPORT;
-        TraceabilityReportEntry traceabilityReportEntry =
-            JsonHandler.getFromJsonNode(handlerIO.getJsonFromWorkspace(path), TraceabilityReportEntry.class);
+        TraceabilityReportEntry traceabilityReportEntry = JsonHandler.getFromJsonNode(
+            handlerIO.getJsonFromWorkspace(path),
+            TraceabilityReportEntry.class
+        );
         updater.accept(traceabilityReportEntry);
         HandlerUtils.save(handlerIO, traceabilityReportEntry, path);
     }
 
-    ItemStatus compareToLoggedHash(final String currentRootHash,
-        TraceabilityEvent traceabilityEvent) {
+    ItemStatus compareToLoggedHash(final String currentRootHash, TraceabilityEvent traceabilityEvent) {
         final ItemStatus subLoggedItemStatus = new ItemStatus(HANDLER_SUB_ACTION_COMPARE_WITH_INDEXED_HASH);
         if (!currentRootHash.equals(traceabilityEvent.getHash())) {
             return subLoggedItemStatus.increment(StatusCode.KO);
@@ -186,11 +195,11 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
         return subLoggedItemStatus.increment(StatusCode.OK);
     }
 
-
-    private ItemStatus compareToSecuredHash(HandlerIO handler, final String merkleTreeFile,
-        final String currentRootHash)
-        throws ProcessingException {
-
+    private ItemStatus compareToSecuredHash(
+        HandlerIO handler,
+        final String merkleTreeFile,
+        final String currentRootHash
+    ) throws ProcessingException {
         final ItemStatus subItemStatus = new ItemStatus(HANDLER_SUB_ACTION_COMPARE_WITH_SAVED_HASH);
 
         final JsonNode merkleTree = handler.getJsonFromWorkspace(merkleTreeFile);
@@ -218,16 +227,15 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
      * @return the computed Merkle tree
      * @throws ProcessingException
      */
-    public static MerkleTreeAlgo computeMerkleTree(InputStream inputStream,
-        DigestType digestType)
+    public static MerkleTreeAlgo computeMerkleTree(InputStream inputStream, DigestType digestType)
         throws ProcessingException {
-
         final MerkleTreeAlgo merkleTreeAlgo = new MerkleTreeAlgo(digestType);
 
         // Process
-        try (BufferedInputStream bis = new BufferedInputStream(inputStream);
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
-
+        try (
+            BufferedInputStream bis = new BufferedInputStream(inputStream);
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream()
+        ) {
             int c;
             while (END_OF_STREAM != (c = bis.read())) {
                 if (c != NEW_LINE_SEPARATOR) {
@@ -242,7 +250,6 @@ public class VerifyMerkleTreeActionHandler extends ActionHandler {
                 // Add any remaining
                 merkleTreeAlgo.addLeaf(buffer.toByteArray());
             }
-
         } catch (IOException e) {
             throw new ProcessingException(e);
         }

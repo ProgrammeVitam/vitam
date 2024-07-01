@@ -60,12 +60,10 @@ public class LogbookLifeCyclesClientMockTest {
     public void createTest() {
         LogbookLifeCyclesClientFactory.changeMode(null);
 
-        final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookLifeCycleParameters logbookParameters =
-            LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
+        final LogbookLifeCycleParameters logbookParameters = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -94,12 +92,10 @@ public class LogbookLifeCyclesClientMockTest {
     public void updateTest() {
         LogbookLifeCyclesClientFactory.changeMode(null);
 
-        final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookLifeCycleParameters logbookParameters =
-            LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
+        final LogbookLifeCycleParameters logbookParameters = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -128,12 +124,10 @@ public class LogbookLifeCyclesClientMockTest {
     public void commitTest() {
         LogbookLifeCyclesClientFactory.changeMode(null);
 
-        final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookLifeCycleParameters logbookParameters =
-            LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
+        final LogbookLifeCycleParameters logbookParameters = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -162,12 +156,10 @@ public class LogbookLifeCyclesClientMockTest {
     public void rollbackTest() {
         LogbookLifeCyclesClientFactory.changeMode(null);
 
-        final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
-        final LogbookLifeCycleParameters logbookParameters =
-            LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
+        final LogbookLifeCycleParameters logbookParameters = LogbookParameterHelper.newLogbookLifeCycleUnitParameters();
         assertNotNull(logbookParameters);
 
         final Set<LogbookParameterName> mandatory = logbookParameters.getMandatoriesParameters();
@@ -196,8 +188,7 @@ public class LogbookLifeCyclesClientMockTest {
     public void testSelect() throws LogbookClientException, InvalidParseOperationException {
         LogbookLifeCyclesClientFactory.changeMode(null);
 
-        final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
         assertNotNull(client.selectObjectGroupLifeCycleById("id", JsonHandler.createObjectNode()));
         assertNotNull(client.selectUnitLifeCycleById("id", JsonHandler.createObjectNode()));
@@ -207,43 +198,61 @@ public class LogbookLifeCyclesClientMockTest {
     public void statusTest() throws VitamApplicationServerException {
         LogbookLifeCyclesClientFactory.changeMode(null);
 
-        final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
         client.checkStatus();
     }
 
     private void fillLogbookParamaters(LogbookParameters logbookParamaters) {
-        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifier,
-            LogbookParameterName.eventIdentifier.name());
-        logbookParamaters
-            .putParameterValue(LogbookParameterName.eventType, LogbookParameterName.eventType.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime,
-            LocalDateUtil.now().toString());
-        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierProcess,
-            LogbookParameterName.eventIdentifierProcess.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.eventTypeProcess,
-            LogbookParameterName.eventTypeProcess.name());
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.eventIdentifier,
+            LogbookParameterName.eventIdentifier.name()
+        );
+        logbookParamaters.putParameterValue(LogbookParameterName.eventType, LogbookParameterName.eventType.name());
+        logbookParamaters.putParameterValue(LogbookParameterName.eventDateTime, LocalDateUtil.now().toString());
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            LogbookParameterName.eventIdentifierProcess.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.eventTypeProcess,
+            LogbookParameterName.eventTypeProcess.name()
+        );
         logbookParamaters.putParameterValue(LogbookParameterName.outcome, LogbookParameterName.outcome.name());
-        logbookParamaters
-            .putParameterValue(LogbookParameterName.outcomeDetail, LogbookParameterName.outcomeDetail.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-            LogbookParameterName.outcomeDetailMessage.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.agentIdentifier,
-            LogbookParameterName.agentIdentifier.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.agentIdentifierApplicationSession,
-            LogbookParameterName.agentIdentifierApplicationSession.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.eventIdentifierRequest,
-            LogbookParameterName.eventIdentifierRequest.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.agIdExt,
-            LogbookParameterName.agIdExt.name());
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.outcomeDetail,
+            LogbookParameterName.outcomeDetail.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.outcomeDetailMessage,
+            LogbookParameterName.outcomeDetailMessage.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.agentIdentifier,
+            LogbookParameterName.agentIdentifier.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.agentIdentifierApplicationSession,
+            LogbookParameterName.agentIdentifierApplicationSession.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.eventIdentifierRequest,
+            LogbookParameterName.eventIdentifierRequest.name()
+        );
+        logbookParamaters.putParameterValue(LogbookParameterName.agIdExt, LogbookParameterName.agIdExt.name());
 
-        logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifier,
-            LogbookParameterName.objectIdentifier.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierRequest,
-            LogbookParameterName.objectIdentifierRequest.name());
-        logbookParamaters.putParameterValue(LogbookParameterName.objectIdentifierIncome,
-            LogbookParameterName.objectIdentifierIncome.name());
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.objectIdentifier,
+            LogbookParameterName.objectIdentifier.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.objectIdentifierRequest,
+            LogbookParameterName.objectIdentifierRequest.name()
+        );
+        logbookParamaters.putParameterValue(
+            LogbookParameterName.objectIdentifierIncome,
+            LogbookParameterName.objectIdentifierIncome.name()
+        );
     }
 
     @Test
@@ -251,8 +260,7 @@ public class LogbookLifeCyclesClientMockTest {
         throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
         LogbookLifeCyclesClientFactory.changeMode(null);
 
-        final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         String unitId = GUIDFactory.newUnitGUID(0).toString();
@@ -273,8 +281,7 @@ public class LogbookLifeCyclesClientMockTest {
         throws LogbookClientNotFoundException, LogbookClientServerException, LogbookClientBadRequestException {
         LogbookLifeCyclesClientFactory.changeMode(null);
 
-        final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         String objectGroupId = GUIDFactory.newObjectGroupGUID(0).toString();
@@ -294,8 +301,7 @@ public class LogbookLifeCyclesClientMockTest {
     public void testRawbulkLifecycles() {
         LogbookLifeCyclesClientFactory.changeMode(null);
 
-        final LogbookLifeCyclesClient client =
-            LogbookLifeCyclesClientFactory.getInstance().getClient();
+        final LogbookLifeCyclesClient client = LogbookLifeCyclesClientFactory.getInstance().getClient();
         assertNotNull(client);
 
         List<JsonNode> lifecycles = new ArrayList<>();
@@ -309,5 +315,4 @@ public class LogbookLifeCyclesClientMockTest {
             client.createRawbulkUnitlifecycles(lifecycles);
         }).doesNotThrowAnyException();
     }
-
 }

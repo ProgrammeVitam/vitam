@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.format.identification.siegfried;
 
-
 import fr.gouv.vitam.common.client.VitamClientFactory;
 import fr.gouv.vitam.common.client.configuration.ClientConfiguration;
 import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
@@ -35,6 +34,7 @@ import fr.gouv.vitam.common.client.configuration.ClientConfigurationImpl;
  * Siegfield Client factory
  */
 public class SiegfriedClientFactory extends VitamClientFactory<SiegfriedClient> {
+
     private static final SiegfriedClientFactory Siegfried_CLIENT_FACTORY = new SiegfriedClientFactory();
     private static final String RESOURCE_PATH = "/identify";
 
@@ -103,5 +103,4 @@ public class SiegfriedClientFactory extends VitamClientFactory<SiegfriedClient> 
     public static final void changeMode(ClientConfiguration configuration) {
         getInstance().initialisation(configuration, getInstance().getResourcePath());
     }
-
 }

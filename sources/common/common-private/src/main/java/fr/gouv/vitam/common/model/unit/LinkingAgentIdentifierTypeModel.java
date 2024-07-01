@@ -26,13 +26,9 @@
  */
 package fr.gouv.vitam.common.model.unit;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-
-
 public class LinkingAgentIdentifierTypeModel {
-
 
     @JsonProperty("LinkingAgentIdentifierType")
     private String linkingAgentIdentifierType;
@@ -42,7 +38,6 @@ public class LinkingAgentIdentifierTypeModel {
 
     @JsonProperty("LinkingAgentRole")
     private String linkingAgentRole;
-
 
     public String getLinkingAgentIdentifierType() {
         return linkingAgentIdentifierType;

@@ -49,7 +49,6 @@ public class ReclassificationRequestDslParser {
 
     public ParsedReclassificationDslRequest parseReclassificationRequest(JsonNode reclassificationDslJson)
         throws InvalidParseOperationException {
-
         if (!reclassificationDslJson.isArray() || reclassificationDslJson.size() == 0) {
             throw new InvalidParseOperationException("Expected array of reclassification updates DSLs");
         }
@@ -57,15 +56,12 @@ public class ReclassificationRequestDslParser {
         List<ParsedReclassificationDslRequestEntry> entries = new ArrayList<>();
 
         for (JsonNode singleReclassificationDslJson : reclassificationDslJson) {
-
-            SelectMultiQuery selectMultiQuery =
-                parseSelectMultiQuery(singleReclassificationDslJson);
+            SelectMultiQuery selectMultiQuery = parseSelectMultiQuery(singleReclassificationDslJson);
 
             Set<String> attachments = parseReclassificationDslAttachments(singleReclassificationDslJson);
             Set<String> detachments = parseReclassificationDslDetachments(singleReclassificationDslJson);
 
-            entries.add(new ParsedReclassificationDslRequestEntry(
-                selectMultiQuery, attachments, detachments));
+            entries.add(new ParsedReclassificationDslRequestEntry(selectMultiQuery, attachments, detachments));
         }
 
         return new ParsedReclassificationDslRequest(entries);
@@ -73,7 +69,6 @@ public class ReclassificationRequestDslParser {
 
     private SelectMultiQuery parseSelectMultiQuery(JsonNode singleReclassificationDslJson)
         throws InvalidParseOperationException {
-
         JsonNode query = singleReclassificationDslJson.get(QUERY);
         JsonNode roots = singleReclassificationDslJson.get(ROOTS);
 
@@ -91,18 +86,21 @@ public class ReclassificationRequestDslParser {
 
     private Set<String> parseReclassificationDslAttachments(JsonNode singleReclassificationDslJson)
         throws InvalidParseOperationException {
-        return parseReclassificationDslAction(singleReclassificationDslJson,
-            BuilderToken.UPDATEACTION.ADD.exactToken());
+        return parseReclassificationDslAction(
+            singleReclassificationDslJson,
+            BuilderToken.UPDATEACTION.ADD.exactToken()
+        );
     }
 
     private Set<String> parseReclassificationDslDetachments(JsonNode singleReclassificationDslJson)
         throws InvalidParseOperationException {
-        return parseReclassificationDslAction(singleReclassificationDslJson,
-            BuilderToken.UPDATEACTION.PULL.exactToken());
+        return parseReclassificationDslAction(
+            singleReclassificationDslJson,
+            BuilderToken.UPDATEACTION.PULL.exactToken()
+        );
     }
 
-    private Set<String> parseReclassificationDslAction(JsonNode singleReclassificationDslJson,
-        String action)
+    private Set<String> parseReclassificationDslAction(JsonNode singleReclassificationDslJson, String action)
         throws InvalidParseOperationException {
         Set<String> result = null;
 
@@ -114,7 +112,7 @@ public class ReclassificationRequestDslParser {
             if (!actionEntry.isObject()) {
                 throw new InvalidParseOperationException("Expected object action entry");
             }
-            for (Iterator<String> it = actionEntry.fieldNames(); it.hasNext(); ) {
+            for (Iterator<String> it = actionEntry.fieldNames(); it.hasNext();) {
                 String actionName = it.next();
                 if (action.equals(actionName)) {
                     if (result != null) {

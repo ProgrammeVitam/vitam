@@ -51,12 +51,12 @@ import java.io.InputStream;
  */
 public class CheckClassificationLevelActionPlugin extends ActionHandler {
 
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(CheckClassificationLevelActionPlugin.class);
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        CheckClassificationLevelActionPlugin.class
+    );
 
     private static final String CHECK_CLASSIFICATION_LEVEL_TASK_ID = "CHECK_CLASSIFICATION_LEVEL";
     private static final int UNIT_INPUT_RANK = 0;
-
 
     /**
      * Empty Constructor
@@ -65,36 +65,40 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
         // Empty
     }
 
-
-
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) {
         final ItemStatus itemStatus = new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID);
 
         try {
-
             JsonNode archiveUnit = getArchiveUnit(param, handler);
             if (!ClassificationLevelUtil.checkClassificationLevel(archiveUnit)) {
                 itemStatus.increment(StatusCode.KO);
                 return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(
-                    CHECK_CLASSIFICATION_LEVEL_TASK_ID, itemStatus);
+                    CHECK_CLASSIFICATION_LEVEL_TASK_ID,
+                    itemStatus
+                );
             }
-
         } catch (ContentAddressableStorageNotFoundException | ContentAddressableStorageServerException e) {
             LOGGER.error("Workspace Server Error");
             itemStatus.increment(StatusCode.FATAL);
-            return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID,
-                itemStatus);
+            return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(
+                CHECK_CLASSIFICATION_LEVEL_TASK_ID,
+                itemStatus
+            );
         } catch (InvalidParseOperationException | IOException e) {
             LOGGER.error("File couldnt be converted into json", e);
             itemStatus.increment(StatusCode.KO);
-            return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID,
-                itemStatus);
+            return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(
+                CHECK_CLASSIFICATION_LEVEL_TASK_ID,
+                itemStatus
+            );
         }
 
         itemStatus.increment(StatusCode.OK);
-        return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID,
-            itemStatus);
+        return new ItemStatus(CHECK_CLASSIFICATION_LEVEL_TASK_ID).setItemsStatus(
+            CHECK_CLASSIFICATION_LEVEL_TASK_ID,
+            itemStatus
+        );
     }
 
     @Override
@@ -103,8 +107,7 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
     }
 
     private JsonNode getArchiveUnit(WorkerParameters params, HandlerIO handlerIO)
-        throws IOException, InvalidParseOperationException,
-        ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
+        throws IOException, InvalidParseOperationException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException {
         ParametersChecker.checkNullOrEmptyParameters(params);
         final String objectName = params.getObjectName();
 
@@ -113,16 +116,22 @@ public class CheckClassificationLevelActionPlugin extends ActionHandler {
             if (handlerIO.getInput().size() > 0) {
                 archiveUnit = (JsonNode) handlerIO.getInput(UNIT_INPUT_RANK);
             } else {
-                try (InputStream inputStream =
-                    handlerIO.getInputStreamFromWorkspace(
-                        IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName)) {
+                try (
+                    InputStream inputStream = handlerIO.getInputStreamFromWorkspace(
+                        IngestWorkflowConstants.ARCHIVE_UNIT_FOLDER + "/" + objectName
+                    )
+                ) {
                     archiveUnit = JsonHandler.getFromInputStream(inputStream);
                 }
             }
 
             return archiveUnit;
-        } catch (IOException | ContentAddressableStorageNotFoundException |
-            ContentAddressableStorageServerException | InvalidParseOperationException e) {
+        } catch (
+            IOException
+            | ContentAddressableStorageNotFoundException
+            | ContentAddressableStorageServerException
+            | InvalidParseOperationException e
+        ) {
             throw e;
         }
     }

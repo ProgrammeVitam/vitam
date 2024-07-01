@@ -34,6 +34,7 @@ import java.util.Collection;
  * Result LRU in memory version
  */
 public class ResultDefault<T> extends Result<T> {
+
     /**
      * Constructor
      *

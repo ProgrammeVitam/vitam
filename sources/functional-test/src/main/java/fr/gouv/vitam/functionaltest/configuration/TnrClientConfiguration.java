@@ -34,6 +34,7 @@ import java.util.List;
  * TnrClientConfiguration
  */
 public class TnrClientConfiguration {
+
     private static final String IS_A_MANDATORY_PARAMETER = " is a mandatory parameter";
     private List<Integer> tenants;
     private Integer adminTenant;

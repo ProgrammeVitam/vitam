@@ -64,8 +64,11 @@ public class BackgroundObjectDigestValidator {
     private final AtomicBoolean conflictsReported = new AtomicBoolean(false);
     private final AtomicBoolean technicalExceptionsReported = new AtomicBoolean(false);
 
-    public BackgroundObjectDigestValidator(ContentAddressableStorage defaultStorage, String containerName,
-        DigestType digestType) {
+    public BackgroundObjectDigestValidator(
+        ContentAddressableStorage defaultStorage,
+        String containerName,
+        DigestType digestType
+    ) {
         this.tenantId = VitamThreadUtils.getVitamSession().getTenantId();
         this.requestId = VitamThreadUtils.getVitamSession().getRequestId();
         this.defaultStorage = defaultStorage;
@@ -83,57 +86,68 @@ public class BackgroundObjectDigestValidator {
     }
 
     private void checkObjectDigestTask(String objectId, String objectDigest, long size) {
-
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(requestId);
 
         try {
             this.writtenObjects.add(new StorageBulkPutResultEntry(objectId, objectDigest, size));
 
-            defaultStorage.checkObjectDigestAndStoreDigest(containerName, objectId, objectDigest, digestType,
-                size);
+            defaultStorage.checkObjectDigestAndStoreDigest(containerName, objectId, objectDigest, digestType, size);
             LOGGER.debug("Digest validation / persistence succeeded for Object {}/{}", containerName, objectId);
-
         } catch (ContentAddressableStorageException e) {
             LOGGER.error("Could not compute digest of object " + containerName + "/" + objectId, e);
             this.technicalExceptionsReported.set(true);
         } catch (RuntimeException e) {
-            LOGGER.error("Unexpected error occurred during digest validation or persistence of object " +
-                containerName + "/" + objectId, e);
+            LOGGER.error(
+                "Unexpected error occurred during digest validation or persistence of object " +
+                containerName +
+                "/" +
+                objectId,
+                e
+            );
             this.technicalExceptionsReported.set(true);
         }
     }
 
     private void checkRewritableObjectDigestTask(String objectId, String objectDigest, long size) {
-
         VitamThreadUtils.getVitamSession().setTenantId(tenantId);
         VitamThreadUtils.getVitamSession().setRequestId(requestId);
 
         try {
-
             // Check actual object digest (without cache for full checkup)
-            String actualObjectDigest =
-                this.defaultStorage.getObjectDigest(containerName, objectId, digestType, true);
+            String actualObjectDigest = this.defaultStorage.getObjectDigest(containerName, objectId, digestType, true);
 
             if (objectDigest.equals(actualObjectDigest)) {
-
                 // Mark the object as written for idempotency
                 this.writtenObjects.add(new StorageBulkPutResultEntry(objectId, objectDigest, size));
 
-                LOGGER.warn("Non rewritable object updated with same content. Ignoring duplicate. Object Id {}/{}",
-                    containerName, objectId);
+                LOGGER.warn(
+                    "Non rewritable object updated with same content. Ignoring duplicate. Object Id {}/{}",
+                    containerName,
+                    objectId
+                );
             } else {
-
                 this.conflictsReported.set(true);
-                alertService.createAlert(VitamLogLevel.ERROR, String.format(
-                    "Object with id %s (%s) already exists and cannot be updated. Existing file digest=%s, input digest=%s",
-                    objectId, containerName, actualObjectDigest, objectDigest));
+                alertService.createAlert(
+                    VitamLogLevel.ERROR,
+                    String.format(
+                        "Object with id %s (%s) already exists and cannot be updated. Existing file digest=%s, input digest=%s",
+                        objectId,
+                        containerName,
+                        actualObjectDigest,
+                        objectDigest
+                    )
+                );
                 throw new NonUpdatableContentAddressableStorageException(
-                    "Object with id " + objectId + " already exists " +
-                        "and cannot be updated. Existing object digest: " + actualObjectDigest +
-                        ". Digest of new objet to write " + objectDigest);
+                    "Object with id " +
+                    objectId +
+                    " already exists " +
+                    "and cannot be updated. Existing object digest: " +
+                    actualObjectDigest +
+                    ". Digest of new objet to write " +
+                    objectDigest
+                );
             }
-
         } catch (NonUpdatableContentAddressableStorageException e) {
             LOGGER.error("Attempt to override object " + containerName + "/" + objectId, e);
             this.conflictsReported.set(true);
@@ -141,8 +155,10 @@ public class BackgroundObjectDigestValidator {
             LOGGER.error("Could not compute digest of object " + containerName + "/" + objectId, e);
             this.technicalExceptionsReported.set(true);
         } catch (RuntimeException e) {
-            LOGGER.error("Unexpected error occurred during digest validation of object " +
-                containerName + "/" + objectId, e);
+            LOGGER.error(
+                "Unexpected error occurred during digest validation of object " + containerName + "/" + objectId,
+                e
+            );
             this.technicalExceptionsReported.set(true);
         }
     }

@@ -63,13 +63,14 @@ public class SiegfriedClientRestTest extends ResteasyTestApplication {
     private static final JsonNode JSON_NODE_VERSION = getJsonNode(SAMPLE_VERSION_RESPONSE);
     private static final JsonNode JSON_NODE_RESPONSE_OK = getJsonNode(SAMPLE_OK_RESPONSE);
 
-    private final static ExpectedResults mock = mock(ExpectedResults.class);
+    private static final ExpectedResults mock = mock(ExpectedResults.class);
 
     static SiegfriedClientFactory factory = SiegfriedClientFactory.getInstance();
 
-    public static VitamServerTestRunner
-        vitamServerTestRunner = new VitamServerTestRunner(SiegfriedClientRestTest.class, factory);
-
+    public static VitamServerTestRunner vitamServerTestRunner = new VitamServerTestRunner(
+        SiegfriedClientRestTest.class,
+        factory
+    );
 
     @BeforeClass
     public static void init() throws Throwable {
@@ -97,6 +98,7 @@ public class SiegfriedClientRestTest extends ResteasyTestApplication {
 
     @Path("/identify")
     public static class MockResource {
+
         private final ExpectedResults expectedResponse;
 
         public MockResource(ExpectedResults expectedResponse) {
@@ -113,8 +115,7 @@ public class SiegfriedClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void statusExecutionWithResponse() throws Exception {
-        when(mock.get())
-            .thenReturn(Response.status(Response.Status.OK).entity(JSON_NODE_VERSION).build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.OK).entity(JSON_NODE_VERSION).build());
         RequestResponse<JsonNode> jsonNodeRequestResponse = client.status(Paths.get("Path"));
         assertTrue(jsonNodeRequestResponse.toJsonNode().has("$results"));
         assertEquals("1.6.4", jsonNodeRequestResponse.toJsonNode().get("$results").get(0).get("siegfried").asText());
@@ -134,8 +135,7 @@ public class SiegfriedClientRestTest extends ResteasyTestApplication {
 
     @Test
     public void analysePathExecutionWithResponse() throws Exception {
-        when(mock.get())
-            .thenReturn(Response.status(Response.Status.OK).entity(JSON_NODE_RESPONSE_OK).build());
+        when(mock.get()).thenReturn(Response.status(Response.Status.OK).entity(JSON_NODE_RESPONSE_OK).build());
         RequestResponse<JsonNode> jsonNodeRequestResponse = client.analysePath(Paths.get("Path"));
         assertTrue(jsonNodeRequestResponse.toJsonNode().has("$results"));
         assertNotNull(jsonNodeRequestResponse.toJsonNode().get("$results").get(0).get("files"));

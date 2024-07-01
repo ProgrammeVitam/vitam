@@ -67,7 +67,10 @@ public class RequestIdGeneratorContainerFilter implements ContainerRequestFilter
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
         throws IOException {
-        HeaderIdHelper.putVitamIdFromSessionInExternalHeader(responseContext.getHeaders(),
-            HeaderIdHelper.Context.RESPONSE, responseContext.getStatus());
+        HeaderIdHelper.putVitamIdFromSessionInExternalHeader(
+            responseContext.getHeaders(),
+            HeaderIdHelper.Context.RESPONSE,
+            responseContext.getStatus()
+        );
     }
 }

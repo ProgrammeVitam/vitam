@@ -33,17 +33,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Access request detail for worker client serializing/deserializing
  */
 public class WorkerAccessRequest {
+
     @JsonProperty("accessRequestId")
     private final String accessRequestId;
+
     @JsonProperty("strategyId")
     private final String strategyId;
+
     @JsonProperty("offerId")
     private final String offerId;
 
-
     @JsonCreator
-    public WorkerAccessRequest(@JsonProperty("accessRequestId") String accessRequestId,
-        @JsonProperty("strategyId") String strategyId, @JsonProperty("offerId") String offerId) {
+    public WorkerAccessRequest(
+        @JsonProperty("accessRequestId") String accessRequestId,
+        @JsonProperty("strategyId") String strategyId,
+        @JsonProperty("offerId") String offerId
+    ) {
         this.accessRequestId = accessRequestId;
         this.strategyId = strategyId;
         this.offerId = offerId;

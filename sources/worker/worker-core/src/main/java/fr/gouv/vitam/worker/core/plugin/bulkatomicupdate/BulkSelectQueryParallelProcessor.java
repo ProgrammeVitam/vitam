@@ -83,11 +83,16 @@ public class BulkSelectQueryParallelProcessor implements AutoCloseable {
     private final AtomicInteger nbWarnings = new AtomicInteger(0);
     private final AtomicInteger nbOKs = new AtomicInteger(0);
 
-    public BulkSelectQueryParallelProcessor(String pluginName, String processId, int tenantId,
-        MetaDataClient metadataClient, BatchReportClient batchReportClient,
+    public BulkSelectQueryParallelProcessor(
+        String pluginName,
+        String processId,
+        int tenantId,
+        MetaDataClient metadataClient,
+        BatchReportClient batchReportClient,
         InternalActionKeysRetriever internalActionKeysRetriever,
         AccessContractModel accessContractModel,
-        JsonLineWriter jsonLineWriter) {
+        JsonLineWriter jsonLineWriter
+    ) {
         this.pluginName = pluginName;
         this.processId = processId;
         this.tenantId = tenantId;
@@ -99,11 +104,10 @@ public class BulkSelectQueryParallelProcessor implements AutoCloseable {
     }
 
     public void processBulkQueries(List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException, InvalidCreateOperationException, IOException, VitamClientInternalException {
-
-        List<CountingIterator.EntryWithIndex<JsonNode>> validQueries =
-            reportAndFilterInvalidQueries(bulkQueriesToProcess);
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException, InvalidCreateOperationException, IOException, VitamClientInternalException {
+        List<CountingIterator.EntryWithIndex<JsonNode>> validQueries = reportAndFilterInvalidQueries(
+            bulkQueriesToProcess
+        );
 
         List<JsonNode> executableQueries = transformQueries(accessContractModel, validQueries);
 
@@ -113,17 +117,25 @@ public class BulkSelectQueryParallelProcessor implements AutoCloseable {
     }
 
     private List<CountingIterator.EntryWithIndex<JsonNode>> reportAndFilterInvalidQueries(
-        List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess) throws VitamClientInternalException {
+        List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess
+    ) throws VitamClientInternalException {
         List<CountingIterator.EntryWithIndex<JsonNode>> validQueries = new ArrayList<>();
         for (CountingIterator.EntryWithIndex<JsonNode> queryToProcess : bulkQueriesToProcess) {
             List<String> internalKeyFields = internalActionKeysRetriever.getInternalActionKeyFields(
-                queryToProcess.getValue());
+                queryToProcess.getValue()
+            );
             if (!internalKeyFields.isEmpty()) {
-                String message = String.format(BulkUpdateUnitReportKey.INVALID_DSL_QUERY.getMessage() + " : '%s'",
-                    String.join(", ", internalKeyFields));
-                BulkUpdateUnitMetadataReportEntry reportEntry =
-                    createFailureReportEntry(tenantId, processId, queryToProcess,
-                        BulkUpdateUnitReportKey.INVALID_DSL_QUERY, message);
+                String message = String.format(
+                    BulkUpdateUnitReportKey.INVALID_DSL_QUERY.getMessage() + " : '%s'",
+                    String.join(", ", internalKeyFields)
+                );
+                BulkUpdateUnitMetadataReportEntry reportEntry = createFailureReportEntry(
+                    tenantId,
+                    processId,
+                    queryToProcess,
+                    BulkUpdateUnitReportKey.INVALID_DSL_QUERY,
+                    message
+                );
                 appendFailureReportEntry(reportEntry);
             } else {
                 validQueries.add(queryToProcess);
@@ -132,32 +144,37 @@ public class BulkSelectQueryParallelProcessor implements AutoCloseable {
         return validQueries;
     }
 
-    private List<List<String>> bulkExecuteSelectQueries(MetaDataClient metadataClient,
-        List<JsonNode> executableQueries)
-        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException,
-        MetaDataClientServerException {
-
+    private List<List<String>> bulkExecuteSelectQueries(
+        MetaDataClient metadataClient,
+        List<JsonNode> executableQueries
+    )
+        throws MetaDataExecutionException, MetaDataDocumentSizeException, InvalidParseOperationException, MetaDataClientServerException {
         // Submit queries
-        List<RequestResponseOK<JsonNode>> queriesResponses =
-            metadataClient.selectUnitsBulk(executableQueries);
+        List<RequestResponseOK<JsonNode>> queriesResponses = metadataClient.selectUnitsBulk(executableQueries);
 
         // Check result size
         if (queriesResponses.size() != executableQueries.size()) {
-            throw new IllegalStateException(String.format(
-                "Partial response for selectUnitsBulk. Expected %d. Got %d",
-                executableQueries.size(), queriesResponses.size()));
+            throw new IllegalStateException(
+                String.format(
+                    "Partial response for selectUnitsBulk. Expected %d. Got %d",
+                    executableQueries.size(),
+                    queriesResponses.size()
+                )
+            );
         }
 
         // Parse ids
-        return queriesResponses.stream()
+        return queriesResponses
+            .stream()
             .map(RequestResponseOK::getResults)
             .map(resultSet -> resultSet.stream().map(this::parseUnitId).collect(Collectors.toList()))
             .collect(Collectors.toList());
     }
 
-    private List<JsonNode> transformQueries(AccessContractModel accessContractModel,
-        List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess)
-        throws InvalidParseOperationException, InvalidCreateOperationException {
+    private List<JsonNode> transformQueries(
+        AccessContractModel accessContractModel,
+        List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess
+    ) throws InvalidParseOperationException, InvalidCreateOperationException {
         // Update queries : apply access contract restrictions, limit result size, add projections...
         List<JsonNode> executableQueries = new ArrayList<>();
         for (CountingIterator.EntryWithIndex<JsonNode> jsonNodeEntryWithIndex : bulkQueriesToProcess) {
@@ -179,8 +196,10 @@ public class BulkSelectQueryParallelProcessor implements AutoCloseable {
      */
     private ObjectNode computeModifiedSelectQuery(AccessContractModel accessContract, JsonNode originalQuery)
         throws InvalidParseOperationException, InvalidCreateOperationException {
-        JsonNode securedQueryNode = AccessContractRestrictionHelper
-            .applyAccessContractRestrictionForUnitForSelect(originalQuery, accessContract);
+        JsonNode securedQueryNode = AccessContractRestrictionHelper.applyAccessContractRestrictionForUnitForSelect(
+            originalQuery,
+            accessContract
+        );
         SelectParserMultiple parser = new SelectParserMultiple();
         parser.parse(securedQueryNode);
         SelectMultiQuery multiQuery = parser.getRequest();
@@ -196,21 +215,35 @@ public class BulkSelectQueryParallelProcessor implements AutoCloseable {
         return unitJson.get(VitamFieldsHelper.id()).textValue();
     }
 
-    private void handleResults(List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess,
-        List<List<String>> queriesResultUnitIds) throws VitamClientInternalException, IOException {
+    private void handleResults(
+        List<CountingIterator.EntryWithIndex<JsonNode>> bulkQueriesToProcess,
+        List<List<String>> queriesResultUnitIds
+    ) throws VitamClientInternalException, IOException {
         for (int i = 0; i < bulkQueriesToProcess.size(); i++) {
             CountingIterator.EntryWithIndex<JsonNode> queryToProcess = bulkQueriesToProcess.get(i);
             List<String> unitIds = queriesResultUnitIds.get(i);
 
             int numberResults = unitIds.size();
             if (numberResults == 0) {
-                appendFailureReportEntry(createFailureReportEntry(tenantId, processId,
-                    queryToProcess, BulkUpdateUnitReportKey.UNIT_NOT_FOUND,
-                    BulkUpdateUnitReportKey.UNIT_NOT_FOUND.getMessage()));
+                appendFailureReportEntry(
+                    createFailureReportEntry(
+                        tenantId,
+                        processId,
+                        queryToProcess,
+                        BulkUpdateUnitReportKey.UNIT_NOT_FOUND,
+                        BulkUpdateUnitReportKey.UNIT_NOT_FOUND.getMessage()
+                    )
+                );
             } else if (numberResults >= 2) {
-                appendFailureReportEntry(createFailureReportEntry(tenantId, processId,
-                    queryToProcess, BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND,
-                    BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND.getMessage()));
+                appendFailureReportEntry(
+                    createFailureReportEntry(
+                        tenantId,
+                        processId,
+                        queryToProcess,
+                        BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND,
+                        BulkUpdateUnitReportKey.TOO_MANY_UNITS_FOUND.getMessage()
+                    )
+                );
             } else {
                 String unitId = unitIds.get(0);
                 appendUnitToUpdate(unitId, queryToProcess.getValue(), queryToProcess.getIndex());
@@ -255,8 +288,13 @@ public class BulkSelectQueryParallelProcessor implements AutoCloseable {
         }
     }
 
-    private BulkUpdateUnitMetadataReportEntry createFailureReportEntry(int tenantId, String processId,
-        CountingIterator.EntryWithIndex<JsonNode> queryToProcess, BulkUpdateUnitReportKey reportKey, String message) {
+    private BulkUpdateUnitMetadataReportEntry createFailureReportEntry(
+        int tenantId,
+        String processId,
+        CountingIterator.EntryWithIndex<JsonNode> queryToProcess,
+        BulkUpdateUnitReportKey reportKey,
+        String message
+    ) {
         return new BulkUpdateUnitMetadataReportEntry(
             tenantId,
             processId,
@@ -266,7 +304,8 @@ public class BulkSelectQueryParallelProcessor implements AutoCloseable {
             reportKey.name(),
             StatusCode.WARNING,
             String.format("%s.%s", pluginName, StatusCode.WARNING),
-            message);
+            message
+        );
     }
 
     /**

@@ -29,13 +29,18 @@ package fr.gouv.vitam.metadata.common.bulkatomicupdate;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class BulkSelectQueryResultFailure {
+
     private final int queryIndex;
     private final JsonNode query;
     private final BulkUpdateUnitReportKey bulkUpdateUnitReportKey;
     private final String message;
 
-    public BulkSelectQueryResultFailure(int queryIndex, JsonNode query, BulkUpdateUnitReportKey bulkUpdateUnitReportKey,
-        String message) {
+    public BulkSelectQueryResultFailure(
+        int queryIndex,
+        JsonNode query,
+        BulkUpdateUnitReportKey bulkUpdateUnitReportKey,
+        String message
+    ) {
         this.queryIndex = queryIndex;
         this.query = query;
         this.bulkUpdateUnitReportKey = bulkUpdateUnitReportKey;

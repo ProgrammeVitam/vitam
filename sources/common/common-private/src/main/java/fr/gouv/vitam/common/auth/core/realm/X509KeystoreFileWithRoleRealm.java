@@ -96,7 +96,9 @@ public class X509KeystoreFileWithRoleRealm extends AbstractX509Realm {
             getGrantedKeyStorePassphrase(),
             getTrustedKeyStoreName(),
             getTrustedKeyStorePassphrase(),
-            grantedIssuers, REALM_NAME);
+            grantedIssuers,
+            REALM_NAME
+        );
         if (x509AuthenticationInfo != null) {
             assertCredentialsMatch(x509AuthenticationToken, x509AuthenticationInfo);
         }

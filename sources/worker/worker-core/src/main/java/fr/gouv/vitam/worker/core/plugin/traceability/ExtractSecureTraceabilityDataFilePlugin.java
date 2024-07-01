@@ -50,8 +50,10 @@ import static fr.gouv.vitam.common.model.WorkspaceConstants.ERROR_FLAG;
 import static fr.gouv.vitam.worker.core.utils.PluginHelper.buildItemStatus;
 
 public class ExtractSecureTraceabilityDataFilePlugin extends ActionHandler {
-    private static final VitamLogger LOGGER =
-        VitamLoggerFactory.getInstance(ExtractSecureTraceabilityDataFilePlugin.class);
+
+    private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(
+        ExtractSecureTraceabilityDataFilePlugin.class
+    );
     private static final String PLUGIN_NAME = "EXTRACT_SECURE_TRACEABILITY_DATA_FILE";
     private static final int TRACEABILITY_FILE_IN_RANK = 0;
 
@@ -67,8 +69,7 @@ public class ExtractSecureTraceabilityDataFilePlugin extends ActionHandler {
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         if (handler.isExistingFileInWorkspace(param.getObjectName() + File.separator + ERROR_FLAG)) {
             return buildItemStatus(PLUGIN_NAME, KO);
         }
@@ -84,9 +85,12 @@ public class ExtractSecureTraceabilityDataFilePlugin extends ActionHandler {
             }
 
             // 2- unzip file
-            workspaceClient.uncompressObject(param.getContainerName(), zipContainer, CommonMediaType.ZIP,
-                new FileInputStream(traceabilityFile));
-
+            workspaceClient.uncompressObject(
+                param.getContainerName(),
+                zipContainer,
+                CommonMediaType.ZIP,
+                new FileInputStream(traceabilityFile)
+            );
         } catch (ContentAddressableStorageException | IOException e) {
             LOGGER.error(e);
             return buildItemStatus(PLUGIN_NAME, StatusCode.FATAL, null);

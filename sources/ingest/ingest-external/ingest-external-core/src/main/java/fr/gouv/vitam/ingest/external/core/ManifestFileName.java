@@ -30,6 +30,7 @@ package fr.gouv.vitam.ingest.external.core;
  * Manifest file name model
  */
 public class ManifestFileName {
+
     private String fileName;
     private boolean isManifestFile;
 

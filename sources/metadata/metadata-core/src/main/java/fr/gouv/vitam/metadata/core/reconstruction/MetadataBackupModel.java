@@ -27,15 +27,7 @@
 package fr.gouv.vitam.metadata.core.reconstruction;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import fr.gouv.vitam.common.json.JsonHandler;
-import fr.gouv.vitam.metadata.core.database.collections.MetadataDocument;
-import fr.gouv.vitam.metadata.core.database.collections.Unit;
 import org.bson.Document;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Description of metadata collection Backup model. <br/>
@@ -89,5 +81,4 @@ public class MetadataBackupModel {
     public void setOffset(Long offset) {
         this.offset = offset;
     }
-
 }

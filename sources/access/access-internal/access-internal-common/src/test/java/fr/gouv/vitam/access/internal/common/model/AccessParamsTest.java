@@ -46,9 +46,8 @@ public class AccessParamsTest {
 
     @Test
     public final void givenAccessParamsAttributesNotNull_whenInstanciate_ThenReturnTrue() {
-        assertThat(new AccessParams().setServerConfiguration(accessConfiguration).getServerConfiguration())
-            .isEqualTo(accessConfiguration);
+        assertThat(new AccessParams().setServerConfiguration(accessConfiguration).getServerConfiguration()).isEqualTo(
+            accessConfiguration
+        );
     }
-
-
 }

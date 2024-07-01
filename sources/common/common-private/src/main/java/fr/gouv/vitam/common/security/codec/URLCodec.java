@@ -52,12 +52,25 @@ public class URLCodec {
      * @param digestType
      * @return Platform-Id
      */
-    public static String encodeURL(String httpMethod, String url, String timestamp, String secret,
-        DigestType digestType) {
+    public static String encodeURL(
+        String httpMethod,
+        String url,
+        String timestamp,
+        String secret,
+        DigestType digestType
+    ) {
         ParametersChecker.checkParameter(ARGUMENT_MUST_NOT_BE_NULL, httpMethod, url, timestamp, secret, digestType);
         final Digest digest = new Digest(digestType);
-        return digest.update(httpMethod + DELEMITER_SEPARATED_VALUES + url + DELEMITER_SEPARATED_VALUES + timestamp +
-            DELEMITER_SEPARATED_VALUES + secret).toString();
+        return digest
+            .update(
+                httpMethod +
+                DELEMITER_SEPARATED_VALUES +
+                url +
+                DELEMITER_SEPARATED_VALUES +
+                timestamp +
+                DELEMITER_SEPARATED_VALUES +
+                secret
+            )
+            .toString();
     }
-
 }

@@ -50,5 +50,4 @@ public class TextByLangTest {
         // Then
         assertThat(textByLang.getTextTypes()).hasSize(0);
     }
-
 }

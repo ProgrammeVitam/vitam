@@ -36,6 +36,7 @@ import java.util.Map;
  * AuditCheckObjectResult
  */
 public class AuditCheckObjectResult {
+
     /**
      * Id of object
      */
@@ -68,5 +69,4 @@ public class AuditCheckObjectResult {
         }
         return null;
     }
-
 }

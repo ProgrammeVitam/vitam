@@ -30,6 +30,7 @@ package fr.gouv.vitam.common.graph;
  * Helper class for graph
  */
 public final class GraphUtils {
+
     public static String createGraphRelation(String childId, String parentId) {
         return childId + "/" + parentId;
     }

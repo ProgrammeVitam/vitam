@@ -33,6 +33,7 @@ import fr.gouv.vitam.common.database.builder.request.exception.InvalidCreateOper
  * Wildcard Query
  */
 public class WildcardQuery extends Query {
+
     protected WildcardQuery() {
         super();
     }
@@ -44,8 +45,7 @@ public class WildcardQuery extends Query {
      * @param value key value
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public WildcardQuery(final String variableName, final String value)
-        throws InvalidCreateOperationException {
+    public WildcardQuery(final String variableName, final String value) throws InvalidCreateOperationException {
         super();
         createQueryVariableValue(QUERY.WILDCARD, variableName, value);
         currentTokenQUERY = QUERY.WILDCARD;

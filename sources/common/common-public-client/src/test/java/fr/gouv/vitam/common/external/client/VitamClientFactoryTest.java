@@ -41,10 +41,12 @@ import static org.mockito.Mockito.mock;
  *
  */
 public class VitamClientFactoryTest {
-    private static final String RESOURCE_PATH = "service/v1";
-    private static final ClientConfiguration CONFIGURATION =
-        new ClientConfigurationImpl(TestVitamClientFactory.LOCALHOST, 1234);
 
+    private static final String RESOURCE_PATH = "service/v1";
+    private static final ClientConfiguration CONFIGURATION = new ClientConfigurationImpl(
+        TestVitamClientFactory.LOCALHOST,
+        1234
+    );
 
     private static class ClientFactoryTest extends VitamClientFactory<BasicClient> {
 
@@ -60,7 +62,6 @@ public class VitamClientFactoryTest {
         public BasicClient getClient() {
             return new DefaultClient(this);
         }
-
     }
 
     @Test
@@ -73,8 +74,10 @@ public class VitamClientFactoryTest {
         assertTrue(cft.toString().contains(RESOURCE_PATH));
         assertEquals(VitamClientType.PRODUCTION, cft.getVitamClientType());
         try (BasicClient vitamClient = cft.getClient()) {
-            assertEquals(((DefaultClient) vitamClient).getClientFactory().getClientConfiguration(),
-                cft.getClientConfiguration());
+            assertEquals(
+                ((DefaultClient) vitamClient).getClientFactory().getClientConfiguration(),
+                cft.getClientConfiguration()
+            );
             assertTrue(vitamClient.toString().contains(cft.toString()));
         }
     }
@@ -89,11 +92,11 @@ public class VitamClientFactoryTest {
         assertTrue(cft.toString().contains(RESOURCE_PATH));
         assertEquals(VitamClientType.MOCK, cft.getVitamClientType());
         try (BasicClient vitamClient = cft.getClient()) {
-            assertEquals(((DefaultClient) vitamClient).getClientFactory().getClientConfiguration(),
-                cft.getClientConfiguration());
+            assertEquals(
+                ((DefaultClient) vitamClient).getClientFactory().getClientConfiguration(),
+                cft.getClientConfiguration()
+            );
             assertTrue(vitamClient.toString().contains(cft.toString()));
         }
-
     }
-
 }

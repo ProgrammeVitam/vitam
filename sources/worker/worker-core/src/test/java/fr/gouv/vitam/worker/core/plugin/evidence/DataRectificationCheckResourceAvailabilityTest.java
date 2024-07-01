@@ -73,6 +73,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class DataRectificationCheckResourceAvailabilityTest {
+
     private final String unitId = "aeaqaaaaaaeaaaababk6gal5sqs3hiyaaaaq";
     private final String unitId2 = "aeaqaaaaaaeaaaababk6gal5sqs3hiyaaaar";
     private final String objectGroupId = "aebaaaaaaaeaaaababk6gal5sqs3g2aaaaaq";
@@ -81,11 +82,15 @@ public class DataRectificationCheckResourceAvailabilityTest {
     private final String objectId2 = "aeaaaaaaaackemvrabfuealm66lqsiqaaaar";
     private final String objectId3 = "aeaaaaaaaackemvrabfuealm66lqsiqaaaas";
     private final String accessRequestId = "ACCESS_TEST_ID";
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -125,13 +130,12 @@ public class DataRectificationCheckResourceAvailabilityTest {
         File file = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOUnit.json");
         when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(file);
 
-
         initWorkflowContext(unitId);
-        BulkObjectAvailabilityRequest request =
-            new BulkObjectAvailabilityRequest(DataCategory.UNIT, List.of(unitId));
+        BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(DataCategory.UNIT, List.of(unitId));
         BulkObjectAvailabilityResponse response = new BulkObjectAvailabilityResponse(true);
-        given(storageClient.checkBulkObjectAvailability(eq("default"), any(), refEq(request, "objectNames")))
-            .willReturn(response);
+        given(
+            storageClient.checkBulkObjectAvailability(eq("default"), any(), refEq(request, "objectNames"))
+        ).willReturn(response);
 
         // When
         List<ItemStatus> pluginResult = plugin.executeList(parameter, handler);
@@ -151,30 +155,41 @@ public class DataRectificationCheckResourceAvailabilityTest {
         when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(file);
 
         initWorkflowContext(unitId);
-        BulkObjectAvailabilityRequest request =
-            new BulkObjectAvailabilityRequest(DataCategory.UNIT, List.of(unitId));
+        BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(DataCategory.UNIT, List.of(unitId));
         BulkObjectAvailabilityResponse response = new BulkObjectAvailabilityResponse(false);
-        Map<AccessRequestContext, List<String>> accessRequestsCreated =
-            Map.of(new AccessRequestContext("default", "default-bis"), List.of(accessRequestId));
+        Map<AccessRequestContext, List<String>> accessRequestsCreated = Map.of(
+            new AccessRequestContext("default", "default-bis"),
+            List.of(accessRequestId)
+        );
         ProcessingRetryAsyncException exception = new ProcessingRetryAsyncException(accessRequestsCreated);
         given(
-            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request, "objectNames")))
-            .willReturn(response);
+            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request, "objectNames"))
+        ).willReturn(response);
         given(
-            storageClient.createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.UNIT),
-                eq(List.of(unitId + ".json"))))
-            .willReturn(Optional.of(accessRequestId));
+            storageClient.createAccessRequestIfRequired(
+                eq("default"),
+                eq("default-bis"),
+                eq(DataCategory.UNIT),
+                eq(List.of(unitId + ".json"))
+            )
+        ).willReturn(Optional.of(accessRequestId));
         // When + Then
-        assertThatThrownBy(() -> plugin.executeList(parameter, handler)).isInstanceOf(
-            ProcessingRetryAsyncException.class).isEqualToComparingFieldByField(exception);
-
+        assertThatThrownBy(() -> plugin.executeList(parameter, handler))
+            .isInstanceOf(ProcessingRetryAsyncException.class)
+            .isEqualToComparingFieldByField(exception);
 
         // Then
-        verify(storageClient).checkBulkObjectAvailability(eq("default"), eq("default-bis"),
-            any(BulkObjectAvailabilityRequest.class));
-        verify(storageClient).createAccessRequestIfRequired(eq("default"), eq("default-bis"),
-            eq(DataCategory.UNIT), eq(List.of(unitId + ".json")));
-
+        verify(storageClient).checkBulkObjectAvailability(
+            eq("default"),
+            eq("default-bis"),
+            any(BulkObjectAvailabilityRequest.class)
+        );
+        verify(storageClient).createAccessRequestIfRequired(
+            eq("default"),
+            eq("default-bis"),
+            eq(DataCategory.UNIT),
+            eq(List.of(unitId + ".json"))
+        );
     }
 
     @Test
@@ -186,18 +201,20 @@ public class DataRectificationCheckResourceAvailabilityTest {
         when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(file);
 
         initWorkflowContext(unitId);
-        BulkObjectAvailabilityRequest request =
-            new BulkObjectAvailabilityRequest(DataCategory.UNIT, List.of(unitId));
+        BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(DataCategory.UNIT, List.of(unitId));
         given(
-            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request, "objectNames")))
-            .willThrow(new StorageServerClientException("Something bad happened"));
+            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request, "objectNames"))
+        ).willThrow(new StorageServerClientException("Something bad happened"));
 
         // When + Then
         assertThatThrownBy(() -> plugin.executeList(parameter, handler)).isInstanceOf(ProcessingException.class);
 
         // Then
-        verify(storageClient).checkBulkObjectAvailability(eq("default"), eq("default-bis"),
-            refEq(request, "objectNames"));
+        verify(storageClient).checkBulkObjectAvailability(
+            eq("default"),
+            eq("default-bis"),
+            refEq(request, "objectNames")
+        );
     }
 
     @Test
@@ -211,19 +228,24 @@ public class DataRectificationCheckResourceAvailabilityTest {
         File file2 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOUnit2.json");
         when(handler.getFileFromWorkspace("alter/" + unitId2)).thenReturn(file2);
         initWorkflowContext(unitId, unitId2);
-        BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(DataCategory.UNIT,
-            List.of(unitId, unitId2));
+        BulkObjectAvailabilityRequest request = new BulkObjectAvailabilityRequest(
+            DataCategory.UNIT,
+            List.of(unitId, unitId2)
+        );
         BulkObjectAvailabilityResponse response = new BulkObjectAvailabilityResponse(true);
         given(
-            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request, "objectNames")))
-            .willReturn(response);
+            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request, "objectNames"))
+        ).willReturn(response);
 
         // When
         List<ItemStatus> pluginResult = plugin.executeList(parameter, handler);
 
         // Then
-        verify(storageClient).checkBulkObjectAvailability(eq("default"), eq("default-bis"),
-            refEq(request, "objectNames"));
+        verify(storageClient).checkBulkObjectAvailability(
+            eq("default"),
+            eq("default-bis"),
+            refEq(request, "objectNames")
+        );
         assertThat(pluginResult.size()).isEqualTo(2);
         assertThat(pluginResult.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(pluginResult.get(1).getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -234,36 +256,48 @@ public class DataRectificationCheckResourceAvailabilityTest {
     public void given_2_available_resource_in_diff_strategies_should_return_2_ok() throws Exception {
         // Given
         // Object Group
-        File file1 =
-            PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObjectGroup.json");
+        File file1 = PropertiesUtils.getResourceFile(
+            "DataRectificationCheckResourceAvailability/reportKOObjectGroup.json"
+        );
         when(handler.getFileFromWorkspace("alter/" + objectGroupId)).thenReturn(file1);
         // Object Group
-        File file2 =
-            PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObjectGroup2.json");
+        File file2 = PropertiesUtils.getResourceFile(
+            "DataRectificationCheckResourceAvailability/reportKOObjectGroup2.json"
+        );
         when(handler.getFileFromWorkspace("alter/" + objectGroupId2)).thenReturn(file2);
         initWorkflowContext(objectGroupId, objectGroupId2);
 
-        BulkObjectAvailabilityRequest request1 =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECTGROUP, List.of(objectGroupId));
-        BulkObjectAvailabilityRequest request2 =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECTGROUP, List.of(objectGroupId2));
-        BulkObjectAvailabilityResponse response1 =
-            new BulkObjectAvailabilityResponse(true);
+        BulkObjectAvailabilityRequest request1 = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECTGROUP,
+            List.of(objectGroupId)
+        );
+        BulkObjectAvailabilityRequest request2 = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECTGROUP,
+            List.of(objectGroupId2)
+        );
+        BulkObjectAvailabilityResponse response1 = new BulkObjectAvailabilityResponse(true);
         BulkObjectAvailabilityResponse response2 = new BulkObjectAvailabilityResponse(true);
         given(
-            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request1, "objectNames")))
-            .willReturn(response1);
-        given(storageClient.checkBulkObjectAvailability(eq("other"), eq("default-bis"), refEq(request2, "objectNames")))
-            .willReturn(response2);
+            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request1, "objectNames"))
+        ).willReturn(response1);
+        given(
+            storageClient.checkBulkObjectAvailability(eq("other"), eq("default-bis"), refEq(request2, "objectNames"))
+        ).willReturn(response2);
 
         // When
         List<ItemStatus> pluginResult = plugin.executeList(parameter, handler);
 
         // Then
-        verify(storageClient).checkBulkObjectAvailability(eq("default"), eq("default-bis"),
-            refEq(request1, "objectNames"));
-        verify(storageClient).checkBulkObjectAvailability(eq("other"), eq("default-bis"),
-            refEq(request2, "objectNames"));
+        verify(storageClient).checkBulkObjectAvailability(
+            eq("default"),
+            eq("default-bis"),
+            refEq(request1, "objectNames")
+        );
+        verify(storageClient).checkBulkObjectAvailability(
+            eq("other"),
+            eq("default-bis"),
+            refEq(request2, "objectNames")
+        );
         assertThat(pluginResult.size()).isEqualTo(2);
         assertThat(pluginResult.get(0).getGlobalStatus()).isEqualTo(StatusCode.OK);
         assertThat(pluginResult.get(1).getGlobalStatus()).isEqualTo(StatusCode.OK);
@@ -284,36 +318,56 @@ public class DataRectificationCheckResourceAvailabilityTest {
         when(handler.getFileFromWorkspace("alter/" + objectId3)).thenReturn(file3);
         initWorkflowContext(objectId, objectId2, objectId3);
 
-        BulkObjectAvailabilityRequest request1 =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId, objectId2));
-        BulkObjectAvailabilityRequest request2 =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId3));
-        BulkObjectAvailabilityResponse response1 =
-            new BulkObjectAvailabilityResponse(true);
+        BulkObjectAvailabilityRequest request1 = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECT,
+            List.of(objectId, objectId2)
+        );
+        BulkObjectAvailabilityRequest request2 = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECT,
+            List.of(objectId3)
+        );
+        BulkObjectAvailabilityResponse response1 = new BulkObjectAvailabilityResponse(true);
         BulkObjectAvailabilityResponse response2 = new BulkObjectAvailabilityResponse(false);
-        Map<AccessRequestContext, List<String>> accessRequestsCreated =
-            Map.of(new AccessRequestContext("other", "default"), List.of(accessRequestId));
+        Map<AccessRequestContext, List<String>> accessRequestsCreated = Map.of(
+            new AccessRequestContext("other", "default"),
+            List.of(accessRequestId)
+        );
         ProcessingRetryAsyncException exception = new ProcessingRetryAsyncException(accessRequestsCreated);
         given(
-            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request1, "objectNames")))
-            .willReturn(response1);
-        given(storageClient.checkBulkObjectAvailability(eq("other"), eq("default"), refEq(request2, "objectNames")))
-            .willReturn(response2);
-        given(storageClient.createAccessRequestIfRequired(eq("other"), eq("default"), eq(DataCategory.OBJECT),
-            eq(List.of(objectId3))))
-            .willReturn(Optional.of(accessRequestId));
+            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request1, "objectNames"))
+        ).willReturn(response1);
+        given(
+            storageClient.checkBulkObjectAvailability(eq("other"), eq("default"), refEq(request2, "objectNames"))
+        ).willReturn(response2);
+        given(
+            storageClient.createAccessRequestIfRequired(
+                eq("other"),
+                eq("default"),
+                eq(DataCategory.OBJECT),
+                eq(List.of(objectId3))
+            )
+        ).willReturn(Optional.of(accessRequestId));
 
         // When
         assertThatThrownBy(() -> {
             plugin.executeList(parameter, handler);
-        }).isInstanceOf(ProcessingRetryAsyncException.class).isEqualToComparingFieldByField(exception);
+        })
+            .isInstanceOf(ProcessingRetryAsyncException.class)
+            .isEqualToComparingFieldByField(exception);
 
         // Then
-        verify(storageClient).checkBulkObjectAvailability(eq("default"), eq("default-bis"),
-            refEq(request1, "objectNames"));
+        verify(storageClient).checkBulkObjectAvailability(
+            eq("default"),
+            eq("default-bis"),
+            refEq(request1, "objectNames")
+        );
         verify(storageClient).checkBulkObjectAvailability(eq("other"), eq("default"), refEq(request2, "objectNames"));
-        verify(storageClient).createAccessRequestIfRequired(eq("other"), eq("default"), eq(DataCategory.OBJECT),
-            eq(List.of(objectId3)));
+        verify(storageClient).createAccessRequestIfRequired(
+            eq("other"),
+            eq("default"),
+            eq(DataCategory.OBJECT),
+            eq(List.of(objectId3))
+        );
     }
 
     @Test
@@ -325,47 +379,64 @@ public class DataRectificationCheckResourceAvailabilityTest {
         File file1 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOUnit.json");
         when(handler.getFileFromWorkspace("alter/" + unitId)).thenReturn(file1);
         // Object Group
-        File file2 =
-            PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObjectGroup.json");
+        File file2 = PropertiesUtils.getResourceFile(
+            "DataRectificationCheckResourceAvailability/reportKOObjectGroup.json"
+        );
         when(handler.getFileFromWorkspace("alter/" + objectGroupId)).thenReturn(file2);
         // Object
         File file3 = PropertiesUtils.getResourceFile("DataRectificationCheckResourceAvailability/reportKOObject.json");
         when(handler.getFileFromWorkspace("alter/" + objectId)).thenReturn(file3);
         initWorkflowContext(unitId, objectGroupId, objectId);
 
-        BulkObjectAvailabilityRequest request1 =
-            new BulkObjectAvailabilityRequest(DataCategory.UNIT, List.of(unitId + ".json"));
-        BulkObjectAvailabilityRequest request2 =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECTGROUP, List.of(objectGroupId + ".json"));
-        BulkObjectAvailabilityRequest request3 =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of(objectId));
-        BulkObjectAvailabilityResponse response =
-            new BulkObjectAvailabilityResponse(false);
+        BulkObjectAvailabilityRequest request1 = new BulkObjectAvailabilityRequest(
+            DataCategory.UNIT,
+            List.of(unitId + ".json")
+        );
+        BulkObjectAvailabilityRequest request2 = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECTGROUP,
+            List.of(objectGroupId + ".json")
+        );
+        BulkObjectAvailabilityRequest request3 = new BulkObjectAvailabilityRequest(
+            DataCategory.OBJECT,
+            List.of(objectId)
+        );
+        BulkObjectAvailabilityResponse response = new BulkObjectAvailabilityResponse(false);
         given(
-            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"),
-                refEq(request1, "objectNames"))).willReturn(
-            response);
+            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request1, "objectNames"))
+        ).willReturn(response);
         given(
-            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"),
-                refEq(request2, "objectNames"))).willReturn(
-            response);
+            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request2, "objectNames"))
+        ).willReturn(response);
         given(
-            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"),
-                refEq(request3, "objectNames"))).willReturn(
-            response);
-
-        given(storageClient.createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.UNIT),
-            eq(List.of(unitId + ".json"))))
-            .willReturn(Optional.of("accessRequestId1"));
+            storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"), refEq(request3, "objectNames"))
+        ).willReturn(response);
 
         given(
-            storageClient.createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.OBJECTGROUP),
-                eq(List.of(objectGroupId + ".json"))))
-            .willReturn(Optional.of("accessRequestId2"));
+            storageClient.createAccessRequestIfRequired(
+                eq("default"),
+                eq("default-bis"),
+                eq(DataCategory.UNIT),
+                eq(List.of(unitId + ".json"))
+            )
+        ).willReturn(Optional.of("accessRequestId1"));
 
-        given(storageClient.createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.OBJECT),
-            eq(List.of(objectId))))
-            .willReturn(Optional.of("accessRequestId3"));
+        given(
+            storageClient.createAccessRequestIfRequired(
+                eq("default"),
+                eq("default-bis"),
+                eq(DataCategory.OBJECTGROUP),
+                eq(List.of(objectGroupId + ".json"))
+            )
+        ).willReturn(Optional.of("accessRequestId2"));
+
+        given(
+            storageClient.createAccessRequestIfRequired(
+                eq("default"),
+                eq("default-bis"),
+                eq(DataCategory.OBJECT),
+                eq(List.of(objectId))
+            )
+        ).willReturn(Optional.of("accessRequestId3"));
 
         // When
         Throwable thrown = catchThrowable(() -> plugin.executeList(parameter, handler));
@@ -377,20 +448,38 @@ public class DataRectificationCheckResourceAvailabilityTest {
         ProcessingRetryAsyncException exc = (ProcessingRetryAsyncException) thrown;
         assertThat(exc.getAccessRequestIdByContext()).containsKey(new AccessRequestContext("default", "default-bis"));
         assertThat(exc.getAccessRequestIdByContext().get(new AccessRequestContext("default", "default-bis"))).contains(
-            "accessRequestId1");
+            "accessRequestId1"
+        );
         assertThat(exc.getAccessRequestIdByContext().get(new AccessRequestContext("default", "default-bis"))).contains(
-            "accessRequestId2");
+            "accessRequestId2"
+        );
         assertThat(exc.getAccessRequestIdByContext().get(new AccessRequestContext("default", "default-bis"))).contains(
-            "accessRequestId3");
+            "accessRequestId3"
+        );
 
-        verify(storageClient, times(3)).checkBulkObjectAvailability(eq("default"), eq("default-bis"),
-            any(BulkObjectAvailabilityRequest.class));
-        verify(storageClient).createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.UNIT),
-            eq(List.of(unitId + ".json")));
-        verify(storageClient).createAccessRequestIfRequired(eq("default"), eq("default-bis"),
-            eq(DataCategory.OBJECTGROUP), eq(List.of(objectGroupId + ".json")));
-        verify(storageClient).createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.OBJECT),
-            eq(List.of(objectId)));
+        verify(storageClient, times(3)).checkBulkObjectAvailability(
+            eq("default"),
+            eq("default-bis"),
+            any(BulkObjectAvailabilityRequest.class)
+        );
+        verify(storageClient).createAccessRequestIfRequired(
+            eq("default"),
+            eq("default-bis"),
+            eq(DataCategory.UNIT),
+            eq(List.of(unitId + ".json"))
+        );
+        verify(storageClient).createAccessRequestIfRequired(
+            eq("default"),
+            eq("default-bis"),
+            eq(DataCategory.OBJECTGROUP),
+            eq(List.of(objectGroupId + ".json"))
+        );
+        verify(storageClient).createAccessRequestIfRequired(
+            eq("default"),
+            eq("default-bis"),
+            eq(DataCategory.OBJECT),
+            eq(List.of(objectId))
+        );
     }
 
     @Test
@@ -410,25 +499,41 @@ public class DataRectificationCheckResourceAvailabilityTest {
         when(handler.getFileFromWorkspace("alter/" + objectId3)).thenReturn(file3);
         initWorkflowContext(objectId, objectId2, objectId3);
 
-        BulkObjectAvailabilityRequest requestObject =
-            new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of());
-        BulkObjectAvailabilityResponse response1 =
-            new BulkObjectAvailabilityResponse(false);
-        BulkObjectAvailabilityResponse response2 =
-            new BulkObjectAvailabilityResponse(false);
-        BulkObjectAvailabilityResponse response3 =
-            new BulkObjectAvailabilityResponse(false);
-        given(storageClient.checkBulkObjectAvailability(eq("default"), eq("default-bis"),
-            refEq(requestObject, "objectNames"))).willReturn(response1, response2, response3);
-        given(storageClient.createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.OBJECT),
-            eq(List.of(objectId))))
-            .willReturn(Optional.of("accessRequestId1"));
-        given(storageClient.createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.OBJECT),
-            eq(List.of(objectId2))))
-            .willReturn(Optional.of("accessRequestId2"));
-        given(storageClient.createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.OBJECT),
-            eq(List.of(objectId3))))
-            .willReturn(Optional.of("accessRequestId3"));
+        BulkObjectAvailabilityRequest requestObject = new BulkObjectAvailabilityRequest(DataCategory.OBJECT, List.of());
+        BulkObjectAvailabilityResponse response1 = new BulkObjectAvailabilityResponse(false);
+        BulkObjectAvailabilityResponse response2 = new BulkObjectAvailabilityResponse(false);
+        BulkObjectAvailabilityResponse response3 = new BulkObjectAvailabilityResponse(false);
+        given(
+            storageClient.checkBulkObjectAvailability(
+                eq("default"),
+                eq("default-bis"),
+                refEq(requestObject, "objectNames")
+            )
+        ).willReturn(response1, response2, response3);
+        given(
+            storageClient.createAccessRequestIfRequired(
+                eq("default"),
+                eq("default-bis"),
+                eq(DataCategory.OBJECT),
+                eq(List.of(objectId))
+            )
+        ).willReturn(Optional.of("accessRequestId1"));
+        given(
+            storageClient.createAccessRequestIfRequired(
+                eq("default"),
+                eq("default-bis"),
+                eq(DataCategory.OBJECT),
+                eq(List.of(objectId2))
+            )
+        ).willReturn(Optional.of("accessRequestId2"));
+        given(
+            storageClient.createAccessRequestIfRequired(
+                eq("default"),
+                eq("default-bis"),
+                eq(DataCategory.OBJECT),
+                eq(List.of(objectId3))
+            )
+        ).willReturn(Optional.of("accessRequestId3"));
 
         // When
         Throwable thrown = catchThrowable(() -> plugin.executeList(parameter, handler));
@@ -440,24 +545,43 @@ public class DataRectificationCheckResourceAvailabilityTest {
         ProcessingRetryAsyncException exc = (ProcessingRetryAsyncException) thrown;
         assertThat(exc.getAccessRequestIdByContext()).containsKey(new AccessRequestContext("default", "default-bis"));
         assertThat(exc.getAccessRequestIdByContext().get(new AccessRequestContext("default", "default-bis"))).contains(
-            "accessRequestId1");
+            "accessRequestId1"
+        );
         assertThat(exc.getAccessRequestIdByContext().get(new AccessRequestContext("default", "default-bis"))).contains(
-            "accessRequestId2");
+            "accessRequestId2"
+        );
         assertThat(exc.getAccessRequestIdByContext().get(new AccessRequestContext("default", "default-bis"))).contains(
-            "accessRequestId3");
+            "accessRequestId3"
+        );
 
-        verify(storageClient, times(3)).checkBulkObjectAvailability(eq("default"), eq("default-bis"),
-            any(BulkObjectAvailabilityRequest.class));
-        verify(storageClient).createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.OBJECT),
-            eq(List.of(objectId)));
-        verify(storageClient).createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.OBJECT),
-            eq(List.of(objectId2)));
-        verify(storageClient).createAccessRequestIfRequired(eq("default"), eq("default-bis"), eq(DataCategory.OBJECT),
-            eq(List.of(objectId3)));
+        verify(storageClient, times(3)).checkBulkObjectAvailability(
+            eq("default"),
+            eq("default-bis"),
+            any(BulkObjectAvailabilityRequest.class)
+        );
+        verify(storageClient).createAccessRequestIfRequired(
+            eq("default"),
+            eq("default-bis"),
+            eq(DataCategory.OBJECT),
+            eq(List.of(objectId))
+        );
+        verify(storageClient).createAccessRequestIfRequired(
+            eq("default"),
+            eq("default-bis"),
+            eq(DataCategory.OBJECT),
+            eq(List.of(objectId2))
+        );
+        verify(storageClient).createAccessRequestIfRequired(
+            eq("default"),
+            eq("default-bis"),
+            eq(DataCategory.OBJECT),
+            eq(List.of(objectId3))
+        );
     }
 
     private void initWorkflowContext(String... filenames) {
-        parameter = workerParameterBuilder().withContainerName("CONTAINER_NAME_TEST")
+        parameter = workerParameterBuilder()
+            .withContainerName("CONTAINER_NAME_TEST")
             .withRequestId("REQUEST_ID_TEST")
             .build();
         List<String> objectNameList = List.of(filenames);

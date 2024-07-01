@@ -27,7 +27,6 @@
 package fr.gouv.vitam.metadata.rest;
 
 import fr.gouv.vitam.common.VitamConfiguration;
-import fr.gouv.vitam.common.model.RequestResponse;
 import fr.gouv.vitam.common.model.RequestResponseOK;
 import fr.gouv.vitam.common.model.StatusCode;
 import fr.gouv.vitam.common.thread.RunWithCustomExecutor;
@@ -66,14 +65,14 @@ import static org.mockito.Mockito.when;
 public class MetadataReconstructionResourceTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private ReconstructionService reconstructionService;
     private StoreGraphService storeGraphService;
     private ReconstructionRequestItem requestItem;
     private MetadataReconstructionResource reconstructionResource;
-
 
     private static final int tenant = VitamConfiguration.getAdminTenant();
 
@@ -86,9 +85,11 @@ public class MetadataReconstructionResourceTest {
         MetaDataConfiguration configuration = new MetaDataConfiguration();
         configuration.setUrlProcessing("http://processing.service.consul:8203/");
         configuration.setContextPath("/metadata");
-        reconstructionResource =
-            new MetadataReconstructionResource(reconstructionService, storeGraphService,
-                configuration);
+        reconstructionResource = new MetadataReconstructionResource(
+            reconstructionService,
+            storeGraphService,
+            configuration
+        );
         VitamConfiguration.setTenants(Arrays.asList(0, 1, 2));
     }
 
@@ -123,7 +124,6 @@ public class MetadataReconstructionResourceTest {
         assertThat(responseEntity.get(MetadataCollections.OBJECTGROUP)).isEqualTo(3);
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void should_return_ko_when_store_graph_handled() throws StoreGraphException {
@@ -155,8 +155,7 @@ public class MetadataReconstructionResourceTest {
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
         List<ReconstructionResponseItem> responseEntity =
-            ((RequestResponseOK<ReconstructionResponseItem>) response.getEntity())
-                .getResults();
+            ((RequestResponseOK<ReconstructionResponseItem>) response.getEntity()).getResults();
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.size()).isEqualTo(1);
         assertThat(responseEntity.get(0).getCollection()).isEqualTo("unit");
@@ -174,8 +173,7 @@ public class MetadataReconstructionResourceTest {
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
         List<ReconstructionResponseItem> responseEntity =
-            ((RequestResponseOK<ReconstructionResponseItem>) response.getEntity())
-                .getResults();
+            ((RequestResponseOK<ReconstructionResponseItem>) response.getEntity()).getResults();
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity).isEmpty();
     }
@@ -192,8 +190,7 @@ public class MetadataReconstructionResourceTest {
         // Then
         assertThat(response.getStatus()).isEqualTo(Status.OK.getStatusCode());
         List<ReconstructionResponseItem> responseEntity =
-            ((RequestResponseOK<ReconstructionResponseItem>) response.getEntity())
-                .getResults();
+            ((RequestResponseOK<ReconstructionResponseItem>) response.getEntity()).getResults();
         assertThat(responseEntity).isNotNull();
         assertThat(responseEntity.size()).isEqualTo(1);
         assertThat(responseEntity.get(0).getCollection()).isEqualTo("unit");
@@ -206,7 +203,8 @@ public class MetadataReconstructionResourceTest {
         // Given
 
         // When / Then
-        assertThatCode(() -> reconstructionResource.reconstructCollection(null))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatCode(() -> reconstructionResource.reconstructCollection(null)).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
 }

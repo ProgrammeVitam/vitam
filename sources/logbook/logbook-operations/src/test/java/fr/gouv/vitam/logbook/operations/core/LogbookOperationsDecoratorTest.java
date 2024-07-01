@@ -65,16 +65,17 @@ import static org.mockito.Mockito.when;
 public class LogbookOperationsDecoratorTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     private LogbookOperationsImpl logbookOperationsImpl;
     private LogbookOperationParameters logbookParameters;
     private LogbookDbAccess mongoDbAccess;
     private StorageClient storageClient;
 
-
     private static class TestClass extends LogbookOperationsDecorator {
+
         TestClass(LogbookOperations logbookOperations) {
             super(logbookOperations);
         }
@@ -85,14 +86,16 @@ public class LogbookOperationsDecoratorTest {
         }
 
         @Override
-        public List<LogbookOperation> selectOperations(JsonNode select, boolean sliced,
-            boolean crossTenant) {
+        public List<LogbookOperation> selectOperations(JsonNode select, boolean sliced, boolean crossTenant) {
             return null;
         }
 
         @Override
-        public RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(JsonNode select, boolean sliced,
-            boolean crossTenant) {
+        public RequestResponseOK<LogbookOperation> selectOperationsAsRequestResponse(
+            JsonNode select,
+            boolean sliced,
+            boolean crossTenant
+        ) {
             return null;
         }
 
@@ -102,10 +105,11 @@ public class LogbookOperationsDecoratorTest {
             return null;
         }
 
-
         @Override
-        public LogbookOperation findLastLifecycleTraceabilityOperation(String eventType,
-            boolean traceabilityWithZipOnly) {
+        public LogbookOperation findLastLifecycleTraceabilityOperation(
+            String eventType,
+            boolean traceabilityWithZipOnly
+        ) {
             return null;
         }
 
@@ -125,17 +129,23 @@ public class LogbookOperationsDecoratorTest {
         storageClient = mock(StorageClient.class);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
         ElasticsearchLogbookIndexManager indexManager = mock(ElasticsearchLogbookIndexManager.class);
-        logbookOperationsImpl = new LogbookOperationsImpl(mongoDbAccess, workspaceClientFactory, storageClientFactory,
+        logbookOperationsImpl = new LogbookOperationsImpl(
+            mongoDbAccess,
+            workspaceClientFactory,
+            storageClientFactory,
             mock(IndexationHelper.class),
-            indexManager);
+            indexManager
+        );
         logbookOperationsImpl = Mockito.spy(logbookOperationsImpl);
         logbookParameters = LogbookParameterHelper.newLogbookOperationParameters();
         String eventType = "STP_IMPORT_ACCESS_CONTRACT";
         logbookParameters.putParameterValue(LogbookParameterName.eventType, eventType);
         String outcome = "OK";
         logbookParameters.putParameterValue(LogbookParameterName.outcome, outcome);
-        logbookParameters.putParameterValue(LogbookParameterName.eventIdentifierProcess, GUIDFactory
-            .newOperationLogbookGUID(0).getId());
+        logbookParameters.putParameterValue(
+            LogbookParameterName.eventIdentifierProcess,
+            GUIDFactory.newOperationLogbookGUID(0).getId()
+        );
 
         WorkspaceClient workspaceClient = mock(WorkspaceClient.class);
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);

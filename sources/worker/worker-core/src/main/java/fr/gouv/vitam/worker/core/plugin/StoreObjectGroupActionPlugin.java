@@ -59,6 +59,7 @@ import java.util.Set;
  * StoreObjectGroupAction Plugin.<br>
  */
 public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(StoreObjectGroupActionPlugin.class);
 
     public static final String STORING_OBJECT_TASK_ID = "OBJECT_STORAGE_SUB_TASK";
@@ -74,10 +75,8 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         super(storageClientFactory);
     }
 
-
     @Override
     public List<ItemStatus> executeList(WorkerParameters params, HandlerIO handlerIO) {
-
         checkMandatoryParameters(params);
 
         final List<ItemStatus> itemStatusList = new ArrayList<>();
@@ -96,11 +95,13 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             for (String objectName : params.getObjectNameList()) {
                 MapOfObjects mapOfObjects = getMapOfObjectsIdsAndUris(params.getContainerName(), objectName, handlerIO);
                 Map<String, ItemStatus> itemStatusByObject = new HashMap<>();
-                for (final Map.Entry<String, String> objectGuid : mapOfObjects.getBinaryObjectsToStore()
-                    .entrySet()) {
+                for (final Map.Entry<String, String> objectGuid : mapOfObjects.getBinaryObjectsToStore().entrySet()) {
                     itemStatusByObject.put(objectGuid.getKey(), new ItemStatus(STORING_OBJECT_TASK_ID));
-                    String strategyId =
-                        mapOfObjects.getObjectStorageInfos().get(objectGuid.getKey()).get("strategyId").asText();
+                    String strategyId = mapOfObjects
+                        .getObjectStorageInfos()
+                        .get(objectGuid.getKey())
+                        .get("strategyId")
+                        .asText();
                     strategies.add(strategyId);
                     workspaceObjectURIsByStrategies.put(strategyId, SIP + objectGuid.getValue());
                     objectNamesByStrategies.put(strategyId, objectGuid.getKey());
@@ -118,20 +119,27 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             }
 
             if (objectNamesByStrategies.values().isEmpty()) {
-                return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID)
-                    .setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.OK)));
+                return Arrays.asList(
+                    new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(
+                        STORING_OBJECT_TASK_ID,
+                        new ItemStatus().increment(StatusCode.OK)
+                    )
+                );
             }
 
             Map<String, BulkObjectStoreResponse> resultByStrategy = new LinkedHashMap<>();
 
             for (String strategy : strategies) {
-
                 List<String> workspaceObjectURIs = workspaceObjectURIsByStrategies.get(strategy);
                 List<String> objectNames = objectNamesByStrategies.get(strategy);
 
                 // store objects
-                BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(params.getContainerName(),
-                    workspaceObjectURIs, DataCategory.OBJECT, objectNames);
+                BulkObjectStoreRequest bulkObjectStoreRequest = new BulkObjectStoreRequest(
+                    params.getContainerName(),
+                    workspaceObjectURIs,
+                    DataCategory.OBJECT,
+                    objectNames
+                );
                 BulkObjectStoreResponse result = storeObjects(strategy, bulkObjectStoreRequest);
                 resultByStrategy.put(strategy, result);
             }
@@ -142,29 +150,38 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             // separate by strategy
             storeStorageInfos(mapOfObjectsList, resultByStrategy, strategiesByObjectId);
 
-
             for (int i = 0; i < mapOfObjectsList.size(); i++) {
-                handlerIO.transferJsonToWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
+                handlerIO.transferJsonToWorkspace(
+                    IngestWorkflowConstants.OBJECT_GROUP_FOLDER,
                     params.getObjectNameList().get(i),
-                    mapOfObjectsList.get(i).getJsonOG(), false, false);
+                    mapOfObjectsList.get(i).getJsonOG(),
+                    false,
+                    false
+                );
             }
-
         } catch (final ProcessingException e) {
             LOGGER.error(params.getObjectName(), e);
-            return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID)
-                .setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.FATAL)));
+            return Arrays.asList(
+                new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(
+                    STORING_OBJECT_TASK_ID,
+                    new ItemStatus().increment(StatusCode.FATAL)
+                )
+            );
         } catch (StorageClientException e) {
             LOGGER.error(e);
-            return Arrays.asList(new ItemStatus(STORING_OBJECT_TASK_ID)
-                .setItemsStatus(STORING_OBJECT_TASK_ID, new ItemStatus().increment(StatusCode.FATAL)));
+            return Arrays.asList(
+                new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(
+                    STORING_OBJECT_TASK_ID,
+                    new ItemStatus().increment(StatusCode.FATAL)
+                )
+            );
         }
 
         return getFinalResult(itemStatusList);
     }
 
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         throw new ProcessingException("No need to implements method");
     }
 
@@ -176,8 +193,7 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
      * @return the list of object guid and corresponding Json
      * @throws ProcessingException throws when error occurs while retrieving the object group file from workspace
      */
-    private MapOfObjects getMapOfObjectsIdsAndUris(String containerId, String objectName,
-        HandlerIO handlerIO)
+    private MapOfObjects getMapOfObjectsIdsAndUris(String containerId, String objectName, HandlerIO handlerIO)
         throws ProcessingException {
         final MapOfObjects mapOfObjects = new MapOfObjects();
         mapOfObjects.setBinaryObjectsToStore(new HashMap<>());
@@ -186,8 +202,9 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
         ParametersChecker.checkParameter("Container id is a mandatory parameter", containerId);
         ParametersChecker.checkParameter("ObjectName id is a mandatory parameter", objectName);
         // Get objectGroup objects ids
-        mapOfObjects.setJsonOG(handlerIO.getJsonFromWorkspace(
-            IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName));
+        mapOfObjects.setJsonOG(
+            handlerIO.getJsonFromWorkspace(IngestWorkflowConstants.OBJECT_GROUP_FOLDER + "/" + objectName)
+        );
         handlerIO.setCurrentObjectId(objectName);
         handlerIO.addOutputResult(OG_OUT_RANK, mapOfObjects.getJsonOG(), true, false);
 
@@ -209,12 +226,13 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
             for (final JsonNode binaryObject : version) {
                 if (binaryObject.get(SedaConstants.TAG_PHYSICAL_ID) == null) {
                     String id = binaryObject.get(SedaConstants.PREFIX_ID).asText();
-                    mapOfObjects.getBinaryObjectsToStore().put(id,
-                        binaryObject.get(SedaConstants.TAG_URI).asText());
+                    mapOfObjects.getBinaryObjectsToStore().put(id, binaryObject.get(SedaConstants.TAG_URI).asText());
                     for (final JsonNode version2 : originalVersions) {
                         for (final JsonNode binaryObject2 : version2) {
-                            if (binaryObject2.get(SedaConstants.TAG_PHYSICAL_ID) == null &&
-                                binaryObject2.get(SedaConstants.PREFIX_ID).asText().equals(id)) {
+                            if (
+                                binaryObject2.get(SedaConstants.TAG_PHYSICAL_ID) == null &&
+                                binaryObject2.get(SedaConstants.PREFIX_ID).asText().equals(id)
+                            ) {
                                 mapOfObjects.getObjectJsonMap().put(id, binaryObject2);
                                 mapOfObjects.getObjectStorageInfos().put(id, binaryObject.get(SedaConstants.STORAGE));
                             }
@@ -234,10 +252,10 @@ public class StoreObjectGroupActionPlugin extends StoreObjectActionHandler {
     private List<ItemStatus> getFinalResult(List<ItemStatus> itemStatusList) {
         List<ItemStatus> finalItemStatusList = new ArrayList<>();
         for (ItemStatus itemStatus : itemStatusList) {
-            finalItemStatusList
-                .add(new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, itemStatus));
+            finalItemStatusList.add(
+                new ItemStatus(STORING_OBJECT_TASK_ID).setItemsStatus(STORING_OBJECT_TASK_ID, itemStatus)
+            );
         }
         return finalItemStatusList;
     }
-
 }

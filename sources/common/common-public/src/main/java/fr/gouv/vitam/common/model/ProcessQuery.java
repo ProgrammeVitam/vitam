@@ -39,29 +39,34 @@ public class ProcessQuery {
 
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("states")
     private List<String> states;
+
     @JsonProperty("statuses")
     private List<String> statuses;
+
     @JsonProperty("workflows")
     private List<String> workflows;
+
     @JsonProperty("listSteps")
     private List<String> listSteps;
+
     @JsonProperty("listProcessTypes")
     private List<String> listProcessTypes;
+
     // TODO: use LocaDate instead of String here, but need serializer / deserializer (see JavaTimeModule)
     @JsonProperty("startDateMin")
     private String startDateMin;
+
     // TODO: use LocaDate instead of String here, but need serializer / deserializer (see JavaTimeModule)
     @JsonProperty("startDateMax")
     private String startDateMax;
 
-
     /**
      * Constructor without fields use for jackson
      */
-    public ProcessQuery() {
-    }
+    public ProcessQuery() {}
 
     /**
      * @param id
@@ -73,8 +78,16 @@ public class ProcessQuery {
      * @param startDateMin
      * @param startDateMax
      */
-    public ProcessQuery(String id, List<String> states, List<String> statuses, List<String> workflows,
-        List<String> listSteps, List<String> listProcessTypes, String startDateMin, String startDateMax) {
+    public ProcessQuery(
+        String id,
+        List<String> states,
+        List<String> statuses,
+        List<String> workflows,
+        List<String> listSteps,
+        List<String> listProcessTypes,
+        String startDateMin,
+        String startDateMax
+    ) {
         this.id = id;
         this.states = states;
         this.statuses = statuses;
@@ -231,8 +244,22 @@ public class ProcessQuery {
 
     @Override
     public String toString() {
-        return "{id:" + id + ", states: " + states + ", statuses: " + statuses + ", workflows: " + workflows
-            + ", steps: " + listSteps + ", min: " + startDateMin + ", max: " + startDateMax + "}";
+        return (
+            "{id:" +
+            id +
+            ", states: " +
+            states +
+            ", statuses: " +
+            statuses +
+            ", workflows: " +
+            workflows +
+            ", steps: " +
+            listSteps +
+            ", min: " +
+            startDateMin +
+            ", max: " +
+            startDateMax +
+            "}"
+        );
     }
-
 }

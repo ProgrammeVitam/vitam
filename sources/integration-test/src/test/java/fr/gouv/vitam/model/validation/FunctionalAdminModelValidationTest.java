@@ -68,125 +68,157 @@ public class FunctionalAdminModelValidationTest {
         checkedCollections.add(FunctionalAdminCollections.VITAM_SEQUENCE);
 
         // Check that all collections are tested (NB will fail if not all tests are executed)
-        assertThat(checkedCollections).as("Should not fail if all the tests are executed !!!")
+        assertThat(checkedCollections)
+            .as("Should not fail if all the tests are executed !!!")
             .containsExactlyInAnyOrder(FunctionalAdminCollections.values());
     }
 
     @Test
     public void testAccessContractElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.ACCESS_CONTRACT, AccessContractModel.class,
-            ReferentialDocumentValidators.ACCESS_CONTRACT_SCHEMA_JSON);
+            FunctionalAdminCollections.ACCESS_CONTRACT,
+            AccessContractModel.class,
+            ReferentialDocumentValidators.ACCESS_CONTRACT_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testAgenciesElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.AGENCIES, AgenciesModel.class,
-            ReferentialDocumentValidators.AGENCIES_SCHEMA_JSON);
+            FunctionalAdminCollections.AGENCIES,
+            AgenciesModel.class,
+            ReferentialDocumentValidators.AGENCIES_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testArchiveUnitProfilesElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE, ArchiveUnitProfileModel.class,
-            ReferentialDocumentValidators.ARCHIVE_UNIT_PROFILE_SCHEMA_JSON);
+            FunctionalAdminCollections.ARCHIVE_UNIT_PROFILE,
+            ArchiveUnitProfileModel.class,
+            ReferentialDocumentValidators.ARCHIVE_UNIT_PROFILE_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testContextElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.CONTEXT, ContextModel.class,
-            ReferentialDocumentValidators.CONTEXT_SCHEMA_JSON);
+            FunctionalAdminCollections.CONTEXT,
+            ContextModel.class,
+            ReferentialDocumentValidators.CONTEXT_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testFormatElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.FORMATS, FileFormatModel.class,
-            ReferentialDocumentValidators.FILE_FORMAT_SCHEMA_JSON);
+            FunctionalAdminCollections.FORMATS,
+            FileFormatModel.class,
+            ReferentialDocumentValidators.FILE_FORMAT_SCHEMA_JSON
+        );
     }
 
     @Test
     public void tesGriffinElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.GRIFFIN, GriffinModel.class,
-            ReferentialDocumentValidators.GRIFFIN_SCHEMA_JSON);
+            FunctionalAdminCollections.GRIFFIN,
+            GriffinModel.class,
+            ReferentialDocumentValidators.GRIFFIN_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testIngestContractElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.INGEST_CONTRACT, IngestContractModel.class,
-            ReferentialDocumentValidators.INGEST_CONTRACT_SCHEMA_JSON);
+            FunctionalAdminCollections.INGEST_CONTRACT,
+            IngestContractModel.class,
+            ReferentialDocumentValidators.INGEST_CONTRACT_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testOntologyElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.ONTOLOGY, OntologyModel.class,
-            ReferentialDocumentValidators.ONTOLOGY_SCHEMA_JSON);
+            FunctionalAdminCollections.ONTOLOGY,
+            OntologyModel.class,
+            ReferentialDocumentValidators.ONTOLOGY_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testPreservationScenarioElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.PRESERVATION_SCENARIO, PreservationScenarioModel.class,
-            ReferentialDocumentValidators.PRESERVATION_SCENARIO_SCHEMA_JSON);
+            FunctionalAdminCollections.PRESERVATION_SCENARIO,
+            PreservationScenarioModel.class,
+            ReferentialDocumentValidators.PRESERVATION_SCENARIO_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testProfilesElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.PROFILE, ProfileModel.class,
-            ReferentialDocumentValidators.PROFILE_SCHEMA_JSON);
+            FunctionalAdminCollections.PROFILE,
+            ProfileModel.class,
+            ReferentialDocumentValidators.PROFILE_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testSecurityProfilesElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.SECURITY_PROFILE, SecurityProfileModel.class,
-            ReferentialDocumentValidators.SECURITY_PROFILE_SCHEMA_JSON);
+            FunctionalAdminCollections.SECURITY_PROFILE,
+            SecurityProfileModel.class,
+            ReferentialDocumentValidators.SECURITY_PROFILE_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testAccessionRegisterSummaryElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY, AccessionRegisterSummaryModel.class,
-            ReferentialDocumentValidators.ACCESSION_REGISTER_SUMMARY_SCHEMA_JSON);
+            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY,
+            AccessionRegisterSummaryModel.class,
+            ReferentialDocumentValidators.ACCESSION_REGISTER_SUMMARY_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testAccessionRegisterDetailElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL, AccessionRegisterDetailModel.class,
-            ReferentialDocumentValidators.ACCESSION_REGISTER_DETAIL_SCHEMA_JSON);
+            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL,
+            AccessionRegisterDetailModel.class,
+            ReferentialDocumentValidators.ACCESSION_REGISTER_DETAIL_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testAccessionRegisterSymbolicElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC, AccessionRegisterSymbolicModel.class,
-            ReferentialDocumentValidators.ACCESSION_REGISTER_SYMBOLIC_SCHEMA_JSON);
+            FunctionalAdminCollections.ACCESSION_REGISTER_SYMBOLIC,
+            AccessionRegisterSymbolicModel.class,
+            ReferentialDocumentValidators.ACCESSION_REGISTER_SYMBOLIC_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testRulesElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.RULES, FileRulesModel.class,
-            ReferentialDocumentValidators.FILE_RULES_SCHEMA_JSON);
+            FunctionalAdminCollections.RULES,
+            FileRulesModel.class,
+            ReferentialDocumentValidators.FILE_RULES_SCHEMA_JSON
+        );
     }
 
     @Test
     public void testManagementContractElasticsearchMapping() throws Exception {
         validateDataModel(
-            FunctionalAdminCollections.MANAGEMENT_CONTRACT, ManagementContractModel.class,
-            ReferentialDocumentValidators.MANAGEMENT_CONTRACT_SCHEMA_JSON);
+            FunctionalAdminCollections.MANAGEMENT_CONTRACT,
+            ManagementContractModel.class,
+            ReferentialDocumentValidators.MANAGEMENT_CONTRACT_SCHEMA_JSON
+        );
     }
 
-    private void validateDataModel(FunctionalAdminCollections collection,
-        Class<?> modelClass, String jsonSchemaFile) throws Exception {
-
+    private void validateDataModel(FunctionalAdminCollections collection, Class<?> modelClass, String jsonSchemaFile)
+        throws Exception {
         checkedCollections.add(collection);
 
         VitamCollection vitamCollection = collection.getVitamCollection();
@@ -195,6 +227,7 @@ public class FunctionalAdminModelValidationTest {
             modelClass,
             collection.getElasticsearchCollection().getMappingAsInputStream(),
             vitamCollection,
-            SecurityProfile.class.getResourceAsStream(jsonSchemaFile));
+            SecurityProfile.class.getResourceAsStream(jsonSchemaFile)
+        );
     }
 }

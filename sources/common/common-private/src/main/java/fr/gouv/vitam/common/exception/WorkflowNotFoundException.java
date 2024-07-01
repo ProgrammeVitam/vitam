@@ -32,6 +32,7 @@ import javax.ws.rs.ProcessingException;
  * Workflow not found exception throws by engine.
  */
 public class WorkflowNotFoundException extends ProcessingException {
+
     private static final long serialVersionUID = -5651787421624064080L;
 
     /**
@@ -48,5 +49,4 @@ public class WorkflowNotFoundException extends ProcessingException {
     public WorkflowNotFoundException(String message) {
         super(message);
     }
-
 }

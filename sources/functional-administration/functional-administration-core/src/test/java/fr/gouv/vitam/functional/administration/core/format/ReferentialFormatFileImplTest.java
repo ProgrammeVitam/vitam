@@ -90,19 +90,24 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 
 public class ReferentialFormatFileImplTest {
+
     private static final Integer TENANT_ID = 0;
     private static final String PREFIX = GUIDFactory.newGUID().getId();
     private static final ElasticsearchFunctionalAdminIndexManager indexManager =
         FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(FileFormat.class));
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(FileFormat.class));
+
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
     static LogbookOperationsClient logbookOperationsClient = Mockito.mock(LogbookOperationsClient.class);
     static ReferentialFormatFileImpl formatFile;
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     String FILE_TO_TEST_KO = "FF-vitam-format-KO.xml";
     String FILE_TO_TEST_OK = "DROID_SignatureFile_V94.xml";
     String FILE_TO_TEST_OK_V1 = "FF-vitam-V1.xml";
@@ -110,11 +115,13 @@ public class ReferentialFormatFileImplTest {
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-
         final List<ElasticsearchNode> esNodes = new ArrayList<>();
         esNodes.add(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager));
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER, esNodes, indexManager)
+        );
 
         final List<MongoDbNode> mongoDbNodes = new ArrayList<>();
         mongoDbNodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
@@ -122,9 +129,13 @@ public class ReferentialFormatFileImplTest {
         LogbookOperationsClientFactory.changeMode(null);
         formatFile = new ReferentialFormatFileImpl(
             MongoDbAccessAdminFactory.create(
-                new DbConfigurationImpl(mongoDbNodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
-                indexManager), functionalBackupService,
-            logbookOperationsClient);
+                new DbConfigurationImpl(mongoDbNodes, mongoRule.getMongoDatabase().getName()),
+                Collections::emptyList,
+                indexManager
+            ),
+            functionalBackupService,
+            logbookOperationsClient
+        );
     }
 
     @AfterClass
@@ -153,7 +164,6 @@ public class ReferentialFormatFileImplTest {
     @Test
     @RunWithCustomExecutor
     public void testImportFormat() throws Exception {
-
         // Given / When
         FormatImportReport report = importFormatFileAndDownloadReport(FILE_TO_TEST_OK);
 
@@ -169,7 +179,6 @@ public class ReferentialFormatFileImplTest {
         assertFalse(fileList.getResults().get(0).getBoolean("Alert"));
         assertEquals(fileList.getResults().get(0).getString("Group"), "");
         assertEquals(fileList.getResults().get(0).getString("Comment"), "");
-
 
         assertThat(report.getOperation().getEvType()).isEqualTo("STP_IMPORT_RULES");
         assertThat(report.getOperation().getEvDateTime()).isEqualTo("2018-11-28T15:41:10.752");
@@ -188,7 +197,6 @@ public class ReferentialFormatFileImplTest {
     @Test
     @RunWithCustomExecutor
     public void testImportFormatAndReImport_UpgradeVersion() throws Exception {
-
         // Given / When
         FormatImportReport report1 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V1);
         final FileFormat fileFormatBefore = formatFile.findDocumentById("x-fmt/2");
@@ -231,7 +239,6 @@ public class ReferentialFormatFileImplTest {
     @Test
     @RunWithCustomExecutor
     public void testImportFormatAndReImport_DowngradeVersion() throws Exception {
-
         // Given / When
         FormatImportReport report1 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V2);
         final FileFormat fileFormatBefore = formatFile.findDocumentById("x-fmt/2");
@@ -275,7 +282,6 @@ public class ReferentialFormatFileImplTest {
     @Test
     @RunWithCustomExecutor
     public void testImportFormatAndReImport_SameVersion() throws Exception {
-
         // Given / When
         FormatImportReport report1 = importFormatFileAndDownloadReport(FILE_TO_TEST_OK_V1);
         final FileFormat fileFormatBefore = formatFile.findDocumentById("x-fmt/2");
@@ -317,40 +323,46 @@ public class ReferentialFormatFileImplTest {
 
     private FormatImportReport importFormatFileAndDownloadReport(String fileToTest)
         throws VitamException, FileNotFoundException {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
         String requestId = VitamThreadUtils.getVitamSession().getRequestId();
 
         JsonNode result = JsonHandler.createObjectNode()
-            .set("$results", JsonHandler.createArrayNode().add(
-                JsonHandler.createObjectNode()
-                    .put("evType", "STP_IMPORT_RULES")
-                    .put("evDateTime", "2018-11-28T15:41:10.752")
-                    .put("evId", requestId)
-            ));
+            .set(
+                "$results",
+                JsonHandler.createArrayNode()
+                    .add(
+                        JsonHandler.createObjectNode()
+                            .put("evType", "STP_IMPORT_RULES")
+                            .put("evDateTime", "2018-11-28T15:41:10.752")
+                            .put("evId", requestId)
+                    )
+            );
 
-        doReturn(result).when(logbookOperationsClient).selectOperationById(
-            requestId);
+        doReturn(result).when(logbookOperationsClient).selectOperationById(requestId);
 
         ByteArrayOutputStream reportStream = new ByteArrayOutputStream();
-        doAnswer((args) -> {
+        doAnswer(args -> {
             InputStream is = args.getArgument(0);
             IOUtils.copy(is, reportStream);
             return null;
-        }).when(functionalBackupService).saveFile(
-            any(), any(), eq(FILE_FORMAT_REPORT), eq(DataCategory.REPORT), eq(requestId + ".json"));
+        })
+            .when(functionalBackupService)
+            .saveFile(any(), any(), eq(FILE_FORMAT_REPORT), eq(DataCategory.REPORT), eq(requestId + ".json"));
 
         // When
         formatFile.importFile(new FileInputStream(PropertiesUtils.findFile(fileToTest)), fileToTest);
 
         return JsonHandler.getFromInputStream(
-            new ByteArrayInputStream(reportStream.toByteArray()), FormatImportReport.class);
+            new ByteArrayInputStream(reportStream.toByteArray()),
+            FormatImportReport.class
+        );
     }
 
     private void checkFormatsInDb(int expected) {
         final MongoClient client = mongoRule.getMongoClient();
-        final MongoCollection<Document> collection = client.getDatabase(mongoRule.getMongoDatabase().getName())
+        final MongoCollection<Document> collection = client
+            .getDatabase(mongoRule.getMongoDatabase().getName())
             .getCollection(FunctionalAdminCollections.FORMATS.getName());
         assertEquals(expected, collection.countDocuments());
     }

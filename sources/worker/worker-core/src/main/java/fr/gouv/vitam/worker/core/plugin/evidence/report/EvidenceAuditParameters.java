@@ -35,11 +35,11 @@ import fr.gouv.vitam.worker.core.plugin.evidence.exception.EvidenceStatus;
 
 import java.util.Map;
 
-
 /**
  * Evidence audit Parameters
  */
 public class EvidenceAuditParameters {
+
     private String fileName;
     private DigestType digestType;
     private String fileDigest;
@@ -62,7 +62,6 @@ public class EvidenceAuditParameters {
 
     private Map<String, JsonNode> objectStorageMetadataResultMap;
     private Map<String, StoredInfoResult> mdOptimisticStorageInfoMap;
-
 
     /**
      * getter for fileName
@@ -119,8 +118,6 @@ public class EvidenceAuditParameters {
     public void setSecurisationOperationId(String securisationOperationId) {
         this.securisationOperationId = securisationOperationId;
     }
-
-
 
     /**
      * getter for id
@@ -188,8 +185,7 @@ public class EvidenceAuditParameters {
     /**
      * setter for mdOptimisticStorageInfo
      **/
-    public void setMdOptimisticStorageInfo(
-        StoredInfoResult mdOptimisticStorageInfo) {
+    public void setMdOptimisticStorageInfo(StoredInfoResult mdOptimisticStorageInfo) {
         this.mdOptimisticStorageInfo = mdOptimisticStorageInfo;
     }
 
@@ -220,8 +216,6 @@ public class EvidenceAuditParameters {
     public void setLfcVersion(int lfcVersion) {
         this.lfcVersion = lfcVersion;
     }
-
-    ;
 
     /**
      * getter for hashLfcFromDatabase
@@ -265,8 +259,6 @@ public class EvidenceAuditParameters {
         this.auditMessage = auditMessage;
     }
 
-
-
     /**
      * getter for evidenceStatus
      **/
@@ -291,11 +283,9 @@ public class EvidenceAuditParameters {
     /**
      * setter for objectStorageMetadataResultMap
      **/
-    public void setObjectStorageMetadataResultMap(
-        Map<String, JsonNode> objectStorageMetadataResultMap) {
+    public void setObjectStorageMetadataResultMap(Map<String, JsonNode> objectStorageMetadataResultMap) {
         this.objectStorageMetadataResultMap = objectStorageMetadataResultMap;
     }
-
 
     /**
      * getter for mdOptimisticStorageInfoMap
@@ -307,8 +297,7 @@ public class EvidenceAuditParameters {
     /**
      * setter for mdOptimisticStorageInfoMap
      **/
-    public void setMdOptimisticStorageInfoMap(
-        Map<String, StoredInfoResult> mdOptimisticStorageInfoMap) {
+    public void setMdOptimisticStorageInfoMap(Map<String, StoredInfoResult> mdOptimisticStorageInfoMap) {
         this.mdOptimisticStorageInfoMap = mdOptimisticStorageInfoMap;
     }
 }

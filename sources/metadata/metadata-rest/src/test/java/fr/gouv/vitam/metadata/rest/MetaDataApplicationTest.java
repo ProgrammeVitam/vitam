@@ -65,31 +65,34 @@ public class MetaDataApplicationTest {
 
     private static final String JETTY_CONFIG = "jetty-config-test.xml";
 
-
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Unit.class, ObjectGroup.class));
+    public static MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(Unit.class, ObjectGroup.class)
+    );
 
     @ClassRule
     public static ElasticsearchRule elasticsearchRule = new ElasticsearchRule();
 
-
     private MongoClient mongoClient = mongoRule.getMongoClient();
-
 
     /**
      *
      */
     @Before
     public void setUp() {
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
         final List<MongoDbNode> mongo_nodes = new ArrayList<>();
         mongo_nodes.add(new MongoDbNode("localhost", MongoRule.getDataBasePort()));
-        config = new MetaDataConfiguration(mongo_nodes, MongoRule.VITAM_DB, ElasticsearchRule.VITAM_CLUSTER, esNodes,
-            new MappingLoader(
-                Collections.emptyList()));
+        config = new MetaDataConfiguration(
+            mongo_nodes,
+            MongoRule.VITAM_DB,
+            ElasticsearchRule.VITAM_CLUSTER,
+            esNodes,
+            new MappingLoader(Collections.emptyList())
+        );
         VitamConfiguration.setTenants(tenantList);
         config.setJettyConfig(JETTY_CONFIG);
         config.setUrlProcessing("http://processing.service.consul:8203/");

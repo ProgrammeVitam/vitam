@@ -73,14 +73,19 @@ public class AdminManagementExternalResourceManagementContractTest {
 
     @Mock
     private AdminManagementClientFactory managementClientFactory;
+
     @Mock
     private IngestInternalClientFactory ingestInternalClientFactory;
+
     @Mock
     private AccessInternalClientFactory accessInternalClientFactory;
+
     @Mock
     private AdminManagementClient adminManagementClient;
+
     @Mock
     private IngestInternalClient ingestInternalClient;
+
     @Mock
     private AccessInternalClient accessInternalClient;
 
@@ -94,8 +99,13 @@ public class AdminManagementExternalResourceManagementContractTest {
 
         SecureEndpointRegistry registry = mock(SecureEndpointRegistry.class);
         VitamStatusService statusService = mock(VitamStatusService.class);
-        externalResource = new AdminManagementExternalResource(statusService, registry, managementClientFactory,
-            ingestInternalClientFactory, accessInternalClientFactory);
+        externalResource = new AdminManagementExternalResource(
+            statusService,
+            registry,
+            managementClientFactory,
+            ingestInternalClientFactory,
+            accessInternalClientFactory
+        );
     }
 
     @Test
@@ -105,7 +115,8 @@ public class AdminManagementExternalResourceManagementContractTest {
         when(adminManagementClient.importManagementContracts(any())).thenReturn(Status.OK);
         // when
         Response response = externalResource.importManagementContracts(
-            getFromFile(PropertiesUtils.getResourceFile("contracts_management_ok.json")));
+            getFromFile(PropertiesUtils.getResourceFile("contracts_management_ok.json"))
+        );
         // then
         assertThat(response.getStatus()).isEqualTo(200);
     }
@@ -117,15 +128,15 @@ public class AdminManagementExternalResourceManagementContractTest {
 
     @Test
     public void shouldUpdateManagementContract()
-        throws AdminManagementClientServerException, InvalidParseOperationException, FileNotFoundException,
-        ReferentialNotFoundException, InvalidCreateOperationException {
+        throws AdminManagementClientServerException, InvalidParseOperationException, FileNotFoundException, ReferentialNotFoundException, InvalidCreateOperationException {
         // Given
         final Update update = new Update();
         update.setQuery(QueryHelper.eq("Name", "mcContract1"));
         final SetAction setActionPermission = UpdateActionHelper.set("Description", "new description");
         update.addActions(setActionPermission);
-        when(adminManagementClient.updateManagementContract(any(), any()))
-            .thenReturn(new RequestResponseOK<ManagementContractModel>());
+        when(adminManagementClient.updateManagementContract(any(), any())).thenReturn(
+            new RequestResponseOK<ManagementContractModel>()
+        );
         // when
         Response response = externalResource.updateManagementContract("id", update.getFinalUpdateById());
         // then
@@ -134,11 +145,11 @@ public class AdminManagementExternalResourceManagementContractTest {
 
     @Test
     public void shouldReturnNotFoundUpdateManagementContract()
-        throws AdminManagementClientServerException, InvalidParseOperationException, FileNotFoundException,
-        ReferentialNotFoundException, InvalidCreateOperationException {
+        throws AdminManagementClientServerException, InvalidParseOperationException, FileNotFoundException, ReferentialNotFoundException, InvalidCreateOperationException {
         // Given
-        when(adminManagementClient.updateManagementContract(any(), any()))
-            .thenThrow(new ReferentialNotFoundException("not found"));
+        when(adminManagementClient.updateManagementContract(any(), any())).thenThrow(
+            new ReferentialNotFoundException("not found")
+        );
         // when
         Response response = externalResource.updateManagementContract("id", new Update().getFinalUpdateById());
         // then
@@ -150,30 +161,36 @@ public class AdminManagementExternalResourceManagementContractTest {
         // Given
         ManagementContractModel managementContractModel = new ManagementContractModel();
         managementContractModel.setName("mcContract1");
-        RequestResponse<ManagementContractModel> requestResponse = new RequestResponseOK<ManagementContractModel>()
-            .addResult(managementContractModel);
+        RequestResponse<ManagementContractModel> requestResponse = new RequestResponseOK<
+            ManagementContractModel
+        >().addResult(managementContractModel);
         when(adminManagementClient.findManagementContractsByID("id")).thenReturn(requestResponse);
         // when
         Response response = externalResource.findManagementContractsByID("id");
         // Then
         @SuppressWarnings("unchecked")
-        RequestResponse<ManagementContractModel> entity = (RequestResponse<ManagementContractModel>) response
-            .getEntity();
-        assertThat(toJsonNode(entity).get("$results").get(0).get("Name").textValue())
-            .isEqualTo(managementContractModel.getName());
+        RequestResponse<ManagementContractModel> entity = (RequestResponse<
+                ManagementContractModel
+            >) response.getEntity();
+        assertThat(toJsonNode(entity).get("$results").get(0).get("Name").textValue()).isEqualTo(
+            managementContractModel.getName()
+        );
     }
 
     @Test
     public void shouldReturnNotFoundGetManagementContract() throws Exception {
         // Given
-        when(adminManagementClient.findManagementContractsByID("id"))
-            .thenThrow(new ReferentialNotFoundException("not found"));
+        when(adminManagementClient.findManagementContractsByID("id")).thenThrow(
+            new ReferentialNotFoundException("not found")
+        );
         // when
         Response response = externalResource.findManagementContractsByID("id");
         // Then
         @SuppressWarnings("unchecked")
-        RequestResponse<ManagementContractModel> entity =
-            JsonHandler.getFromString((String) response.getEntity(), RequestResponseOK.class);
+        RequestResponse<ManagementContractModel> entity = JsonHandler.getFromString(
+            (String) response.getEntity(),
+            RequestResponseOK.class
+        );
         assertThat(entity.getHttpCode()).isEqualTo(404);
     }
 
@@ -182,17 +199,19 @@ public class AdminManagementExternalResourceManagementContractTest {
         // Given
         ManagementContractModel managementContractModel = new ManagementContractModel();
         managementContractModel.setName("mcContract1");
-        RequestResponse<ManagementContractModel> requestResponse = new RequestResponseOK<ManagementContractModel>()
-            .addResult(managementContractModel);
+        RequestResponse<ManagementContractModel> requestResponse = new RequestResponseOK<
+            ManagementContractModel
+        >().addResult(managementContractModel);
         when(adminManagementClient.findManagementContracts(any())).thenReturn(requestResponse);
         // when
         Response response = externalResource.findManagementContracts(new Select().getFinalSelect());
         // Then
         @SuppressWarnings("unchecked")
-        RequestResponse<ManagementContractModel> entity = (RequestResponse<ManagementContractModel>) response
-            .getEntity();
-        assertThat(toJsonNode(entity).get("$results").get(0).get("Name").textValue())
-            .isEqualTo(managementContractModel.getName());
+        RequestResponse<ManagementContractModel> entity = (RequestResponse<
+                ManagementContractModel
+            >) response.getEntity();
+        assertThat(toJsonNode(entity).get("$results").get(0).get("Name").textValue()).isEqualTo(
+            managementContractModel.getName()
+        );
     }
-
 }

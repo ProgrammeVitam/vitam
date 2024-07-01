@@ -82,9 +82,7 @@ public class TimeStampSignatureWithKeystore implements TimeStampSignature {
      * @throws UnrecoverableKeyException
      */
     public TimeStampSignatureWithKeystore(File pkcs12Path, char[] keystorePassword)
-        throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException,
-        UnrecoverableKeyException {
-
+        throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException, UnrecoverableKeyException {
         digestCalculatorProvider = new BcDigestCalculatorProvider();
 
         final KeyStore keyStore = KeyStore.getInstance("PKCS12");
@@ -99,9 +97,11 @@ public class TimeStampSignatureWithKeystore implements TimeStampSignature {
         tspPolicy = "1.1";
     }
 
-    private String loadKeystoreAndfindUniqueAlias(char[] keystorePassword, KeyStore keyStore,
-        FileInputStream fileInputStream)
-        throws IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
+    private String loadKeystoreAndfindUniqueAlias(
+        char[] keystorePassword,
+        KeyStore keyStore,
+        FileInputStream fileInputStream
+    ) throws IOException, NoSuchAlgorithmException, CertificateException, KeyStoreException {
         keyStore.load(fileInputStream, keystorePassword);
 
         final Enumeration<String> aliases = keyStore.aliases();
@@ -122,22 +122,28 @@ public class TimeStampSignatureWithKeystore implements TimeStampSignature {
     @Override
     public TimeStampResponse sign(TimeStampRequest request)
         throws OperatorCreationException, TSPException, CertificateEncodingException {
-        final DigestCalculator digestCalculator =
-            digestCalculatorProvider.get(new AlgorithmIdentifier(request.getMessageImprintAlgOID()));
+        final DigestCalculator digestCalculator = digestCalculatorProvider.get(
+            new AlgorithmIdentifier(request.getMessageImprintAlgOID())
+        );
         final String tspAlgorithm = computeTspAlgorithm(key, VitamConfiguration.getDefaultTimestampDigestType());
 
-        final SignerInfoGenerator signerInfoGen =
-            new JcaSimpleSignerInfoGeneratorBuilder().build(tspAlgorithm, key, (X509Certificate) certificateChain[0]);
+        final SignerInfoGenerator signerInfoGen = new JcaSimpleSignerInfoGeneratorBuilder()
+            .build(tspAlgorithm, key, (X509Certificate) certificateChain[0]);
 
         final ASN1ObjectIdentifier tsaPolicy = new ASN1ObjectIdentifier(tspPolicy);
 
-        final TimeStampTokenGenerator tokenGen =
-            new TimeStampTokenGenerator(signerInfoGen, digestCalculator, tsaPolicy);
+        final TimeStampTokenGenerator tokenGen = new TimeStampTokenGenerator(
+            signerInfoGen,
+            digestCalculator,
+            tsaPolicy
+        );
 
         tokenGen.addCertificates(new JcaCertStore(Arrays.asList(certificateChain)));
 
-        final TimeStampResponseGenerator timeStampResponseGenerator =
-            new TimeStampResponseGenerator(tokenGen, TSPAlgorithms.ALLOWED);
+        final TimeStampResponseGenerator timeStampResponseGenerator = new TimeStampResponseGenerator(
+            tokenGen,
+            TSPAlgorithms.ALLOWED
+        );
 
         final Date currentDate = LocalDateUtil.getDate(LocalDateUtil.now());
 
@@ -147,5 +153,4 @@ public class TimeStampSignatureWithKeystore implements TimeStampSignature {
     private String computeTspAlgorithm(PrivateKey privateKey, DigestType digestType) {
         return String.format("%sWith%s", digestType.name(), privateKey.getAlgorithm());
     }
-
 }

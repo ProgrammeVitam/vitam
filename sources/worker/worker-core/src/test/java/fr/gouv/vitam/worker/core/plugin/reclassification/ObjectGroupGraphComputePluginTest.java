@@ -65,9 +65,7 @@ public class ObjectGroupGraphComputePluginTest {
 
     @Test
     public void testGetGraphComputeAction() {
-
-        GraphComputeAction action =
-            objectGroupGraphComputePlugin.getGraphComputeAction();
+        GraphComputeAction action = objectGroupGraphComputePlugin.getGraphComputeAction();
         Assertions.assertThat(action).isEqualTo(GraphComputeAction.OBJECTGROUP);
     }
 
@@ -75,7 +73,6 @@ public class ObjectGroupGraphComputePluginTest {
     public void testGetPluginKeyName() {
         String pluginName = objectGroupGraphComputePlugin.getPluginKeyName();
         Assertions.assertThat(pluginName).isEqualTo("OBJECT_GROUP_GRAPH_COMPUTE");
-
     }
 
     @Test(expected = ProcessingException.class)
@@ -110,5 +107,4 @@ public class ObjectGroupGraphComputePluginTest {
         assertThat(statusMeter.get(3)).isEqualTo(3);
         assertThat(statusMeter.get(6)).isEqualTo(1);
     }
-
 }

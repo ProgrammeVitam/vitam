@@ -101,17 +101,15 @@ public abstract class RequestToMongodb extends RequestToAbstract {
      * @throws IllegalAccessError if query is full text
      * @throws InvalidParseOperationException if could not get command by query
      */
-    public Bson getNthQueries(final int nth) throws IllegalAccessException,
-        IllegalAccessError, InvalidParseOperationException {
+    public Bson getNthQueries(final int nth)
+        throws IllegalAccessException, IllegalAccessError, InvalidParseOperationException {
         final List<Query> list = requestParser.getRequest().getQueries();
         if (nth >= list.size()) {
-            throw new IllegalAccessError(
-                "This Query has not enough item to get the position: " + nth);
+            throw new IllegalAccessError("This Query has not enough item to get the position: " + nth);
         }
         final Query query = list.get(nth);
         if (query.isFullText()) {
-            throw new IllegalAccessException(
-                "This Query is to be computed by Elasticsearch: " + nth);
+            throw new IllegalAccessException("This Query is to be computed by Elasticsearch: " + nth);
         }
         return QueryToMongodb.getCommand(query);
     }

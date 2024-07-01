@@ -58,12 +58,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ProjectServiceTest {
+
     private static final Integer TENANT_ID = 0;
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
-    private final static String PROJECT_ID = "PROJECT_ID";
-    private final static String PROJECT_TITLE = "My Project";
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
+    private static final String PROJECT_ID = "PROJECT_ID";
+    private static final String PROJECT_TITLE = "My Project";
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -97,17 +101,20 @@ public class ProjectServiceTest {
         final String currentTime = LocalDateUtil.now().toString();
         projectService.createProject(new ProjectDto(PROJECT_ID));
 
-        Mockito.verify(projectRepository).createProject(argThat(e ->
-            PROJECT_ID.equals(e.getId()) && currentTime.equals(e.getCreationDate())
-                && currentTime.equals(e.getLastUpdate())));
+        Mockito.verify(projectRepository).createProject(
+            argThat(
+                e ->
+                    PROJECT_ID.equals(e.getId()) &&
+                    currentTime.equals(e.getCreationDate()) &&
+                    currentTime.equals(e.getLastUpdate())
+            )
+        );
     }
 
     @Test
     public void findProject() throws CollectInternalException {
         projectService.findProject(PROJECT_ID);
         Mockito.verify(projectRepository).findProjectById(eq(PROJECT_ID));
-
-
     }
 
     @Test
@@ -120,10 +127,14 @@ public class ProjectServiceTest {
         projectDto.setCreationDate(creationDate.toString());
         projectService.updateProject(projectDto);
 
-        Mockito.verify(projectRepository).updateProject(argThat(e ->
-            PROJECT_ID.equals(e.getId()) &&
-                currentTime.isAfter(LocalDateUtil.parseMongoFormattedDate(e.getCreationDate()))
-                && currentTime.equals(LocalDateUtil.parseMongoFormattedDate(e.getLastUpdate()))));
+        Mockito.verify(projectRepository).updateProject(
+            argThat(
+                e ->
+                    PROJECT_ID.equals(e.getId()) &&
+                    currentTime.isAfter(LocalDateUtil.parseMongoFormattedDate(e.getCreationDate())) &&
+                    currentTime.equals(LocalDateUtil.parseMongoFormattedDate(e.getLastUpdate()))
+            )
+        );
     }
 
     @Test

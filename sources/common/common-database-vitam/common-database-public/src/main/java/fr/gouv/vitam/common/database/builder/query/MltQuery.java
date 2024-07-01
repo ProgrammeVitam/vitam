@@ -41,6 +41,7 @@ import java.util.Set;
  * MoreLikeThis Query
  */
 public class MltQuery extends Query {
+
     private static final String CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME =
         " cannot be created with empty variable name";
     private static final String QUERY2 = "Query ";
@@ -67,13 +68,11 @@ public class MltQuery extends Query {
      * @param variableNames criteria of query
      * @throws InvalidCreateOperationException when query is not valid
      */
-    public MltQuery(final QUERY mltQuery, final String value,
-        final String... variableNames)
+    public MltQuery(final QUERY mltQuery, final String value, final String... variableNames)
         throws InvalidCreateOperationException {
         super();
         if (value == null || value.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                QUERY2 + mltQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(QUERY2 + mltQuery + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityValueCheck(value);
@@ -83,8 +82,7 @@ public class MltQuery extends Query {
         switch (mltQuery) {
             case FLT:
             case MLT:
-                final ObjectNode sub =
-                    ((ObjectNode) currentObject).putObject(mltQuery.exactToken());
+                final ObjectNode sub = ((ObjectNode) currentObject).putObject(mltQuery.exactToken());
                 final ArrayNode array = sub.putArray(QUERYARGS.FIELDS.exactToken());
                 stringVals = new HashSet<>();
                 for (final String varName : variableNames) {
@@ -106,8 +104,7 @@ public class MltQuery extends Query {
                 sub.put(QUERYARGS.LIKE.exactToken(), value);
                 break;
             default:
-                throw new InvalidCreateOperationException(
-                    QUERY2 + mltQuery + " is not an MoreLikeThis or In Query");
+                throw new InvalidCreateOperationException(QUERY2 + mltQuery + " is not an MoreLikeThis or In Query");
         }
         currentTokenQUERY = mltQuery;
         setReady(true);
@@ -120,11 +117,11 @@ public class MltQuery extends Query {
      * @return the MltQuery
      * @throws InvalidCreateOperationException when query is not valid
      */
-    public final MltQuery add(final String... variableName)
-        throws InvalidCreateOperationException {
+    public final MltQuery add(final String... variableName) throws InvalidCreateOperationException {
         if (currentTokenQUERY != QUERY.FLT && currentTokenQUERY != QUERY.MLT) {
             throw new InvalidCreateOperationException(
-                "Cannot add a variableName since this is not an Mlt Query: " + currentTokenQUERY);
+                "Cannot add a variableName since this is not an Mlt Query: " + currentTokenQUERY
+            );
         }
         final ArrayNode array = (ArrayNode) currentObject;
         if (stringVals == null) {
@@ -133,7 +130,8 @@ public class MltQuery extends Query {
         for (String val : variableName) {
             if (val == null || val.trim().isEmpty()) {
                 throw new InvalidCreateOperationException(
-                    QUERY2 + currentTokenQUERY + " cannot be updated with empty variable name");
+                    QUERY2 + currentTokenQUERY + " cannot be updated with empty variable name"
+                );
             }
             try {
                 GlobalDatas.sanityParameterCheck(val);

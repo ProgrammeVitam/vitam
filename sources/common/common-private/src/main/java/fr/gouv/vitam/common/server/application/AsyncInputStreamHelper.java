@@ -101,6 +101,7 @@ import java.io.InputStream;
  * </pre>
  */
 public class AsyncInputStreamHelper {
+
     private final AsyncResponse asyncResponse;
     private final Response receivedResponse;
     private InputStream inputStream;
@@ -190,12 +191,14 @@ public class AsyncInputStreamHelper {
      */
     public static void asyncResponseResume(AsyncResponse asyncResponse, final Response response) {
         ParametersChecker.checkParameter("ErrorResponse should not be null", response);
-        asyncResponse.register((CompletionCallback) throwable -> {
-            Object entity = response.getEntity();
-            if (entity != null && entity instanceof InputStream) {
-                StreamUtils.closeSilently((InputStream) entity);
+        asyncResponse.register(
+            (CompletionCallback) throwable -> {
+                Object entity = response.getEntity();
+                if (entity != null && entity instanceof InputStream) {
+                    StreamUtils.closeSilently((InputStream) entity);
+                }
             }
-        });
+        );
         asyncResponse.resume(response);
     }
 
@@ -209,8 +212,11 @@ public class AsyncInputStreamHelper {
      * @param response the fully prepared ErrorResponse
      * @param stream an inputStream to close anyway
      */
-    public static void asyncResponseResume(AsyncResponse asyncResponse, final Response response,
-        final InputStream stream) {
+    public static void asyncResponseResume(
+        AsyncResponse asyncResponse,
+        final Response response,
+        final InputStream stream
+    ) {
         StreamUtils.closeSilently(stream);
         ParametersChecker.checkParameter("ErrorResponse should not be null", response);
         asyncResponse.resume(response);
@@ -218,13 +224,14 @@ public class AsyncInputStreamHelper {
 
     private Response getResponseError(VitamCode vitamCode) {
         return Response.status(vitamCode.getStatus())
-            .entity(new VitamError(VitamCodeHelper.getCode(vitamCode))
-                .setContext(vitamCode.getService().getName())
-                .setState(vitamCode.getDomain().getName())
-                .setMessage(vitamCode.getMessage())
-                .setDescription(vitamCode.getMessage())
-                .toString())
+            .entity(
+                new VitamError(VitamCodeHelper.getCode(vitamCode))
+                    .setContext(vitamCode.getService().getName())
+                    .setState(vitamCode.getDomain().getName())
+                    .setMessage(vitamCode.getMessage())
+                    .setDescription(vitamCode.getMessage())
+                    .toString()
+            )
             .build();
     }
-
 }

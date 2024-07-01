@@ -45,8 +45,7 @@ public class LifecycleTraceabilityStatus {
     /**
      * Empty constructor for deserialization
      */
-    public LifecycleTraceabilityStatus() {
-    }
+    public LifecycleTraceabilityStatus() {}
 
     public LifecycleTraceabilityStatus(boolean completed, boolean paused, String outcome, boolean maxEntriesReached) {
         this.completed = completed;
@@ -89,10 +88,16 @@ public class LifecycleTraceabilityStatus {
 
     @Override
     public String toString() {
-        return "LifecycleTraceabilityStatus{" +
-            "completed=" + completed +
-            ", outcome='" + outcome + '\'' +
-            ", maxEntriesReached=" + maxEntriesReached +
-            '}';
+        return (
+            "LifecycleTraceabilityStatus{" +
+            "completed=" +
+            completed +
+            ", outcome='" +
+            outcome +
+            '\'' +
+            ", maxEntriesReached=" +
+            maxEntriesReached +
+            '}'
+        );
     }
 }

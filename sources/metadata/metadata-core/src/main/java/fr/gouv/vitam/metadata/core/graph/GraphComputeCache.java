@@ -48,21 +48,24 @@ import static com.mongodb.client.model.Projections.include;
 public class GraphComputeCache extends AbstractVitamCache<String, Document> {
 
     private static class SingletonHolder {
+
         private static final GraphComputeCache INSTANCE = new GraphComputeCache();
     }
 
     /**
      * Private constructor
      */
-    private GraphComputeCache() {
-    }
+    private GraphComputeCache() {}
 
     @Override
     protected Map<String, Document> loadByKeys(Iterable<? extends String> keys) {
         Map<String, Document> docs = new HashMap<>();
-        try (MongoCursor<Document> it = MetadataCollections.UNIT.getCollection().find(in(Unit.ID, keys))
-            .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY))
-            .iterator()) {
+        try (
+            MongoCursor<Document> it = MetadataCollections.UNIT.getCollection()
+                .find(in(Unit.ID, keys))
+                .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY))
+                .iterator()
+        ) {
             while (it.hasNext()) {
                 final Document doc = it.next();
                 docs.put(doc.get(Unit.ID, String.class), doc);
@@ -73,7 +76,8 @@ public class GraphComputeCache extends AbstractVitamCache<String, Document> {
 
     @Override
     protected Document loadByKey(String key) {
-        return MetadataCollections.UNIT.getCollection().find(eq(Unit.ID, key))
+        return MetadataCollections.UNIT.getCollection()
+            .find(eq(Unit.ID, key))
             .projection(include(Unit.UP, Unit.ORIGINATING_AGENCY))
             .first();
     }
@@ -81,5 +85,4 @@ public class GraphComputeCache extends AbstractVitamCache<String, Document> {
     public static VitamCache<String, Document> getInstance() {
         return SingletonHolder.INSTANCE;
     }
-
 }

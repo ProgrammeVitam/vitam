@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.common.security.rest;
 
-
 import fr.gouv.vitam.utils.SecurityProfilePermissions;
 
 import java.lang.annotation.ElementType;
@@ -39,9 +38,8 @@ import java.lang.annotation.Target;
  * Permission should be a unique identifier per endpoint method.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.METHOD})
+@Target({ ElementType.METHOD })
 public @interface Secured {
-
     SecurityProfilePermissions permission();
 
     String description();

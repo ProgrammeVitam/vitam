@@ -26,7 +26,6 @@
  */
 package fr.gouv.vitam.storage.offers.rest;
 
-
 import fr.gouv.vitam.common.ParametersChecker;
 import fr.gouv.vitam.common.ServerIdentity;
 import fr.gouv.vitam.common.exception.VitamApplicationServerException;
@@ -54,11 +53,17 @@ public class DefaultOfferMain {
      * @param configurationFile
      */
     public DefaultOfferMain(String configurationFile) {
-        ParametersChecker
-            .checkParameter(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME), configurationFile);
+        ParametersChecker.checkParameter(
+            String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME),
+            configurationFile
+        );
 
-        vitamStarter = new VitamStarter(OfferConfiguration.class, configurationFile,
-            BusinessApplication.class, AdminOfferApplication.class);
+        vitamStarter = new VitamStarter(
+            OfferConfiguration.class,
+            configurationFile,
+            BusinessApplication.class,
+            AdminOfferApplication.class
+        );
 
         OfferCommonApplication.getInstance().initialize(configurationFile);
     }
@@ -72,8 +77,7 @@ public class DefaultOfferMain {
         try {
             if (args == null || args.length == 0) {
                 LOGGER.error(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
-                throw new IllegalArgumentException(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT,
-                    CONF_FILE_NAME));
+                throw new IllegalArgumentException(String.format(CONFIG_FILE_IS_A_MANDATORY_ARGUMENT, CONF_FILE_NAME));
             }
             DefaultOfferMain main = new DefaultOfferMain(args[0]);
 

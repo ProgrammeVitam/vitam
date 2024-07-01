@@ -30,6 +30,7 @@ package fr.gouv.vitam.logbook.common.exception;
  * Exception is thrown when the object to be created already exists
  */
 public class LogbookClientAlreadyExistsException extends LogbookClientException {
+
     private static final long serialVersionUID = -832710008443613499L;
 
     /**

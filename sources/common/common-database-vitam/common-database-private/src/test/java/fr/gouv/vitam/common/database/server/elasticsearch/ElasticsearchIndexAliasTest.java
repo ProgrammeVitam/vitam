@@ -36,64 +36,74 @@ public class ElasticsearchIndexAliasTest {
 
     @Test
     public void testAliasOfCrossTenantCollection() {
-        ElasticsearchIndexAlias elasticsearchIndexAlias =
-            ElasticsearchIndexAlias.ofCrossTenantCollection("MyCollection");
+        ElasticsearchIndexAlias elasticsearchIndexAlias = ElasticsearchIndexAlias.ofCrossTenantCollection(
+            "MyCollection"
+        );
 
         assertThat(elasticsearchIndexAlias.getName()).isEqualTo("mycollection");
     }
 
     @Test
     public void testAliasOfMultiTenantCollectionWithDedicatedTenant() {
-        ElasticsearchIndexAlias elasticsearchIndexAlias =
-            ElasticsearchIndexAlias.ofMultiTenantCollection("MyCollection", 2);
+        ElasticsearchIndexAlias elasticsearchIndexAlias = ElasticsearchIndexAlias.ofMultiTenantCollection(
+            "MyCollection",
+            2
+        );
 
         assertThat(elasticsearchIndexAlias.getName()).isEqualTo("mycollection_2");
     }
 
     @Test
     public void testAliasOfMultiTenantCollectionWithTenantGroup() {
-        ElasticsearchIndexAlias elasticsearchIndexAlias =
-            ElasticsearchIndexAlias.ofMultiTenantCollection("MyCollection", "grp1");
+        ElasticsearchIndexAlias elasticsearchIndexAlias = ElasticsearchIndexAlias.ofMultiTenantCollection(
+            "MyCollection",
+            "grp1"
+        );
 
         assertThat(elasticsearchIndexAlias.getName()).isEqualTo("mycollection_grp1");
     }
 
     @Test
     public void testAliasOfMultiTenantCollectionWithNullTenantGroup() {
-        assertThatThrownBy(() -> ElasticsearchIndexAlias.ofMultiTenantCollection("MyCollection", null))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ElasticsearchIndexAlias.ofMultiTenantCollection("MyCollection", null)).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
 
     @Test
     public void testAliasOfMultiTenantCollectionWithEmptyTenantGroup() {
-        assertThatThrownBy(() -> ElasticsearchIndexAlias.ofMultiTenantCollection("MyCollection", ""))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ElasticsearchIndexAlias.ofMultiTenantCollection("MyCollection", "")).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
 
     @Test
     public void testAliasOfMultiTenantCollectionWithInvalidUpperCaseTenantGroup() {
-        assertThatThrownBy(() -> ElasticsearchIndexAlias.ofMultiTenantCollection("MyCollection", "Invalid"))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(
+            () -> ElasticsearchIndexAlias.ofMultiTenantCollection("MyCollection", "Invalid")
+        ).isInstanceOf(IllegalStateException.class);
     }
-
 
     @Test
     public void testAliasOfFullIndexName() {
-        ElasticsearchIndexAlias elasticsearchIndexAlias =
-            ElasticsearchIndexAlias.ofFullIndexName("mycollection_1_1234");
+        ElasticsearchIndexAlias elasticsearchIndexAlias = ElasticsearchIndexAlias.ofFullIndexName(
+            "mycollection_1_1234"
+        );
 
         assertThat(elasticsearchIndexAlias.getName()).isEqualTo("mycollection_1_1234");
     }
 
     @Test
     public void testAliasOfFullIndexNameWithNullName() {
-        assertThatThrownBy(() -> ElasticsearchIndexAlias.ofFullIndexName(null))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ElasticsearchIndexAlias.ofFullIndexName(null)).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
 
     @Test
     public void testAliasOfFullIndexNameWithEmptyName() {
-        assertThatThrownBy(() -> ElasticsearchIndexAlias.ofFullIndexName(""))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ElasticsearchIndexAlias.ofFullIndexName("")).isInstanceOf(
+            IllegalArgumentException.class
+        );
     }
 }

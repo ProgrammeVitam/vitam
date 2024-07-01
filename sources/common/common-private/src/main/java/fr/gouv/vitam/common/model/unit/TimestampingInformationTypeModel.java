@@ -50,7 +50,8 @@ public class TimestampingInformationTypeModel {
     }
 
     public TimestampingInformationTypeModel setAdditionalTimestampingInformation(
-        String additionalTimestampingInformation) {
+        String additionalTimestampingInformation
+    ) {
         this.additionalTimestampingInformation = additionalTimestampingInformation;
         return this;
     }

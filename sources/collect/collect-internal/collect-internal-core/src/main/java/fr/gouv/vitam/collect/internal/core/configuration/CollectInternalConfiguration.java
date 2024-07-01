@@ -62,8 +62,7 @@ public class CollectInternalConfiguration extends DbConfigurationImpl {
         return purgeTransactionDelayInMinutes;
     }
 
-    public void setPurgeTransactionDelayInMinutes(
-        Map<Integer, Integer> purgeTransactionDelayInMinutes) {
+    public void setPurgeTransactionDelayInMinutes(Map<Integer, Integer> purgeTransactionDelayInMinutes) {
         this.purgeTransactionDelayInMinutes = purgeTransactionDelayInMinutes;
     }
 
@@ -89,13 +88,10 @@ public class CollectInternalConfiguration extends DbConfigurationImpl {
      * @throws IllegalArgumentException if workspaceUrl is null or empty
      */
     public CollectInternalConfiguration setWorkspaceUrl(String workspaceUrl) {
-        ParametersChecker.checkParameter("workspaceUrl" + IS_A_MANDATORY_PARAMETER,
-            workspaceUrl);
+        ParametersChecker.checkParameter("workspaceUrl" + IS_A_MANDATORY_PARAMETER, workspaceUrl);
         this.workspaceUrl = workspaceUrl;
         return this;
     }
-
-
 
     public Integer getTransactionStatusThreadPoolSize() {
         return transactionStatusThreadPoolSize;

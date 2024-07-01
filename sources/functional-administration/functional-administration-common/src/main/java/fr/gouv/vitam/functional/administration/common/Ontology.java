@@ -94,8 +94,7 @@ public class Ontology extends VitamDocument<Ontology> {
     /**
      * Empty Constructor
      */
-    public Ontology() {
-    }
+    public Ontology() {}
 
     /**
      * Constructor
@@ -141,7 +140,6 @@ public class Ontology extends VitamDocument<Ontology> {
         return this;
     }
 
-
     /**
      * The ontology id
      *
@@ -181,7 +179,6 @@ public class Ontology extends VitamDocument<Ontology> {
         append(SEDAFIELD, sedaField);
         return this;
     }
-
 
     /**
      * The ontology api field
@@ -223,7 +220,6 @@ public class Ontology extends VitamDocument<Ontology> {
         return this;
     }
 
-
     /**
      * Get the ontology type
      *
@@ -244,8 +240,6 @@ public class Ontology extends VitamDocument<Ontology> {
         return this;
     }
 
-
-
     /**
      * Get the ontology origin
      *
@@ -265,8 +259,6 @@ public class Ontology extends VitamDocument<Ontology> {
         append(ORIGIN, origin);
         return this;
     }
-
-
 
     /**
      * Get the ontology ShortName
@@ -292,7 +284,6 @@ public class Ontology extends VitamDocument<Ontology> {
         return (List<String>) get(COLLECTIONS);
     }
 
-
     /**
      * Set or change the ontology collections
      *
@@ -307,7 +298,6 @@ public class Ontology extends VitamDocument<Ontology> {
         }
         return this;
     }
-
 
     /**
      * @return creation date of ontology
@@ -340,7 +330,4 @@ public class Ontology extends VitamDocument<Ontology> {
         append(LAST_UPDATE, lastupdate);
         return this;
     }
-
-
-
 }

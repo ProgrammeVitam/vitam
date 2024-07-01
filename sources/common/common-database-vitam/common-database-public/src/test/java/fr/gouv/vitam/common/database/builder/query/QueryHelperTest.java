@@ -99,19 +99,16 @@ public class QueryHelperTest {
             final String longname = createLongString(GlobalDatas.getLimitParameter() + 100);
             path(longname, "id2");
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {
-        }
+        } catch (final InvalidCreateOperationException e) {}
         try {
             final String longvalue = createLongString(GlobalDatas.getLimitValue() + 100);
             eq("var", longvalue);
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {
-        }
+        } catch (final InvalidCreateOperationException e) {}
         try {
             eq("_var", "val");
             fail("Should fail");
-        } catch (final InvalidCreateOperationException e) {
-        }
+        } catch (final InvalidCreateOperationException e) {}
     }
 
     @Test

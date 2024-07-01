@@ -30,7 +30,6 @@ package fr.gouv.vitam.storage.engine.common.model;
  * Define the differents type of "object" than can be stored, retrieve or deleted from different storage offer
  */
 public enum DataCategory {
-
     /**
      * Archive Unit
      */

@@ -36,7 +36,6 @@ public class ArchiveUnitHistoryModel {
     @JsonProperty("data")
     private ArchiveUnitHistoryDataModel data;
 
-
     public ArchiveUnitHistoryModel() {
         this.data = new ArchiveUnitHistoryDataModel();
     }

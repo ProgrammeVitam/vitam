@@ -78,7 +78,6 @@ public class ObjectFormat extends Format {
 
             validator.popContext();
         }
-
     }
 
     @Override
@@ -95,8 +94,7 @@ public class ObjectFormat extends Format {
         builder.append("{");
         boolean notFirst = false;
         for (Map.Entry<String, Format> entry : elements.entrySet()) {
-            if (notFirst)
-                builder.append(", ");
+            if (notFirst) builder.append(", ");
             builder.append(entry.getKey());
             builder.append(": ...");
             notFirst = true;

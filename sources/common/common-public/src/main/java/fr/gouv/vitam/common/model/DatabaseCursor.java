@@ -39,19 +39,22 @@ import static com.fasterxml.jackson.annotation.JsonInclude.Include;
 // TODO P1 ; refactor to the common vitam
 
 public class DatabaseCursor {
+
     @JsonProperty("total")
     private long total;
+
     @JsonProperty("offset")
     private long offset;
+
     @JsonProperty("limit")
     private long limit;
+
     @JsonProperty("size")
     private long size;
 
     @JsonProperty("scrollId")
     @JsonInclude(Include.NON_NULL)
     private String scrollId;
-
 
     /**
      * For Json
@@ -129,7 +132,6 @@ public class DatabaseCursor {
         return offset;
     }
 
-
     /**
      * @param offset the offset of units in database
      * @return the DatabaseCursor with the offset is setted
@@ -170,7 +172,6 @@ public class DatabaseCursor {
         this.size = size;
         return this;
     }
-
 
     /**
      * @return the scrollId as current response size

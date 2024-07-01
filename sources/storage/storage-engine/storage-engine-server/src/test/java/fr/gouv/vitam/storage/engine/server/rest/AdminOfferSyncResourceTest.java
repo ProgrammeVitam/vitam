@@ -56,8 +56,9 @@ import static org.mockito.Mockito.when;
 public class AdminOfferSyncResourceTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     /**
      * Vitam Logger.
@@ -81,14 +82,18 @@ public class AdminOfferSyncResourceTest {
     @Test
     @RunWithCustomExecutor
     public void should_return_ok_when_offer_synchronization_started() throws Exception {
-
         // Given
         OfferSyncRequest offerSyncRequest = createOfferSyncRequest();
 
-        when(offerSyncService
-            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL,
-                VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null))
-            .thenReturn(true);
+        when(
+            offerSyncService.startSynchronization(
+                OFFER_FS_1_SERVICE_CONSUL,
+                OFFER_FS_2_SERVICE_CONSUL,
+                VitamConfiguration.getDefaultStrategy(),
+                DataCategory.UNIT,
+                null
+            )
+        ).thenReturn(true);
 
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
@@ -103,14 +108,18 @@ public class AdminOfferSyncResourceTest {
     @Test
     @RunWithCustomExecutor
     public void should_return_conflict_when_offer_synchronization_already_running() throws Exception {
-
         // Given
         OfferSyncRequest offerSyncRequest = createOfferSyncRequest();
 
-        when(offerSyncService
-            .startSynchronization(OFFER_FS_1_SERVICE_CONSUL, OFFER_FS_2_SERVICE_CONSUL,
-                VitamConfiguration.getDefaultStrategy(), DataCategory.UNIT, null))
-            .thenReturn(false);
+        when(
+            offerSyncService.startSynchronization(
+                OFFER_FS_1_SERVICE_CONSUL,
+                OFFER_FS_2_SERVICE_CONSUL,
+                VitamConfiguration.getDefaultStrategy(),
+                DataCategory.UNIT,
+                null
+            )
+        ).thenReturn(false);
 
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
@@ -125,105 +134,98 @@ public class AdminOfferSyncResourceTest {
     @Test
     @RunWithCustomExecutor
     public void should_throw_exception_when_offer_synchronization_request_with_missing_tenant() {
-
         // Given
-        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
-            .setTenantId(null);
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest().setTenantId(null);
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
         // When / Then
-        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest)).isInstanceOf(
+            IllegalArgumentException.class
+        );
         verifyNoMoreInteractions(offerSyncService);
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_throw_exception_when_offer_synchronization_request_with_missing_strategy() {
-
         // Given
-        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
-            .setStrategyId(null);
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest().setStrategyId(null);
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
         // When / Then
-        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest)).isInstanceOf(
+            IllegalArgumentException.class
+        );
         verifyNoMoreInteractions(offerSyncService);
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_throw_exception_when_offer_synchronization_request_with_invalid_tenant() {
-
         // Given
-        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
-            .setTenantId(3);
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest().setTenantId(3);
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
         // When / Then
-        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest)).isInstanceOf(
+            IllegalArgumentException.class
+        );
         verifyNoMoreInteractions(offerSyncService);
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_throw_exception_when_offer_synchronization_request_with_missing_source_offer() {
-
         // Given
-        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
-            .setSourceOffer(null);
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest().setSourceOffer(null);
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
         // When / Then
-        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest)).isInstanceOf(
+            IllegalArgumentException.class
+        );
         verifyNoMoreInteractions(offerSyncService);
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_throw_exception_when_offer_synchronization_request_with_missing_target_offer() {
-
         // Given
-        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
-            .setTargetOffer(null);
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest().setTargetOffer(null);
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
         // When / Then
-        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest)).isInstanceOf(
+            IllegalArgumentException.class
+        );
         verifyNoMoreInteractions(offerSyncService);
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_throw_exception_when_offer_synchronization_request_with_missing_container() {
-
         // Given
-        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
-            .setContainer(null);
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest().setContainer(null);
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
         // When / Then
-        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest)).isInstanceOf(
+            IllegalArgumentException.class
+        );
         verifyNoMoreInteractions(offerSyncService);
     }
 
     @Test
     @RunWithCustomExecutor
     public void should_throw_exception_when_offer_synchronization_request_with_invalid_container() {
-
         // Given
-        OfferSyncRequest offerSyncRequest = createOfferSyncRequest()
-            .setContainer("BAD");
+        OfferSyncRequest offerSyncRequest = createOfferSyncRequest().setContainer("BAD");
         AdminOfferSyncResource instance = new AdminOfferSyncResource(offerSyncService);
 
         // When / Then
-        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest))
-            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> instance.startSynchronization(offerSyncRequest)).isInstanceOf(
+            IllegalArgumentException.class
+        );
         verifyNoMoreInteractions(offerSyncService);
     }
 

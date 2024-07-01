@@ -99,31 +99,41 @@ public class ProfileServiceImplTest {
     private static final String PREFIX = GUIDFactory.newGUID().getId();
     private static final ElasticsearchFunctionalAdminIndexManager indexManager =
         FunctionalAdminCollectionsTestUtils.createTestIndexManager();
+
     @ClassRule
-    public static MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Profile.class));
+    public static MongoRule mongoRule = new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(Profile.class));
+
     static ProfileService profileService;
     static FunctionalBackupService functionalBackupService = Mockito.mock(FunctionalBackupService.class);
     private static VitamCounterService vitamCounterService;
     private static MongoDbAccessAdminImpl dbImpl;
+
     @Rule
     public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
-        VitamThreadPoolExecutor.getDefaultExecutor());
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
-        FunctionalAdminCollectionsTestUtils.beforeTestClass(mongoRule.getMongoDatabase(), PREFIX,
-            new ElasticsearchAccessFunctionalAdmin(ElasticsearchRule.VITAM_CLUSTER,
+        FunctionalAdminCollectionsTestUtils.beforeTestClass(
+            mongoRule.getMongoDatabase(),
+            PREFIX,
+            new ElasticsearchAccessFunctionalAdmin(
+                ElasticsearchRule.VITAM_CLUSTER,
                 Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())),
-                indexManager),
-            Collections.singletonList(FunctionalAdminCollections.PROFILE));
+                indexManager
+            ),
+            Collections.singletonList(FunctionalAdminCollections.PROFILE)
+        );
 
         final List<MongoDbNode> nodes = new ArrayList<>();
         nodes.add(new MongoDbNode(DATABASE_HOST, MongoRule.getDataBasePort()));
 
-        dbImpl =
-            MongoDbAccessAdminFactory.create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
-                Collections::emptyList, indexManager);
+        dbImpl = MongoDbAccessAdminFactory.create(
+            new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+            Collections::emptyList,
+            indexManager
+        );
         final List<Integer> tenants = Arrays.asList(TENANT_ID, EXTERNAL_TENANT);
         Map<Integer, List<String>> listEnableExternalIdentifiers = new HashMap<>();
         List<String> list_tenant = new ArrayList<>();
@@ -134,12 +144,15 @@ public class ProfileServiceImplTest {
 
         LogbookOperationsClientFactory.changeMode(null);
 
-        profileService =
-            new ProfileServiceImpl(MongoDbAccessAdminFactory
-                .create(new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()), Collections::emptyList,
-                    indexManager),
-                vitamCounterService, functionalBackupService);
-
+        profileService = new ProfileServiceImpl(
+            MongoDbAccessAdminFactory.create(
+                new DbConfigurationImpl(nodes, mongoRule.getMongoDatabase().getName()),
+                Collections::emptyList,
+                indexManager
+            ),
+            vitamCounterService,
+            functionalBackupService
+        );
     }
 
     @AfterClass
@@ -151,7 +164,6 @@ public class ProfileServiceImplTest {
     @Before
     public void setUp() {
         VitamThreadUtils.getVitamSession().setRequestId(newOperationLogbookGUID(TENANT_ID));
-
     }
 
     @After
@@ -165,9 +177,10 @@ public class ProfileServiceImplTest {
     public void givenTestImportSXDProfileFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isTrue();
@@ -177,10 +190,11 @@ public class ProfileServiceImplTest {
         final ProfileModel profileModel = responseCast.getResults().iterator().next();
         final InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.xsd"));
 
-        RequestResponse<ProfileModel> requestResponse =
-            profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
+        RequestResponse<ProfileModel> requestResponse = profileService.importProfileFile(
+            profileModel.getIdentifier(),
+            xsdProfile
+        );
         assertThat(requestResponse.isOk()).isTrue();
-
     }
 
     @Test
@@ -188,15 +202,20 @@ public class ProfileServiceImplTest {
     public void givenTestImportRNGProfileFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isTrue();
 
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
-            eq(FunctionalAdminCollections.PROFILE), any());
+        verify(functionalBackupService).saveCollectionAndSequence(
+            any(),
+            eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
+            eq(FunctionalAdminCollections.PROFILE),
+            any()
+        );
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
 
@@ -206,14 +225,25 @@ public class ProfileServiceImplTest {
         final ProfileModel profileModel = responseCast.getResults().get(1);
         InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.rng"));
 
-        RequestResponse<ProfileModel> requestResponse =
-            profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
+        RequestResponse<ProfileModel> requestResponse = profileService.importProfileFile(
+            profileModel.getIdentifier(),
+            xsdProfile
+        );
         assertThat(requestResponse.isOk()).isTrue();
 
-        verify(functionalBackupService).saveFile(any(), any(), eq(ProfileServiceImpl.OP_PROFILE_STORAGE),
-            eq(DataCategory.PROFILE), anyString());
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
-            eq(FunctionalAdminCollections.PROFILE), any());
+        verify(functionalBackupService).saveFile(
+            any(),
+            any(),
+            eq(ProfileServiceImpl.OP_PROFILE_STORAGE),
+            eq(DataCategory.PROFILE),
+            anyString()
+        );
+        verify(functionalBackupService).saveCollectionAndSequence(
+            any(),
+            eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
+            eq(FunctionalAdminCollections.PROFILE),
+            any()
+        );
         verifyNoMoreInteractions(functionalBackupService);
     }
 
@@ -222,9 +252,10 @@ public class ProfileServiceImplTest {
     public void givenTestImportNotValideRNGProfileFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isTrue();
@@ -234,11 +265,11 @@ public class ProfileServiceImplTest {
         final ProfileModel profileModel = responseCast.getResults().get(1);
         final InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.xsd"));
 
-
-        RequestResponse<ProfileModel> requestResponse =
-            profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
+        RequestResponse<ProfileModel> requestResponse = profileService.importProfileFile(
+            profileModel.getIdentifier(),
+            xsdProfile
+        );
         assertThat(requestResponse.isOk()).isFalse();
-
     }
 
     @Test
@@ -246,9 +277,10 @@ public class ProfileServiceImplTest {
     public void givenTestDownloadProfileFile() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isTrue();
@@ -258,9 +290,10 @@ public class ProfileServiceImplTest {
         final ProfileModel profileModel = responseCast.getResults().iterator().next();
         final InputStream xsdProfile = new FileInputStream(PropertiesUtils.getResourceFile("profile_ok.xsd"));
 
-
-        RequestResponse<ProfileModel> requestResponse =
-            profileService.importProfileFile(profileModel.getIdentifier(), xsdProfile);
+        RequestResponse<ProfileModel> requestResponse = profileService.importProfileFile(
+            profileModel.getIdentifier(),
+            xsdProfile
+        );
         assertThat(requestResponse.isOk()).isTrue();
 
         javax.ws.rs.core.Response responseDown = profileService.downloadProfileFile(profileModel.getIdentifier());
@@ -272,9 +305,10 @@ public class ProfileServiceImplTest {
     public void givenWellFormedProfileMetadataThenImportSuccessfully() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isTrue();
@@ -287,9 +321,10 @@ public class ProfileServiceImplTest {
     public void givenATestMissingIdentifierReturnBadRequest() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_missing_identifier.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isFalse();
@@ -301,9 +336,10 @@ public class ProfileServiceImplTest {
     public void givenTestIdentifiers() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_duplicate_identifier.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isFalse();
@@ -314,9 +350,10 @@ public class ProfileServiceImplTest {
     public void givenTestDuplicateNames() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_duplicate_name.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isTrue();
@@ -327,15 +364,17 @@ public class ProfileServiceImplTest {
     public void givenTestFilledPath() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_filled_path.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isFalse();
         assertThat(((VitamError<ProfileModel>) response).getErrors().size()).isEqualTo(1);
-        assertThat(((VitamError<ProfileModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo(ProfileServiceImpl.PATH_SHOULD_NOT_BE_FILLED);
+        assertThat(((VitamError<ProfileModel>) response).getErrors().get(0).getMessage()).isEqualTo(
+            ProfileServiceImpl.PATH_SHOULD_NOT_BE_FILLED
+        );
     }
 
     @Test
@@ -344,9 +383,10 @@ public class ProfileServiceImplTest {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
 
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
@@ -357,7 +397,6 @@ public class ProfileServiceImplTest {
 
         assertThat(response.isOk()).isFalse();
     }
-
 
     @Test
     @RunWithCustomExecutor
@@ -387,12 +426,12 @@ public class ProfileServiceImplTest {
     @Test
     @RunWithCustomExecutor
     public void givenTestTenantOwner() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
@@ -421,12 +460,12 @@ public class ProfileServiceImplTest {
     @Test
     @RunWithCustomExecutor
     public void givenTestNotTenantOwner() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
@@ -447,26 +486,25 @@ public class ProfileServiceImplTest {
     @Test
     @RunWithCustomExecutor
     public void givenTestfindByID() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
         assertThat(response.isOk()).isFalse();
-
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenTestImportExternalIdentifier_KO() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(EXTERNAL_TENANT);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok_id.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
@@ -479,7 +517,6 @@ public class ProfileServiceImplTest {
         String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
-
         ProfileModel one = profileService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
@@ -490,12 +527,12 @@ public class ProfileServiceImplTest {
     @Test
     @RunWithCustomExecutor
     public void givenTestImportExternalIdentifier() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
@@ -508,7 +545,6 @@ public class ProfileServiceImplTest {
         String id1 = acm.getIdentifier();
         assertThat(id1).isNotNull();
 
-
         ProfileModel one = profileService.findByIdentifier(id1);
 
         assertThat(one).isNotNull();
@@ -520,8 +556,9 @@ public class ProfileServiceImplTest {
     @RunWithCustomExecutor
     public void givenTestFindAllThenReturnEmpty() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
-        final RequestResponseOK<ProfileModel> profileModelList =
-            profileService.findProfiles(JsonHandler.createObjectNode());
+        final RequestResponseOK<ProfileModel> profileModelList = profileService.findProfiles(
+            JsonHandler.createObjectNode()
+        );
         assertThat(profileModelList.getResults()).isEmpty();
     }
 
@@ -530,16 +567,18 @@ public class ProfileServiceImplTest {
     public void givenTestFindAllThenReturnTwoProfiles() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
         assertThat(responseCast.getResults()).hasSize(2);
 
-        final RequestResponseOK<ProfileModel> profileModelListSearch =
-            profileService.findProfiles(JsonHandler.createObjectNode());
+        final RequestResponseOK<ProfileModel> profileModelListSearch = profileService.findProfiles(
+            JsonHandler.createObjectNode()
+        );
         assertThat(profileModelListSearch.getResults()).hasSize(2);
     }
 
@@ -548,9 +587,10 @@ public class ProfileServiceImplTest {
     public void givenTestFindByIdentifier() throws Exception {
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         final RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         final RequestResponseOK<ProfileModel> responseCast = (RequestResponseOK<ProfileModel>) response;
@@ -582,18 +622,22 @@ public class ProfileServiceImplTest {
     @Test
     @RunWithCustomExecutor
     public void should_update_profil() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok_1.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isTrue();
 
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
-            eq(FunctionalAdminCollections.PROFILE), any());
+        verify(functionalBackupService).saveCollectionAndSequence(
+            any(),
+            eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
+            eq(FunctionalAdminCollections.PROFILE),
+            any()
+        );
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
 
@@ -605,16 +649,21 @@ public class ProfileServiceImplTest {
         assertThat(profil.getName()).isEqualTo("PToUpdate");
 
         //profileService.
-        String query = "{\"$query\":{\"$eq\":{\"Identifier\":\"" + profil.getIdentifier() +
+        String query =
+            "{\"$query\":{\"$eq\":{\"Identifier\":\"" +
+            profil.getIdentifier() +
             "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Name\":\"profil test \"}}]}";
         response = profileService.updateProfile(profil, JsonHandler.getFromString(query));
 
         assertThat(response.isOk()).isTrue();
 
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
-            eq(FunctionalAdminCollections.PROFILE), any());
+        verify(functionalBackupService).saveCollectionAndSequence(
+            any(),
+            eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
+            eq(FunctionalAdminCollections.PROFILE),
+            any()
+        );
         verifyNoMoreInteractions(functionalBackupService);
-
     }
 
     @Test
@@ -623,9 +672,10 @@ public class ProfileServiceImplTest {
         // Given
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok_same_name.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         // When
         RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
         // Then
@@ -635,18 +685,22 @@ public class ProfileServiceImplTest {
     @Test
     @RunWithCustomExecutor
     public void should_not_update_profil_due_to_path_update() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         final File fileMetadataProfile = PropertiesUtils.getResourceFile("profile_ok_1.json");
-        final List<ProfileModel> profileModelList =
-            JsonHandler.getFromFileAsTypeReference(fileMetadataProfile, new TypeReference<>() {
-            });
+        final List<ProfileModel> profileModelList = JsonHandler.getFromFileAsTypeReference(
+            fileMetadataProfile,
+            new TypeReference<>() {}
+        );
         RequestResponse<ProfileModel> response = profileService.createProfiles(profileModelList);
 
         assertThat(response.isOk()).isTrue();
 
-        verify(functionalBackupService).saveCollectionAndSequence(any(), eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
-            eq(FunctionalAdminCollections.PROFILE), any());
+        verify(functionalBackupService).saveCollectionAndSequence(
+            any(),
+            eq(ProfileServiceImpl.PROFILE_BACKUP_EVENT),
+            eq(FunctionalAdminCollections.PROFILE),
+            any()
+        );
         verifyNoMoreInteractions(functionalBackupService);
         reset(functionalBackupService);
 
@@ -658,13 +712,16 @@ public class ProfileServiceImplTest {
         assertThat(profil.getName()).isEqualTo("PToUpdate");
 
         //profileService.
-        String query = "{\"$query\":{\"$eq\":{\"Identifier\":\"" + profil.getIdentifier() +
+        String query =
+            "{\"$query\":{\"$eq\":{\"Identifier\":\"" +
+            profil.getIdentifier() +
             "\"}},\"$filter\":{},\"$action\":[{\"$set\":{\"Path\":\"updated Path \"}}]}";
         response = profileService.updateProfile(profil, JsonHandler.getFromString(query));
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.SC_BAD_REQUEST);
         assertThat(((VitamError<ProfileModel>) response).getErrors().size()).isEqualTo(1);
-        assertThat(((VitamError<ProfileModel>) response).getErrors().get(0).getMessage())
-            .isEqualTo(ProfileServiceImpl.PATH_SHOULD_NOT_BE_FILLED);
+        assertThat(((VitamError<ProfileModel>) response).getErrors().get(0).getMessage()).isEqualTo(
+            ProfileServiceImpl.PATH_SHOULD_NOT_BE_FILLED
+        );
     }
 }

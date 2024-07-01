@@ -114,21 +114,21 @@ public class CheckHeaderActionHandlerTest {
     private LogbookLifeCyclesClient logbookLifeCyclesClient;
     private LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory;
 
-
     private SedaUtilsFactory sedaUtilsFactory = mock(SedaUtilsFactory.class);
 
     private final HandlerIO handlerIO = mock(HandlerIO.class);
     private CheckHeaderActionHandler handler;
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
-    @Rule public TemporaryFolder temporaryFolder = new TemporaryFolder();
+    @Rule
+    public TemporaryFolder temporaryFolder = new TemporaryFolder();
 
     @Before
-    public void setUp()
-        throws ReferentialException, InvalidParseOperationException, ProcessingException {
+    public void setUp() throws ReferentialException, InvalidParseOperationException, ProcessingException {
         guid = GUIDFactory.newGUID();
         workspaceClient = mock(WorkspaceClient.class);
         workspaceClientFactory = mock(WorkspaceClientFactory.class);
@@ -146,17 +146,19 @@ public class CheckHeaderActionHandlerTest {
         logbookLifeCyclesClientFactory = mock(LogbookLifeCyclesClientFactory.class);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
 
+        when(adminManagementClient.findIngestContractsByID(any())).thenReturn(
+            new AdminManagementClientMock().findIngestContractsByID("contract")
+        );
+        when(adminManagementClient.findContextById(any())).thenReturn(
+            new AdminManagementClientMock().findContextById("context")
+        );
+        when(adminManagementClient.getAgencies(any())).thenReturn(
+            new AdminManagementClientMock().getAgencies(JsonHandler.createObjectNode())
+        );
 
-        when(adminManagementClient.findIngestContractsByID(any()))
-            .thenReturn(new AdminManagementClientMock().findIngestContractsByID("contract"));
-        when(adminManagementClient.findContextById(any()))
-            .thenReturn(new AdminManagementClientMock().findContextById("context"));
-        when(adminManagementClient.getAgencies(any()))
-            .thenReturn(new AdminManagementClientMock().getAgencies(JsonHandler.createObjectNode()));
-
-        when(adminManagementClient.findIngestContracts(any()))
-            .thenReturn(new AdminManagementClientMock().findIngestContracts(JsonHandler.createObjectNode()));
-
+        when(adminManagementClient.findIngestContracts(any())).thenReturn(
+            new AdminManagementClientMock().findIngestContracts(JsonHandler.createObjectNode())
+        );
 
         when(sedaUtilsFactory.createSedaUtils(any())).thenReturn(sedaUtils);
         VitamThreadUtils.getVitamSession().setContextId("FakeContext");
@@ -166,9 +168,13 @@ public class CheckHeaderActionHandlerTest {
     @RunWithCustomExecutor
     public void testHandlerWorking() throws ProcessingException {
         handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory, sedaUtilsFactory);
-        HandlerIOImpl action =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
-                com.google.common.collect.Lists.newArrayList());
+        HandlerIOImpl action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            guid.getId(),
+            "workerId",
+            com.google.common.collect.Lists.newArrayList()
+        );
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
         Map<String, Object> sedaMap = new HashMap<>();
         sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, "AG-0000001");
@@ -177,11 +183,13 @@ public class CheckHeaderActionHandlerTest {
         when(sedaUtilsFactory.createSedaUtilsWithSedaIngestParams(any())).thenReturn(sedaUtils);
         doReturn(sedaMap).when(sedaUtils).getMandatoryValues(any());
         assertNotNull(CheckHeaderActionHandler.getId());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         action.getInput().add("true");
         action.getInput().add("false");
         action.getOutput().add(new ProcessingUri(UriPrefix.WORKSPACE, "contracts.json"));
@@ -189,8 +197,7 @@ public class CheckHeaderActionHandlerTest {
         final ItemStatus response = handler.execute(params, action);
         assertEquals(response.getGlobalStatus(), StatusCode.OK);
         assertNotNull(response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER));
-        assertEquals(SedaConstants.TAG_MESSAGE_IDENTIFIER,
-            response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER));
+        assertEquals(SedaConstants.TAG_MESSAGE_IDENTIFIER, response.getData(SedaConstants.TAG_MESSAGE_IDENTIFIER));
 
         action.getInput().clear();
         action.getInput().add("true");
@@ -201,7 +208,6 @@ public class CheckHeaderActionHandlerTest {
         sedaMap.put(SedaConstants.TAG_ORIGINATINGAGENCYIDENTIFIER, "");
         doReturn(sedaMap).when(sedaUtils).getMandatoryValues(any());
         assertEquals(handler.execute(params, action).getGlobalStatus(), StatusCode.KO);
-
 
         action.getInput().clear();
         action.getInput().add("true");
@@ -216,36 +222,45 @@ public class CheckHeaderActionHandlerTest {
         action.partialClose();
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void testHandlerWorkingWithRealManifest() throws Exception {
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory,
-            SedaUtilsFactory.getInstance());
+        handler = new CheckHeaderActionHandler(
+            adminManagementClientFactory,
+            storageClientFactory,
+            SedaUtilsFactory.getInstance()
+        );
 
-        HandlerIOImpl action =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
-                com.google.common.collect.Lists.newArrayList());
+        HandlerIOImpl action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            guid.getId(),
+            "workerId",
+            com.google.common.collect.Lists.newArrayList()
+        );
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
-        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
-            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml"))).thenReturn(
+            Response.status(Status.OK).entity(sedaLocal).build()
+        );
         assertNotNull(CheckHeaderActionHandler.getId());
         when(handlerIO.getNewLocalFile(any())).thenReturn(temporaryFolder.newFile());
         when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath("ANY_PATH"));
 
         final InputStream sedaParams = new FileInputStream(PropertiesUtils.findFile(SEDA_PARAMS));
-        when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_JSON)))
-            .thenReturn(true);
-        when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_JSON)))
-            .thenReturn(Response.status(Status.OK).entity(sedaParams).build());
+        when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_JSON))).thenReturn(true);
+        when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_JSON))).thenReturn(
+            Response.status(Status.OK).entity(sedaParams).build()
+        );
 
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         action.getInput().add("true");
         action.getInput().add("false");
 
@@ -259,47 +274,60 @@ public class CheckHeaderActionHandlerTest {
         assertThat(evDetData.contains("English Comment")).isTrue();
         assertThat(evDetData.contains("ArchivalProfile0")).isTrue();
         action.partialClose();
-
     }
-
 
     @Test
     @RunWithCustomExecutor
     public void testHandlerWorkingWithRealManifestAndManagementContract() throws Exception {
-
-        RequestResponseOK<IngestContractModel> ingestResponse =
-            (RequestResponseOK<IngestContractModel>) new AdminManagementClientMock()
-                .findIngestContractsByID("contract");
+        RequestResponseOK<IngestContractModel> ingestResponse = (RequestResponseOK<
+                IngestContractModel
+            >) new AdminManagementClientMock().findIngestContractsByID("contract");
         ingestResponse.getFirstResult().setManagementContractId("managementContractId");
         when(adminManagementClient.findIngestContractsByID(any())).thenReturn(ingestResponse);
-        when(adminManagementClient.findManagementContractsByID(any())).thenReturn(ClientMockResultHelper
-            .createResponse((ManagementContractModel) new ManagementContractModel().setId("managementContractId")
-                .setStatus(ActivationStatus.ACTIVE)));
+        when(adminManagementClient.findManagementContractsByID(any())).thenReturn(
+            ClientMockResultHelper.createResponse(
+                (ManagementContractModel) new ManagementContractModel()
+                    .setId("managementContractId")
+                    .setStatus(ActivationStatus.ACTIVE)
+            )
+        );
 
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory,
-            SedaUtilsFactory.getInstance());
+        handler = new CheckHeaderActionHandler(
+            adminManagementClientFactory,
+            storageClientFactory,
+            SedaUtilsFactory.getInstance()
+        );
 
-        HandlerIOImpl action = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(),
-            "workerId", com.google.common.collect.Lists.newArrayList());
+        HandlerIOImpl action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            guid.getId(),
+            "workerId",
+            com.google.common.collect.Lists.newArrayList()
+        );
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(SIP_ADD_UNIT));
-        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
-            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml"))).thenReturn(
+            Response.status(Status.OK).entity(sedaLocal).build()
+        );
         assertNotNull(CheckHeaderActionHandler.getId());
         when(handlerIO.getNewLocalFile(any())).thenReturn(temporaryFolder.newFile());
         when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath("ANY_PATH"));
 
         final InputStream sedaParams = new FileInputStream(PropertiesUtils.findFile(SEDA_PARAMS));
-        when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_JSON)))
-            .thenReturn(true);
-        when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_JSON)))
-            .thenReturn(Response.status(Status.OK).entity(sedaParams).build());
+        when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_JSON))).thenReturn(true);
+        when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_JSON))).thenReturn(
+            Response.status(Status.OK).entity(sedaParams).build()
+        );
 
         final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
-            .setUrlWorkspace("http://localhost:8083").setUrlMetadata("http://localhost:8083")
-            .setObjectNameList(Lists.newArrayList("objectName.json")).setObjectName("objectName.json")
-            .setCurrentStep("currentStep").setContainerName(guid.getId());
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
         action.getInput().add("true");
         action.getInput().add("false");
 
@@ -313,44 +341,51 @@ public class CheckHeaderActionHandlerTest {
         assertThat(evDetData.contains("English Comment")).isTrue();
         assertThat(evDetData.contains("ArchivalProfile0")).isTrue();
         action.partialClose();
-
     }
-
 
     @Test
     @RunWithCustomExecutor
     public void testDefinedProfileInIngestContractButNotInManifest()
-        throws IOException, ContentAddressableStorageNotFoundException,
-        ContentAddressableStorageServerException, InvalidParseOperationException {
-        handler = new CheckHeaderActionHandler(adminManagementClientFactory, storageClientFactory, SedaUtilsFactory.getInstance());
+        throws IOException, ContentAddressableStorageNotFoundException, ContentAddressableStorageServerException, InvalidParseOperationException {
+        handler = new CheckHeaderActionHandler(
+            adminManagementClientFactory,
+            storageClientFactory,
+            SedaUtilsFactory.getInstance()
+        );
 
         VitamThreadUtils.getVitamSession().setTenantId(TENANT_ID);
 
         final InputStream sedaLocal = new FileInputStream(PropertiesUtils.findFile(MANIFEST_WITHOUT_ARCHIVAL_PROFILE));
-        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml")))
-            .thenReturn(Response.status(Status.OK).entity(sedaLocal).build());
+        when(workspaceClient.getObject(any(), eq("SIP/manifest.xml"))).thenReturn(
+            Response.status(Status.OK).entity(sedaLocal).build()
+        );
 
         final InputStream sedaParams = new FileInputStream(PropertiesUtils.findFile(SEDA_PARAMS));
-        when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_JSON)))
-            .thenReturn(true);
-        when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_JSON)))
-            .thenReturn(Response.status(Status.OK).entity(sedaParams).build());
-
+        when(workspaceClient.isExistingObject(any(), eq(SEDA_PARAMS_JSON))).thenReturn(true);
+        when(workspaceClient.getObject(any(), eq(SEDA_PARAMS_JSON))).thenReturn(
+            Response.status(Status.OK).entity(sedaParams).build()
+        );
 
         when(handlerIO.getInputStreamFromWorkspace(any())).thenReturn(sedaLocal);
         when(handlerIO.getNewLocalFile(any())).thenReturn(temporaryFolder.newFile());
         when(handlerIO.getOutput(anyInt())).thenReturn(new ProcessingUri().setPath("ANY_PATH"));
 
         assertNotNull(CheckHeaderActionHandler.getId());
-        final WorkerParameters params =
-            WorkerParametersFactory.newWorkerParameters().setUrlWorkspace("http://localhost:8083")
-                .setUrlMetadata("http://localhost:8083")
-                .setObjectNameList(Lists.newArrayList("objectName.json"))
-                .setObjectName("objectName.json").setCurrentStep("currentStep").setContainerName(guid.getId());
+        final WorkerParameters params = WorkerParametersFactory.newWorkerParameters()
+            .setUrlWorkspace("http://localhost:8083")
+            .setUrlMetadata("http://localhost:8083")
+            .setObjectNameList(Lists.newArrayList("objectName.json"))
+            .setObjectName("objectName.json")
+            .setCurrentStep("currentStep")
+            .setContainerName(guid.getId());
 
-        HandlerIOImpl action =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, guid.getId(), "workerId",
-                com.google.common.collect.Lists.newArrayList());
+        HandlerIOImpl action = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            guid.getId(),
+            "workerId",
+            com.google.common.collect.Lists.newArrayList()
+        );
 
         action.getInput().add("true");
         action.getInput().add("true");
@@ -365,7 +400,5 @@ public class CheckHeaderActionHandlerTest {
         assertThat(evDetData).contains("English Comment");
         assertThat(response.getGlobalOutcomeDetailSubcode()).isEqualTo("DIFF");
         action.partialClose();
-
     }
-
 }

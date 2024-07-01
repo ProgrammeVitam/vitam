@@ -55,127 +55,125 @@ import java.util.List;
 public class ClientMockResultHelper {
 
     private static final String RESULT =
-        "{\"$query\":{}," +
-            "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":100}," +
-            "\"$results\":";
+        "{\"$query\":{}," + "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":100}," + "\"$results\":";
 
     private static final String UNIT =
         "{\"DescriptionLevel\":\"Item\"," +
-            "\"Title\":[\"METADATA ENCODING AND TRANSMISSION STANDARD: PRIMER AND REFERENCE MANUAL\",\"Manuel METS revu et corrigé\"]," +
-            "\"Description\":[\"METSPrimerRevised.pdf\",\"Pseudo Archive METSPrimerRevised.pdf\"]," +
-            "\"Tag\":[\"METS\",\"norme internationale\"],\"TransactedDate\":\"2012-09-16T10:22:02\"," +
-            "\"Event\":[{\"EventType\":\"Création\",\"EventDateTime\":\"2010-01-01T10:22:02\"},{\"EventType\":\"Validation\",\"EventDateTime\":\"2010-02-01T10:22:02\"}]," +
-            "\"_uds\":[{\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\":1}],\"#id\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6spqaaaaq\",\"#nbunits\":0,\"#tenant\":0," +
-            "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
-            "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
+        "\"Title\":[\"METADATA ENCODING AND TRANSMISSION STANDARD: PRIMER AND REFERENCE MANUAL\",\"Manuel METS revu et corrigé\"]," +
+        "\"Description\":[\"METSPrimerRevised.pdf\",\"Pseudo Archive METSPrimerRevised.pdf\"]," +
+        "\"Tag\":[\"METS\",\"norme internationale\"],\"TransactedDate\":\"2012-09-16T10:22:02\"," +
+        "\"Event\":[{\"EventType\":\"Création\",\"EventDateTime\":\"2010-01-01T10:22:02\"},{\"EventType\":\"Validation\",\"EventDateTime\":\"2010-02-01T10:22:02\"}]," +
+        "\"_uds\":[{\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\":1}],\"#id\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6spqaaaaq\",\"#nbunits\":0,\"#tenant\":0," +
+        "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
+        "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
 
     public static final String UNIT_RAW =
         "{   \"_id\": \"aeaqaaaabufhszkyabon6albarqq7qiaaakq\"," +
-            "    \"DescriptionLevel\": \"Item\"," +
-            "    \"Title\": \"Title test\"," +
-            "    \"Titles\": {\"fr\": \"Title test\"}," +
-            "    \"Description\": \"Pseudo Archive Unit du fichier.pdf\"," +
-            "    \"Descriptions\": {\"fr\": \"Pseudo ArchiveE.pdf\"}," +
-            "    \"TransactedDate\": \"2016-09-22T12:33:02\"," +
-            "    \"_og\": \"aebaaaaabufhszkyabon6albarqq7qiaaala\"," +
-            "    \"_ops\":[\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"]," +
-            "    \"_opi\":\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"," +
-            "    \"_up\": [\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\"]," +
-            "    \"_us\": [\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\"]," +
-            "    \"_sp\": \"vitam\"," +
-            "    \"_sps\": [\"vitam\"]," +
-            "    \"_uds\": {\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\": 1}," +
-            "    \"_min\": 1," +
-            "    \"_max\": 2," +
-            "    \"_tenant\": 0," +
-            "    \"_v\": 1,\n" +
-            "    \"_storage\": {\"strategyId\": \"default\"}" +
-            "}";
+        "    \"DescriptionLevel\": \"Item\"," +
+        "    \"Title\": \"Title test\"," +
+        "    \"Titles\": {\"fr\": \"Title test\"}," +
+        "    \"Description\": \"Pseudo Archive Unit du fichier.pdf\"," +
+        "    \"Descriptions\": {\"fr\": \"Pseudo ArchiveE.pdf\"}," +
+        "    \"TransactedDate\": \"2016-09-22T12:33:02\"," +
+        "    \"_og\": \"aebaaaaabufhszkyabon6albarqq7qiaaala\"," +
+        "    \"_ops\":[\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"]," +
+        "    \"_opi\":\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"," +
+        "    \"_up\": [\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\"]," +
+        "    \"_us\": [\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\"]," +
+        "    \"_sp\": \"vitam\"," +
+        "    \"_sps\": [\"vitam\"]," +
+        "    \"_uds\": {\"aeaqaaaaaaghay2jabzuaalbaregxuiaaaba\": 1}," +
+        "    \"_min\": 1," +
+        "    \"_max\": 2," +
+        "    \"_tenant\": 0," +
+        "    \"_v\": 1,\n" +
+        "    \"_storage\": {\"strategyId\": \"default\"}" +
+        "}";
 
     public static final String GOT_RAW =
         "{\"_id\": \"aebaaaaabufhszkyabon6albarqq7qiaaala\"," +
-            "    \"_profil\": \"\"," +
-            "    \"FileInfo\": {\"Filename\": \"jeux_test.ods\",\"LastModified\": \"2016-11-21T18:28:41.510+01:00\"}," +
-            "    \"_qualifiers\": [{" +
-            "            \"qualifier\": \"BinaryMaster\"," +
-            "            \"_nbc\": 1," +
-            "            \"versions\": [{" +
-            "                    \"_id\": \"aeaaaaaaaagwky22aboqialbbrqyglqaaaaq\"," +
-            "                    \"DataObjectGroupId\": \"aebaaaaaaagwky22aboqialbbrqygmaaaaaq\"," +
-            "                    \"DataObjectVersion\": \"BinaryMaster_1\"," +
-            "                    \"FormatIdentification\": {\"FormatLitteral\": \"OpenDocument Spreadsheet\",\"MimeType\": \"application/vnd.oasis.opendocument.spreadsheet\",\"FormatId\": \"fmt/295\"}," +
-            "                    \"FileInfo\": {\"Filename\": \"jeux_test.ods\",\"LastModified\": \"2016-11-21T18:28:41.510+01:00\"}," +
-            "                    \"Size\": 16532," +
-            "                    \"Uri\": \"Content/ID7.ods\"," +
-            "                    \"MessageDigest\": \"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"," +
-            "                    \"Algorithm\": \"SHA-512\"," +
-            "                    \"_storage\": {\"strategyId\": \"default\"}" +
-            "            }]" +
-            "    }]," +
-            "    \"_up\": [\"aeaqaaaabufhszkyabon6albarqq7qiaaakq\"]," +
-            "    \"_nbc\": 1," +
-            "    \"_ops\": [\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"]," +
-            "    \"_sp\": \"Vitam\"," +
-            "    \"_sps\": [\"Vitam\"]," +
-            "    \"_storage\": {\"strategyId\": \"default\"}," +
-            "    \"_tenant\": 0," +
-            "    \"_v\": 1 }";
+        "    \"_profil\": \"\"," +
+        "    \"FileInfo\": {\"Filename\": \"jeux_test.ods\",\"LastModified\": \"2016-11-21T18:28:41.510+01:00\"}," +
+        "    \"_qualifiers\": [{" +
+        "            \"qualifier\": \"BinaryMaster\"," +
+        "            \"_nbc\": 1," +
+        "            \"versions\": [{" +
+        "                    \"_id\": \"aeaaaaaaaagwky22aboqialbbrqyglqaaaaq\"," +
+        "                    \"DataObjectGroupId\": \"aebaaaaaaagwky22aboqialbbrqygmaaaaaq\"," +
+        "                    \"DataObjectVersion\": \"BinaryMaster_1\"," +
+        "                    \"FormatIdentification\": {\"FormatLitteral\": \"OpenDocument Spreadsheet\",\"MimeType\": \"application/vnd.oasis.opendocument.spreadsheet\",\"FormatId\": \"fmt/295\"}," +
+        "                    \"FileInfo\": {\"Filename\": \"jeux_test.ods\",\"LastModified\": \"2016-11-21T18:28:41.510+01:00\"}," +
+        "                    \"Size\": 16532," +
+        "                    \"Uri\": \"Content/ID7.ods\"," +
+        "                    \"MessageDigest\": \"c117854cbca3e51ea94c4bd2bcf4a6756209e6c65ddbf696313e1801b2235ff33d44b2bb272e714c335a44a3b4f92d399056b94dff4dfe6b7038fa56f23b438e\"," +
+        "                    \"Algorithm\": \"SHA-512\"," +
+        "                    \"_storage\": {\"strategyId\": \"default\"}" +
+        "            }]" +
+        "    }]," +
+        "    \"_up\": [\"aeaqaaaabufhszkyabon6albarqq7qiaaakq\"]," +
+        "    \"_nbc\": 1," +
+        "    \"_ops\": [\"aedqaaaaacfe6vjwab36ealbbrqw2uyaaaaq\"]," +
+        "    \"_sp\": \"Vitam\"," +
+        "    \"_sps\": [\"Vitam\"]," +
+        "    \"_storage\": {\"strategyId\": \"default\"}," +
+        "    \"_tenant\": 0," +
+        "    \"_v\": 1 }";
 
     private static final String LOGBOOK_OPERATION =
         "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-            "\"evType\": \"Process_SIP_unitary\"," +
-            "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-            "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"evTypeProc\": \"INGEST\"," +
-            "\"outcome\": \"STARTED\"," +
-            "\"outDetail\": null," +
-            "\"outMessg\": \"SIP entry : SIP.zip\"," +
-            "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
-            "\"agIdApp\": null," +
-            "\"evIdAppSession\": null," +
-            "\"agIdPers\": null," +
-            "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"agIdExt\": null," +
-            "\"obId\": null," +
-            "\"obIdReq\": null," +
-            "\"obIdIn\": null," +
-            "\"events\": []}";
-
+        "\"evType\": \"Process_SIP_unitary\"," +
+        "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
+        "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "\"evTypeProc\": \"INGEST\"," +
+        "\"outcome\": \"STARTED\"," +
+        "\"outDetail\": null," +
+        "\"outMessg\": \"SIP entry : SIP.zip\"," +
+        "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
+        "\"agIdApp\": null," +
+        "\"evIdAppSession\": null," +
+        "\"agIdPers\": null," +
+        "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "\"agIdExt\": null," +
+        "\"obId\": null," +
+        "\"obIdReq\": null," +
+        "\"obIdIn\": null," +
+        "\"events\": []}";
 
     private static final String LOGBOOK_LIFECYCLE =
         "\"evId\": \"aedqaaaaacggo2kdaamz6ak5xswm3uiaaaaq\"," +
-            "\"evType\": \"LFC.LFC_CREATION\"," +
-            "\"evDateTime\": \"2017-08-07T12:30:27.793\"," +
-            "\"evIdProc\": \"aedqaaaaacgcs7j2aa3oeak5xswlyaqaaaaq\"," +
-            "\"evTypeProc\": \"INGEST\"," +
-            "\"outcome\": \"OK\"," +
-            "\"outDetail\": \"LFC.LFC_CREATION.OK\"," +
-            "\"outMessg\": \"Création du journal du cycle de vie\"," +
-            "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
-            "\"obId\": \"aeaqaaaaaaggo2kdaamz6ak5xswm3jaaaaba\"," +
-            "\"evDetData\": null," +
-            "\"events\": []}";
+        "\"evType\": \"LFC.LFC_CREATION\"," +
+        "\"evDateTime\": \"2017-08-07T12:30:27.793\"," +
+        "\"evIdProc\": \"aedqaaaaacgcs7j2aa3oeak5xswlyaqaaaaq\"," +
+        "\"evTypeProc\": \"INGEST\"," +
+        "\"outcome\": \"OK\"," +
+        "\"outDetail\": \"LFC.LFC_CREATION.OK\"," +
+        "\"outMessg\": \"Création du journal du cycle de vie\"," +
+        "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
+        "\"obId\": \"aeaqaaaaaaggo2kdaamz6ak5xswm3jaaaaba\"," +
+        "\"evDetData\": null," +
+        "\"events\": []}";
 
     private static final String LOGBOOK_OPERATION_WITH_OBID =
         "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-            "\"evType\": \"Process_SIP_unitary\"," +
-            "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-            "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"evTypeProc\": \"INGEST\"," +
-            "\"outcome\": \"STARTED\"," +
-            "\"outDetail\": null," +
-            "\"outMessg\": \"SIP entry : SIP.zip\"," +
-            "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
-            "\"agIdApp\": null," +
-            "\"evIdAppSession\": null," +
-            "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"agIdExt\": null," +
-            "\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"obIdReq\": null," +
-            "\"obIdIn\": null," +
-            "\"events\": []}";
+        "\"evType\": \"Process_SIP_unitary\"," +
+        "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
+        "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "\"evTypeProc\": \"INGEST\"," +
+        "\"outcome\": \"STARTED\"," +
+        "\"outDetail\": null," +
+        "\"outMessg\": \"SIP entry : SIP.zip\"," +
+        "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
+        "\"agIdApp\": null," +
+        "\"evIdAppSession\": null," +
+        "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "\"agIdExt\": null," +
+        "\"obId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "\"obIdReq\": null," +
+        "\"obIdIn\": null," +
+        "\"events\": []}";
 
-    private static final String RULE = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+    private static final String RULE =
+        "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":\"0\", " +
         "\"RuleId\":\"APP-00005\", " +
         "\"RuleType\":\"AppraisalRule\", " +
@@ -186,12 +184,14 @@ public class ClientMockResultHelper {
         "\"CreationDate\":\"2016-11-02\", " +
         "\"UpdateDate\":\"2016-11-02\"}";
 
-    private static final String AGENCY = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+    private static final String AGENCY =
+        "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":\"0\", " +
         "\"Identifier\":\"AG-0000001\", " +
         "\"Name\":\"agency\", " +
         "\"Description\":\"Une description\"}";
-    public static final String INGEST_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+    public static final String INGEST_CONTRACTS =
+        "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":\"0\", " +
         "\"Name\":\"ArchivalAgreement0\", " +
         "\"Identifier\":\"ArchivalAgreement0\", " +
@@ -203,7 +203,8 @@ public class ClientMockResultHelper {
         "\"ActivationDate\":\"2016-11-02\", " +
         "\"DeactivationDate\":\"2016-11-02\"}";
 
-    public static final String ACCESS_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+    public static final String ACCESS_CONTRACTS =
+        "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":0, " +
         "\"DataObjectVersion\":[\"PhysicalMaster\", \"BinaryMaster\"], " +
         "\"WritingPermission\": \"true\", " +
@@ -218,7 +219,8 @@ public class ClientMockResultHelper {
         "\"EveryOriginatingAgency\": \"false\", " +
         "\"DeactivationDate\":\"2016-11-02\"}";
 
-    public static final String MANAGEMENT_CONTRACTS = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+    public static final String MANAGEMENT_CONTRACTS =
+        "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":0, " +
         "\"Name\":\"Un contrat\", " +
         "\"Description\":\"DESCRIPTION D'UN CONTRAT\", " +
@@ -230,7 +232,8 @@ public class ClientMockResultHelper {
         "\"ActivationDate\":\"2016-11-02\", " +
         "\"DeactivationDate\":\"2016-11-02\"}";
 
-    public static final String PROFILES = "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
+    public static final String PROFILES =
+        "{\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":0, " +
         "\"Identifier\":\"FAKE_IDENTIFIER\", " +
         "\"Name\":\"Un Profile\", " +
@@ -242,7 +245,8 @@ public class ClientMockResultHelper {
         "\"ActivationDate\":\"2016-11-02\", " +
         "\"DeactivationDate\":\"2016-11-02\"}";
 
-    public static final String ARCHIVE_UNIT_PROFILES = "{" +
+    public static final String ARCHIVE_UNIT_PROFILES =
+        "{" +
         "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq\", " +
         "\"_tenant\":0, " +
         "\"Identifier\":\"FAKE_IDENTIFIER\", " +
@@ -255,7 +259,8 @@ public class ClientMockResultHelper {
         "\"DeactivationDate\":\"2016-11-02\"" +
         "}";
 
-    public static final String CONTEXTS = "{\"Name\": \"My_Context_1\", " +
+    public static final String CONTEXTS =
+        "{\"Name\": \"My_Context_1\", " +
         "\"Status\":\"ACTIVE\", " +
         "\"SecurityProfile\" : \"SEC_PROFILE-000001\"," +
         "\"Permissions\": [{" +
@@ -264,7 +269,8 @@ public class ClientMockResultHelper {
         "\"IngestContracts\": [\"ArchivalAgreement0\"]" +
         "}]}";
 
-    private static final String FORMAT = "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
+    private static final String FORMAT =
+        "{\"_id\":\"aeaaaaaaaaaaaaabaa44qakyetenaeyaaawq\", " +
         "\"CreatedDate\":\"2016-01-21T10:36:46\", " +
         "\"VersionPronom\":\"84\", " +
         "\"Version\":\"1.12\", " +
@@ -276,7 +282,8 @@ public class ClientMockResultHelper {
         "\"PUID\":\"fmt/164\", " +
         "\"_tenant\":\"0\"}";
 
-    private static final String ACCESSION_SUMMARY = "{\"_id\": \"aefaaaaaaaaam7mxaa2gyakygejizayaaaaq\"," +
+    private static final String ACCESSION_SUMMARY =
+        "{\"_id\": \"aefaaaaaaaaam7mxaa2gyakygejizayaaaaq\"," +
         "\"_tenant\": 0," +
         "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
         "    \"TotalObjects\": {" +
@@ -301,7 +308,8 @@ public class ClientMockResultHelper {
         "}," +
         "\"creationDate\": \"2016-11-04T20:40:49.030\"}";
 
-    private static final String ACCESSION_DETAIL = "{" +
+    private static final String ACCESSION_DETAIL =
+        "{" +
         "\"_id\": \"aedqaaaaacaam7mxabsakakygeje2uyaaaaq\"," +
         "\"_tenant\": 0," +
         "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
@@ -330,52 +338,49 @@ public class ClientMockResultHelper {
         "    \"remained\": 345042" +
         "}}";
 
-
-
     private static final String TRACEABILITY_OPERATION =
         "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
-            " {\"LogType\":\"OPERATION\",\"StartDate\":\"2017-03-02T12:46:25.618\",\"EndDate\":\"2017-03-02T14:22:34.811\"" +
-            ",\"Hash\":\"obu+Z7+M7JlaY5ney0dDNTzmWr4+r6Cf3GtwMrLKpCLIL7Bjqty8kfUNSGNQ9qlzO3YE7+zRdC2o/S+uUOJM4g==\"," +
-            "\"TimeStampToken\":\"MIIEZzAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIETAYJKoZIhvcNAQcCoIIEPTCCBDkCAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRvMG0CAQEGASkwUTANBglghkgBZQMEAgMFAARAMcCUdvY+87OSgJw3slg+aHgTt+j+UcybWmhG0G9wL7A0NE8eUO8JFJRD81Gb4wTu12AealKzWeUoLczLWRhACQIBARgPMjAxNzAzMDIxNDIyMzVaMYIDnjCCA5oCAQEwTzBKMQswCQYDVQQGEwJGUjEPMA0GA1UECBMGRnJhbmNlMQ4wDAYDVQQHEwVQQXJpczENMAsGA1UEChMERXRhdDELMAkGA1UECxMCRVQCAQEwDQYJYIZIAWUDBAIDBQCgggEgMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcNMTcwMzAyMTQyMjM1WjAtBgkqhkiG9w0BCTQxIDAeMA0GCWCGSAFlAwQCAwUAoQ0GCSqGSIb3DQEBDQUAME8GCSqGSIb3DQEJBDFCBECDgiYpV3Bd/9ckq0Nq+zm/TmPWO3rCt33o+cKA8DI5L9EGiEV2GtjO0z4jnw08/iZ3chanYRrR8hJk4u4Fmqk4MGQGCyqGSIb3DQEJEAIvMVUwUzBRME8wCwYJYIZIAWUDBAIDBEACrDhLC92Gcm2mclJwDuLADobFbVWY5HASuT8FL0/1nNexkoSVnVclwr0VkxJgmVAxa+g8ecGbwLzDs8vbT9AYMA0GCSqGSIb3DQEBDQUABIICABBtgwv5dZJhWu050wXM27HGZF6yFaU6AOPjjUIQccbly1nw/Sebg2xRenMv+jxAm8bAdW3eBPNrSa1iJKGLmgfYZuxIwt5AluzVuvTH2t1j08XSMmDQpilhN6Bx9dOS3aClNm89ZVygmdUz6N9HGmxZh1yis80SxD6jDjhnuK6R+xpmdmL6HIDzHa5mjOCbD1lXtr5tWWR+1K9Axv4qoLADlrUKmpCdbnfUBgVdbWJnJBcW6WoQXDpTD/JbV/m2s/yzK7FDt+IpERwVZGqiZF9WwzgX9AFJ352tFWWj+KhqfFN8UgfPKD5aCo6V5T+vMlkodiV+0XQBPKdcPBoo8PJtiCR5sFlJHbQ0qGwQq6P/06ApvrXOFKz434CkCGTbZLKVEHTs1SqgZuAg54bR6GbifOheVojOhWDFEMEXlnpD7PjCYscL9U83H92Iosr4rJhvYwSYbahmU7W1RlUP4cHy8nUYwvUO54ehYMcKcZ4idG4nbUfVYy8lClYruKG0rVcwWu3TZxeSaLePYRZwaeXJ00p36SttyZTLeN4rZatePQc/ff856jvKqDlDZlXIyhOcYCXot5xHFlv+zKZhB71uOv/XvqqmZFhentmkZFYK+qi2tH+Tahar2f3b4RJo+bm235g/v1rIvKQKe8rjkemgPIG7RzkCnss2SGIpfW5h\"," +
-            "\"NumberOfElements\":4," +
-            "\"FileName\":\"0_LogbookOperation_20170302_142234.zip\"," +
-            "\"Size\":41807}}";
+        " {\"LogType\":\"OPERATION\",\"StartDate\":\"2017-03-02T12:46:25.618\",\"EndDate\":\"2017-03-02T14:22:34.811\"" +
+        ",\"Hash\":\"obu+Z7+M7JlaY5ney0dDNTzmWr4+r6Cf3GtwMrLKpCLIL7Bjqty8kfUNSGNQ9qlzO3YE7+zRdC2o/S+uUOJM4g==\"," +
+        "\"TimeStampToken\":\"MIIEZzAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIETAYJKoZIhvcNAQcCoIIEPTCCBDkCAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRvMG0CAQEGASkwUTANBglghkgBZQMEAgMFAARAMcCUdvY+87OSgJw3slg+aHgTt+j+UcybWmhG0G9wL7A0NE8eUO8JFJRD81Gb4wTu12AealKzWeUoLczLWRhACQIBARgPMjAxNzAzMDIxNDIyMzVaMYIDnjCCA5oCAQEwTzBKMQswCQYDVQQGEwJGUjEPMA0GA1UECBMGRnJhbmNlMQ4wDAYDVQQHEwVQQXJpczENMAsGA1UEChMERXRhdDELMAkGA1UECxMCRVQCAQEwDQYJYIZIAWUDBAIDBQCgggEgMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcNMTcwMzAyMTQyMjM1WjAtBgkqhkiG9w0BCTQxIDAeMA0GCWCGSAFlAwQCAwUAoQ0GCSqGSIb3DQEBDQUAME8GCSqGSIb3DQEJBDFCBECDgiYpV3Bd/9ckq0Nq+zm/TmPWO3rCt33o+cKA8DI5L9EGiEV2GtjO0z4jnw08/iZ3chanYRrR8hJk4u4Fmqk4MGQGCyqGSIb3DQEJEAIvMVUwUzBRME8wCwYJYIZIAWUDBAIDBEACrDhLC92Gcm2mclJwDuLADobFbVWY5HASuT8FL0/1nNexkoSVnVclwr0VkxJgmVAxa+g8ecGbwLzDs8vbT9AYMA0GCSqGSIb3DQEBDQUABIICABBtgwv5dZJhWu050wXM27HGZF6yFaU6AOPjjUIQccbly1nw/Sebg2xRenMv+jxAm8bAdW3eBPNrSa1iJKGLmgfYZuxIwt5AluzVuvTH2t1j08XSMmDQpilhN6Bx9dOS3aClNm89ZVygmdUz6N9HGmxZh1yis80SxD6jDjhnuK6R+xpmdmL6HIDzHa5mjOCbD1lXtr5tWWR+1K9Axv4qoLADlrUKmpCdbnfUBgVdbWJnJBcW6WoQXDpTD/JbV/m2s/yzK7FDt+IpERwVZGqiZF9WwzgX9AFJ352tFWWj+KhqfFN8UgfPKD5aCo6V5T+vMlkodiV+0XQBPKdcPBoo8PJtiCR5sFlJHbQ0qGwQq6P/06ApvrXOFKz434CkCGTbZLKVEHTs1SqgZuAg54bR6GbifOheVojOhWDFEMEXlnpD7PjCYscL9U83H92Iosr4rJhvYwSYbahmU7W1RlUP4cHy8nUYwvUO54ehYMcKcZ4idG4nbUfVYy8lClYruKG0rVcwWu3TZxeSaLePYRZwaeXJ00p36SttyZTLeN4rZatePQc/ff856jvKqDlDZlXIyhOcYCXot5xHFlv+zKZhB71uOv/XvqqmZFhentmkZFYK+qi2tH+Tahar2f3b4RJo+bm235g/v1rIvKQKe8rjkemgPIG7RzkCnss2SGIpfW5h\"," +
+        "\"NumberOfElements\":4," +
+        "\"FileName\":\"0_LogbookOperation_20170302_142234.zip\"," +
+        "\"Size\":41807}}";
 
     private static final String TRACEABILITY_LOGBOOK_OPERATION =
         "{\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-            "\"evType\": \"CHECK_TRACEABILITY_OPERATION\"," +
-            "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-            "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"evTypeProc\": \"TRACEABILITY\"," +
-            "\"outcome\": \"STARTED\"," +
-            "\"outDetail\": null," +
-            "\"outMessg\": \"SIP entry : SIP.zip\"," +
-            "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"storage\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
-            "\"agIdApp\": null," +
-            "\"evIdAppSession\": null," +
-            "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"agIdExt\": null," +
-            "\"obId\": null," +
-            "\"obIdReq\": null," +
-            "\"obIdIn\": null," +
-            "\"events\": [{" +
-            "\"evTypeProc\": \"TRACEABILITY\"," +
-            "\"evDetData\": {\"LogType\":\"OPERATION\",\"StartDate\":\"2017-04-06T22:50:59.657\"," +
-            "\"EndDate\":\"2017-04-06T23:01:03.121\",\"Hash\":\"HASH_TEST\",\"TimeStampToken\":\"TimeStamp_TEST\"," +
-            "\"NumberOfElements\":4,\"FileName\":\"0_LogbookOperation_20170406_230103.zip\",\"Size\":4141}}]}";
+        "\"evType\": \"CHECK_TRACEABILITY_OPERATION\"," +
+        "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
+        "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "\"evTypeProc\": \"TRACEABILITY\"," +
+        "\"outcome\": \"STARTED\"," +
+        "\"outDetail\": null," +
+        "\"outMessg\": \"SIP entry : SIP.zip\"," +
+        "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"storage\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
+        "\"agIdApp\": null," +
+        "\"evIdAppSession\": null," +
+        "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "\"agIdExt\": null," +
+        "\"obId\": null," +
+        "\"obIdReq\": null," +
+        "\"obIdIn\": null," +
+        "\"events\": [{" +
+        "\"evTypeProc\": \"TRACEABILITY\"," +
+        "\"evDetData\": {\"LogType\":\"OPERATION\",\"StartDate\":\"2017-04-06T22:50:59.657\"," +
+        "\"EndDate\":\"2017-04-06T23:01:03.121\",\"Hash\":\"HASH_TEST\",\"TimeStampToken\":\"TimeStamp_TEST\"," +
+        "\"NumberOfElements\":4,\"FileName\":\"0_LogbookOperation_20170406_230103.zip\",\"Size\":4141}}]}";
 
     public static final String SECURITY_PROFILES =
         "{" +
-            "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetcaaaabbbcc\"," +
-            "\"Identifier\": \"SEC_PROFILE-000001\"," +
-            "\"Name\": \"TEST_PROFILE_1\"," +
-            "\"FullAccess\": false," +
-            "\"Permissions\": [" +
-            "\"permission_one:read\"," +
-            "\"permission_one:id:write\"" +
-            "]" +
-            "}";
-
+        "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetcaaaabbbcc\"," +
+        "\"Identifier\": \"SEC_PROFILE-000001\"," +
+        "\"Name\": \"TEST_PROFILE_1\"," +
+        "\"FullAccess\": false," +
+        "\"Permissions\": [" +
+        "\"permission_one:read\"," +
+        "\"permission_one:id:write\"" +
+        "]" +
+        "}";
 
     public static final List<OntologyModel> ONTOLOGIES = Collections.singletonList(
         new OntologyModel()
@@ -390,14 +395,14 @@ public class ClientMockResultHelper {
             .setOrigin(OntologyOrigin.INTERNAL)
             .setShortName("Originating Agency Identifier")
             .setCollections(Arrays.asList("Unit", "ObjectGroup"))
-            .setType(OntologyType.KEYWORD));
+            .setType(OntologyType.KEYWORD)
+    );
 
     private static List<OntologyModel> ontologies = ONTOLOGIES;
 
     private static final String DIP_RESULTS = "{}";
 
-    private ClientMockResultHelper() {
-    }
+    private ClientMockResultHelper() {}
 
     /**
      * @return a default Logbook Result
@@ -406,7 +411,10 @@ public class ClientMockResultHelper {
     public static JsonNode getLogbookResults() throws InvalidParseOperationException {
         final StringBuilder result = new StringBuilder(RESULT).append("[");
         for (int i = 0; i < 100; i++) {
-            result.append("{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa").append(i).append("\",")
+            result
+                .append("{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa")
+                .append(i)
+                .append("\",")
                 .append(LOGBOOK_OPERATION);
             if (i < 99) {
                 result.append(",");
@@ -445,8 +453,9 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static JsonNode getLogbookOperation() throws InvalidParseOperationException {
-        return JsonHandler
-            .getFromString(RESULT + "[{\"_id\": \"aeaqaaaaaefex4j4aao2qalmjv7h24yaaaaq\"," + LOGBOOK_OPERATION + "]}");
+        return JsonHandler.getFromString(
+            RESULT + "[{\"_id\": \"aeaqaaaaaefex4j4aao2qalmjv7h24yaaaaq\"," + LOGBOOK_OPERATION + "]}"
+        );
     }
 
     /**
@@ -454,8 +463,9 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static JsonNode getLogbookLifecycle() throws InvalidParseOperationException {
-        return JsonHandler
-            .getFromString(RESULT + "[{\"_id\": \"aeaqaaaaaefex4j4aao2qalmjv7h24yaaaaq\"," + LOGBOOK_LIFECYCLE + "]}");
+        return JsonHandler.getFromString(
+            RESULT + "[{\"_id\": \"aeaqaaaaaefex4j4aao2qalmjv7h24yaaaaq\"," + LOGBOOK_LIFECYCLE + "]}"
+        );
     }
 
     public static RequestResponse<JsonNode> getMetaDataResult() throws InvalidParseOperationException {
@@ -476,7 +486,8 @@ public class ClientMockResultHelper {
      */
     public static JsonNode getLogbookOperationWithObId() throws InvalidParseOperationException {
         return JsonHandler.getFromString(
-            RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1\"," + LOGBOOK_OPERATION_WITH_OBID + "]}");
+            RESULT + "[{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa1\"," + LOGBOOK_OPERATION_WITH_OBID + "]}"
+        );
     }
 
     /**
@@ -495,8 +506,6 @@ public class ClientMockResultHelper {
         return new VitamError("Fake");
     }
 
-
-
     /**
      * @param s the original object to be included in response
      * @return a default response
@@ -504,8 +513,7 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse createResponse(String s) throws InvalidParseOperationException {
         RequestResponseOK responseOK = new RequestResponseOK();
-        if (null != s)
-            responseOK.addResult(JsonHandler.getFromString(s));
+        if (null != s) responseOK.addResult(JsonHandler.getFromString(s));
         return responseOK.setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -518,8 +526,7 @@ public class ClientMockResultHelper {
     public static <T> RequestResponse<T> createResponse(String s, Class<T> clasz)
         throws InvalidParseOperationException {
         RequestResponseOK responseOK = new RequestResponseOK();
-        if (null != s)
-            responseOK.addResult(JsonHandler.getFromString(s, clasz));
+        if (null != s) responseOK.addResult(JsonHandler.getFromString(s, clasz));
         return responseOK.setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -544,8 +551,7 @@ public class ClientMockResultHelper {
     public static RequestResponse createResponse(String s, int statuscode, Class clazz)
         throws InvalidParseOperationException {
         RequestResponseOK responseOK = new RequestResponseOK();
-        if (null != s)
-            responseOK.addResult(JsonHandler.getFromString(s, clazz));
+        if (null != s) responseOK.addResult(JsonHandler.getFromString(s, clazz));
         return responseOK.setHttpCode(statuscode);
     }
 
@@ -597,7 +603,6 @@ public class ClientMockResultHelper {
         return createResponse(INGEST_CONTRACTS, IngestContractModel.class);
     }
 
-
     /**
      * @return a RequestResponse containing access contracts json
      * @throws InvalidParseOperationException
@@ -613,7 +618,6 @@ public class ClientMockResultHelper {
     public static RequestResponse getManagementContracts() throws InvalidParseOperationException {
         return createResponse(MANAGEMENT_CONTRACTS);
     }
-
 
     /**
      * @return context json
@@ -705,8 +709,12 @@ public class ClientMockResultHelper {
     public static Response getObjectStream() {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("Content-Disposition", "filename=\"test.txt\"");
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("test"),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
+        return new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            StreamUtils.toInputStream("test"),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            headers
+        );
     }
 
     /**
@@ -722,8 +730,7 @@ public class ClientMockResultHelper {
      * @return a default operation traceability
      * @throws InvalidParseOperationException
      */
-    public static RequestResponse getOperationTraceabilityDetails()
-        throws InvalidParseOperationException {
+    public static RequestResponse getOperationTraceabilityDetails() throws InvalidParseOperationException {
         return createResponse(TRACEABILITY_OPERATION);
     }
 

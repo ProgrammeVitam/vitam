@@ -48,22 +48,18 @@ public class SSLConfigurationTest {
 
     @Before
     public void setUp() throws Exception {
-
         key = new SSLKey("tls/client/client.p12", "azerty4");
     }
 
     @Test
     public void testSSLConfiguration() throws Exception {
-
         SSLConfiguration config = new SSLConfiguration();
         assertNull(config.getKeystore());
         // test of emptyness
         try {
             context = config.createSSLContext();
             fail("Should raized an exception");
-        } catch (final VitamException e) {
-
-        }
+        } catch (final VitamException e) {}
 
         truststore = new ArrayList<>();
         keystore = new ArrayList<>();
@@ -79,5 +75,4 @@ public class SSLConfigurationTest {
         assertEquals(1, config.getKeystore().size());
         assertNotNull(context);
     }
-
 }

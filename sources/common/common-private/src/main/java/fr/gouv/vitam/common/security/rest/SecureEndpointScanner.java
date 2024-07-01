@@ -63,7 +63,7 @@ public class SecureEndpointScanner implements DynamicFeature {
         POST.class,
         PUT.class,
         DELETE.class,
-        OPTIONS.class
+        OPTIONS.class,
     };
 
     private final SecureEndpointRegistry secureEndpointRegistry;
@@ -77,14 +77,17 @@ public class SecureEndpointScanner implements DynamicFeature {
 
     @Override
     public void configure(ResourceInfo resourceInfo, FeatureContext context) {
-
         if (isMethodAlreadyRegistred(resourceInfo)) {
             return;
         }
 
         // Scanning method
-        LOGGER.debug("Scanning resource method " + resourceInfo.getResourceClass().getName() + " . " +
-            resourceInfo.getResourceMethod().getName());
+        LOGGER.debug(
+            "Scanning resource method " +
+            resourceInfo.getResourceClass().getName() +
+            " . " +
+            resourceInfo.getResourceMethod().getName()
+        );
 
         if (isInsecured(resourceInfo)) {
             LOGGER.debug("Skipping unsecured resource");
@@ -94,8 +97,14 @@ public class SecureEndpointScanner implements DynamicFeature {
         // Retrieve @Secure annotation
         Secured securedAnnotation = resourceInfo.getResourceMethod().getAnnotation(Secured.class);
         if (securedAnnotation == null) {
-            throw new IllegalStateException("Missing @" + Secured.class.getName() + " annotation for method " +
-                resourceInfo.getResourceClass().getName() + " . " + resourceInfo.getResourceMethod().getName());
+            throw new IllegalStateException(
+                "Missing @" +
+                Secured.class.getName() +
+                " annotation for method " +
+                resourceInfo.getResourceClass().getName() +
+                " . " +
+                resourceInfo.getResourceMethod().getName()
+            );
         }
 
         ensureUniqueEndpointId(securedAnnotation.permission().getPermission());
@@ -121,7 +130,6 @@ public class SecureEndpointScanner implements DynamicFeature {
     }
 
     private void registerEndpoints(ResourceInfo resourceInfo, Secured securedAnnotation) {
-
         List<String> httpVerbs = getHttpVerbs(resourceInfo);
 
         String endpointPath = getEndpointPath(resourceInfo);
@@ -197,7 +205,6 @@ public class SecureEndpointScanner implements DynamicFeature {
     private List<String> getHttpVerbs(ResourceInfo resourceInfo) {
         List<String> httpVerbs = new ArrayList<>();
         for (Class verbAnnotationClass : HTTP_VERB_ANNOTATIONS) {
-
             Annotation annotation = resourceInfo.getResourceMethod().getAnnotation(verbAnnotationClass);
             if (annotation != null) {
                 httpVerbs.add(verbAnnotationClass.getSimpleName());

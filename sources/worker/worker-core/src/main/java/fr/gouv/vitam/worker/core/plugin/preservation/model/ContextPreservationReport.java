@@ -40,8 +40,10 @@ public class ContextPreservationReport {
 
     @JsonProperty("dslQuery")
     private JsonNode dslQuery;
+
     @JsonProperty("preservationScenarioModel")
     private PreservationScenarioModel preservationScenarioModel;
+
     @JsonProperty("griffinModel")
     private List<GriffinModel> griffinModel;
 
@@ -49,9 +51,11 @@ public class ContextPreservationReport {
         // Empty constructor for deserialization
     }
 
-    public ContextPreservationReport(JsonNode dslQuery,
+    public ContextPreservationReport(
+        JsonNode dslQuery,
         PreservationScenarioModel preservationScenarioModel,
-        List<GriffinModel> griffinModel) {
+        List<GriffinModel> griffinModel
+    ) {
         this.dslQuery = dslQuery;
         this.preservationScenarioModel = preservationScenarioModel;
         this.griffinModel = griffinModel;

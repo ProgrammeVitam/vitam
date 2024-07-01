@@ -39,14 +39,18 @@ import java.util.concurrent.TimeUnit;
  */
 public class WorkflowsLoader implements Runnable {
 
-    final private ProcessManagement processManagement;
+    private final ProcessManagement processManagement;
 
     public WorkflowsLoader(ProcessManagement processManagement) {
         this.processManagement = processManagement;
         Integer period = processManagement.getConfiguration().getWorkflowRefreshPeriod();
 
-        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance())
-            .scheduleWithFixedDelay(this, period, period, TimeUnit.HOURS);
+        Executors.newScheduledThreadPool(1, VitamThreadFactory.getInstance()).scheduleWithFixedDelay(
+            this,
+            period,
+            period,
+            TimeUnit.HOURS
+        );
     }
 
     @Override
@@ -59,5 +63,4 @@ public class WorkflowsLoader implements Runnable {
         VitamThreadUtils.getVitamSession().initIfAbsent(VitamConfiguration.getAdminTenant());
         this.processManagement.reloadWorkflowDefinitions();
     }
-
 }

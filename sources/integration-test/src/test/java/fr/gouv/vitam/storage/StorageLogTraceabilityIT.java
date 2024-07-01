@@ -102,16 +102,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class StorageLogTraceabilityIT extends VitamRuleRunner {
 
     public static final String STRATEGY_ID = "default";
+
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(StorageLogTraceabilityIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                LogbookMain.class,
-                WorkspaceMain.class,
-                DefaultOfferMain.class,
-                StorageMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        StorageLogTraceabilityIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(LogbookMain.class, WorkspaceMain.class, DefaultOfferMain.class, StorageMain.class)
+    );
 
     private static final int TENANT_0 = 0;
 
@@ -140,11 +138,7 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
 
     @After
     public void tearDown() {
-
-        runAfterMongo(Sets.newHashSet(
-            LogbookCollections.OPERATION.getName(),
-            OfferCollections.OFFER_LOG.getName()
-        ));
+        runAfterMongo(Sets.newHashSet(LogbookCollections.OPERATION.getName(), OfferCollections.OFFER_LOG.getName()));
 
         runAfterEs(
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
@@ -159,14 +153,14 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
     @Test
     public void testStorageLogTraceabilityNonAdminTenantThenKO() {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // Given
             VitamThreadUtils.getVitamSession().setTenantId(0);
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(0));
 
             // When / Then
-            assertThatThrownBy(() -> storageClient.storageLogTraceability(Arrays.asList(0, 1)))
-                .isInstanceOf(StorageServerClientException.class);
+            assertThatThrownBy(() -> storageClient.storageLogTraceability(Arrays.asList(0, 1))).isInstanceOf(
+                StorageServerClientException.class
+            );
         }
     }
 
@@ -174,14 +168,14 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
     @Test
     public void testStorageLogTraceabilityEmptyDataSetThenWarning() throws Exception {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // Given
             VitamThreadUtils.getVitamSession().setTenantId(1);
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newRequestIdGUID(1));
 
             // When
-            RequestResponseOK<StorageLogTraceabilityResult> traceabilityResult =
-                storageClient.storageLogTraceability(Arrays.asList(0, 1));
+            RequestResponseOK<StorageLogTraceabilityResult> traceabilityResult = storageClient.storageLogTraceability(
+                Arrays.asList(0, 1)
+            );
 
             // Then
             assertThat(traceabilityResult.getResults()).hasSize(2);
@@ -192,22 +186,33 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
 
             // Check logbook operation
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-            LogbookOperation logbookOperation =
-                getLogbookOperation(traceabilityResult.getResults().get(0).getOperationId());
+            LogbookOperation logbookOperation = getLogbookOperation(
+                traceabilityResult.getResults().get(0).getOperationId()
+            );
 
             checkTraceabilityOperationStatus(logbookOperation, StatusCode.WARNING);
 
             // Ensure no storage log stored
-            try (CloseableIterator<ObjectEntry> storageLogs = storageClient
-                .listContainer(STRATEGY_ID, null, DataCategory.STORAGELOG)) {
+            try (
+                CloseableIterator<ObjectEntry> storageLogs = storageClient.listContainer(
+                    STRATEGY_ID,
+                    null,
+                    DataCategory.STORAGELOG
+                )
+            ) {
                 assertThat(storageLogs).isEmpty();
             } catch (StorageNotFoundClientException ignored) {
                 // Might be thrown if contain not exists
             }
 
             // Ensure no storage log traceability zip generated
-            try (CloseableIterator<ObjectEntry> storageTraceabilityZips = storageClient
-                .listContainer(STRATEGY_ID, null, DataCategory.STORAGETRACEABILITY)) {
+            try (
+                CloseableIterator<ObjectEntry> storageTraceabilityZips = storageClient.listContainer(
+                    STRATEGY_ID,
+                    null,
+                    DataCategory.STORAGETRACEABILITY
+                )
+            ) {
                 assertThat(storageTraceabilityZips).isEmpty();
             } catch (StorageNotFoundClientException ignored) {
                 // Might be thrown if contain not exists
@@ -219,7 +224,6 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
     @Test
     public void testStorageLogTraceabilityFirstTraceability() throws Exception {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // Given
             VitamThreadUtils.getVitamSession().setTenantId(0);
 
@@ -234,8 +238,9 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
             storageClient.storageLogBackup(Arrays.asList(0, 1));
 
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(1));
-            RequestResponseOK<StorageLogTraceabilityResult> traceabilityResult =
-                storageClient.storageLogTraceability(Arrays.asList(0, 1));
+            RequestResponseOK<StorageLogTraceabilityResult> traceabilityResult = storageClient.storageLogTraceability(
+                Arrays.asList(0, 1)
+            );
 
             // Then
 
@@ -248,14 +253,17 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
 
             // Check logbook operation
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
-            LogbookOperation logbookOperation =
-                getLogbookOperation(traceabilityResult.getResults().get(0).getOperationId());
+            LogbookOperation logbookOperation = getLogbookOperation(
+                traceabilityResult.getResults().get(0).getOperationId()
+            );
 
             checkTraceabilityOperationStatus(logbookOperation, StatusCode.OK);
 
             assertThat(logbookOperation.getEvDetData()).isNotEmpty();
-            TraceabilityEvent traceabilityEvent =
-                JsonHandler.getFromString(logbookOperation.getEvDetData(), TraceabilityEvent.class);
+            TraceabilityEvent traceabilityEvent = JsonHandler.getFromString(
+                logbookOperation.getEvDetData(),
+                TraceabilityEvent.class
+            );
             assertThat(traceabilityEvent.getHash()).isNotNull();
             assertThat(traceabilityEvent.getTimeStampToken()).isNotNull();
             assertThat(traceabilityEvent.getNumberOfElements()).isEqualTo(1);
@@ -268,14 +276,21 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
             assertThat(traceabilityEntries).hasSize(1);
 
             // Check storage log
-            CloseableIterator<ObjectEntry> storageLogs =
-                storageClient.listContainer(STRATEGY_ID, null, DataCategory.STORAGELOG);
+            CloseableIterator<ObjectEntry> storageLogs = storageClient.listContainer(
+                STRATEGY_ID,
+                null,
+                DataCategory.STORAGELOG
+            );
             List<ObjectEntry> objectEntries = IteratorUtils.toList(storageLogs);
             assertThat(objectEntries).hasSize(1);
             String storageLogObjectId = objectEntries.get(0).getObjectId();
 
-            Response storageLogResponse = storageClient.getContainerAsync(STRATEGY_ID, objectEntries
-                .get(0).getObjectId(), DataCategory.STORAGELOG, AccessLogUtils.getNoLogAccessLog());
+            Response storageLogResponse = storageClient.getContainerAsync(
+                STRATEGY_ID,
+                objectEntries.get(0).getObjectId(),
+                DataCategory.STORAGELOG,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream inputStream = storageLogResponse.readEntity(InputStream.class);
             Digest storageLogDigest = new Digest(DigestType.SHA512).update(inputStream);
 
@@ -288,7 +303,6 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
     @Test
     public void testStorageLogTraceabilityTraceabilityChaining() throws Exception {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
-
             // Given : Existing traceability
             VitamThreadUtils.getVitamSession().setTenantId(0);
 
@@ -304,8 +318,9 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
             this.logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
 
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(1));
-            RequestResponseOK<StorageLogTraceabilityResult> traceabilityResult1 =
-                storageClient.storageLogTraceability(Collections.singletonList(0));
+            RequestResponseOK<StorageLogTraceabilityResult> traceabilityResult1 = storageClient.storageLogTraceability(
+                Collections.singletonList(0)
+            );
 
             this.logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
 
@@ -324,8 +339,9 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
             this.logicalClock.logicalSleep(10, ChronoUnit.MINUTES);
 
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(1));
-            RequestResponseOK<StorageLogTraceabilityResult> traceabilityResult2 =
-                storageClient.storageLogTraceability(Collections.singletonList(0));
+            RequestResponseOK<StorageLogTraceabilityResult> traceabilityResult2 = storageClient.storageLogTraceability(
+                Collections.singletonList(0)
+            );
 
             // Then
 
@@ -341,31 +357,41 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
             // Check logbook operation status
             VitamThreadUtils.getVitamSession().setTenantId(TENANT_0);
 
-            LogbookOperation logbookOperation1 =
-                getLogbookOperation(traceabilityResult1.getResults().get(0).getOperationId());
-            LogbookOperation logbookOperation2 =
-                getLogbookOperation(traceabilityResult2.getResults().get(0).getOperationId());
+            LogbookOperation logbookOperation1 = getLogbookOperation(
+                traceabilityResult1.getResults().get(0).getOperationId()
+            );
+            LogbookOperation logbookOperation2 = getLogbookOperation(
+                traceabilityResult2.getResults().get(0).getOperationId()
+            );
 
             checkTraceabilityOperationStatus(logbookOperation1, StatusCode.OK);
             checkTraceabilityOperationStatus(logbookOperation2, StatusCode.OK);
 
             // Check event details
             assertThat(logbookOperation1.getEvDetData()).isNotEmpty();
-            TraceabilityEvent traceabilityEvent1 =
-                JsonHandler.getFromString(logbookOperation1.getEvDetData(), TraceabilityEvent.class);
+            TraceabilityEvent traceabilityEvent1 = JsonHandler.getFromString(
+                logbookOperation1.getEvDetData(),
+                TraceabilityEvent.class
+            );
             assertThat(traceabilityEvent1.getFileName()).isNotEmpty();
 
             assertThat(logbookOperation2.getEvDetData()).isNotEmpty();
-            TraceabilityEvent traceabilityEvent2 =
-                JsonHandler.getFromString(logbookOperation2.getEvDetData(), TraceabilityEvent.class);
+            TraceabilityEvent traceabilityEvent2 = JsonHandler.getFromString(
+                logbookOperation2.getEvDetData(),
+                TraceabilityEvent.class
+            );
             assertThat(traceabilityEvent2.getHash()).isNotNull();
             assertThat(traceabilityEvent2.getTimeStampToken()).isNotNull();
             assertThat(traceabilityEvent2.getNumberOfElements()).isEqualTo(1);
 
             // Check chaining
-            assertThat(LocalDateUtil.parseMongoFormattedDate(traceabilityEvent2.getPreviousLogbookTraceabilityDate()))
-                .isEqualTo(LocalDateUtil.parseMongoFormattedDate(traceabilityEvent1.getEndDate())
-                    .minus(5, ChronoUnit.MINUTES).truncatedTo(ChronoUnit.SECONDS));
+            assertThat(
+                LocalDateUtil.parseMongoFormattedDate(traceabilityEvent2.getPreviousLogbookTraceabilityDate())
+            ).isEqualTo(
+                LocalDateUtil.parseMongoFormattedDate(traceabilityEvent1.getEndDate())
+                    .minus(5, ChronoUnit.MINUTES)
+                    .truncatedTo(ChronoUnit.SECONDS)
+            );
 
             // Check Traceability ZIPs
             File zip1Folder = tmpFolder.newFolder("zip1");
@@ -383,14 +409,22 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
             String storageLogObjectId2 = traceabilityEntries2.get(0).get("FileName").asText();
             assertThat(storageLogObjectId1).isNotEqualTo(storageLogObjectId2);
 
-            Response storageLogResponse1 = storageClient.getContainerAsync(STRATEGY_ID, storageLogObjectId1,
-                DataCategory.STORAGELOG, AccessLogUtils.getNoLogAccessLog());
+            Response storageLogResponse1 = storageClient.getContainerAsync(
+                STRATEGY_ID,
+                storageLogObjectId1,
+                DataCategory.STORAGELOG,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream inputStream1 = storageLogResponse1.readEntity(InputStream.class);
             Digest storageLogDigest1 = new Digest(DigestType.SHA512).update(inputStream1);
             assertThat(traceabilityEntries1.get(0).get("Hash").asText()).isEqualTo(storageLogDigest1.digest64());
 
-            Response storageLogResponse2 = storageClient.getContainerAsync(STRATEGY_ID, storageLogObjectId2,
-                DataCategory.STORAGELOG, AccessLogUtils.getNoLogAccessLog());
+            Response storageLogResponse2 = storageClient.getContainerAsync(
+                STRATEGY_ID,
+                storageLogObjectId2,
+                DataCategory.STORAGELOG,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream inputStream2 = storageLogResponse2.readEntity(InputStream.class);
             Digest storageLogDigest2 = new Digest(DigestType.SHA512).update(inputStream2);
             assertThat(traceabilityEntries2.get(0).get("Hash").asText()).isEqualTo(storageLogDigest2.digest64());
@@ -400,25 +434,27 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
     private void checkTraceabilityOperationStatus(LogbookOperation logbookOperation, StatusCode ok) {
         assertThat(logbookOperation.getEvTypeProc()).isEqualTo(LogbookTypeProcess.TRACEABILITY.name());
         assertThat(logbookOperation.getEvType()).isEqualTo(STP_STORAGE_SECURISATION);
-        assertThat(logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1).getOutDetail())
-            .isEqualTo(STP_STORAGE_SECURISATION + "." + ok.name());
+        assertThat(logbookOperation.getEvents().get(logbookOperation.getEvents().size() - 1).getOutDetail()).isEqualTo(
+            STP_STORAGE_SECURISATION + "." + ok.name()
+        );
     }
 
-    private void downloadZip(String fileName, File folder) throws IOException, StorageNotFoundException,
-        StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException {
-        try (StorageClient storageClient = StorageClientFactory.getInstance().getClient();
-            Response containerAsync = storageClient
-                .getContainerAsync(VitamConfiguration.getDefaultStrategy(), fileName,
-                    DataCategory.STORAGETRACEABILITY, AccessLogUtils.getNoLogAccessLog());
+    private void downloadZip(String fileName, File folder)
+        throws IOException, StorageNotFoundException, StorageServerClientException, StorageUnavailableDataFromAsyncOfferClientException {
+        try (
+            StorageClient storageClient = StorageClientFactory.getInstance().getClient();
+            Response containerAsync = storageClient.getContainerAsync(
+                VitamConfiguration.getDefaultStrategy(),
+                fileName,
+                DataCategory.STORAGETRACEABILITY,
+                AccessLogUtils.getNoLogAccessLog()
+            );
             InputStream inputStream = containerAsync.readEntity(InputStream.class);
             ZipInputStream zipInputStream = new ZipInputStream(inputStream)
         ) {
-
             ZipEntry entry;
             while ((entry = zipInputStream.getNextEntry()) != null) {
-
-                try (FileOutputStream fileOutputStream = new FileOutputStream(
-                    new File(folder, entry.getName()))) {
+                try (FileOutputStream fileOutputStream = new FileOutputStream(new File(folder, entry.getName()))) {
                     IOUtils.copy(zipInputStream, fileOutputStream);
                 }
             }
@@ -434,6 +470,7 @@ public class StorageLogTraceabilityIT extends VitamRuleRunner {
                 } catch (InvalidParseOperationException e) {
                     throw new RuntimeException(e);
                 }
-            }).collect(Collectors.toList());
+            })
+            .collect(Collectors.toList());
     }
 }

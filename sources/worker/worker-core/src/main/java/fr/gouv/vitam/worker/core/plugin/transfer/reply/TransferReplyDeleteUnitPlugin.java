@@ -52,9 +52,15 @@ public class TransferReplyDeleteUnitPlugin extends PurgeUnitPlugin {
         PurgeDeleteService purgeDeleteService,
         MetaDataClientFactory metaDataClientFactory,
         PurgeReportService purgeReportService,
-        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory) {
-        super(TRANSFER_REPLY_DELETE_UNIT, purgeDeleteService, metaDataClientFactory, purgeReportService,
-            logbookLifeCyclesClientFactory);
+        LogbookLifeCyclesClientFactory logbookLifeCyclesClientFactory
+    ) {
+        super(
+            TRANSFER_REPLY_DELETE_UNIT,
+            purgeDeleteService,
+            metaDataClientFactory,
+            purgeReportService,
+            logbookLifeCyclesClientFactory
+        );
     }
 
     public static String getId() {

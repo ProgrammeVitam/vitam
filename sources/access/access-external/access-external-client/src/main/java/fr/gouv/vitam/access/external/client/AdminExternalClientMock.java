@@ -80,35 +80,29 @@ import java.io.InputStream;
  */
 public class AdminExternalClientMock extends AbstractMockClient implements AdminExternalClient {
 
-
     public static final String ID = "identifier1";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(AdminExternalClientMock.class);
 
     @Override
-    public RequestResponse getAccessionRegisterDetail(VitamContext vitamContext, String id,
-        JsonNode query)
-        throws InvalidParseOperationException, AccessExternalClientServerException,
-        AccessExternalClientNotFoundException {
+    public RequestResponse getAccessionRegisterDetail(VitamContext vitamContext, String id, JsonNode query)
+        throws InvalidParseOperationException, AccessExternalClientServerException, AccessExternalClientNotFoundException {
         return ClientMockResultHelper.getAccessionRegisterDetail();
     }
 
     @Override
-    public RequestResponse updateAccessContract(VitamContext vitamContext, String id,
-        JsonNode queryDsl)
+    public RequestResponse updateAccessContract(VitamContext vitamContext, String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException {
         return ClientMockResultHelper.createReponse(ClientMockResultHelper.getAccessContracts().toJsonNode());
     }
 
     @Override
-    public RequestResponse updateIngestContract(VitamContext vitamContext, String id,
-        JsonNode queryDsl)
+    public RequestResponse updateIngestContract(VitamContext vitamContext, String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException {
         return ClientMockResultHelper.createReponse(ClientMockResultHelper.getIngestContracts().toJsonNode());
     }
 
     @Override
-    public RequestResponse updateManagementContract(VitamContext vitamContext, String id,
-        JsonNode queryDsl)
+    public RequestResponse updateManagementContract(VitamContext vitamContext, String id, JsonNode queryDsl)
         throws InvalidParseOperationException, AccessExternalClientException {
         return ClientMockResultHelper.createReponse(ClientMockResultHelper.getManagementContracts().toJsonNode());
     }
@@ -116,14 +110,13 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     @Override
     public RequestResponse createProfiles(VitamContext vitamContext, InputStream profiles)
         throws InvalidParseOperationException, AccessExternalClientException {
-        return ClientMockResultHelper
-            .createReponse(ClientMockResultHelper.getProfiles(Status.CREATED.getStatusCode()).toJsonNode())
-            .setHttpCode(Status.CREATED.getStatusCode());
+        return ClientMockResultHelper.createReponse(
+            ClientMockResultHelper.getProfiles(Status.CREATED.getStatusCode()).toJsonNode()
+        ).setHttpCode(Status.CREATED.getStatusCode());
     }
 
     @Override
-    public RequestResponse createProfileFile(VitamContext vitamContext,
-        String profileMetadataId, InputStream profile)
+    public RequestResponse createProfileFile(VitamContext vitamContext, String profileMetadataId, InputStream profile)
         throws InvalidParseOperationException, AccessExternalClientException {
         return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
     }
@@ -131,30 +124,32 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     @Override
     public Response downloadProfileFile(VitamContext vitamContext, String profileMetadataId)
         throws AccessExternalClientException {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        return new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            StreamUtils.toInputStream("Vitam Test"),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
     }
 
     @Override
     public RequestResponse createContexts(VitamContext vitamContext, InputStream contexts)
         throws InvalidParseOperationException {
-        return ClientMockResultHelper
-            .createReponse(ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode())
-            .setHttpCode(Status.CREATED.getStatusCode());
+        return ClientMockResultHelper.createReponse(
+            ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()
+        ).setHttpCode(Status.CREATED.getStatusCode());
     }
 
     @Override
-    public RequestResponse updateContext(VitamContext vitamContext, String id,
-        JsonNode queryDsl)
+    public RequestResponse updateContext(VitamContext vitamContext, String id, JsonNode queryDsl)
         throws AccessExternalClientException, InvalidParseOperationException {
         return ClientMockResultHelper.createReponse(
-            ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-            Status.CREATED.getStatusCode());
+            ClientMockResultHelper.getContexts(Status.CREATED.getStatusCode()).toJsonNode()
+        ).setHttpCode(Status.CREATED.getStatusCode());
     }
 
     @Override
-    public RequestResponse checkTraceabilityOperation(VitamContext vitamContext,
-        JsonNode query)
+    public RequestResponse checkTraceabilityOperation(VitamContext vitamContext, JsonNode query)
         throws AccessExternalClientServerException, InvalidParseOperationException {
         return ClientMockResultHelper.checkOperationTraceability();
     }
@@ -166,11 +161,14 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public Response downloadTraceabilityOperationFile(VitamContext vitamContext,
-        String operationId)
+    public Response downloadTraceabilityOperationFile(VitamContext vitamContext, String operationId)
         throws AccessExternalClientServerException {
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        return new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            null
+        );
     }
 
     @Override
@@ -179,127 +177,120 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse<FileFormatModel> findFormats(VitamContext vitamContext,
-        JsonNode select)
+    public RequestResponse<FileFormatModel> findFormats(VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getFormat();
     }
 
     @Override
-    public RequestResponse<FileRulesModel> findRules(VitamContext vitamContext,
-        JsonNode select)
+    public RequestResponse<FileRulesModel> findRules(VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getRuleList();
     }
 
     @Override
-    public RequestResponse<IngestContractModel> findIngestContracts(
-        VitamContext vitamContext, JsonNode select)
+    public RequestResponse<IngestContractModel> findIngestContracts(VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getIngestContracts();
     }
 
     @Override
-    public RequestResponse<AccessContractModel> findAccessContracts(
-        VitamContext vitamContext, JsonNode select)
+    public RequestResponse<AccessContractModel> findAccessContracts(VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getAccessContracts();
     }
 
     @Override
-    public RequestResponse<ManagementContractModel> findManagementContracts(
-        VitamContext vitamContext, JsonNode select)
+    public RequestResponse<ManagementContractModel> findManagementContracts(VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getManagementContracts();
     }
 
     @Override
-    public RequestResponse<ContextModel> findContexts(VitamContext vitamContext,
-        JsonNode select)
+    public RequestResponse<ContextModel> findContexts(VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getContexts(Status.OK.getStatusCode());
     }
 
     @Override
-    public RequestResponse<ProfileModel> findProfiles(VitamContext vitamContext,
-        JsonNode select)
+    public RequestResponse<ProfileModel> findProfiles(VitamContext vitamContext, JsonNode select)
         throws VitamClientException {
         return ClientMockResultHelper.getProfiles(Status.OK.getStatusCode());
     }
 
     @Override
     public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegister(
-        VitamContext vitamContext, JsonNode select)
-        throws VitamClientException {
+        VitamContext vitamContext,
+        JsonNode select
+    ) throws VitamClientException {
         return ClientMockResultHelper.getAccessionRegisterSummary();
     }
 
     @Override
     public RequestResponse<AccessionRegisterSymbolicModel> findAccessionRegisterSymbolic(
-        VitamContext vitamContext, JsonNode select)
-        throws VitamClientException {
+        VitamContext vitamContext,
+        JsonNode select
+    ) throws VitamClientException {
         throw new IllegalStateException("Do not use this; please");
     }
 
     @Override
     public RequestResponse<AccessionRegisterDetailModel> findAccessionRegisterDetails(
-        VitamContext vitamContext, JsonNode select) {
+        VitamContext vitamContext,
+        JsonNode select
+    ) {
         throw new IllegalStateException("Do not use this; please");
     }
 
     @Override
-    public RequestResponse<FileFormatModel> findFormatById(VitamContext vitamContext,
-        String formatId)
+    public RequestResponse<FileFormatModel> findFormatById(VitamContext vitamContext, String formatId)
         throws VitamClientException {
         return ClientMockResultHelper.getFormat();
     }
 
     @Override
-    public RequestResponse<FileRulesModel> findRuleById(VitamContext vitamContext,
-        String ruleId)
+    public RequestResponse<FileRulesModel> findRuleById(VitamContext vitamContext, String ruleId)
         throws VitamClientException {
         return ClientMockResultHelper.getRule();
     }
 
     @Override
-    public RequestResponse<IngestContractModel> findIngestContractById(
-        VitamContext vitamContext, String contractId)
+    public RequestResponse<IngestContractModel> findIngestContractById(VitamContext vitamContext, String contractId)
         throws VitamClientException {
         return ClientMockResultHelper.getIngestContracts();
     }
 
     @Override
-    public RequestResponse<AccessContractModel> findAccessContractById(
-        VitamContext vitamContext, String contractId)
+    public RequestResponse<AccessContractModel> findAccessContractById(VitamContext vitamContext, String contractId)
         throws VitamClientException {
         return ClientMockResultHelper.getAccessContracts();
     }
 
     @Override
     public RequestResponse<ManagementContractModel> findManagementContractById(
-        VitamContext vitamContext, String contractId)
-        throws VitamClientException {
+        VitamContext vitamContext,
+        String contractId
+    ) throws VitamClientException {
         return ClientMockResultHelper.getManagementContracts();
     }
 
     @Override
-    public RequestResponse<ContextModel> findContextById(VitamContext vitamContext,
-        String contextId)
+    public RequestResponse<ContextModel> findContextById(VitamContext vitamContext, String contextId)
         throws VitamClientException {
         return ClientMockResultHelper.getContexts(Status.OK.getStatusCode());
     }
 
     @Override
-    public RequestResponse<ProfileModel> findProfileById(VitamContext vitamContext,
-        String profileId)
+    public RequestResponse<ProfileModel> findProfileById(VitamContext vitamContext, String profileId)
         throws VitamClientException {
         return ClientMockResultHelper.getProfiles(Status.OK.getStatusCode());
     }
 
     @Override
     public RequestResponse<AccessionRegisterSummaryModel> findAccessionRegisterById(
-        VitamContext vitamContext, String accessionRegisterId)
-        throws VitamClientException {
+        VitamContext vitamContext,
+        String accessionRegisterId
+    ) throws VitamClientException {
         return ClientMockResultHelper.getAccessionRegisterSummary();
     }
 
@@ -339,16 +330,15 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse<ProcessDetail> listOperationsDetails(VitamContext vitamContext,
-        ProcessQuery query)
+    public RequestResponse<ProcessDetail> listOperationsDetails(VitamContext vitamContext, ProcessQuery query)
         throws VitamClientException {
-        return new RequestResponseOK<ProcessDetail>().addResult(new ProcessDetail())
+        return new RequestResponseOK<ProcessDetail>()
+            .addResult(new ProcessDetail())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
-    public RequestResponse<ItemStatus> getOperationProcessStatus(VitamContext vitamContext,
-        String id)
+    public RequestResponse<ItemStatus> getOperationProcessStatus(VitamContext vitamContext, String id)
         throws VitamClientException {
         ItemStatus pwork = null;
         try {
@@ -361,23 +351,23 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(
-        VitamContext vitamContext, String id)
+    public RequestResponse<ItemStatus> getOperationProcessExecutionDetails(VitamContext vitamContext, String id)
         throws VitamClientException {
         return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
-    public RequestResponse<ItemStatus> cancelOperationProcessExecution(
-        VitamContext vitamContext, String id)
+    public RequestResponse<ItemStatus> cancelOperationProcessExecution(VitamContext vitamContext, String id)
         throws VitamClientException {
         return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
     }
 
     @Override
     public RequestResponse<ItemStatus> updateOperationActionProcess(
-        VitamContext vitamContext, String actionId, String id)
-        throws VitamClientException {
+        VitamContext vitamContext,
+        String actionId,
+        String id
+    ) throws VitamClientException {
         return new RequestResponseOK<ItemStatus>().addResult(new ItemStatus(ID)).setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -386,71 +376,84 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         return new RequestResponseOK<WorkFlow>().addResult(new WorkFlow()).setHttpCode(Status.OK.getStatusCode());
     }
 
-
-
     @Override
     public RequestResponse createAgencies(VitamContext vitamContext, InputStream agencies, String filename)
         throws AccessExternalClientException, InvalidParseOperationException {
         StreamUtils.closeSilently(agencies);
         return ClientMockResultHelper.createReponse(
-            ClientMockResultHelper.getAgencies(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-            Status.CREATED.getStatusCode());
+            ClientMockResultHelper.getAgencies(Status.CREATED.getStatusCode()).toJsonNode()
+        ).setHttpCode(Status.CREATED.getStatusCode());
     }
-
-
 
     @Override
     public RequestResponse createFormats(VitamContext vitamContext, InputStream formats, String filename)
         throws AccessExternalClientException, InvalidParseOperationException {
         StreamUtils.closeSilently(formats);
         return ClientMockResultHelper.createReponse(
-            ClientMockResultHelper.getFormat(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-            Status.CREATED.getStatusCode());
+            ClientMockResultHelper.getFormat(Status.CREATED.getStatusCode()).toJsonNode()
+        ).setHttpCode(Status.CREATED.getStatusCode());
     }
-
-
 
     @Override
     public RequestResponse createRules(VitamContext vitamContext, InputStream rules, String filename)
         throws AccessExternalClientException, InvalidParseOperationException {
         StreamUtils.closeSilently(rules);
         return ClientMockResultHelper.createReponse(
-            ClientMockResultHelper.getRule(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-            Status.CREATED.getStatusCode());
+            ClientMockResultHelper.getRule(Status.CREATED.getStatusCode()).toJsonNode()
+        ).setHttpCode(Status.CREATED.getStatusCode());
     }
-
-
 
     @Override
-    public RequestResponse createSecurityProfiles(VitamContext vitamContext, InputStream securityProfiles,
-        String filename)
-        throws AccessExternalClientException, InvalidParseOperationException, VitamClientException {
+    public RequestResponse createSecurityProfiles(
+        VitamContext vitamContext,
+        InputStream securityProfiles,
+        String filename
+    ) throws AccessExternalClientException, InvalidParseOperationException, VitamClientException {
         StreamUtils.closeSilently(securityProfiles);
         return ClientMockResultHelper.createReponse(
-            ClientMockResultHelper.getSecurityProfiles(Status.CREATED.getStatusCode()).toJsonNode()).setHttpCode(
-            Status.CREATED.getStatusCode());
+            ClientMockResultHelper.getSecurityProfiles(Status.CREATED.getStatusCode()).toJsonNode()
+        ).setHttpCode(Status.CREATED.getStatusCode());
     }
 
-    private Response checkInternalDocuments(VitamContext vitamContext, AdminCollections documentType,
-        InputStream stream)
-        throws VitamClientException {
+    private Response checkInternalDocuments(
+        VitamContext vitamContext,
+        AdminCollections documentType,
+        InputStream stream
+    ) throws VitamClientException {
         StreamUtils.closeSilently(stream);
 
-        if (AdminCollections.RULES.equals(documentType) || AdminCollections.FORMATS.equals(documentType) ||
-            AdminCollections.AGENCIES.equals(documentType)) {
-            return new AbstractMockClient.FakeInboundResponse(Status.OK, StreamUtils.toInputStream("Vitam Test"),
-                MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+        if (
+            AdminCollections.RULES.equals(documentType) ||
+            AdminCollections.FORMATS.equals(documentType) ||
+            AdminCollections.AGENCIES.equals(documentType)
+        ) {
+            return new AbstractMockClient.FakeInboundResponse(
+                Status.OK,
+                StreamUtils.toInputStream("Vitam Test"),
+                MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                null
+            );
         } else {
             try {
-                return new AbstractMockClient.FakeInboundResponse(Status.INTERNAL_SERVER_ERROR,
-                    JsonHandler.writeToInpustream(VitamCodeHelper
-                        .toVitamError(VitamCode.ADMIN_EXTERNAL_CHECK_DOCUMENT_ERROR, "Collection not found")),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+                return new AbstractMockClient.FakeInboundResponse(
+                    Status.INTERNAL_SERVER_ERROR,
+                    JsonHandler.writeToInpustream(
+                        VitamCodeHelper.toVitamError(
+                            VitamCode.ADMIN_EXTERNAL_CHECK_DOCUMENT_ERROR,
+                            "Collection not found"
+                        )
+                    ),
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                    null
+                );
             } catch (InvalidParseOperationException e) {
                 SysErrLogger.FAKE_LOGGER.ignoreLog(e);
-                return new AbstractMockClient.FakeInboundResponse(Status.INTERNAL_SERVER_ERROR,
+                return new AbstractMockClient.FakeInboundResponse(
+                    Status.INTERNAL_SERVER_ERROR,
                     new ByteArrayInputStream("{ 'message' : 'Invalid VitamError message' }".getBytes()),
-                    MediaType.APPLICATION_OCTET_STREAM_TYPE, null);
+                    MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                    null
+                );
             }
         }
     }
@@ -489,14 +492,12 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public Response downloadRulesReport(VitamContext vitamContext, String opId)
-        throws VitamClientException {
+    public Response downloadRulesReport(VitamContext vitamContext, String opId) throws VitamClientException {
         return ClientMockResultHelper.getObjectStream();
     }
 
     @Override
-    public Response downloadDistributionReport(VitamContext vitamContext, String opId)
-        throws VitamClientException {
+    public Response downloadDistributionReport(VitamContext vitamContext, String opId) throws VitamClientException {
         return ClientMockResultHelper.getObjectStream();
     }
 
@@ -506,14 +507,12 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public Response downloadRulesCsvAsStream(VitamContext vitamContext, String opId)
-        throws VitamClientException {
+    public Response downloadRulesCsvAsStream(VitamContext vitamContext, String opId) throws VitamClientException {
         return ClientMockResultHelper.getObjectStream();
     }
 
     @Override
-    public Response downloadAgenciesCsvAsStream(VitamContext vitamContext, String opId)
-        throws VitamClientException {
+    public Response downloadAgenciesCsvAsStream(VitamContext vitamContext, String opId) throws VitamClientException {
         return ClientMockResultHelper.getObjectStream();
     }
 
@@ -528,8 +527,10 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse exportProbativeValue(VitamContext vitamContext,
-        ProbativeValueRequest probativeValueRequest) {
+    public RequestResponse exportProbativeValue(
+        VitamContext vitamContext,
+        ProbativeValueRequest probativeValueRequest
+    ) {
         return ClientMockResultHelper.getProbativeValue(Status.OK.getStatusCode());
     }
 
@@ -551,18 +552,20 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse updateArchiveUnitProfile(VitamContext vitamContext, String archiveUnitprofileId,
-        JsonNode queryDSL)
-        throws InvalidParseOperationException, AccessExternalClientException {
+    public RequestResponse updateArchiveUnitProfile(
+        VitamContext vitamContext,
+        String archiveUnitprofileId,
+        JsonNode queryDSL
+    ) throws InvalidParseOperationException, AccessExternalClientException {
         return ClientMockResultHelper.getArchiveUnitProfiles(Status.OK.getStatusCode());
     }
 
     @Override
     public RequestResponse importOntologies(boolean forceUpdate, VitamContext vitamContext, InputStream profiles)
         throws InvalidParseOperationException, AccessExternalClientException {
-        return ClientMockResultHelper
-            .createReponse(ClientMockResultHelper.getOntologies(Status.CREATED.getStatusCode()).toJsonNode())
-            .setHttpCode(Status.CREATED.getStatusCode());
+        return ClientMockResultHelper.createReponse(
+            ClientMockResultHelper.getOntologies(Status.CREATED.getStatusCode()).toJsonNode()
+        ).setHttpCode(Status.CREATED.getStatusCode());
     }
 
     @Override
@@ -576,7 +579,6 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
         throws VitamClientException {
         return (RequestResponse<OntologyModel>) ClientMockResultHelper.getOntologies(Status.OK.getStatusCode());
     }
-
 
     @Override
     public RequestResponse importGriffin(VitamContext vitamContext, InputStream griffinStream, String fileName)
@@ -597,15 +599,18 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse<PreservationScenarioModel> findPreservationScenarioById(VitamContext vitamContext, String id)
-        throws VitamClientException {
+    public RequestResponse<PreservationScenarioModel> findPreservationScenarioById(
+        VitamContext vitamContext,
+        String id
+    ) throws VitamClientException {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
     @Override
-    public RequestResponse<PreservationScenarioModel> findPreservationScenario(VitamContext vitamContext,
-        JsonNode select)
-        throws VitamClientException {
+    public RequestResponse<PreservationScenarioModel> findPreservationScenario(
+        VitamContext vitamContext,
+        JsonNode select
+    ) throws VitamClientException {
         throw new IllegalStateException("Stop using mocks in production");
     }
 
@@ -616,12 +621,10 @@ public class AdminExternalClientMock extends AbstractMockClient implements Admin
     }
 
     @Override
-    public RequestResponse createExternalOperation(VitamContext vitamContext,
-        LogbookOperationParameters logbookOperationparams)
-        throws LogbookExternalClientException {
+    public RequestResponse createExternalOperation(
+        VitamContext vitamContext,
+        LogbookOperationParameters logbookOperationparams
+    ) throws LogbookExternalClientException {
         return new RequestResponseOK().setHttpCode(Status.CREATED.getStatusCode());
     }
-
-
-
 }

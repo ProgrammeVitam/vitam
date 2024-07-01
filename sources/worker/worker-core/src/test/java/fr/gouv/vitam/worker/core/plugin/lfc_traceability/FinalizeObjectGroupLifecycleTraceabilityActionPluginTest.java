@@ -71,8 +71,10 @@ import static org.mockito.Mockito.when;
 public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
+
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
 
@@ -101,22 +103,23 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
 
     @Before
     public void setUp() throws Exception {
-
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
         String objectId = "objectId";
-        handlerIO =
-            new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory,
-                "FinalizeObjectGroupLifecycleTraceabilityActionPluginTest", "workerId",
-                Lists.newArrayList(objectId));
+        handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "FinalizeObjectGroupLifecycleTraceabilityActionPluginTest",
+            "workerId",
+            Lists.newArrayList(objectId)
+        );
         handlerIO.setCurrentObjectId(objectId);
     }
 
     @Test
     @RunWithCustomExecutor
     public void givenTraceabilityZipInWorkspaceThenCopyFileToOffers() throws Exception {
-
         // Given
         doReturn(false).when(workspaceClient).isExistingObject(anyString(), eq(TRACEABILITY_EVENT_FILE_NAME));
 
@@ -134,13 +137,19 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
     @Test
     @RunWithCustomExecutor
     public void givenNoTraceabilityZipInWorkspaceThenNothingToDo() throws Exception {
-
         // Given
         doReturn(true).when(workspaceClient).isExistingObject(anyString(), eq(TRACEABILITY_EVENT_FILE_NAME));
-        doReturn(Response.status(Response.Status.OK).entity(
-            PropertiesUtils.getResourceAsStream(
-                "FinalizeObjectGroupLifecycleTraceabilityActionPlugin/traceabilityEvent.json")
-        ).build()).when(workspaceClient).getObject(any(), eq(TRACEABILITY_EVENT_FILE_NAME));
+        doReturn(
+            Response.status(Response.Status.OK)
+                .entity(
+                    PropertiesUtils.getResourceAsStream(
+                        "FinalizeObjectGroupLifecycleTraceabilityActionPlugin/traceabilityEvent.json"
+                    )
+                )
+                .build()
+        )
+            .when(workspaceClient)
+            .getObject(any(), eq(TRACEABILITY_EVENT_FILE_NAME));
 
         FinalizeObjectGroupLifecycleTraceabilityActionPlugin instance =
             new FinalizeObjectGroupLifecycleTraceabilityActionPlugin(storageClientFactory);
@@ -153,16 +162,25 @@ public class FinalizeObjectGroupLifecycleTraceabilityActionPluginTest {
         assertThat(itemStatus.getMasterData()).containsOnlyKeys(LogbookParameterName.eventDetailData.name());
         JsonAssert.assertJsonEquals(
             JsonHandler.getFromString(
-                (String) itemStatus.getMasterData().get(LogbookParameterName.eventDetailData.name())),
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(
-                "FinalizeObjectGroupLifecycleTraceabilityActionPlugin/traceabilityEvent.json"))
+                (String) itemStatus.getMasterData().get(LogbookParameterName.eventDetailData.name())
+            ),
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(
+                    "FinalizeObjectGroupLifecycleTraceabilityActionPlugin/traceabilityEvent.json"
+                )
+            )
         );
-        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor =
-            ArgumentCaptor.forClass(ObjectDescription.class);
-        verify(storageClient).storeFileFromWorkspace(eq(VitamConfiguration.getDefaultStrategy()),
-            eq(DataCategory.LOGBOOK), eq("0_LogbookObjectGroupLifecycles_20191218_075549.zip"),
-            objectDescriptionArgumentCaptor.capture());
+        ArgumentCaptor<ObjectDescription> objectDescriptionArgumentCaptor = ArgumentCaptor.forClass(
+            ObjectDescription.class
+        );
+        verify(storageClient).storeFileFromWorkspace(
+            eq(VitamConfiguration.getDefaultStrategy()),
+            eq(DataCategory.LOGBOOK),
+            eq("0_LogbookObjectGroupLifecycles_20191218_075549.zip"),
+            objectDescriptionArgumentCaptor.capture()
+        );
         assertThat(objectDescriptionArgumentCaptor.getValue().getWorkspaceObjectURI()).isEqualTo(
-            TRACEABILITY_ZIP_FILE_NAME);
+            TRACEABILITY_ZIP_FILE_NAME
+        );
     }
 }

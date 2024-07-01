@@ -133,7 +133,9 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
         VitamRepositoryProvider vitamRepositoryProvider,
         MetaDataImpl metaData,
         VitamCache<String, Document> cache,
-        ElasticsearchMetadataIndexManager indexManager, List<Integer> tenants) {
+        ElasticsearchMetadataIndexManager indexManager,
+        List<Integer> tenants
+    ) {
         this.vitamRepositoryProvider = vitamRepositoryProvider;
         this.metaData = metaData;
         this.cache = cache;
@@ -143,20 +145,23 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
 
     public static synchronized GraphComputeService initialize(
         VitamRepositoryProvider vitamRepositoryProvider,
-        MetaDataImpl metaData, ElasticsearchMetadataIndexManager indexManager) {
+        MetaDataImpl metaData,
+        ElasticsearchMetadataIndexManager indexManager
+    ) {
         if (instance == null) {
             instance = new GraphComputeServiceImpl(
                 vitamRepositoryProvider,
                 metaData,
                 GraphComputeCache.getInstance(),
-                indexManager, VitamConfiguration.getTenants());
+                indexManager,
+                VitamConfiguration.getTenants()
+            );
         }
         return instance;
     }
 
     @Override
     public GraphComputeResponse computeGraph(JsonNode queryDSL) throws MetaDataException {
-
         Integer tenant = VitamThreadUtils.getVitamSession().getTenantId();
         AtomicBoolean lock = lockers.get(tenant);
         boolean tryBuildGraph = lock.compareAndSet(false, true);
@@ -167,17 +172,23 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
 
         LOGGER.info("Starting metadata graph computation for tenant " + tenant);
         try {
-
             GraphComputeResponse response = new GraphComputeResponse();
             Iterator<String> unitIdsIterator = executeQuery(queryDSL);
-            Iterator<List<String>> bulkUnitIdsIterator =
-                Iterators.partition(unitIdsIterator, VitamConfiguration.getBatchSize());
+            Iterator<List<String>> bulkUnitIdsIterator = Iterators.partition(
+                unitIdsIterator,
+                VitamConfiguration.getBatchSize()
+            );
 
             bulkUnitIdsIterator.forEachRemaining(bulkUnitIds -> {
                 GraphComputeResponse stats = computeGraph(MetadataCollections.UNIT, bulkUnitIds, true, false);
                 response.increment(stats);
-                LOGGER.info("Metadata graph computation in progress. Done " + response.getUnitCount() + " units / " +
-                    response.getGotCount() + " object groups");
+                LOGGER.info(
+                    "Metadata graph computation in progress. Done " +
+                    response.getUnitCount() +
+                    " units / " +
+                    response.getGotCount() +
+                    " object groups"
+                );
             });
 
             LOGGER.info("Metadata graph computation completed");
@@ -185,7 +196,6 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
         } finally {
             lock.set(false);
         }
-
     }
 
     private Iterator<String> executeQuery(JsonNode queryDSL) throws MetaDataException {
@@ -198,18 +208,17 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
 
         SelectMultiQuery request = parser.getRequest();
         try {
-
             ObjectNode projection = JsonHandler.createObjectNode();
             ObjectNode fields = JsonHandler.createObjectNode();
             fields.put(ID.exactToken(), 1);
             projection.set(FIELDS.exactToken(), fields);
             request.setProjection(projection);
-
         } catch (InvalidParseOperationException e) {
             throw new MetaDataException(e);
         }
 
-        ScrollSpliterator<JsonNode> scrollSpliterator = new ScrollSpliterator<>(request,
+        ScrollSpliterator<JsonNode> scrollSpliterator = new ScrollSpliterator<>(
+            request,
             query -> {
                 try {
                     final MetadataResult metadataResult = metaData.selectUnitsByQuery(query.getFinalSelect());
@@ -217,27 +226,36 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
                         .addAllResults(metadataResult.getResults())
                         .addAllFacetResults(metadataResult.getFacetResults())
                         .setHits(metadataResult.getHits());
-
-                } catch (InvalidParseOperationException |
-                         MetaDataExecutionException |
-                         MetaDataDocumentSizeException |
-                         MetaDataNotFoundException | BadRequestException |
-                         VitamDBException e) {
+                } catch (
+                    InvalidParseOperationException
+                    | MetaDataExecutionException
+                    | MetaDataDocumentSizeException
+                    | MetaDataNotFoundException
+                    | BadRequestException
+                    | VitamDBException e
+                ) {
                     // Error (KO, FATAL) are not managed. Compute graph by DSL used only for PRA (Plan de reprise d'activité)
                     // WARN: But if we want to use it in workflow, then we have to distinguish between KO and FATAL
                     throw new IllegalStateException(e);
                 }
-            }, VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
-            VitamConfiguration.getElasticSearchScrollLimit());
+            },
+            VitamConfiguration.getElasticSearchScrollTimeoutInMilliseconds(),
+            VitamConfiguration.getElasticSearchScrollLimit()
+        );
 
-        return Iterators.transform(new SpliteratorIterator<>(scrollSpliterator),
-            doc -> doc.get(VitamFieldsHelper.id()).asText());
+        return Iterators.transform(
+            new SpliteratorIterator<>(scrollSpliterator),
+            doc -> doc.get(VitamFieldsHelper.id()).asText()
+        );
     }
 
     @Override
-    public GraphComputeResponse computeGraph(MetadataCollections metadataCollections,
+    public GraphComputeResponse computeGraph(
+        MetadataCollections metadataCollections,
         Collection<String> documentsId,
-        boolean computeObjectGroupGraph, boolean invalidateComputedInheritedRules) {
+        boolean computeObjectGroupGraph,
+        boolean invalidateComputedInheritedRules
+    ) {
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug(String.format("Start Compute graph of (%s)", metadataCollections.name()));
         }
@@ -255,8 +273,15 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
             final MongoCursor<Document> cursor = vitamRepositoryProvider
                 .getVitamMongoRepository(metadataCollections.getVitamCollection())
                 .findDocuments(in(Unit.ID, documentsId), VitamConfiguration.getBatchSize())
-                .projection(include(Unit.UP, Unit.OG, Unit.ORIGINATING_AGENCY, Unit.ORIGINATING_AGENCIES,
-                    Unit.VALID_COMPUTED_INHERITED_RULES))
+                .projection(
+                    include(
+                        Unit.UP,
+                        Unit.OG,
+                        Unit.ORIGINATING_AGENCY,
+                        Unit.ORIGINATING_AGENCIES,
+                        Unit.VALID_COMPUTED_INHERITED_RULES
+                    )
+                )
                 .iterator();
 
             List<Document> documents = new ArrayList<>();
@@ -279,18 +304,22 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
 
             //Compute ObjectGroup graph
             if (computeObjectGroupGraph && concernedGots.size() > 0) {
-                GraphComputeResponse statsGots =
-                    computeGraph(MetadataCollections.OBJECTGROUP, concernedGots, false,
-                        invalidateComputedInheritedRules);
+                GraphComputeResponse statsGots = computeGraph(
+                    MetadataCollections.OBJECTGROUP,
+                    concernedGots,
+                    false,
+                    invalidateComputedInheritedRules
+                );
                 response.increment(statsGots);
             }
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(String.format("End Compute graph of (%s)", metadataCollections.name()));
             }
         } catch (Exception e) {
-            LOGGER.error(String
-                    .format("[Consistency ERROR] : Error while compute graph of (%s)", metadataCollections.name()),
-                e);
+            LOGGER.error(
+                String.format("[Consistency ERROR] : Error while compute graph of (%s)", metadataCollections.name()),
+                e
+            );
             String msgCause = e.getCause() == null ? "" : e.getCause().getMessage();
             response.setErrorMessage(String.format("Compute graph error (%s) cause (%s)", e.getMessage(), msgCause));
         }
@@ -304,7 +333,8 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
         if (!Objects.equals(operation, currentOperation)) {
             this.currentOperation = operation;
             LOGGER.info(
-                "[Graph compute] cache before invalidate : " + GraphComputeCache.getInstance().getCache().stats());
+                "[Graph compute] cache before invalidate : " + GraphComputeCache.getInstance().getCache().stats()
+            );
             getCache().invalidateAll();
         } else if (RandomUtils.nextInt(1, 20) % 2 == 0) {
             // If we want to see randomly cache stats. To be removed when stats not needed
@@ -319,14 +349,15 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
 
     private void bulkElasticsearch(MetadataCollections metaDaCollection, Set<String> collection)
         throws DatabaseException {
-
         if (collection.isEmpty()) {
             return;
         }
 
         FindIterable<Document> fit =
-            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection())
-                .findDocuments(collection, null);
+            this.vitamRepositoryProvider.getVitamMongoRepository(metaDaCollection.getVitamCollection()).findDocuments(
+                    collection,
+                    null
+                );
         MongoCursor<Document> it = fit.iterator();
         List<Document> documents = new ArrayList<>();
         while (it.hasNext()) {
@@ -340,8 +371,10 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
 
     private void bulkElasticsearch(MetadataCollections metaDaCollection, List<Document> collection)
         throws DatabaseException {
-        this.vitamRepositoryProvider.getVitamESRepository(metaDaCollection.getVitamCollection(),
-            indexManager.getElasticsearchIndexAliasResolver(metaDaCollection)).save(collection);
+        this.vitamRepositoryProvider.getVitamESRepository(
+                metaDaCollection.getVitamCollection(),
+                indexManager.getElasticsearchIndexAliasResolver(metaDaCollection)
+            ).save(collection);
     }
 
     /**
@@ -351,7 +384,6 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
      * @throws MetaDataException
      */
     private void preLoadCache(List<Document> documents) throws MetaDataException {
-
         try {
             Collection<Document> currentDocuments = documents;
 
@@ -369,12 +401,10 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
 
                 currentDocuments = getCache().getAll(parentUnitIds).values();
             }
-
         } catch (ExecutionException e) {
             throw new MetaDataException(e);
         }
     }
-
 
     /**
      * Generic method to calculate graph for unit and object group
@@ -384,17 +414,18 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
      * @param invalidateComputedInheritedRules
      * @throws MetaDataException
      */
-    private void computeGraph(MetadataCollections metadataCollections, List<Document> documents,
-        boolean invalidateComputedInheritedRules)
-        throws MetaDataException {
-
+    private void computeGraph(
+        MetadataCollections metadataCollections,
+        List<Document> documents,
+        boolean invalidateComputedInheritedRules
+    ) throws MetaDataException {
         preLoadCache(documents);
 
         Function<Document, WriteModel<Document>> func;
         try {
             switch (metadataCollections) {
                 case UNIT:
-                    func = (document) -> computeUnitGraph(document, invalidateComputedInheritedRules);
+                    func = document -> computeUnitGraph(document, invalidateComputedInheritedRules);
                     break;
                 case OBJECTGROUP:
                     func = this::computeObjectGroupGraph;
@@ -403,47 +434,46 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
                     throw new MetaDataException("Collection (" + metadataCollections + ") not supported");
             }
 
-
             final Integer scopedTenant = VitamThreadUtils.getVitamSession().getTenantId();
             final String scopedXRequestId = VitamThreadUtils.getVitamSession().getRequestId();
 
             // Create a batch of CompletableFuture.
-            CompletableFuture<WriteModel<Document>>[] features = documents.stream()
-                .map(o -> CompletableFuture.supplyAsync(() -> {
-                    VitamThreadUtils.getVitamSession().setTenantId(scopedTenant);
-                    VitamThreadUtils.getVitamSession().setRequestId(scopedXRequestId);
-                    return func.apply(o);
-                }, executor))
+            CompletableFuture<WriteModel<Document>>[] features = documents
+                .stream()
+                .map(o ->
+                    CompletableFuture.supplyAsync(
+                        () -> {
+                            VitamThreadUtils.getVitamSession().setTenantId(scopedTenant);
+                            VitamThreadUtils.getVitamSession().setRequestId(scopedXRequestId);
+                            return func.apply(o);
+                        },
+                        executor
+                    ))
                 .toArray(CompletableFuture[]::new);
 
-
-            CompletableFuture<List<WriteModel<Document>>> result = CompletableFuture.allOf(features).
-                thenApply(v ->
-                    Stream.of(features)
-                        .map(CompletableFuture::join)
-                        .collect(Collectors.toList()));
+            CompletableFuture<List<WriteModel<Document>>> result = CompletableFuture.allOf(features).thenApply(
+                v -> Stream.of(features).map(CompletableFuture::join).collect(Collectors.toList())
+            );
             List<WriteModel<Document>> updateOneModels = result.get();
-
 
             if (!updateOneModels.isEmpty()) {
                 try {
                     this.bulkUpdateMongo(metadataCollections, updateOneModels);
                     // Re-Index all documents
-                    this.bulkElasticsearch(metadataCollections,
-                        documents.stream().map(o -> o.getString(Unit.ID)).collect(Collectors.toSet()));
+                    this.bulkElasticsearch(
+                            metadataCollections,
+                            documents.stream().map(o -> o.getString(Unit.ID)).collect(Collectors.toSet())
+                        );
                 } catch (DatabaseException e) {
                     // Rollback in MongoDB and Elasticsearch
                     throw new MetaDataException(e);
                 }
             }
-
         } catch (VitamRuntimeException e) {
             throw new MetaDataException(e.getCause());
         } catch (InterruptedException | ExecutionException e) {
             throw new MetaDataException(e);
         }
-
-
     }
 
     /**
@@ -455,7 +485,6 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
      */
     private UpdateOneModel<Document> computeUnitGraph(Document document, boolean invalidateComputedInheritedRules)
         throws VitamRuntimeException {
-
         List<GraphRelation> stackOrderedGraphRels = new ArrayList<>();
         List<String> up = document.getList(Unit.UP, String.class);
         String unitId = document.getString(Unit.ID);
@@ -475,7 +504,6 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
         }
 
         for (GraphRelation ugr : stackOrderedGraphRels) {
-
             graph.add(GraphUtils.createGraphRelation(ugr.getUnit(), ugr.getParent()));
             us.add(ugr.getParent());
 
@@ -515,8 +543,7 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
             .append(Unit.GRAPH, graph)
             .append(Unit.GRAPH_LAST_PERSISTED_DATE, LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now()));
 
-        Document data = new Document($_SET, update)
-            .append($_INC, new Document(MetadataDocument.ATOMIC_VERSION, 1));
+        Document data = new Document($_SET, update).append($_INC, new Document(MetadataDocument.ATOMIC_VERSION, 1));
 
         if (invalidateComputedInheritedRules) {
             if (document.getBoolean(Unit.VALID_COMPUTED_INHERITED_RULES, false)) {
@@ -528,7 +555,6 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
         return new UpdateOneModel<>(eq(Unit.ID, unitId), data, new UpdateOptions().upsert(false));
     }
 
-
     /**
      * Create update model for ObjectGroup
      *
@@ -536,9 +562,7 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
      * @return UpdateOneModel for ObjectGroup
      * @throws MetaDataException
      */
-    private UpdateOneModel<Document> computeObjectGroupGraph(Document document)
-        throws VitamRuntimeException {
-
+    private UpdateOneModel<Document> computeObjectGroupGraph(Document document) throws VitamRuntimeException {
         Set<String> sps = new HashSet<>();
         Set<String> us = new HashSet<>();
         String gotId = document.getString(ObjectGroup.ID);
@@ -551,7 +575,6 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
 
         List<String> currentUpUnitIds = up;
         while (CollectionUtils.isNotEmpty(currentUpUnitIds)) {
-
             us.addAll(currentUpUnitIds);
 
             Collection<Document> parentUnits;
@@ -561,23 +584,29 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
                 throw new VitamRuntimeException(e);
             }
 
-            parentUnits.stream()
+            parentUnits
+                .stream()
                 .map(o -> o.getString(Unit.ORIGINATING_AGENCY))
                 .filter(StringUtils::isNotEmpty)
                 .forEach(sps::add);
 
-            currentUpUnitIds = parentUnits.stream()
+            currentUpUnitIds = parentUnits
+                .stream()
                 .map(o -> o.getList(Unit.UP, String.class))
                 .filter(CollectionUtils::isNotEmpty)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
         }
 
-        final Document data = new Document($_SET, new Document(ObjectGroup.ORIGINATING_AGENCIES, sps)
-            .append(Unit.UNITUPS, us)
-            .append(ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
-                LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())))
-            .append($_INC, new Document(MetadataDocument.ATOMIC_VERSION, 1));
+        final Document data = new Document(
+            $_SET,
+            new Document(ObjectGroup.ORIGINATING_AGENCIES, sps)
+                .append(Unit.UNITUPS, us)
+                .append(
+                    ObjectGroup.GRAPH_LAST_PERSISTED_DATE,
+                    LocalDateUtil.getFormattedDateForMongo(LocalDateUtil.now())
+                )
+        ).append($_INC, new Document(MetadataDocument.ATOMIC_VERSION, 1));
 
         return new UpdateOneModel<>(eq(ObjectGroup.ID, gotId), data, new UpdateOptions().upsert(false));
     }
@@ -592,9 +621,12 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
      * @param currentDepth the current depth, initially equals to 1
      * @throws ExecutionException
      */
-    private void computeUnitGraphUsingDirectParents(List<GraphRelation> graphRels, String unitId,
-        List<String> up, int currentDepth)
-        throws VitamRuntimeException {
+    private void computeUnitGraphUsingDirectParents(
+        List<GraphRelation> graphRels,
+        String unitId,
+        List<String> up,
+        int currentDepth
+    ) throws VitamRuntimeException {
         if (null == up || up.isEmpty()) {
             return;
         }
@@ -610,8 +642,12 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
         for (Map.Entry<String, Document> unitParent : units.entrySet()) {
             Document parentUnit = unitParent.getValue();
 
-            GraphRelation ugr = new GraphRelation(unitId, unitParent.getKey(),
-                parentUnit.getString(Unit.ORIGINATING_AGENCY), currentDepth);
+            GraphRelation ugr = new GraphRelation(
+                unitId,
+                unitParent.getKey(),
+                parentUnit.getString(Unit.ORIGINATING_AGENCY),
+                currentDepth
+            );
 
             if (graphRels.contains(ugr)) {
                 // Relation (unit_id , unitParent.getKey()) already processed
@@ -622,9 +658,12 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
             graphRels.add(ugr);
 
             // Invoke the same method with parent units
-            computeUnitGraphUsingDirectParents(graphRels,
+            computeUnitGraphUsingDirectParents(
+                graphRels,
                 unitParent.getKey(),
-                parentUnit.getList(Unit.UP, String.class), nextDepth);
+                parentUnit.getList(Unit.UP, String.class),
+                nextDepth
+            );
         }
     }
 
@@ -641,7 +680,6 @@ public class GraphComputeServiceImpl implements GraphComputeService, VitamAutoCl
             LOGGER.error("Error while shutting down GraphBuilderService executor", e);
             throw new VitamRuntimeException(e);
         }
-
     }
 
     @Override

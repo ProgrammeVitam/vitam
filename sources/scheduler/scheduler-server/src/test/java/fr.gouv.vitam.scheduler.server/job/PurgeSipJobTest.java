@@ -56,8 +56,9 @@ public class PurgeSipJobTest {
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Mock
     private MetaDataClientFactory metaDataClientFactory;
@@ -92,6 +93,5 @@ public class PurgeSipJobTest {
         verify(metaDataClient, times(1)).purgeExpiredTransfersSIPFiles();
         verify(metaDataClient).close();
         verifyNoMoreInteractions(metaDataClient);
-
     }
 }

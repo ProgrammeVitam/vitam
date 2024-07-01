@@ -37,12 +37,16 @@ public class IngestCleanupObjectGroupReportEntry {
 
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("status")
     private StatusCode status = StatusCode.UNKNOWN;
+
     @JsonProperty("errors")
     private List<String> errors;
+
     @JsonProperty("warnings")
     private List<String> warnings;
+
     @JsonProperty("objects")
     private List<String> objects;
 
@@ -98,7 +102,6 @@ public class IngestCleanupObjectGroupReportEntry {
     public StatusCode getStatus() {
         return status;
     }
-
 
     public IngestCleanupObjectGroupReportEntry setStatus(StatusCode status) {
         this.status = status;

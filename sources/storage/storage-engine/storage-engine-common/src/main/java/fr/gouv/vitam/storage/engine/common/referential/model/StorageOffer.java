@@ -34,6 +34,7 @@ import java.util.Map;
  * Define a Storage offer configuration
  */
 public class StorageOffer {
+
     private String id;
     private String baseUrl;
     private boolean asyncRead = false;

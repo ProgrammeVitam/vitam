@@ -107,10 +107,14 @@ public class PrepareBulkAtomicUpdate extends ActionHandler {
      * Constructor.
      */
     public PrepareBulkAtomicUpdate() {
-        this(MetaDataClientFactory.getInstance(), BatchReportClientFactory.getInstance(),
-            new InternalActionKeysRetriever(), VitamConfiguration.getBulkAtomicUpdateBatchSize(),
+        this(
+            MetaDataClientFactory.getInstance(),
+            BatchReportClientFactory.getInstance(),
+            new InternalActionKeysRetriever(),
+            VitamConfiguration.getBulkAtomicUpdateBatchSize(),
             VitamConfiguration.getBulkAtomicUpdateThreadPoolSize(),
-            VitamConfiguration.getBulkAtomicUpdateThreadPoolQueueSize());
+            VitamConfiguration.getBulkAtomicUpdateThreadPoolQueueSize()
+        );
     }
 
     /**
@@ -124,10 +128,14 @@ public class PrepareBulkAtomicUpdate extends ActionHandler {
      * @param threadPoolQueueSize number of jobs that can be queued before blocking (limits workload memory usage)
      */
     @VisibleForTesting
-    PrepareBulkAtomicUpdate(MetaDataClientFactory metaDataClientFactory,
+    PrepareBulkAtomicUpdate(
+        MetaDataClientFactory metaDataClientFactory,
         BatchReportClientFactory batchReportClientFactory,
-        InternalActionKeysRetriever internalActionKeysRetriever, int batchSize, int threadPoolSize,
-        int threadPoolQueueSize) {
+        InternalActionKeysRetriever internalActionKeysRetriever,
+        int batchSize,
+        int threadPoolSize,
+        int threadPoolQueueSize
+    ) {
         this.metaDataClientFactory = metaDataClientFactory;
         this.batchReportClientFactory = batchReportClientFactory;
         this.internalActionKeysRetriever = internalActionKeysRetriever;
@@ -138,9 +146,7 @@ public class PrepareBulkAtomicUpdate extends ActionHandler {
 
     @Override
     public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
-
         try {
-
             // Retrieve inputs
             AccessContractModel accessContractModel = loadAccessContract(handler);
             Iterator<JsonNode> queryIterator = loadQueries(handler);
@@ -150,20 +156,28 @@ public class PrepareBulkAtomicUpdate extends ActionHandler {
             final File distributionFile = handler.getNewLocalFile(distributionFileName);
 
             ItemStatus itemStatus;
-            try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(distributionFile));
+            try (
+                JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(distributionFile));
                 MetaDataClient metadataClient = metaDataClientFactory.getClient();
-                BatchReportClient batchReportClient = batchReportClientFactory.getClient()) {
-
-                itemStatus = processQueries(param.getProcessId(), metadataClient, batchReportClient,
-                    accessContractModel, queryIterator, jsonLineWriter);
+                BatchReportClient batchReportClient = batchReportClientFactory.getClient()
+            ) {
+                itemStatus = processQueries(
+                    param.getProcessId(),
+                    metadataClient,
+                    batchReportClient,
+                    accessContractModel,
+                    queryIterator,
+                    jsonLineWriter
+                );
             }
 
             // move file to workspace
             handler.transferFileToWorkspace(distributionFileName, distributionFile, true, false);
 
-            return new ItemStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME)
-                .setItemsStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME, itemStatus);
-
+            return new ItemStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME).setItemsStatus(
+                PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME,
+                itemStatus
+            );
         } catch (IOException | VitamRuntimeException | IllegalStateException | ProcessingException e) {
             LOGGER.error("Bulk atomic update preparation failed", e);
             return buildFatalItemStatus(StatusCode.FATAL);
@@ -176,12 +190,13 @@ public class PrepareBulkAtomicUpdate extends ActionHandler {
     private ItemStatus buildFatalItemStatus(StatusCode statusCode) {
         final ItemStatus itemStatus = new ItemStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME);
         itemStatus.increment(statusCode);
-        return new ItemStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME)
-            .setItemsStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME, itemStatus);
+        return new ItemStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME).setItemsStatus(
+            PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME,
+            itemStatus
+        );
     }
 
-    private AccessContractModel loadAccessContract(HandlerIO handler)
-        throws ProcessingStatusException {
+    private AccessContractModel loadAccessContract(HandlerIO handler) throws ProcessingStatusException {
         try {
             JsonNode accessContractNode = handler.getJsonFromWorkspace(ACCESS_CONTRACT_NAME_IN);
             return JsonHandler.getFromJsonNode(accessContractNode, AccessContractModel.class);
@@ -199,64 +214,94 @@ public class PrepareBulkAtomicUpdate extends ActionHandler {
         }
     }
 
-    private ItemStatus processQueries(String processId,
+    private ItemStatus processQueries(
+        String processId,
         MetaDataClient metadataClient,
-        BatchReportClient batchReportClient, AccessContractModel accessContractModel, Iterator<JsonNode> queryIterator,
-        JsonLineWriter jsonLineWriter) throws ProcessingStatusException {
-
+        BatchReportClient batchReportClient,
+        AccessContractModel accessContractModel,
+        Iterator<JsonNode> queryIterator,
+        JsonLineWriter jsonLineWriter
+    ) throws ProcessingStatusException {
         final int tenantId = VitamThreadUtils.getVitamSession().getTenantId();
 
         // Associate every query entry with its index position
-        Iterator<EntryWithIndex<JsonNode>> queryWithIndexIterator
-            = new CountingIterator<>(queryIterator);
+        Iterator<EntryWithIndex<JsonNode>> queryWithIndexIterator = new CountingIterator<>(queryIterator);
 
         // Group entries for bulk processing
-        Iterator<List<EntryWithIndex<JsonNode>>> queriesBulkIterator =
-            Iterators.partition(queryWithIndexIterator, batchSize);
+        Iterator<List<EntryWithIndex<JsonNode>>> queriesBulkIterator = Iterators.partition(
+            queryWithIndexIterator,
+            batchSize
+        );
 
-        try (BulkSelectQueryParallelProcessor bulkSelectQueryParallelProcessor = new BulkSelectQueryParallelProcessor(
-            PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME, processId, tenantId,
-            metadataClient, batchReportClient, internalActionKeysRetriever, accessContractModel, jsonLineWriter)) {
-
+        try (
+            BulkSelectQueryParallelProcessor bulkSelectQueryParallelProcessor = new BulkSelectQueryParallelProcessor(
+                PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME,
+                processId,
+                tenantId,
+                metadataClient,
+                batchReportClient,
+                internalActionKeysRetriever,
+                accessContractModel,
+                jsonLineWriter
+            )
+        ) {
             // Process in thread pool. Any exception aborts execution
             AtomicBoolean fatalErrorOccurred = new AtomicBoolean(false);
             AtomicBoolean koErrorOccurred = new AtomicBoolean(false);
-            ThreadPoolExecutor executor =
-                ExecutorUtils.createScalableBatchExecutorService(threadPoolSize, threadPoolQueueSize);
+            ThreadPoolExecutor executor = ExecutorUtils.createScalableBatchExecutorService(
+                threadPoolSize,
+                threadPoolQueueSize
+            );
 
             while (queriesBulkIterator.hasNext() && !fatalErrorOccurred.get()) {
-
                 final List<EntryWithIndex<JsonNode>> bulkQueriesToProcess = queriesBulkIterator.next();
-                executor.submit(() -> {
+                executor.submit(
+                    () -> {
+                        VitamThreadUtils.getVitamSession().setTenantId(tenantId);
 
-                    VitamThreadUtils.getVitamSession().setTenantId(tenantId);
+                        if (fatalErrorOccurred.get() || koErrorOccurred.get()) {
+                            throw new CancellationException("Job cancelled");
+                        }
 
-                    if (fatalErrorOccurred.get() || koErrorOccurred.get()) {
-                        throw new CancellationException("Job cancelled");
-                    }
-
-                    try {
-                        bulkSelectQueryParallelProcessor.processBulkQueries(bulkQueriesToProcess);
-                    } catch (InvalidParseOperationException | IllegalArgumentException | MetaDataDocumentSizeException | InvalidCreateOperationException e) {
-                        koErrorOccurred.set(true);
-                        LOGGER.error("An error occurred during bulk select query execution", e);
-                    } catch (MetaDataExecutionException | MetaDataClientServerException | VitamClientInternalException | IOException | RuntimeException e) {
-                        fatalErrorOccurred.set(true);
-                        LOGGER.error("An unexpected error occurred during bulk select query execution", e);
-                    }
-                }, executor);
+                        try {
+                            bulkSelectQueryParallelProcessor.processBulkQueries(bulkQueriesToProcess);
+                        } catch (
+                            InvalidParseOperationException
+                            | IllegalArgumentException
+                            | MetaDataDocumentSizeException
+                            | InvalidCreateOperationException e
+                        ) {
+                            koErrorOccurred.set(true);
+                            LOGGER.error("An error occurred during bulk select query execution", e);
+                        } catch (
+                            MetaDataExecutionException
+                            | MetaDataClientServerException
+                            | VitamClientInternalException
+                            | IOException
+                            | RuntimeException e
+                        ) {
+                            fatalErrorOccurred.set(true);
+                            LOGGER.error("An unexpected error occurred during bulk select query execution", e);
+                        }
+                    },
+                    executor
+                );
             }
 
             awaitExecutorTermination(executor);
 
             if (koErrorOccurred.get()) {
-                throw new ProcessingStatusException(StatusCode.KO,
-                    "One or more KO errors occurred during bulk select query execution");
+                throw new ProcessingStatusException(
+                    StatusCode.KO,
+                    "One or more KO errors occurred during bulk select query execution"
+                );
             }
 
             if (fatalErrorOccurred.get()) {
-                throw new ProcessingStatusException(StatusCode.FATAL,
-                    "One or more FATAL errors occurred during bulk select query execution");
+                throw new ProcessingStatusException(
+                    StatusCode.FATAL,
+                    "One or more FATAL errors occurred during bulk select query execution"
+                );
             }
 
             final ItemStatus itemStatus = new ItemStatus(PREPARE_BULK_ATOMIC_UPDATE_UNIT_LIST_PLUGIN_NAME);
@@ -267,10 +312,12 @@ public class PrepareBulkAtomicUpdate extends ActionHandler {
                 itemStatus.increment(StatusCode.WARNING, bulkSelectQueryParallelProcessor.getNbWarnings());
             }
             return itemStatus;
-
         } catch (VitamClientInternalException | IOException e) {
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "An error occurred during bulk select query execution", e);
+            throw new ProcessingStatusException(
+                StatusCode.FATAL,
+                "An error occurred during bulk select query execution",
+                e
+            );
         }
     }
 
@@ -280,8 +327,7 @@ public class PrepareBulkAtomicUpdate extends ActionHandler {
             executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new ProcessingStatusException(StatusCode.FATAL,
-                "Awaiting bulk atomic update jobs interrupted", e);
+            throw new ProcessingStatusException(StatusCode.FATAL, "Awaiting bulk atomic update jobs interrupted", e);
         }
     }
 }

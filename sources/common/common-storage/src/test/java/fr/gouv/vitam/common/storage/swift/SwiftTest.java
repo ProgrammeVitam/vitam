@@ -92,7 +92,7 @@ public class SwiftTest {
 
     private static final String token =
         "gAAAAABakCfriBIVmHYGRAB0TmrjM2w3kX_2bthU1RsENMjKDh_ME9vuaKTC0w291OAbiMDkVu_G4Htq84GodrG1pFbjpV5fEGOXdWBoAa4mSO_" +
-            "Liv-BbZZKPDu2w7Z7FH7He6rKHfh9LUjJ4qapO6vH99zMzGJhzYHseQxw8CigYDrfsI2InAk";
+        "Liv-BbZZKPDu2w7Z7FH7He6rKHfh9LUjJ4qapO6vH99zMzGJhzYHseQxw8CigYDrfsI2InAk";
 
     private static final String PROVIDER = "openstack-swift-v3";
     private static final String STORAGE_PATH = "/vitam/data/offer";
@@ -151,18 +151,26 @@ public class SwiftTest {
         configuration.setSwiftPassword(CREDENTIAL);
         configuration.setSwiftProjectName(PROJECT_NAME);
         configuration.setEnableCustomHeaders(true);
-        configuration.setCustomHeaders(Collections.singletonList(new VitamCustomizedHeader(VITAM_CUSTOMIZED_HEADER_KEY,
-            VITAM_CUSTOMIZED_HEADER_VALUE)));
+        configuration.setCustomHeaders(
+            Collections.singletonList(
+                new VitamCustomizedHeader(VITAM_CUSTOMIZED_HEADER_KEY, VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
 
-        String bodyResponse =
-            JsonHandler.prettyPrint(JsonHandler.getFromFile(PropertiesUtils.getResourceFile("keystone.json")));
+        String bodyResponse = JsonHandler.prettyPrint(
+            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("keystone.json"))
+        );
 
-        keystoneInstanceRule.stubFor(post(urlMatching("/v3/auth/tokens")).willReturn
-            (aResponse().withStatus(201)
-                .withHeader(X_SUBJECT_TOKEN, token)
-                .withHeader(X_OPENSTACK_REQUEST_ID, "req-ac910733-aa54-465a-a59f-3cfd699dd1ab")
-                .withHeader(CONTENT_TYPE, APPLICATION_JSON)
-                .withBody(bodyResponse)));
+        keystoneInstanceRule.stubFor(
+            post(urlMatching("/v3/auth/tokens")).willReturn(
+                aResponse()
+                    .withStatus(201)
+                    .withHeader(X_SUBJECT_TOKEN, token)
+                    .withHeader(X_OPENSTACK_REQUEST_ID, "req-ac910733-aa54-465a-a59f-3cfd699dd1ab")
+                    .withHeader(CONTENT_TYPE, APPLICATION_JSON)
+                    .withBody(bodyResponse)
+            )
+        );
     }
 
     @Test
@@ -177,35 +185,59 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatCode(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, new ByteArrayInputStream(data),
-            VitamConfiguration.getDefaultDigestType(), 3_500L)).doesNotThrowAnyException();
+        assertThatCode(
+            () ->
+                swift.putObject(
+                    CONTAINER_NAME,
+                    OBJECT_NAME,
+                    new ByteArrayInputStream(data),
+                    VitamConfiguration.getDefaultDigestType(),
+                    3_500L
+                )
+        ).doesNotThrowAnyException();
 
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
-            .withRequestBody(WireMock.binaryEqualTo(data)));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+                .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
+                .withRequestBody(WireMock.binaryEqualTo(data))
+        );
 
-        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
 
-        verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
-            .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+                .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
+                .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512"))
+                .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
+        );
 
         // Expected PUT (upload) + GET (read to check digest) + POST (update metadata)
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withRequestBody(WireMock.binaryEqualTo(data))
-            .withoutHeader(X_OBJECT_MANIFEST)
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+                .withRequestBody(WireMock.binaryEqualTo(data))
+                .withoutHeader(X_OBJECT_MANIFEST)
+                .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
+        );
 
-        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
 
-        verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512"))
-            .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
-            .withoutHeader(X_OBJECT_MANIFEST)
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+                .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512"))
+                .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
+                .withoutHeader(X_OBJECT_MANIFEST)
+                .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
+        );
 
         assertSwiftRequestCountEqualsTo(3);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(3);
@@ -221,14 +253,23 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, new ByteArrayInputStream(data),
-            VitamConfiguration.getDefaultDigestType(), 3_500L))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () ->
+                swift.putObject(
+                    CONTAINER_NAME,
+                    OBJECT_NAME,
+                    new ByteArrayInputStream(data),
+                    VitamConfiguration.getDefaultDigestType(),
+                    3_500L
+                )
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // Expected PUT (upload) only
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withoutHeader(X_OBJECT_MANIFEST)
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+                .withoutHeader(X_OBJECT_MANIFEST)
+                .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
+        );
 
         assertSwiftRequestCountEqualsTo(1);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
@@ -244,14 +285,23 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, new ByteArrayInputStream(data),
-            VitamConfiguration.getDefaultDigestType(), 3_500L))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(
+            () ->
+                swift.putObject(
+                    CONTAINER_NAME,
+                    OBJECT_NAME,
+                    new ByteArrayInputStream(data),
+                    VitamConfiguration.getDefaultDigestType(),
+                    3_500L
+                )
+        ).isInstanceOf(ContentAddressableStorageException.class);
 
         // Expected PUT (upload) only
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withoutHeader(X_OBJECT_MANIFEST)
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+                .withoutHeader(X_OBJECT_MANIFEST)
+                .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
+        );
 
         assertSwiftRequestCountEqualsTo(1);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
@@ -259,7 +309,6 @@ public class SwiftTest {
 
     @Test
     public void when_put_small_file_with_read_failed_then_throw_exception() throws Exception {
-
         // Given
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
 
@@ -269,17 +318,30 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, new ByteArrayInputStream(data),
-            VitamConfiguration.getDefaultDigestType(), 3_500L))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(
+            () ->
+                swift.putObject(
+                    CONTAINER_NAME,
+                    OBJECT_NAME,
+                    new ByteArrayInputStream(data),
+                    VitamConfiguration.getDefaultDigestType(),
+                    3_500L
+                )
+        ).isInstanceOf(ContentAddressableStorageException.class);
 
         // Expected PUT (upload) + GET (read to recompute digest)
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withoutHeader(X_OBJECT_MANIFEST)
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
-            .withRequestBody(WireMock.binaryEqualTo(data)));
-        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+                .withoutHeader(X_OBJECT_MANIFEST)
+                .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
+                .withRequestBody(WireMock.binaryEqualTo(data))
+        );
+        verifySwiftRequest(
+            getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
 
         assertSwiftRequestCountEqualsTo(2);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(2);
@@ -287,7 +349,6 @@ public class SwiftTest {
 
     @Test
     public void when_put_small_file_with_inconsistent_digest_read_then_throw_exception() throws Exception {
-
         // Given
         byte[] data = IOUtils.toByteArray(PropertiesUtils.getResourceAsStream(OBJECT_NAME));
         byte[] bad_data = "BAD_DATA_DIGEST".getBytes(StandardCharsets.UTF_8);
@@ -298,18 +359,32 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, new ByteArrayInputStream(data),
-            VitamConfiguration.getDefaultDigestType(), 3_500L))
+        assertThatThrownBy(
+            () ->
+                swift.putObject(
+                    CONTAINER_NAME,
+                    OBJECT_NAME,
+                    new ByteArrayInputStream(data),
+                    VitamConfiguration.getDefaultDigestType(),
+                    3_500L
+                )
+        )
             .isInstanceOf(ContentAddressableStorageException.class)
             .hasMessageContaining(" is not equal to computed digest ");
 
         // Expected PUT (upload) + GET (read to recompute digest)
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withoutHeader(X_OBJECT_MANIFEST)
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
-            .withRequestBody(WireMock.binaryEqualTo(data)));
-        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+                .withoutHeader(X_OBJECT_MANIFEST)
+                .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
+                .withRequestBody(WireMock.binaryEqualTo(data))
+        );
+        verifySwiftRequest(
+            getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
 
         assertSwiftRequestCountEqualsTo(2);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(2);
@@ -328,32 +403,52 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 300L);
 
         // When / Then
-        assertThatCode(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, new ByteArrayInputStream(data),
-            VitamConfiguration.getDefaultDigestType(), 3_500L)).doesNotThrowAnyException();
+        assertThatCode(
+            () ->
+                swift.putObject(
+                    CONTAINER_NAME,
+                    OBJECT_NAME,
+                    new ByteArrayInputStream(data),
+                    VitamConfiguration.getDefaultDigestType(),
+                    3_500L
+                )
+        ).doesNotThrowAnyException();
 
         // Expected 13x PUT (12x parts + 1x manifest) + GET (read to recompute digest) + POST (update metadata)
         for (int i = 0; i < 11; i++) {
             verifySwiftRequest(
-                putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/" + String.format("%08d", i + 1)))
-                    .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, i * 300, (i + 1) * 300))));
+                putRequestedFor(
+                    WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/" + String.format("%08d", i + 1))
+                ).withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, i * 300, (i + 1) * 300)))
+            );
         }
 
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000012"))
-            .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, 3_300, 3_500)))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000012"))
+                .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, 3_300, 3_500)))
+                .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
+        );
 
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(X_OBJECT_MANIFEST, equalTo("0_object/3500.txt/"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+                .withHeader(X_OBJECT_MANIFEST, equalTo("0_object/3500.txt/"))
+                .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
+        );
 
-        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
 
-        verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512"))
-            .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
-            .withHeader(X_OBJECT_MANIFEST, equalTo("0_object/3500.txt/"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+                .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512"))
+                .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
+                .withHeader(X_OBJECT_MANIFEST, equalTo("0_object/3500.txt/"))
+                .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE))
+        );
 
         assertSwiftRequestCountEqualsTo(15);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(15);
@@ -370,15 +465,30 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 1_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, new ByteArrayInputStream(data),
-            VitamConfiguration.getDefaultDigestType(), 3_500L)).
-            isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(
+            () ->
+                swift.putObject(
+                    CONTAINER_NAME,
+                    OBJECT_NAME,
+                    new ByteArrayInputStream(data),
+                    VitamConfiguration.getDefaultDigestType(),
+                    3_500L
+                )
+        ).isInstanceOf(ContentAddressableStorageException.class);
 
         // Expected 2x PUT
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000001"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000002"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000001")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000002")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
 
         assertSwiftRequestCountEqualsTo(2);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(2);
@@ -401,8 +511,13 @@ public class SwiftTest {
         assertThat(objectMetadata.getType()).isEqualTo("object");
 
         // Expected 1x HEAD
-        verifySwiftRequests(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)), 2);
+        verifySwiftRequests(
+            headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            ),
+            2
+        );
 
         assertSwiftRequestCountEqualsTo(2);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(2);
@@ -441,12 +556,17 @@ public class SwiftTest {
         givenHeadObjectReturns404();
 
         // When/Then
-        assertThatThrownBy(() -> swift.getObjectMetadata(containerName, OBJECT_NAME, false))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(() -> swift.getObjectMetadata(containerName, OBJECT_NAME, false)).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
 
         // Expected 1x HEAD
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
 
         assertSwiftRequestCountEqualsTo(1);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
@@ -460,12 +580,17 @@ public class SwiftTest {
         givenHeadObjectReturns50x();
 
         // When/Then
-        assertThatThrownBy(() -> swift.getObjectMetadata(containerName, OBJECT_NAME, false))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(() -> swift.getObjectMetadata(containerName, OBJECT_NAME, false)).isInstanceOf(
+            ContentAddressableStorageException.class
+        );
 
         // Expected 1x HEAD
-        verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
 
         assertSwiftRequestCountEqualsTo(1);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
@@ -488,8 +613,12 @@ public class SwiftTest {
         assertThat(swiftObject.getSize()).isEqualTo(3_500L);
 
         // Expected GET
-        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
 
         assertSwiftRequestCountEqualsTo(1);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
@@ -503,12 +632,17 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.getObject(CONTAINER_NAME, OBJECT_NAME))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(() -> swift.getObject(CONTAINER_NAME, OBJECT_NAME)).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
 
         // Expected GET
-        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
 
         assertSwiftRequestCountEqualsTo(1);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
@@ -522,12 +656,17 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.getObject(CONTAINER_NAME, OBJECT_NAME))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(() -> swift.getObject(CONTAINER_NAME, OBJECT_NAME)).isInstanceOf(
+            ContentAddressableStorageException.class
+        );
 
         // Expected GET
-        verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(VITAM_CUSTOMIZED_HEADER_KEY, equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)));
+        verifySwiftRequest(
+            getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                VITAM_CUSTOMIZED_HEADER_KEY,
+                equalTo(VITAM_CUSTOMIZED_HEADER_VALUE)
+            )
+        );
 
         assertSwiftRequestCountEqualsTo(1);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(1);
@@ -562,11 +701,14 @@ public class SwiftTest {
         String digest = sha512sum(data);
 
         swiftInstanceRule.stubFor(
-            head(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse()
-                .withStatus(201)
-                .withBody(data)
-                .withHeader(ETAG, "etag")
-                .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT")));
+            head(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
+                aResponse()
+                    .withStatus(201)
+                    .withBody(data)
+                    .withHeader(ETAG, "etag")
+                    .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT")
+            )
+        );
 
         givenGetObjectReturns20x(data);
         // This POST REquest is used to update metadata object in case it does not exist ( even when getting the object )
@@ -620,8 +762,9 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, false))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, false)
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // Expected HEAD
         verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
@@ -638,8 +781,9 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, false))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(
+            () -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, false)
+        ).isInstanceOf(ContentAddressableStorageException.class);
 
         // Expected HEAD
         verifySwiftRequest(headRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
@@ -656,8 +800,9 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true)
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // Expected GET
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
@@ -674,8 +819,9 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(
+            () -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true)
+        ).isInstanceOf(ContentAddressableStorageException.class);
 
         // Expected GET
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
@@ -688,19 +834,18 @@ public class SwiftTest {
     public void when_delete_object_then_ok() throws Exception {
         // Given
         givenDeleteObjectReturns20x();
-        swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
-            .withQueryParam("format", equalTo("json"))
-            .withQueryParam("limit", equalTo("100"))
-            .withQueryParam("marker", absent())
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withBody(JsonHandler.fromPojoToBytes(Collections.emptyList()))));
+        swiftInstanceRule.stubFor(
+            get(urlPathEqualTo("/swift/v1/0_object"))
+                .withQueryParam("format", equalTo("json"))
+                .withQueryParam("limit", equalTo("100"))
+                .withQueryParam("marker", absent())
+                .willReturn(aResponse().withStatus(200).withBody(JsonHandler.fromPojoToBytes(Collections.emptyList())))
+        );
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatCode(() -> swift.deleteObject(CONTAINER_NAME, OBJECT_NAME))
-            .doesNotThrowAnyException();
+        assertThatCode(() -> swift.deleteObject(CONTAINER_NAME, OBJECT_NAME)).doesNotThrowAnyException();
 
         // Expected DELETE
         verifySwiftRequest(deleteRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
@@ -714,19 +859,20 @@ public class SwiftTest {
     public void when_delete_object_not_found_then_throw_not_found_exception() throws Exception {
         // Given
         givenDeleteObjectReturns404();
-        swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
-            .withQueryParam("format", equalTo("json"))
-            .withQueryParam("limit", equalTo("100"))
-            .withQueryParam("marker", absent())
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withBody(JsonHandler.fromPojoToBytes(Collections.emptyList()))));
+        swiftInstanceRule.stubFor(
+            get(urlPathEqualTo("/swift/v1/0_object"))
+                .withQueryParam("format", equalTo("json"))
+                .withQueryParam("limit", equalTo("100"))
+                .withQueryParam("marker", absent())
+                .willReturn(aResponse().withStatus(200).withBody(JsonHandler.fromPojoToBytes(Collections.emptyList())))
+        );
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.deleteObject(CONTAINER_NAME, OBJECT_NAME))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(() -> swift.deleteObject(CONTAINER_NAME, OBJECT_NAME)).isInstanceOf(
+            ContentAddressableStorageNotFoundException.class
+        );
 
         // Expected DELETE
         verifySwiftRequest(deleteRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
@@ -739,19 +885,20 @@ public class SwiftTest {
     public void when_delete_object_with_server_error_then_throw_exception() throws Exception {
         // Given
         givenDeleteObjectReturns50x();
-        swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
-            .withQueryParam("format", equalTo("json"))
-            .withQueryParam("limit", equalTo("100"))
-            .withQueryParam("marker", absent())
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withBody(JsonHandler.fromPojoToBytes(Collections.emptyList()))));
+        swiftInstanceRule.stubFor(
+            get(urlPathEqualTo("/swift/v1/0_object"))
+                .withQueryParam("format", equalTo("json"))
+                .withQueryParam("limit", equalTo("100"))
+                .withQueryParam("marker", absent())
+                .willReturn(aResponse().withStatus(200).withBody(JsonHandler.fromPojoToBytes(Collections.emptyList())))
+        );
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
-        assertThatThrownBy(() -> swift.deleteObject(CONTAINER_NAME, OBJECT_NAME))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(() -> swift.deleteObject(CONTAINER_NAME, OBJECT_NAME)).isInstanceOf(
+            ContentAddressableStorageException.class
+        );
 
         // Expected DELETE
         verifySwiftRequest(deleteRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
@@ -762,16 +909,15 @@ public class SwiftTest {
 
     @Test
     public void when_list_container_objects_of_empty_container_then_ok() throws Exception {
-
         // Given
 
-        swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
-            .withQueryParam("format", equalTo("json"))
-            .withQueryParam("limit", equalTo("100"))
-            .withQueryParam("marker", absent())
-            .willReturn(aResponse()
-                .withStatus(200)
-                .withBody(JsonHandler.fromPojoToBytes(Collections.emptyList()))));
+        swiftInstanceRule.stubFor(
+            get(urlPathEqualTo("/swift/v1/0_object"))
+                .withQueryParam("format", equalTo("json"))
+                .withQueryParam("limit", equalTo("100"))
+                .withQueryParam("marker", absent())
+                .willReturn(aResponse().withStatus(200).withBody(JsonHandler.fromPojoToBytes(Collections.emptyList())))
+        );
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
@@ -791,33 +937,49 @@ public class SwiftTest {
 
     @Test
     public void when_list_container_objects_then_ok() throws Exception {
-
         // Given
-        List<String> objectNames = IntStream.range(1000, 1250).mapToObj(i -> "obj" + i)
-            .collect(Collectors.toList());
+        List<String> objectNames = IntStream.range(1000, 1250).mapToObj(i -> "obj" + i).collect(Collectors.toList());
 
-        Map<String, Long> objectSizes = objectNames.stream().collect(Collectors
-            .toMap(objectName -> objectName, objectName -> RandomUtils.nextLong(0L, 4_000_000_000_000L)));
+        Map<String, Long> objectSizes = objectNames
+            .stream()
+            .collect(
+                Collectors.toMap(objectName -> objectName, objectName -> RandomUtils.nextLong(0L, 4_000_000_000_000L))
+            );
 
         List<List<String>> objectNameBulks = ListUtils.partition(objectNames, 100);
         for (int i = 0; i < 4; i++) {
+            List<String> bulkObjectNames = i < objectNameBulks.size()
+                ? objectNameBulks.get(i)
+                : Collections.emptyList();
 
-            List<String> bulkObjectNames =
-                i < objectNameBulks.size() ? objectNameBulks.get(i) : Collections.emptyList();
-
-            swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
-                .withQueryParam("format", equalTo("json"))
-                .withQueryParam("limit", equalTo("100"))
-                .withQueryParam("marker", i == 0 ? absent() :
-                    equalTo(objectNameBulks.get(i - 1).get(objectNameBulks.get(i - 1).size() - 1)))
-                .willReturn(aResponse()
-                    .withStatus(200)
-                    .withBody(JsonHandler.fromPojoToBytes(bulkObjectNames
-                        .stream()
-                        .map(objectName -> JsonHandler.createObjectNode()
-                            .put("name", objectName)
-                            .put("bytes", objectSizes.get(objectName)))
-                        .collect(Collectors.toList())))));
+            swiftInstanceRule.stubFor(
+                get(urlPathEqualTo("/swift/v1/0_object"))
+                    .withQueryParam("format", equalTo("json"))
+                    .withQueryParam("limit", equalTo("100"))
+                    .withQueryParam(
+                        "marker",
+                        i == 0
+                            ? absent()
+                            : equalTo(objectNameBulks.get(i - 1).get(objectNameBulks.get(i - 1).size() - 1))
+                    )
+                    .willReturn(
+                        aResponse()
+                            .withStatus(200)
+                            .withBody(
+                                JsonHandler.fromPojoToBytes(
+                                    bulkObjectNames
+                                        .stream()
+                                        .map(
+                                            objectName ->
+                                                JsonHandler.createObjectNode()
+                                                    .put("name", objectName)
+                                                    .put("bytes", objectSizes.get(objectName))
+                                        )
+                                        .collect(Collectors.toList())
+                                )
+                            )
+                    )
+            );
         }
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
@@ -857,39 +1019,57 @@ public class SwiftTest {
 
     @Test
     public void when_list_container_objects_with_large_object_segments_then_ok() throws Exception {
-
         // Given
-        List<String> objectNames =
-            Stream.concat(
-                IntStream.range(1000, 1250).mapToObj(i -> "obj" + i),
-                IntStream.range(0, 5).mapToObj(segmentIndex -> "obj1050/0000000" + segmentIndex)
-            ).sorted().collect(Collectors.toList());
+        List<String> objectNames = Stream.concat(
+            IntStream.range(1000, 1250).mapToObj(i -> "obj" + i),
+            IntStream.range(0, 5).mapToObj(segmentIndex -> "obj1050/0000000" + segmentIndex)
+        )
+            .sorted()
+            .collect(Collectors.toList());
 
-        Map<String, Long> rawObjectSizes = objectNames.stream().collect(Collectors
-            .toMap(
-                objectName -> objectName,
-                objectName -> objectName.equals("obj1050") ? 0L : RandomUtils.nextLong(0L, 4_000_000_000_000L))
-        );
+        Map<String, Long> rawObjectSizes = objectNames
+            .stream()
+            .collect(
+                Collectors.toMap(
+                    objectName -> objectName,
+                    objectName -> objectName.equals("obj1050") ? 0L : RandomUtils.nextLong(0L, 4_000_000_000_000L)
+                )
+            );
 
         List<List<String>> objectNameBulks = ListUtils.partition(objectNames, 100);
         for (int i = 0; i < 4; i++) {
+            List<String> bulkObjectNames = i < objectNameBulks.size()
+                ? objectNameBulks.get(i)
+                : Collections.emptyList();
 
-            List<String> bulkObjectNames =
-                i < objectNameBulks.size() ? objectNameBulks.get(i) : Collections.emptyList();
-
-            swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
-                .withQueryParam("format", equalTo("json"))
-                .withQueryParam("limit", equalTo("100"))
-                .withQueryParam("marker", i == 0 ? absent() :
-                    equalTo(objectNameBulks.get(i - 1).get(objectNameBulks.get(i - 1).size() - 1)))
-                .willReturn(aResponse()
-                    .withStatus(200)
-                    .withBody(JsonHandler.fromPojoToBytes(bulkObjectNames
-                        .stream()
-                        .map(objectName -> JsonHandler.createObjectNode()
-                            .put("name", objectName)
-                            .put("bytes", rawObjectSizes.get(objectName)))
-                        .collect(Collectors.toList())))));
+            swiftInstanceRule.stubFor(
+                get(urlPathEqualTo("/swift/v1/0_object"))
+                    .withQueryParam("format", equalTo("json"))
+                    .withQueryParam("limit", equalTo("100"))
+                    .withQueryParam(
+                        "marker",
+                        i == 0
+                            ? absent()
+                            : equalTo(objectNameBulks.get(i - 1).get(objectNameBulks.get(i - 1).size() - 1))
+                    )
+                    .willReturn(
+                        aResponse()
+                            .withStatus(200)
+                            .withBody(
+                                JsonHandler.fromPojoToBytes(
+                                    bulkObjectNames
+                                        .stream()
+                                        .map(
+                                            objectName ->
+                                                JsonHandler.createObjectNode()
+                                                    .put("name", objectName)
+                                                    .put("bytes", rawObjectSizes.get(objectName))
+                                        )
+                                        .collect(Collectors.toList())
+                                )
+                            )
+                    )
+            );
         }
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
@@ -905,7 +1085,8 @@ public class SwiftTest {
         assertThat(objectEntries)
             .extracting(ObjectEntry::getObjectId)
             .doesNotContainAnyElementsOf(
-                IntStream.range(0, 5).mapToObj(segmentIndex -> "obj1050/0000000" + segmentIndex)
+                IntStream.range(0, 5)
+                    .mapToObj(segmentIndex -> "obj1050/0000000" + segmentIndex)
                     .collect(Collectors.toList())
             );
 
@@ -915,13 +1096,14 @@ public class SwiftTest {
             .mapToLong(rawObjectSizes::get)
             .sum();
 
-        Map<String, Long> totalObjectSizes =
-            IntStream.range(1000, 1250)
-                .mapToObj(i -> "obj" + i)
-                .collect(Collectors.toMap(
+        Map<String, Long> totalObjectSizes = IntStream.range(1000, 1250)
+            .mapToObj(i -> "obj" + i)
+            .collect(
+                Collectors.toMap(
                     objectName -> objectName,
                     objectName -> objectName.equals("obj1050") ? obj1050TotalSize : rawObjectSizes.get(objectName)
-                ));
+                )
+            );
 
         assertThat(objectEntries)
             .extracting(ObjectEntry::getObjectId, ObjectEntry::getSize)
@@ -941,19 +1123,17 @@ public class SwiftTest {
 
     @Test
     public void when_list_container_objects_and_server_error_then_throw_exception() throws Exception {
-
         // Given
-        swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object"))
-            .willReturn(aResponse()
-                .withStatus(500)));
+        swiftInstanceRule.stubFor(get(urlPathEqualTo("/swift/v1/0_object")).willReturn(aResponse().withStatus(500)));
 
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When / Then
         List<ObjectEntry> objectEntries = new ArrayList<>();
 
-        assertThatThrownBy(() -> swift.listContainer(CONTAINER_NAME, objectEntries::add))
-            .isInstanceOf(ContentAddressableStorageException.class);
+        assertThatThrownBy(() -> swift.listContainer(CONTAINER_NAME, objectEntries::add)).isInstanceOf(
+            ContentAddressableStorageException.class
+        );
 
         assertThat(objectEntries).isEmpty();
 
@@ -980,28 +1160,47 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 300L);
 
         // When / Then
-        assertThatCode(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, new ByteArrayInputStream(data),
-            VitamConfiguration.getDefaultDigestType(), 3_500L)).doesNotThrowAnyException();
+        assertThatCode(
+            () ->
+                swift.putObject(
+                    CONTAINER_NAME,
+                    OBJECT_NAME,
+                    new ByteArrayInputStream(data),
+                    VitamConfiguration.getDefaultDigestType(),
+                    3_500L
+                )
+        ).doesNotThrowAnyException();
 
         // Expected 13x PUT (12x parts + 1x manifest) + GET (read to recompute digest) + POST (update metadata)
         for (int i = 0; i < 11; i++) {
             verifySwiftRequest(
-                putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/" + String.format("%08d", i + 1)))
-                    .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, i * 300, (i + 1) * 300))));
+                putRequestedFor(
+                    WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/" + String.format("%08d", i + 1))
+                ).withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, i * 300, (i + 1) * 300)))
+            );
         }
 
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000012"))
-            .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, 3_300, 3_500))));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000012")).withRequestBody(
+                WireMock.binaryEqualTo(Arrays.copyOfRange(data, 3_300, 3_500))
+            )
+        );
 
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(X_OBJECT_MANIFEST, equalTo("0_object/3500.txt/")));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                X_OBJECT_MANIFEST,
+                equalTo("0_object/3500.txt/")
+            )
+        );
 
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
-        verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512"))
-            .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
-            .withHeader(X_OBJECT_MANIFEST, equalTo("0_object/3500.txt/")));
+        verifySwiftRequest(
+            postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+                .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512"))
+                .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
+                .withHeader(X_OBJECT_MANIFEST, equalTo("0_object/3500.txt/"))
+        );
 
         assertSwiftRequestCountEqualsTo(15);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(0);
@@ -1014,11 +1213,14 @@ public class SwiftTest {
         String digest = sha512sum(data);
 
         swiftInstanceRule.stubFor(
-            head(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse()
-                .withStatus(201)
-                .withBody(data)
-                .withHeader(ETAG, "etag")
-                .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT")));
+            head(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
+                aResponse()
+                    .withStatus(201)
+                    .withBody(data)
+                    .withHeader(ETAG, "etag")
+                    .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT")
+            )
+        );
 
         givenGetObjectReturns20x(data);
         // This POST Request is used to update metadata object in case it does not exist ( even when getting the object )
@@ -1060,28 +1262,47 @@ public class SwiftTest {
         this.swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 300L);
 
         // When / Then
-        assertThatCode(() -> swift.putObject(CONTAINER_NAME, OBJECT_NAME, new ByteArrayInputStream(data),
-            VitamConfiguration.getDefaultDigestType(), 3_500L)).doesNotThrowAnyException();
+        assertThatCode(
+            () ->
+                swift.putObject(
+                    CONTAINER_NAME,
+                    OBJECT_NAME,
+                    new ByteArrayInputStream(data),
+                    VitamConfiguration.getDefaultDigestType(),
+                    3_500L
+                )
+        ).doesNotThrowAnyException();
 
         // Expected 13x PUT (12x parts + 1x manifest) + GET (read to recompute digest) + POST (update metadata)
         for (int i = 0; i < 11; i++) {
             verifySwiftRequest(
-                putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/" + String.format("%08d", i + 1)))
-                    .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, i * 300, (i + 1) * 300))));
+                putRequestedFor(
+                    WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/" + String.format("%08d", i + 1))
+                ).withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, i * 300, (i + 1) * 300)))
+            );
         }
 
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000012"))
-            .withRequestBody(WireMock.binaryEqualTo(Arrays.copyOfRange(data, 3_300, 3_500))));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt/00000012")).withRequestBody(
+                WireMock.binaryEqualTo(Arrays.copyOfRange(data, 3_300, 3_500))
+            )
+        );
 
-        verifySwiftRequest(putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(X_OBJECT_MANIFEST, equalTo("0_object/3500.txt/")));
+        verifySwiftRequest(
+            putRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")).withHeader(
+                X_OBJECT_MANIFEST,
+                equalTo("0_object/3500.txt/")
+            )
+        );
 
         verifySwiftRequest(getRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt")));
 
-        verifySwiftRequest(postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
-            .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512"))
-            .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
-            .withHeader(X_OBJECT_MANIFEST, equalTo("0_object/3500.txt/")));
+        verifySwiftRequest(
+            postRequestedFor(WireMock.urlEqualTo("/swift/v1/0_object/3500.txt"))
+                .withHeader(X_OBJECT_META_DIGEST_TYPE, equalTo("SHA-512"))
+                .withHeader(X_OBJECT_META_DIGEST, equalTo(sha512sum(data)))
+                .withHeader(X_OBJECT_MANIFEST, equalTo("0_object/3500.txt/"))
+        );
 
         assertSwiftRequestCountEqualsTo(15);
         assertThat(getAllRequestsWithVitamCustomizedHeadersSize()).isEqualTo(0);
@@ -1115,8 +1336,9 @@ public class SwiftTest {
         Swift swift = new Swift(new SwiftKeystoneFactoryV3(configuration), configuration, 3_500L);
 
         // When
-        assertThatThrownBy(() -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true))
-            .isInstanceOf(ContentAddressableStorageNotFoundException.class);
+        assertThatThrownBy(
+            () -> swift.getObjectDigest(CONTAINER_NAME, OBJECT_NAME, DigestType.SHA512, true)
+        ).isInstanceOf(ContentAddressableStorageNotFoundException.class);
 
         // Then
         verifySwiftRequests(headRequestedFor(WireMock.urlPathEqualTo("/swift/v1/0_object/3500.txt")), 0);
@@ -1125,119 +1347,128 @@ public class SwiftTest {
     }
 
     private void givenPutObjectReturns20x() {
-        swiftInstanceRule.stubFor(put(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
-            aResponse().withStatus(201)));
+        swiftInstanceRule.stubFor(
+            put(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse().withStatus(201))
+        );
     }
 
     private void givenPutObjectReturns404() {
-        swiftInstanceRule.stubFor(put(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
-            aResponse().withStatus(404)));
+        swiftInstanceRule.stubFor(
+            put(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse().withStatus(404))
+        );
     }
 
     private void givenPutObjectReturns50x() {
-        swiftInstanceRule.stubFor(put(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
-            aResponse().withStatus(502)));
+        swiftInstanceRule.stubFor(
+            put(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse().withStatus(502))
+        );
     }
 
     private void givenPutLargeObjectPartReturns20x(String path) {
-        swiftInstanceRule.stubFor(put(urlMatching(path)).willReturn(
-            aResponse().withStatus(202)));
+        swiftInstanceRule.stubFor(put(urlMatching(path)).willReturn(aResponse().withStatus(202)));
     }
 
-
     private void givenPutLargeObjectPartReturns50x(String path) {
-        swiftInstanceRule.stubFor(put(urlMatching(path)).willReturn(
-            aResponse().withStatus(502)));
+        swiftInstanceRule.stubFor(put(urlMatching(path)).willReturn(aResponse().withStatus(502)));
     }
 
     private void givenHeadObjectReturns20x(byte[] data) {
         swiftInstanceRule.stubFor(
-            head(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse()
-                .withStatus(201)
-                .withBody(data)
-                .withHeader(ETAG, "etag")
-                .withHeader(X_OBJECT_META_DIGEST, sha512sum(data))
-                .withHeader(X_OBJECT_META_DIGEST_TYPE, "SHA-512")
-                .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT")));
+            head(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
+                aResponse()
+                    .withStatus(201)
+                    .withBody(data)
+                    .withHeader(ETAG, "etag")
+                    .withHeader(X_OBJECT_META_DIGEST, sha512sum(data))
+                    .withHeader(X_OBJECT_META_DIGEST_TYPE, "SHA-512")
+                    .withHeader("Last-Modified", "Mon, 26 Feb 2018 11:33:40 GMT")
+            )
+        );
     }
 
     private void givenHeadObjectReturns20xWithLowerCaseHeaders(byte[] data) {
         swiftInstanceRule.stubFor(
-            head(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse()
-                .withStatus(201)
-                .withBody(data)
-                .withHeader(ETAG.toLowerCase(), "etag")
-                .withHeader(X_OBJECT_META_DIGEST.toLowerCase(), sha512sum(data))
-                .withHeader(X_OBJECT_META_DIGEST_TYPE.toLowerCase(), "SHA-512")
-                .withHeader("Last-Modified".toLowerCase(), "Mon, 26 Feb 2018 11:33:40 GMT")));
+            head(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
+                aResponse()
+                    .withStatus(201)
+                    .withBody(data)
+                    .withHeader(ETAG.toLowerCase(), "etag")
+                    .withHeader(X_OBJECT_META_DIGEST.toLowerCase(), sha512sum(data))
+                    .withHeader(X_OBJECT_META_DIGEST_TYPE.toLowerCase(), "SHA-512")
+                    .withHeader("Last-Modified".toLowerCase(), "Mon, 26 Feb 2018 11:33:40 GMT")
+            )
+        );
     }
 
     private void givenHeadObjectReturns404() {
         swiftInstanceRule.stubFor(
-            head(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
-                aResponse().withStatus(404)));
+            head(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse().withStatus(404))
+        );
     }
 
     private void givenHeadObjectReturns50x() {
-        swiftInstanceRule.stubFor(head(urlMatching("/swift/v1/0_object/3500.txt"))
-            .willReturn(aResponse().withStatus(502)));
+        swiftInstanceRule.stubFor(
+            head(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse().withStatus(502))
+        );
     }
 
     private void givenGetObjectReturns20x(byte[] data) {
         swiftInstanceRule.stubFor(
             get(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
-                aResponse().withStatus(200)
-                    .withHeader(CONTENT_TYPE, "application/octet-stream")
-                    .withBody(data)));
+                aResponse().withStatus(200).withHeader(CONTENT_TYPE, "application/octet-stream").withBody(data)
+            )
+        );
     }
 
     private void givenGetObjectReturns404() {
         swiftInstanceRule.stubFor(
-            get(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
-                aResponse().withStatus(404)));
+            get(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse().withStatus(404))
+        );
     }
 
     private void givenGetObjectReturns50x() {
         swiftInstanceRule.stubFor(
-            get(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
-                aResponse().withStatus(502)));
+            get(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse().withStatus(502))
+        );
     }
 
     private void givenPostObjetReturns20x() {
-        swiftInstanceRule.stubFor(post(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
-            aResponse().withStatus(202)));
+        swiftInstanceRule.stubFor(
+            post(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse().withStatus(202))
+        );
     }
 
     private void givenDeleteObjectReturns20x() {
-        swiftInstanceRule.stubFor(delete(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
-            aResponse().withStatus(204)));
+        swiftInstanceRule.stubFor(
+            delete(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse().withStatus(204))
+        );
     }
 
     private void givenDeleteObjectReturns404() {
-        swiftInstanceRule.stubFor(delete(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
-            aResponse().withStatus(404)));
+        swiftInstanceRule.stubFor(
+            delete(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse().withStatus(404))
+        );
     }
 
     private void givenDeleteObjectReturns50x() {
-        swiftInstanceRule.stubFor(delete(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(
-            aResponse().withStatus(502)));
+        swiftInstanceRule.stubFor(
+            delete(urlMatching("/swift/v1/0_object/3500.txt")).willReturn(aResponse().withStatus(502))
+        );
     }
 
     private void verifySwiftRequest(RequestPatternBuilder requestPatternBuilder) {
-        assertThat(swiftInstanceRule.findRequestsMatching(
-            requestPatternBuilder.build()).getRequests()).hasSize(1);
+        assertThat(swiftInstanceRule.findRequestsMatching(requestPatternBuilder.build()).getRequests()).hasSize(1);
     }
 
-
     private void verifySwiftRequests(RequestPatternBuilder requestPatternBuilder, int count) {
-        assertThat(swiftInstanceRule.findRequestsMatching(
-            requestPatternBuilder.build()).getRequests()).hasSize(count);
+        assertThat(swiftInstanceRule.findRequestsMatching(requestPatternBuilder.build()).getRequests()).hasSize(count);
     }
 
     private void assertSwiftRequestCountEqualsTo(int expectedCount) {
         try {
-            assertThat(swiftInstanceRule.countRequestsMatching(RequestPattern.everything()).getCount())
-                .isEqualTo(expectedCount);
+            assertThat(swiftInstanceRule.countRequestsMatching(RequestPattern.everything()).getCount()).isEqualTo(
+                expectedCount
+            );
         } catch (AssertionError e) {
             for (ServeEvent serveEvent : swiftInstanceRule.getAllServeEvents()) {
                 System.out.println(serveEvent.getRequest().toString());
@@ -1251,7 +1482,9 @@ public class SwiftTest {
     }
 
     private Long getAllRequestsWithVitamCustomizedHeadersSize() {
-        return swiftInstanceRule.findAll(RequestPatternBuilder.allRequests()).stream()
+        return swiftInstanceRule
+            .findAll(RequestPatternBuilder.allRequests())
+            .stream()
             .map(elmt -> elmt.getHeaders().getHeader(VITAM_CUSTOMIZED_HEADER_KEY))
             .filter(elmt -> elmt.containsValue(VITAM_CUSTOMIZED_HEADER_VALUE))
             .count();

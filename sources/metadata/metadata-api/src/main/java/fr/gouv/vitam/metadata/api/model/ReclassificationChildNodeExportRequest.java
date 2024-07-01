@@ -48,8 +48,11 @@ public class ReclassificationChildNodeExportRequest {
         // Empty constructor for deserialization
     }
 
-    public ReclassificationChildNodeExportRequest(Set<String> unitIds, String unitsToUpdateJsonLineFileName,
-        String objectGroupsToUpdateJsonLineFileName) {
+    public ReclassificationChildNodeExportRequest(
+        Set<String> unitIds,
+        String unitsToUpdateJsonLineFileName,
+        String objectGroupsToUpdateJsonLineFileName
+    ) {
         this.unitIds = unitIds;
         this.unitsToUpdateJsonLineFileName = unitsToUpdateJsonLineFileName;
         this.objectGroupsToUpdateJsonLineFileName = objectGroupsToUpdateJsonLineFileName;

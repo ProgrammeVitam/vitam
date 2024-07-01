@@ -41,7 +41,6 @@ import fr.gouv.vitam.common.database.parser.request.multiple.SelectParserMultipl
 
 import java.util.List;
 
-
 /**
  * Request To X Abstract class. All translators should be based on this one.
  */
@@ -132,8 +131,7 @@ public class RequestToAbstract {
      * @return the array of hints (if any)
      */
     public ArrayNode getHints() {
-        return (ArrayNode) requestParser.getRequest().getFilter()
-            .get(SELECTFILTER.HINT.exactToken());
+        return (ArrayNode) requestParser.getRequest().getFilter().get(SELECTFILTER.HINT.exactToken());
     }
 
     /**
@@ -142,8 +140,7 @@ public class RequestToAbstract {
      * @return the limit
      */
     public int getFinalLimit() {
-        final JsonNode node = requestParser.getRequest().getFilter()
-            .get(SELECTFILTER.LIMIT.exactToken());
+        final JsonNode node = requestParser.getRequest().getFilter().get(SELECTFILTER.LIMIT.exactToken());
         if (node != null) {
             return node.asInt();
         }
@@ -156,8 +153,7 @@ public class RequestToAbstract {
      * @return the offset
      */
     public int getFinalOffset() {
-        final JsonNode node = requestParser.getRequest().getFilter()
-            .get(SELECTFILTER.OFFSET.exactToken());
+        final JsonNode node = requestParser.getRequest().getFilter().get(SELECTFILTER.OFFSET.exactToken());
         if (node != null) {
             return node.asInt();
         }
@@ -168,8 +164,8 @@ public class RequestToAbstract {
      * @return the associated usage if any
      */
     public String getUsage() {
-        final JsonNode node = ((SelectParserMultiple) requestParser).getRequest().getProjection()
-            .get(PROJECTION.USAGE.exactToken());
+        final JsonNode node =
+            ((SelectParserMultiple) requestParser).getRequest().getProjection().get(PROJECTION.USAGE.exactToken());
         if (node != null) {
             return node.asText();
         }
@@ -183,10 +179,8 @@ public class RequestToAbstract {
     public final Query getNthQuery(int nth) {
         final List<Query> list = requestParser.getRequest().getQueries();
         if (nth >= list.size()) {
-            throw new IllegalAccessError(
-                "This Query has not enough item to get the position: " + nth);
+            throw new IllegalAccessError("This Query has not enough item to get the position: " + nth);
         }
         return list.get(nth);
     }
-
 }

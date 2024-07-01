@@ -39,8 +39,7 @@ public class IngestCleanupDeleteObjectGroupPlugin extends PurgeDeleteObjectGroup
     }
 
     @VisibleForTesting
-    IngestCleanupDeleteObjectGroupPlugin(
-        PurgeDeleteService purgeDeleteService) {
+    IngestCleanupDeleteObjectGroupPlugin(PurgeDeleteService purgeDeleteService) {
         super(INGEST_CLEANUP_DELETE_OBJECT_GROUP, purgeDeleteService);
     }
 

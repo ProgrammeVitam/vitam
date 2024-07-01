@@ -61,6 +61,7 @@ import java.util.Map;
  */
 @Path("/")
 public class InterceptorResource {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(InterceptorResource.class);
     private static final String UTF_8 = "UTF-8";
     private static final String CONTENT_LENGTH = "Content-Length";
@@ -90,14 +91,15 @@ public class InterceptorResource {
     @HEAD
     @Path("{url: .*}")
     public Response handleHeadElasticRequestFromKibana(
-        @Context UriInfo info, @PathParam("url") String url,
+        @Context UriInfo info,
+        @PathParam("url") String url,
         @Context HttpServletRequest req,
-        @Context HttpHeaders headers) {
+        @Context HttpHeaders headers
+    ) {
         LOGGER.debug("Head sur " + req.getRequestURL());
 
         String urlEs = getUrlEs(req);
-        ResteasyWebTarget target =
-            ((ResteasyClientBuilder) ClientBuilder.newBuilder()).build().target(urlEs);
+        ResteasyWebTarget target = ((ResteasyClientBuilder) ClientBuilder.newBuilder()).build().target(urlEs);
 
         // Add Query Params to the request
         for (Map.Entry<String, List<String>> entry : info.getQueryParameters().entrySet()) {
@@ -113,23 +115,30 @@ public class InterceptorResource {
     }
 
     private void setHeaderAndSuppressUndesiredOne(@Context HttpHeaders headers, Invocation.Builder request) {
-        headers.getRequestHeaders().forEach((key, value1) -> {
-            LOGGER.debug("Header key " + key + "Header value " + value1);
-            for (String value : value1) {
-                if (!CONTENT_LENGTH.equals(key) && !KEEP_ALIVE.equals(key) &&
-                    !HOST.equals(key) && !CONNECTION.equals(key) &&
-                    !TRANSFER_ENCODING.equalsIgnoreCase(key)) {
-                    request.header(key, value);
+        headers
+            .getRequestHeaders()
+            .forEach((key, value1) -> {
+                LOGGER.debug("Header key " + key + "Header value " + value1);
+                for (String value : value1) {
+                    if (
+                        !CONTENT_LENGTH.equals(key) &&
+                        !KEEP_ALIVE.equals(key) &&
+                        !HOST.equals(key) &&
+                        !CONNECTION.equals(key) &&
+                        !TRANSFER_ENCODING.equalsIgnoreCase(key)
+                    ) {
+                        request.header(key, value);
+                    }
                 }
-            }
-        });
+            });
     }
 
     private String getUrlEs(@Context HttpServletRequest req) {
-        StringBuilder urlEs =
-            new StringBuilder("http://").append(interceptorConfiguration.getElasticsearchNodes().get(0).getHostName())
-                .append(":").append(interceptorConfiguration.getElasticsearchNodes().get(0).getHttpPort())
-                .append(req.getRequestURI());
+        StringBuilder urlEs = new StringBuilder("http://")
+            .append(interceptorConfiguration.getElasticsearchNodes().get(0).getHostName())
+            .append(":")
+            .append(interceptorConfiguration.getElasticsearchNodes().get(0).getHttpPort())
+            .append(req.getRequestURI());
         LOGGER.debug("urlEs " + urlEs);
         return urlEs.toString();
     }
@@ -150,16 +159,16 @@ public class InterceptorResource {
     @DELETE
     @PUT
     @Path("{url: .*}")
-    public Response process(@PathParam("url") String url,
+    public Response process(
+        @PathParam("url") String url,
         @Context UriInfo info,
         @Context HttpServletRequest req,
-        @Context HttpHeaders headers) throws IOException {
+        @Context HttpHeaders headers
+    ) throws IOException {
         LOGGER.debug(req.getMethod() + " sur " + req.getRequestURL());
         ReplacePatternUtils replacePatternUtils = new ReplacePatternUtils(interceptorConfiguration.getWhitelist());
         String urlEs = getUrlEs(req);
-        ResteasyWebTarget target =
-            ((ResteasyClientBuilder) ClientBuilder.newBuilder()).build()
-                .target(urlEs);
+        ResteasyWebTarget target = ((ResteasyClientBuilder) ClientBuilder.newBuilder()).build().target(urlEs);
         // Query Params
         for (Map.Entry<String, List<String>> entry : info.getQueryParameters().entrySet()) {
             for (String value : entry.getValue()) {
@@ -174,32 +183,40 @@ public class InterceptorResource {
         Response response;
         if (headers.getMediaType() != null) {
             ServletInputStream inputStream = req.getInputStream();
-            String requestBodyWithoutSharp =
-                replacePatternUtils.replaceSharpByUnderscore(IOUtils.toString(inputStream, UTF_8));
-            response =
-                request.build(req.getMethod(),
-                        Entity.entity(IOUtils.toInputStream(requestBodyWithoutSharp, UTF_8), headers.getMediaType()))
-                    .invoke();
+            String requestBodyWithoutSharp = replacePatternUtils.replaceSharpByUnderscore(
+                IOUtils.toString(inputStream, UTF_8)
+            );
+            response = request
+                .build(
+                    req.getMethod(),
+                    Entity.entity(IOUtils.toInputStream(requestBodyWithoutSharp, UTF_8), headers.getMediaType())
+                )
+                .invoke();
         } else {
             response = request.build(req.getMethod()).invoke();
         }
 
         Map<String, Object> responseHeader = new HashMap<>();
-        response.getHeaders().forEach((key, value1) -> {
-            for (Object value : value1) {
-                if (!CONTENT_LENGTH.equalsIgnoreCase(key) &&
-                    !KEEP_ALIVE.equalsIgnoreCase(key) &&
-                    !HOST.equalsIgnoreCase(key) &&
-                    !CONNECTION.equalsIgnoreCase(key) &&
-                    !TRANSFER_ENCODING.equalsIgnoreCase(key)) {
-                    responseHeader.put(key, value);
+        response
+            .getHeaders()
+            .forEach((key, value1) -> {
+                for (Object value : value1) {
+                    if (
+                        !CONTENT_LENGTH.equalsIgnoreCase(key) &&
+                        !KEEP_ALIVE.equalsIgnoreCase(key) &&
+                        !HOST.equalsIgnoreCase(key) &&
+                        !CONNECTION.equalsIgnoreCase(key) &&
+                        !TRANSFER_ENCODING.equalsIgnoreCase(key)
+                    ) {
+                        responseHeader.put(key, value);
+                    }
                 }
-            }
-        });
+            });
         String entity = response.readEntity(String.class);
         Response.ResponseBuilder responseWithoutHeader;
-        responseWithoutHeader =
-            Response.status(response.getStatus()).entity(replacePatternUtils.replaceUnderscoreBySharp(entity));
+        responseWithoutHeader = Response.status(response.getStatus()).entity(
+            replacePatternUtils.replaceUnderscoreBySharp(entity)
+        );
         for (String key : responseHeader.keySet()) {
             responseWithoutHeader.header(key, responseHeader.get(key));
         }

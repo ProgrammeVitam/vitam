@@ -30,5 +30,5 @@ public enum VirtualDriveState {
     EMPTY,
     LOADED,
     EJECTED,
-    BUSY
+    BUSY,
 }

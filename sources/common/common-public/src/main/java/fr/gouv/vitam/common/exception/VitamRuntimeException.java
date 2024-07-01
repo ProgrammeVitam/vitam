@@ -47,6 +47,4 @@ public class VitamRuntimeException extends RuntimeException {
     public VitamRuntimeException(Throwable cause) {
         super(cause);
     }
-
-
 }

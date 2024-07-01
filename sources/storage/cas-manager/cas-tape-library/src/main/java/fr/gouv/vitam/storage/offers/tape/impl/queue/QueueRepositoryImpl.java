@@ -70,6 +70,7 @@ import static com.mongodb.client.model.Filters.eq;
  *
  */
 public class QueueRepositoryImpl implements QueueRepository {
+
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(QueueRepositoryImpl.class);
 
     protected final MongoCollection<Document> collection;
@@ -92,7 +93,6 @@ public class QueueRepositoryImpl implements QueueRepository {
     @Override
     public void addIfAbsent(List<QueryCriteria> criteria, QueueMessageEntity queueMessageEntity) throws QueueException {
         try {
-
             List<Bson> filters = QueryCriteriaUtils.criteriaToMongoFilters(criteria);
 
             if (collection.find(Filters.and(filters)).iterator().hasNext()) {
@@ -101,7 +101,6 @@ public class QueueRepositoryImpl implements QueueRepository {
                 Document doc = Document.parse(JsonHandler.unprettyPrint(queueMessageEntity));
                 collection.insertOne(doc);
             }
-
         } catch (Exception e) {
             throw new QueueException(e);
         }
@@ -110,7 +109,6 @@ public class QueueRepositoryImpl implements QueueRepository {
     @Override
     public void tryCancelIfNotStarted(List<QueryCriteria> criteria) throws QueueException {
         try {
-
             List<Bson> filters = QueryCriteriaUtils.criteriaToMongoFilters(criteria);
             filters.add(Filters.ne(QueueMessageEntity.STATE, QueueState.RUNNING.getState()));
 
@@ -118,7 +116,6 @@ public class QueueRepositoryImpl implements QueueRepository {
             if (deleteResult.getDeletedCount() != 1) {
                 LOGGER.warn("Message could not be cancelled. Already running?");
             }
-
         } catch (Exception e) {
             throw new QueueException(e);
         }
@@ -136,8 +133,12 @@ public class QueueRepositoryImpl implements QueueRepository {
     @Override
     public long complete(String queueId) throws QueueException {
         try {
-            return collection.updateOne(eq(VitamDocument.ID, queueId),
-                Updates.set(QueueMessageEntity.STATE, QueueState.COMPLETED.getState())).getModifiedCount();
+            return collection
+                .updateOne(
+                    eq(VitamDocument.ID, queueId),
+                    Updates.set(QueueMessageEntity.STATE, QueueState.COMPLETED.getState())
+                )
+                .getModifiedCount();
         } catch (Exception e) {
             throw new QueueException(e);
         }
@@ -146,8 +147,12 @@ public class QueueRepositoryImpl implements QueueRepository {
     @Override
     public long markError(String queueMessageId) throws QueueException {
         try {
-            return collection.updateOne(eq(VitamDocument.ID, queueMessageId),
-                Updates.set(QueueMessageEntity.STATE, QueueState.ERROR.getState())).getModifiedCount();
+            return collection
+                .updateOne(
+                    eq(VitamDocument.ID, queueMessageId),
+                    Updates.set(QueueMessageEntity.STATE, QueueState.ERROR.getState())
+                )
+                .getModifiedCount();
         } catch (Exception e) {
             throw new QueueException(e);
         }
@@ -156,8 +161,12 @@ public class QueueRepositoryImpl implements QueueRepository {
     @Override
     public long markReady(String queueMessageId) throws QueueException {
         try {
-            return collection.updateOne(eq(VitamDocument.ID, queueMessageId),
-                Updates.set(QueueMessageEntity.STATE, QueueState.READY.getState())).getModifiedCount();
+            return collection
+                .updateOne(
+                    eq(VitamDocument.ID, queueMessageId),
+                    Updates.set(QueueMessageEntity.STATE, QueueState.READY.getState())
+                )
+                .getModifiedCount();
         } catch (Exception e) {
             throw new QueueException(e);
         }
@@ -166,8 +175,12 @@ public class QueueRepositoryImpl implements QueueRepository {
     @Override
     public long initializeOnBootstrap() {
         try {
-            return collection.updateMany(eq(QueueMessageEntity.STATE, QueueState.RUNNING.getState()),
-                Updates.set(QueueMessageEntity.STATE, QueueState.READY.getState())).getModifiedCount();
+            return collection
+                .updateMany(
+                    eq(QueueMessageEntity.STATE, QueueState.RUNNING.getState()),
+                    Updates.set(QueueMessageEntity.STATE, QueueState.READY.getState())
+                )
+                .getModifiedCount();
         } catch (Exception e) {
             throw new VitamRuntimeException(e);
         }
@@ -191,13 +204,16 @@ public class QueueRepositoryImpl implements QueueRepository {
     @Override
     public <T> Optional<T> receive(Bson inQuery, QueueMessageType messageType, boolean usePriority)
         throws QueueException {
-
-        Bson query = inQuery != null ?
-            and(eq(QueueMessageEntity.STATE, QueueState.READY.getState()),
-                eq(QueueMessageEntity.MESSAGE_TYPE, messageType.name()), inQuery)
-            :
-            and(eq(QueueMessageEntity.STATE, QueueState.READY.getState()),
-                eq(QueueMessageEntity.MESSAGE_TYPE, messageType.name()));
+        Bson query = inQuery != null
+            ? and(
+                eq(QueueMessageEntity.STATE, QueueState.READY.getState()),
+                eq(QueueMessageEntity.MESSAGE_TYPE, messageType.name()),
+                inQuery
+            )
+            : and(
+                eq(QueueMessageEntity.STATE, QueueState.READY.getState()),
+                eq(QueueMessageEntity.MESSAGE_TYPE, messageType.name())
+            );
 
         FindOneAndUpdateOptions option = new FindOneAndUpdateOptions();
         option.returnDocument(ReturnDocument.AFTER);
@@ -208,10 +224,10 @@ public class QueueRepositoryImpl implements QueueRepository {
         }
         option.upsert(false);
 
-        Bson update =
-            Updates.combine(
-                Updates.set(QueueMessageEntity.STATE, QueueState.RUNNING.getState()),
-                Updates.set(QueueMessageEntity.TAG_LAST_UPDATE, Calendar.getInstance().getTimeInMillis()));
+        Bson update = Updates.combine(
+            Updates.set(QueueMessageEntity.STATE, QueueState.RUNNING.getState()),
+            Updates.set(QueueMessageEntity.TAG_LAST_UPDATE, Calendar.getInstance().getTimeInMillis())
+        );
 
         Document sequence = collection.findOneAndUpdate(query, update, option);
 
@@ -224,7 +240,6 @@ public class QueueRepositoryImpl implements QueueRepository {
         } catch (InvalidParseOperationException e) {
             throw new QueueException(e);
         }
-
     }
 
     /**
@@ -234,7 +249,8 @@ public class QueueRepositoryImpl implements QueueRepository {
      */
     public Map<Pair<QueueState, QueueMessageType>, Integer> countByStateAndType() throws QueueException {
         try {
-            AggregateIterable<Document> aggregate = collection.aggregate(List.of(
+            AggregateIterable<Document> aggregate = collection.aggregate(
+                List.of(
                     Aggregates.group(
                         new Document()
                             .append("state", "$" + QueueMessageEntity.STATE)
@@ -247,7 +263,6 @@ public class QueueRepositoryImpl implements QueueRepository {
             Map<Pair<QueueState, QueueMessageType>, Integer> results = new HashMap<>();
             try (MongoCursor<Document> iterator = aggregate.iterator()) {
                 while (iterator.hasNext()) {
-
                     Document doc = iterator.next();
                     Document _id = (Document) doc.get("_id");
 
@@ -264,7 +279,6 @@ public class QueueRepositoryImpl implements QueueRepository {
             }
 
             return results;
-
         } catch (Exception e) {
             throw new QueueException(e);
         }

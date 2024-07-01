@@ -47,6 +47,7 @@ import static org.junit.Assert.fail;
  * Tests of single select query schema for Masterdata and logbook DSL query
  */
 public class ValidatorSelectQuerySingleTest {
+
     private static final String SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON = "select-query-single-dsl-schema.json";
 
     private Schema loadSchema(ObjectMapper objectMapper, File dslSource)
@@ -68,10 +69,11 @@ public class ValidatorSelectQuerySingleTest {
     @Test
     public void should_not_retrieve_errors_when_select_single_complete_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_complete.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_complete.json"));
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -83,10 +85,11 @@ public class ValidatorSelectQuerySingleTest {
     @Test
     public void should_not_retrieve_errors_when_select_single_empty_query_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_empty_query.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_empty_query.json"));
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -95,38 +98,44 @@ public class ValidatorSelectQuerySingleTest {
         }
     }
 
-
     @Test
     public void should_retrieve_errors_when_select_single_no_query_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_no_query.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_no_query.json"));
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON)
+        );
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("$query:")
             .hasMessageContaining("...} ~ MANDATORY ~ hint: Single query");
-
     }
 
     @Test
     public void should_not_retrieve_errors_when_select_single_no_projection_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_no_projection.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
-        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
-            .hasMessageMatching(".*Validating \\$projection: .* ~ MANDATORY.*");
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_single_no_projection.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON)
+        );
+        assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json)).hasMessageMatching(
+            ".*Validating \\$projection: .* ~ MANDATORY.*"
+        );
     }
 
     @Test
     public void should_not_retrieve_errors_when_select_single_empty_projection_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_empty_projection.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_single_empty_projection.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -138,10 +147,13 @@ public class ValidatorSelectQuerySingleTest {
     @Test
     public void should_retrieve_errors_when_select_single_wrong_values_projection_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_wrong_values_projection.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_single_wrong_values_projection.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON)
+        );
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("$fields: {[key]: 1} ~ INVALID_VALUE: STRING")
             .hasMessageContaining("$fields: {[key]: 1} ~ INVALID_VALUE: NUMBER")
@@ -151,10 +163,11 @@ public class ValidatorSelectQuerySingleTest {
     @Test
     public void should_not_retrieve_errors_when_select_single_no_filter_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_no_filter.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_no_filter.json"));
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -166,10 +179,13 @@ public class ValidatorSelectQuerySingleTest {
     @Test
     public void should_not_retrieve_errors_when_select_single_empty_filter_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_empty_filter.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_single_empty_filter.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -181,10 +197,13 @@ public class ValidatorSelectQuerySingleTest {
     @Test
     public void should_not_retrieve_errors_when_select_single_empty_orderby_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_empty_orderby.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_single_empty_orderby.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON)
+        );
         try {
             Validator.validate(schema, "DSL", test1Json);
         } catch (ValidationException e) {
@@ -196,10 +215,13 @@ public class ValidatorSelectQuerySingleTest {
     @Test
     public void should_retrieve_errors_when_select_single_wrong_values_filter_dsl()
         throws IOException, InvalidParseOperationException {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_wrong_values_filter.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_single_wrong_values_filter.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON)
+        );
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("$offset: posinteger ~ INVALID_VALUE: STRING")
             .hasMessageContaining("$limit: posinteger ~ INVALID_VALUE: STRING")
@@ -208,14 +230,15 @@ public class ValidatorSelectQuerySingleTest {
 
     @Test
     public void should_retrieve_errors_when_select_single_unknown_key_in_query_dsl() throws Exception {
-        JsonNode test1Json =
-            JsonHandler.getFromFile(PropertiesUtils.getResourceFile("select_single_with_unknown_key.json"));
-        final Schema schema =
-            loadSchema(new ObjectMapper(), PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON));
+        JsonNode test1Json = JsonHandler.getFromFile(
+            PropertiesUtils.getResourceFile("select_single_with_unknown_key.json")
+        );
+        final Schema schema = loadSchema(
+            new ObjectMapper(),
+            PropertiesUtils.getResourceFile(SELECT_QUERY_SINGLE_DSL_SCHEMA_JSON)
+        );
         assertThatThrownBy(() -> Validator.validate(schema, "DSL", test1Json))
             .hasMessageContaining("INVALID_JSON_FIELD: $unknown ~ found json: \\\"no_validation\\\" ~ path: []")
             .hasMessageContaining("INVALID_JSON_FIELD: $unknown2 ~ found json: {} ~ path: []");
     }
-
-
 }

@@ -35,24 +35,23 @@ import fr.gouv.vitam.common.mapping.mapper.ElementMapper;
 import java.io.IOException;
 import java.util.Map;
 
-
 public class OrganizationDescriptiveMetadataTypeSerializer extends StdSerializer<OrganizationDescriptiveMetadataType> {
-
 
     public OrganizationDescriptiveMetadataTypeSerializer() {
         this(null);
     }
-
 
     public OrganizationDescriptiveMetadataTypeSerializer(Class<OrganizationDescriptiveMetadataType> type) {
         super(type);
     }
 
     @Override
-    public void serialize(OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType, JsonGenerator gen,
-        SerializerProvider provider) throws IOException {
+    public void serialize(
+        OrganizationDescriptiveMetadataType organizationDescriptiveMetadataType,
+        JsonGenerator gen,
+        SerializerProvider provider
+    ) throws IOException {
         Map<String, Object> stringObjectMap = ElementMapper.toMap(organizationDescriptiveMetadataType.getAny());
         provider.defaultSerializeValue(stringObjectMap, gen);
     }
-
 }

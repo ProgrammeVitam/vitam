@@ -33,6 +33,7 @@ package fr.gouv.vitam.common.exception;
  * current state is running, action is next or resume
  */
 public class StateNotAllowedException extends VitamException {
+
     public StateNotAllowedException(String message) {
         super(message);
     }

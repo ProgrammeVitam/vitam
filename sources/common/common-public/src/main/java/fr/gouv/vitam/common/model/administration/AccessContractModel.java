@@ -114,7 +114,6 @@ public class AccessContractModel extends AbstractContractModel {
         super();
     }
 
-
     /**
      * Get the collection of originating agency
      *
@@ -137,7 +136,6 @@ public class AccessContractModel extends AbstractContractModel {
         return this;
     }
 
-
     /**
      * @return dataObjectVersion
      */
@@ -147,7 +145,6 @@ public class AccessContractModel extends AbstractContractModel {
         }
         return dataObjectVersion;
     }
-
 
     /**
      * @param dataObjectVersion
@@ -197,7 +194,6 @@ public class AccessContractModel extends AbstractContractModel {
         return everyOriginatingAgency;
     }
 
-
     /**
      * Set the 'everyOriginatingAgency' flag on the contract.
      *
@@ -209,14 +205,12 @@ public class AccessContractModel extends AbstractContractModel {
         return this;
     }
 
-
     /**
      * @return true if all data object version are enabled for this contract
      */
     public Boolean isEveryDataObjectVersion() {
         return everyDataObjectVersion;
     }
-
 
     /**
      * Set the 'everyDataObjectVersion' flag on the contract.
@@ -281,7 +275,6 @@ public class AccessContractModel extends AbstractContractModel {
         this.accessLog = accessLog;
         return this;
     }
-
 
     public Set<RuleType> getRuleCategoryToFilter() {
         if (ruleCategoryToFilter == null) {

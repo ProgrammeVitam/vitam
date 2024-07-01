@@ -40,24 +40,22 @@ public class IngestInternalClientFactoryTest {
 
     @Before
     public void initFileConfiguration() {
-        IngestInternalClientFactory
-            .changeMode(IngestInternalClientFactory.changeConfigurationFile("ingest-internal-client-test.conf"));
+        IngestInternalClientFactory.changeMode(
+            IngestInternalClientFactory.changeConfigurationFile("ingest-internal-client-test.conf")
+        );
     }
 
     @Test
     public void testInitWithConfigurationFile() {
-        final IngestInternalClient client =
-            IngestInternalClientFactory.getInstance().getClient();
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof IngestInternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, IngestInternalClientFactory.getInstance().getVitamClientType());
     }
 
     @Test
     public void changeDefaultClientTypeTest() {
-
         // First client type : Production
-        final IngestInternalClient client =
-            IngestInternalClientFactory.getInstance().getClient();
+        final IngestInternalClient client = IngestInternalClientFactory.getInstance().getClient();
         assertTrue(client instanceof IngestInternalClientRest);
         assertEquals(VitamClientType.PRODUCTION, IngestInternalClientFactory.getInstance().getVitamClientType());
 
@@ -68,4 +66,3 @@ public class IngestInternalClientFactoryTest {
         assertEquals(VitamClientType.MOCK, IngestInternalClientFactory.getInstance().getVitamClientType());
     }
 }
-

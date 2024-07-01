@@ -46,8 +46,7 @@ public class MerkleTree {
     /**
      * MerkleTree empty constructor
      */
-    public MerkleTree() {
-    }
+    public MerkleTree() {}
 
     /**
      * Initialize the needed parameters for MerkleTree constructor
@@ -82,6 +81,4 @@ public class MerkleTree {
     public MerkleTree getRightLeaf() {
         return rightLeaf;
     }
-
 }
-

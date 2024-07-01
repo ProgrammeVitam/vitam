@@ -40,8 +40,7 @@ public class PermissionService {
 
     private final PersonalCertificatePermissionConfig personalCertificatePermissionConfig;
 
-    public PermissionService(
-        PersonalCertificatePermissionConfig personalCertificatePermissionConfig) {
+    public PermissionService(PersonalCertificatePermissionConfig personalCertificatePermissionConfig) {
         this.personalCertificatePermissionConfig = personalCertificatePermissionConfig;
     }
 
@@ -49,30 +48,33 @@ public class PermissionService {
      * @param permission the endpoint permission
      * @return whether endpoin permission requires personal certificate, ignores it, or unknown (missing in configuration).
      */
-    public IsPersonalCertificateRequiredModel isPersonalCertificateRequiredForPermission(
-        String permission) {
-
-        if (personalCertificatePermissionConfig.getPermissionsRequiringPersonalCertificate() != null
-            && personalCertificatePermissionConfig.getPermissionsRequiringPersonalCertificate().contains(permission)) {
-
+    public IsPersonalCertificateRequiredModel isPersonalCertificateRequiredForPermission(String permission) {
+        if (
+            personalCertificatePermissionConfig.getPermissionsRequiringPersonalCertificate() != null &&
+            personalCertificatePermissionConfig.getPermissionsRequiringPersonalCertificate().contains(permission)
+        ) {
             LOGGER.debug("Required personal certificate for permission {}", permission);
 
             return new IsPersonalCertificateRequiredModel(
-                IsPersonalCertificateRequiredModel.Response.REQUIRED_PERSONAL_CERTIFICATE);
+                IsPersonalCertificateRequiredModel.Response.REQUIRED_PERSONAL_CERTIFICATE
+            );
         }
 
-        if (personalCertificatePermissionConfig.getPermissionsWithoutPersonalCertificate() != null
-            && personalCertificatePermissionConfig.getPermissionsWithoutPersonalCertificate().contains(permission)) {
-
+        if (
+            personalCertificatePermissionConfig.getPermissionsWithoutPersonalCertificate() != null &&
+            personalCertificatePermissionConfig.getPermissionsWithoutPersonalCertificate().contains(permission)
+        ) {
             LOGGER.debug("Non required personal certificate for permission {}", permission);
 
             return new IsPersonalCertificateRequiredModel(
-                IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE);
+                IsPersonalCertificateRequiredModel.Response.IGNORED_PERSONAL_CERTIFICATE
+            );
         }
 
         LOGGER.error("Unknown permission {}", permission);
 
         return new IsPersonalCertificateRequiredModel(
-            IsPersonalCertificateRequiredModel.Response.ERROR_UNKNOWN_PERMISSION);
+            IsPersonalCertificateRequiredModel.Response.ERROR_UNKNOWN_PERMISSION
+        );
     }
 }

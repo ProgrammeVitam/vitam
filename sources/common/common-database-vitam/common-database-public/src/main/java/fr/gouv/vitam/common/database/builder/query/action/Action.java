@@ -42,6 +42,7 @@ import java.util.List;
  * Action component
  */
 public class Action {
+
     private static final String ACTION2 = "Action ";
     private static final String CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME =
         " cannot be created with empty variable name";
@@ -60,24 +61,20 @@ public class Action {
         ready = false;
     }
 
-    protected final void createActionValueArrayVariable(final UPDATEACTION action,
-        final String variableName)
+    protected final void createActionValueArrayVariable(final UPDATEACTION action, final String variableName)
         throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
         } catch (final InvalidParseOperationException e) {
             throw new InvalidCreateOperationException(e);
         }
-        currentObject = ((ObjectNode) currentObject).putObject(action.exactToken())
-            .putArray(variableName.trim());
+        currentObject = ((ObjectNode) currentObject).putObject(action.exactToken()).putArray(variableName.trim());
     }
 
-    protected final void createActionVariables(final UPDATEACTION action,
-        final String... variableNames)
+    protected final void createActionVariables(final UPDATEACTION action, final String... variableNames)
         throws InvalidCreateOperationException {
         final ArrayNode node = ((ObjectNode) currentObject).putArray(action.exactToken());
         for (final String var : variableNames) {
@@ -93,12 +90,13 @@ public class Action {
         currentObject = node;
     }
 
-    protected final void createActionVariableValue(final UPDATEACTION action,
-        final String variableName, final long value)
-        throws InvalidCreateOperationException {
+    protected final void createActionVariableValue(
+        final UPDATEACTION action,
+        final String variableName,
+        final long value
+    ) throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -109,12 +107,13 @@ public class Action {
         ((ObjectNode) currentObject).put(variableName.trim(), value);
     }
 
-    protected final void createActionVariableValue(final UPDATEACTION action,
-        final String variableName, final double value)
-        throws InvalidCreateOperationException {
+    protected final void createActionVariableValue(
+        final UPDATEACTION action,
+        final String variableName,
+        final double value
+    ) throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -125,12 +124,13 @@ public class Action {
         ((ObjectNode) currentObject).put(variableName.trim(), value);
     }
 
-    protected final void createActionVariableValue(final UPDATEACTION action,
-        final String variableName, final String value)
-        throws InvalidCreateOperationException {
+    protected final void createActionVariableValue(
+        final UPDATEACTION action,
+        final String variableName,
+        final String value
+    ) throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -142,12 +142,13 @@ public class Action {
         ((ObjectNode) currentObject).put(variableName.trim(), value);
     }
 
-    protected final void createActionVariableValue(final UPDATEACTION action,
-        final String variableName, final List<?> value)
-        throws InvalidCreateOperationException {
+    protected final void createActionVariableValue(
+        final UPDATEACTION action,
+        final String variableName,
+        final List<?> value
+    ) throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -162,12 +163,13 @@ public class Action {
         ((ObjectNode) currentObject).set(variableName.trim(), array);
     }
 
-    protected final void createActionVariableValue(final UPDATEACTION action,
-        final String variableName, final boolean value)
-        throws InvalidCreateOperationException {
+    protected final void createActionVariableValue(
+        final UPDATEACTION action,
+        final String variableName,
+        final boolean value
+    ) throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);
@@ -178,12 +180,13 @@ public class Action {
         ((ObjectNode) currentObject).put(variableName.trim(), value);
     }
 
-    protected final void createActionVariableValue(final UPDATEACTION action,
-        final String variableName, final Date value)
-        throws InvalidCreateOperationException {
+    protected final void createActionVariableValue(
+        final UPDATEACTION action,
+        final String variableName,
+        final Date value
+    ) throws InvalidCreateOperationException {
         if (variableName == null || variableName.trim().isEmpty()) {
-            throw new InvalidCreateOperationException(
-                ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
+            throw new InvalidCreateOperationException(ACTION2 + action + CANNOT_BE_CREATED_WITH_EMPTY_VARIABLE_NAME);
         }
         try {
             GlobalDatas.sanityParameterCheck(variableName);

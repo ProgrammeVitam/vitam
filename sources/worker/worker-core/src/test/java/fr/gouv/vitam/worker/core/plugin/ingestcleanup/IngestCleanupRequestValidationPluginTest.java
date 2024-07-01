@@ -65,25 +65,27 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 
-
 public class IngestCleanupRequestValidationPluginTest {
 
-    private final static String INGEST_OPERATION_ID = "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq";
+    private static final String INGEST_OPERATION_ID = "aeeaaaaaacesicexaah6kalo7e62mmqaaaaq";
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Mock
     private ProcessingManagementClientFactory processingManagementClientFactory;
+
     @Mock
     private ProcessingManagementClient processingManagementClient;
 
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
     @Mock
     private LogbookOperationsClient logbookOperationsClient;
 
@@ -103,14 +105,12 @@ public class IngestCleanupRequestValidationPluginTest {
         params = WorkerParametersFactory.newWorkerParameters()
             .putParameterValue(WorkerParameterName.ingestOperationIdToCleanup, INGEST_OPERATION_ID)
             .putParameterValue(WorkerParameterName.containerName, VitamThreadUtils.getVitamSession().getRequestId());
-        handlerIO = new TestHandlerIO()
-            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId());
+        handlerIO = new TestHandlerIO().setContainerName(VitamThreadUtils.getVitamSession().getRequestId());
     }
 
     @RunWithCustomExecutor
     @Test
     public void testUnknownLogbookOperationThenKO() throws Exception {
-
         // Given
         givenNoLogbookOperation();
         givenNoActiveProcess();
@@ -125,7 +125,6 @@ public class IngestCleanupRequestValidationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testNotAnIngestLogbookOperationThenKO() throws Exception {
-
         // Given
         givenLogbookOperation("IngestCleanup/RequestValidation/notAnIngestOperation.json");
         givenNoActiveProcess();
@@ -140,7 +139,6 @@ public class IngestCleanupRequestValidationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testIngestOKWithoutActiveProcessThenKO() throws Exception {
-
         // Given
         givenLogbookOperation("IngestCleanup/RequestValidation/ingestLogbookOk.json");
         givenNoActiveProcess();
@@ -155,7 +153,6 @@ public class IngestCleanupRequestValidationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testIngestOKWithActiveCompletedProcessThenKO() throws Exception {
-
         // Given
         givenLogbookOperation("IngestCleanup/RequestValidation/ingestLogbookOk.json");
         givenProcessState(ProcessState.COMPLETED, StatusCode.OK);
@@ -170,7 +167,6 @@ public class IngestCleanupRequestValidationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testIngestWarnWithoutActiveProcessThenKO() throws Exception {
-
         // Given
         givenLogbookOperation("IngestCleanup/RequestValidation/ingestLogbookWarn.json");
         givenNoActiveProcess();
@@ -185,7 +181,6 @@ public class IngestCleanupRequestValidationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testIngestWarnWithActiveCompletedProcessThenKO() throws Exception {
-
         // Given
         givenLogbookOperation("IngestCleanup/RequestValidation/ingestLogbookWarn.json");
         givenProcessState(ProcessState.COMPLETED, StatusCode.WARNING);
@@ -200,7 +195,6 @@ public class IngestCleanupRequestValidationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testIngestKOWithoutActiveProcessThenOK() throws Exception {
-
         // Given
         givenLogbookOperation("IngestCleanup/RequestValidation/ingestLogbookKO.json");
         givenNoActiveProcess();
@@ -215,7 +209,6 @@ public class IngestCleanupRequestValidationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testIngestKOWithActiveCompletedProcessThenOK() throws Exception {
-
         // Given
         givenLogbookOperation("IngestCleanup/RequestValidation/ingestLogbookKO.json");
         givenProcessState(ProcessState.COMPLETED, StatusCode.KO);
@@ -230,7 +223,6 @@ public class IngestCleanupRequestValidationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testIngestFatalWithoutActiveProcessThenOK() throws Exception {
-
         // Given
         givenLogbookOperation("IngestCleanup/RequestValidation/ingestLogbookFATAL.json");
         givenNoActiveProcess();
@@ -245,7 +237,6 @@ public class IngestCleanupRequestValidationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testIngestFatalWithActiveCompletedProcessThenOK() throws Exception {
-
         // Given
         givenLogbookOperation("IngestCleanup/RequestValidation/ingestLogbookFATAL.json");
         givenProcessState(ProcessState.COMPLETED, StatusCode.FATAL);
@@ -260,7 +251,6 @@ public class IngestCleanupRequestValidationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testIngestKilledWithoutActiveProcessThenOK() throws Exception {
-
         // Given
         givenLogbookOperation("IngestCleanup/RequestValidation/ingestLogbookAbort.json");
         givenNoActiveProcess();
@@ -275,7 +265,6 @@ public class IngestCleanupRequestValidationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testIngestInProgressPausedThenKO() throws Exception {
-
         // Given
         givenLogbookOperation("IngestCleanup/RequestValidation/ingestLogbookAbort.json");
         givenProcessState(ProcessState.PAUSE, StatusCode.FATAL);
@@ -290,7 +279,6 @@ public class IngestCleanupRequestValidationPluginTest {
     @RunWithCustomExecutor
     @Test
     public void testIngestInProgressRunningThenKO() throws Exception {
-
         // Given
         givenLogbookOperation("IngestCleanup/RequestValidation/ingestLogbookAbort.json");
         givenProcessState(ProcessState.RUNNING, StatusCode.FATAL);
@@ -305,22 +293,21 @@ public class IngestCleanupRequestValidationPluginTest {
     private void givenLogbookOperation(String resourcesFile)
         throws LogbookClientException, InvalidParseOperationException, FileNotFoundException {
         // Ingest with OK Status
-        doReturn(
-            JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resourcesFile)))
-            .when(logbookOperationsClient).selectOperationById(INGEST_OPERATION_ID);
+        doReturn(JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(resourcesFile)))
+            .when(logbookOperationsClient)
+            .selectOperationById(INGEST_OPERATION_ID);
     }
 
-    private void givenNoLogbookOperation()
-        throws LogbookClientException, InvalidParseOperationException {
+    private void givenNoLogbookOperation() throws LogbookClientException, InvalidParseOperationException {
         // Ingest with OK Status
         doThrow(new LogbookClientNotFoundException("not found"))
-            .when(logbookOperationsClient).selectOperationById(INGEST_OPERATION_ID);
+            .when(logbookOperationsClient)
+            .selectOperationById(INGEST_OPERATION_ID);
     }
 
     private void givenNoActiveProcess() throws VitamClientException {
         // No active process (garbage collected)
-        doReturn(new RequestResponseOK<ProcessDetail>())
-            .when(processingManagementClient).listOperationsDetails(any());
+        doReturn(new RequestResponseOK<ProcessDetail>()).when(processingManagementClient).listOperationsDetails(any());
     }
 
     private void givenProcessState(ProcessState processState, StatusCode statusCode) throws VitamClientException {
@@ -328,6 +315,7 @@ public class IngestCleanupRequestValidationPluginTest {
         processDetail.setGlobalState(processState.name());
         processDetail.setStepStatus(statusCode.name());
         doReturn(new RequestResponseOK<ProcessDetail>().addResult(processDetail))
-            .when(processingManagementClient).listOperationsDetails(any());
+            .when(processingManagementClient)
+            .listOperationsDetails(any());
     }
 }

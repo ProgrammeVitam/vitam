@@ -32,15 +32,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * ObjectGroupDocumentHash class
  */
 public class ObjectGroupDocumentHash {
+
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("hObject")
     private String hObject;
+
     @JsonProperty("hDetails")
     private TraceabilityHashDetails traceabilityHashDetails;
 
-    public ObjectGroupDocumentHash() {
-    }
+    public ObjectGroupDocumentHash() {}
 
     public ObjectGroupDocumentHash(String id, String hObject, TraceabilityHashDetails traceabilityHashDetails) {
         this.hObject = hObject;
@@ -84,17 +86,23 @@ public class ObjectGroupDocumentHash {
         return traceabilityHashDetails;
     }
 
-    public void setTraceabilityHashDetails(
-        TraceabilityHashDetails traceabilityHashDetails) {
+    public void setTraceabilityHashDetails(TraceabilityHashDetails traceabilityHashDetails) {
         this.traceabilityHashDetails = traceabilityHashDetails;
     }
 
     @Override
     public String toString() {
-        return "ObjectGroupDocumentHash{" +
-            "id='" + id + '\'' +
-            ", hObject='" + hObject + '\'' +
-            ", traceabilityHashDetails=" + traceabilityHashDetails +
-            '}';
+        return (
+            "ObjectGroupDocumentHash{" +
+            "id='" +
+            id +
+            '\'' +
+            ", hObject='" +
+            hObject +
+            '\'' +
+            ", traceabilityHashDetails=" +
+            traceabilityHashDetails +
+            '}'
+        );
     }
 }

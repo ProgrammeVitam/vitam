@@ -26,29 +26,37 @@
  */
 package fr.gouv.vitam.worker.core.plugin.preservation.model;
 
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import fr.gouv.vitam.common.model.administration.preservation.ActionPreservation;
 
 import java.util.List;
 
 public class ParametersPreservation {
+
     @JsonProperty("RequestId")
     private String requestId;
+
     @JsonProperty("Id")
     private String id;
+
     @JsonProperty("Actions")
     private List<ActionPreservation> actions;
+
     @JsonProperty("Inputs")
     private List<InputPreservation> inputs;
+
     @JsonProperty("Debug")
     private boolean debug;
 
-    public ParametersPreservation() {
-    }
+    public ParametersPreservation() {}
 
-    public ParametersPreservation(String requestId, String batchId, List<InputPreservation> input,
-        List<ActionPreservation> actions, boolean debug) {
+    public ParametersPreservation(
+        String requestId,
+        String batchId,
+        List<InputPreservation> input,
+        List<ActionPreservation> actions,
+        boolean debug
+    ) {
         this.requestId = requestId;
         this.id = batchId;
         this.inputs = input;
@@ -98,13 +106,21 @@ public class ParametersPreservation {
 
     @Override
     public String toString() {
-        return "Parameters{" +
-            "requestId='" + requestId + '\'' +
-            ", id='" + id + '\'' +
-            ", actions=" + actions +
-            ", inputs=" + inputs +
-            ", debug=" + debug +
-            '}';
+        return (
+            "Parameters{" +
+            "requestId='" +
+            requestId +
+            '\'' +
+            ", id='" +
+            id +
+            '\'' +
+            ", actions=" +
+            actions +
+            ", inputs=" +
+            inputs +
+            ", debug=" +
+            debug +
+            '}'
+        );
     }
 }
-

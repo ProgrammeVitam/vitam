@@ -34,7 +34,6 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.function.BiFunction;
 
-
 /**
  * This Iterator take two sorted iterators and merge them.
  * Loop over iterators and use comparator in order to take items that are equals.
@@ -56,8 +55,12 @@ public class MergeSortedIterator<A, E> implements Iterator<E> {
      * @param comparator The comparator that compare items of iterators
      * @param mergeFunction The function that merge elements of iterators
      */
-    public MergeSortedIterator(Iterator<A> one, Iterator<A> two, Comparator<A> comparator,
-        BiFunction<A, A, E> mergeFunction) {
+    public MergeSortedIterator(
+        Iterator<A> one,
+        Iterator<A> two,
+        Comparator<A> comparator,
+        BiFunction<A, A, E> mergeFunction
+    ) {
         ParametersChecker.checkParameter("All params are required", one, two, comparator, mergeFunction);
         this.one = PeekingIterator.peekingIterator(one);
         this.two = PeekingIterator.peekingIterator(two);
@@ -72,7 +75,6 @@ public class MergeSortedIterator<A, E> implements Iterator<E> {
 
     @Override
     public E next() {
-
         if (!hasNext()) {
             throw new NoSuchElementException();
         }
@@ -80,17 +82,12 @@ public class MergeSortedIterator<A, E> implements Iterator<E> {
         int compare = comparator.compare(one.peek(), two.peek());
 
         if (compare == 0) {
-
             return mergeFunction.apply(one.next(), two.next());
-
         }
 
         if (compare > 0) {
-
             return mergeFunction.apply(one.next(), null);
-
         }
-
 
         return mergeFunction.apply(null, two.next());
     }

@@ -64,9 +64,11 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.fail;
 
 public class ElasticsearchAccessMetadataTest {
+
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @ClassRule
     public static TemporaryFolder tempFolder = new TemporaryFolder();
@@ -83,25 +85,28 @@ public class ElasticsearchAccessMetadataTest {
     private static final String S1_OG =
         "{ \"Filename\":\"Vitam-Sensibilisation-API-V1.0.odp\", \"_max\": \"5\", \"_min\": \"2\"}";
 
-    private final static String prefix = GUIDFactory.newGUID().getId();
+    private static final String prefix = GUIDFactory.newGUID().getId();
 
     private static final ElasticsearchMetadataIndexManager indexManager =
-        MetadataCollectionsTestUtils
-            .createTestIndexManager(Collections.singletonList(TENANT_ID_0), Collections.emptyMap(),
-                MappingLoaderTestUtils.getTestMappingLoader());
+        MetadataCollectionsTestUtils.createTestIndexManager(
+            Collections.singletonList(TENANT_ID_0),
+            Collections.emptyMap(),
+            MappingLoaderTestUtils.getTestMappingLoader()
+        );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        List<ElasticsearchNode> esNodes = Lists.newArrayList(
+            new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort())
+        );
 
-        List<ElasticsearchNode> esNodes =
-            Lists.newArrayList(new ElasticsearchNode(ElasticsearchRule.getHost(), ElasticsearchRule.getPort()));
+        elasticsearchAccessMetadata = new ElasticsearchAccessMetadata(
+            ElasticsearchRule.VITAM_CLUSTER,
+            esNodes,
+            indexManager
+        );
 
-        elasticsearchAccessMetadata =
-            new ElasticsearchAccessMetadata(ElasticsearchRule.VITAM_CLUSTER, esNodes,
-                indexManager);
-
-        UNIT.getVitamCollection()
-            .setName(prefix + UNIT.getClasz().getSimpleName());
+        UNIT.getVitamCollection().setName(prefix + UNIT.getClasz().getSimpleName());
         MetadataCollections.OBJECTGROUP.getVitamCollection()
             .setName(prefix + MetadataCollections.OBJECTGROUP.getClasz().getSimpleName());
 
@@ -111,24 +116,29 @@ public class ElasticsearchAccessMetadataTest {
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
         elasticsearchAccessMetadata.deleteIndexByAliasForTesting(
-            indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0));
+            indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0)
+        );
         elasticsearchAccessMetadata.deleteIndexByAliasForTesting(
-            indexManager.getElasticsearchIndexAliasResolver(OBJECTGROUP).resolveIndexName(TENANT_ID_0));
+            indexManager.getElasticsearchIndexAliasResolver(OBJECTGROUP).resolveIndexName(TENANT_ID_0)
+        );
         elasticsearchAccessMetadata.close();
     }
 
     @After
     public void after() throws Exception {
         elasticsearchAccessMetadata.purgeIndexForTesting(
-            indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0));
+            indexManager.getElasticsearchIndexAliasResolver(UNIT).resolveIndexName(TENANT_ID_0)
+        );
         elasticsearchAccessMetadata.purgeIndexForTesting(
-            indexManager.getElasticsearchIndexAliasResolver(OBJECTGROUP).resolveIndexName(TENANT_ID_0));
+            indexManager.getElasticsearchIndexAliasResolver(OBJECTGROUP).resolveIndexName(TENANT_ID_0)
+        );
     }
 
     @Test
     public void should_ordering_result_when_scollId_and_ordering_is_passe_to_the_request() throws Exception {
         // Given
-        String query = "{\n" +
+        String query =
+            "{\n" +
             "  \"$roots\": [],\n" +
             "  \"$query\": [\n" +
             "    {\n" +
@@ -155,15 +165,25 @@ public class ElasticsearchAccessMetadataTest {
         final String id = GUIDFactory.newUnitGUID(TENANT_ID_0).toString();
         final String id2 = GUIDFactory.newUnitGUID(TENANT_ID_0).toString();
 
-        assertThatCode(() -> elasticsearchAccessMetadata
-            .indexEntry(UNIT, TENANT_ID_0, id,
-                JsonHandler.getFromString(unit_with_max_4,
-                    Unit.class))).doesNotThrowAnyException();
+        assertThatCode(
+            () ->
+                elasticsearchAccessMetadata.indexEntry(
+                    UNIT,
+                    TENANT_ID_0,
+                    id,
+                    JsonHandler.getFromString(unit_with_max_4, Unit.class)
+                )
+        ).doesNotThrowAnyException();
 
-        assertThatCode(() -> elasticsearchAccessMetadata
-            .indexEntry(UNIT, TENANT_ID_0, id2,
-                JsonHandler.getFromString(unit_with_max_5,
-                    Unit.class))).doesNotThrowAnyException();
+        assertThatCode(
+            () ->
+                elasticsearchAccessMetadata.indexEntry(
+                    UNIT,
+                    TENANT_ID_0,
+                    id2,
+                    JsonHandler.getFromString(unit_with_max_5, Unit.class)
+                )
+        ).doesNotThrowAnyException();
 
         elasticsearchAccessMetadata.refreshIndex(UNIT, TENANT_ID_0);
 
@@ -172,8 +192,10 @@ public class ElasticsearchAccessMetadataTest {
         parser.parse(queryNode);
         List<SortBuilder<?>> sorts = new ArrayList<>();
         List<Query> queries = parser.getRequest().getQueries();
-        DynamicParserTokens parserTokens =
-            new DynamicParserTokens(new VitamDescriptionResolver(Collections.emptyList()), Collections.emptyList());
+        DynamicParserTokens parserTokens = new DynamicParserTokens(
+            new VitamDescriptionResolver(Collections.emptyList()),
+            Collections.emptyList()
+        );
         Query elasticQuery = queries.get(0);
         SortBuilder<?> sortBuilder = new FieldSortBuilder("_max");
         sortBuilder.order(SortOrder.DESC);
@@ -181,9 +203,18 @@ public class ElasticsearchAccessMetadataTest {
         BoolQueryBuilder queryBuilder = new BoolQueryBuilder()
             .must(QueryToElasticsearch.getCommand(elasticQuery, new MongoDbVarNameAdapter(), parserTokens));
         // When
-        Result<?> result = elasticsearchAccessMetadata
-            .search(UNIT, TENANT_ID_0, queryBuilder, sorts, 0,
-                10_000, null, "START", 0, false);
+        Result<?> result = elasticsearchAccessMetadata.search(
+            UNIT,
+            TENANT_ID_0,
+            queryBuilder,
+            sorts,
+            0,
+            10_000,
+            null,
+            "START",
+            0,
+            false
+        );
         // Then
         assertThat(result.getNbResult()).isEqualTo(2);
         assertThat(result.getCurrentIds().indexOf(id)).isEqualTo(1);
@@ -194,36 +225,71 @@ public class ElasticsearchAccessMetadataTest {
             .must(QueryToElasticsearch.getCommand(elasticQuery, new MongoDbVarNameAdapter(), parserTokens));
 
         // As limit == 1, first call should return only 1 document even 2 documents found
-        result = elasticsearchAccessMetadata
-            .search(UNIT, TENANT_ID_0, queryBuilder, sorts, 0,
-                1, null, "START", 5000, false);
+        result = elasticsearchAccessMetadata.search(
+            UNIT,
+            TENANT_ID_0,
+            queryBuilder,
+            sorts,
+            0,
+            1,
+            null,
+            "START",
+            5000,
+            false
+        );
 
         assertThat(result.getNbResult()).isEqualTo(1);
         assertThat(result.getTotal()).isEqualTo(2);
         assertThat(result.getCurrentIds()).contains(id2);
 
-
-
         // Next result should return the remaining documents
-        result = elasticsearchAccessMetadata
-            .search(UNIT, TENANT_ID_0, queryBuilder, sorts, -1,
-                1, null, result.scrollId, 5000, false);
+        result = elasticsearchAccessMetadata.search(
+            UNIT,
+            TENANT_ID_0,
+            queryBuilder,
+            sorts,
+            -1,
+            1,
+            null,
+            result.scrollId,
+            5000,
+            false
+        );
 
         assertThat(result.getNbResult()).isEqualTo(1);
         assertThat(result.getTotal()).isEqualTo(2);
         assertThat(result.getCurrentIds()).contains(id);
 
         // Third call result should be empty
-        result = elasticsearchAccessMetadata
-            .search(UNIT, TENANT_ID_0, queryBuilder, sorts, -1,
-                1, null, result.scrollId, 5000, false);
+        result = elasticsearchAccessMetadata.search(
+            UNIT,
+            TENANT_ID_0,
+            queryBuilder,
+            sorts,
+            -1,
+            1,
+            null,
+            result.scrollId,
+            5000,
+            false
+        );
 
         assertThat(result.getNbResult()).isEqualTo(0);
 
         // Last call should fail as scroll is cleared event scrollTimeout = 5000
         try {
-            elasticsearchAccessMetadata
-                .search(UNIT, TENANT_ID_0, queryBuilder, sorts, -1, 1, null, result.scrollId, 5000, false);
+            elasticsearchAccessMetadata.search(
+                UNIT,
+                TENANT_ID_0,
+                queryBuilder,
+                sorts,
+                -1,
+                1,
+                null,
+                result.scrollId,
+                5000,
+                false
+            );
             fail("should throw an exception (scroll id not found)");
         } catch (Exception e) {
             // Elasticsearch exception [type=search_context_missing_exception, reason=No search context found for id]
@@ -234,56 +300,63 @@ public class ElasticsearchAccessMetadataTest {
 
     @Test
     public void testElasticsearchAccessMetadatas() {
-
         final String id = GUIDFactory.newUnitGUID(TENANT_ID_0).toString();
-        assertThatCode(() -> elasticsearchAccessMetadata
-            .indexEntry(UNIT, TENANT_ID_0, id,
-                JsonHandler.getFromString(S1, Unit.class))).doesNotThrowAnyException();
+        assertThatCode(
+            () ->
+                elasticsearchAccessMetadata.indexEntry(UNIT, TENANT_ID_0, id, JsonHandler.getFromString(S1, Unit.class))
+        ).doesNotThrowAnyException();
 
         // delete index
-        assertThatCode(() -> elasticsearchAccessMetadata
-            .deleteIndexByAliasForTesting(UNIT, TENANT_ID_0)).doesNotThrowAnyException();
-
+        assertThatCode(
+            () -> elasticsearchAccessMetadata.deleteIndexByAliasForTesting(UNIT, TENANT_ID_0)
+        ).doesNotThrowAnyException();
     }
 
     @Test
     public void testElasticsearchUpdateAccessMetadatas() {
-
         // add unit
         final String id = GUIDFactory.newUnitGUID(TENANT_ID_0).toString();
-        assertThatCode(() -> elasticsearchAccessMetadata
-            .indexEntry(UNIT, TENANT_ID_0, id,
-                JsonHandler.getFromString(S1, Unit.class))).doesNotThrowAnyException();
+        assertThatCode(
+            () ->
+                elasticsearchAccessMetadata.indexEntry(UNIT, TENANT_ID_0, id, JsonHandler.getFromString(S1, Unit.class))
+        ).doesNotThrowAnyException();
     }
 
     @Test
-    public void testElasticsearchAccessOGMetadatas()
-        throws Exception {
-
+    public void testElasticsearchAccessOGMetadatas() throws Exception {
         // add OG
         final String id = GUIDFactory.newUnitGUID(TENANT_ID_0).toString();
-        assertThatCode(() -> elasticsearchAccessMetadata
-            .indexEntry(OBJECTGROUP, TENANT_ID_0, id,
-                JsonHandler.getFromString(S1_OG, ObjectGroup.class))).doesNotThrowAnyException();
-
+        assertThatCode(
+            () ->
+                elasticsearchAccessMetadata.indexEntry(
+                    OBJECTGROUP,
+                    TENANT_ID_0,
+                    id,
+                    JsonHandler.getFromString(S1_OG, ObjectGroup.class)
+                )
+        ).doesNotThrowAnyException();
 
         elasticsearchAccessMetadata.refreshIndex(OBJECTGROUP, TENANT_ID_0);
 
         // delete index
-        assertThatCode(() -> elasticsearchAccessMetadata
-            .deleteIndexByAliasForTesting(OBJECTGROUP, TENANT_ID_0))
-            .doesNotThrowAnyException();
-
+        assertThatCode(
+            () -> elasticsearchAccessMetadata.deleteIndexByAliasForTesting(OBJECTGROUP, TENANT_ID_0)
+        ).doesNotThrowAnyException();
     }
 
     @Test
     public void testElasticsearchUpdateOGAccessMetadatas() {
-
         // add OG
         final String id = GUIDFactory.newObjectGroupGUID(TENANT_ID_0).toString();
 
-        assertThatCode(() -> elasticsearchAccessMetadata
-            .indexEntry(OBJECTGROUP, TENANT_ID_0, id,
-                JsonHandler.getFromString(S1_OG, ObjectGroup.class))).doesNotThrowAnyException();
+        assertThatCode(
+            () ->
+                elasticsearchAccessMetadata.indexEntry(
+                    OBJECTGROUP,
+                    TENANT_ID_0,
+                    id,
+                    JsonHandler.getFromString(S1_OG, ObjectGroup.class)
+                )
+        ).doesNotThrowAnyException();
     }
 }

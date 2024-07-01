@@ -56,7 +56,6 @@ import static org.mockito.Mockito.when;
 
 public class ContentLengthCountingMetricsFilterTest {
 
-
     @Test
     public void test_count_input_bytes_enabled_and_count_output_disabled() throws IOException {
         ContentLengthCountingMetricsFilter filter = new ContentLengthCountingMetricsFilter(true, false);
@@ -71,8 +70,7 @@ public class ContentLengthCountingMetricsFilterTest {
         verify(containerRequestContext, Mockito.times(2)).getEntityStream();
         verify(containerRequestContext).setEntityStream(captor.capture());
 
-        assertThat(captor.getValue())
-            .isInstanceOf(RequestLengthCountingInputStreamMetrics.class);
+        assertThat(captor.getValue()).isInstanceOf(RequestLengthCountingInputStreamMetrics.class);
         StreamUtils.closeSilently(captor.getValue());
 
         verify(containerRequestContext, times(1)).getMethod();
@@ -82,23 +80,38 @@ public class ContentLengthCountingMetricsFilterTest {
         verify(containerRequestContext, times(1)).getMethod();
         verify(containerRequestContext, Mockito.times(2)).getEntityStream();
 
-        Iterator<Collector.MetricFamilySamples> it =
-            CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator();
+        Iterator<Collector.MetricFamilySamples> it = CollectorRegistry.defaultRegistry
+            .metricFamilySamples()
+            .asIterator();
 
         boolean foundRequestMetric = false;
         while (it.hasNext()) {
             Collector.MetricFamilySamples next = it.next();
             if (next.name.equals("vitam_requests_size_bytes")) {
                 foundRequestMetric = true;
-                assertThat(next.samples.stream().anyMatch(
-                    o -> (o.name.equals("vitam_requests_size_bytes_count") && o.labelValues.get(0).equals("0") &&
-                        o.labelValues.get(1).equals("PUT") &&
-                        o.value == 1))).isTrue();
+                assertThat(
+                    next.samples
+                        .stream()
+                        .anyMatch(
+                            o ->
+                                (o.name.equals("vitam_requests_size_bytes_count") &&
+                                    o.labelValues.get(0).equals("0") &&
+                                    o.labelValues.get(1).equals("PUT") &&
+                                    o.value == 1)
+                        )
+                ).isTrue();
 
-                assertThat(next.samples.stream().anyMatch(
-                    o -> (o.name.equals("vitam_requests_size_bytes_sum") && o.labelValues.get(0).equals("0") &&
-                        o.labelValues.get(1).equals("PUT") &&
-                        o.value == 1))).isTrue();
+                assertThat(
+                    next.samples
+                        .stream()
+                        .anyMatch(
+                            o ->
+                                (o.name.equals("vitam_requests_size_bytes_sum") &&
+                                    o.labelValues.get(0).equals("0") &&
+                                    o.labelValues.get(1).equals("PUT") &&
+                                    o.value == 1)
+                        )
+                ).isTrue();
             }
         }
         assertThat(foundRequestMetric).isTrue();
@@ -118,7 +131,6 @@ public class ContentLengthCountingMetricsFilterTest {
         verify(containerRequestContext, never()).getEntityStream();
         verify(containerRequestContext, never()).getMethod();
 
-
         ContainerResponseContext containerResponseContext = mock(ContainerResponseContext.class);
         NullOutputStream nullOutputStream = new NullOutputStream();
 
@@ -135,24 +147,37 @@ public class ContentLengthCountingMetricsFilterTest {
         captor.getValue().close();
         verify(containerRequestContext).getMethod();
 
-
-
-        Iterator<Collector.MetricFamilySamples> it =
-            CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator();
+        Iterator<Collector.MetricFamilySamples> it = CollectorRegistry.defaultRegistry
+            .metricFamilySamples()
+            .asIterator();
         boolean foundResponseMetric = false;
         while (it.hasNext()) {
             Collector.MetricFamilySamples next = it.next();
             if (next.name.equals("vitam_responses_size_bytes")) {
                 foundResponseMetric = true;
-                assertThat(next.samples.stream().anyMatch(
-                    o -> (o.name.equals("vitam_responses_size_bytes_count") && o.labelValues.get(0).equals("1") &&
-                        o.labelValues.get(1).equals("GET") &&
-                        o.value == 1))).isTrue();
+                assertThat(
+                    next.samples
+                        .stream()
+                        .anyMatch(
+                            o ->
+                                (o.name.equals("vitam_responses_size_bytes_count") &&
+                                    o.labelValues.get(0).equals("1") &&
+                                    o.labelValues.get(1).equals("GET") &&
+                                    o.value == 1)
+                        )
+                ).isTrue();
 
-                assertThat(next.samples.stream().anyMatch(
-                    o -> (o.name.equals("vitam_responses_size_bytes_sum") && o.labelValues.get(0).equals("1") &&
-                        o.labelValues.get(1).equals("GET") &&
-                        o.value == 5))).isTrue();
+                assertThat(
+                    next.samples
+                        .stream()
+                        .anyMatch(
+                            o ->
+                                (o.name.equals("vitam_responses_size_bytes_sum") &&
+                                    o.labelValues.get(0).equals("1") &&
+                                    o.labelValues.get(1).equals("GET") &&
+                                    o.value == 5)
+                        )
+                ).isTrue();
             }
         }
         assertThat(foundResponseMetric).isTrue();
@@ -172,8 +197,7 @@ public class ContentLengthCountingMetricsFilterTest {
         verify(containerRequestContext, Mockito.times(2)).getEntityStream();
         verify(containerRequestContext).setEntityStream(captorInput.capture());
 
-        assertThat(captorInput.getValue())
-            .isInstanceOf(RequestLengthCountingInputStreamMetrics.class);
+        assertThat(captorInput.getValue()).isInstanceOf(RequestLengthCountingInputStreamMetrics.class);
         StreamUtils.closeSilently(captorInput.getValue());
 
         verify(containerRequestContext, times(1)).getMethod();
@@ -191,9 +215,9 @@ public class ContentLengthCountingMetricsFilterTest {
         captorOutput.getValue().close();
         verify(containerRequestContext, times(2)).getMethod();
 
-
-        Iterator<Collector.MetricFamilySamples> it =
-            CollectorRegistry.defaultRegistry.metricFamilySamples().asIterator();
+        Iterator<Collector.MetricFamilySamples> it = CollectorRegistry.defaultRegistry
+            .metricFamilySamples()
+            .asIterator();
 
         boolean foundRequestMetric = false;
         boolean foundResponseMetric = false;
@@ -201,28 +225,56 @@ public class ContentLengthCountingMetricsFilterTest {
             Collector.MetricFamilySamples next = it.next();
             if (next.name.equals("vitam_responses_size_bytes")) {
                 foundResponseMetric = true;
-                assertThat(next.samples.stream().anyMatch(
-                    o -> (o.name.equals("vitam_responses_size_bytes_count") && o.labelValues.get(0).equals("2") &&
-                        o.labelValues.get(1).equals("POST") &&
-                        o.value == 1))).isTrue();
+                assertThat(
+                    next.samples
+                        .stream()
+                        .anyMatch(
+                            o ->
+                                (o.name.equals("vitam_responses_size_bytes_count") &&
+                                    o.labelValues.get(0).equals("2") &&
+                                    o.labelValues.get(1).equals("POST") &&
+                                    o.value == 1)
+                        )
+                ).isTrue();
 
-                assertThat(next.samples.stream().anyMatch(
-                    o -> (o.name.equals("vitam_responses_size_bytes_sum") && o.labelValues.get(0).equals("2") &&
-                        o.labelValues.get(1).equals("POST") &&
-                        o.value == 5))).isTrue();
+                assertThat(
+                    next.samples
+                        .stream()
+                        .anyMatch(
+                            o ->
+                                (o.name.equals("vitam_responses_size_bytes_sum") &&
+                                    o.labelValues.get(0).equals("2") &&
+                                    o.labelValues.get(1).equals("POST") &&
+                                    o.value == 5)
+                        )
+                ).isTrue();
             }
 
             if (next.name.equals("vitam_requests_size_bytes")) {
                 foundRequestMetric = true;
-                assertThat(next.samples.stream().anyMatch(
-                    o -> (o.name.equals("vitam_requests_size_bytes_count") && o.labelValues.get(0).equals("2") &&
-                        o.labelValues.get(1).equals("POST") &&
-                        o.value == 1))).isTrue();
+                assertThat(
+                    next.samples
+                        .stream()
+                        .anyMatch(
+                            o ->
+                                (o.name.equals("vitam_requests_size_bytes_count") &&
+                                    o.labelValues.get(0).equals("2") &&
+                                    o.labelValues.get(1).equals("POST") &&
+                                    o.value == 1)
+                        )
+                ).isTrue();
 
-                assertThat(next.samples.stream().anyMatch(
-                    o -> (o.name.equals("vitam_requests_size_bytes_sum") && o.labelValues.get(0).equals("2") &&
-                        o.labelValues.get(1).equals("POST") &&
-                        o.value == 3))).isTrue();
+                assertThat(
+                    next.samples
+                        .stream()
+                        .anyMatch(
+                            o ->
+                                (o.name.equals("vitam_requests_size_bytes_sum") &&
+                                    o.labelValues.get(0).equals("2") &&
+                                    o.labelValues.get(1).equals("POST") &&
+                                    o.value == 3)
+                        )
+                ).isTrue();
             }
         }
         assertThat(foundRequestMetric).isTrue();

@@ -43,6 +43,7 @@ import java.io.IOException;
  */
 
 public class IhmRecetteClientFactory extends VitamClientFactory<IhmRecetteClient> {
+
     private static final String CONFIGURATION_FILENAME = "ihm-recette-client.conf";
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(IhmRecetteClientFactory.class);
     private static final IhmRecetteClientFactory IHM_RECETTE_CLIENT_FACTORY = new IhmRecetteClientFactory();
@@ -61,17 +62,15 @@ public class IhmRecetteClientFactory extends VitamClientFactory<IhmRecetteClient
     static final IhmRecetteClientConfiguration changeConfigurationFile(String configurationPath) {
         IhmRecetteClientConfiguration configuration = null;
         try {
-            configuration = PropertiesUtils.readYaml(PropertiesUtils.findFile(configurationPath),
-                IhmRecetteClientConfiguration.class);
+            configuration = PropertiesUtils.readYaml(
+                PropertiesUtils.findFile(configurationPath),
+                IhmRecetteClientConfiguration.class
+            );
         } catch (final IOException fnf) {
-            LOGGER
-                .debug("Error when retrieving configuration file",
-                    CONFIGURATION_FILENAME,
-                    fnf);
+            LOGGER.debug("Error when retrieving configuration file", CONFIGURATION_FILENAME, fnf);
         }
         if (configuration == null) {
-            LOGGER.error("Error when retrieving configuration file",
-                CONFIGURATION_FILENAME);
+            LOGGER.error("Error when retrieving configuration file", CONFIGURATION_FILENAME);
         }
         return configuration;
     }
@@ -88,8 +87,5 @@ public class IhmRecetteClientFactory extends VitamClientFactory<IhmRecetteClient
     @Override
     public IhmRecetteClient getClient() {
         return new IhmRecetteClient(this);
-
     }
-
-
 }

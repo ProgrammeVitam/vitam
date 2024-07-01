@@ -59,6 +59,7 @@ import static org.apache.http.protocol.HTTP.EXPECT_CONTINUE;
  * Ingest External client
  */
 class IngestExternalClientRest extends DefaultClient implements IngestExternalClient {
+
     private static final String INGEST_EXTERNAL_MODULE = "IngestExternalModule";
     private static final String INGEST_URL = "/ingests";
     private static final String BLANK_OBJECT_ID = "object identifier should be filled";
@@ -69,17 +70,17 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     @Override
-    public RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
-        String contextId,
-        String action)
+    public RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream, String contextId, String action)
         throws IngestExternalException {
         return ingest(vitamContext, stream, new IngestRequestParameters(contextId, action));
     }
 
     @Override
-    public RequestResponse<Void> ingest(VitamContext vitamContext, InputStream stream,
-        IngestRequestParameters ingestRequestParameters) throws IngestExternalException {
-
+    public RequestResponse<Void> ingest(
+        VitamContext vitamContext,
+        InputStream stream,
+        IngestRequestParameters ingestRequestParameters
+    ) throws IngestExternalException {
         ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", vitamContext.getTenantId());
 
         final MultivaluedMap<String, Object> headers = vitamContext.getHeaders();
@@ -89,10 +90,14 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             .withHeaders(vitamContext.getHeaders())
             .withHeader(GlobalDataRest.X_CONTEXT_ID, ingestRequestParameters.getContextId())
             .withHeader(GlobalDataRest.X_ACTION, ingestRequestParameters.getAction())
-            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_ALGORITHM,
-                ingestRequestParameters.getManifestDigestAlgo())
-            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_VALUE,
-                ingestRequestParameters.getManifestDigestValue())
+            .withHeaderIgnoreNull(
+                GlobalDataRest.X_MANIFEST_DIGEST_ALGORITHM,
+                ingestRequestParameters.getManifestDigestAlgo()
+            )
+            .withHeaderIgnoreNull(
+                GlobalDataRest.X_MANIFEST_DIGEST_VALUE,
+                ingestRequestParameters.getManifestDigestValue()
+            )
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withBody(stream, "Stream is a mandatory parameter")
             .withOctetContentType()
@@ -100,8 +105,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
 
         try (Response response = make(request)) {
             check(response);
-            return new RequestResponseOK<Void>().parseHeadersFromResponse(response)
-                .setHttpCode(response.getStatus());
+            return new RequestResponseOK<Void>().parseHeadersFromResponse(response).setHttpCode(response.getStatus());
         } catch (IngestExternalClientServerException vitamError) {
             return vitamError.getVitamError();
         } catch (VitamClientInternalException | IngestExternalClientNotFoundException e) {
@@ -109,10 +113,8 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         }
     }
 
-    public Response downloadObjectAsync(VitamContext vitamContext, String objectId,
-        IngestCollection type)
+    public Response downloadObjectAsync(VitamContext vitamContext, String objectId, IngestCollection type)
         throws VitamClientException {
-
         ParametersChecker.checkParameter(BLANK_OBJECT_ID, objectId);
         ParametersChecker.checkParameter(BLANK_TYPE, type);
 
@@ -130,24 +132,32 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
         } catch (IngestExternalClientNotFoundException e) {
             return response;
         } finally {
-            if (response != null && SUCCESSFUL != response.getStatusInfo().getFamily()
-                && Status.NOT_FOUND.getStatusCode() != response.getStatus()) {
+            if (
+                response != null &&
+                SUCCESSFUL != response.getStatusInfo().getFamily() &&
+                Status.NOT_FOUND.getStatusCode() != response.getStatus()
+            ) {
                 response.close();
             }
         }
     }
 
     @Override
-    public RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile, String contextId,
-        String action)
-        throws IngestExternalException {
+    public RequestResponse<Void> ingestLocal(
+        VitamContext vitamContext,
+        LocalFile localFile,
+        String contextId,
+        String action
+    ) throws IngestExternalException {
         return ingestLocal(vitamContext, localFile, new IngestRequestParameters(contextId, action));
     }
 
     @Override
-    public RequestResponse<Void> ingestLocal(VitamContext vitamContext, LocalFile localFile,
-        IngestRequestParameters ingestRequestParameters) throws IngestExternalException {
-
+    public RequestResponse<Void> ingestLocal(
+        VitamContext vitamContext,
+        LocalFile localFile,
+        IngestRequestParameters ingestRequestParameters
+    ) throws IngestExternalException {
         ParametersChecker.checkParameter("Tenant identifier is a mandatory parameter", vitamContext.getTenantId());
 
         VitamRequestBuilder request = post()
@@ -155,18 +165,21 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
             .withHeaders(vitamContext.getHeaders())
             .withHeader(GlobalDataRest.X_CONTEXT_ID, ingestRequestParameters.getContextId())
             .withHeader(GlobalDataRest.X_ACTION, ingestRequestParameters.getAction())
-            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_ALGORITHM,
-                ingestRequestParameters.getManifestDigestAlgo())
-            .withHeaderIgnoreNull(GlobalDataRest.X_MANIFEST_DIGEST_VALUE,
-                ingestRequestParameters.getManifestDigestValue())
+            .withHeaderIgnoreNull(
+                GlobalDataRest.X_MANIFEST_DIGEST_ALGORITHM,
+                ingestRequestParameters.getManifestDigestAlgo()
+            )
+            .withHeaderIgnoreNull(
+                GlobalDataRest.X_MANIFEST_DIGEST_VALUE,
+                ingestRequestParameters.getManifestDigestValue()
+            )
             .withHeader(EXPECT, EXPECT_CONTINUE)
             .withBody(localFile, "localFile is a mandatory parameter")
             .withJsonContentType()
             .withXMLAccept();
         try (Response response = make(request)) {
             check(response);
-            return new RequestResponseOK<Void>().parseHeadersFromResponse(response)
-                .setHttpCode(response.getStatus());
+            return new RequestResponseOK<Void>().parseHeadersFromResponse(response).setHttpCode(response.getStatus());
         } catch (IngestExternalClientServerException vitamError) {
             return vitamError.getVitamError();
         } catch (VitamClientInternalException | IngestExternalClientNotFoundException e) {
@@ -175,8 +188,7 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
     }
 
     private void check(Response response)
-        throws IngestExternalException, IngestExternalClientServerException,
-        IngestExternalClientNotFoundException {
+        throws IngestExternalException, IngestExternalClientServerException, IngestExternalClientNotFoundException {
         Status status = response.getStatusInfo().toEnum();
         if (SUCCESSFUL.equals(status.getFamily())) {
             return;
@@ -189,17 +201,18 @@ class IngestExternalClientRest extends DefaultClient implements IngestExternalCl
                 final VitamError vitamError = new VitamError(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getItem())
                     .setHttpCode(status.getStatusCode())
                     .setDescription(
-                        VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " + status.getReasonPhrase())
+                        VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " + status.getReasonPhrase()
+                    )
                     .setMessage(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage())
                     .setState(StatusCode.KO.name())
                     .setContext(INGEST_EXTERNAL_MODULE);
                 throw new IngestExternalClientServerException(vitamError);
-
             case SERVICE_UNAVAILABLE:
                 final VitamError vitamErrorFatal = new VitamError(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getItem())
                     .setHttpCode(status.getStatusCode())
                     .setDescription(
-                        VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " + status.getReasonPhrase())
+                        VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage() + " Cause : " + status.getReasonPhrase()
+                    )
                     .setMessage(VitamCode.INGEST_EXTERNAL_UPLOAD_ERROR.getMessage())
                     .setState(StatusCode.FATAL.name())
                     .setContext(INGEST_EXTERNAL_MODULE);

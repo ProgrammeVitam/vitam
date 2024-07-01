@@ -39,9 +39,7 @@ public class StorageUtils {
 
     public static List<StorageStrategy> loadStorageStrategies(File file) throws ProcessingException {
         try {
-            return JsonHandler
-                .getFromFileAsTypeReference(file, new TypeReference<>() {
-                });
+            return JsonHandler.getFromFileAsTypeReference(file, new TypeReference<>() {});
         } catch (InvalidParseOperationException e) {
             throw new ProcessingException("Could not load storage strategies datas", e);
         }

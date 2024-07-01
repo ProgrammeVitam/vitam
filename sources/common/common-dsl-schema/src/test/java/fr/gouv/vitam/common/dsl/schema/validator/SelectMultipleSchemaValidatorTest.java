@@ -42,8 +42,9 @@ public class SelectMultipleSchemaValidatorTest {
     @Test
     public void testValidatorSelectMultiple() throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new SelectMultipleSchemaValidator();
-        JsonNode selectMultipleQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("select_multiple_complete.json"));
+        JsonNode selectMultipleQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("select_multiple_complete.json")
+        );
         dslValidator.validate(selectMultipleQuery);
     }
 
@@ -51,8 +52,9 @@ public class SelectMultipleSchemaValidatorTest {
     public void testValidatorSelectMultipleWithEmptyRoot()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new SelectMultipleSchemaValidator();
-        JsonNode selectMultipleQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("select_multiple_empty_root.json"));
+        JsonNode selectMultipleQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("select_multiple_empty_root.json")
+        );
         dslValidator.validate(selectMultipleQuery);
     }
 
@@ -60,8 +62,9 @@ public class SelectMultipleSchemaValidatorTest {
     public void testValidatorSelectMultipleWithNotRoot()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new SelectMultipleSchemaValidator();
-        JsonNode selectMultipleQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("select_multiple_no_root.json"));
+        JsonNode selectMultipleQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("select_multiple_no_root.json")
+        );
         dslValidator.validate(selectMultipleQuery);
     }
 
@@ -70,28 +73,32 @@ public class SelectMultipleSchemaValidatorTest {
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new SelectMultipleSchemaValidator();
         JsonNode selectSingleQuery = JsonHandler.getFromFile(PropertiesUtils.findFile("select_single_complete.json"));
-        assertThatThrownBy(() -> dslValidator.validate(selectSingleQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        assertThatThrownBy(() -> dslValidator.validate(selectSingleQuery)).hasMessageContaining(
+            "Dsl query is not valid"
+        );
     }
 
     @Test
     public void testValidatorSelectMultipleWithNoRootAndDepthOnFirstQueryException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new SelectMultipleSchemaValidator();
-        JsonNode selectSingleQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("select_multiple_no_root_graph_invalid.json"));
-        assertThatThrownBy(() -> dslValidator.validate(selectSingleQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode selectSingleQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("select_multiple_no_root_graph_invalid.json")
+        );
+        assertThatThrownBy(() -> dslValidator.validate(selectSingleQuery)).hasMessageContaining(
+            "Dsl query is not valid"
+        );
     }
 
     @Test
     public void testValidatorSelectMultipleWithRootAndNoDepthOnAQueryException()
         throws InvalidParseOperationException, IOException, ValidationException {
         DslValidator dslValidator = new SelectMultipleSchemaValidator();
-        JsonNode selectSingleQuery =
-            JsonHandler.getFromFile(PropertiesUtils.findFile("select_multiple_root_graph_invalid.json"));
-        assertThatThrownBy(() -> dslValidator.validate(selectSingleQuery))
-            .hasMessageContaining("Dsl query is not valid");
+        JsonNode selectSingleQuery = JsonHandler.getFromFile(
+            PropertiesUtils.findFile("select_multiple_root_graph_invalid.json")
+        );
+        assertThatThrownBy(() -> dslValidator.validate(selectSingleQuery)).hasMessageContaining(
+            "Dsl query is not valid"
+        );
     }
-
 }

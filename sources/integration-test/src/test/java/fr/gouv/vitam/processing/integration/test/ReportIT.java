@@ -142,27 +142,28 @@ public class ReportIT extends VitamRuleRunner {
     private static final String INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE =
         "integration-processing/mass-update/Action_update_rules.json";
 
-    private static final TypeReference<List<Document>> TYPE_LIST_UNIT = new TypeReference<>() {
-    };
+    private static final TypeReference<List<Document>> TYPE_LIST_UNIT = new TypeReference<>() {};
     private ProcessingManagementClient processingClient;
     private static ProcessMonitoringImpl processMonitoring;
     private WorkspaceClient workspaceClient;
 
     @ClassRule
-    public static VitamServerRunner runner =
-        new VitamServerRunner(ProcessingIT.class, mongoRule.getMongoDatabase().getName(),
-            ElasticsearchRule.getClusterName(),
-            Sets.newHashSet(
-                MetadataMain.class,
-                WorkerMain.class,
-                AdminManagementMain.class,
-                LogbookMain.class,
-                WorkspaceMain.class,
-                ProcessManagementMain.class,
-                StorageMain.class,
-                DefaultOfferMain.class,
-                BatchReportMain.class
-            ));
+    public static VitamServerRunner runner = new VitamServerRunner(
+        ProcessingIT.class,
+        mongoRule.getMongoDatabase().getName(),
+        ElasticsearchRule.getClusterName(),
+        Sets.newHashSet(
+            MetadataMain.class,
+            WorkerMain.class,
+            AdminManagementMain.class,
+            LogbookMain.class,
+            WorkspaceMain.class,
+            ProcessManagementMain.class,
+            StorageMain.class,
+            DefaultOfferMain.class,
+            BatchReportMain.class
+        )
+    );
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -186,18 +187,19 @@ public class ReportIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
 
         ProcessDataAccessImpl.getInstance().clearWorkflow();
-        runAfterMongo(Sets.newHashSet(
-            MetadataCollections.UNIT.getName(),
-            MetadataCollections.OBJECTGROUP.getName(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
-            FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
-            LogbookCollections.OPERATION.getName(),
-            LogbookCollections.LIFECYCLE_UNIT.getName(),
-            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
-            LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
-            LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getName()
-
-        ));
+        runAfterMongo(
+            Sets.newHashSet(
+                MetadataCollections.UNIT.getName(),
+                MetadataCollections.OBJECTGROUP.getName(),
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName(),
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName(),
+                LogbookCollections.OPERATION.getName(),
+                LogbookCollections.LIFECYCLE_UNIT.getName(),
+                LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
+                LogbookCollections.LIFECYCLE_OBJECTGROUP.getName(),
+                LogbookCollections.LIFECYCLE_UNIT_IN_PROCESS.getName()
+            )
+        );
 
         runAfterEs(
             ElasticsearchIndexAlias.ofMultiTenantCollection(MetadataCollections.UNIT.getName(), 0),
@@ -207,9 +209,11 @@ public class ReportIT extends VitamRuleRunner {
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 0),
             ElasticsearchIndexAlias.ofMultiTenantCollection(LogbookCollections.OPERATION.getName(), 1),
             ElasticsearchIndexAlias.ofCrossTenantCollection(
-                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()),
+                FunctionalAdminCollections.ACCESSION_REGISTER_DETAIL.getName()
+            ),
             ElasticsearchIndexAlias.ofCrossTenantCollection(
-                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName())
+                FunctionalAdminCollections.ACCESSION_REGISTER_SUMMARY.getName()
+            )
         );
     }
 
@@ -232,25 +236,34 @@ public class ReportIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
 
         // insert 2 units and LFC
-        insertUnitAndLFC(INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_00_JSON,
-            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_00_JSON);
-        insertUnitAndLFC(INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_05_JSON,
-            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_05_JSON);
+        insertUnitAndLFC(
+            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_00_JSON,
+            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_00_JSON
+        );
+        insertUnitAndLFC(
+            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_05_JSON,
+            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_05_JSON
+        );
 
         // import contract
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        JsonNode query =
-            JsonHandler.getFromFile(PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON));
+        JsonNode query = JsonHandler.getFromFile(
+            PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON)
+        );
         workspaceClient.putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
-        workspaceClient.putObject(operationGuid.getId(), ACTION,
-            JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
+        workspaceClient.putObject(
+            operationGuid.getId(),
+            ACTION,
+            JsonHandler.writeToInpustream(JsonHandler.createObjectNode())
+        );
         processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
         VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_CHECK_AND_COMPUTE");
         // delete unit to create a KO
-        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+        VitamRepositoryFactory.get()
+            .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
             .delete(Collections.singletonList("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq"), TENANT_0);
 
         processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
@@ -267,8 +280,12 @@ public class ReportIT extends VitamRuleRunner {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             Response reportResponse = null;
             try {
-                reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                    operationGuid.getId() + ".jsonl", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
+                reportResponse = storageClient.getContainerAsync(
+                    VitamConfiguration.getDefaultStrategy(),
+                    operationGuid.getId() + ".jsonl",
+                    DataCategory.REPORT,
+                    AccessLogUtils.getNoLogAccessLog()
+                );
                 assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
                 reportLines = VitamTestHelper.getReport(reportResponse);
             } finally {
@@ -304,29 +321,41 @@ public class ReportIT extends VitamRuleRunner {
         workspaceClient.createContainer(containerName);
 
         // insert units and LFC
-        insertUnitAndLFC(INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_00_JSON,
-            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_00_JSON);
-        insertUnitAndLFC(INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_05_JSON,
-            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_05_JSON);
-        insertUnitAndLFC(INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_06_JSON,
-            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_06_JSON);
+        insertUnitAndLFC(
+            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_00_JSON,
+            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_00_JSON
+        );
+        insertUnitAndLFC(
+            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_05_JSON,
+            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_05_JSON
+        );
+        insertUnitAndLFC(
+            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_06_JSON,
+            INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_06_JSON
+        );
 
         // import contract
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
 
         processingClient = ProcessingManagementClientFactory.getInstance().getClient();
-        JsonNode query =
-            JsonHandler.getFromFile(PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON));
+        JsonNode query = JsonHandler.getFromFile(
+            PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON)
+        );
         workspaceClient.putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
-        workspaceClient
-            .putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(JsonHandler.createObjectNode()));
+        workspaceClient.putObject(
+            operationGuid.getId(),
+            ACTION,
+            JsonHandler.writeToInpustream(JsonHandler.createObjectNode())
+        );
         processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_DESC.name());
 
         VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_CHECK_AND_COMPUTE");
         // delete unit to create a KO
-        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+        VitamRepositoryFactory.get()
+            .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
             .delete(Collections.singletonList("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq"), TENANT_0);
-        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+        VitamRepositoryFactory.get()
+            .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
             .delete(Collections.singletonList("aeaqaaaaaagbcaacaang6ak4ts6paliaaaah"), TENANT_0);
 
         processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
@@ -344,8 +373,12 @@ public class ReportIT extends VitamRuleRunner {
         try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
             Response reportResponse = null;
             try {
-                reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                    operationGuid.getId() + ".jsonl", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
+                reportResponse = storageClient.getContainerAsync(
+                    VitamConfiguration.getDefaultStrategy(),
+                    operationGuid.getId() + ".jsonl",
+                    DataCategory.REPORT,
+                    AccessLogUtils.getNoLogAccessLog()
+                );
                 assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
                 reportLines = VitamTestHelper.getReport(reportResponse);
             } finally {
@@ -372,7 +405,6 @@ public class ReportIT extends VitamRuleRunner {
         VitamThreadUtils.getVitamSession().setContextId(CONTEXT_ID);
 
         try (AdminManagementClient functionalClient = AdminManagementClientFactory.getInstance().getClient()) {
-
             final GUID operationGuid = GUIDFactory.newOperationLogbookGUID(TENANT_0);
             final String containerName = operationGuid.getId();
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
@@ -381,29 +413,38 @@ public class ReportIT extends VitamRuleRunner {
             workspaceClient.createContainer(containerName);
 
             // insert 2 units and LFC
-            insertUnitAndLFC(INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_00_JSON,
-                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_00_JSON);
-            insertUnitAndLFC(INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_05_JSON,
-                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_05_JSON);
+            insertUnitAndLFC(
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_00_JSON,
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_00_JSON
+            );
+            insertUnitAndLFC(
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_05_JSON,
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_05_JSON
+            );
 
             // import contract
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
-            functionalClient.importRulesFile(getClass().getResourceAsStream(INTEGRATION_PROCESSING_MASS_UPDATE_RULE),
-                "Rules.json");
+            functionalClient.importRulesFile(
+                getClass().getResourceAsStream(INTEGRATION_PROCESSING_MASS_UPDATE_RULE),
+                "Rules.json"
+            );
 
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             JsonNode query = JsonHandler.getFromFile(
-                PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON));
+                PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON)
+            );
             workspaceClient.putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
-            JsonNode action =
-                JsonHandler.getFromFile(PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE));
+            JsonNode action = JsonHandler.getFromFile(
+                PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE)
+            );
             workspaceClient.putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(action));
             processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_RULE.name());
 
             VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_INVALIDATE");
             // delete unit to create a KO
-            VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+            VitamRepositoryFactory.get()
+                .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
                 .delete(Collections.singletonList("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq"), TENANT_0);
 
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
@@ -415,16 +456,16 @@ public class ReportIT extends VitamRuleRunner {
             assertEquals(StatusCode.WARNING, processWorkflow.getStatus());
             VitamTestHelper.verifyLogbook(containerName, "MASS_UPDATE_FINALIZE", StatusCode.WARNING.name());
 
-            Optional<Document> updatedUnit =
-                VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
-                    .getByID("aeaqaaaaaagbcaacaang6ak4ts6paliaaaas", TENANT_0);
+            Optional<Document> updatedUnit = VitamRepositoryFactory.get()
+                .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+                .getByID("aeaqaaaaaagbcaacaang6ak4ts6paliaaaas", TENANT_0);
             assertTrue(updatedUnit.isPresent());
             String expected = "sous fonds";
             assertThat(updatedUnit.get().get(TITLE)).isEqualTo(expected);
 
-            Optional<Document> deletedUnit =
-                VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
-                    .getByID("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq", TENANT_0);
+            Optional<Document> deletedUnit = VitamRepositoryFactory.get()
+                .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+                .getByID("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq", TENANT_0);
             assertTrue(deletedUnit.isEmpty());
 
             // CHECK REPORT
@@ -432,8 +473,12 @@ public class ReportIT extends VitamRuleRunner {
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 Response reportResponse = null;
                 try {
-                    reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                        operationGuid.getId() + ".jsonl", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
+                    reportResponse = storageClient.getContainerAsync(
+                        VitamConfiguration.getDefaultStrategy(),
+                        operationGuid.getId() + ".jsonl",
+                        DataCategory.REPORT,
+                        AccessLogUtils.getNoLogAccessLog()
+                    );
                     assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
                     reportLines = VitamTestHelper.getReport(reportResponse);
                 } finally {
@@ -472,33 +517,45 @@ public class ReportIT extends VitamRuleRunner {
             workspaceClient.createContainer(containerName);
 
             // insert units and LFC
-            insertUnitAndLFC(INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_00_JSON,
-                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_00_JSON);
-            insertUnitAndLFC(INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_05_JSON,
-                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_05_JSON);
-            insertUnitAndLFC(INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_06_JSON,
-                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_06_JSON);
+            insertUnitAndLFC(
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_00_JSON,
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_00_JSON
+            );
+            insertUnitAndLFC(
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_05_JSON,
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_05_JSON
+            );
+            insertUnitAndLFC(
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_06_JSON,
+                INTEGRATION_PROCESSING_MASS_UPDATE_UNIT_LFC_06_JSON
+            );
 
             // import contract
             VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
-            functionalClient.importRulesFile(getClass().getResourceAsStream(INTEGRATION_PROCESSING_MASS_UPDATE_RULE),
-                "Rules.json");
+            functionalClient.importRulesFile(
+                getClass().getResourceAsStream(INTEGRATION_PROCESSING_MASS_UPDATE_RULE),
+                "Rules.json"
+            );
 
             VitamThreadUtils.getVitamSession().setRequestId(operationGuid);
             processingClient = ProcessingManagementClientFactory.getInstance().getClient();
             JsonNode query = JsonHandler.getFromFile(
-                PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON));
+                PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_QUERY_02_JSON)
+            );
             workspaceClient.putObject(operationGuid.getId(), QUERY, JsonHandler.writeToInpustream(query));
-            JsonNode action =
-                JsonHandler.getFromFile(PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE));
+            JsonNode action = JsonHandler.getFromFile(
+                PropertiesUtils.findFile(INTEGRATION_PROCESSING_MASS_UPDATE_UPDATE_RULE)
+            );
             workspaceClient.putObject(operationGuid.getId(), ACTION, JsonHandler.writeToInpustream(action));
             processingClient.initVitamProcess(containerName, Contexts.MASS_UPDATE_UNIT_RULE.name());
 
             VitamTestHelper.runStepByStepUntilStepReached(containerName, "STP_INVALIDATE");
             // delete unit to create a KO
-            VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+            VitamRepositoryFactory.get()
+                .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
                 .delete(Collections.singletonList("aeaqaaaaaagbcaacaang6ak4ts6paliaaaaq"), TENANT_0);
-            VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
+            VitamRepositoryFactory.get()
+                .getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
                 .delete(Collections.singletonList("aeaqaaaaaagbcaacaang6ak4ts6paliaaaah"), TENANT_0);
 
             processingClient.updateOperationActionProcess(ProcessAction.RESUME.getValue(), containerName);
@@ -516,8 +573,12 @@ public class ReportIT extends VitamRuleRunner {
             try (StorageClient storageClient = StorageClientFactory.getInstance().getClient()) {
                 Response reportResponse = null;
                 try {
-                    reportResponse = storageClient.getContainerAsync(VitamConfiguration.getDefaultStrategy(),
-                        operationGuid.getId() + ".jsonl", DataCategory.REPORT, AccessLogUtils.getNoLogAccessLog());
+                    reportResponse = storageClient.getContainerAsync(
+                        VitamConfiguration.getDefaultStrategy(),
+                        operationGuid.getId() + ".jsonl",
+                        DataCategory.REPORT,
+                        AccessLogUtils.getNoLogAccessLog()
+                    );
                     assertThat(reportResponse.getStatus()).isEqualTo(Response.Status.OK.getStatusCode());
                     reportLines = VitamTestHelper.getReport(reportResponse);
                 } finally {
@@ -538,19 +599,24 @@ public class ReportIT extends VitamRuleRunner {
 
     private void createLogbookOperation(GUID operationId, GUID objectId, String type, LogbookTypeProcess typeProc)
         throws LogbookClientBadRequestException, LogbookClientAlreadyExistsException, LogbookClientServerException {
-
         final LogbookOperationsClient logbookClient = LogbookOperationsClientFactory.getInstance().getClient();
         if (type == null) {
             type = STP_MASS_UPDATE_UNIT;
         }
         final LogbookOperationParameters initParameters = LogbookParameterHelper.newLogbookOperationParameters(
-            operationId, type, objectId,
-            typeProc, StatusCode.STARTED,
+            operationId,
+            type,
+            objectId,
+            typeProc,
+            StatusCode.STARTED,
             operationId != null ? operationId.toString() : "outcomeDetailMessage",
-            operationId);
+            operationId
+        );
         if (STP_MASS_UPDATE_UNIT.equals(type)) {
-            initParameters.putParameterValue(LogbookParameterName.outcomeDetailMessage,
-                VitamLogbookMessages.getLabelOp(STP_MASS_UPDATE_UNIT + ".STARTED") + " : " + operationId);
+            initParameters.putParameterValue(
+                LogbookParameterName.outcomeDetailMessage,
+                VitamLogbookMessages.getLabelOp(STP_MASS_UPDATE_UNIT + ".STARTED") + " : " + operationId
+            );
         }
         logbookClient.create(initParameters);
     }
@@ -558,22 +624,27 @@ public class ReportIT extends VitamRuleRunner {
     private void insertUnitAndLFC(final String unitFile, final String lfcFile)
         throws fr.gouv.vitam.common.exception.InvalidParseOperationException, FileNotFoundException, DatabaseException {
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
-        List<Document> units = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
-                unitFile),
-            TYPE_LIST_UNIT);
-        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection())
-            .save(units);
-        VitamRepositoryFactory.get().getVitamESRepository(MetadataCollections.UNIT.getVitamCollection(),
-                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT))
+        List<Document> units = JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile(unitFile),
+            TYPE_LIST_UNIT
+        );
+        VitamRepositoryFactory.get().getVitamMongoRepository(MetadataCollections.UNIT.getVitamCollection()).save(units);
+        VitamRepositoryFactory.get()
+            .getVitamESRepository(
+                MetadataCollections.UNIT.getVitamCollection(),
+                metadataIndexManager.getElasticsearchIndexAliasResolver(MetadataCollections.UNIT)
+            )
             .save(units);
 
         VitamThreadUtils.getVitamSession().setRequestId(GUIDFactory.newOperationLogbookGUID(TENANT_0));
-        List<JsonNode> unitsLfc = JsonHandler.getFromFileAsTypeReference(PropertiesUtils.getResourceFile(
-                lfcFile),
-            new TypeReference<>() {
-            });
-        List<Document> lfcs = unitsLfc.stream()
-            .map(item -> Document.parse(JsonHandler.unprettyPrint(item))).collect(Collectors.toList());
+        List<JsonNode> unitsLfc = JsonHandler.getFromFileAsTypeReference(
+            PropertiesUtils.getResourceFile(lfcFile),
+            new TypeReference<>() {}
+        );
+        List<Document> lfcs = unitsLfc
+            .stream()
+            .map(item -> Document.parse(JsonHandler.unprettyPrint(item)))
+            .collect(Collectors.toList());
 
         new VitamMongoRepository(LogbookCollections.LIFECYCLE_UNIT.getCollection()).save(lfcs);
     }

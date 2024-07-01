@@ -81,5 +81,4 @@ public abstract class DefaultVitamIHMApplicationConfiguration extends DefaultVit
         this.baseUrl = baseUrl;
         return this;
     }
-
 }

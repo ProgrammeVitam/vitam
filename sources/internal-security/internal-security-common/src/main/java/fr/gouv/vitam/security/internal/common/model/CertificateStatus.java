@@ -38,5 +38,4 @@ public enum CertificateStatus {
     public CertificateStatus valueFrom(boolean isRevoked) {
         return isRevoked ? REVOKED : VALID;
     }
-
 }

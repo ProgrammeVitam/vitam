@@ -31,7 +31,6 @@ package fr.gouv.vitam.processing.common.async;
  */
 @FunctionalInterface
 public interface WorkflowInterruptionChecker {
-
     /**
      * @return {@code true} if the workflow is active, {@code false} if the workflow is being interrupted (paused or canceled).
      */

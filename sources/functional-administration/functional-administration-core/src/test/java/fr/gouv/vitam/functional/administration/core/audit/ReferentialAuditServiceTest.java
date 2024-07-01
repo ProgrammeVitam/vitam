@@ -74,6 +74,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class ReferentialAuditServiceTest {
+
     private static final int TENANT_ID = 0;
     private static final String OFFER_ONE_ID = "offer-one";
     private static final String OFFER_TWO_ID = "offer-two";
@@ -84,14 +85,23 @@ public class ReferentialAuditServiceTest {
         "5a95a72c714bc8c7d5b6855cf205c7dd33cac566302ab1fc3e41e2534a446746a63d5259db93138b2c9f66881fdcbbde0e38e92d78df1280ba690cf3ee8ffc37";
     private static final String FAKE_HASH = "fakeHash";
 
-    @Rule public MockitoRule mockitoRule = MockitoJUnit.rule();
+    @Rule
+    public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @Rule public MongoRule mongoRule =
-        new MongoRule(MongoDbAccess.getMongoClientSettingsBuilder(), FunctionalAdminCollections.PROFILE.getName());
+    @Rule
+    public MongoRule mongoRule = new MongoRule(
+        MongoDbAccess.getMongoClientSettingsBuilder(),
+        FunctionalAdminCollections.PROFILE.getName()
+    );
 
-    @Mock StorageClientFactory storageClientFactory;
-    @Mock StorageClient storageClient;
-    @Mock FunctionalBackupService functionalBackupService;
+    @Mock
+    StorageClientFactory storageClientFactory;
+
+    @Mock
+    StorageClient storageClient;
+
+    @Mock
+    FunctionalBackupService functionalBackupService;
 
     ReferentialAuditService referentialAuditService;
     MongoDbAccess mongoDbAccess;
@@ -101,51 +111,60 @@ public class ReferentialAuditServiceTest {
         mongoDbAccess = new SimpleMongoDBAccess(mongoRule.getMongoClient(), MongoRule.VITAM_DB);
         when(storageClientFactory.getClient()).thenReturn(storageClient);
 
-        when(storageClient.getOffers(eq(VitamConfiguration.getDefaultStrategy())))
-            .thenReturn(List.of(OFFER_ONE_ID, OFFER_TWO_ID));
-        referentialAuditService =
-            new ReferentialAuditService(storageClientFactory, functionalBackupService);
+        when(storageClient.getOffers(eq(VitamConfiguration.getDefaultStrategy()))).thenReturn(
+            List.of(OFFER_ONE_ID, OFFER_TWO_ID)
+        );
+        referentialAuditService = new ReferentialAuditService(storageClientFactory, functionalBackupService);
 
         populateDatabase();
-
     }
-
 
     @Test
     public void should_execute_audit_without_error() throws Exception {
         File profileFile = PropertiesUtils.getResourceFile(PROFILE_FILE);
 
-        ArrayNode objects = JsonHandler
-            .getFromJsonNode(JsonHandler.getFromFile(profileFile).get(FunctionalBackupService.FIELD_COLLECTION),
-                new TypeReference<>() {
-                });
+        ArrayNode objects = JsonHandler.getFromJsonNode(
+            JsonHandler.getFromFile(profileFile).get(FunctionalBackupService.FIELD_COLLECTION),
+            new TypeReference<>() {}
+        );
 
         when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(objects);
 
         Iterator<ObjectEntry> objectsEntry = List.of(new ObjectEntry(PROFILE_FILE, 564)).iterator();
-        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP))
-            .thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
+        when(
+            storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP)
+        ).thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
 
-        when(storageClient
-            .getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.BACKUP), eq(PROFILE_FILE),
-                eq(List.of(OFFER_ONE_ID, OFFER_TWO_ID)
-                ), anyBoolean())).thenReturn(
-            createObjectNode().setAll(
-                Map.of(OFFER_ONE_ID,
-                    createObjectNode().put(DIGEST, HASH),
-                    OFFER_TWO_ID,
-                    createObjectNode().put(DIGEST, HASH)
+        when(
+            storageClient.getInformation(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.BACKUP),
+                eq(PROFILE_FILE),
+                eq(List.of(OFFER_ONE_ID, OFFER_TWO_ID)),
+                anyBoolean()
+            )
+        ).thenReturn(
+            createObjectNode()
+                .setAll(
+                    Map.of(
+                        OFFER_ONE_ID,
+                        createObjectNode().put(DIGEST, HASH),
+                        OFFER_TWO_ID,
+                        createObjectNode().put(DIGEST, HASH)
+                    )
                 )
-            ));
+        );
 
         Response responseMock = mock(BuiltResponse.class);
-        doReturn(new FileInputStream(profileFile)).when(responseMock)
-            .readEntity(eq(InputStream.class));
-        when(storageClient
-            .getContainerAsync(eq(VitamConfiguration.getDefaultStrategy()), eq(PROFILE_FILE),
+        doReturn(new FileInputStream(profileFile)).when(responseMock).readEntity(eq(InputStream.class));
+        when(
+            storageClient.getContainerAsync(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(PROFILE_FILE),
                 eq(DataCategory.BACKUP),
-                any()))
-            .thenReturn(responseMock);
+                any()
+            )
+        ).thenReturn(responseMock);
 
         referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
     }
@@ -154,16 +173,17 @@ public class ReferentialAuditServiceTest {
     public void given_unexisted_file_then_execute_audit_withKO() throws Exception {
         File profileFile = PropertiesUtils.getResourceFile(PROFILE_FILE);
 
-        ArrayNode objects = JsonHandler
-            .getFromJsonNode(JsonHandler.getFromFile(profileFile).get(FunctionalBackupService.FIELD_COLLECTION),
-                new TypeReference<>() {
-                });
+        ArrayNode objects = JsonHandler.getFromJsonNode(
+            JsonHandler.getFromFile(profileFile).get(FunctionalBackupService.FIELD_COLLECTION),
+            new TypeReference<>() {}
+        );
 
         when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(objects);
 
         Iterator<ObjectEntry> objectsEntry = Collections.emptyIterator();
-        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP))
-            .thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
+        when(
+            storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP)
+        ).thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
 
         referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
     }
@@ -172,47 +192,67 @@ public class ReferentialAuditServiceTest {
     public void given_different_hash_should_execute_audit_with_KO() throws Exception {
         File profileFile = PropertiesUtils.getResourceFile(PROFILE_FILE);
 
-        ArrayNode objects = JsonHandler
-            .getFromJsonNode(JsonHandler.getFromFile(profileFile).get(FunctionalBackupService.FIELD_COLLECTION),
-                new TypeReference<>() {
-                });
+        ArrayNode objects = JsonHandler.getFromJsonNode(
+            JsonHandler.getFromFile(profileFile).get(FunctionalBackupService.FIELD_COLLECTION),
+            new TypeReference<>() {}
+        );
 
         when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(objects);
 
-
         Iterator<ObjectEntry> objectsEntry = List.of(new ObjectEntry(PROFILE_FILE, 564)).iterator();
-        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP))
-            .thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
+        when(
+            storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP)
+        ).thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
 
-        when(storageClient
-            .getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.BACKUP), eq(PROFILE_FILE),
-                eq(List.of(OFFER_ONE_ID, OFFER_TWO_ID)
-                ), anyBoolean())).thenReturn(
-            createObjectNode().setAll(
-                Map.of(OFFER_ONE_ID,
-                    createObjectNode().put(DIGEST, HASH),
-                    OFFER_TWO_ID,
-                    createObjectNode().put(DIGEST, FAKE_HASH)
+        when(
+            storageClient.getInformation(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.BACKUP),
+                eq(PROFILE_FILE),
+                eq(List.of(OFFER_ONE_ID, OFFER_TWO_ID)),
+                anyBoolean()
+            )
+        ).thenReturn(
+            createObjectNode()
+                .setAll(
+                    Map.of(
+                        OFFER_ONE_ID,
+                        createObjectNode().put(DIGEST, HASH),
+                        OFFER_TWO_ID,
+                        createObjectNode().put(DIGEST, FAKE_HASH)
+                    )
                 )
-            ));
+        );
 
         Response offerOneResponse = mock(BuiltResponse.class);
-        doReturn(new FileInputStream(profileFile)).when(offerOneResponse)
-            .readEntity(eq(InputStream.class));
+        doReturn(new FileInputStream(profileFile)).when(offerOneResponse).readEntity(eq(InputStream.class));
 
-        when(storageClient
-            .getContainerAsync(eq(VitamConfiguration.getDefaultStrategy()), eq(OFFER_ONE_ID), eq(PROFILE_FILE),
-                eq(DataCategory.BACKUP), any())).thenReturn(offerOneResponse);
+        when(
+            storageClient.getContainerAsync(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(OFFER_ONE_ID),
+                eq(PROFILE_FILE),
+                eq(DataCategory.BACKUP),
+                any()
+            )
+        ).thenReturn(offerOneResponse);
 
         Response offerTwoResponse = mock(BuiltResponse.class);
 
         String jsonString = JsonHandler.unprettyPrint(createObjectNode());
-        doReturn(new ByteArrayInputStream(jsonString.getBytes())).when(offerTwoResponse)
+        doReturn(new ByteArrayInputStream(jsonString.getBytes()))
+            .when(offerTwoResponse)
             .readEntity(eq(InputStream.class));
 
-        when(storageClient
-            .getContainerAsync(eq(VitamConfiguration.getDefaultStrategy()), eq(OFFER_TWO_ID), eq(PROFILE_FILE),
-                eq(DataCategory.BACKUP), any())).thenReturn(offerTwoResponse);
+        when(
+            storageClient.getContainerAsync(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(OFFER_TWO_ID),
+                eq(PROFILE_FILE),
+                eq(DataCategory.BACKUP),
+                any()
+            )
+        ).thenReturn(offerTwoResponse);
 
         referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
     }
@@ -222,82 +262,104 @@ public class ReferentialAuditServiceTest {
         when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(JsonHandler.createArrayNode());
 
         Iterator<ObjectEntry> objectsEntry = List.of(new ObjectEntry(PROFILE_FILE, 564)).iterator();
-        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP))
-            .thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
+        when(
+            storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP)
+        ).thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
 
-        when(storageClient
-            .getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.BACKUP), eq(PROFILE_FILE),
-                eq(List.of(OFFER_ONE_ID, OFFER_TWO_ID)
-                ), anyBoolean())).thenReturn(
-            createObjectNode().setAll(
-                Map.of(OFFER_ONE_ID,
-                    createObjectNode().put(DIGEST, HASH),
-                    OFFER_TWO_ID,
-                    createObjectNode().put(DIGEST, HASH)
+        when(
+            storageClient.getInformation(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.BACKUP),
+                eq(PROFILE_FILE),
+                eq(List.of(OFFER_ONE_ID, OFFER_TWO_ID)),
+                anyBoolean()
+            )
+        ).thenReturn(
+            createObjectNode()
+                .setAll(
+                    Map.of(
+                        OFFER_ONE_ID,
+                        createObjectNode().put(DIGEST, HASH),
+                        OFFER_TWO_ID,
+                        createObjectNode().put(DIGEST, HASH)
+                    )
                 )
-            ));
+        );
 
         Response responseMock = mock(BuiltResponse.class);
-        doReturn(PropertiesUtils.getResourceAsStream(PROFILE_FILE)).when(responseMock)
+        doReturn(PropertiesUtils.getResourceAsStream(PROFILE_FILE))
+            .when(responseMock)
             .readEntity(eq(InputStream.class));
-        when(storageClient
-            .getContainerAsync(eq(VitamConfiguration.getDefaultStrategy()), eq(PROFILE_FILE),
+        when(
+            storageClient.getContainerAsync(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(PROFILE_FILE),
                 eq(DataCategory.BACKUP),
-                any()))
-            .thenReturn(responseMock);
+                any()
+            )
+        ).thenReturn(responseMock);
 
-        mongoDbAccess.getMongoDatabase().getCollection(FunctionalAdminCollections.PROFILE.getName()).deleteOne(
-            new BsonDocument());
+        mongoDbAccess
+            .getMongoDatabase()
+            .getCollection(FunctionalAdminCollections.PROFILE.getName())
+            .deleteOne(new BsonDocument());
 
         referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
-
     }
 
     @Test(expected = AuditVitamException.class)
     public void given_unexisted_element_in_secondary_offer_should_execute_audit_with_KO() throws Exception {
         File profileFile = PropertiesUtils.getResourceFile(PROFILE_FILE);
 
-        ArrayNode objects = JsonHandler
-            .getFromJsonNode(JsonHandler.getFromFile(profileFile).get(FunctionalBackupService.FIELD_COLLECTION),
-                new TypeReference<>() {
-                });
+        ArrayNode objects = JsonHandler.getFromJsonNode(
+            JsonHandler.getFromFile(profileFile).get(FunctionalBackupService.FIELD_COLLECTION),
+            new TypeReference<>() {}
+        );
 
         when(functionalBackupService.getCollectionInJson(any(), anyInt())).thenReturn(objects);
 
         Iterator<ObjectEntry> objectsEntry = List.of(new ObjectEntry(PROFILE_FILE, 564)).iterator();
-        when(storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP))
-            .thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
-
+        when(
+            storageClient.listContainer(VitamConfiguration.getDefaultStrategy(), null, DataCategory.BACKUP)
+        ).thenReturn(CloseableIteratorUtils.toCloseableIterator(objectsEntry));
 
         HashMap<String, JsonNode> map = new HashMap<>();
         map.put(OFFER_ONE_ID, createObjectNode().put(DIGEST, HASH));
         map.put(OFFER_TWO_ID, null);
-        when(storageClient
-            .getInformation(eq(VitamConfiguration.getDefaultStrategy()), eq(DataCategory.BACKUP), eq(PROFILE_FILE),
-                eq(List.of(OFFER_ONE_ID, OFFER_TWO_ID)
-                ), anyBoolean())).thenReturn(
-            createObjectNode().setAll(map));
-
+        when(
+            storageClient.getInformation(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(DataCategory.BACKUP),
+                eq(PROFILE_FILE),
+                eq(List.of(OFFER_ONE_ID, OFFER_TWO_ID)),
+                anyBoolean()
+            )
+        ).thenReturn(createObjectNode().setAll(map));
 
         Response offerOneResponse = mock(BuiltResponse.class);
-        doReturn(new FileInputStream(profileFile)).when(offerOneResponse)
-            .readEntity(eq(InputStream.class));
+        doReturn(new FileInputStream(profileFile)).when(offerOneResponse).readEntity(eq(InputStream.class));
 
-        when(storageClient
-            .getContainerAsync(eq(VitamConfiguration.getDefaultStrategy()), eq(OFFER_ONE_ID), eq(PROFILE_FILE),
-                eq(DataCategory.BACKUP), any())).thenReturn(offerOneResponse);
-
+        when(
+            storageClient.getContainerAsync(
+                eq(VitamConfiguration.getDefaultStrategy()),
+                eq(OFFER_ONE_ID),
+                eq(PROFILE_FILE),
+                eq(DataCategory.BACKUP),
+                any()
+            )
+        ).thenReturn(offerOneResponse);
 
         referentialAuditService.runAudit(FunctionalAdminCollections.PROFILE.getName(), TENANT_ID);
     }
 
     private void populateDatabase() throws Exception {
-        JsonNode jsonNode = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROFILE_FILE))
-            .get(FunctionalBackupService.FIELD_COLLECTION);
-        List<Document> profilesList =
-            JsonHandler.getFromJsonNode(jsonNode, new TypeReference<>() {
-            });
-        mongoDbAccess.getMongoDatabase().getCollection(FunctionalAdminCollections.PROFILE.getName())
+        JsonNode jsonNode = JsonHandler.getFromFile(PropertiesUtils.getResourceFile(PROFILE_FILE)).get(
+            FunctionalBackupService.FIELD_COLLECTION
+        );
+        List<Document> profilesList = JsonHandler.getFromJsonNode(jsonNode, new TypeReference<>() {});
+        mongoDbAccess
+            .getMongoDatabase()
+            .getCollection(FunctionalAdminCollections.PROFILE.getName())
             .insertMany(profilesList);
     }
 }

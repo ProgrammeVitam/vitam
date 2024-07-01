@@ -48,7 +48,6 @@ public class ComputeInheritedRuleServiceTest {
 
     @Test
     public void computeInheritedRules_empty() throws Exception {
-
         // Given
         String inputDataSet = "ComputeInheritedRules/TestCase0_Empty/Input.json";
         String expectedDataSetResult = "ComputeInheritedRules/TestCase0_Empty/ExpectedResult.json";
@@ -59,12 +58,9 @@ public class ComputeInheritedRuleServiceTest {
 
     @Test
     public void computeInheritedRules_SingleUnit_NoRules() throws Exception {
-
         // Given
-        String inputDataSet =
-            "ComputeInheritedRules/TestCase1_SingleUnit_NoRules/Input.json";
-        String expectedDataSetResult =
-            "ComputeInheritedRules/TestCase1_SingleUnit_NoRules/ExpectedResult.json";
+        String inputDataSet = "ComputeInheritedRules/TestCase1_SingleUnit_NoRules/Input.json";
+        String expectedDataSetResult = "ComputeInheritedRules/TestCase1_SingleUnit_NoRules/ExpectedResult.json";
 
         // When / Then
         runTest(inputDataSet, expectedDataSetResult);
@@ -72,7 +68,6 @@ public class ComputeInheritedRuleServiceTest {
 
     @Test
     public void computeInheritedRules_SingleUnit_SimpleRules() throws Exception {
-
         // Given
         String inputDataSet = "ComputeInheritedRules/TestCase2_SingleUnit_SimpleRules/Input.json";
         String expectedDataSetResult = "ComputeInheritedRules/TestCase2_SingleUnit_SimpleRules/ExpectedResult.json";
@@ -83,7 +78,6 @@ public class ComputeInheritedRuleServiceTest {
 
     @Test
     public void computeInheritedRules_SimpleHierarchy_NoRules() throws Exception {
-
         // Given
         String inputDataSet = "ComputeInheritedRules/TestCase3_SimpleHierarchy_NoRules/Input.json";
         String expectedDataSetResult = "ComputeInheritedRules/TestCase3_SimpleHierarchy_NoRules/ExpectedResult.json";
@@ -94,7 +88,6 @@ public class ComputeInheritedRuleServiceTest {
 
     @Test
     public void computeInheritedRules_SimpleHierarchy_BasicRules() throws Exception {
-
         // Given
         String inputDataSet = "ComputeInheritedRules/TestCase4_SimpleHierarchy_BasicRules/Input.json";
         String expectedDataSetResult = "ComputeInheritedRules/TestCase4_SimpleHierarchy_BasicRules/ExpectedResult.json";
@@ -105,10 +98,8 @@ public class ComputeInheritedRuleServiceTest {
 
     @Test
     public void computeInheritedRules_SimpleHierarchy_PreventInheritance() throws Exception {
-
         // Given
-        String inputDataSet =
-            "ComputeInheritedRules/TestCase5_SimpleHierarchy_PreventInheritance/Input.json";
+        String inputDataSet = "ComputeInheritedRules/TestCase5_SimpleHierarchy_PreventInheritance/Input.json";
         String expectedDataSetResult =
             "ComputeInheritedRules/TestCase5_SimpleHierarchy_PreventInheritance/ExpectedResult.json";
 
@@ -118,7 +109,6 @@ public class ComputeInheritedRuleServiceTest {
 
     @Test
     public void computeInheritedRules_SimpleHierarchy_PreventRulesId() throws Exception {
-
         // Given
         String inputDataSet = "ComputeInheritedRules/TestCase6_SimpleHierarchy_PreventRulesId/Input.json";
         String expectedDataSetResult =
@@ -130,7 +120,6 @@ public class ComputeInheritedRuleServiceTest {
 
     @Test
     public void computeInheritedRules_MultipleParents_MergePaths() throws Exception {
-
         // Given
         String inputDataSet = "ComputeInheritedRules/TestCase7_MultipleParents_MergePaths/Input.json";
         String expectedDataSetResult = "ComputeInheritedRules/TestCase7_MultipleParents_MergePaths/ExpectedResult.json";
@@ -141,7 +130,6 @@ public class ComputeInheritedRuleServiceTest {
 
     @Test
     public void computeInheritedRules_ComplexHierarchy() throws Exception {
-
         // Given
         String inputDataSet = "ComputeInheritedRules/TestCase8_ComplexHierarchy/Input.json";
         String expectedDataSetResult = "ComputeInheritedRules/TestCase8_ComplexHierarchy/ExpectedResult.json";
@@ -152,13 +140,11 @@ public class ComputeInheritedRuleServiceTest {
 
     private void runTest(String inputDataSet, String expectedDataSetResult)
         throws InvalidParseOperationException, IOException {
-        Map<String, UnitRuleModel> inputUnitRuleModelMap =
-            loadInputDataSet(inputDataSet);
+        Map<String, UnitRuleModel> inputUnitRuleModelMap = loadInputDataSet(inputDataSet);
         ComputeInheritedRuleService instance = new ComputeInheritedRuleService();
 
         // When
-        Map<String, UnitInheritedRulesResponseModel> response =
-            instance.computeInheritedRules(inputUnitRuleModelMap);
+        Map<String, UnitInheritedRulesResponseModel> response = instance.computeInheritedRules(inputUnitRuleModelMap);
 
         // Then
         assertThatResponseMatchesExpected(response, expectedDataSetResult);
@@ -176,9 +162,9 @@ public class ComputeInheritedRuleServiceTest {
     }
 
     private void assertThatResponseMatchesExpected(
-        Map<String, UnitInheritedRulesResponseModel> response, String filename)
-        throws IOException, InvalidParseOperationException {
-
+        Map<String, UnitInheritedRulesResponseModel> response,
+        String filename
+    ) throws IOException, InvalidParseOperationException {
         JsonNode actualJson = JsonHandler.toJsonNode(response);
         JsonNode expectedJson = JsonHandler.getFromInputStream(PropertiesUtils.getResourceAsStream(filename));
 
@@ -190,8 +176,7 @@ public class ComputeInheritedRuleServiceTest {
         String expected = JsonHandler.unprettyPrint(expectedJson);
 
         try {
-            JsonAssert.assertJsonEquals(expected, actual,
-                JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
+            JsonAssert.assertJsonEquals(expected, actual, JsonAssert.when(Option.IGNORING_ARRAY_ORDER));
         } catch (AssertionError e) {
             System.out.println("Actual  : " + actual);
             System.out.println("Expected: " + expected);

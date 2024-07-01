@@ -38,10 +38,13 @@ import java.io.InputStream;
  * IngestExtern interface
  */
 public interface IngestExternal {
-
-    PreUploadResume preUploadAndResume(InputStream input, String workflowIdentifier, GUID guid, String xAction,
-        AsyncResponse asyncResponse)
-        throws IngestExternalException, VitamClientException;
+    PreUploadResume preUploadAndResume(
+        InputStream input,
+        String workflowIdentifier,
+        GUID guid,
+        String xAction,
+        AsyncResponse asyncResponse
+    ) throws IngestExternalException, VitamClientException;
 
     /**
      * upload the file -- store in local, scan for viruses and then check for supported format (ZIP, TAR, ...)<br>
@@ -54,7 +57,11 @@ public interface IngestExternal {
      * @return Response containing as InputStream the ArchiveTransferReply in XML format
      * @throws IngestExternalException thrown if an error occurred in workflow
      */
-    StatusCode upload(PreUploadResume preUploadResume, String xAction, GUID guid, String manifestDigestValue,
-        String manifestDigestAlgo)
-        throws IngestExternalException;
+    StatusCode upload(
+        PreUploadResume preUploadResume,
+        String xAction,
+        GUID guid,
+        String manifestDigestValue,
+        String manifestDigestAlgo
+    ) throws IngestExternalException;
 }

@@ -31,6 +31,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 public class VitamLoggerLogTest {
+
     // The class is currently a dummy log class needed by ESAPI . We make dummy unit tests .
     // TODO P1 : If the VitamLoggerLog become a 'real' class, the unit test must be improved
     @Test
@@ -61,5 +62,4 @@ public class VitamLoggerLogTest {
             vll.always(null, null, null);
         }).doesNotThrowAnyException();
     }
-
 }

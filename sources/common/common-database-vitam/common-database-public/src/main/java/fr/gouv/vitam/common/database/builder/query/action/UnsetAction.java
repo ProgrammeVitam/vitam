@@ -36,6 +36,7 @@ import fr.gouv.vitam.common.exception.InvalidParseOperationException;
  * UnSet Action: $unset : [ name, name, ... ]
  */
 public class UnsetAction extends Action {
+
     protected UnsetAction() {
         super();
     }
@@ -46,8 +47,7 @@ public class UnsetAction extends Action {
      * @param variableNames list of key name
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public UnsetAction(final String... variableNames)
-        throws InvalidCreateOperationException {
+    public UnsetAction(final String... variableNames) throws InvalidCreateOperationException {
         super();
         createActionVariables(UPDATEACTION.UNSET, variableNames);
         currentUPDATEACTION = UPDATEACTION.UNSET;
@@ -61,11 +61,11 @@ public class UnsetAction extends Action {
      * @return the UnSetAction
      * @throws InvalidCreateOperationException when query is invalid
      */
-    public final UnsetAction add(final String... variableNames)
-        throws InvalidCreateOperationException {
+    public final UnsetAction add(final String... variableNames) throws InvalidCreateOperationException {
         if (currentUPDATEACTION != UPDATEACTION.UNSET) {
             throw new InvalidCreateOperationException(
-                "Cannot add an unset element since this is not a UnSet Action: " + currentUPDATEACTION);
+                "Cannot add an unset element since this is not a UnSet Action: " + currentUPDATEACTION
+            );
         }
         for (final String name : variableNames) {
             if (name != null && !name.trim().isEmpty()) {
@@ -79,5 +79,4 @@ public class UnsetAction extends Action {
         }
         return this;
     }
-
 }

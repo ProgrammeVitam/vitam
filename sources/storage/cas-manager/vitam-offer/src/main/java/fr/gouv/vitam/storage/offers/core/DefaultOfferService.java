@@ -90,12 +90,12 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageNotFoundException thrown when object does not exists
      * @throws ContentAddressableStorageException thrown when a server error occurs
      */
-    String createAccessRequest(String containerName, List<String> objectIds)
-        throws ContentAddressableStorageException;
+    String createAccessRequest(String containerName, List<String> objectIds) throws ContentAddressableStorageException;
 
-    Map<String, AccessRequestStatus> checkAccessRequestStatuses(List<String> accessRequestId,
-        boolean adminCrossTenantAccessRequestAllowed)
-        throws ContentAddressableStorageException;
+    Map<String, AccessRequestStatus> checkAccessRequestStatuses(
+        List<String> accessRequestId,
+        boolean adminCrossTenantAccessRequestAllowed
+    ) throws ContentAddressableStorageException;
 
     void removeAccessRequest(String accessRequestId, boolean adminCrossTenantAccessRequestAllowed)
         throws ContentAddressableStorageException;
@@ -116,12 +116,22 @@ public interface DefaultOfferService {
      * @return the digest of the complete file or the digest of the chunk
      * @throws ContentAddressableStorageException if the container does not exist
      */
-    String createObject(String containerName, String objectId, InputStream objectPart, DataCategory
-        type, long size, DigestType digestType) throws ContentAddressableStorageException;
+    String createObject(
+        String containerName,
+        String objectId,
+        InputStream objectPart,
+        DataCategory type,
+        long size,
+        DigestType digestType
+    ) throws ContentAddressableStorageException;
 
-    StorageBulkPutResult bulkPutObjects(String containerName, List<String> objectIds,
-        MultiplexedStreamReader multiplexedStreamReader, DataCategory type, DigestType digestType)
-        throws ContentAddressableStorageException, IOException;
+    StorageBulkPutResult bulkPutObjects(
+        String containerName,
+        List<String> objectIds,
+        MultiplexedStreamReader multiplexedStreamReader,
+        DataCategory type,
+        DigestType digestType
+    ) throws ContentAddressableStorageException, IOException;
 
     /**
      * Check if object exists
@@ -141,8 +151,7 @@ public interface DefaultOfferService {
      * @throws ContentAddressableStorageNotFoundException thrown if the container does not exist
      * @throws ContentAddressableStorageServerException
      */
-    ContainerInformation getCapacity(String containerName)
-        throws ContentAddressableStorageException;
+    ContainerInformation getCapacity(String containerName) throws ContentAddressableStorageException;
 
     /**
      * Deletes a object representing the data at location containerName/objectName
@@ -154,8 +163,7 @@ public interface DefaultOfferService {
      * be located in the container.
      * @throws ContentAddressableStorageException Thrown when delete action failed due some other failure
      */
-    void deleteObject(String containerName, String objectId,
-        DataCategory type)
+    void deleteObject(String containerName, String objectId, DataCategory type)
         throws ContentAddressableStorageNotFoundException, ContentAddressableStorageException;
 
     /**

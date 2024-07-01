@@ -37,10 +37,13 @@ public class IngestCleanupUnitReportEntry {
 
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("status")
     private StatusCode status = StatusCode.UNKNOWN;
+
     @JsonProperty("errors")
     private List<String> errors;
+
     @JsonProperty("warnings")
     private List<String> warnings;
 

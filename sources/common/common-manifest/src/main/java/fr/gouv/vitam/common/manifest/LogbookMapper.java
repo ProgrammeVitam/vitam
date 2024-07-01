@@ -67,11 +67,14 @@ public class LogbookMapper {
         event.setEventDetailData(eventData.getString(LogbookEvent.EV_DET_DATA));
 
         Map<String, List<String>> extensions = new HashMap<>();
-        extensions.put(AGENT_IDENTIFIER,
-            Collections.singletonList(eventData.getString(LOGBOOK_EVENT_AGENT_IDENTIFIER)));
-        extensions.put(OBJECT_IDENTIFIER,
-            Collections.singletonList(eventData.getString(LOGBOOK_EVENT_OBJECT_IDENTIFIER)));
-        event.getAny()
-            .addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(extensions));
+        extensions.put(
+            AGENT_IDENTIFIER,
+            Collections.singletonList(eventData.getString(LOGBOOK_EVENT_AGENT_IDENTIFIER))
+        );
+        extensions.put(
+            OBJECT_IDENTIFIER,
+            Collections.singletonList(eventData.getString(LOGBOOK_EVENT_OBJECT_IDENTIFIER))
+        );
+        event.getAny().addAll(TransformJsonTreeToListOfXmlElement.mapJsonToElement(extensions));
     }
 }

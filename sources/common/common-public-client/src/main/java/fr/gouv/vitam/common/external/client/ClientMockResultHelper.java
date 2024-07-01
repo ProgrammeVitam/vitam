@@ -80,40 +80,39 @@ import java.util.List;
 public class ClientMockResultHelper {
 
     private static final String RESULT =
-        "{\"$query\":{}," +
-            "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":100}," +
-            "\"$results\":";
+        "{\"$query\":{}," + "\"$hits\":{\"total\":100,\"offset\":0,\"limit\":100}," + "\"$results\":";
 
     private static final String UNIT =
         "{\"DescriptionLevel\":\"Item\"," +
-            "\"Title\":[\"METADATA ENCODING AND TRANSMISSION STANDARD: PRIMER AND REFERENCE MANUAL\",\"Manuel METS revu et corrigé\"]," +
-            "\"Description\":[\"METSPrimerRevised.pdf\",\"Pseudo Archive METSPrimerRevised.pdf\"]," +
-            "\"Tag\":[\"METS\",\"norme internationale\"],\"TransactedDate\":\"2012-09-16T10:22:02\"," +
-            "\"Event\":[{\"EventType\":\"Création\",\"EventDateTime\":\"2010-01-01T10:22:02\"},{\"EventType\":\"Validation\",\"EventDateTime\":\"2010-02-01T10:22:02\"}]," +
-            "\"_uds\":[{\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\":1}],\"#id\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6spqaaaaq\",\"#nbunits\":0,\"#tenant\":0," +
-            "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
-            "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
+        "\"Title\":[\"METADATA ENCODING AND TRANSMISSION STANDARD: PRIMER AND REFERENCE MANUAL\",\"Manuel METS revu et corrigé\"]," +
+        "\"Description\":[\"METSPrimerRevised.pdf\",\"Pseudo Archive METSPrimerRevised.pdf\"]," +
+        "\"Tag\":[\"METS\",\"norme internationale\"],\"TransactedDate\":\"2012-09-16T10:22:02\"," +
+        "\"Event\":[{\"EventType\":\"Création\",\"EventDateTime\":\"2010-01-01T10:22:02\"},{\"EventType\":\"Validation\",\"EventDateTime\":\"2010-02-01T10:22:02\"}]," +
+        "\"_uds\":[{\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\":1}],\"#id\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6spqaaaaq\",\"#nbunits\":0,\"#tenant\":0," +
+        "\"#object\":\"aeaaaaaaaaaam7mxaa7hcakyq4z6sjqaaaaq\",\"#unitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#min\":1,\"#max\":2," +
+        "\"#allunitups\":[\"aeaaaaaaaaaam7mxaa7hcakyq4z6soyaaaaq\"],\"#operations\":[\"aedqaaaaacaam7mxabhniakyq4z4ewaaaaaq\"]}";
 
     private static final String LOGBOOK_OPERATION =
         "\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-            "\"evType\": \"Process_SIP_unitary\"," +
-            "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-            "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"evTypeProc\": \"INGEST\"," +
-            "\"outcome\": \"STARTED\"," +
-            "\"outDetail\": null," +
-            "\"outMessg\": \"SIP entry : SIP.zip\"," +
-            "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
-            "\"agIdApp\": null," +
-            "\"evIdAppSession\": null," +
-            "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"agIdExt\": null," +
-            "\"obId\": null," +
-            "\"obIdReq\": null," +
-            "\"obIdIn\": null," +
-            "\"events\": []}";
+        "\"evType\": \"Process_SIP_unitary\"," +
+        "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
+        "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "\"evTypeProc\": \"INGEST\"," +
+        "\"outcome\": \"STARTED\"," +
+        "\"outDetail\": null," +
+        "\"outMessg\": \"SIP entry : SIP.zip\"," +
+        "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
+        "\"agIdApp\": null," +
+        "\"evIdAppSession\": null," +
+        "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "\"agIdExt\": null," +
+        "\"obId\": null," +
+        "\"obIdReq\": null," +
+        "\"obIdIn\": null," +
+        "\"events\": []}";
 
-    private static final String ACCESSION_DETAIL = "{" +
+    private static final String ACCESSION_DETAIL =
+        "{" +
         "\"_id\": \"aedqaaaaacaam7mxabsakakygeje2uyaaaaq\"," +
         "\"_tenant\": 0," +
         "\"OriginatingAgency\": \"FRAN_NP_005568\"," +
@@ -142,56 +141,51 @@ public class ClientMockResultHelper {
         "    \"remained\": 345042" +
         "}}";
 
-
-
     private static final String TRACEABILITY_OPERATION =
         "{$hint: {'total':'1'},$context:{$query: {$eq: {\"id\" : \"1\" }}, $projection: {}, $filter: {}},$result:" +
-            " {\"LogType\":\"OPERATION\",\"StartDate\":\"2017-03-02T12:46:25.618\",\"EndDate\":\"2017-03-02T14:22:34.811\"" +
-            ",\"Hash\":\"obu+Z7+M7JlaY5ney0dDNTzmWr4+r6Cf3GtwMrLKpCLIL7Bjqty8kfUNSGNQ9qlzO3YE7+zRdC2o/S+uUOJM4g==\"," +
-            "\"TimeStampToken\":\"MIIEZzAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIETAYJKoZIhvcNAQcCoIIEPTCCBDkCAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRvMG0CAQEGASkwUTANBglghkgBZQMEAgMFAARAMcCUdvY+87OSgJw3slg+aHgTt+j+UcybWmhG0G9wL7A0NE8eUO8JFJRD81Gb4wTu12AealKzWeUoLczLWRhACQIBARgPMjAxNzAzMDIxNDIyMzVaMYIDnjCCA5oCAQEwTzBKMQswCQYDVQQGEwJGUjEPMA0GA1UECBMGRnJhbmNlMQ4wDAYDVQQHEwVQQXJpczENMAsGA1UEChMERXRhdDELMAkGA1UECxMCRVQCAQEwDQYJYIZIAWUDBAIDBQCgggEgMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcNMTcwMzAyMTQyMjM1WjAtBgkqhkiG9w0BCTQxIDAeMA0GCWCGSAFlAwQCAwUAoQ0GCSqGSIb3DQEBDQUAME8GCSqGSIb3DQEJBDFCBECDgiYpV3Bd/9ckq0Nq+zm/TmPWO3rCt33o+cKA8DI5L9EGiEV2GtjO0z4jnw08/iZ3chanYRrR8hJk4u4Fmqk4MGQGCyqGSIb3DQEJEAIvMVUwUzBRME8wCwYJYIZIAWUDBAIDBEACrDhLC92Gcm2mclJwDuLADobFbVWY5HASuT8FL0/1nNexkoSVnVclwr0VkxJgmVAxa+g8ecGbwLzDs8vbT9AYMA0GCSqGSIb3DQEBDQUABIICABBtgwv5dZJhWu050wXM27HGZF6yFaU6AOPjjUIQccbly1nw/Sebg2xRenMv+jxAm8bAdW3eBPNrSa1iJKGLmgfYZuxIwt5AluzVuvTH2t1j08XSMmDQpilhN6Bx9dOS3aClNm89ZVygmdUz6N9HGmxZh1yis80SxD6jDjhnuK6R+xpmdmL6HIDzHa5mjOCbD1lXtr5tWWR+1K9Axv4qoLADlrUKmpCdbnfUBgVdbWJnJBcW6WoQXDpTD/JbV/m2s/yzK7FDt+IpERwVZGqiZF9WwzgX9AFJ352tFWWj+KhqfFN8UgfPKD5aCo6V5T+vMlkodiV+0XQBPKdcPBoo8PJtiCR5sFlJHbQ0qGwQq6P/06ApvrXOFKz434CkCGTbZLKVEHTs1SqgZuAg54bR6GbifOheVojOhWDFEMEXlnpD7PjCYscL9U83H92Iosr4rJhvYwSYbahmU7W1RlUP4cHy8nUYwvUO54ehYMcKcZ4idG4nbUfVYy8lClYruKG0rVcwWu3TZxeSaLePYRZwaeXJ00p36SttyZTLeN4rZatePQc/ff856jvKqDlDZlXIyhOcYCXot5xHFlv+zKZhB71uOv/XvqqmZFhentmkZFYK+qi2tH+Tahar2f3b4RJo+bm235g/v1rIvKQKe8rjkemgPIG7RzkCnss2SGIpfW5h\"," +
-            "\"NumberOfElements\":4," +
-            "\"FileName\":\"0_LogbookOperation_20170302_142234.zip\"," +
-            "\"Size\":41807}}";
+        " {\"LogType\":\"OPERATION\",\"StartDate\":\"2017-03-02T12:46:25.618\",\"EndDate\":\"2017-03-02T14:22:34.811\"" +
+        ",\"Hash\":\"obu+Z7+M7JlaY5ney0dDNTzmWr4+r6Cf3GtwMrLKpCLIL7Bjqty8kfUNSGNQ9qlzO3YE7+zRdC2o/S+uUOJM4g==\"," +
+        "\"TimeStampToken\":\"MIIEZzAVAgEAMBAMDk9wZXJhdGlvbiBPa2F5MIIETAYJKoZIhvcNAQcCoIIEPTCCBDkCAQMxDzANBglghkgBZQMEAgMFADCBgAYLKoZIhvcNAQkQAQSgcQRvMG0CAQEGASkwUTANBglghkgBZQMEAgMFAARAMcCUdvY+87OSgJw3slg+aHgTt+j+UcybWmhG0G9wL7A0NE8eUO8JFJRD81Gb4wTu12AealKzWeUoLczLWRhACQIBARgPMjAxNzAzMDIxNDIyMzVaMYIDnjCCA5oCAQEwTzBKMQswCQYDVQQGEwJGUjEPMA0GA1UECBMGRnJhbmNlMQ4wDAYDVQQHEwVQQXJpczENMAsGA1UEChMERXRhdDELMAkGA1UECxMCRVQCAQEwDQYJYIZIAWUDBAIDBQCgggEgMBoGCSqGSIb3DQEJAzENBgsqhkiG9w0BCRABBDAcBgkqhkiG9w0BCQUxDxcNMTcwMzAyMTQyMjM1WjAtBgkqhkiG9w0BCTQxIDAeMA0GCWCGSAFlAwQCAwUAoQ0GCSqGSIb3DQEBDQUAME8GCSqGSIb3DQEJBDFCBECDgiYpV3Bd/9ckq0Nq+zm/TmPWO3rCt33o+cKA8DI5L9EGiEV2GtjO0z4jnw08/iZ3chanYRrR8hJk4u4Fmqk4MGQGCyqGSIb3DQEJEAIvMVUwUzBRME8wCwYJYIZIAWUDBAIDBEACrDhLC92Gcm2mclJwDuLADobFbVWY5HASuT8FL0/1nNexkoSVnVclwr0VkxJgmVAxa+g8ecGbwLzDs8vbT9AYMA0GCSqGSIb3DQEBDQUABIICABBtgwv5dZJhWu050wXM27HGZF6yFaU6AOPjjUIQccbly1nw/Sebg2xRenMv+jxAm8bAdW3eBPNrSa1iJKGLmgfYZuxIwt5AluzVuvTH2t1j08XSMmDQpilhN6Bx9dOS3aClNm89ZVygmdUz6N9HGmxZh1yis80SxD6jDjhnuK6R+xpmdmL6HIDzHa5mjOCbD1lXtr5tWWR+1K9Axv4qoLADlrUKmpCdbnfUBgVdbWJnJBcW6WoQXDpTD/JbV/m2s/yzK7FDt+IpERwVZGqiZF9WwzgX9AFJ352tFWWj+KhqfFN8UgfPKD5aCo6V5T+vMlkodiV+0XQBPKdcPBoo8PJtiCR5sFlJHbQ0qGwQq6P/06ApvrXOFKz434CkCGTbZLKVEHTs1SqgZuAg54bR6GbifOheVojOhWDFEMEXlnpD7PjCYscL9U83H92Iosr4rJhvYwSYbahmU7W1RlUP4cHy8nUYwvUO54ehYMcKcZ4idG4nbUfVYy8lClYruKG0rVcwWu3TZxeSaLePYRZwaeXJ00p36SttyZTLeN4rZatePQc/ff856jvKqDlDZlXIyhOcYCXot5xHFlv+zKZhB71uOv/XvqqmZFhentmkZFYK+qi2tH+Tahar2f3b4RJo+bm235g/v1rIvKQKe8rjkemgPIG7RzkCnss2SGIpfW5h\"," +
+        "\"NumberOfElements\":4," +
+        "\"FileName\":\"0_LogbookOperation_20170302_142234.zip\"," +
+        "\"Size\":41807}}";
 
     private static final String TRACEABILITY_LOGBOOK_OPERATION =
         "{\"evId\": \"aedqaaaaacaam7mxaaaamakvhiv4rsqaaaaq\"," +
-            "\"evType\": \"CHECK_TRACEABILITY_OPERATION\"," +
-            "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
-            "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"evTypeProc\": \"TRACEABILITY\"," +
-            "\"outcome\": \"STARTED\"," +
-            "\"outDetail\": null," +
-            "\"outMessg\": \"SIP entry : SIP.zip\"," +
-            "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"storage\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
-            "\"agIdApp\": null," +
-            "\"evIdAppSession\": null," +
-            "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
-            "\"agIdExt\": null," +
-            "\"obId\": null," +
-            "\"obIdReq\": null," +
-            "\"obIdIn\": null," +
-            "\"events\": [{" +
-            "\"evTypeProc\": \"TRACEABILITY\"," +
-            "\"evDetData\": {\"LogType\":\"OPERATION\",\"StartDate\":\"2017-04-06T22:50:59.657\"," +
-            "\"EndDate\":\"2017-04-06T23:01:03.121\",\"Hash\":\"HASH_TEST\",\"TimeStampToken\":\"TimeStamp_TEST\"," +
-            "\"NumberOfElements\":4,\"FileName\":\"0_LogbookOperation_20170406_230103.zip\",\"Size\":4141}}]}";
+        "\"evType\": \"CHECK_TRACEABILITY_OPERATION\"," +
+        "\"evDateTime\": \"2016-06-10T11:56:35.914\"," +
+        "\"evIdProc\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "\"evTypeProc\": \"TRACEABILITY\"," +
+        "\"outcome\": \"STARTED\"," +
+        "\"outDetail\": null," +
+        "\"outMessg\": \"SIP entry : SIP.zip\"," +
+        "\"agId\": \"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"storage\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"," +
+        "\"agIdApp\": null," +
+        "\"evIdAppSession\": null," +
+        "\"evIdReq\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq\"," +
+        "\"agIdExt\": null," +
+        "\"obId\": null," +
+        "\"obIdReq\": null," +
+        "\"obIdIn\": null," +
+        "\"events\": [{" +
+        "\"evTypeProc\": \"TRACEABILITY\"," +
+        "\"evDetData\": {\"LogType\":\"OPERATION\",\"StartDate\":\"2017-04-06T22:50:59.657\"," +
+        "\"EndDate\":\"2017-04-06T23:01:03.121\",\"Hash\":\"HASH_TEST\",\"TimeStampToken\":\"TimeStamp_TEST\"," +
+        "\"NumberOfElements\":4,\"FileName\":\"0_LogbookOperation_20170406_230103.zip\",\"Size\":4141}}]}";
 
     public static final String SECURITY_PROFILES =
         "{" +
-            "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetcaaaabbbcc\"," +
-            "\"Identifier\": \"SEC_PROFILE-000001\"," +
-            "\"Name\": \"TEST_PROFILE_1\"," +
-            "\"FullAccess\": false," +
-            "\"Permissions\": [" +
-            "\"permission_one:read\"," +
-            "\"permission_one:id:write\"" +
-            "]" +
-            "}";
+        "\"_id\":\"aeaaaaaaaaaaaaabaa4ikakyetcaaaabbbcc\"," +
+        "\"Identifier\": \"SEC_PROFILE-000001\"," +
+        "\"Name\": \"TEST_PROFILE_1\"," +
+        "\"FullAccess\": false," +
+        "\"Permissions\": [" +
+        "\"permission_one:read\"," +
+        "\"permission_one:id:write\"" +
+        "]" +
+        "}";
 
-
-    private ClientMockResultHelper() {
-    }
-
+    private ClientMockResultHelper() {}
 
     /**
      * @return a default Logbook Result
@@ -217,7 +211,8 @@ public class ClientMockResultHelper {
         logbookLifecycle.setOutDetail(null);
         logbookLifecycle.setOutMessg("Création du journal du cycle de vie");
         logbookLifecycle.setAgId(
-            "\"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"");
+            "\"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\""
+        );
         return logbookLifecycle;
     }
 
@@ -240,13 +235,13 @@ public class ClientMockResultHelper {
         logbookOperation.setOutDetail(null);
         logbookOperation.setOutMessg("\"SIP entry : SIP.zip");
         logbookOperation.setAgId(
-            "\"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\"");
+            "\"{\\\"Name\\\":\\\"vitam-iaas-app-01\\\",\\\"Role\\\":\\\"ingest-external\\\",\\\"ServerId\\\":1048375580,\\\"SiteId\\\":1,\\\"GlobalPlatformId\\\":243069212}\""
+        );
         logbookOperation.setAgIdApp(null);
         logbookOperation.setEvIdAppSession(null);
         logbookOperation.setEvIdReq("aedqaaaaacaam7mxaaaamakvhiv4rsiaaaaq");
         return logbookOperation;
     }
-
 
     private static FileFormatModel getFormatItem() {
         FileFormatModel fileFormatModel = new FileFormatModel();
@@ -257,18 +252,22 @@ public class ClientMockResultHelper {
         fileFormatModel.setPuid("x-fmt/20");
         fileFormatModel.setVersionPronom("1.0 / 1.1");
         fileFormatModel.setName("Adobe Illustrator");
-        fileFormatModel.setExtensions(new ArrayList<String>() {
-            {
-                add("ai");
+        fileFormatModel.setExtensions(
+            new ArrayList<String>() {
+                {
+                    add("ai");
+                }
             }
-        });
-        fileFormatModel.setHasPriorityOverFileFormatIDs(new ArrayList<String>() {
-            {
-                add("fmt/122");
-                add("fmt/123");
-                add("fmt/124");
+        );
+        fileFormatModel.setHasPriorityOverFileFormatIDs(
+            new ArrayList<String>() {
+                {
+                    add("fmt/122");
+                    add("fmt/123");
+                    add("fmt/124");
+                }
             }
-        });
+        );
         fileFormatModel.setVersion("0");
         fileFormatModel.setAlert(false);
         return fileFormatModel;
@@ -282,7 +281,8 @@ public class ClientMockResultHelper {
         rule.setRuleType(RuleType.AppraisalRule);
         rule.setRuleValue("Pièces comptables (comptable)");
         rule.setRuleDescription(
-            "Durée de conservation des pièces comptables pour le comptable l’échéance est calculée à partir de la date de solde comptable");
+            "Durée de conservation des pièces comptables pour le comptable l’échéance est calculée à partir de la date de solde comptable"
+        );
         rule.setRuleDuration("6");
         rule.setRuleMeasurement(RuleMeasurementEnum.YEAR);
         rule.setCreationDate("2016-11-02");
@@ -303,7 +303,6 @@ public class ClientMockResultHelper {
         contract.setActivationdate("2016-11-04");
         contract.setDeactivationdate("2016-11-03");
         return contract;
-
     }
 
     private static AgenciesModel getAgenciesModel() {
@@ -328,19 +327,23 @@ public class ClientMockResultHelper {
         contract.setLastupdate("2016-11-05");
         contract.setActivationdate("2016-11-04");
         contract.setDeactivationdate("2016-11-03");
-        contract.setDataObjectVersion(new HashSet<String>() {
-            {
-                add("PhysicalMaster");
-                add("BinaryMaster");
+        contract.setDataObjectVersion(
+            new HashSet<String>() {
+                {
+                    add("PhysicalMaster");
+                    add("BinaryMaster");
+                }
             }
-        });
+        );
         contract.setWritingPermission(true);
-        contract.setOriginatingAgencies(new HashSet<String>() {
-            {
-                add("FR_ORG_AGEC");
-                add("OriginatingAgency");
+        contract.setOriginatingAgencies(
+            new HashSet<String>() {
+                {
+                    add("FR_ORG_AGEC");
+                    add("OriginatingAgency");
+                }
             }
-        });
+        );
         contract.setEveryDataObjectVersion(false);
         contract.setEveryOriginatingAgency(false);
         return contract;
@@ -358,8 +361,12 @@ public class ClientMockResultHelper {
         contract.setLastupdate("2016-11-05");
         contract.setActivationdate("2016-11-04");
         contract.setDeactivationdate("2016-11-03");
-        contract.setStorage(new StorageDetailModel().setUnitStrategy("default").setObjectGroupStrategy("default")
-            .setObjectStrategy("default"));
+        contract.setStorage(
+            new StorageDetailModel()
+                .setUnitStrategy("default")
+                .setObjectGroupStrategy("default")
+                .setObjectStrategy("default")
+        );
         return contract;
     }
 
@@ -376,11 +383,13 @@ public class ClientMockResultHelper {
         context.setLastupdate("2016-11-05");
         context.setActivationdate("2016-11-04");
         context.setDeactivationdate("2016-11-03");
-        context.setPermissions(new ArrayList<PermissionModel>() {
-            {
-                add(permission);
+        context.setPermissions(
+            new ArrayList<PermissionModel>() {
+                {
+                    add(permission);
+                }
             }
-        });
+        );
         return context;
     }
 
@@ -417,7 +426,6 @@ public class ClientMockResultHelper {
         return profile;
     }
 
-
     private static OntologyModel getOntologyItem() {
         OntologyModel ontology = new OntologyModel();
         ontology.setId("aeaaaaaaaaaaaaabaa4ikakyetch6mqaaacq");
@@ -429,12 +437,14 @@ public class ClientMockResultHelper {
         ontology.setOrigin(OntologyOrigin.INTERNAL);
         ontology.setType(OntologyType.KEYWORD);
         ontology.setShortName("Originating Agency Identifier");
-        ontology.setCollections(new ArrayList<String>() {
-            {
-                add("Unit");
-                add("ObjectGroup");
+        ontology.setCollections(
+            new ArrayList<String>() {
+                {
+                    add("Unit");
+                    add("ObjectGroup");
+                }
             }
-        });
+        );
         ontology.setVersion(0);
         ontology.setCreationdate("2017-04-09");
         ontology.setLastupdate("2017-04-09");
@@ -447,12 +457,14 @@ public class ClientMockResultHelper {
         accessionRegister.setTenant(0);
         accessionRegister.setOriginatingAgency("FRAN_NP_005568");
         accessionRegister.setCreationDate("22016-11-04T20:40:49.030");
-        accessionRegister
-            .setTotalObjectsGroups(new RegisterValueDetailModel().setIngested(3).setDeleted(0).setRemained(3));
+        accessionRegister.setTotalObjectsGroups(
+            new RegisterValueDetailModel().setIngested(3).setDeleted(0).setRemained(3)
+        );
         accessionRegister.setTotalUnits(new RegisterValueDetailModel().setIngested(3).setDeleted(0).setRemained(3));
         accessionRegister.setTotalObjects(new RegisterValueDetailModel().setIngested(12).setDeleted(0).setRemained(12));
-        accessionRegister
-            .setObjectSize(new RegisterValueDetailModel().setIngested(1035126).setDeleted(0).setRemained(1035126));
+        accessionRegister.setObjectSize(
+            new RegisterValueDetailModel().setIngested(1035126).setDeleted(0).setRemained(1035126)
+        );
         return accessionRegister;
     }
 
@@ -482,8 +494,10 @@ public class ClientMockResultHelper {
         metadatas.put("DataObjectGroupId", "aebaaaaaaagc44lgabqraak63u6iq2aaaabq");
         metadatas.put("DataObjectVersion", "BinaryMaster_1");
         metadatas.put("Uri", "Content/ID55.txt");
-        metadatas.put("MessageDigest",
-            "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1");
+        metadatas.put(
+            "MessageDigest",
+            "86c0bc701ef6b5dd21b080bc5bb2af38097baa6237275da83a52f092c9eae3e4e4b0247391620bd732fe824d18bd3bb6c37e62ec73a8cf3585c6a799399861b1"
+        );
         metadatas.put("Algorithm", "SHA-512");
         ObjectNode formatIdentification = JsonHandler.createObjectNode();
         formatIdentification.put("FormatLitteral", "Plain Text File");
@@ -511,7 +525,10 @@ public class ClientMockResultHelper {
     public static JsonNode getLogbookResults() throws InvalidParseOperationException {
         final StringBuilder result = new StringBuilder(RESULT).append("[");
         for (int i = 0; i < 100; i++) {
-            result.append("{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa").append(i).append("\",")
+            result
+                .append("{\"_id\": \"aedqaaaaacaam7mxaaaamakvhiv4rsiaaa")
+                .append(i)
+                .append("\",")
                 .append(LOGBOOK_OPERATION);
             if (i < 99) {
                 result.append(",");
@@ -536,7 +553,8 @@ public class ClientMockResultHelper {
      * @return a default Logbook operations response Result
      */
     public static RequestResponse<LogbookOperation> getLogbookOperationsRequestResponse() {
-        return new RequestResponseOK<LogbookOperation>().addAllResults(getLogbookOperations())
+        return new RequestResponseOK<LogbookOperation>()
+            .addAllResults(getLogbookOperations())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -544,7 +562,8 @@ public class ClientMockResultHelper {
      * @return one default Logbook operation response
      */
     public static RequestResponse<LogbookOperation> getLogbookOperationRequestResponse() {
-        return new RequestResponseOK<LogbookOperation>().addResult(getLogbookOperationItem())
+        return new RequestResponseOK<LogbookOperation>()
+            .addResult(getLogbookOperationItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -552,7 +571,8 @@ public class ClientMockResultHelper {
      * @return one default Logbook lifecycle response
      */
     public static RequestResponse<LogbookLifecycle> getLogbookLifecycleRequestResponse() {
-        return new RequestResponseOK<LogbookLifecycle>().addResult(getLogbookLifecycleItem())
+        return new RequestResponseOK<LogbookLifecycle>()
+            .addResult(getLogbookLifecycleItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -576,8 +596,7 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse<JsonNode> createReponse(String s) throws InvalidParseOperationException {
         RequestResponseOK<JsonNode> responseOK = new RequestResponseOK<>();
-        if (null != s)
-            responseOK.addResult(JsonHandler.getFromString(s));
+        if (null != s) responseOK.addResult(JsonHandler.getFromString(s));
         return responseOK.setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -589,8 +608,7 @@ public class ClientMockResultHelper {
      */
     public static RequestResponse createReponse(String s, int statuscode) throws InvalidParseOperationException {
         RequestResponseOK responseOK = new RequestResponseOK();
-        if (null != s)
-            responseOK.addResult(JsonHandler.getFromString(s));
+        if (null != s) responseOK.addResult(JsonHandler.getFromString(s));
         return responseOK.setHttpCode(statuscode);
     }
 
@@ -598,7 +616,8 @@ public class ClientMockResultHelper {
      * @return a default Access Register Summary
      */
     public static RequestResponse<AccessionRegisterSummaryModel> getAccessionRegisterSummary() {
-        return new RequestResponseOK<AccessionRegisterSummaryModel>().addResult(getAccessionRegisterSummaryItem())
+        return new RequestResponseOK<AccessionRegisterSummaryModel>()
+            .addResult(getAccessionRegisterSummaryItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -614,7 +633,8 @@ public class ClientMockResultHelper {
      * @return a default Format
      */
     public static RequestResponse<FileFormatModel> getFormat() {
-        return new RequestResponseOK<FileFormatModel>().addResult(getFormatItem())
+        return new RequestResponseOK<FileFormatModel>()
+            .addResult(getFormatItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -623,16 +643,14 @@ public class ClientMockResultHelper {
      * @return a default Format
      */
     public static RequestResponse<FileFormatModel> getFormat(int statusCode) {
-        return new RequestResponseOK<FileFormatModel>().addResult(getFormatItem())
-            .setHttpCode(statusCode);
+        return new RequestResponseOK<FileFormatModel>().addResult(getFormatItem()).setHttpCode(statusCode);
     }
 
     /**
      * @return a default Rule
      */
     public static RequestResponse<FileRulesModel> getRule() {
-        return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem())
-            .setHttpCode(Status.OK.getStatusCode());
+        return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem()).setHttpCode(Status.OK.getStatusCode());
     }
 
     /**
@@ -640,33 +658,33 @@ public class ClientMockResultHelper {
      * @return a default Rule
      */
     public static RequestResponse<FileRulesModel> getRule(int statusCode) {
-        return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem())
-            .setHttpCode(statusCode);
+        return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem()).setHttpCode(statusCode);
     }
 
     /**
      * @return a RequestResponse containing contracts json
      */
     public static RequestResponse<IngestContractModel> getIngestContracts() {
-        return new RequestResponseOK<IngestContractModel>().addResult(getIngestContractItem())
+        return new RequestResponseOK<IngestContractModel>()
+            .addResult(getIngestContractItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
-
 
     /**
      * @return a RequestResponse containing access contracts json
      */
     public static RequestResponse<AccessContractModel> getAccessContracts() {
-        return new RequestResponseOK<AccessContractModel>().addResult(getAccessContractItem())
+        return new RequestResponseOK<AccessContractModel>()
+            .addResult(getAccessContractItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
-
 
     /**
      * @return a RequestResponse containing access contracts json
      */
     public static RequestResponse<ManagementContractModel> getManagementContracts() {
-        return new RequestResponseOK<ManagementContractModel>().addResult(getManagementContractItem())
+        return new RequestResponseOK<ManagementContractModel>()
+            .addResult(getManagementContractItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -674,7 +692,8 @@ public class ClientMockResultHelper {
      * @return a RequestResponse containing agencies json
      */
     public static RequestResponse<AgenciesModel> getAgencies() {
-        return new RequestResponseOK<AgenciesModel>().addResult(getAgenciesModel())
+        return new RequestResponseOK<AgenciesModel>()
+            .addResult(getAgenciesModel())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -683,23 +702,19 @@ public class ClientMockResultHelper {
      * @return a RequestResponse containing agencies json
      */
     public static RequestResponse<AgenciesModel> getAgencies(int statusCode) {
-        return new RequestResponseOK<AgenciesModel>().addResult(getAgenciesModel())
-            .setHttpCode(statusCode);
+        return new RequestResponseOK<AgenciesModel>().addResult(getAgenciesModel()).setHttpCode(statusCode);
     }
 
     /**
      * @return context json
      */
     public static RequestResponse<ContextModel> getContexts(int statusCode) {
-        return new RequestResponseOK<ContextModel>().addResult(getContextItem())
-            .setHttpCode(statusCode);
+        return new RequestResponseOK<ContextModel>().addResult(getContextItem()).setHttpCode(statusCode);
     }
 
     public static RequestResponse<ProfileModel> getProfiles(int statusCode) {
         return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);
     }
-
-
 
     /**
      * @param statusCode
@@ -714,10 +729,10 @@ public class ClientMockResultHelper {
      * @throws InvalidParseOperationException
      */
     public static RequestResponse<FileFormatModel> getFormatList() {
-        return new RequestResponseOK<FileFormatModel>().addResult(getFormatItem())
+        return new RequestResponseOK<FileFormatModel>()
+            .addResult(getFormatItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
-
 
     public static RequestResponse<FileRulesModel> getRuleList() {
         return new RequestResponseOK<FileRulesModel>().addResult(getRuleItem()).setHttpCode(Status.OK.getStatusCode());
@@ -743,7 +758,8 @@ public class ClientMockResultHelper {
      * @return a simple ArchiveUnit result
      */
     public static RequestResponse<JsonNode> getArchiveUnitSimpleResult(JsonNode query) {
-        return new RequestResponseOK<JsonNode>(query).addResult(getUnitSimpleItem())
+        return new RequestResponseOK<JsonNode>(query)
+            .addResult(getUnitSimpleItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -756,19 +772,20 @@ public class ClientMockResultHelper {
             ItemStatus itemStatus = new ItemStatus(itemId);
             itemStatus.setGlobalState(ProcessState.RUNNING);
             itemStatus.increment(StatusCode.STARTED);
-            return new RequestResponseOK<JsonNode>().addResult(JsonHandler.toJsonNode(itemStatus))
+            return new RequestResponseOK<JsonNode>()
+                .addResult(JsonHandler.toJsonNode(itemStatus))
                 .setHttpCode(Status.OK.getStatusCode());
         } catch (InvalidParseOperationException e) {
             throw new VitamClientException(e);
         }
     }
 
-
     /**
      * @return a simple GOT result
      */
     public static RequestResponse<JsonNode> getGotSimpleResult(JsonNode query) {
-        return new RequestResponseOK<JsonNode>(query).addResult(getGotSimpleItem())
+        return new RequestResponseOK<JsonNode>(query)
+            .addResult(getGotSimpleItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
 
@@ -779,8 +796,12 @@ public class ClientMockResultHelper {
     public static Response getObjectStream() {
         final MultivaluedHashMap<String, Object> headers = new MultivaluedHashMap<>();
         headers.add("Content-Disposition", "filename=\"test.txt\"");
-        return new AbstractMockClient.FakeInboundResponse(Status.OK, new ByteArrayInputStream("test".getBytes()),
-            MediaType.APPLICATION_OCTET_STREAM_TYPE, headers);
+        return new AbstractMockClient.FakeInboundResponse(
+            Status.OK,
+            new ByteArrayInputStream("test".getBytes()),
+            MediaType.APPLICATION_OCTET_STREAM_TYPE,
+            headers
+        );
     }
 
     /**
@@ -824,17 +845,15 @@ public class ClientMockResultHelper {
         }
     }
 
-    public static RequestResponse<JsonNode> getDIPSimpleResult(
-        JsonNode dslRequest) {
-        return new RequestResponseOK<JsonNode>(dslRequest).addResult(getUnitSimpleItem())
+    public static RequestResponse<JsonNode> getDIPSimpleResult(JsonNode dslRequest) {
+        return new RequestResponseOK<JsonNode>(dslRequest)
+            .addResult(getUnitSimpleItem())
             .setHttpCode(Status.OK.getStatusCode());
     }
-
 
     public static RequestResponse<JsonNode> getEvidenceAudit(int statusCode) {
         return new RequestResponseOK<JsonNode>().addResult(JsonHandler.createObjectNode()).setHttpCode(statusCode);
     }
-
 
     public static RequestResponse<ProfileModel> getProbativeValue(int statusCode) {
         return new RequestResponseOK<ProfileModel>().addResult(getProfileItem()).setHttpCode(statusCode);

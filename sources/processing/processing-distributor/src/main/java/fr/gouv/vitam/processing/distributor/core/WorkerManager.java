@@ -55,6 +55,7 @@ import java.util.concurrent.ConcurrentMap;
  * WorkerManager class contains methods to manage workers
  */
 public class WorkerManager implements IWorkerManager {
+
     /**
      * Default queue size
      * FIXME : why 15 ? Why not configurable
@@ -62,7 +63,6 @@ public class WorkerManager implements IWorkerManager {
     public static final int QUEUE_SIZE = 15;
     private static final VitamLogger LOGGER = VitamLoggerFactory.getInstance(WorkerManager.class);
     private final ConcurrentMap<String, WorkerFamilyManager> workersFamily;
-
 
     private WorkerClientFactory workerClientFactory = null;
 
@@ -77,8 +77,6 @@ public class WorkerManager implements IWorkerManager {
         workersFamily = new ConcurrentHashMap<>();
         this.workerClientFactory = workerClientFactory;
     }
-
-
 
     @Override
     public synchronized void marshallToDB() throws IOException {
@@ -108,7 +106,6 @@ public class WorkerManager implements IWorkerManager {
     @Override
     public void registerWorker(String familyId, String workerId, WorkerBean workerInformation)
         throws ProcessingBadRequestException, IOException {
-
         ParametersChecker.checkParameter("All arguments are required", familyId, workerId, workerInformation);
 
         if (!workerInformation.getFamily().equals(familyId)) {
@@ -152,8 +149,6 @@ public class WorkerManager implements IWorkerManager {
         } else {
             return checkStatus(serverHost, serverPort, workerClientFactory);
         }
-
-
     }
 
     private boolean checkStatus(String serverHost, int serverPort, WorkerClientFactory workerClientFactory) {

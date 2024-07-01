@@ -58,8 +58,12 @@ public class UnitComputedInheritedRulesInvalidationModel {
         // Empty constructor for deserialization
     }
 
-    public UnitComputedInheritedRulesInvalidationModel(String processId, int tenant, String creationDateTime,
-        UnitComputedInheritedRulesInvalidationReportEntry metadata) {
+    public UnitComputedInheritedRulesInvalidationModel(
+        String processId,
+        int tenant,
+        String creationDateTime,
+        UnitComputedInheritedRulesInvalidationReportEntry metadata
+    ) {
         this.processId = processId;
         this.creationDateTime = creationDateTime;
         this.metadata = metadata;
@@ -100,22 +104,23 @@ public class UnitComputedInheritedRulesInvalidationModel {
 
     @Override
     public boolean equals(Object o) {
-        if (o == this)
-            return true;
+        if (o == this) return true;
         if (!(o instanceof UnitComputedInheritedRulesInvalidationModel)) {
             return false;
         }
-        UnitComputedInheritedRulesInvalidationModel
-            invalidationModel = (UnitComputedInheritedRulesInvalidationModel) o;
+        UnitComputedInheritedRulesInvalidationModel invalidationModel = (UnitComputedInheritedRulesInvalidationModel) o;
 
-        return Objects.equals(getTenant(), invalidationModel.getTenant())
-            && Objects.equals(getProcessId(), invalidationModel.getProcessId())
-            && Objects.equals(getMetadataId(this), getMetadataId(invalidationModel));
+        return (
+            Objects.equals(getTenant(), invalidationModel.getTenant()) &&
+            Objects.equals(getProcessId(), invalidationModel.getProcessId()) &&
+            Objects.equals(getMetadataId(this), getMetadataId(invalidationModel))
+        );
     }
 
     private static String getMetadataId(UnitComputedInheritedRulesInvalidationModel invalidationModel) {
-        if (invalidationModel.getMetadata() == null
-            || StringUtils.isEmpty(invalidationModel.getMetadata().getUnitId())) {
+        if (
+            invalidationModel.getMetadata() == null || StringUtils.isEmpty(invalidationModel.getMetadata().getUnitId())
+        ) {
             throw new IllegalArgumentException("Invalid metadata");
         }
 

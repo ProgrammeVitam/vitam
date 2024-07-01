@@ -30,7 +30,6 @@ package fr.gouv.vitam.common.storage.cas.container.api;
  * Enum with all possible Storage Type
  */
 public enum StorageType {
-
     /**
      * A container
      */
@@ -49,6 +48,5 @@ public enum StorageType {
      * that start with the same name up to the delimiter character (e.g. foo-bar
      * and foo-baz, with delimiter set to "-" will be returned as "foo-").
      */
-    RELATIVE_PATH;
-
+    RELATIVE_PATH,
 }

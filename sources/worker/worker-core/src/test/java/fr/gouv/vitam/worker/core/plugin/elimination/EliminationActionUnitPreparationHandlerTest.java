@@ -83,12 +83,12 @@ import static org.mockito.Mockito.when;
 
 public class EliminationActionUnitPreparationHandlerTest {
 
-    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {
-    };
+    private static final TypeReference<JsonLineModel> TYPE_REFERENCE = new TypeReference<>() {};
 
     @Rule
-    public RunWithCustomExecutorRule runInThread =
-        new RunWithCustomExecutorRule(VitamThreadPoolExecutor.getDefaultExecutor());
+    public RunWithCustomExecutorRule runInThread = new RunWithCustomExecutorRule(
+        VitamThreadPoolExecutor.getDefaultExecutor()
+    );
 
     @Rule
     public TemporaryFolder tempFolder = new TemporaryFolder();
@@ -107,6 +107,7 @@ public class EliminationActionUnitPreparationHandlerTest {
 
     @Mock
     private EliminationActionReportService eliminationActionReportService;
+
     private List<EliminationActionUnitReportEntry> reportEntries;
 
     @InjectMocks
@@ -119,7 +120,6 @@ public class EliminationActionUnitPreparationHandlerTest {
 
     @Before
     public void setUp() throws Exception {
-
         VitamThreadUtils.getVitamSession().setTenantId(0);
         VitamThreadUtils.getVitamSession().setRequestId("opId");
 
@@ -127,15 +127,16 @@ public class EliminationActionUnitPreparationHandlerTest {
 
         doAnswer(args -> tempFolder.newFile(args.getArgument(0))).when(handler).getNewLocalFile(any());
 
-        params = WorkerParametersFactory.newWorkerParameters().setWorkerGUID(GUIDFactory
-                .newGUID().getId()).setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
+        params = WorkerParametersFactory.newWorkerParameters()
+            .setWorkerGUID(GUIDFactory.newGUID().getId())
+            .setContainerName(VitamThreadUtils.getVitamSession().getRequestId())
             .setRequestId(VitamThreadUtils.getVitamSession().getRequestId())
             .setProcessId(VitamThreadUtils.getVitamSession().getRequestId())
             .setObjectName("REF")
             .setCurrentStep("StepName");
 
         reportEntries = new ArrayList<>();
-        doAnswer((args) -> reportEntries.addAll(args.getArgument(1)))
+        doAnswer(args -> reportEntries.addAll(args.getArgument(1)))
             .when(eliminationActionReportService)
             .appendEntries(any(), any());
     }
@@ -145,37 +146,46 @@ public class EliminationActionUnitPreparationHandlerTest {
     }
 
     @After
-    public void tearDown() {
-    }
+    public void tearDown() {}
 
     @Test
     @RunWithCustomExecutor
     public void testExecute_DestroyableAndNonDestroyableUnits_Warn() throws Exception {
+        doReturn(
+            PropertiesUtils.getResourceAsStream(
+                "EliminationAction/EliminationActionUnitPreparationHandler/request.json"
+            )
+        )
+            .when(handler)
+            .getInputStreamFromWorkspace(REQUEST_JSON);
 
-        doReturn(PropertiesUtils
-            .getResourceAsStream("EliminationAction/EliminationActionUnitPreparationHandler/request.json"))
-            .when(handler).getInputStreamFromWorkspace(REQUEST_JSON);
-
-        doReturn(JsonHandler.getFromInputStream(PropertiesUtils
-            .getResourceAsStream(
-                "EliminationAction/EliminationActionUnitPreparationHandler/unitsWithInheritedRules.json")))
-            .when(metaDataClient).selectUnitsWithInheritedRules(any());
+        doReturn(
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(
+                    "EliminationAction/EliminationActionUnitPreparationHandler/unitsWithInheritedRules.json"
+                )
+            )
+        )
+            .when(metaDataClient)
+            .selectUnitsWithInheritedRules(any());
 
         when(
-            eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(
-                createAnalysisResponse(EliminationGlobalStatus.DESTROY),     // id_unit_1
-                createAnalysisResponse(EliminationGlobalStatus.KEEP),        // id_unit_2
-                createAnalysisResponse(EliminationGlobalStatus.DESTROY),     // id_unit_3
-                createAnalysisResponse(EliminationGlobalStatus.CONFLICT)     // id_unit_4
-            );
+            eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any(), any())
+        ).thenReturn(
+            createAnalysisResponse(EliminationGlobalStatus.DESTROY), // id_unit_1
+            createAnalysisResponse(EliminationGlobalStatus.KEEP), // id_unit_2
+            createAnalysisResponse(EliminationGlobalStatus.DESTROY), // id_unit_3
+            createAnalysisResponse(EliminationGlobalStatus.CONFLICT) // id_unit_4
+        );
 
         ItemStatus itemStatus = instance.execute(params, handler);
 
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
 
-        EliminationEventDetails eventDetails =
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), EliminationEventDetails.class);
+        EliminationEventDetails eventDetails = JsonHandler.getFromString(
+            itemStatus.getEvDetailData(),
+            EliminationEventDetails.class
+        );
         assertThat(eventDetails.getExpirationDate()).isEqualTo("2015-01-01");
         assertThat(eventDetails.getNbDestroyableUnits()).isEqualTo(2);
         assertThat(eventDetails.getNbNonDestroyableUnits()).isEqualTo(2);
@@ -191,59 +201,80 @@ public class EliminationActionUnitPreparationHandlerTest {
         assertThat(reportEntries.get(1).getId()).isEqualTo("id_unit_4");
         assertThat(reportEntries.get(1).getOriginatingAgency()).isEqualTo("sp_4");
         assertThat(reportEntries.get(1).getInitialOperation()).isEqualTo("opi4");
-        assertThat(reportEntries.get(1).getStatus())
-            .isEqualTo(EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name());
+        assertThat(reportEntries.get(1).getStatus()).isEqualTo(
+            EliminationActionUnitStatus.GLOBAL_STATUS_CONFLICT.name()
+        );
         assertThat(reportEntries.get(1).getObjectGroupId()).isEqualTo("id_got_4");
 
         ArgumentCaptor<File> fileArgumentCaptor = ArgumentCaptor.forClass(File.class);
         verify(handler).transferFileToWorkspace(
-            eq(UNITS_TO_DELETE_FILE), fileArgumentCaptor.capture(), eq(true), eq(false));
+            eq(UNITS_TO_DELETE_FILE),
+            fileArgumentCaptor.capture(),
+            eq(true),
+            eq(false)
+        );
 
-        try (JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
-            new FileInputStream(fileArgumentCaptor.getValue()), TYPE_REFERENCE)) {
+        try (
+            JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+                new FileInputStream(fileArgumentCaptor.getValue()),
+                TYPE_REFERENCE
+            )
+        ) {
             List<JsonLineModel> entries = IteratorUtils.toList(jsonLineIterator);
 
             assertThat(entries).hasSize(2);
             assertThat(entries.get(0).getId()).isEqualTo("id_unit_1");
             assertThat(entries.get(0).getDistribGroup()).isEqualTo(2);
             assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(0).getParams())).isEqualTo(
-                "default-fake");
+                "default-fake"
+            );
 
             assertThat(entries.get(1).getId()).isEqualTo("id_unit_3");
             assertThat(entries.get(1).getDistribGroup()).isEqualTo(1);
             assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(1).getParams())).isEqualTo(
-                "default-fake");
+                "default-fake"
+            );
         }
     }
 
     @Test
     @RunWithCustomExecutor
     public void testExecute_DestroyableUnits_OK() throws Exception {
+        doReturn(
+            PropertiesUtils.getResourceAsStream(
+                "EliminationAction/EliminationActionUnitPreparationHandler/request.json"
+            )
+        )
+            .when(handler)
+            .getInputStreamFromWorkspace(REQUEST_JSON);
 
-        doReturn(PropertiesUtils
-            .getResourceAsStream("EliminationAction/EliminationActionUnitPreparationHandler/request.json"))
-            .when(handler).getInputStreamFromWorkspace(REQUEST_JSON);
-
-        doReturn(JsonHandler.getFromInputStream(PropertiesUtils
-            .getResourceAsStream(
-                "EliminationAction/EliminationActionUnitPreparationHandler/unitsWithInheritedRules.json")))
-            .when(metaDataClient).selectUnitsWithInheritedRules(any());
+        doReturn(
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(
+                    "EliminationAction/EliminationActionUnitPreparationHandler/unitsWithInheritedRules.json"
+                )
+            )
+        )
+            .when(metaDataClient)
+            .selectUnitsWithInheritedRules(any());
 
         when(
-            eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any(), any()))
-            .thenReturn(
-                createAnalysisResponse(EliminationGlobalStatus.DESTROY),    // id_unit_1
-                createAnalysisResponse(EliminationGlobalStatus.DESTROY),    // id_unit_2
-                createAnalysisResponse(EliminationGlobalStatus.DESTROY),    // id_unit_3
-                createAnalysisResponse(EliminationGlobalStatus.DESTROY)     // id_unit_4
-            );
+            eliminationAnalysisService.analyzeElimination(anyString(), any(), any(), any(), any(), any(), any(), any())
+        ).thenReturn(
+            createAnalysisResponse(EliminationGlobalStatus.DESTROY), // id_unit_1
+            createAnalysisResponse(EliminationGlobalStatus.DESTROY), // id_unit_2
+            createAnalysisResponse(EliminationGlobalStatus.DESTROY), // id_unit_3
+            createAnalysisResponse(EliminationGlobalStatus.DESTROY) // id_unit_4
+        );
 
         ItemStatus itemStatus = instance.execute(params, handler);
 
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.OK);
 
-        EliminationEventDetails eventDetails =
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), EliminationEventDetails.class);
+        EliminationEventDetails eventDetails = JsonHandler.getFromString(
+            itemStatus.getEvDetailData(),
+            EliminationEventDetails.class
+        );
         assertThat(eventDetails.getExpirationDate()).isEqualTo("2015-01-01");
         assertThat(eventDetails.getNbDestroyableUnits()).isEqualTo(4);
         assertThat(eventDetails.getNbNonDestroyableUnits()).isEqualTo(0);
@@ -252,45 +283,65 @@ public class EliminationActionUnitPreparationHandlerTest {
 
         ArgumentCaptor<File> fileArgumentCaptor = ArgumentCaptor.forClass(File.class);
         verify(handler).transferFileToWorkspace(
-            eq(UNITS_TO_DELETE_FILE), fileArgumentCaptor.capture(), eq(true), eq(false));
+            eq(UNITS_TO_DELETE_FILE),
+            fileArgumentCaptor.capture(),
+            eq(true),
+            eq(false)
+        );
 
-        try (JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
-            new FileInputStream(fileArgumentCaptor.getValue()), TYPE_REFERENCE)) {
+        try (
+            JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+                new FileInputStream(fileArgumentCaptor.getValue()),
+                TYPE_REFERENCE
+            )
+        ) {
             List<JsonLineModel> entries = IteratorUtils.toList(jsonLineIterator);
 
             assertThat(entries).hasSize(4);
             assertThat(entries.get(0).getId()).isEqualTo("id_unit_1");
             assertThat(entries.get(0).getDistribGroup()).isEqualTo(2);
             assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(0).getParams())).isEqualTo(
-                "default-fake");
+                "default-fake"
+            );
             assertThat(entries.get(1).getId()).isEqualTo("id_unit_2");
             assertThat(entries.get(1).getDistribGroup()).isEqualTo(2);
             assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(1).getParams())).isEqualTo(
-                "default-fake");
+                "default-fake"
+            );
             assertThat(entries.get(2).getId()).isEqualTo("id_unit_3");
             assertThat(entries.get(2).getDistribGroup()).isEqualTo(1);
             assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(2).getParams())).isEqualTo(
-                "default-fake");
+                "default-fake"
+            );
             assertThat(entries.get(3).getId()).isEqualTo("id_unit_4");
             assertThat(entries.get(3).getDistribGroup()).isEqualTo(1);
             assertThat(MetadataDocumentHelper.getStrategyIdFromUnit(entries.get(3).getParams())).isEqualTo(
-                "default-fake");
+                "default-fake"
+            );
         }
     }
 
     @Test
     @RunWithCustomExecutor
     public void testExecute_EmptyResultSet_Warn() throws Exception {
-
         // Given
-        doReturn(PropertiesUtils
-            .getResourceAsStream("EliminationAction/EliminationActionUnitPreparationHandler/request.json"))
-            .when(handler).getInputStreamFromWorkspace(REQUEST_JSON);
+        doReturn(
+            PropertiesUtils.getResourceAsStream(
+                "EliminationAction/EliminationActionUnitPreparationHandler/request.json"
+            )
+        )
+            .when(handler)
+            .getInputStreamFromWorkspace(REQUEST_JSON);
 
-        doReturn(JsonHandler.getFromInputStream(PropertiesUtils
-            .getResourceAsStream(
-                "EliminationAction/EliminationActionUnitPreparationHandler/emptyUnitsWithInheritedRules.json")))
-            .when(metaDataClient).selectUnitsWithInheritedRules(any());
+        doReturn(
+            JsonHandler.getFromInputStream(
+                PropertiesUtils.getResourceAsStream(
+                    "EliminationAction/EliminationActionUnitPreparationHandler/emptyUnitsWithInheritedRules.json"
+                )
+            )
+        )
+            .when(metaDataClient)
+            .selectUnitsWithInheritedRules(any());
 
         // When
         ItemStatus itemStatus = instance.execute(params, handler);
@@ -298,8 +349,10 @@ public class EliminationActionUnitPreparationHandlerTest {
         // Then
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.WARNING);
 
-        EliminationEventDetails eventDetails =
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), EliminationEventDetails.class);
+        EliminationEventDetails eventDetails = JsonHandler.getFromString(
+            itemStatus.getEvDetailData(),
+            EliminationEventDetails.class
+        );
         assertThat(eventDetails.getExpirationDate()).isEqualTo("2015-01-01");
         assertThat(eventDetails.getNbDestroyableUnits()).isEqualTo(0);
         assertThat(eventDetails.getNbNonDestroyableUnits()).isEqualTo(0);
@@ -308,30 +361,42 @@ public class EliminationActionUnitPreparationHandlerTest {
 
         ArgumentCaptor<File> fileArgumentCaptor = ArgumentCaptor.forClass(File.class);
         verify(handler).transferFileToWorkspace(
-            eq(UNITS_TO_DELETE_FILE), fileArgumentCaptor.capture(), eq(true), eq(false));
+            eq(UNITS_TO_DELETE_FILE),
+            fileArgumentCaptor.capture(),
+            eq(true),
+            eq(false)
+        );
 
-        try (JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
-            new FileInputStream(fileArgumentCaptor.getValue()), TYPE_REFERENCE)) {
+        try (
+            JsonLineGenericIterator<JsonLineModel> jsonLineIterator = new JsonLineGenericIterator<>(
+                new FileInputStream(fileArgumentCaptor.getValue()),
+                TYPE_REFERENCE
+            )
+        ) {
             List<JsonLineModel> entries = IteratorUtils.toList(jsonLineIterator);
             assertThat(entries).isEmpty();
         }
     }
 
-
     @Test
     @RunWithCustomExecutor
     public void testExecute_FutureDate_Warn() throws Exception {
-
-        doReturn(PropertiesUtils.getResourceAsStream(
-            "EliminationAction/EliminationActionUnitPreparationHandler/invalidRequestWithFutureDate.json"))
-            .when(handler).getInputStreamFromWorkspace(REQUEST_JSON);
+        doReturn(
+            PropertiesUtils.getResourceAsStream(
+                "EliminationAction/EliminationActionUnitPreparationHandler/invalidRequestWithFutureDate.json"
+            )
+        )
+            .when(handler)
+            .getInputStreamFromWorkspace(REQUEST_JSON);
 
         ItemStatus itemStatus = instance.execute(params, handler);
 
         assertThat(itemStatus.getGlobalStatus()).isEqualTo(StatusCode.KO);
 
-        EliminationEventDetails eventDetails =
-            JsonHandler.getFromString(itemStatus.getEvDetailData(), EliminationEventDetails.class);
+        EliminationEventDetails eventDetails = JsonHandler.getFromString(
+            itemStatus.getEvDetailData(),
+            EliminationEventDetails.class
+        );
         assertThat(eventDetails.getExpirationDate()).isEqualTo("2050-01-01");
         assertThat(eventDetails.getError()).isEqualTo(DATE_REQUEST_IN_FUTURE);
     }

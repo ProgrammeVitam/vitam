@@ -44,5 +44,4 @@ public class VitamRequestLogImpl extends RequestLogImpl {
         }
         aai.appendLoopOnAppenders(accessEvent);
     }
-
 }

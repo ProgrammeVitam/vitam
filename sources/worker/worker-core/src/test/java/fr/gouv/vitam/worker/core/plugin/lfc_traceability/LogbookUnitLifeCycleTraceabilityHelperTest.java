@@ -72,6 +72,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 public class LogbookUnitLifeCycleTraceabilityHelperTest {
+
     private static final String FILE_NAME = "0_operations_20171031_151118.zip";
     private static final String LOGBOOK_OPERATION_START_DATE = "2017-08-17T14:01:07.52";
     private static final String LAST_OPERATION_HASH =
@@ -80,16 +81,15 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
     private static final String LAST_OPERATION = "LogbookLifeCycleTraceabilityHelperTest/lastOperation.json";
     private static final String TRACEABILITY_INFO =
         "LogbookLifeCycleTraceabilityHelperTest/traceabilityInformation.json";
-    private static final String TRACEABILITY_DATA =
-        "LogbookLifeCycleTraceabilityHelperTest/traceabilityData.jsonl";
+    private static final String TRACEABILITY_DATA = "LogbookLifeCycleTraceabilityHelperTest/traceabilityData.jsonl";
     private static final String TRACEABILITY_STATISTICS =
         "LogbookLifeCycleTraceabilityHelperTest/unitTraceabilityStats.json";
-    private static final TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<>() {
-    };
+    private static final TypeReference<JsonNode> JSON_NODE_TYPE_REFERENCE = new TypeReference<>() {};
 
     private static LocalDateTime LOGBOOK_OPERATION_EVENT_DATE;
     private HandlerIOImpl handlerIO;
     private List<IOParameter> in;
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -107,6 +107,7 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
 
     @Mock
     private LogbookOperationsClientFactory logbookOperationsClientFactory;
+
     @Mock
     private LogbookOperationsClient logbookOperationsClient;
 
@@ -117,30 +118,31 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
 
     @Before
     public void setUp() throws Exception {
-
         File vitamTempFolder = folder.newFolder();
         SystemPropertyUtil.set("vitam.tmp.folder", vitamTempFolder.getAbsolutePath());
 
         LOGBOOK_OPERATION_EVENT_DATE = LocalDateUtil.fromDate(LocalDateUtil.getDate("2016-06-10T11:56:35.914"));
 
-
         when(workspaceClientFactory.getClient()).thenReturn(workspaceClient);
         when(logbookOperationsClientFactory.getClient()).thenReturn(logbookOperationsClient);
         when(logbookLifeCyclesClientFactory.getClient()).thenReturn(logbookLifeCyclesClient);
         String objectId = "objectId";
-        handlerIO = new HandlerIOImpl(workspaceClientFactory, logbookLifeCyclesClientFactory, "Test", "workerId",
-            Lists.newArrayList(objectId));
+        handlerIO = new HandlerIOImpl(
+            workspaceClientFactory,
+            logbookLifeCyclesClientFactory,
+            "Test",
+            "workerId",
+            Lists.newArrayList(objectId)
+        );
         handlerIO.setCurrentObjectId(objectId);
 
         in = new ArrayList<>();
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/lastOperation.json")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/traceabilityInformation.json")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/traceabilityData.jsonl")));
-        in.add(new IOParameter()
-            .setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/traceabilityStats.json")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/lastOperation.json")));
+        in.add(
+            new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/traceabilityInformation.json"))
+        );
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/traceabilityData.jsonl")));
+        in.add(new IOParameter().setUri(new ProcessingUri(UriPrefix.MEMORY, "Operations/traceabilityStats.json")));
         itemStatus = new ItemStatus(HANDLER_ID);
     }
 
@@ -155,16 +157,24 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATISTICS), false);
         handlerIO.addInIOParameters(in);
 
-        LogbookUnitLifeCycleTraceabilityHelper helper =
-            new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
-                workspaceClientFactory, null, "eventFileName", "zipFileName");
+        LogbookUnitLifeCycleTraceabilityHelper helper = new LogbookUnitLifeCycleTraceabilityHelper(
+            handlerIO,
+            logbookOperationsClient,
+            itemStatus,
+            guid.getId(),
+            workspaceClientFactory,
+            null,
+            "eventFileName",
+            "zipFileName"
+        );
 
         // When
         helper.startTraceability();
 
         // Then
-        assertThat(helper.getTraceabilityStartDate())
-            .isEqualTo(LocalDateUtil.getFormattedDateForMongo(LOGBOOK_OPERATION_EVENT_DATE));
+        assertThat(helper.getTraceabilityStartDate()).isEqualTo(
+            LocalDateUtil.getFormattedDateForMongo(LOGBOOK_OPERATION_EVENT_DATE)
+        );
     }
 
     @Test
@@ -178,9 +188,16 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATISTICS), false);
         handlerIO.addInIOParameters(in);
 
-        LogbookUnitLifeCycleTraceabilityHelper helper =
-            new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
-                workspaceClientFactory, null, "eventFileName", "zipFileName");
+        LogbookUnitLifeCycleTraceabilityHelper helper = new LogbookUnitLifeCycleTraceabilityHelper(
+            handlerIO,
+            logbookOperationsClient,
+            itemStatus,
+            guid.getId(),
+            workspaceClientFactory,
+            null,
+            "eventFileName",
+            "zipFileName"
+        );
 
         // When
         helper.startTraceability();
@@ -203,16 +220,25 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATISTICS), false);
         handlerIO.addInIOParameters(in);
 
-        when(logbookOperationsClient.selectOperation(any()))
-            .thenThrow(new LogbookClientException("LogbookClientException"));
+        when(logbookOperationsClient.selectOperation(any())).thenThrow(
+            new LogbookClientException("LogbookClientException")
+        );
 
-        JsonLineGenericIterator<JsonNode> entriesIterator =
-            new JsonLineGenericIterator<>(PropertiesUtils.getResourceAsStream(TRACEABILITY_DATA),
-                JSON_NODE_TYPE_REFERENCE);
+        JsonLineGenericIterator<JsonNode> entriesIterator = new JsonLineGenericIterator<>(
+            PropertiesUtils.getResourceAsStream(TRACEABILITY_DATA),
+            JSON_NODE_TYPE_REFERENCE
+        );
 
-        LogbookUnitLifeCycleTraceabilityHelper helper =
-            new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
-                workspaceClientFactory, entriesIterator, "eventFileName", "zipFileName");
+        LogbookUnitLifeCycleTraceabilityHelper helper = new LogbookUnitLifeCycleTraceabilityHelper(
+            handlerIO,
+            logbookOperationsClient,
+            itemStatus,
+            guid.getId(),
+            workspaceClientFactory,
+            entriesIterator,
+            "eventFileName",
+            "zipFileName"
+        );
 
         final MerkleTreeAlgo algo = new MerkleTreeAlgo(VitamConfiguration.getDefaultDigestType());
 
@@ -238,9 +264,16 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATISTICS), false);
         handlerIO.addInIOParameters(in);
 
-        LogbookUnitLifeCycleTraceabilityHelper helper =
-            new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
-                workspaceClientFactory, null, "eventFileName", "zipFileName");
+        LogbookUnitLifeCycleTraceabilityHelper helper = new LogbookUnitLifeCycleTraceabilityHelper(
+            handlerIO,
+            logbookOperationsClient,
+            itemStatus,
+            guid.getId(),
+            workspaceClientFactory,
+            null,
+            "eventFileName",
+            "zipFileName"
+        );
 
         helper.startTraceability();
 
@@ -264,9 +297,16 @@ public class LogbookUnitLifeCycleTraceabilityHelperTest {
         handlerIO.addOutputResult(3, PropertiesUtils.getResourceFile(TRACEABILITY_STATISTICS), false);
         handlerIO.addInIOParameters(in);
 
-        LogbookUnitLifeCycleTraceabilityHelper helper =
-            new LogbookUnitLifeCycleTraceabilityHelper(handlerIO, logbookOperationsClient, itemStatus, guid.getId(),
-                workspaceClientFactory, null, "eventFileName", "zipFileName");
+        LogbookUnitLifeCycleTraceabilityHelper helper = new LogbookUnitLifeCycleTraceabilityHelper(
+            handlerIO,
+            logbookOperationsClient,
+            itemStatus,
+            guid.getId(),
+            workspaceClientFactory,
+            null,
+            "eventFileName",
+            "zipFileName"
+        );
 
         helper.startTraceability();
 

@@ -108,9 +108,7 @@ public class PrepareUpdateUnits extends ActionHandler {
      * @throws ProcessingException if an error is encountered when executing the action
      */
     @Override
-    public ItemStatus execute(WorkerParameters param, HandlerIO handler)
-        throws ProcessingException {
-
+    public ItemStatus execute(WorkerParameters param, HandlerIO handler) throws ProcessingException {
         final ItemStatus itemStatus = new ItemStatus(PREPARE_UPDATE_UNIT_LIST);
 
         try (MetaDataClient client = metaDataClientFactory.getClient()) {
@@ -123,8 +121,11 @@ public class PrepareUpdateUnits extends ActionHandler {
             final File distribFile = handler.getNewLocalFile(distribFileName);
 
             // create spliterator based on the select query
-            final ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper
-                .createUnitScrollSplitIterator(client, multiQuery, batchSize);
+            final ScrollSpliterator<JsonNode> scrollRequest = ScrollSpliteratorHelper.createUnitScrollSplitIterator(
+                client,
+                multiQuery,
+                batchSize
+            );
 
             // create temporary file with units as JSONL
             createDistributionFile(scrollRequest, distribFile);
@@ -134,7 +135,6 @@ public class PrepareUpdateUnits extends ActionHandler {
 
             // set status OK
             itemStatus.increment(StatusCode.OK);
-
         } catch (InvalidParseOperationException | ProcessingException e) {
             LOGGER.error(e);
             itemStatus.increment(StatusCode.FATAL);
@@ -152,17 +152,13 @@ public class PrepareUpdateUnits extends ActionHandler {
     private void createDistributionFile(final ScrollSpliterator<JsonNode> scrollRequest, File distribFile)
         throws ProcessingException {
         try (JsonLineWriter jsonLineWriter = new JsonLineWriter(new FileOutputStream(distribFile))) {
-
-            StreamSupport.stream(scrollRequest, false).forEach(
-                item -> {
-                    try {
-                        jsonLineWriter.addEntry(getJsonLineForItem(item));
-                    } catch (IOException e) {
-                        throw new VitamRuntimeException(e);
-                    }
+            StreamSupport.stream(scrollRequest, false).forEach(item -> {
+                try {
+                    jsonLineWriter.addEntry(getJsonLineForItem(item));
+                } catch (IOException e) {
+                    throw new VitamRuntimeException(e);
                 }
-            );
-
+            });
         } catch (IOException | VitamRuntimeException | IllegalStateException e) {
             throw new ProcessingException("Could not generate and save file", e);
         }
@@ -190,6 +186,4 @@ public class PrepareUpdateUnits extends ActionHandler {
 
         return multiQuery;
     }
-
-
 }

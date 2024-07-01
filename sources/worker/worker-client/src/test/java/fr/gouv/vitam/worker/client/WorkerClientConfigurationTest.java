@@ -44,5 +44,4 @@ public class WorkerClientConfigurationTest {
         assertEquals("host", configuration2.getServerHost());
         assertEquals(1, configuration2.getServerPort());
     }
-
 }

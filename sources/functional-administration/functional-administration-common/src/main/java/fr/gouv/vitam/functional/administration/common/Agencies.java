@@ -35,6 +35,7 @@ import org.bson.Document;
  * Defines a Agency collection. </BR>
  */
 public class Agencies extends VitamDocument<Agencies> {
+
     /**
      *
      */
@@ -60,8 +61,7 @@ public class Agencies extends VitamDocument<Agencies> {
      * /**
      * Empty Constructor
      */
-    public Agencies() {
-    }
+    public Agencies() {}
 
     /**
      * @param tenantId the working tenant
@@ -119,7 +119,6 @@ public class Agencies extends VitamDocument<Agencies> {
         return this;
     }
 
-
     /**
      * Get the Agency Identifier
      *
@@ -160,9 +159,12 @@ public class Agencies extends VitamDocument<Agencies> {
         return this;
     }
 
-
     public AgenciesModel wrap() {
-        return new AgenciesModel(this.getIdentifier(), this.getName(), this.getDescription(),
-            this.get("#tenant", Integer.class));
+        return new AgenciesModel(
+            this.getIdentifier(),
+            this.getName(),
+            this.getDescription(),
+            this.get("#tenant", Integer.class)
+        );
     }
 }

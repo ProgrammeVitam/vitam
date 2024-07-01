@@ -148,7 +148,8 @@ public class AccessLogInfoModel {
             return true;
         }
 
-        return Objects.equals(this.mustLog, other.mustLog) &&
+        return (
+            Objects.equals(this.mustLog, other.mustLog) &&
             Objects.equals(this.eventDateTime, other.eventDateTime) &&
             Objects.equals(this.contextId, other.contextId) &&
             Objects.equals(this.contractId, other.contractId) &&
@@ -157,6 +158,7 @@ public class AccessLogInfoModel {
             Objects.equals(this.archiveId, other.archiveId) &&
             Objects.equals(this.qualifier, other.qualifier) &&
             Objects.equals(this.version, other.version) &&
-            Objects.equals(this.size, other.size);
+            Objects.equals(this.size, other.size)
+        );
     }
 }

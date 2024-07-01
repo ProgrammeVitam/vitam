@@ -30,6 +30,7 @@ import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.client.indices.CreateIndexResponse;
 
 public class VitamElasticListener implements ActionListener<CreateIndexResponse> {
+
     private boolean acknowledged = false;
     private boolean shardsAcknowledged = false;
     private Exception exception = null;

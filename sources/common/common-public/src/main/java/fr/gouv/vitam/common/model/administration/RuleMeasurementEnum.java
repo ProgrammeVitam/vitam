@@ -36,7 +36,6 @@ import java.util.Calendar;
  * Enum for Rule Measurement
  */
 public enum RuleMeasurementEnum {
-
     /**
      * Month
      */
@@ -52,24 +51,21 @@ public enum RuleMeasurementEnum {
     /**
      * Second
      */
-    @Deprecated()
+    @Deprecated
     SECOND("second", Calendar.SECOND, ChronoUnit.SECONDS);
 
     private final String type;
     private final int calendarUnitType;
     private final TemporalUnit temporalUnit;
 
-
     /**
      * Constructor
      */
-    RuleMeasurementEnum(String ruleMeasurement, int calendarUnitType,
-        TemporalUnit temporalUnit) {
+    RuleMeasurementEnum(String ruleMeasurement, int calendarUnitType, TemporalUnit temporalUnit) {
         type = ruleMeasurement;
         this.calendarUnitType = calendarUnitType;
         this.temporalUnit = temporalUnit;
     }
-
 
     /**
      * @return the type of the measure

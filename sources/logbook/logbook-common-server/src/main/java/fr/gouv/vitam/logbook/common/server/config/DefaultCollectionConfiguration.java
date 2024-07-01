@@ -47,16 +47,13 @@ public class DefaultCollectionConfiguration {
         return logbookoperation;
     }
 
-    public DefaultCollectionConfiguration setLogbookoperation(
-        CollectionConfiguration logbookoperation) {
+    public DefaultCollectionConfiguration setLogbookoperation(CollectionConfiguration logbookoperation) {
         this.logbookoperation = logbookoperation;
         return this;
     }
 
     @Override
     public String toString() {
-        return "DefaultCollectionConfiguration{" +
-            "logbookoperation=" + logbookoperation +
-            '}';
+        return "DefaultCollectionConfiguration{" + "logbookoperation=" + logbookoperation + '}';
     }
 }

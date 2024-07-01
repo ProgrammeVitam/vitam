@@ -87,9 +87,10 @@ class MigrationHelper {
      */
     static void exportToReportAndDistributionFile(
         final ScrollSpliterator<JsonNode> scrollRequest,
-        final HandlerIO handler, final String jsonLineFileName, String reportFilename)
-        throws ProcessingException {
-
+        final HandlerIO handler,
+        final String jsonLineFileName,
+        String reportFilename
+    ) throws ProcessingException {
         File report = handler.getNewLocalFile("report.json");
         File distributionFile = handler.getNewLocalFile(jsonLineFileName);
 
@@ -97,19 +98,19 @@ class MigrationHelper {
             OutputStream distributionOutputStream = new FileOutputStream(distributionFile);
             JsonLineWriter distributionFileWriter = new JsonLineWriter(distributionOutputStream);
             OutputStream reportOutputStream = new FileOutputStream(report);
-            JsonGenerator jsonGenerator = createJsonGenerator(reportOutputStream)) {
+            JsonGenerator jsonGenerator = createJsonGenerator(reportOutputStream)
+        ) {
             jsonGenerator.writeStartArray();
 
-            StreamSupport.stream(scrollRequest, false).forEach(
-                item -> {
-                    final String id = item.get(ID).asText();
-                    try {
-                        distributionFileWriter.addEntry(new JsonLineModel(id));
-                        jsonGenerator.writeString(id);
-                    } catch (IOException e) {
-                        throw new VitamRuntimeException(e);
-                    }
-                });
+            StreamSupport.stream(scrollRequest, false).forEach(item -> {
+                final String id = item.get(ID).asText();
+                try {
+                    distributionFileWriter.addEntry(new JsonLineModel(id));
+                    jsonGenerator.writeString(id);
+                } catch (IOException e) {
+                    throw new VitamRuntimeException(e);
+                }
+            });
             jsonGenerator.writeEndArray();
         } catch (IOException e) {
             throw new ProcessingException("Could not save linked files", e);

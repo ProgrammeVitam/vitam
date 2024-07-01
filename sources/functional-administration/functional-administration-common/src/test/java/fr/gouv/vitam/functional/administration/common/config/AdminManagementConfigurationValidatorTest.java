@@ -40,58 +40,67 @@ public class AdminManagementConfigurationValidatorTest {
 
     @Test
     public void testConfigOK_full() throws Exception {
-
         // Given
         AdminManagementConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils
-            .getConfigAsStream("./functional_administration_test_config.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream("./functional_administration_test_config.yml")
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
         }
 
         // When / Then
-        assertThatCode(() -> AdminManagementConfigurationValidator.validateConfiguration(config))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> AdminManagementConfigurationValidator.validateConfiguration(config)
+        ).doesNotThrowAnyException();
     }
 
     @Test
     public void testConfigOK_defaults_only() throws Exception {
-
         // Given
         AdminManagementConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils
-            .getConfigAsStream("./functional_administration_test_config_defaults_only.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "./functional_administration_test_config_defaults_only.yml"
+            )
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
         }
 
         // When / Then
-        assertThatCode(() -> AdminManagementConfigurationValidator.validateConfiguration(config))
-            .doesNotThrowAnyException();
+        assertThatCode(
+            () -> AdminManagementConfigurationValidator.validateConfiguration(config)
+        ).doesNotThrowAnyException();
     }
 
     @Test
     public void testConfigKO_InvalidDefaultConf() throws Exception {
-
         // Given
         AdminManagementConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
-            "functional_administration_test_config_invalid_defaults.yml")) {
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "functional_administration_test_config_invalid_defaults.yml"
+            )
+        ) {
             config = PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class);
         }
 
         // When / Then
-        assertThatThrownBy(() -> AdminManagementConfigurationValidator.validateConfiguration(config))
-            .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> AdminManagementConfigurationValidator.validateConfiguration(config)).isInstanceOf(
+            IllegalStateException.class
+        );
     }
 
     @Test
     public void testConfigKO_InvalidCollectionName() throws Exception {
         AdminManagementConfiguration config;
-        try (final InputStream yamlIS = PropertiesUtils
-            .getConfigAsStream("./functional_administration_test_config_invalid_collection_name.yml")) {
-
-            assertThatThrownBy(
-                () -> PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class)
-            ).isInstanceOf(JsonMappingException.class);
+        try (
+            final InputStream yamlIS = PropertiesUtils.getConfigAsStream(
+                "./functional_administration_test_config_invalid_collection_name.yml"
+            )
+        ) {
+            assertThatThrownBy(() -> PropertiesUtils.readYaml(yamlIS, AdminManagementConfiguration.class)).isInstanceOf(
+                JsonMappingException.class
+            );
         }
     }
 }

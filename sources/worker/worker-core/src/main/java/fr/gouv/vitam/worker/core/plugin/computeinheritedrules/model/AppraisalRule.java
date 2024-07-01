@@ -36,19 +36,21 @@ import java.util.Set;
 
 public class AppraisalRule extends InheritedRule {
 
-
     private static final String FINAL_ACTION = "FinalAction";
 
     @JsonProperty(FINAL_ACTION)
     private List<String> finalAction;
 
-    public AppraisalRule() {
+    public AppraisalRule() {}
 
-    }
-
-    public AppraisalRule(LocalDate maxEndDate, Properties properties, Map<String, LocalDate> ruleIdToRule,
-        List<ComputedInheritedRuleModel> rules, RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin,
-        Set<String> inheritedRuleIds) {
+    public AppraisalRule(
+        LocalDate maxEndDate,
+        Properties properties,
+        Map<String, LocalDate> ruleIdToRule,
+        List<ComputedInheritedRuleModel> rules,
+        RuleCategoryInheritanceOrigin ruleCategoryInheritanceOrigin,
+        Set<String> inheritedRuleIds
+    ) {
         super(maxEndDate, ruleIdToRule, rules, ruleCategoryInheritanceOrigin, inheritedRuleIds);
         parseClassificationProperties(properties);
     }

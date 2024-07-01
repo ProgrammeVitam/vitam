@@ -30,6 +30,7 @@ package fr.gouv.vitam.workspace.api.exception;
  * Thrown when there is an error on a Compressed file (format, etc).
  */
 public class ContentAddressableStorageCompressedFileException extends ContentAddressableStorageException {
+
     private static final long serialVersionUID = -7976465493734475323L;
 
     /**
@@ -59,5 +60,4 @@ public class ContentAddressableStorageCompressedFileException extends ContentAdd
     public ContentAddressableStorageCompressedFileException(String message, Throwable cause) {
         super(message, cause);
     }
-
 }

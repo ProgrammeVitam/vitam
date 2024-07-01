@@ -35,14 +35,11 @@ import static org.junit.Assert.assertEquals;
 public class DummyHandlerTest {
 
     @Test
-    public void dummyHandlerTest()
-        throws Exception {
+    public void dummyHandlerTest() throws Exception {
         final DummyHandler handler = new DummyHandler();
 
         assertEquals("DummyHandler", DummyHandler.getId());
         final ItemStatus response = handler.execute(null, null);
         assertEquals(response.getGlobalStatus(), StatusCode.UNKNOWN);
     }
-
-
 }
